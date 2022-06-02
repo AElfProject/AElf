@@ -22,9 +22,9 @@ namespace AElf.Contracts.NFT
             await AdminNFTMarketContractStub.Initialize.SendAsync(new InitializeInput
             {
                 NftContractAddress = NFTContractAddress,
-                WhitelistContractAddress = WhitelistContractAddress,
                 ServiceFeeReceiver = MarketServiceFeeReceiverAddress
             });
+            await AdminNFTMarketContractStub.SetWhitelistContract.SendAsync(WhitelistContractAddress);
 
             var symbol = await CreateArtistsTest();
 

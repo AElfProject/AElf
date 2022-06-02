@@ -87,6 +87,14 @@ service WhitelistContract {
     //Clone whitelist.
     rpc CloneWhitelist (CloneWhitelistInput) returns (aelf.Hash){
     }
+
+    //Add subscribe whitelist manager.
+    rpc AddSubscribeManagers (AddSubscribeManagersInput) returns (google.protobuf.Empty){
+    }
+
+    //Remove subscribe whitelist manager.
+    rpc RemoveSubscribeManagers (RemoveSubscribeManagersInput) returns (google.protobuf.Empty){
+    }
     
     
     //Views.
@@ -120,7 +128,7 @@ service WhitelistContract {
         option (aelf.is_view) = true;
     }
     
-    //Get tagInfoId list according to the whitelist_id,owner and project_id.
+    //Get tagInfoId list according to the whitelist_id and project_id.
     rpc GetExtraInfoIdList(GetExtraInfoIdListInput) returns (HashList){
         option (aelf.is_view) = true;
     }
@@ -155,6 +163,11 @@ service WhitelistContract {
         option (aelf.is_view) = true;
     }
     
+    //Get subscribe manager list according to the subscribe_id.
+    rpc GetSubscribeManagerList(aelf.Hash) returns (AddressList){
+        option (aelf.is_view) = true;
+    }
+    
     //Whether manager exist in whitelist.
     rpc GetManagerExistFromWhitelist(GetManagerExistFromWhitelistInput) returns (google.protobuf.BoolValue){
         option (aelf.is_view) = true;
@@ -164,6 +177,11 @@ service WhitelistContract {
     rpc GetSubscribeWhitelist (aelf.Hash) returns (SubscribeWhitelistInfo){
         option (aelf.is_view) = true;
     }
+    
+    //Get subscribe_id list according to the manager.
+    rpc GetSubscribeIdByManager (aelf.Address) returns (HashList){
+        option (aelf.is_view) = true;
+    }
 
     //Get consumed list according to the subscribe_id.
     rpc GetConsumedList (aelf.Hash) returns (ConsumedList){
@@ -171,7 +189,7 @@ service WhitelistContract {
     }
     
     //After consumed,get available whitelist according to the subscribe_id. 
-    rpc GetAvailableWhitelist (aelf.Hash) returns (ExtraInfoList){
+    rpc GetAvailableWhitelist (aelf.Hash) returns (ExtraInfoIdList){
         option (aelf.is_view) = true;
     }
     
@@ -253,6 +271,9 @@ message SubscribeWhitelistInfo {
     aelf.Hash project_id = 2;
     //The whitelist id.
     aelf.Hash whitelist_id = 3;
+    aelf.Address subscriber = 4;
+    //Manager list.
+    AddressList manager_list = 5;
 }
 
 message ConsumedList {
@@ -326,6 +347,10 @@ message SubscribeWhitelistInput{
     aelf.Hash project_id = 1;
     //The whitelist id.
     aelf.Hash whitelist_id = 2;
+    //Subscriber.
+    aelf.Address subscriber = 3;
+    //Manager list.
+    AddressList manager_list = 4;
 }
 
 message ConsumeWhitelistInput{
@@ -348,7 +373,7 @@ message TransferManagerInput{
 
 message GetFromAvailableWhitelistInput{
     aelf.Hash subscribe_id = 1;
-    ExtraInfo extra_info = 2;
+    ExtraInfoId extra_info_id = 2;
 }
 
 message AddManagersInput{
@@ -356,8 +381,18 @@ message AddManagersInput{
     AddressList manager_list = 2;
 }
 
+message AddSubscribeManagersInput{
+    aelf.Hash subscribe_id = 1;
+    AddressList manager_list = 2;
+}
+
 message RemoveManagersInput{
     aelf.Hash whitelist_id = 1;
+    AddressList manager_list = 2;
+}
+
+message RemoveSubscribeManagersInput{
+    aelf.Hash subscribe_id = 1;
     AddressList manager_list = 2;
 }
 
@@ -373,8 +408,7 @@ message GetExtraInfoByAddressInput{
 
 message GetExtraInfoIdListInput{
     aelf.Hash whitelist_id = 1;
-    aelf.Address owner = 2;
-    aelf.Hash project_id = 3;
+    aelf.Hash project_id = 2;
 }
 
 message GetExtraInfoByTagInput{
@@ -436,6 +470,10 @@ message WhitelistSubscribed {
     aelf.Hash project_id = 2;
     //The whitelist id.
     aelf.Hash whitelist_id = 3;
+    //Subscriber.
+    aelf.Address subscriber = 4;
+    //Manager list.
+    AddressList manager_list = 5;
 }
 
 message WhitelistUnsubscribed{
@@ -528,4 +566,16 @@ message WhitelistReset{
     option (aelf.is_event) = true;
     aelf.Hash whitelist_id = 1;
     aelf.Hash project_id = 2;
+}
+
+message SubscribeManagerAdded{
+    option (aelf.is_event) = true;
+    aelf.Hash subscribe_id = 1;
+    AddressList manager_list = 2;
+}
+
+message SubscribeManagerRemoved{
+    option (aelf.is_event) = true;
+    aelf.Hash subscribe_id = 1;
+    AddressList manager_list = 2;
 }

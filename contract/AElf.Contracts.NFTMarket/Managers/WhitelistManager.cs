@@ -22,7 +22,7 @@ namespace AElf.Contracts.NFTMinter.Managers
 
         public void CreateWhitelist(CreateWhitelistInput input)
         {
-            
+            _whitelistContract.CreateWhitelist.Send(input);
         }
 
         public void AddExtraInfo(AddExtraInfoInput input)
@@ -32,12 +32,12 @@ namespace AElf.Contracts.NFTMinter.Managers
 
         public void AddAddressInfoListToWhitelist(AddAddressInfoListToWhitelistInput input)
         {
-            throw new System.NotImplementedException();
+            
         }
 
         public void RemoveAddressInfoListFromWhitelist(RemoveAddressInfoListFromWhitelistInput input)
         {
-            throw new System.NotImplementedException();
+           
         }
         
     }

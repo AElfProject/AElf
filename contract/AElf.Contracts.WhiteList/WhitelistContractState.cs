@@ -14,9 +14,9 @@ namespace AElf.Contracts.Whitelist
         public MappedState<Hash, TagInfo> TagInfoMap { get; set; }
 
         /// <summary>
-        ///Manager -> Project Id -> whitelistId -> TagInfo Id List.
+        ///Project Id -> whitelistId -> TagInfo Id List.
         /// </summary>
-        public MappedState<Address, Hash, Hash, HashList> ManagerTagInfoMap { get; set; }
+        public MappedState<Hash, Hash, HashList> ManagerTagInfoMap { get; set; }
         
         /// <summary>
         ///WhitelistId -> TagInfoId -> AddressList.
@@ -54,7 +54,20 @@ namespace AElf.Contracts.Whitelist
         /// </summary>
         public MappedState<Hash, AddressList> ManagerListMap { get; set; }
 
+        /// <summary>
+        ///Subscribe_id -> SubscribeWhitelistInfo.
+        /// </summary>
         public MappedState<Hash, SubscribeWhitelistInfo> SubscribeWhitelistInfoMap { get; set; }
+
+        /// <summary>
+        ///Subscribe_id -> manager address list.
+        /// </summary>
+        public MappedState<Hash, AddressList> SubscribeManagerListMap { get; set; }
+
+        /// <summary>
+        ///Manager -> subscribe id list.
+        /// </summary>
+        public MappedState<Address, HashList> ManagerSubscribeIdListMap { get; set; }
 
         public MappedState<Hash, ConsumedList> ConsumedListMap { get; set; }
 

@@ -24,9 +24,9 @@ namespace AElf.Contracts.NFT
             await AdminNFTMarketContractStub.Initialize.SendAsync(new InitializeInput
             {
                 NftContractAddress = NFTContractAddress,
-                WhitelistContractAddress = WhitelistContractAddress,
                 ServiceFeeReceiver = MarketServiceFeeReceiverAddress
             });
+            await AdminNFTMarketContractStub.SetWhitelistContract.SendAsync(WhitelistContractAddress);
 
             var symbol = await MintBadgeTest();
 
@@ -185,9 +185,9 @@ namespace AElf.Contracts.NFT
             await AdminNFTMarketContractStub.Initialize.SendAsync(new InitializeInput
             {
                 NftContractAddress = NFTContractAddress,
-                WhitelistContractAddress = WhitelistContractAddress,
                 ServiceFeeReceiver = MarketServiceFeeReceiverAddress
             });
+            await AdminNFTMarketContractStub.SetWhitelistContract.SendAsync(WhitelistContractAddress);
 
             var symbol = await MintBadgeTest();
 
@@ -337,9 +337,9 @@ namespace AElf.Contracts.NFT
             await AdminNFTMarketContractStub.Initialize.SendAsync(new InitializeInput
             {
                 NftContractAddress = NFTContractAddress,
-                WhitelistContractAddress = WhitelistContractAddress,
                 ServiceFeeReceiver = MarketServiceFeeReceiverAddress
             });
+            await AdminNFTMarketContractStub.SetWhitelistContract.SendAsync(WhitelistContractAddress);
 
             var executionResult = await NFTContractStub.Create.SendAsync(new CreateInput
             {
@@ -587,14 +587,14 @@ namespace AElf.Contracts.NFT
         }
 
         [Fact]
-        public async Task ListedWithFixedPriceWhitelist()
+        public async Task ListWithFixedPriceWhitelist()
         {
             await AdminNFTMarketContractStub.Initialize.SendAsync(new InitializeInput
             {
                 NftContractAddress = NFTContractAddress,
-                WhitelistContractAddress = WhitelistContractAddress,
                 ServiceFeeReceiver = MarketServiceFeeReceiverAddress
             });
+            await AdminNFTMarketContractStub.SetWhitelistContract.SendAsync(WhitelistContractAddress);
 
             var executionResult = await NFTContractStub.Create.SendAsync(new CreateInput
             {
@@ -655,7 +655,10 @@ namespace AElf.Contracts.NFT
                     {
                         new WhitelistInfo()
                         {
-                            AddressList = new NFTMarket.AddressList() {Value = {User2Address}},
+                            AddressList = new NFTMarket.AddressList
+                            {
+                                Value = {User2Address}
+                            },
                             PriceTag = new PriceTag()
                             {
                                 TagName = "90_00000000 ELF",
@@ -781,7 +784,7 @@ namespace AElf.Contracts.NFT
             });
 
             var projectId = HashHelper.ComputeFrom($"{symbol}{233}{DefaultAddress}");
-            var tagInfoId = HashHelper.ComputeFrom($"{NFTMarketContractAddress}{projectId}90_00000000 ELF");
+            var tagInfoId = HashHelper.ComputeFrom($"{whitelistId}{projectId}90_00000000 ELF");
             var ifExist = await WhitelistContractStub.GetAddressFromWhitelist.CallAsync(
                 new GetAddressFromWhitelistInput()
                 {
@@ -795,7 +798,6 @@ namespace AElf.Contracts.NFT
 
             var tagIdList = await WhitelistContractStub.GetExtraInfoIdList.CallAsync(new GetExtraInfoIdListInput()
             {
-                Owner = NFTMarketContractAddress,
                 ProjectId = projectId,
                 WhitelistId = whitelistId
             });
@@ -824,9 +826,9 @@ namespace AElf.Contracts.NFT
             await BuyerNFTMarketContractStub.Initialize.SendAsync(new InitializeInput
             {
                 NftContractAddress = NFTContractAddress,
-                WhitelistContractAddress = WhitelistContractAddress,
                 ServiceFeeReceiver = MarketServiceFeeReceiverAddress
             });
+            await AdminNFTMarketContractStub.SetWhitelistContract.SendAsync(WhitelistContractAddress);
             var createWhitelistInput = new CreateWhitelistInput
             {
                 ProjectId = HashHelper.ComputeFrom("Badge Test"),

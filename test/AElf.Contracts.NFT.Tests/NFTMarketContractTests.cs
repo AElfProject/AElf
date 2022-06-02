@@ -42,6 +42,8 @@ namespace AElf.Contracts.NFT
                 ServiceFeeReceiver = MarketServiceFeeReceiverAddress
             });
 
+            await AdminNFTMarketContractStub.SetWhitelistContract.SendAsync(WhitelistContractAddress);
+
             var symbol = await MintBadgeTest();
 
             await TokenContractStub.Issue.SendAsync(new IssueInput
@@ -78,7 +80,8 @@ namespace AElf.Contracts.NFT
                 {
                     DurationHours = 24
                 },
-                Quantity = 1
+                Quantity = 1,
+                IsWhitelistAvailable = false
             });
 
             var listedNftInfo = (await SellerNFTMarketContractStub.GetListedNFTInfoList.CallAsync(

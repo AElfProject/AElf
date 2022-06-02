@@ -427,7 +427,7 @@ namespace AElf.Contracts.NFTMarket
             else
             {
                 var tagId = HashHelper.ComputeFrom(
-                    $"{Context.Self}" +
+                    $"{whitelistId}" +
                     $"{projectId}{tagName}");
                 var ifExist = State.WhitelistContract.GetTagInfoFromWhitelist.Call(new GetTagInfoFromWhitelistInput()
                 {

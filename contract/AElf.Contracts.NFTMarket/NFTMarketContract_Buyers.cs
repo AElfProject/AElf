@@ -6,6 +6,7 @@ using AElf.CSharp.Core;
 using AElf.CSharp.Core.Extension;
 using AElf.Sdk.CSharp;
 using AElf.Types;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using GetAllowanceInput = AElf.Contracts.MultiToken.GetAllowanceInput;
 using GetBalanceInput = AElf.Contracts.MultiToken.GetBalanceInput;
@@ -484,11 +485,15 @@ namespace AElf.Contracts.NFTMarket
         private bool TryDealWithFixedPrice(MakeOfferInput input, ListedNFTInfo listedNftInfo ,out long actualQuantity)
         {
             var whitelistId = State.WhitelistIdMap[input.Symbol][input.TokenId][input.OfferTo];
-            var whitelistPrice = State.WhitelistContract.GetExtraInfoByAddress.Call(new GetExtraInfoByAddressInput()
+            TagInfo whitelistPrice = null; 
+            if (whitelistId != null)
             {
-                Address = Context.Sender,
-                WhitelistId = whitelistId
-            });
+                whitelistPrice = State.WhitelistContract.GetExtraInfoByAddress.Call(new GetExtraInfoByAddressInput()
+                {
+                    Address = Context.Sender,
+                    WhitelistId = whitelistId
+                });
+            }
             var usePrice = input.Price;
             actualQuantity = Math.Min(input.Quantity, listedNftInfo.Quantity);
             if (Context.CurrentBlockTime < listedNftInfo.Duration.StartTime)

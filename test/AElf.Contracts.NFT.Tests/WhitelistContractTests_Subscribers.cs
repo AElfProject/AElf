@@ -73,11 +73,10 @@ namespace AElf.Contracts.NFT
             consumedList.ExtraInfoIdList.Value.Count.ShouldBe(1);
             consumedList.WhitelistId.ShouldBe(subscribe.WhitelistId);
             consumedList.ExtraInfoIdList.Value[0].AddressList.Value[0].ShouldBe(User1Address);
-            consumedList.ExtraInfoIdList.Value[0].Id.ShouldBe(CalculateId(DefaultAddress,_projectId,"INFO1"));
+            consumedList.ExtraInfoIdList.Value[0].Id.ShouldBe(CalculateId(subscribe.WhitelistId,_projectId,"INFO1"));
             var availableList = await WhitelistContractStub.GetAvailableWhitelist.CallAsync(subscribeId);
-            availableList.Value.Count.ShouldBe(1);
+            availableList.Value.Count.ShouldBe(2);
             availableList.Value[0].AddressList.Value[0].ShouldBe(User2Address);
-            availableList.Value[0].Info.Info.ShouldBe(Info3);
 
             return subscribeId;
         }
@@ -94,7 +93,7 @@ namespace AElf.Contracts.NFT
                 ExtraInfoId = new ExtraInfoId()
                 {
                     AddressList = new Whitelist.AddressList(){Value = { User1Address }},
-                    Id = CalculateId(DefaultAddress,_projectId,"INFO1")
+                    Id = CalculateId(subscribe.WhitelistId,_projectId,"INFO3")
                 }
             });
             executionResult.TransactionResult.Error.ShouldContain("ExtraInfo doesn't exist in the available whitelist.");
@@ -112,19 +111,49 @@ namespace AElf.Contracts.NFT
                 ExtraInfoId = new ExtraInfoId()
                 {
                     AddressList = new Whitelist.AddressList(){Value = { User3Address }},
-                    Id = CalculateId(DefaultAddress,_projectId,"INFO3")
+                    Id = CalculateId(subscribe.WhitelistId,_projectId,"INFO3")
                 }
             });
             var consumedList = await WhitelistContractStub.GetConsumedList.CallAsync(subscribeId);
             consumedList.ExtraInfoIdList.Value.Count.ShouldBe(2);
             consumedList.WhitelistId.ShouldBe(subscribe.WhitelistId);
+            consumedList.ExtraInfoIdList.Value[0].AddressList.Value.Count.ShouldBe(1);
             consumedList.ExtraInfoIdList.Value[0].AddressList.Value[0].ShouldBe(User1Address);
-            consumedList.ExtraInfoIdList.Value[0].Id.ShouldBe(CalculateId(DefaultAddress,_projectId,"INFO1"));
+            consumedList.ExtraInfoIdList.Value[0].Id.ShouldBe(CalculateId(subscribe.WhitelistId,_projectId,"INFO1"));
+            consumedList.ExtraInfoIdList.Value[1].AddressList.Value.Count.ShouldBe(1);
             consumedList.ExtraInfoIdList.Value[1].AddressList.Value[0].ShouldBe(User3Address);
-            consumedList.ExtraInfoIdList.Value[1].Id.ShouldBe(CalculateId(DefaultAddress,_projectId,"INFO3"));
+            consumedList.ExtraInfoIdList.Value[1].Id.ShouldBe(CalculateId(subscribe.WhitelistId,_projectId,"INFO3"));
             var availableList = await WhitelistContractStub.GetAvailableWhitelist.CallAsync(subscribeId);
             availableList.Value.Count.ShouldBe(2);
             availableList.Value[1].AddressList.Value.Count.ShouldBe(1);
+        }
+        
+        [Fact]
+        public async Task ConsumeWhitelistTest_ConsumptionExist_SameTagId()
+        {
+            var subscribeId = await ConsumeWhitelistTest();
+            var subscribe = await WhitelistContractStub.GetSubscribeWhitelist.CallAsync(subscribeId);
+            await WhitelistContractStub.ConsumeWhitelist.SendAsync(new ConsumeWhitelistInput()
+            {
+                SubscribeId = subscribeId,
+                WhitelistId = subscribe.WhitelistId,
+                ExtraInfoId = new ExtraInfoId()
+                {
+                    AddressList = new Whitelist.AddressList(){Value = { User2Address }},
+                    Id = CalculateId(subscribe.WhitelistId,_projectId,"INFO1")
+                }
+            });
+            var consumedList = await WhitelistContractStub.GetConsumedList.CallAsync(subscribeId);
+            consumedList.ExtraInfoIdList.Value.Count.ShouldBe(1);
+            consumedList.WhitelistId.ShouldBe(subscribe.WhitelistId);
+            consumedList.ExtraInfoIdList.Value[0].AddressList.Value.Count.ShouldBe(2);
+            consumedList.ExtraInfoIdList.Value[0].AddressList.Value[1].ShouldBe(User2Address);
+            consumedList.ExtraInfoIdList.Value[0].Id.ShouldBe(CalculateId(subscribe.WhitelistId,_projectId,"INFO1"));
+            
+            var availableList = await WhitelistContractStub.GetAvailableWhitelist.CallAsync(subscribeId);
+            availableList.Value.Count.ShouldBe(2);
+            availableList.Value[0].AddressList.Value.Count.ShouldBe(0);
+            availableList.Value[1].AddressList.Value.Count.ShouldBe(2);
         }
 
         [Fact]
@@ -158,6 +187,99 @@ namespace AElf.Contracts.NFT
                         WhitelistId = whitelistId
                     });
                 executionResult.TransactionResult.Error.ShouldContain("Whitelist is not allowed to be cloned.");
+            }
+        }
+        
+        [Fact]
+        public async Task<Hash> AddSubscribeManagersTest()
+        {
+            var subscribeId = await SubscribeWhitelistTest();
+            await WhitelistContractStub.AddSubscribeManagers.SendAsync(new AddSubscribeManagersInput()
+            {
+                SubscribeId = subscribeId,
+                ManagerList = new Whitelist.AddressList()
+                {
+                    Value = { User5Address,User6Address }
+                }
+            });
+            {
+                var manager = await WhitelistContractStub.GetSubscribeManagerList.CallAsync(subscribeId);
+                manager.Value.Count.ShouldBe(3);
+                manager.Value[0].ShouldBe(DefaultAddress);
+                manager.Value[1].ShouldBe(User5Address);
+                manager.Value[2].ShouldBe(User6Address);
+            }
+            {
+                var subscribeIdList = await WhitelistContractStub.GetSubscribeIdByManager.CallAsync(User5Address);
+                subscribeIdList.Value.Count.ShouldBe(1);
+                subscribeIdList.Value[0].ShouldBe(subscribeId);
+            }
+            return subscribeId;
+        }
+        
+        [Fact]
+        public async Task AddSubscribeManagersTest_AlreadyExists()
+        {
+            var subscribeId = await SubscribeWhitelistTest();
+            var executionResult = await WhitelistContractStub.AddSubscribeManagers.SendWithExceptionAsync(new AddSubscribeManagersInput()
+            {
+                SubscribeId = subscribeId,
+                ManagerList = new Whitelist.AddressList()
+                {
+                    Value = { DefaultAddress }
+                }
+            });
+            executionResult.TransactionResult.Error.ShouldContain("Managers already exists.");
+        }
+        
+        [Fact]
+        public async Task RemoveSubscribeManagersTest()
+        {
+            var subscribeId = await AddSubscribeManagersTest();
+            await WhitelistContractStub.RemoveSubscribeManagers.SendAsync(new RemoveSubscribeManagersInput()
+            {
+                SubscribeId = subscribeId,
+                ManagerList = new Whitelist.AddressList()
+                {
+                    Value = { User5Address }
+                }
+            });
+            {
+                var manager = await WhitelistContractStub.GetSubscribeManagerList.CallAsync(subscribeId);
+                manager.Value.Count.ShouldBe(2);
+                manager.Value[1].ShouldBe(User6Address);
+            }
+            {
+                var exception = await WhitelistContractStub.GetSubscribeIdByManager.CallWithExceptionAsync(User5Address);
+                exception.Value.ShouldContain("No subscribe id according to the manager.");
+            }
+            {
+                var exception = await WhitelistContractStub.GetSubscribeIdByManager.CallWithExceptionAsync(User3Address);
+                exception.Value.ShouldContain("No subscribe id according to the manager.");
+            }
+        }
+        
+        [Fact]
+        public async Task RemoveSubscribeManagersTest_NotExist()
+        {
+            var subscribeId = await AddSubscribeManagersTest();
+            var exceptionAsync = await WhitelistContractStub.RemoveSubscribeManagers.SendWithExceptionAsync(new RemoveSubscribeManagersInput()
+            {
+                SubscribeId = subscribeId,
+                ManagerList = new Whitelist.AddressList()
+                {
+                    Value = { User3Address }
+                }
+            });
+            exceptionAsync.TransactionResult.Error.ShouldContain("Managers doesn't exists.");
+            {
+                var manager = await WhitelistContractStub.GetSubscribeManagerList.CallAsync(subscribeId);
+                manager.Value.Count.ShouldBe(3);
+                manager.Value[2].ShouldBe(User6Address);
+            }
+            {
+                var exception = await WhitelistContractStub.GetSubscribeIdByManager.CallWithExceptionAsync(User3Address);
+                exception.Value.ShouldContain("No subscribe id according to the manager.");
             }
         }
     }

@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Runtime.InteropServices;
 using AElf.Contracts.Whitelist.Extensions;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -48,9 +49,9 @@ namespace AElf.Contracts.Whitelist
         public override HashList GetExtraInfoIdList(GetExtraInfoIdListInput input)
         {
             var whitelist = GetWhitelist(input.WhitelistId);
-            Assert(State.ManagerTagInfoMap[input.Owner][input.ProjectId][whitelist.WhitelistId] != null,$"ExtraInfo id list doesn't exist.{input.Owner}{input.ProjectId.ToHex()}{input.WhitelistId.ToHex()}");
-            var idList = State.ManagerTagInfoMap[input.Owner][input.ProjectId][whitelist.WhitelistId];
-            Assert(idList.Value.Count != 0,$"No extraInfo id list.{input.Owner}{input.ProjectId.ToHex()}{input.WhitelistId.ToHex()}");
+            Assert(State.ManagerTagInfoMap[input.ProjectId][whitelist.WhitelistId] != null,$"ExtraInfo id list doesn't exist.{input.ProjectId.ToHex()}{input.WhitelistId.ToHex()}");
+            var idList = State.ManagerTagInfoMap[input.ProjectId][whitelist.WhitelistId];
+            Assert(idList.Value.Count != 0,$"No extraInfo id list.{input.ProjectId.ToHex()}{input.WhitelistId.ToHex()}");
             return idList;
         }
         
@@ -82,22 +83,28 @@ namespace AElf.Contracts.Whitelist
             return State.ConsumedListMap[subscribeInfo.SubscribeId];
         }
 
-        public override ExtraInfoList GetAvailableWhitelist(Hash input)
+        public override ExtraInfoIdList GetAvailableWhitelist(Hash input)
         {
             var subscribe = GetSubscribeWhitelist(input);
             var consumedList = State.ConsumedListMap[subscribe.SubscribeId];
             var whitelist = State.WhitelistInfoMap[subscribe.WhitelistId];
-            var extraInfoList = ConvertToInfoList(whitelist.ExtraInfoIdList);
             if (consumedList.ExtraInfoIdList == null)
             {
-                return extraInfoList;
+                return whitelist.ExtraInfoIdList;
             }
             else
             {
                 var consumedExtraList = consumedList.ExtraInfoIdList.Value;
                 var whitelistExtra = whitelist.ExtraInfoIdList.Value;
-                var availableList = whitelistExtra.Except(consumedExtraList);
-                return ConvertToInfoList(new ExtraInfoIdList() {Value = {availableList}});
+                foreach (var extraInfoId in consumedExtraList)
+                {
+                    var target = whitelistExtra.SingleOrDefault(e => e.Id == extraInfoId.Id);
+                    if (target == null) continue;
+                    var targetAddressList = target.AddressList;
+                    var available = targetAddressList.Value.Except(extraInfoId.AddressList.Value);
+                    target.AddressList = new AddressList(){Value = { available }};
+                }
+                return new ExtraInfoIdList() {Value = {whitelistExtra}};
             }
         }
 
@@ -131,8 +138,10 @@ namespace AElf.Contracts.Whitelist
 
         public override BoolValue GetTagInfoFromWhitelist(GetTagInfoFromWhitelistInput input)
         {
-            var tagId = Context.Sender.CalculateExtraInfoId(input.ProjectId, input.TagInfo.TagName);
-            var tagIdList = State.ManagerTagInfoMap[Context.Sender][input.ProjectId][input.WhitelistId];
+            var whitelist = GetWhitelist(input.WhitelistId);
+            MakeSureProjectCorrect(whitelist.WhitelistId,input.ProjectId);
+            var tagId = whitelist.WhitelistId.CalculateExtraInfoId(whitelist.ProjectId, input.TagInfo.TagName);
+            var tagIdList = State.ManagerTagInfoMap[whitelist.ProjectId][whitelist.WhitelistId];
             var ifExist = tagIdList.Value.Contains(tagId);
             return new BoolValue() {Value = ifExist};
         }
@@ -140,23 +149,45 @@ namespace AElf.Contracts.Whitelist
 
         public override BoolValue GetFromAvailableWhitelist(GetFromAvailableWhitelistInput input)
         {
-            var whitelist = GetAvailableWhitelist(input.SubscribeId);
-            var ifExist =  whitelist.Value.Contains(input.ExtraInfo);
-            return new BoolValue() { Value = ifExist };
+            var subscribeInfo = GetSubscribeWhitelist(input.SubscribeId);
+            var extraInfoIdList = GetAvailableWhitelist(input.SubscribeId);
+            var extraInfoId = extraInfoIdList.Value.SingleOrDefault(i=>i.Id == input.ExtraInfoId.Id);
+            if (extraInfoId == null)
+            {
+                throw new AssertionException($"TagInfo does not exist.{input.ExtraInfoId.Id}");
+            }
+            else
+            {
+                var addressList = State.TagInfoIdAddressListMap[subscribeInfo.WhitelistId][input.ExtraInfoId.Id];
+                return input.ExtraInfoId.AddressList.Value.Any(address => !addressList.Value.Contains(address)) ? new BoolValue() {Value = false} : new BoolValue() {Value = true};
+            }
         }
 
         public override WhitelistIdList GetWhitelistByManager(Address input)
         {
             var whitelistIdList = State.WhitelistIdMap[input];
-            Assert(whitelistIdList.WhitelistId.Count != 0,$"No whitelist according to the manager.{input}");
+            Assert(whitelistIdList != null && whitelistIdList.WhitelistId.Count != 0,$"No whitelist according to the manager.{input}");
             return State.WhitelistIdMap[input];
         }
 
         public override AddressList GetManagerList(Hash input)
         {
+            AssertWhitelistInfo(input);
             return State.ManagerListMap[input];
         }
 
-        
+        public override AddressList GetSubscribeManagerList(Hash input)
+        {
+            AssertSubscribeWhitelistInfo(input);
+            return State.SubscribeManagerListMap[input];
+        }
+
+        public override HashList GetSubscribeIdByManager(Address input)
+        {
+            var subscribeIdList = State.ManagerSubscribeIdListMap[input];
+            Assert(subscribeIdList != null && subscribeIdList.Value.Count != 0,
+                $"No subscribe id according to the manager.{input}");
+            return subscribeIdList;
+        }
     }
 }

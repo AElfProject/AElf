@@ -67,6 +67,21 @@ namespace AElf.Contracts.Whitelist
             return subscribeInfo;
         }
 
+        private void AssertSubscribeManager(Hash subscribeId, Address address)
+        {
+            var managerList = State.SubscribeManagerListMap[subscribeId];
+            if (!managerList.Value.Contains(address))
+            {
+                throw new AssertionException($"No permission.{address}");
+            }
+        }
+        
+        private void AssertSubscriber(Hash subscribeId)
+        {
+            var subscribeWhitelistInfo = State.SubscribeWhitelistInfoMap[subscribeId];
+            Assert(subscribeWhitelistInfo.Subscriber == Context.Sender,$"{Context.Sender}No permission.");
+        }
+        
         private ExtraInfoId AssertExtraInfoDuplicate(Hash whitelistId, ExtraInfoId id)
         {
             var whitelist = State.WhitelistInfoMap[whitelistId];
@@ -84,12 +99,19 @@ namespace AElf.Contracts.Whitelist
             return id;
         }
 
-        private ExtraInfoId AssertExtraInfoIsNotExist(Hash subscribeId, ExtraInfoId info)
+        private ExtraInfoId AssertExtraInfoIsNotExist(Hash subscribeId, ExtraInfoId infoId)
         {
             var whitelist = GetAvailableWhitelist(subscribeId);
-            var ifExist = whitelist.Value.Contains(ConvertToInfoList(new ExtraInfoIdList(){Value = { info }}).Value[0]);
-            Assert(ifExist, $"ExtraInfo doesn't exist in the available whitelist.{info}");
-            return info;
+            var extraInfo = whitelist.Value.SingleOrDefault(e => e.Id == infoId.Id);
+            if (extraInfo == null)
+            {
+                throw new AssertionException($"Incorrect ExtraInfo id.{infoId}");
+            }
+            if (infoId.AddressList.Value.Select(address => extraInfo.AddressList.Value.Contains(address)).Any(ifExist => !ifExist))
+            {
+                throw new AssertionException($"ExtraInfo doesn't exist in the available whitelist.{infoId}");
+            }
+            return infoId;
         }
         
         private ExtraInfo ConvertToInfo(ExtraInfoId extraInfoId)
@@ -150,7 +172,7 @@ namespace AElf.Contracts.Whitelist
             {
                 throw new AssertionException("TagInfo is null.");
             }
-            var id = Context.Sender.CalculateExtraInfoId(projectId,info.TagName);
+            var id = whitelistId.CalculateExtraInfoId(projectId,info.TagName);
             if (State.TagInfoMap[id] != null)
             {
                 throw new AssertionException($"TagInfo already exist.{info}");
@@ -177,6 +199,17 @@ namespace AElf.Contracts.Whitelist
             return State.ManagerListMap[whitelistId];
         }
 
+        private AddressList SetSubscribeManagerList(Hash subscribeId, Address creator, AddressList input)
+        {
+            var managerList = input != null ? input.Value.Distinct().ToList() : new List<Address>();
+            if (!managerList.Contains(creator ?? Context.Sender))
+            {
+                managerList.Add(creator ?? Context.Sender);
+            }
+            State.SubscribeManagerListMap[subscribeId] = new AddressList(){Value = { managerList }};
+            return State.SubscribeManagerListMap[subscribeId];
+        }
+
         private void SetWhitelistIdManager(Hash whitelistId,AddressList managerList)
         {
             foreach (var manager in managerList.Value)
@@ -187,13 +220,35 @@ namespace AElf.Contracts.Whitelist
             }
         }
         
+        private void SetSubscribeIdManager(Hash subscribeId,AddressList managerList)
+        {
+            foreach (var manager in managerList.Value)
+            {
+                var subscribeIdList = State.ManagerSubscribeIdListMap[manager] ?? new HashList();
+                subscribeIdList.Value.Add(subscribeId);
+                State.ManagerSubscribeIdListMap[manager] = subscribeIdList;
+            }
+        }
+        
         private void RemoveWhitelistIdManager(Hash whitelistId,AddressList managerList)
         {
             foreach (var manager in managerList.Value)
             {
-                var whitelistIdList = State.WhitelistIdMap[manager] ?? new WhitelistIdList();
+                var whitelistIdList = State.WhitelistIdMap[manager];
+                if (whitelistIdList == null) continue;
                 whitelistIdList.WhitelistId.Remove(whitelistId);
                 State.WhitelistIdMap[manager] = whitelistIdList;
+            }
+        }
+        
+        private void RemoveSubscribeIdManager(Hash subscribeId,AddressList managerList)
+        {
+            foreach (var manager in managerList.Value)
+            {
+                var subscribeIdList = State.ManagerSubscribeIdListMap[manager];
+                if (subscribeIdList == null) continue;
+                subscribeIdList.Value.Remove(subscribeId);
+                State.ManagerSubscribeIdListMap[manager] = subscribeIdList;
             }
         }
     }

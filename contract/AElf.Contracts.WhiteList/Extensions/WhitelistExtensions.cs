@@ -6,9 +6,9 @@ namespace AElf.Contracts.Whitelist.Extensions
 {
     public static class WhitelistExtensions
     {
-        public static Hash CalculateExtraInfoId(this Address sender,Hash projectId,string tagName)
+        public static Hash CalculateExtraInfoId(this Hash whitelistId,Hash projectId,string tagName)
         {
-            return HashHelper.ComputeFrom($"{sender}{projectId}{tagName}");
+            return HashHelper.ComputeFrom($"{whitelistId}{projectId}{tagName}");
         }
     }
 }

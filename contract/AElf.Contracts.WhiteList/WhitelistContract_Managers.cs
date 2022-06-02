@@ -84,10 +84,10 @@ namespace AElf.Contracts.Whitelist
                     {
                         var id = CreateTagInfo(e.Info, input.ProjectId,whitelistHash);
                         //Set tagInfo list according to the owner and projectId.
-                        var idList = State.ManagerTagInfoMap[Context.Sender][input.ProjectId][whitelistHash] ??
+                        var idList = State.ManagerTagInfoMap[input.ProjectId][whitelistHash] ??
                                      new HashList();
                         idList.Value.Add(id);
-                        State.ManagerTagInfoMap[Context.Sender][input.ProjectId][whitelistHash] = idList;
+                        State.ManagerTagInfoMap[input.ProjectId][whitelistHash] = idList;
                         //Set address list according to the tagInfoId.
                         var addressList = State.TagInfoIdAddressListMap[whitelistHash][id] ?? new AddressList();
                         addressList.Value.AddRange(e.AddressList.Value);
@@ -152,22 +152,21 @@ namespace AElf.Contracts.Whitelist
             {
                 throw new AssertionException("Extra info is null");
             }
-
-            MakeSureProjectCorrect(input.WhitelistId, input.ProjectId);
             AssertWhitelistInfo(input.WhitelistId);
+            MakeSureProjectCorrect(input.WhitelistId, input.ProjectId);
             AssertWhitelistIsAvailable(input.WhitelistId);
-            AssertWhitelistManager(input.WhitelistId);
+            var whitelistInfo = AssertWhitelistManager(input.WhitelistId);
             
-            var tagInfoId = Context.Sender.CalculateExtraInfoId(input.ProjectId,input.TagInfo.TagName);
+            var tagInfoId = whitelistInfo.WhitelistId.CalculateExtraInfoId(whitelistInfo.ProjectId,input.TagInfo.TagName);
             Assert(State.TagInfoMap[tagInfoId] == null, $"The tag Info {input.TagInfo.TagName} already exists.");
             State.TagInfoMap[tagInfoId] = new TagInfo()
             {
                 TagName = input.TagInfo.TagName,
                 Info = input.TagInfo.Info
             };
-            var idList = State.ManagerTagInfoMap[Context.Sender][input.ProjectId][input.WhitelistId] ?? new HashList();
+            var idList = State.ManagerTagInfoMap[input.ProjectId][input.WhitelistId] ?? new HashList();
             idList.Value.Add(tagInfoId);
-            State.ManagerTagInfoMap[Context.Sender][input.ProjectId][input.WhitelistId] = idList;
+            State.ManagerTagInfoMap[input.ProjectId][input.WhitelistId] = idList;
             State.TagInfoIdAddressListMap[input.WhitelistId][tagInfoId] = new AddressList();
             Context.Fire(new TagInfoAdded()
             {
@@ -211,10 +210,10 @@ namespace AElf.Contracts.Whitelist
             AssertWhitelistIsAvailable(input.WhitelistId);
             AssertWhitelistManager(input.WhitelistId);
             
-            Assert(State.ManagerTagInfoMap[Context.Sender][input.ProjectId][input.WhitelistId].Value.Contains(input.TagId),
+            Assert(State.ManagerTagInfoMap[input.ProjectId][input.WhitelistId].Value.Contains(input.TagId),
                 $"Incorrect tagInfoId.{input.TagId.ToHex()}");
             Assert(State.TagInfoIdAddressListMap[input.WhitelistId][input.TagId].Value.Count == 0,$"Exist address list.{input.TagId.ToHex()}");
-            State.ManagerTagInfoMap[Context.Sender][input.ProjectId][input.WhitelistId].Value.Remove(input.TagId);
+            State.ManagerTagInfoMap[input.ProjectId][input.WhitelistId].Value.Remove(input.TagId);
             var tagInfo = State.TagInfoMap[input.TagId];
             State.TagInfoMap.Remove(input.TagId);
             State.TagInfoIdAddressListMap[input.WhitelistId].Remove(input.TagId);
@@ -233,6 +232,7 @@ namespace AElf.Contracts.Whitelist
             AssertWhitelistInfo(input.WhitelistId);
             AssertWhitelistIsAvailable(input.WhitelistId);
             var whitelistInfo = AssertWhitelistManager(input.WhitelistId);
+            var toAddExtraInfoIdList = new ExtraInfoIdList();
             foreach (var infoId in input.ExtraInfoIdList.Value)
             {
                 AssertExtraInfoDuplicate(whitelistInfo.WhitelistId,infoId);
@@ -240,6 +240,7 @@ namespace AElf.Contracts.Whitelist
                 if (targetExtraInfoId != null)
                 {
                     targetExtraInfoId.AddressList.Value.Add(infoId.AddressList.Value);
+                    toAddExtraInfoIdList = RecordChangedExtraInfoIdList(toAddExtraInfoIdList, infoId);
                 }
                 else
                 { 
@@ -249,10 +250,11 @@ namespace AElf.Contracts.Whitelist
                         AddressList = infoId.AddressList
                     };
                     whitelistInfo.ExtraInfoIdList.Value.Add(toAdd);
+                    toAddExtraInfoIdList = RecordChangedExtraInfoIdList(toAddExtraInfoIdList, infoId);
                 }
                 if (infoId.Id == null) continue;
                 //Whether tagId correct.
-                if (!State.ManagerTagInfoMap[Context.Sender][State.ProjectWhitelistIdMap[whitelistInfo.WhitelistId]][
+                if (!State.ManagerTagInfoMap[State.ProjectWhitelistIdMap[whitelistInfo.WhitelistId]][
                         whitelistInfo.WhitelistId].Value.Contains(infoId.Id))
                 {
                     throw new AssertionException($"Incorrect TagId.{infoId.Id}");
@@ -269,12 +271,30 @@ namespace AElf.Contracts.Whitelist
             Context.Fire(new WhitelistAddressInfoAdded()
             {
                 WhitelistId = whitelistInfo.WhitelistId,
-                ExtraInfoIdList = input.ExtraInfoIdList
+                ExtraInfoIdList = toAddExtraInfoIdList
             });
             
             return new Empty();
         }
-        
+
+        private ExtraInfoIdList RecordChangedExtraInfoIdList(ExtraInfoIdList toAddExtraInfoIdList,ExtraInfoId infoId)
+        {
+            var targetToAddList = toAddExtraInfoIdList.Value.SingleOrDefault(i => i.Id == infoId.Id);
+            if (targetToAddList != null)
+            {
+                targetToAddList.AddressList.Value.Add(infoId.AddressList.Value);
+            }
+            else
+            {
+                var extraInfoId = new ExtraInfoId
+                {
+                    Id = infoId.Id,
+                    AddressList = infoId.AddressList
+                };
+                toAddExtraInfoIdList.Value.Add(extraInfoId);
+            }
+            return toAddExtraInfoIdList;
+        }
         public override Empty RemoveAddressInfoListFromWhitelist(RemoveAddressInfoListFromWhitelistInput input)
         {
             AssertWhitelistInfo(input.WhitelistId);
@@ -282,6 +302,11 @@ namespace AElf.Contracts.Whitelist
             var whitelistInfo = AssertWhitelistManager(input.WhitelistId);
             if (whitelistInfo.StrategyType == StrategyType.Basic)
             {
+                var toRemove = new ExtraInfoId
+                {
+                    Id = null,
+                    AddressList = new AddressList()
+                };
                 var extraInfoId = whitelistInfo.ExtraInfoIdList.Value.SingleOrDefault(e=>e.Id == null);
                 if (extraInfoId != null)
                 {
@@ -295,6 +320,7 @@ namespace AElf.Contracts.Whitelist
                             
                         }
                         addressInWhitelist.Value.Remove(address);
+                        toRemove.AddressList.Value.Add(address);
                     }
                 }
                 else
@@ -304,7 +330,7 @@ namespace AElf.Contracts.Whitelist
                 Context.Fire(new WhitelistAddressInfoRemoved()
                 {
                     WhitelistId = whitelistInfo.WhitelistId,
-                    ExtraInfoIdList = input.ExtraInfoIdList
+                    ExtraInfoIdList = new ExtraInfoIdList{Value = { toRemove }}
                 });
                 return new Empty();
             }
@@ -326,7 +352,7 @@ namespace AElf.Contracts.Whitelist
             foreach (var infoId in extraInfoIdList )
             {
                 //Whether tagId correct.
-                if (!State.ManagerTagInfoMap[Context.Sender][State.ProjectWhitelistIdMap[whitelistInfo.WhitelistId]][
+                if (!State.ManagerTagInfoMap[State.ProjectWhitelistIdMap[whitelistInfo.WhitelistId]][
                         whitelistInfo.WhitelistId].Value.Contains(infoId.Id))
                 {
                     throw new AssertionException($"Incorrect TagId.{infoId.Id}");
@@ -351,7 +377,10 @@ namespace AElf.Contracts.Whitelist
             Context.Fire(new WhitelistAddressInfoRemoved()
             {
                 WhitelistId = whitelistInfo.WhitelistId,
-                ExtraInfoIdList = input.ExtraInfoIdList
+                ExtraInfoIdList = new ExtraInfoIdList
+                {
+                    Value = { extraInfoIdList }
+                }
             });
             return new Empty();
         }
@@ -414,7 +443,7 @@ namespace AElf.Contracts.Whitelist
             AssertWhitelistIsAvailable(input.WhitelistId);
             var whitelistInfo = AssertWhitelistManager(input.WhitelistId);
             var projectId = State.ProjectWhitelistIdMap[whitelistInfo.WhitelistId];
-            if (!State.ManagerTagInfoMap[Context.Sender][projectId][whitelistInfo.WhitelistId].Value.Contains(input.ExtraInfoList.Id))
+            if (!State.ManagerTagInfoMap[projectId][whitelistInfo.WhitelistId].Value.Contains(input.ExtraInfoList.Id))
             {
                 throw new AssertionException($"Incorrect extraInfoId.{input.ExtraInfoList.Id}");
             }
@@ -500,7 +529,6 @@ namespace AElf.Contracts.Whitelist
             var whitelist = AssertWhitelistCreator(input.WhitelistId);
             var managerList = State.ManagerListMap[whitelist.WhitelistId];
             var addedManager = new AddressList();
-            var remain = new AddressList();
             foreach (var manager in input.ManagerList.Value)
             {
                 if (!managerList.Value.Contains(manager))
@@ -510,7 +538,7 @@ namespace AElf.Contracts.Whitelist
                 }
                 else
                 {
-                    remain.Value.Add(manager);
+                    throw new AssertionException($"Managers already exists.{manager}");
                 }
             }
 
@@ -523,7 +551,6 @@ namespace AElf.Contracts.Whitelist
                 ManagerList = addedManager
             });
             
-            Assert(remain.Value.Count == 0,$"Managers already exists.{remain.Value}");
             return new Empty();
         }
 
@@ -532,7 +559,6 @@ namespace AElf.Contracts.Whitelist
             var whitelist = AssertWhitelistCreator(input.WhitelistId);
             var managerList = State.ManagerListMap[whitelist.WhitelistId];
             var removedList = new AddressList();
-            var remain = new AddressList();
             foreach (var manager in input.ManagerList.Value)
             {
                 if (managerList.Value.Contains(manager))
@@ -542,7 +568,7 @@ namespace AElf.Contracts.Whitelist
                 }
                 else
                 {
-                    remain.Value.Add(manager);
+                    throw new AssertionException($"Managers doesn't exists.{manager}");
                 }
             }
             State.ManagerListMap[whitelist.WhitelistId] = managerList;
@@ -552,8 +578,6 @@ namespace AElf.Contracts.Whitelist
                 WhitelistId = whitelist.WhitelistId,
                 ManagerList = removedList
             });
-            
-            Assert(remain.Value.Count == 0,$"Managers doesn't exists.{remain.Value}");
             return new Empty();
         }
 
@@ -563,10 +587,18 @@ namespace AElf.Contracts.Whitelist
             AssertWhitelistIsAvailable(input.WhitelistId);
             var whitelist = AssertWhitelistManager(input.WhitelistId);
             Assert(State.ProjectWhitelistIdMap[whitelist.WhitelistId] == input.ProjectId,$"Incorrect projectId.{input.ProjectId}");
+            if (whitelist.ExtraInfoIdList == null)
+            {
+                throw new AssertionException($"No extraInfo.{whitelist.WhitelistId}");
+            }
             whitelist.ExtraInfoIdList.Value.Clear();
-            var idList = State.ManagerTagInfoMap[Context.Sender][input.ProjectId][input.WhitelistId];
+            var idList = State.ManagerTagInfoMap[input.ProjectId][input.WhitelistId];
+            if (idList == null)
+            {
+                throw new AssertionException($"No tagInfo.{whitelist.WhitelistId}");
+            }
             var addressList = whitelist.ExtraInfoIdList.Value.Select(e => e.AddressList).ToList();
-            State.ManagerTagInfoMap[Context.Sender][input.ProjectId][input.WhitelistId].Value.Clear();
+            State.ManagerTagInfoMap[input.ProjectId][input.WhitelistId].Value.Clear();
             foreach (var id in idList.Value)
             {
                 State.TagInfoMap.Remove(id);

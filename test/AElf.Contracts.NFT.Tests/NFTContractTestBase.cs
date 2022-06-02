@@ -40,6 +40,8 @@ namespace AElf.Contracts.NFT
         protected Address User5Address => Accounts[16].Address;
         
         protected Address User6Address => Accounts[17].Address;
+        
+        protected Address User7Address => Accounts[18].Address;
         protected ECKeyPair MarketServiceFeeReceiverKeyPair => Accounts[12].KeyPair;
         protected Address MarketServiceFeeReceiverAddress => Accounts[12].Address;
 
@@ -75,6 +77,9 @@ namespace AElf.Contracts.NFT
         internal NFTMarketContractContainer.NFTMarketContractStub CreatorNFTMarketContractStub { get; set; }
         internal NFTMarketContractContainer.NFTMarketContractStub AdminNFTMarketContractStub { get; set; }
         internal WhitelistContractContainer.WhitelistContractStub WhitelistContractStub { get; set; }
+        
+        internal WhitelistContractContainer.WhitelistContractStub UserWhitelistContractStub { get; set; }
+
 
         public NFTContractTestBase()
         {
@@ -112,7 +117,8 @@ namespace AElf.Contracts.NFT
                 GetTester<NFTMarketContractContainer.NFTMarketContractStub>(NFTMarketContractAddress, DefaultKeyPair);
             WhitelistContractStub = 
                 GetTester<WhitelistContractContainer.WhitelistContractStub>(WhitelistContractAddress, DefaultKeyPair);
-
+            UserWhitelistContractStub = 
+                GetTester<WhitelistContractContainer.WhitelistContractStub>(WhitelistContractAddress, User2KeyPair);
             ParliamentContractStub = GetTester<ParliamentContractImplContainer.ParliamentContractImplStub>(
                 ParliamentContractAddress, DefaultKeyPair);
 

@@ -101,7 +101,7 @@ namespace AElf.Contracts.NFTMarket
                                 }
                                 var tagId =
                                     HashHelper.ComputeFrom(
-                                        $"{Context.Self}{projectId}{extra.Key.TagName}");
+                                        $"{whitelistId}{projectId}{extra.Key.TagName}");
                                 var toAddExtraInfoIdList = new ExtraInfoIdList();
                                 foreach (var whitelistInfo in extra.Value.Where(whitelistInfo => whitelistInfo.AddressList.Value.Any()))
                                 {
