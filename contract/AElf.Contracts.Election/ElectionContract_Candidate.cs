@@ -33,7 +33,15 @@ public partial class ElectionContract
         var pubkey = recoveredPublicKey.ToHex();
         var address = Address.FromPublicKey(recoveredPublicKey);
 
+        Assert(input.Value.Any(), "Admin is needed while announcing election.");
+        Assert(State.ManagedCandidatePubkeysMap[address] == null, "Candidate cannot be others' admin.");
+        State.CandidateAdmins[pubkey] = input;
+        var managedPubkeys = State.ManagedCandidatePubkeysMap[input] ?? new PubkeyList();
+        managedPubkeys.Value.Add(ByteString.CopyFrom(recoveredPublicKey));
+        State.ManagedCandidatePubkeysMap[input] = managedPubkeys;
+
         LockCandidateNativeToken();
+
         AddCandidateAsOption(pubkey);
 
         if (State.Candidates.Value.Value.Count <= GetValidationDataCenterCount())
@@ -42,6 +50,31 @@ public partial class ElectionContract
             RegisterCandidateToSubsidyProfitScheme(address);
         }
 
+        return new Empty();
+    }
+    
+    public override Empty AnnounceElectionFor(AnnounceElectionForInput input)
+    {
+        var pubkey = input.Pubkey;
+        var pubkeyBytes = ByteArrayHelper.HexStringToByteArray(pubkey);
+        var address = Address.FromPublicKey(pubkeyBytes);
+        var electionService = GetElectionService();
+        electionService.Involve(pubkeyBytes, input.Admin ?? Address.FromPublicKey(pubkeyBytes));
+
+        var admin = input.Admin ?? Context.Sender;
+        State.CandidateAdmins[pubkey] = admin;
+        var managedPubkeys = State.ManagedCandidatePubkeysMap[admin] ?? new PubkeyList();
+        managedPubkeys.Value.Add(ByteString.CopyFrom(pubkeyBytes));
+        State.ManagedCandidatePubkeysMap[admin] = managedPubkeys;
+        LockCandidateNativeToken();
+        AddCandidateAsOption(pubkey);
+        if (State.Candidates.Value.Value.Count <= GetValidationDataCenterCount())
+        {
+            State.DataCentersRankingList.Value.DataCenters.Add(pubkey, 0);
+            RegisterCandidateToSubsidyProfitScheme(address);
+        }
+
+        State.CandidateSponsorMap[input.Pubkey] = Context.Sender;
         return new Empty();
     }
 

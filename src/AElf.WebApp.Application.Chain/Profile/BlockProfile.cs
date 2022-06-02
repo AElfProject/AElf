@@ -7,7 +7,7 @@ using Google.Protobuf;
 
 namespace AElf.WebApp.Application.Chain
 {
-    public class BlockProfile : AutoMapper.Profile
+    public class BlockProfile : Profile
     {
         public const string IncludeTransactions = "IncludeTransactions";
         

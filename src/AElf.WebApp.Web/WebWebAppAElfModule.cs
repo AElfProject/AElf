@@ -13,16 +13,20 @@ using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Net.Http.Headers;
+using Microsoft.OpenApi.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using Volo.Abp;
 using Volo.Abp.AspNetCore.Mvc;
+using Volo.Abp.AspNetCore.Mvc.Conventions;
 using Volo.Abp.Authorization;
+using Volo.Abp.Castle;
 using Volo.Abp.Castle.DynamicProxy;
 using Volo.Abp.Modularity;
 
@@ -31,29 +35,31 @@ namespace AElf.WebApp.Web
     [DependsOn(
         typeof(ChainApplicationWebAppAElfModule),
         typeof(NetApplicationWebAppAElfModule),
+        typeof(AbpCastleCoreModule),
         typeof(WebAppAbpAspNetCoreMvcModule))]
     public class WebWebAppAElfModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            //var hostingEnvironment = context.Services.GetHostingEnvironment();
-            //var configuration = context.Services.GetConfiguration();
-            
+            var configuration = context.Services.GetConfiguration();
+
+            context.Services.Replace(
+                ServiceDescriptor.Transient<IConventionalRouteBuilder, AElfConventionalRouteBuilder>());
+
             context.Services.AddTransient(typeof(AbpAsyncDeterminationInterceptor<AuthorizationInterceptor>));
 
             ConfigureAutoApiControllers();
-            
+
             context.Services.AddApiVersioning(options =>
             {
                 options.ApiVersionSelector = new CurrentImplementationApiVersionSelector(options);
-                options.AssumeDefaultVersionWhenUnspecified = true; 
+                options.AssumeDefaultVersionWhenUnspecified = true;
                 options.ApiVersionReader = new MediaTypeApiVersionReader();
                 options.UseApiBehavior = false;
             });
             context.Services.AddVersionedApiExplorer();
-            
-            ConfigureSwaggerServices(context.Services);
 
+            ConfigureSwaggerServices(context.Services);
 
             context.Services.AddControllers(options =>
             {
@@ -67,11 +73,9 @@ namespace AElf.WebApp.Web
                 };
                 options.SerializerSettings.Converters.Add(new ProtoMessageConverter());
             });
-            
+
             context.Services.AddAuthentication("BasicAuthentication")
                 .AddScheme<AuthenticationSchemeOptions, BasicAuthenticationHandler>("BasicAuthentication", null);
-            
-            var configuration = context.Services.GetConfiguration();
 
             Configure<BasicAuthOptions>(options => { configuration.GetSection("BasicAuth").Bind(options); });
         }
@@ -80,78 +84,68 @@ namespace AElf.WebApp.Web
         {
             Configure<AbpAspNetCoreMvcOptions>(options =>
             {
-                options.ConventionalControllers.Create(typeof(ChainApplicationWebAppAElfModule).Assembly,setting => setting.UrlControllerNameNormalizer=context => "blockChain");
+                options.ConventionalControllers.Create(typeof(ChainApplicationWebAppAElfModule).Assembly,
+                    setting =>
+                    {
+                        setting.UrlControllerNameNormalizer = _ => "blockChain";
+                    });
 
-                options.ConventionalControllers.Create(typeof(NetApplicationWebAppAElfModule).Assembly,setting => setting.UrlControllerNameNormalizer=context => "net");
+                options.ConventionalControllers.Create(typeof(NetApplicationWebAppAElfModule).Assembly,
+                    setting =>
+                    {
+                        setting.UrlControllerNameNormalizer = _ => "net";
+                    });
             });
         }
 
         private void ConfigureSwaggerServices(IServiceCollection services)
         {
+            services.AddAbpSwaggerGen(
+                options =>
+                {
+                    options.DocumentFilter<ApiOptionFilter>();
+                }
+            );
             services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
-            services.AddSwaggerGen(c => c.DocumentFilter<ApiOptionFilter>());
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
             var app = context.GetApplicationBuilder();
-            //var env = context.GetEnvironment();
 
-            /*if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
-            else
-            {
-                app.UseErrorPage();
-            }*/
-
-            //app.UseVirtualFiles();
-            //app.UseAuthentication();
-
-            //app.UseAbpRequestLocalization();
-
-            
             app.UseSwagger();
             app.UseSwaggerUI(options =>
             {
                 var provider = context.ServiceProvider.GetRequiredService<IApiVersionDescriptionProvider>();
-                foreach ( var description in provider.ApiVersionDescriptions )
+                foreach (var description in provider.ApiVersionDescriptions)
                 {
-                    options.SwaggerEndpoint( $"/swagger/{description.GroupName}/swagger.json", $"AELF API {description.GroupName.ToUpperInvariant()}" );
+                    options.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.json",
+                        $"AELF API {description.GroupName.ToUpperInvariant()}");
                 }
             });
-            
-            app.UseMvcWithDefaultRouteAndArea();
+
+            app.UseConfiguredEndpoints();
         }
     }
-
 
     // Thanks to https://tero.teelahti.fi/using-google-proto3-with-aspnet-mvc/
     // The input formatter reading request body and mapping it to given data object.
     public class ProtobufInputFormatter : InputFormatter
     {
-        static MediaTypeHeaderValue protoMediaType =
+        private static readonly MediaTypeHeaderValue ProtoMediaType =
             MediaTypeHeaderValue.Parse((StringSegment) "application/x-protobuf");
-
 
         public ProtobufInputFormatter()
         {
-            SupportedMediaTypes.Add(protoMediaType);
+            SupportedMediaTypes.Add(ProtoMediaType);
         }
 
         public override bool CanRead(InputFormatterContext context)
         {
             var request = context.HttpContext.Request;
-            MediaTypeHeaderValue requestContentType = null;
-            MediaTypeHeaderValue.TryParse(request.ContentType, out requestContentType);
+            MediaTypeHeaderValue.TryParse(request.ContentType, out var requestContentType);
 
-            if (requestContentType == null)
-            {
-                return false;
-            }
-
-            return requestContentType.IsSubsetOf(protoMediaType);
+            return requestContentType != null && requestContentType.IsSubsetOf(ProtoMediaType);
         }
 
         public override Task<InputFormatterResult> ReadRequestBodyAsync(InputFormatterContext context)
@@ -175,19 +169,19 @@ namespace AElf.WebApp.Web
     // The output object mapping returned object to Protobuf-serialized response body.
     public class ProtobufOutputFormatter : OutputFormatter
     {
-        static MediaTypeHeaderValue protoMediaType =
+        private static readonly MediaTypeHeaderValue ProtoMediaType =
             MediaTypeHeaderValue.Parse((StringSegment) "application/x-protobuf");
 
         public ProtobufOutputFormatter()
         {
-            SupportedMediaTypes.Add(protoMediaType);
+            SupportedMediaTypes.Add(ProtoMediaType);
         }
 
         public override bool CanWriteResult(OutputFormatterCanWriteContext context)
         {
             MediaTypeHeaderValue.TryParse(context.ContentType, out var parsedContentType);
 
-            if (context.Object == null || parsedContentType == null || !parsedContentType.IsSubsetOf(protoMediaType))
+            if (context.Object == null || parsedContentType == null || !parsedContentType.IsSubsetOf(ProtoMediaType))
             {
                 return false;
             }

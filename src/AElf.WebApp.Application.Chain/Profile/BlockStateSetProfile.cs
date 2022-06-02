@@ -1,9 +1,10 @@
 using AElf.Kernel;
 using AElf.WebApp.Application.Chain.Dto;
+using AutoMapper;
 
 namespace AElf.WebApp.Application.Chain
 {
-    public class BlockStateSetProfile: AutoMapper.Profile
+    public class BlockStateSetProfile: Profile
     {
         public BlockStateSetProfile()
         {
