@@ -65,6 +65,16 @@ public class FeatureActiveServiceTest : KernelFeatureManagerTestBase
             var currentFeature = await _mockService.GetCurrentFeatureNameAsync();
             currentFeature.ShouldBe("Version3");
         }
+        
+        {
+            var currentHeight = await GetCurrentHeight();
+            await ConfigFeatureActiveHeight("Version3", currentHeight + 5);
+        }
+
+        {
+            var currentFeature = await _mockService.GetCurrentFeatureNameAsync();
+            currentFeature.ShouldBe("Version2");
+        }
     }
 
     private async Task ConfigFeatureActiveHeight(string featureName, long activeHeight)
