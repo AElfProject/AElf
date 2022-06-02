@@ -103,7 +103,11 @@ namespace AElf.WebApp.Web
             services.AddAbpSwaggerGen(
                 options =>
                 {
+                    options.SwaggerDoc("v1", new OpenApiInfo { Title = "AElf API", Version = "v1" });
+                    options.DocInclusionPredicate((docName, description) => true);
+                    options.CustomSchemaIds(type => type.FullName);
                     options.DocumentFilter<ApiOptionFilter>();
+                    options.HideAbpEndpoints();
                 }
             );
             services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
