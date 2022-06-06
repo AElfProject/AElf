@@ -6,9 +6,8 @@
     <projectFile>src/AElf.ContractDeployer/AElf.ContractDeployer.csproj</projectFile>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f219eb91-7a02-45ac-bca5-5f7f0e56c471" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.AElf.All/.idea/workspace.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/AElf.Kernel.Core.Tests/Account/Application/AccountServiceTests.cs" beforeDir="false" afterPath="$PROJECT_DIR$/test/AElf.Kernel.Core.Tests/Account/Application/AccountServiceTests.cs" afterDir="false" />
+    <list default="true" id="f219eb91-7a02-45ac-bca5-5f7f0e56c471" name="Changes" comment="Fix GetPublicKey_Test">
+      <change beforePath="$PROJECT_DIR$/.idea/.idea.AElf.All/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.AElf.All/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -24,6 +23,14 @@
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="TaskManager">
+    <task id="LOCAL-00001" summary="Fix GetPublicKey_Test">
+      <created>1654500580629</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1654500580629</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="UnityCheckinConfiguration" checkUnsavedScenes="false" />
@@ -38,5 +45,9 @@
         </entry>
       </map>
     </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Fix GetPublicKey_Test" />
+    <option name="LAST_COMMIT_MESSAGE" value="Fix GetPublicKey_Test" />
   </component>
 </project>
