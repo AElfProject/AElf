@@ -15,17 +15,16 @@ public class WhitelistValidator : WhitelistValidatorBase, ITransientDependency
 
     public override bool SystemContactIgnored => true;
 }
-
+    
 public class SystemContractWhitelistValidator : WhitelistValidatorBase, ITransientDependency
 {
-    public SystemContractWhitelistValidator(ISystemContractWhitelistProvider whitelistProvider) : base(
-        whitelistProvider)
+    public SystemContractWhitelistValidator(ISystemContractWhitelistProvider whitelistProvider) : base(whitelistProvider)
     {
     }
 
     public override bool SystemContactIgnored => false;
 }
-
+    
 public abstract class WhitelistValidatorBase : IValidator<ModuleDefinition>
 {
     private readonly IWhitelistProvider _whitelistProvider;
@@ -43,8 +42,10 @@ public abstract class WhitelistValidatorBase : IValidator<ModuleDefinition>
         var results = new List<ValidationResult>();
         // Validate assembly references
         foreach (var asmRef in module.AssemblyReferences)
+        {
             if (!whiteList.ContainsAssemblyNameReference(asmRef))
                 results.Add(new WhitelistValidationResult("Assembly " + asmRef.Name + " is not allowed."));
+        }
 
         // Validate types in the module
         results.AddRange(module.Types.SelectMany(t => Validate(whiteList, t, ct)));
@@ -70,7 +71,9 @@ public abstract class WhitelistValidatorBase : IValidator<ModuleDefinition>
                 continue;
 
             foreach (var instruction in method.Body.Instructions)
+            {
                 results.AddRange(Validate(whitelist, method, instruction));
+            }
         }
 
         return results;
@@ -100,7 +103,10 @@ public abstract class WhitelistValidatorBase : IValidator<ModuleDefinition>
             return results;
         }
 
-        if (reference is TypeReference typeReference) return ValidateReference(whitelist, method, typeReference);
+        if (reference is TypeReference typeReference)
+        {
+            return ValidateReference(whitelist, method, typeReference);
+        }
 
         return Enumerable.Empty<ValidationResult>();
     }
@@ -131,7 +137,9 @@ public abstract class WhitelistValidatorBase : IValidator<ModuleDefinition>
             results.AddRange(ValidateReference(whitelist, method, generic.ElementType));
 
             foreach (var argument in generic.GenericArguments)
+            {
                 results.AddRange(ValidateReference(whitelist, method, argument));
+            }
 
             return results;
         }
@@ -153,7 +161,10 @@ public abstract class WhitelistValidatorBase : IValidator<ModuleDefinition>
         TypeReference type, string member = null)
     {
         // Allow own defined types
-        if (type is TypeDefinition) yield break;
+        if (type is TypeDefinition)
+        {
+            yield break;
+        }
 
         // Filter in the whitelist whether there is any rule
         var result = Search(whitelist, type, member);
@@ -195,10 +206,12 @@ public abstract class WhitelistValidatorBase : IValidator<ModuleDefinition>
 
         // Fail if the type is not allowed in the namespace 
         if (!namespaceRule.Types.TryGetValue(type.Name, out var typeRule) ||
-            (typeRule.Permission == Permission.Denied && !typeRule.Members.Any()))
+            typeRule.Permission == Permission.Denied && !typeRule.Members.Any())
+        {
             return namespaceRule.Permission == Permission.Allowed
                 ? WhitelistSearchResult.Allowed
                 : WhitelistSearchResult.DeniedType;
+        }
 
         if (typeRule.Permission == Permission.Denied && !typeRule.Members.Any())
             return WhitelistSearchResult.DeniedType;
@@ -214,11 +227,13 @@ public abstract class WhitelistValidatorBase : IValidator<ModuleDefinition>
                     : WhitelistSearchResult.DeniedMember;
 
             // Check without the prefix as well
-            member = member.Split(new[] { '_' }, 2)[1];
+            member = member.Split(new[] {'_'}, 2)[1];
             if (!typeRule.Members.TryGetValue(member, out memberRule))
+            {
                 return typeRule.Permission == Permission.Allowed
                     ? WhitelistSearchResult.Allowed
                     : WhitelistSearchResult.DeniedMember;
+            }
         }
 
         return memberRule.Permission == Permission.Allowed

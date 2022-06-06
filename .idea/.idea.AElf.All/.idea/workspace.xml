@@ -6,8 +6,32 @@
     <projectFile>src/AElf.ContractDeployer/AElf.ContractDeployer.csproj</projectFile>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f219eb91-7a02-45ac-bca5-5f7f0e56c471" name="Changes" comment="Fix GetPublicKey_Test">
+    <list default="true" id="f219eb91-7a02-45ac-bca5-5f7f0e56c471" name="Changes" comment="AElf.sln -&gt; AElf.All.sln">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.AElf.All/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.AElf.All/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/AElf.CSharp.CodeOps/AElf.CSharp.CodeOps.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/src/AElf.CSharp.CodeOps/AElf.CSharp.CodeOps.csproj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/AElf.CSharp.CodeOps/CSharpContractAuditor.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/AElf.CSharp.CodeOps/CSharpContractAuditor.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/AElf.CSharp.CodeOps/Instructions/IStateWrittenInstructionInjector.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/AElf.CSharp.CodeOps/Instructions/IStateWrittenInstructionInjector.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/AElf.CSharp.CodeOps/Patchers/Module/ExecutionObserverInjector.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/AElf.CSharp.CodeOps/Patchers/Module/ExecutionObserverInjector.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/AElf.CSharp.CodeOps/Patchers/Module/MethodCallReplacer.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/AElf.CSharp.CodeOps/Patchers/Module/MethodCallReplacer.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/AElf.CSharp.CodeOps/Patchers/Module/ResetFieldsMethodInjector.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/AElf.CSharp.CodeOps/Patchers/Module/ResetFieldsMethodInjector.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/AElf.CSharp.CodeOps/Patchers/Module/StateWrittenSizeLimitMethodInjector.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/AElf.CSharp.CodeOps/Patchers/Module/StateWrittenSizeLimitMethodInjector.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/AElf.CSharp.CodeOps/Validators/Assembly/AcsValidator.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/AElf.CSharp.CodeOps/Validators/Assembly/AcsValidator.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/AElf.CSharp.CodeOps/Validators/Method/ArrayValidator.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/AElf.CSharp.CodeOps/Validators/Method/ArrayValidator.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/AElf.CSharp.CodeOps/Validators/Method/DescriptorAccessValidator.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/AElf.CSharp.CodeOps/Validators/Method/DescriptorAccessValidator.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/AElf.CSharp.CodeOps/Validators/Method/FloatOpsValidator.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/AElf.CSharp.CodeOps/Validators/Method/FloatOpsValidator.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/AElf.CSharp.CodeOps/Validators/Method/GetHashCodeValidator.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/AElf.CSharp.CodeOps/Validators/Method/GetHashCodeValidator.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/AElf.CSharp.CodeOps/Validators/Method/MultiDimArrayValidator.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/AElf.CSharp.CodeOps/Validators/Method/MultiDimArrayValidator.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/AElf.CSharp.CodeOps/Validators/Method/UncheckedMathValidator.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/AElf.CSharp.CodeOps/Validators/Method/UncheckedMathValidator.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/AElf.CSharp.CodeOps/Validators/Module/ContractStructureValidator.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/AElf.CSharp.CodeOps/Validators/Module/ContractStructureValidator.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/AElf.CSharp.CodeOps/Validators/Module/InstructionInjectionValidator.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/AElf.CSharp.CodeOps/Validators/Module/InstructionInjectionValidator.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/AElf.CSharp.CodeOps/Validators/Module/ObserverProxyValidator.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/AElf.CSharp.CodeOps/Validators/Module/ObserverProxyValidator.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/AElf.CSharp.CodeOps/Validators/Module/ResetFieldsValidator.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/AElf.CSharp.CodeOps/Validators/Module/ResetFieldsValidator.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/AElf.CSharp.CodeOps/Validators/Whitelist/IWhitelistProvider.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/AElf.CSharp.CodeOps/Validators/Whitelist/IWhitelistProvider.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/AElf.CSharp.CodeOps/Validators/Whitelist/IWhitelistValidator.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/AElf.CSharp.CodeOps/Validators/Whitelist/IWhitelistValidator.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/AElf.Runtime.CSharp.Tests.BadContract/BadCases.cs" beforeDir="false" afterPath="$PROJECT_DIR$/test/AElf.Runtime.CSharp.Tests.BadContract/BadCases.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/AElf.Runtime.CSharp.Tests.BadContract/BadContract.cs" beforeDir="false" afterPath="$PROJECT_DIR$/test/AElf.Runtime.CSharp.Tests.BadContract/BadContract.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/AElf.Runtime.CSharp.Tests.BadContract/BadContractState.cs" beforeDir="false" afterPath="$PROJECT_DIR$/test/AElf.Runtime.CSharp.Tests.BadContract/BadContractState.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/AElf.Runtime.CSharp.Tests.BadContract/BadReferences.cs" beforeDir="false" afterPath="$PROJECT_DIR$/test/AElf.Runtime.CSharp.Tests.BadContract/BadReferences.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -18,10 +42,94 @@
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="HighlightingSettingsPerFile">
+    <setting file="mock:///Users/eanzhao/Code/AElf/src/AElf.CSharp.CodeOps/CSharpContractAuditor.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Users/eanzhao/Code/AElf/src/AElf.CSharp.CodeOps/CSharpContractAuditor.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Users/eanzhao/Code/AElf/src/AElf.CSharp.CodeOps/Constants.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Users/eanzhao/Code/AElf/src/AElf.CSharp.CodeOps/Constants.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Users/eanzhao/Code/AElf/src/AElf.CSharp.CodeOps/Instructions/IStateWrittenInstructionInjector.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Users/eanzhao/Code/AElf/src/AElf.CSharp.CodeOps/Instructions/IStateWrittenInstructionInjector.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Users/eanzhao/Code/AElf/src/AElf.CSharp.CodeOps/Patchers/Module/ExecutionObserverInjector.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Users/eanzhao/Code/AElf/src/AElf.CSharp.CodeOps/Patchers/Module/ExecutionObserverInjector.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Users/eanzhao/Code/AElf/src/AElf.CSharp.CodeOps/Patchers/Module/MethodCallReplacer.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Users/eanzhao/Code/AElf/src/AElf.CSharp.CodeOps/Patchers/Module/MethodCallReplacer.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Users/eanzhao/Code/AElf/src/AElf.CSharp.CodeOps/Patchers/Module/ResetFieldsMethodInjector.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Users/eanzhao/Code/AElf/src/AElf.CSharp.CodeOps/Patchers/Module/ResetFieldsMethodInjector.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Users/eanzhao/Code/AElf/src/AElf.CSharp.CodeOps/Patchers/Module/StateWrittenSizeLimitMethodInjector.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Users/eanzhao/Code/AElf/src/AElf.CSharp.CodeOps/Patchers/Module/StateWrittenSizeLimitMethodInjector.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Users/eanzhao/Code/AElf/src/AElf.CSharp.CodeOps/Validators/Assembly/AcsValidator.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Users/eanzhao/Code/AElf/src/AElf.CSharp.CodeOps/Validators/Assembly/AcsValidator.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Users/eanzhao/Code/AElf/src/AElf.CSharp.CodeOps/Validators/IValidator.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Users/eanzhao/Code/AElf/src/AElf.CSharp.CodeOps/Validators/IValidator.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Users/eanzhao/Code/AElf/src/AElf.CSharp.CodeOps/Validators/Method/ArrayValidator.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Users/eanzhao/Code/AElf/src/AElf.CSharp.CodeOps/Validators/Method/ArrayValidator.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Users/eanzhao/Code/AElf/src/AElf.CSharp.CodeOps/Validators/Method/ArrayValidator.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Users/eanzhao/Code/AElf/src/AElf.CSharp.CodeOps/Validators/Method/ArrayValidator.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/AElf.CSharp.CodeOps/Validators/Method/ArrayValidator.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="mock:///Users/eanzhao/Code/AElf/src/AElf.CSharp.CodeOps/Validators/Method/ArrayValidator.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Users/eanzhao/Code/AElf/src/AElf.CSharp.CodeOps/Validators/Method/DescriptorAccessValidator.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Users/eanzhao/Code/AElf/src/AElf.CSharp.CodeOps/Validators/Method/DescriptorAccessValidator.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Users/eanzhao/Code/AElf/src/AElf.CSharp.CodeOps/Validators/Method/DescriptorAccessValidator.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Users/eanzhao/Code/AElf/src/AElf.CSharp.CodeOps/Validators/Method/DescriptorAccessValidator.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Users/eanzhao/Code/AElf/src/AElf.CSharp.CodeOps/Validators/Method/DescriptorAccessValidator.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Users/eanzhao/Code/AElf/src/AElf.CSharp.CodeOps/Validators/Method/FloatOpsValidator.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Users/eanzhao/Code/AElf/src/AElf.CSharp.CodeOps/Validators/Method/FloatOpsValidator.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Users/eanzhao/Code/AElf/src/AElf.CSharp.CodeOps/Validators/Method/FloatOpsValidator.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Users/eanzhao/Code/AElf/src/AElf.CSharp.CodeOps/Validators/Method/FloatOpsValidator.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Users/eanzhao/Code/AElf/src/AElf.CSharp.CodeOps/Validators/Method/FloatOpsValidator.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Users/eanzhao/Code/AElf/src/AElf.CSharp.CodeOps/Validators/Method/GetHashCodeValidator.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Users/eanzhao/Code/AElf/src/AElf.CSharp.CodeOps/Validators/Method/GetHashCodeValidator.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Users/eanzhao/Code/AElf/src/AElf.CSharp.CodeOps/Validators/Method/MultiDimArrayValidator.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Users/eanzhao/Code/AElf/src/AElf.CSharp.CodeOps/Validators/Method/MultiDimArrayValidator.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Users/eanzhao/Code/AElf/src/AElf.CSharp.CodeOps/Validators/Method/MultiDimArrayValidator.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Users/eanzhao/Code/AElf/src/AElf.CSharp.CodeOps/Validators/Method/MultiDimArrayValidator.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Users/eanzhao/Code/AElf/src/AElf.CSharp.CodeOps/Validators/Method/UncheckedMathValidator.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Users/eanzhao/Code/AElf/src/AElf.CSharp.CodeOps/Validators/Method/UncheckedMathValidator.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Users/eanzhao/Code/AElf/src/AElf.CSharp.CodeOps/Validators/Method/UncheckedMathValidator.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Users/eanzhao/Code/AElf/src/AElf.CSharp.CodeOps/Validators/Method/UncheckedMathValidator.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Users/eanzhao/Code/AElf/src/AElf.CSharp.CodeOps/Validators/Method/UncheckedMathValidator.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Users/eanzhao/Code/AElf/src/AElf.CSharp.CodeOps/Validators/Module/ContractStructureValidator.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Users/eanzhao/Code/AElf/src/AElf.CSharp.CodeOps/Validators/Module/ContractStructureValidator.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Users/eanzhao/Code/AElf/src/AElf.CSharp.CodeOps/Validators/Module/ContractStructureValidator.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Users/eanzhao/Code/AElf/src/AElf.CSharp.CodeOps/Validators/Module/InstructionInjectionValidator.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Users/eanzhao/Code/AElf/src/AElf.CSharp.CodeOps/Validators/Module/InstructionInjectionValidator.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Users/eanzhao/Code/AElf/src/AElf.CSharp.CodeOps/Validators/Module/ObserverProxyValidator.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Users/eanzhao/Code/AElf/src/AElf.CSharp.CodeOps/Validators/Module/ObserverProxyValidator.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Users/eanzhao/Code/AElf/src/AElf.CSharp.CodeOps/Validators/Module/ResetFieldsValidator.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Users/eanzhao/Code/AElf/src/AElf.CSharp.CodeOps/Validators/Module/ResetFieldsValidator.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Users/eanzhao/Code/AElf/src/AElf.CSharp.CodeOps/Validators/Whitelist/IWhitelistProvider.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Users/eanzhao/Code/AElf/src/AElf.CSharp.CodeOps/Validators/Whitelist/IWhitelistProvider.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Users/eanzhao/Code/AElf/src/AElf.CSharp.CodeOps/Validators/Whitelist/IWhitelistValidator.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Users/eanzhao/Code/AElf/src/AElf.CSharp.CodeOps/Validators/Whitelist/IWhitelistValidator.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Users/eanzhao/Code/AElf/src/AElf.CSharp.CodeOps/Validators/Whitelist/MemberRule.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Users/eanzhao/Code/AElf/src/AElf.CSharp.CodeOps/Validators/Whitelist/MemberRule.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Users/eanzhao/Code/AElf/src/AElf.CSharp.CodeOps/Validators/Whitelist/NamespaceRule.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Users/eanzhao/Code/AElf/src/AElf.CSharp.CodeOps/Validators/Whitelist/NamespaceRule.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Users/eanzhao/Code/AElf/test/AElf.CSharp.CodeOps.Tests/ContractAuditorTests.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Users/eanzhao/Code/AElf/test/AElf.CSharp.CodeOps.Tests/ContractAuditorTests.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="mock:///Users/eanzhao/Code/AElf/test/AElf.Kernel.Core.Tests/Account/Application/AccountServiceTests.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="mock:///Users/eanzhao/Code/AElf/test/AElf.Kernel.Core.Tests/Account/Application/AccountServiceTests.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Users/eanzhao/Code/AElf/test/AElf.Runtime.CSharp.Tests.BadContract/BadCases.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Users/eanzhao/Code/AElf/test/AElf.Runtime.CSharp.Tests.BadContract/BadCases.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Users/eanzhao/Code/AElf/test/AElf.Runtime.CSharp.Tests.BadContract/BadContract.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Users/eanzhao/Code/AElf/test/AElf.Runtime.CSharp.Tests.BadContract/BadContract.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Users/eanzhao/Code/AElf/test/AElf.Runtime.CSharp.Tests.BadContract/BadContractState.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Users/eanzhao/Code/AElf/test/AElf.Runtime.CSharp.Tests.BadContract/BadContractState.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Users/eanzhao/Code/AElf/test/AElf.Runtime.CSharp.Tests.BadContract/BadReferences.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Users/eanzhao/Code/AElf/test/AElf.Runtime.CSharp.Tests.BadContract/BadReferences.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Users/eanzhao/Code/AElf/test/AElf.Runtime.CSharp.Tests.BadContract/FakeExecutionObserverProxy.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Users/eanzhao/Code/AElf/test/AElf.Runtime.CSharp.Tests.BadContract/FakeExecutionObserverProxy.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Users/eanzhao/Code/AElf/test/AElf.Runtime.CSharp.Tests.BadContract/FakeExecutionObserverProxy.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Users/eanzhao/Code/AElf/test/AElf.Runtime.CSharp.Tests.BadContract/FakeExecutionObserverProxy.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/d43ef061d8284d73a9523604117dc70cb55200/44/481375ce/RuntimeHelpers.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/ee112d265aad4e098cf6cf7bf2806b0e57200/76/a2d62ccd/Instruction.cs" root0="SKIP_HIGHLIGHTING" />
+  </component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="Toolset" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="autoscrollFromSource" value="true" />
+  </component>
   <component name="TaskManager">
     <task id="LOCAL-00001" summary="Fix GetPublicKey_Test">
       <created>1654500580629</created>
@@ -30,7 +138,14 @@
       <option name="project" value="LOCAL" />
       <updated>1654500580629</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="AElf.sln -&gt; AElf.All.sln">
+      <created>1654501994825</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1654501994825</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="UnityCheckinConfiguration" checkUnsavedScenes="false" />
@@ -48,6 +163,26 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Fix GetPublicKey_Test" />
-    <option name="LAST_COMMIT_MESSAGE" value="Fix GetPublicKey_Test" />
+    <MESSAGE value="AElf.sln -&gt; AElf.All.sln" />
+    <option name="LAST_COMMIT_MESSAGE" value="AElf.sln -&gt; AElf.All.sln" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="DotNet Breakpoints">
+          <url>file://$PROJECT_DIR$/test/AElf.CSharp.CodeOps.Tests/ContractAuditorTests.cs</url>
+          <line>230</line>
+          <properties documentPath="$PROJECT_DIR$/test/AElf.CSharp.CodeOps.Tests/ContractAuditorTests.cs" initialLine="230" containingFunctionPresentation="method 'CheckBadContract_ForFindings'">
+            <startOffsets>
+              <option value="8251" />
+            </startOffsets>
+            <endOffsets>
+              <option value="8476" />
+            </endOffsets>
+          </properties>
+          <option name="timeStamp" value="3" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>

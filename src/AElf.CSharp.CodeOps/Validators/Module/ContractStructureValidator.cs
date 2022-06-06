@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -15,39 +16,6 @@ namespace AElf.CSharp.CodeOps.Validators.Module;
 
 public class ContractStructureValidator : IValidator<ModuleDefinition>, ITransientDependency
 {
-    private readonly HashSet<string> _allowedStateTypes = new()
-    {
-        typeof(BoolState).FullName,
-        typeof(Int32State).FullName,
-        typeof(UInt32State).FullName,
-        typeof(Int64State).FullName,
-        typeof(UInt64State).FullName,
-        typeof(StringState).FullName,
-        typeof(BytesState).FullName,
-
-        // Complex state types
-        typeof(ReadonlyState<>).FullName,
-        typeof(SingletonState<>).FullName,
-        typeof(MappedState<,>).FullName,
-        typeof(MappedState<,,>).FullName,
-        typeof(MappedState<,,,>).FullName,
-        typeof(MappedState<,,,,>).FullName,
-        typeof(MethodReference<,>).FullName,
-        typeof(ProtobufState<>).FullName
-    };
-
-    // For example, we need to allow only primitive types in read only collections
-    private readonly HashSet<string> _allowedStaticFieldInitOnlyTypes = new()
-    {
-        typeof(Marshaller<>).FullName,
-        typeof(Method<,>).FullName,
-        typeof(MessageParser<>).FullName,
-        typeof(FieldCodec<>).FullName,
-        typeof(MapField<,>.Codec).FullName,
-        typeof(ReadOnlyCollection<>).FullName,
-        typeof(IReadOnlyDictionary<,>).FullName
-    };
-
     public ContractStructureValidator()
     {
         // Convert full names to Mono.Cecil compatible full names
@@ -64,7 +32,7 @@ public class ContractStructureValidator : IValidator<ModuleDefinition>, ITransie
     {
         if (ct.IsCancellationRequested)
             throw new ContractAuditTimeoutException();
-
+            
         var structureError = ValidateStructure(module);
 
         if (structureError != null)
@@ -80,29 +48,41 @@ public class ContractStructureValidator : IValidator<ModuleDefinition>, ITransie
             .SelectMany(t => t.NestedTypes.Where(nt => nt.IsContractImplementation()))
             .SingleOrDefault();
 
-        if (contractBase == null) return new ContractStructureValidationResult("Contract base not found.");
+        if (contractBase == null)
+        {
+            return new ContractStructureValidationResult("Contract base not found.");
+        }
 
         var contractImplementation = module.Types.SingleOrDefault(t => t.IsContractImplementation());
         if (contractImplementation == null)
+        {
             return new ContractStructureValidationResult("Contract implementation not found.");
+        }
 
         if (contractImplementation.BaseType != contractBase)
+        {
             return new ContractStructureValidationResult(
                 $"Contract implementation should inherit from {contractBase.Name} " +
                 $"but inherited from {contractImplementation.BaseType.Name}");
+        }
 
         var contractState = contractBase.BaseType is GenericInstanceType genericType
             ? genericType.GenericArguments.SingleOrDefault()
             : null;
 
-        if (contractState == null) return new ContractStructureValidationResult("Contract state not found.");
+        if (contractState == null)
+        {
+            return new ContractStructureValidationResult("Contract state not found.");
+        }
 
-        var currentContractStateBase = ((TypeDefinition)contractState).BaseType.FullName;
+        var currentContractStateBase = ((TypeDefinition) contractState).BaseType.FullName;
         var aelfContractStateBase = typeof(ContractState).FullName;
         if (currentContractStateBase != aelfContractStateBase)
+        {
             return new ContractStructureValidationResult(
-                $"Contract state should inherit from {aelfContractStateBase} " +
+                $"Contract state should inherit from {aelfContractStateBase} " + 
                 $"but inherited from {currentContractStateBase}");
+        }
 
         return null;
     }
@@ -111,11 +91,14 @@ public class ContractStructureValidator : IValidator<ModuleDefinition>, ITransie
     {
         if (ct.IsCancellationRequested)
             throw new ContractAuditTimeoutException();
-
+            
         var errors = new List<ValidationResult>();
-
-        if (type.IsStateImplementation()) return ValidateContractStateType(type);
-
+            
+        if (type.IsStateImplementation())
+        {
+            return ValidateContractStateType(type);
+        }
+            
         errors.AddRange(type.IsContractImplementation() ? ValidateContractType(type) : ValidateRegularType(type));
         errors.AddRange(type.NestedTypes.SelectMany(t => ValidateType(t, ct)));
 
@@ -126,13 +109,15 @@ public class ContractStructureValidator : IValidator<ModuleDefinition>, ITransie
     {
         // Only allow MappedState, ContractReferenceState or MethodReference fields
         var badFields = type.Fields.Where(IsBadStateField).ToList();
-
+            
         if (badFields.Any())
-            return badFields.Select(f =>
+        {
+            return badFields.Select(f => 
                 new ContractStructureValidationResult(
                         $"{f.FieldType.FullName} type is not allowed as a field in contract state.")
                     .WithInfo(f.Name, type.Namespace, type.Name, f.Name));
-
+        }
+            
         return Enumerable.Empty<ValidationResult>();
     }
 
@@ -144,19 +129,23 @@ public class ContractStructureValidator : IValidator<ModuleDefinition>, ITransie
         // Simply, do not allow if the field is readonly and not one of the allowed types
         var errors = type.Fields
             .Where(f => f.IsInitOnly && !_allowedStaticFieldInitOnlyTypes.Contains(FieldTypeFullName(f)))
-            .Select(f =>
-                new ContractStructureValidationResult(
-                        "Only primitive types or whitelisted types are allowed as readonly fields in contract implementation.")
+            .Select(f => 
+                new ContractStructureValidationResult("Only primitive types or whitelisted types are allowed as readonly fields in contract implementation.")
                     .WithInfo(f.Name, type.Namespace, type.Name, f.Name)).ToList();
 
         // Do not allow setting value of any non-constant, non-readonly field in constructor
         foreach (var method in type.Methods.Where(m => m.IsConstructor))
-        foreach (var instruction in method.Body.Instructions
-                     .Where(i => i.OpCode == OpCodes.Stfld || i.OpCode == OpCodes.Stsfld))
-            if (instruction.Operand is FieldDefinition field && !(field.IsInitOnly || field.HasConstant))
-                errors.Add(new ContractStructureValidationResult(
-                        $"Initialization value is not allowed for field {field.Name}.")
-                    .WithInfo(method.Name, type.Namespace, type.Name, field.Name));
+        {
+            foreach (var instruction in method.Body.Instructions
+                         .Where(i => i.OpCode == OpCodes.Stfld || i.OpCode == OpCodes.Stsfld))
+            {
+                if (instruction.Operand is FieldDefinition field && !(field.IsInitOnly || field.HasConstant))
+                {
+                    errors.Add(new ContractStructureValidationResult($"Initialization value is not allowed for field {field.Name}.")
+                        .WithInfo(method.Name, type.Namespace, type.Name, field.Name));
+                }
+            }
+        }
 
         return errors;
     }
@@ -170,21 +159,26 @@ public class ContractStructureValidator : IValidator<ModuleDefinition>, ITransie
         var staticFields = type.Fields.Where(f => f.IsStatic);
         var badFields = staticFields.Where(IsBadField).ToList();
 
-        var errors = badFields.Select(f =>
+        var errors = badFields.Select(f => 
                 new ContractStructureValidationResult(
                         $"{f.FieldType.FullName} type is not allowed to be used as static field in regular types in contract.")
                     .WithInfo(f.Name, type.Namespace, type.Name, f.Name))
             .ToList();
-
+            
         foreach (var method in type.Methods.Where(m => m.IsConstructor))
-        foreach (var instruction in method.Body.Instructions
-                     .Where(i => i.OpCode == OpCodes.Stfld || i.OpCode == OpCodes.Stsfld))
-            if (instruction.Operand is FieldDefinition field &&
-                field.FieldType.FullName != typeof(FileDescriptor).FullName && // Allow FileDescriptor fields
-                field.IsStatic && !(field.IsInitOnly || field.HasConstant))
-                errors.Add(new ContractStructureValidationResult(
-                        $"Initialization value is not allowed for field {field.Name}.")
-                    .WithInfo(method.Name, type.Namespace, type.Name, field.Name));
+        {
+            foreach (var instruction in method.Body.Instructions
+                         .Where(i => i.OpCode == OpCodes.Stfld || i.OpCode == OpCodes.Stsfld))
+            {
+                if (instruction.Operand is FieldDefinition field && 
+                    field.FieldType.FullName != typeof(FileDescriptor).FullName && // Allow FileDescriptor fields
+                    field.IsStatic && !(field.IsInitOnly || field.HasConstant))
+                {
+                    errors.Add(new ContractStructureValidationResult($"Initialization value is not allowed for field {field.Name}.")
+                        .WithInfo(method.Name, type.Namespace, type.Name, field.Name));
+                }
+            }
+        }
 
         return errors;
     }
@@ -192,20 +186,22 @@ public class ContractStructureValidator : IValidator<ModuleDefinition>, ITransie
     private bool IsBadField(FieldDefinition field)
     {
         var fieldTypeFullName = FieldTypeFullName(field);
-
+            
         // If constant, which means it is also primitive, then not a bad field
         if (field.HasConstant)
             return false;
-
+            
         // If a field is init only, then only pass allowed types
-        if (field.IsInitOnly &&
-            (_allowedStaticFieldInitOnlyTypes.Contains(fieldTypeFullName) ||
+        if (field.IsInitOnly && 
+            (_allowedStaticFieldInitOnlyTypes.Contains(fieldTypeFullName) || 
              Constants.PrimitiveTypes.Contains(fieldTypeFullName)))
         {
             // If field type is ReadOnly GenericInstanceType, only primitive types are allowed
             // ReadOnlyCollection, ReadOnlyDictionary etc.
             if (field.FieldType is GenericInstanceType fieldType && field.FieldType.Name.Contains("ReadOnly"))
+            {
                 return fieldType.GenericArguments.Any(a => !Constants.PrimitiveTypes.Contains(a.FullName));
+            }
 
             return false;
         }
@@ -228,7 +224,9 @@ public class ContractStructureValidator : IValidator<ModuleDefinition>, ITransie
     private bool IsBadStateField(FieldDefinition field)
     {
         if (field.FieldType is GenericInstanceType genericInstanceType)
+        {
             return !_allowedStateTypes.Contains(genericInstanceType.ElementType.FullName);
+        }
 
         if (_allowedStateTypes.Contains(field.FieldType.FullName))
             return false;
@@ -236,8 +234,41 @@ public class ContractStructureValidator : IValidator<ModuleDefinition>, ITransie
         // If not ContractReferenceState then it is not allowed
         return field.FieldType.Resolve().BaseType.FullName != typeof(ContractReferenceState).FullName;
     }
-}
+        
+    // For example, we need to allow only primitive types in read only collections
+    private readonly HashSet<string> _allowedStaticFieldInitOnlyTypes = new HashSet<string>
+    {
+        typeof(Marshaller<>).FullName,
+        typeof(Method<,>).FullName,
+        typeof(MessageParser<>).FullName,
+        typeof(FieldCodec<>).FullName,
+        typeof(MapField<,>.Codec).FullName,
+        typeof(ReadOnlyCollection<>).FullName,
+        typeof(IReadOnlyDictionary<,>).FullName
+    };
 
+    private readonly HashSet<string> _allowedStateTypes = new HashSet<string>
+    {
+        typeof(BoolState).FullName,
+        typeof(Int32State).FullName,
+        typeof(UInt32State).FullName,
+        typeof(Int64State).FullName,
+        typeof(UInt64State).FullName,
+        typeof(StringState).FullName,
+        typeof(BytesState).FullName,
+            
+        // Complex state types
+        typeof(ReadonlyState<>).FullName,
+        typeof(SingletonState<>).FullName,
+        typeof(MappedState<,>).FullName,
+        typeof(MappedState<,,>).FullName,
+        typeof(MappedState<,,,>).FullName,
+        typeof(MappedState<,,,,>).FullName,
+        typeof(MethodReference<,>).FullName,
+        typeof(ProtobufState<>).FullName,
+    };
+}
+    
 public class ContractStructureValidationResult : ValidationResult
 {
     public ContractStructureValidationResult(string message) : base(message)

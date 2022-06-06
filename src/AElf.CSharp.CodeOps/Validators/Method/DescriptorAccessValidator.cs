@@ -16,7 +16,7 @@ public class DescriptorAccessValidator : IValidator<MethodDefinition>, ITransien
     {
         if (ct.IsCancellationRequested)
             throw new ContractAuditTimeoutException();
-
+            
         if (!method.HasBody)
             return Enumerable.Empty<ValidationResult>();
 
@@ -27,18 +27,20 @@ public class DescriptorAccessValidator : IValidator<MethodDefinition>, ITransien
         var instructions = method.Body.Instructions
             .Where(i => i.OpCode == OpCodes.Stsfld &&
                         i.Operand is FieldDefinition field &&
-                        field.FieldType.FullName == typeof(FileDescriptor).FullName &&
+                        field.FieldType.FullName == typeof(FileDescriptor).FullName && 
                         (!method.IsConstructor || field.DeclaringType != method.DeclaringType)).ToArray();
-
+            
         if (instructions.Any())
+        {
             return instructions.Select(i => new DescriptorAccessValidationResult(
                     "It is not allowed to set FileDescriptor type static field outside of its declaring type's constructor.")
-                .WithInfo(method.Name, method.DeclaringType.Namespace, method.DeclaringType.Name, null));
+                .WithInfo(method.Name, method.DeclaringType.Namespace, method.DeclaringType.Name, null)); 
+        }
 
         return Enumerable.Empty<ValidationResult>();
     }
 }
-
+    
 public class DescriptorAccessValidationResult : ValidationResult
 {
     public DescriptorAccessValidationResult(string message) : base(message)

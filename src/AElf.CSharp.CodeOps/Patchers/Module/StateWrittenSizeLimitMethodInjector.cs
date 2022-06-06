@@ -18,16 +18,25 @@ public class StateWrittenSizeLimitMethodInjector : IPatcher<ModuleDefinition>
     public void Patch(ModuleDefinition module)
     {
         // Patch the types
-        foreach (var typ in module.Types) PatchType(typ, module);
+        foreach (var typ in module.Types)
+        {
+            PatchType(typ, module);
+        }
     }
 
     private void PatchType(TypeDefinition typ, ModuleDefinition moduleDefinition)
     {
         // Patch the methods in the type
-        foreach (var method in typ.Methods) PatchMethod(moduleDefinition, method);
+        foreach (var method in typ.Methods)
+        {
+            PatchMethod(moduleDefinition, method);
+        }
 
         // Patch if there is any nested type within the type
-        foreach (var nestedType in typ.NestedTypes) PatchType(nestedType, moduleDefinition);
+        foreach (var nestedType in typ.NestedTypes)
+        {
+            PatchType(nestedType, moduleDefinition);
+        }
     }
 
     private void PatchMethod(ModuleDefinition moduleDefinition, MethodDefinition methodDefinition)
@@ -39,6 +48,8 @@ public class StateWrittenSizeLimitMethodInjector : IPatcher<ModuleDefinition>
 
         foreach (var instruction in methodDefinition.Body.Instructions.Where(instruction =>
                      _instructionInjector.IdentifyInstruction(instruction)).ToList())
+        {
             _instructionInjector.InjectInstruction(ilProcessor, instruction, moduleDefinition);
+        }
     }
 }

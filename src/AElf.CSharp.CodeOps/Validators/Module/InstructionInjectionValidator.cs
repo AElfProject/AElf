@@ -24,22 +24,31 @@ public class InstructionInjectionValidator : IValidator<ModuleDefinition>, ITran
             throw new ContractAuditTimeoutException();
 
         var result = new List<ValidationResult>();
-        foreach (var typ in moduleDefinition.Types) result.AddRange(ValidateType(typ, moduleDefinition));
-
+        foreach (var typ in moduleDefinition.Types)
+        {
+            result.AddRange(ValidateType(typ, moduleDefinition));
+        }
+            
         return result;
     }
-
+        
     private List<ValidationResult> ValidateType(TypeDefinition type, ModuleDefinition moduleDefinition)
     {
         var result = new List<ValidationResult>();
 
-        foreach (var method in type.Methods) result.AddRange(ValidateMethod(moduleDefinition, method));
+        foreach (var method in type.Methods)
+        {
+            result.AddRange(ValidateMethod(moduleDefinition, method));
+        }
 
-        foreach (var nestedType in type.NestedTypes) result.AddRange(ValidateType(nestedType, moduleDefinition));
+        foreach (var nestedType in type.NestedTypes)
+        {
+            result.AddRange(ValidateType(nestedType, moduleDefinition));
+        }
 
         return result;
     }
-
+        
     private List<ValidationResult> ValidateMethod(ModuleDefinition moduleDefinition, MethodDefinition methodDefinition)
     {
         var result = new List<ValidationResult>();
@@ -60,7 +69,7 @@ public class InstructionInjectionValidator : IValidator<ModuleDefinition>, ITran
         return result;
     }
 }
-
+    
 public class MethodCallInjectionValidationResult : ValidationResult
 {
     public MethodCallInjectionValidationResult(string message) : base(message)

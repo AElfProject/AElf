@@ -47,7 +47,7 @@ public class AcsValidator : IAcsValidator
     private static ServerServiceDefinition GetServerServiceDefinition(System.Reflection.Assembly assembly)
     {
         var methodInfo = assembly.FindContractContainer()
-            .GetMethod("BindService", new[] { assembly.FindContractBaseType() });
+            .GetMethod("BindService", new[] {assembly.FindContractBaseType()});
 
         var serviceDefinition = methodInfo.Invoke(null, new[]
         {

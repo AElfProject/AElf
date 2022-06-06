@@ -24,15 +24,15 @@ public interface IStateWrittenInstructionInjector
 public class StateWrittenInstructionInjector : IStateWrittenInstructionInjector, ITransientDependency
 {
     private static readonly ReadOnlyDictionary<string, HashSet<string>> MethodCallsIdentifications =
-        new(
+        new ReadOnlyDictionary<string, HashSet<string>>(
             new Dictionary<string, HashSet<string>>
             {
-                { typeof(SingletonState).FullName, new HashSet<string> { "set_Value" } },
-                { typeof(ReadonlyState).FullName, new HashSet<string> { "set_Value" } },
-                { typeof(MappedState).FullName, new HashSet<string> { "set_Item", "Set" } }
+                {typeof(SingletonState).FullName, new HashSet<string> {"set_Value"}},
+                {typeof(ReadonlyState).FullName, new HashSet<string> {"set_Value"}},
+                {typeof(MappedState).FullName, new HashSet<string> {"set_Item", "Set"}}
             });
 
-    private static readonly HashSet<string> PrimitiveTypes = new()
+    private static readonly HashSet<string> PrimitiveTypes = new HashSet<string>
     {
         typeof(int).FullName, typeof(uint).FullName,
         typeof(long).FullName, typeof(ulong).FullName,
@@ -43,20 +43,20 @@ public class StateWrittenInstructionInjector : IStateWrittenInstructionInjector,
     {
         if (instruction.OpCode != OpCodes.Callvirt)
             return false;
-        var methodReference = (MethodReference)instruction.Operand;
+        var methodReference = (MethodReference) instruction.Operand;
         var declaringType = methodReference.DeclaringType.Resolve();
         if (declaringType == null || !declaringType.HasGenericParameters)
             return false;
 
         var baseTypeFullName = declaringType.BaseType?.FullName;
         if (baseTypeFullName == null ||
-            !MethodCallsIdentifications.TryGetValue(baseTypeFullName, out var methodNames) ||
+            !MethodCallsIdentifications.TryGetValue(baseTypeFullName, out var methodNames) || 
             !(methodReference.DeclaringType is GenericInstanceType genericType))
             return false;
         var argumentType = genericType.GenericArguments.Last().Resolve();
         if (argumentType.IsEnum)
             return false;
-
+            
         var contains = PrimitiveTypes.Contains(argumentType.FullName);
         return !contains && methodNames.Contains(methodReference.Name);
     }
@@ -101,13 +101,13 @@ public class StateWrittenInstructionInjector : IStateWrittenInstructionInjector,
         MethodReference stateSizeLimitInstruction;
         try
         {
-            stateSizeLimitInstruction = (MethodReference)instruction.Previous?.Operand;
+            stateSizeLimitInstruction = (MethodReference) instruction.Previous?.Operand;
         }
         catch (InvalidCastException)
         {
             return false;
         }
-
+            
         var result = !string.IsNullOrEmpty(stateSizeLimitInstruction?.FullName) &&
                      methodDefinition.FullName == stateSizeLimitInstruction.FullName;
 

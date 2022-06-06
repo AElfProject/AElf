@@ -15,13 +15,14 @@ public class GetHashCodeValidator : IValidator<MethodDefinition>, ITransientDepe
     {
         if (ct.IsCancellationRequested)
             throw new ContractAuditTimeoutException();
-
+            
         if (!method.HasBody)
             return Enumerable.Empty<ValidationResult>();
-
-        return method.Name == nameof(GetHashCode) ? ValidateGetHashCodeMethod(method) : ValidateRegularMethod(method);
+            
+        return method.Name == nameof(GetHashCode) ? 
+            ValidateGetHashCodeMethod(method) : ValidateRegularMethod(method);
     }
-
+        
     private IEnumerable<ValidationResult> ValidateRegularMethod(MethodDefinition method)
     {
         var errors = new List<ValidationResult>();
@@ -32,9 +33,11 @@ public class GetHashCodeValidator : IValidator<MethodDefinition>, ITransientDepe
             if (!(instruction.Operand is MethodReference accessedMethod)) continue;
 
             if (accessedMethod.Name == nameof(GetHashCode))
+            {
                 errors.Add(new GetHashCodeValidationResult(
                         "It is not allowed to access GetHashCode method from a non GetHashCode method.")
                     .WithInfo(method.Name, method.DeclaringType.Namespace, method.DeclaringType.Name, method.Name));
+            }
         }
 
         return errors;
@@ -43,26 +46,28 @@ public class GetHashCodeValidator : IValidator<MethodDefinition>, ITransientDepe
     private IEnumerable<ValidationResult> ValidateGetHashCodeMethod(MethodDefinition method)
     {
         var errors = new List<ValidationResult>();
-
+            
         foreach (var instruction in method.Body.Instructions)
         {
             GetHashCodeValidationResult error = null;
-
+                
             switch (instruction.Operand)
             {
                 case MethodReference accessedMethod:
                     var methodDefinition = accessedMethod.Resolve();
-
+                        
                     if (!(IsGetHashCodeCall(methodDefinition)
                           || IsFieldGetterCall(methodDefinition)
                           || IsGetLengthCall(methodDefinition)
                           || IsExecutionObserverCall(methodDefinition)
                           || IsInequalityOperatorCall(methodDefinition)))
+                    {
                         error = new GetHashCodeValidationResult(
                             $"It is not allowed to access {accessedMethod.Name} method within GetHashCode method.");
-
+                    }
+                        
                     break;
-
+                    
                 case FieldReference accessedField:
                     if (instruction.OpCode != OpCodes.Ldfld) // Only allow ldfld, do not allow the rest with fields
                         error = new GetHashCodeValidationResult(
@@ -71,8 +76,10 @@ public class GetHashCodeValidator : IValidator<MethodDefinition>, ITransientDepe
             }
 
             if (error != null)
-                errors.Add(error.WithInfo(method.Name,
+            {
+                errors.Add(error.WithInfo(method.Name, 
                     method.DeclaringType.Namespace, method.DeclaringType.Name, method.Name));
+            }
         }
 
         return errors;
@@ -80,8 +87,8 @@ public class GetHashCodeValidator : IValidator<MethodDefinition>, ITransientDepe
 
     private bool IsInequalityOperatorCall(MethodDefinition method)
     {
-        if (!(method.Name == "op_Inequality"
-              && method.Parameters.Count == 2
+        if (!(method.Name == "op_Inequality" 
+              && method.Parameters.Count == 2 
               && method.ReturnType.FullName == typeof(bool).FullName))
             return false;
 
@@ -97,17 +104,14 @@ public class GetHashCodeValidator : IValidator<MethodDefinition>, ITransientDepe
     private bool IsGetLengthCall(MethodDefinition method)
     {
         // Allowed for 2 types only
-        return (method.DeclaringType.FullName == "System.String" ||
-                method.DeclaringType.FullName == "Google.Protobuf.ByteString")
-               && method.Name == "get_Length" && !method.HasParameters &&
-               method.ReturnType.FullName == typeof(int).FullName;
+        return (method.DeclaringType.FullName == "System.String" || method.DeclaringType.FullName == "Google.Protobuf.ByteString") 
+               && method.Name == "get_Length" && !method.HasParameters && method.ReturnType.FullName == typeof(int).FullName;
     }
 
     private bool IsExecutionObserverCall(MethodDefinition method)
     {
         return method.DeclaringType.Name == nameof(ExecutionObserverProxy)
-               && (method.Name == nameof(ExecutionObserverProxy.CallCount) ||
-                   method.Name == nameof(ExecutionObserverProxy.BranchCount))
+               && (method.Name == nameof(ExecutionObserverProxy.CallCount) || method.Name == nameof(ExecutionObserverProxy.BranchCount)) 
                && method.ReturnType.FullName == "System.Void"
                && !method.HasParameters;
     }
@@ -117,7 +121,7 @@ public class GetHashCodeValidator : IValidator<MethodDefinition>, ITransientDepe
         return method.Name == nameof(GetHashCode) && !method.HasParameters;
     }
 }
-
+    
 public class GetHashCodeValidationResult : ValidationResult
 {
     public GetHashCodeValidationResult(string message) : base(message)

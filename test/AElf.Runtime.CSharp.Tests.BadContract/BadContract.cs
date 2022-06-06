@@ -8,10 +8,10 @@ namespace AElf.Runtime.CSharp.Tests.BadContract;
 
 public class BadContract : BadContractContainer.BadContractBase
 {
+    int i = 1;
     private static BadCase1 staticNotAllowedTypeField;
     private static int staticAllowedTypeField;
-    private int i = 1;
-
+        
     public override Empty UpdateDoubleState(DoubleInput input)
     {
         State.Double.Value = input.DoubleValue;
@@ -22,7 +22,7 @@ public class BadContract : BadContractContainer.BadContractBase
     public override Empty UpdateFloatState(FloatInput input)
     {
         State.Float.Value = input.FloatValue;
-
+            
         return new Empty();
     }
 
@@ -31,8 +31,8 @@ public class BadContract : BadContractContainer.BadContractBase
         var random = new Random().Next();
 
         State.CurrentRandom.Value = random;
-
-        return new RandomOutput
+            
+        return new RandomOutput()
         {
             RandomValue = random
         };
@@ -48,7 +48,7 @@ public class BadContract : BadContractContainer.BadContractBase
 
         State.CurrentTimeToday.Value = DateTime.Today;
 
-        return new DateTimeOutput
+        return new DateTimeOutput()
         {
             DateTimeValue = Timestamp.FromDateTime(current)
         };
@@ -60,7 +60,7 @@ public class BadContract : BadContractContainer.BadContractBase
         {
             writer.Write(input.FileContent);
         }
-
+            
         return new Empty();
     }
 
@@ -68,14 +68,17 @@ public class BadContract : BadContractContainer.BadContractBase
     {
         var arr = new int[1024 * 1024 * 1024]; // 
 
-        for (var i = 0; i < arr.Length; i++) arr[i] = int.MaxValue;
+        for (var i = 0; i < arr.Length; i++)
+        {
+            arr[i] = int.MaxValue;
+        }
 
         return new Empty();
     }
 
     public override Empty InitLargeStringDynamic(InitLargeStringDynamicInput input)
     {
-        var str = new string('A', input.StringSizeValue);
+        var str = new String('A', input.StringSizeValue);
 
         return new Empty();
     }
@@ -86,21 +89,21 @@ public class BadContract : BadContractContainer.BadContractBase
 
         return new Empty();
     }
-
+        
     public override Empty TestCallToSeparateClass(Empty input)
     {
         State.CurrentTime.Value = SeparateClass.UseDeniedMemberInSeparateClass();
-
+            
         return new Empty();
     }
 
     public override Empty TestInfiniteLoop(Int32Value input)
     {
-        var i = 0;
+        int i = 0;
         while (i++ < input.Value)
         {
         }
-
+            
         ExecutionObserverProxy.SetObserver(null);
         return new Empty();
     }
@@ -116,7 +119,7 @@ public class BadContract : BadContractContainer.BadContractBase
         InfiniteRecursiveCall();
         return new Empty();
     }
-
+        
     private void InfiniteRecursiveCall(string text = "")
     {
         text += "TEST";
@@ -129,14 +132,6 @@ public class BadContract : BadContractContainer.BadContractBase
         return new Empty();
     }
 
-    public override Int32Value TestGetHashCodeCall(Empty input)
-    {
-        return new Int32Value
-        {
-            Value = new IMessageInheritedClass().GetHashCode()
-        };
-    }
-
     private class NestedClass
     {
         public static DateTime UseDeniedMemberInNestedClass()
@@ -144,8 +139,16 @@ public class BadContract : BadContractContainer.BadContractBase
             return DateTime.Now;
         }
     }
-}
 
+    public override Int32Value TestGetHashCodeCall(Empty input)
+    {
+        return new Int32Value()
+        {
+            Value = new IMessageInheritedClass().GetHashCode()
+        };
+    }
+}
+    
 public class SeparateClass
 {
     public static DateTime UseDeniedMemberInSeparateClass()
@@ -155,8 +158,11 @@ public class SeparateClass
 
     public static void UseInfiniteLoopInSeparateClass()
     {
-        var i = 0;
-        for (;;) i++;
+        int i = 0;
+        for (; true;)
+        {
+            i++;
+        }
     }
 
     public static void UseInfiniteRecursiveCallInSeparateClass(string text = "")
@@ -169,6 +175,12 @@ public class SeparateClass
 public class IMessageInheritedClass : IMessage
 {
     public int Test { get; set; }
+
+    public override int GetHashCode()
+    {
+        Test = base.GetHashCode();
+        return 0;
+    }
 
     public void MergeFrom(CodedInputStream input)
     {
@@ -186,10 +198,4 @@ public class IMessageInheritedClass : IMessage
     }
 
     public MessageDescriptor Descriptor { get; }
-
-    public override int GetHashCode()
-    {
-        Test = base.GetHashCode();
-        return 0;
-    }
 }

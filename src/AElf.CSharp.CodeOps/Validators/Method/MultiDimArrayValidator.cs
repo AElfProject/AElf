@@ -15,22 +15,26 @@ public class MultiDimArrayValidator : IValidator<MethodDefinition>, ITransientDe
     {
         if (ct.IsCancellationRequested)
             throw new ContractAuditTimeoutException();
-
+            
         if (!method.HasBody)
             return Enumerable.Empty<ValidationResult>();
-
+            
         var errors = new List<ValidationResult>();
-
+            
         foreach (var instruction in method.Body.Instructions)
+        {
             if (instruction.OpCode.Code == Code.Newarr)
             {
-                var typeReference = (TypeReference)instruction.Operand;
+                var typeReference = (TypeReference) instruction.Operand;
 
                 if (typeReference.IsArray)
+                {
                     errors.Add(
                         new MultiDimArrayValidationResult($"{method.Name} contains multi dimension array declaration.")
                             .WithInfo(method.Name, method.DeclaringType.Namespace, method.DeclaringType.Name, null));
+                }
             }
+        }
 
         return errors;
     }
