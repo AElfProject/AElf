@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.Whitelist;
 using AElf.Types;
@@ -59,7 +60,7 @@ namespace AElf.Contracts.NFT
                 WhitelistId = subscribe.WhitelistId,
                 Address = User1Address
             });
-            await WhitelistContractStub.ConsumeWhitelist.SendAsync(new ConsumeWhitelistInput()
+            var executionResult = await WhitelistContractStub.ConsumeWhitelist.SendAsync(new ConsumeWhitelistInput()
             {
                 SubscribeId = subscribeId,
                 WhitelistId = subscribe.WhitelistId,
@@ -77,6 +78,15 @@ namespace AElf.Contracts.NFT
             var availableList = await WhitelistContractStub.GetAvailableWhitelist.CallAsync(subscribeId);
             availableList.Value.Count.ShouldBe(2);
             availableList.Value[0].AddressList.Value[0].ShouldBe(User2Address);
+            {
+                var log = ConsumedListAdded.Parser
+                    .ParseFrom(executionResult.TransactionResult.Logs.First(l => l.Name == nameof(ConsumedListAdded))
+                        .NonIndexed).ExtraInfoIdList;
+                log.Value.Count.ShouldBe(1);
+                log.Value[0].AddressList.Value[0].ShouldBe(User1Address);
+                log.Value[0].Id.ShouldBe(CalculateId(subscribe.WhitelistId,_projectId,"INFO1"));
+                
+            }
 
             return subscribeId;
         }

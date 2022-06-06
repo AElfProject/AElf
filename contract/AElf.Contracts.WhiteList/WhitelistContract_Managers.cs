@@ -276,25 +276,7 @@ namespace AElf.Contracts.Whitelist
             
             return new Empty();
         }
-
-        private ExtraInfoIdList RecordChangedExtraInfoIdList(ExtraInfoIdList toAddExtraInfoIdList,ExtraInfoId infoId)
-        {
-            var targetToAddList = toAddExtraInfoIdList.Value.SingleOrDefault(i => i.Id == infoId.Id);
-            if (targetToAddList != null)
-            {
-                targetToAddList.AddressList.Value.Add(infoId.AddressList.Value);
-            }
-            else
-            {
-                var extraInfoId = new ExtraInfoId
-                {
-                    Id = infoId.Id,
-                    AddressList = infoId.AddressList
-                };
-                toAddExtraInfoIdList.Value.Add(extraInfoId);
-            }
-            return toAddExtraInfoIdList;
-        }
+        
         public override Empty RemoveAddressInfoListFromWhitelist(RemoveAddressInfoListFromWhitelistInput input)
         {
             AssertWhitelistInfo(input.WhitelistId);
@@ -614,6 +596,25 @@ namespace AElf.Contracts.Whitelist
                 ProjectId = whitelist.ProjectId
             });
             return new Empty();
+        }
+        
+        private ExtraInfoIdList RecordChangedExtraInfoIdList(ExtraInfoIdList toAddExtraInfoIdList,ExtraInfoId infoId)
+        {
+            var targetToAddList = toAddExtraInfoIdList.Value.SingleOrDefault(i => i.Id == infoId.Id);
+            if (targetToAddList != null)
+            {
+                targetToAddList.AddressList.Value.Add(infoId.AddressList.Value);
+            }
+            else
+            {
+                var extraInfoId = new ExtraInfoId
+                {
+                    Id = infoId.Id,
+                    AddressList = infoId.AddressList
+                };
+                toAddExtraInfoIdList.Value.Add(extraInfoId);
+            }
+            return toAddExtraInfoIdList;
         }
     }
 }
