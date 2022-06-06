@@ -23,7 +23,7 @@ public sealed class AccountServiceTests : AccountTestBase
     public async Task GetPublicKey_Test()
     {
         var publicKey = await _accountService.GetPublicKeyAsync();
-        publicKey.ShouldBe(_ecKeyPair.PrivateKey);
+        publicKey.ShouldBe(_ecKeyPair.PublicKey);
     }
 
     [Fact]

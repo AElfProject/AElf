@@ -6,13 +6,9 @@
     <projectFile>src/AElf.ContractDeployer/AElf.ContractDeployer.csproj</projectFile>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="41f0f72d-4048-408e-9cc0-101c04e8c69d" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.AElf.All/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.AElf.All/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/AElf.CSharp.CodeOps/AElf.CSharp.CodeOps.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/src/AElf.CSharp.CodeOps/AElf.CSharp.CodeOps.csproj" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/AElf.Runtime.CSharp.Core/AElf.Runtime.CSharp.Core.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/src/AElf.Runtime.CSharp.Core/AElf.Runtime.CSharp.Core.csproj" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/AElf.Runtime.CSharp/AElf.Runtime.CSharp.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/src/AElf.Runtime.CSharp/AElf.Runtime.CSharp.csproj" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/AElf.CSharp.CodeOps.Tests/AElf.CSharp.CodeOps.Tests.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/test/AElf.CSharp.CodeOps.Tests/AElf.CSharp.CodeOps.Tests.csproj" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/AElf.Runtime.CSharp.Tests/AElf.Runtime.CSharp.Tests.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/test/AElf.Runtime.CSharp.Tests/AElf.Runtime.CSharp.Tests.csproj" afterDir="false" />
+    <list default="true" id="f219eb91-7a02-45ac-bca5-5f7f0e56c471" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/.idea.AElf.All/.idea/workspace.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/AElf.Kernel.Core.Tests/Account/Application/AccountServiceTests.cs" beforeDir="false" afterPath="$PROJECT_DIR$/test/AElf.Kernel.Core.Tests/Account/Application/AccountServiceTests.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -22,100 +18,16 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="MarkdownSettingsMigration">
-    <option name="stateVersion" value="1" />
+  <component name="HighlightingSettingsPerFile">
+    <setting file="mock:///Users/eanzhao/Code/AElf/test/AElf.Kernel.Core.Tests/Account/Application/AccountServiceTests.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Users/eanzhao/Code/AElf/test/AElf.Kernel.Core.Tests/Account/Application/AccountServiceTests.cs" root0="SKIP_HIGHLIGHTING" />
   </component>
-  <component name="ProjectId" id="2ABdcp1kBQSAcJqEgfXyAFf3AiR" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
-  <component name="ProjectViewState">
-    <option name="autoscrollFromSource" value="true" />
-    <option name="hideEmptyMiddlePackages" value="true" />
-    <option name="showLibraryContents" value="true" />
-  </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
-  }
-}</component>
-  <component name="RunManager" selected=".NET Project.AElf.Benchmark">
-    <configuration name="AElf.Benchmark" type="DotNetProject" factoryName=".NET Project">
-      <option name="EXE_PATH" value="" />
-      <option name="PROGRAM_PARAMETERS" value="" />
-      <option name="WORKING_DIRECTORY" value="" />
-      <option name="PASS_PARENT_ENVS" value="1" />
-      <option name="USE_EXTERNAL_CONSOLE" value="0" />
-      <option name="USE_MONO" value="0" />
-      <option name="RUNTIME_ARGUMENTS" value="" />
-      <option name="PROJECT_PATH" value="$PROJECT_DIR$/bench/AElf.Benchmark/AElf.Benchmark.csproj" />
-      <option name="PROJECT_EXE_PATH_TRACKING" value="1" />
-      <option name="PROJECT_ARGUMENTS_TRACKING" value="1" />
-      <option name="PROJECT_WORKING_DIRECTORY_TRACKING" value="1" />
-      <option name="PROJECT_KIND" value="DotNetCore" />
-      <option name="PROJECT_TFM" value="" />
-      <method v="2">
-        <option name="Build" />
-      </method>
-    </configuration>
-    <configuration name="AElf.ContractDeployer" type="DotNetProject" factoryName=".NET Project">
-      <option name="EXE_PATH" value="" />
-      <option name="PROGRAM_PARAMETERS" value="" />
-      <option name="WORKING_DIRECTORY" value="" />
-      <option name="PASS_PARENT_ENVS" value="1" />
-      <option name="USE_EXTERNAL_CONSOLE" value="0" />
-      <option name="USE_MONO" value="0" />
-      <option name="RUNTIME_ARGUMENTS" value="" />
-      <option name="PROJECT_PATH" value="$PROJECT_DIR$/src/AElf.ContractDeployer/AElf.ContractDeployer.csproj" />
-      <option name="PROJECT_EXE_PATH_TRACKING" value="1" />
-      <option name="PROJECT_ARGUMENTS_TRACKING" value="1" />
-      <option name="PROJECT_WORKING_DIRECTORY_TRACKING" value="1" />
-      <option name="PROJECT_KIND" value="DotNetCore" />
-      <option name="PROJECT_TFM" value="" />
-      <method v="2">
-        <option name="Build" />
-      </method>
-    </configuration>
-    <configuration name="AElf.Launcher" type="DotNetProject" factoryName=".NET Project">
-      <option name="EXE_PATH" value="" />
-      <option name="PROGRAM_PARAMETERS" value="" />
-      <option name="WORKING_DIRECTORY" value="" />
-      <option name="PASS_PARENT_ENVS" value="1" />
-      <option name="USE_EXTERNAL_CONSOLE" value="0" />
-      <option name="USE_MONO" value="0" />
-      <option name="RUNTIME_ARGUMENTS" value="" />
-      <option name="PROJECT_PATH" value="$PROJECT_DIR$/src/AElf.Launcher/AElf.Launcher.csproj" />
-      <option name="PROJECT_EXE_PATH_TRACKING" value="1" />
-      <option name="PROJECT_ARGUMENTS_TRACKING" value="1" />
-      <option name="PROJECT_WORKING_DIRECTORY_TRACKING" value="1" />
-      <option name="PROJECT_KIND" value="DotNetCore" />
-      <option name="PROJECT_TFM" value="" />
-      <method v="2">
-        <option name="Build" />
-      </method>
-    </configuration>
-  </component>
-  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
-    <task active="true" id="Default" summary="Default task">
-      <changelist id="41f0f72d-4048-408e-9cc0-101c04e8c69d" name="Changes" comment="" />
-      <created>1654486994851</created>
-      <option name="number" value="Default" />
-      <option name="presentableId" value="Default" />
-      <updated>1654486994851</updated>
-      <workItem from="1654486997892" duration="1579000" />
-      <workItem from="1654496292747" duration="764000" />
-      <workItem from="1654497078395" duration="1794000" />
-    </task>
     <servers />
   </component>
-  <component name="TypeScriptGeneratedFilesManager">
-    <option name="version" value="3" />
-  </component>
-  <component name="UnityCheckinConfiguration" checkUnsavedScenes="true" />
-  <component name="UnityUnitTestConfiguration" currentTestLauncher="NUnit" />
+  <component name="UnityCheckinConfiguration" checkUnsavedScenes="false" />
+  <component name="UnityUnitTestConfiguration" currentTestLauncher="Both" />
   <component name="Vcs.Log.Tabs.Properties">
     <option name="TAB_STATES">
       <map>
@@ -126,8 +38,5 @@
         </entry>
       </map>
     </option>
-  </component>
-  <component name="VcsManagerConfiguration">
-    <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
   </component>
 </project>
