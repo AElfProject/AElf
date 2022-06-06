@@ -22,12 +22,12 @@ public interface INetAppService
 
 public class NetAppService : AElfAppService, INetAppService
 {
-    private readonly INetworkService _networkService;
-    private readonly IReconnectionService _reconnectionService;
-    private readonly IObjectMapper<NetApplicationWebAppAElfModule> _objectMapper;
-
     private static readonly string Version =
         typeof(NetApplicationWebAppAElfModule).Assembly.GetName().Version.ToString();
+
+    private readonly INetworkService _networkService;
+    private readonly IObjectMapper<NetApplicationWebAppAElfModule> _objectMapper;
+    private readonly IReconnectionService _reconnectionService;
 
     public NetAppService(INetworkService networkService, IReconnectionService reconnectionService,
         IObjectMapper<NetApplicationWebAppAElfModule> objectMapper)
@@ -38,7 +38,7 @@ public class NetAppService : AElfAppService, INetAppService
     }
 
     /// <summary>
-    /// Attempts to add a node to the connected network nodes
+    ///     Attempts to add a node to the connected network nodes
     /// </summary>
     /// <returns>true/false</returns>
     [Authorize]
@@ -48,7 +48,7 @@ public class NetAppService : AElfAppService, INetAppService
     }
 
     /// <summary>
-    /// Attempts to remove a node from the connected network nodes
+    ///     Attempts to remove a node from the connected network nodes
     /// </summary>
     /// <param name="address">ip address</param>
     /// <returns></returns>
@@ -60,7 +60,7 @@ public class NetAppService : AElfAppService, INetAppService
     }
 
     /// <summary>
-    /// Get peer info about the connected network nodes
+    ///     Get peer info about the connected network nodes
     /// </summary>
     /// <returns></returns>
     public List<PeerDto> GetPeers(bool withMetrics = false)
@@ -72,7 +72,7 @@ public class NetAppService : AElfAppService, INetAppService
     }
 
     /// <summary>
-    /// Get information about the node’s connection to the network. 
+    ///     Get information about the node’s connection to the network.
     /// </summary>
     /// <returns></returns>
     public Task<GetNetworkInfoOutput> GetNetworkInfoAsync()

@@ -5,20 +5,19 @@ using AElf.TestBase;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
 
-namespace AElf.Kernel
+namespace AElf.Kernel;
+
+[DependsOn(
+    typeof(TestBaseAElfModule), typeof(CoreKernelAElfModule))]
+public class TestBaseKernelAElfModule : AElfModule
 {
-    [DependsOn(
-        typeof(TestBaseAElfModule), typeof(CoreKernelAElfModule))]
-    public class TestBaseKernelAElfModule : AElfModule
+    public override void ConfigureServices(ServiceConfigurationContext context)
     {
-        public override void ConfigureServices(ServiceConfigurationContext context)
-        {
-            var services = context.Services;
+        var services = context.Services;
 
-            services.AddKeyValueDbContext<BlockchainKeyValueDbContext>(o => o.UseInMemoryDatabase());
-            services.AddKeyValueDbContext<StateKeyValueDbContext>(o => o.UseInMemoryDatabase());
+        services.AddKeyValueDbContext<BlockchainKeyValueDbContext>(o => o.UseInMemoryDatabase());
+        services.AddKeyValueDbContext<StateKeyValueDbContext>(o => o.UseInMemoryDatabase());
 
-            services.AddSingleton<KernelTestHelper>();
-        }
+        services.AddSingleton<KernelTestHelper>();
     }
 }

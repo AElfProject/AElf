@@ -12,8 +12,8 @@ namespace AElf.Kernel.FeatureManager.Tests;
 
 public class FeatureActiveServiceTest : KernelFeatureManagerTestBase
 {
-    private readonly IMockService _mockService;
     private readonly IBlockchainService _blockchainService;
+    private readonly IMockService _mockService;
 
     public FeatureActiveServiceTest()
     {
@@ -65,7 +65,7 @@ public class FeatureActiveServiceTest : KernelFeatureManagerTestBase
             var currentFeature = await _mockService.GetCurrentFeatureNameAsync();
             currentFeature.ShouldBe("Version3");
         }
-        
+
         {
             var currentHeight = await GetCurrentHeight();
             await ConfigFeatureActiveHeight("Version3", currentHeight + 5);

@@ -1,44 +1,42 @@
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
-using Google.Protobuf;
 using Shouldly;
 using Xunit;
 
-namespace AElf.Kernel.Consensus.DPoS.Tests.Application
+namespace AElf.Kernel.Consensus.DPoS.Tests.Application;
+
+public class ConsensusExtraDataProviderTests : AEDPoSTestBase
 {
-    public class ConsensusExtraDataProviderTests : AEDPoSTestBase
+    private readonly IBlockchainService _blockchainService;
+    private readonly IBlockExtraDataProvider _blockExtraDataProvider;
+
+    public ConsensusExtraDataProviderTests()
     {
-        private readonly IBlockExtraDataProvider _blockExtraDataProvider;
-        private readonly IBlockchainService _blockchainService;
+        _blockExtraDataProvider = GetRequiredService<IBlockExtraDataProvider>();
+        _blockchainService = GetRequiredService<IBlockchainService>();
+    }
 
-        public ConsensusExtraDataProviderTests()
+    [Fact]
+    public async Task GetExtraDataForFillingBlockHeaderAsync_Test()
+    {
+        //null situation
+        var blockHeader = new BlockHeader
         {
-            _blockExtraDataProvider = GetRequiredService<IBlockExtraDataProvider>();
-            _blockchainService = GetRequiredService<IBlockchainService>();
-        }
+            Height = 1
+        };
+        var result = await _blockExtraDataProvider.GetBlockHeaderExtraDataAsync(blockHeader);
+        result.ShouldBeNull();
 
-        [Fact]
-        public async Task GetExtraDataForFillingBlockHeaderAsync_Test()
+        //with data
+        var chain = await _blockchainService.GetChainAsync();
+        var height = chain.BestChainHeight;
+        var hash = chain.BestChainHash;
+
+        var result1 = await _blockExtraDataProvider.GetBlockHeaderExtraDataAsync(new BlockHeader
         {
-            //null situation
-            var blockHeader = new BlockHeader
-            {
-                Height = 1
-            };
-            var result = await _blockExtraDataProvider.GetBlockHeaderExtraDataAsync(blockHeader);
-            result.ShouldBeNull();
-            
-            //with data
-            var chain = await _blockchainService.GetChainAsync();
-            var height = chain.BestChainHeight;
-            var hash = chain.BestChainHash;
-
-            var result1 = await _blockExtraDataProvider.GetBlockHeaderExtraDataAsync(new BlockHeader
-            {
-                PreviousBlockHash = hash,
-                Height = height
-            });
-            result1.ShouldNotBeNull();
-        }
+            PreviousBlockHash = hash,
+            Height = height
+        });
+        result1.ShouldNotBeNull();
     }
 }

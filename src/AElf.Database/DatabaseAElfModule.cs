@@ -1,15 +1,14 @@
-﻿using System.Dynamic;
-using AElf.Modularity;
+﻿using AElf.Modularity;
+using Volo.Abp.Data;
 using Volo.Abp.Modularity;
 
-namespace AElf.Database
+namespace AElf.Database;
+
+[DependsOn(typeof(CoreAElfModule), typeof(AbpDataModule))]
+public class DatabaseAElfModule : AElfModule
 {
-    [DependsOn(typeof(CoreAElfModule),typeof(Volo.Abp.Data.AbpDataModule))]
-    public class DatabaseAElfModule : AElfModule
+    public override void ConfigureServices(ServiceConfigurationContext context)
     {
-        public override void ConfigureServices(ServiceConfigurationContext context)
-        {
-            var services = context.Services;
-        }
+        var services = context.Services;
     }
 }

@@ -1,7 +1,6 @@
-namespace AElf.Kernel.SmartContractExecution.Events
+namespace AElf.Kernel.SmartContractExecution.Events;
+
+public class TransactionExecutedEventData
 {
-    public class TransactionExecutedEventData
-    {
-        public TransactionTrace TransactionTrace { get; set; }
-    }
+    public TransactionTrace TransactionTrace { get; set; }
 }

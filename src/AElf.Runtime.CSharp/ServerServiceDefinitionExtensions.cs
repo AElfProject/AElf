@@ -21,56 +21,56 @@ using System.Collections.ObjectModel;
 using AElf.CSharp.Core;
 using Google.Protobuf.Reflection;
 
-namespace AElf.Runtime.CSharp
+namespace AElf.Runtime.CSharp;
+
+internal static class ServerServiceDefinitionExtensions
 {
-    internal static class ServerServiceDefinitionExtensions
+    /// <summary>
+    ///     Maps methods from <c>ServerServiceDefinition</c> to server call handlers.
+    /// </summary>
+    internal static ReadOnlyDictionary<string, IServerCallHandler> GetCallHandlers(
+        this ServerServiceDefinition serviceDefinition)
     {
-        /// <summary>
-        /// Maps methods from <c>ServerServiceDefinition</c> to server call handlers.
-        /// </summary>
-        internal static ReadOnlyDictionary<string, IServerCallHandler> GetCallHandlers(this ServerServiceDefinition serviceDefinition)
+        var binder = new DefaultServiceBinder();
+        serviceDefinition.BindService(binder);
+        return binder.GetCallHandlers();
+    }
+
+    internal static IReadOnlyList<ServiceDescriptor> GetDescriptors(this ServerServiceDefinition serviceDefinition)
+    {
+        var binder = new DefaultServiceBinder();
+        serviceDefinition.BindService(binder);
+        return binder.GetDescriptors();
+    }
+
+    /// <summary>
+    ///     Helper for converting <c>ServerServiceDefinition</c> to server call handlers.
+    /// </summary>
+    private class DefaultServiceBinder : ServiceBinderBase
+    {
+        private readonly Dictionary<string, IServerCallHandler> callHandlers = new();
+        private readonly List<ServiceDescriptor> descriptors = new();
+
+        internal ReadOnlyDictionary<string, IServerCallHandler> GetCallHandlers()
         {
-            var binder = new DefaultServiceBinder();
-            serviceDefinition.BindService(binder);
-            return binder.GetCallHandlers();
+            return new ReadOnlyDictionary<string, IServerCallHandler>(callHandlers);
         }
 
-        internal static IReadOnlyList<ServiceDescriptor> GetDescriptors(this ServerServiceDefinition serviceDefinition)
+        internal IReadOnlyList<ServiceDescriptor> GetDescriptors()
         {
-            var binder = new DefaultServiceBinder();
-            serviceDefinition.BindService(binder);
-            return binder.GetDescriptors();
+            return descriptors.AsReadOnly();
         }
 
-        /// <summary>
-        /// Helper for converting <c>ServerServiceDefinition</c> to server call handlers.
-        /// </summary>
-        private class DefaultServiceBinder : ServiceBinderBase
+        public override void AddMethod<TRequest, TResponse>(
+            Method<TRequest, TResponse> method,
+            UnaryServerMethod<TRequest, TResponse> handler)
         {
-            readonly List<ServiceDescriptor> descriptors = new List<ServiceDescriptor>();
-            readonly Dictionary<string, IServerCallHandler> callHandlers = new Dictionary<string, IServerCallHandler>();
+            callHandlers.Add(method.Name, ServerCalls.UnaryCall(method, handler));
+        }
 
-            internal ReadOnlyDictionary<string, IServerCallHandler> GetCallHandlers()
-            {
-                return new ReadOnlyDictionary<string, IServerCallHandler>(this.callHandlers);
-            }
-
-            internal IReadOnlyList<ServiceDescriptor> GetDescriptors()
-            {
-                return descriptors.AsReadOnly();
-            }
-
-            public override void AddMethod<TRequest, TResponse>(
-                Method<TRequest, TResponse> method,
-                UnaryServerMethod<TRequest, TResponse> handler)
-            {
-                callHandlers.Add(method.Name, ServerCalls.UnaryCall(method, handler));
-            }
-
-            public override void AddDescriptor(ServiceDescriptor descriptor)
-            {
-                descriptors.Add(descriptor);
-            }
+        public override void AddDescriptor(ServiceDescriptor descriptor)
+        {
+            descriptors.Add(descriptor);
         }
     }
 }

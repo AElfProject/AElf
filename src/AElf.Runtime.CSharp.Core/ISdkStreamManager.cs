@@ -1,10 +1,9 @@
 using System.IO;
 using System.Reflection;
 
-namespace AElf.Runtime.CSharp
+namespace AElf.Runtime.CSharp;
+
+public interface ISdkStreamManager
 {
-    public interface ISdkStreamManager
-    {
-        Stream GetStream(AssemblyName assemblyName);
-    }
+    Stream GetStream(AssemblyName assemblyName);
 }

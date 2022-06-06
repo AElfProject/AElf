@@ -1,15 +1,14 @@
-namespace AElf.WebApp.Application.Chain.Dto
+namespace AElf.WebApp.Application.Chain.Dto;
+
+public class ExecuteRawTransactionDto
 {
-    public class ExecuteRawTransactionDto
-    {
-        /// <summary>
-        /// raw transaction
-        /// </summary>
-        public string RawTransaction { get; set; }
-        
-        /// <summary>
-        /// signature
-        /// </summary>
-        public string Signature { get; set; }
-    }
+    /// <summary>
+    ///     raw transaction
+    /// </summary>
+    public string RawTransaction { get; set; }
+
+    /// <summary>
+    ///     signature
+    /// </summary>
+    public string Signature { get; set; }
 }

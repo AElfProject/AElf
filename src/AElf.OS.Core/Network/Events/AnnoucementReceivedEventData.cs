@@ -1,14 +1,13 @@
-namespace AElf.OS.Network.Events
+namespace AElf.OS.Network.Events;
+
+public class AnnouncementReceivedEventData
 {
-    public class AnnouncementReceivedEventData
+    public AnnouncementReceivedEventData(BlockAnnouncement an, string senderPubKey)
     {
-        public BlockAnnouncement Announce { get; }
-        public string SenderPubKey { get; }
-        
-        public AnnouncementReceivedEventData(BlockAnnouncement an, string senderPubKey)
-        {
-            SenderPubKey = senderPubKey;
-            Announce = an;
-        }
+        SenderPubKey = senderPubKey;
+        Announce = an;
     }
+
+    public BlockAnnouncement Announce { get; }
+    public string SenderPubKey { get; }
 }

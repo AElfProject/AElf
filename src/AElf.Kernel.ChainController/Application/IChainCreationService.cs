@@ -2,13 +2,12 @@
 using System.Threading.Tasks;
 using AElf.Types;
 
-namespace AElf.Kernel.ChainController.Application
+namespace AElf.Kernel.ChainController.Application;
+
+/// <summary>
+///     Create a new chain never existing
+/// </summary>
+public interface IChainCreationService
 {
-    /// <summary>
-    /// Create a new chain never existing
-    /// </summary>
-    public interface IChainCreationService
-    {
-        Task<Chain> CreateNewChainAsync(IEnumerable<Transaction> genesisTransactions);
-    }
+    Task<Chain> CreateNewChainAsync(IEnumerable<Transaction> genesisTransactions);
 }

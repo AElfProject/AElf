@@ -1,9 +1,8 @@
-namespace AElf.Kernel.SmartContract.Infrastructure
+namespace AElf.Kernel.SmartContract.Infrastructure;
+
+public interface ISmartContractRunnerContainer
 {
-    public interface ISmartContractRunnerContainer
-    {
-        ISmartContractRunner GetRunner(int category);
-        void AddRunner(int category, ISmartContractRunner runner);
-        void UpdateRunner(int category, ISmartContractRunner runner);
-    }
+    ISmartContractRunner GetRunner(int category);
+    void AddRunner(int category, ISmartContractRunner runner);
+    void UpdateRunner(int category, ISmartContractRunner runner);
 }

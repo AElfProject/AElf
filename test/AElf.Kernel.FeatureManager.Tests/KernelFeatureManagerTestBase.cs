@@ -16,10 +16,10 @@ namespace AElf.Kernel.FeatureManager.Tests;
 
 public class KernelFeatureManagerTestBase : ContractTestBase<FeatureManagerTestModule>
 {
-    internal Address ParliamentContractAddress { get; set; }
-    internal Address ConfigurationContractAddress { get; set; }
     internal ConfigurationContainer.ConfigurationStub ConfigurationStub;
     internal ParliamentContractImplContainer.ParliamentContractImplStub ParliamentContractStub;
+    internal Address ParliamentContractAddress { get; set; }
+    internal Address ConfigurationContractAddress { get; set; }
     internal ECKeyPair DefaultSenderKeyPair => Accounts[0].KeyPair;
 
     protected async Task DeployContractsAsync()

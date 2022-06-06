@@ -1,19 +1,16 @@
 using System;
-using Xunit;
 
-namespace AElf.TestBase
+namespace AElf.TestBase;
+
+public sealed class IgnoreOnCIFact : FactAttribute
 {
-    public sealed class IgnoreOnCIFact : FactAttribute
+    public IgnoreOnCIFact()
     {
-        public IgnoreOnCIFact()
-        {
-            if (IsOnCI())
-            {
-                Skip = "Ignore on CI running to save execution time.";
-            }
-        }
+        if (IsOnCI()) Skip = "Ignore on CI running to save execution time.";
+    }
 
-        private static bool IsOnCI()
-            => Environment.GetEnvironmentVariable("CI_TEST") != null;
+    private static bool IsOnCI()
+    {
+        return Environment.GetEnvironmentVariable("CI_TEST") != null;
     }
 }

@@ -1,10 +1,9 @@
 using System.Threading.Tasks;
 
-namespace AElf.OS.Network.Protocol
+namespace AElf.OS.Network.Protocol;
+
+public interface IHandshakeProvider
 {
-    public interface IHandshakeProvider
-    {
-        Task<Handshake> GetHandshakeAsync();
-        Task<HandshakeValidationResult> ValidateHandshakeAsync(Handshake handshake);
-    }
+    Task<Handshake> GetHandshakeAsync();
+    Task<HandshakeValidationResult> ValidateHandshakeAsync(Handshake handshake);
 }

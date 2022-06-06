@@ -1,12 +1,11 @@
 using System.Threading.Tasks;
 using AElf.Kernel;
 
-namespace AElf.CrossChain.Indexing.Infrastructure
+namespace AElf.CrossChain.Indexing.Infrastructure;
+
+public interface IIrreversibleBlockStateProvider
 {
-    public interface IIrreversibleBlockStateProvider
-    {
-        Task<Block> GetNotIndexedIrreversibleBlockByHeightAsync(long height);
-        Task<LastIrreversibleBlockDto> GetLastIrreversibleBlockHashAndHeightAsync();
-        Task<bool> ValidateIrreversibleBlockExistingAsync();
-    }
+    Task<Block> GetNotIndexedIrreversibleBlockByHeightAsync(long height);
+    Task<LastIrreversibleBlockDto> GetLastIrreversibleBlockHashAndHeightAsync();
+    Task<bool> ValidateIrreversibleBlockExistingAsync();
 }

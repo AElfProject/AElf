@@ -1,5 +1,4 @@
 using System.Threading.Tasks;
-using AElf.CSharp.Core.Extension;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Configuration;
 using Google.Protobuf;
@@ -10,8 +9,8 @@ namespace AElf.Kernel.FeatureManager;
 
 public class FeatureActiveService : IFeatureActiveService, ITransientDependency
 {
-    private readonly IConfigurationService _configurationService;
     private readonly IBlockchainService _blockchainService;
+    private readonly IConfigurationService _configurationService;
 
     public FeatureActiveService(IConfigurationService configurationService, IBlockchainService blockchainService)
     {
@@ -31,10 +30,7 @@ public class FeatureActiveService : IFeatureActiveService, ITransientDependency
             });
         var activeHeight = new Int64Value();
         activeHeight.MergeFrom(activeHeightByteString);
-        if (activeHeight.Value == 0)
-        {
-            return false;
-        }
+        if (activeHeight.Value == 0) return false;
 
         return chain.BestChainHeight >= activeHeight.Value;
     }

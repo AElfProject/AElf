@@ -11,13 +11,13 @@ public interface ITransactionResultProxyService
 
 public class TransactionResultProxyService : ITransactionResultProxyService
 {
-    public ITransactionPoolService TransactionPoolService { get; set; }
-    public ITransactionResultQueryService TransactionResultQueryService { get; set; }
-
     public TransactionResultProxyService(ITransactionPoolService transactionPoolService,
         ITransactionResultQueryService transactionResultQueryService)
     {
         TransactionPoolService = transactionPoolService;
         TransactionResultQueryService = transactionResultQueryService;
     }
+
+    public ITransactionPoolService TransactionPoolService { get; set; }
+    public ITransactionResultQueryService TransactionResultQueryService { get; set; }
 }

@@ -1,119 +1,98 @@
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using AElf.Kernel.Infrastructure;
-using Google.Protobuf;
 
-namespace AElf.Kernel.SmartContract.Infrastructure
+namespace AElf.Kernel.SmartContract.Infrastructure;
+
+public class StateStore<T> : KeyValueStoreBase<StateKeyValueDbContext, T>, IStateStore<T>
+    where T : class, IMessage<T>, new()
 {
-    public class StateStore<T> : KeyValueStoreBase<StateKeyValueDbContext, T>, IStateStore<T>
-        where T : class, IMessage<T>, new()
+    public StateStore(StateKeyValueDbContext keyValueDbContext, IStoreKeyPrefixProvider<T> prefixProvider) : base(
+        keyValueDbContext, prefixProvider)
     {
-        public StateStore(StateKeyValueDbContext keyValueDbContext, IStoreKeyPrefixProvider<T> prefixProvider) : base(
-            keyValueDbContext, prefixProvider)
-        {
-        }
+    }
+}
+
+public interface INotModifiedCachedStateStore<T> : IStateStore<T>
+    where T : IMessage<T>, new()
+{
+    Task SetWithCacheAsync(string key, T value);
+}
+
+public class NotModifiedCachedStateStore<T> : INotModifiedCachedStateStore<T>
+    where T : class, IMessage<T>, new()
+{
+    private readonly ConcurrentDictionary<string, T> _cache = new();
+    private readonly IStateStore<T> _stateStoreImplementation;
+
+    public NotModifiedCachedStateStore(IStateStore<T> stateStoreImplementation)
+    {
+        _stateStoreImplementation = stateStoreImplementation;
     }
 
-    public interface INotModifiedCachedStateStore<T> : IStateStore<T>
-        where T : IMessage<T>, new()
+    public async Task SetAsync(string key, T value)
     {
-        Task SetWithCacheAsync(string key, T value);
+        await _stateStoreImplementation.SetAsync(key, value);
     }
 
-    public class NotModifiedCachedStateStore<T> : INotModifiedCachedStateStore<T>
-        where T : class, IMessage<T>, new()
+    public async Task SetAllAsync(Dictionary<string, T> pipelineSet)
     {
-        private readonly IStateStore<T> _stateStoreImplementation;
+        await _stateStoreImplementation.SetAllAsync(pipelineSet);
+    }
 
-        private readonly ConcurrentDictionary<string, T> _cache = new ConcurrentDictionary<string, T>();
+    public async Task<T> GetAsync(string key)
+    {
+        if (_cache.TryGetValue(key, out var item)) return item;
 
-        public NotModifiedCachedStateStore(IStateStore<T> stateStoreImplementation)
-        {
-            _stateStoreImplementation = stateStoreImplementation;
-        }
+        var state = await _stateStoreImplementation.GetAsync(key);
+        if (state != null) _cache[key] = state;
 
-        public async Task SetAsync(string key, T value)
-        {
-            await _stateStoreImplementation.SetAsync(key, value);
-        }
+        return state;
+    }
 
-        public async Task SetAllAsync(Dictionary<string, T> pipelineSet)
-        {
-            await _stateStoreImplementation.SetAllAsync(pipelineSet);
-        }
+    public async Task RemoveAsync(string key)
+    {
+        _cache.TryRemove(key, out _);
+        await _stateStoreImplementation.RemoveAsync(key);
+    }
 
-        public async Task<T> GetAsync(string key)
-        {
+    public async Task<bool> IsExistsAsync(string key)
+    {
+        if (_cache.ContainsKey(key))
+            return true;
+
+        return await _stateStoreImplementation.IsExistsAsync(key);
+    }
+
+    public async Task<List<T>> GetAllAsync(List<string> keys)
+    {
+        var notInCacheKeys = new List<string>();
+        var result = new List<T>();
+        foreach (var key in keys)
             if (_cache.TryGetValue(key, out var item))
-            {
-                return item;
-            }
+                result.Add(item);
+            else
+                notInCacheKeys.Add(key);
 
-            var state = await _stateStoreImplementation.GetAsync(key);
-            if (state != null)
-            {
-                _cache[key] = state;
-            }
-
-            return state;
-        }
-
-        public async Task RemoveAsync(string key)
+        if (notInCacheKeys.Count > 0)
         {
-            _cache.TryRemove(key, out _);
-            await _stateStoreImplementation.RemoveAsync(key);
+            var resultFromDb = await _stateStoreImplementation.GetAllAsync(notInCacheKeys);
+            if (resultFromDb != null)
+                result.AddRange(resultFromDb);
         }
 
-        public async Task<bool> IsExistsAsync(string key)
-        {
-            if (_cache.ContainsKey(key))
-                return true;
+        return result;
+    }
 
-            return await _stateStoreImplementation.IsExistsAsync(key);
-        }
+    public async Task RemoveAllAsync(List<string> keys)
+    {
+        foreach (var key in keys) _cache.TryRemove(key, out _);
 
-        public async Task<List<T>> GetAllAsync(List<string> keys)
-        {
-            var notInCacheKeys = new List<string>();
-            var result = new List<T>();
-            foreach (var key in keys)
-            {
-                if (_cache.TryGetValue(key, out var item))
-                {
-                    result.Add(item);
-                }
-                else
-                {
-                    notInCacheKeys.Add(key);
-                }
-            }
+        await _stateStoreImplementation.RemoveAllAsync(keys);
+    }
 
-            if (notInCacheKeys.Count > 0)
-            {
-                var resultFromDb = await _stateStoreImplementation.GetAllAsync(notInCacheKeys);
-                if (resultFromDb != null)
-                    result.AddRange(resultFromDb);
-            }
-
-            return result;
-        }
-
-        public async Task RemoveAllAsync(List<string> keys)
-        {
-            foreach (var key in keys)
-            {
-                _cache.TryRemove(key, out _);
-            }
-
-            await _stateStoreImplementation.RemoveAllAsync(keys);
-        }
-
-        public async Task SetWithCacheAsync(string key, T value)
-        {
-            await SetAsync(key, value);
-            _cache[key] = value;
-        }
+    public async Task SetWithCacheAsync(string key, T value)
+    {
+        await SetAsync(key, value);
+        _cache[key] = value;
     }
 }

@@ -1,7 +1,5 @@
-namespace AElf.ContractTestBase.Tests
-{
-    public class SideChainTestBase : SideChainContractTestBase<SideChainTestModule>
-    {
+namespace AElf.ContractTestBase.Tests;
 
-    }
+public class SideChainTestBase : SideChainContractTestBase<SideChainTestModule>
+{
 }

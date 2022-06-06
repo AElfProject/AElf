@@ -1,8 +1,7 @@
 using AElf.Modularity;
 
-namespace AElf.GovernmentSystem
+namespace AElf.GovernmentSystem;
+
+public class GovernmentSystemAElfModule : AElfModule
 {
-    public class GovernmentSystemAElfModule : AElfModule
-    {
-    }
 }

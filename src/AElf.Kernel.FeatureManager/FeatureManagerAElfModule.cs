@@ -6,8 +6,7 @@ namespace AElf.Kernel.FeatureManager;
 
 [DependsOn(
     typeof(ConfigurationAElfModule)
-    )]
+)]
 public class FeatureManagerAElfModule : AElfModule
 {
-
 }

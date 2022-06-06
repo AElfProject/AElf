@@ -1,12 +1,12 @@
+using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Domain;
+using AElf.Kernel.TransactionPool.Application;
 using AElf.Types;
 using AElf.WebApp.Application.Chain.Dto;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using System.Threading.Tasks;
-using AElf.Kernel.TransactionPool.Application;
 using Volo.Abp;
 using Volo.Abp.EventBus.Local;
 using Volo.Abp.ObjectMapping;
@@ -29,13 +29,9 @@ public interface IBlockChainAppService
 public class BlockChainAppService : AElfAppService, IBlockChainAppService
 {
     private readonly IBlockchainService _blockchainService;
-    private readonly ITransactionPoolService _transactionPoolService;
     private readonly IBlockStateSetManger _blockStateSetManger;
     private readonly IObjectMapper<ChainApplicationWebAppAElfModule> _objectMapper;
-
-    public ILogger<BlockChainAppService> Logger { get; set; }
-
-    public ILocalEventBus LocalEventBus { get; set; }
+    private readonly ITransactionPoolService _transactionPoolService;
 
     public BlockChainAppService(IBlockchainService blockchainService,
         IBlockStateSetManger blockStateSetManger,
@@ -51,8 +47,12 @@ public class BlockChainAppService : AElfAppService, IBlockChainAppService
         LocalEventBus = NullLocalEventBus.Instance;
     }
 
+    public ILogger<BlockChainAppService> Logger { get; set; }
+
+    public ILocalEventBus LocalEventBus { get; set; }
+
     /// <summary>
-    /// Get the height of the current chain.
+    ///     Get the height of the current chain.
     /// </summary>
     /// <returns></returns>
     public async Task<long> GetBlockHeightAsync()
@@ -62,7 +62,7 @@ public class BlockChainAppService : AElfAppService, IBlockChainAppService
     }
 
     /// <summary>
-    /// Get information about a given block by block hash. Otionally with the list of its transactions.
+    ///     Get information about a given block by block hash. Otionally with the list of its transactions.
     /// </summary>
     /// <param name="blockHash">block hash</param>
     /// <param name="includeTransactions">include transactions or not</param>
@@ -88,7 +88,7 @@ public class BlockChainAppService : AElfAppService, IBlockChainAppService
     }
 
     /// <summary>
-    /// Get information about a given block by block height. Optionally with the list of its transactions.
+    ///     Get information about a given block by block height. Optionally with the list of its transactions.
     /// </summary>
     /// <param name="blockHeight">block height</param>
     /// <param name="includeTransactions">include transactions or not</param>
@@ -104,7 +104,7 @@ public class BlockChainAppService : AElfAppService, IBlockChainAppService
     }
 
     /// <summary>
-    /// Get the transaction pool status.
+    ///     Get the transaction pool status.
     /// </summary>
     /// <returns></returns>
     public async Task<GetTransactionPoolStatusOutput> GetTransactionPoolStatusAsync()
@@ -114,7 +114,7 @@ public class BlockChainAppService : AElfAppService, IBlockChainAppService
     }
 
     /// <summary>
-    /// Get the current state about a given block
+    ///     Get the current state about a given block
     /// </summary>
     /// <param name="blockHash">block hash</param>
     /// <returns></returns>
@@ -139,10 +139,7 @@ public class BlockChainAppService : AElfAppService, IBlockChainAppService
 
     private BlockDto CreateBlockDto(Block block, bool includeTransactions)
     {
-        if (block == null)
-        {
-            throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
-        }
+        if (block == null) throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
 
         return _objectMapper.GetMapper().Map<Block, BlockDto>(block,
             opt => opt.Items[BlockProfile.IncludeTransactions] = includeTransactions);

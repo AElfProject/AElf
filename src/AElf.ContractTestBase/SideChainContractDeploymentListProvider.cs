@@ -9,24 +9,23 @@ using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Token;
 using AElf.Types;
 
-namespace AElf.ContractTestBase
+namespace AElf.ContractTestBase;
+
+public class SideChainContractDeploymentListProvider : IContractDeploymentListProvider
 {
-    public class SideChainContractDeploymentListProvider : IContractDeploymentListProvider
+    public List<Hash> GetDeployContractNameList()
     {
-        public List<Hash> GetDeployContractNameList()
+        return new List<Hash>
         {
-            return new List<Hash>
-            {
-                ProfitSmartContractAddressNameProvider.Name,                
-                TokenHolderSmartContractAddressNameProvider.Name,
-                ConsensusSmartContractAddressNameProvider.Name,
-                AssociationSmartContractAddressNameProvider.Name,
-                ReferendumSmartContractAddressNameProvider.Name,
-                ParliamentSmartContractAddressNameProvider.Name,
-                TokenSmartContractAddressNameProvider.Name,
-                CrossChainSmartContractAddressNameProvider.Name,
-                ConfigurationSmartContractAddressNameProvider.Name
-            };
-        }
+            ProfitSmartContractAddressNameProvider.Name,
+            TokenHolderSmartContractAddressNameProvider.Name,
+            ConsensusSmartContractAddressNameProvider.Name,
+            AssociationSmartContractAddressNameProvider.Name,
+            ReferendumSmartContractAddressNameProvider.Name,
+            ParliamentSmartContractAddressNameProvider.Name,
+            TokenSmartContractAddressNameProvider.Name,
+            CrossChainSmartContractAddressNameProvider.Name,
+            ConfigurationSmartContractAddressNameProvider.Name
+        };
     }
 }

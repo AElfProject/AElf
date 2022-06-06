@@ -1,21 +1,19 @@
 ﻿using AElf.Contracts.MultiToken;
 using AElf.Kernel.SmartContract;
 
-namespace AElf.Kernel.FeeCalculation.Infrastructure
+namespace AElf.Kernel.FeeCalculation.Infrastructure;
+
+internal class WriteFeeProvider : TokenFeeProviderBase, IResourceTokenFeeProvider
 {
-    internal class WriteFeeProvider : TokenFeeProviderBase, IResourceTokenFeeProvider
+    public WriteFeeProvider(ICalculateFunctionProvider calculateFunctionProvider) : base(
+        calculateFunctionProvider, (int)FeeTypeEnum.Write)
     {
-        public WriteFeeProvider(ICalculateFunctionProvider calculateFunctionProvider) : base(
-            calculateFunctionProvider, (int) FeeTypeEnum.Write)
-        {
+    }
 
-        }
+    public string TokenName => "WRITE";
 
-        public string TokenName => "WRITE";
-
-        protected override int GetCalculateCount(ITransactionContext transactionContext)
-        {
-            return transactionContext.Trace.StateSet.Writes.Count;
-        }
+    protected override int GetCalculateCount(ITransactionContext transactionContext)
+    {
+        return transactionContext.Trace.StateSet.Writes.Count;
     }
 }

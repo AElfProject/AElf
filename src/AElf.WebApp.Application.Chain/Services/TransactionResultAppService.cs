@@ -1,17 +1,17 @@
-using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.Blockchain.Domain;
-using AElf.Kernel.SmartContract.Application;
-using AElf.Types;
-using AElf.WebApp.Application.Chain.Dto;
-using Google.Protobuf;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using AElf.Kernel;
-using Google.Protobuf.Reflection;
+using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.Blockchain.Domain;
+using AElf.Kernel.SmartContract.Application;
+using AElf.Types;
+using AElf.WebApp.Application.Chain.Dto;
 using AElf.WebApp.Application.Chain.Infrastructure;
+using Google.Protobuf;
+using Google.Protobuf.Reflection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -32,15 +32,13 @@ public interface ITransactionResultAppService
 
 public class TransactionResultAppService : AElfAppService, ITransactionResultAppService
 {
-    private readonly ITransactionResultProxyService _transactionResultProxyService;
-    private readonly ITransactionManager _transactionManager;
     private readonly IBlockchainService _blockchainService;
-    private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
     private readonly IObjectMapper<ChainApplicationWebAppAElfModule> _objectMapper;
+    private readonly ITransactionManager _transactionManager;
+    private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
+    private readonly ITransactionResultProxyService _transactionResultProxyService;
     private readonly ITransactionResultStatusCacheProvider _transactionResultStatusCacheProvider;
     private readonly WebAppOptions _webAppOptions;
-
-    public ILogger<TransactionResultAppService> Logger { get; set; }
 
     public TransactionResultAppService(ITransactionResultProxyService transactionResultProxyService,
         ITransactionManager transactionManager,
@@ -57,12 +55,14 @@ public class TransactionResultAppService : AElfAppService, ITransactionResultApp
         _objectMapper = objectMapper;
         _transactionResultStatusCacheProvider = transactionResultStatusCacheProvider;
         _webAppOptions = optionsSnapshot.CurrentValue;
-            
+
         Logger = NullLogger<TransactionResultAppService>.Instance;
     }
 
+    public ILogger<TransactionResultAppService> Logger { get; set; }
+
     /// <summary>
-    /// Get the current status of a transaction
+    ///     Get the current status of a transaction
     /// </summary>
     /// <param name="transactionId">transaction id</param>
     /// <returns></returns>
@@ -83,11 +83,11 @@ public class TransactionResultAppService : AElfAppService, ITransactionResultApp
         var output = _objectMapper.GetMapper()
             .Map<TransactionResult, TransactionResultDto>(transactionResult,
                 opt => opt.Items[TransactionProfile.ErrorTrace] = _webAppOptions.IsDebugMode);
-            
+
         var transaction = await _transactionManager.GetTransactionAsync(transactionResult.TransactionId);
         output.Transaction = _objectMapper.Map<Transaction, TransactionDto>(transaction);
         output.TransactionSize = transaction?.CalculateSize() ?? 0;
-            
+
         if (transactionResult.Status == TransactionResultStatus.NotExisted)
         {
             var validationStatus =
@@ -109,9 +109,7 @@ public class TransactionResultAppService : AElfAppService, ITransactionResultApp
         {
             var parameters = methodDescriptor.InputType.Parser.ParseFrom(transaction.Params);
             if (!IsValidMessage(parameters))
-            {
                 throw new UserFriendlyException(Error.Message[Error.InvalidParams], Error.InvalidParams.ToString());
-            }
 
             output.Transaction.Params = JsonFormatter.ToDiagnosticString(parameters);
         }
@@ -120,7 +118,7 @@ public class TransactionResultAppService : AElfAppService, ITransactionResultApp
     }
 
     /// <summary>
-    /// Get multiple transaction results.
+    ///     Get multiple transaction results.
     /// </summary>
     /// <param name="blockHash">block hash</param>
     /// <param name="offset">offset</param>
@@ -131,14 +129,10 @@ public class TransactionResultAppService : AElfAppService, ITransactionResultApp
         int limit = 10)
     {
         if (offset < 0)
-        {
             throw new UserFriendlyException(Error.Message[Error.InvalidOffset], Error.InvalidOffset.ToString());
-        }
 
         if (limit <= 0 || limit > 100)
-        {
             throw new UserFriendlyException(Error.Message[Error.InvalidLimit], Error.InvalidLimit.ToString());
-        }
 
         Hash realBlockHash;
         try
@@ -152,10 +146,7 @@ public class TransactionResultAppService : AElfAppService, ITransactionResultApp
         }
 
         var block = await _blockchainService.GetBlockAsync(realBlockHash);
-        if (block == null)
-        {
-            throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
-        }
+        if (block == null) throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
 
         var output = new List<TransactionResultDto>();
         if (offset <= block.Body.TransactionIds.Count - 1)
@@ -173,7 +164,7 @@ public class TransactionResultAppService : AElfAppService, ITransactionResultApp
     }
 
     /// <summary>
-    /// Get the merkle path of a transaction.
+    ///     Get the merkle path of a transaction.
     /// </summary>
     /// <param name="transactionId"></param>
     /// <returns></returns>
@@ -195,10 +186,7 @@ public class TransactionResultAppService : AElfAppService, ITransactionResultApp
         var blockInfo = await _blockchainService.GetBlockByHashAsync(blockHash);
         var transactionIds = blockInfo.Body.TransactionIds;
         var index = transactionIds.IndexOf(transactionIdHash);
-        if (index == -1)
-        {
-            throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
-        }
+        if (index == -1) throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
         var leafNodes = await GetLeafNodesAsync(blockInfo.TransactionIds);
 
         var binaryMerkleTree = BinaryMerkleTree.FromLeafNodes(leafNodes);
@@ -214,33 +202,24 @@ public class TransactionResultAppService : AElfAppService, ITransactionResultApp
         var queuedTransaction =
             await _transactionResultProxyService.TransactionPoolService.GetQueuedTransactionAsync(transactionId);
         if (queuedTransaction != null)
-        {
             return new TransactionResult
             {
                 TransactionId = queuedTransaction.TransactionId,
                 Status = TransactionResultStatus.Pending
             };
-        }
 
         // in storage
         TransactionResult result;
         if (blockHash != null)
-        {
             result =
                 await _transactionResultProxyService.TransactionResultQueryService.GetTransactionResultAsync(
                     transactionId, blockHash);
-        }
         else
-        {
             result =
                 await _transactionResultProxyService.TransactionResultQueryService.GetTransactionResultAsync(
                     transactionId);
-        }
 
-        if (result != null)
-        {
-            return result;
-        }
+        if (result != null) return result;
 
         // not existed
         return new TransactionResult
@@ -249,15 +228,16 @@ public class TransactionResultAppService : AElfAppService, ITransactionResultApp
             Status = TransactionResultStatus.NotExisted
         };
     }
-        
-    private async Task<TransactionResultDto> GetTransactionResultDto(Hash transactionId, Hash realBlockHash, Hash blockHash)
+
+    private async Task<TransactionResultDto> GetTransactionResultDto(Hash transactionId, Hash realBlockHash,
+        Hash blockHash)
     {
         var transactionResult = await GetTransactionResultAsync(transactionId, realBlockHash);
         var transactionResultDto = _objectMapper.GetMapper()
             .Map<TransactionResult, TransactionResultDto>(transactionResult,
                 opt => opt.Items[TransactionProfile.ErrorTrace] = _webAppOptions.IsDebugMode);
 
-            
+
         var transaction = await _transactionManager.GetTransactionAsync(transactionResult.TransactionId);
         transactionResultDto.BlockHash = blockHash.ToHex();
 
@@ -271,13 +251,11 @@ public class TransactionResultAppService : AElfAppService, ITransactionResultApp
         {
             var parameters = methodDescriptor.InputType.Parser.ParseFrom(transaction.Params);
             if (!IsValidMessage(parameters))
-            {
                 throw new UserFriendlyException(Error.Message[Error.InvalidParams], Error.InvalidParams.ToString());
-            }
 
             transactionResultDto.Transaction.Params = JsonFormatter.ToDiagnosticString(parameters);
         }
-            
+
         return transactionResultDto;
     }
 
@@ -312,9 +290,7 @@ public class TransactionResultAppService : AElfAppService, ITransactionResultApp
         var transactionResultSet = transactionResultList.Select(txResult => (txResult.TransactionId, txResult.Status));
         var leafNodes = new List<Hash>();
         foreach (var (txId, status) in transactionResultSet)
-        {
             leafNodes.Add(GetHashCombiningTransactionAndStatus(txId, status));
-        }
 
         return leafNodes;
     }
@@ -327,7 +303,7 @@ public class TransactionResultAppService : AElfAppService, ITransactionResultApp
             .ToArray();
         return HashHelper.ComputeFrom(rawBytes);
     }
-        
+
     private bool IsValidMessage(IMessage message)
     {
         try
@@ -341,7 +317,7 @@ public class TransactionResultAppService : AElfAppService, ITransactionResultApp
 
         return true;
     }
-        
+
     private async Task<MethodDescriptor> GetContractMethodDescriptorAsync(Address contractAddress,
         string methodName, bool throwException = true)
     {

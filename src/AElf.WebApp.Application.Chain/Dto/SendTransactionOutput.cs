@@ -1,7 +1,6 @@
-namespace AElf.WebApp.Application.Chain.Dto
+namespace AElf.WebApp.Application.Chain.Dto;
+
+public class SendTransactionOutput
 {
-    public class SendTransactionOutput
-    {
-        public string TransactionId { get; set; }
-    }
+    public string TransactionId { get; set; }
 }

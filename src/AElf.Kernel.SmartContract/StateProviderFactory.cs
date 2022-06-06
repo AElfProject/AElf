@@ -1,22 +1,18 @@
 using AElf.Kernel.SmartContract.Domain;
 
-namespace AElf.Kernel.SmartContract
+namespace AElf.Kernel.SmartContract;
+
+public class StateProviderFactory : IStateProviderFactory
 {
-    public class StateProviderFactory : IStateProviderFactory
+    private readonly IBlockchainStateManager _blockchainStateManager;
+
+    public StateProviderFactory(IBlockchainStateManager blockchainStateManager)
     {
-        private readonly IBlockchainStateManager _blockchainStateManager;
+        _blockchainStateManager = blockchainStateManager;
+    }
 
-        public StateProviderFactory(IBlockchainStateManager blockchainStateManager)
-        {
-            _blockchainStateManager = blockchainStateManager;
-        }
-
-        public IStateProvider CreateStateProvider()
-        {
-            return new ScopedStateProvider()
-            {
-            };
-        }
-
+    public IStateProvider CreateStateProvider()
+    {
+        return new ScopedStateProvider();
     }
 }

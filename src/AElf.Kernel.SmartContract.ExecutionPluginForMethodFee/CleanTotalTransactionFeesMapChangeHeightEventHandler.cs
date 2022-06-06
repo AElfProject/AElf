@@ -4,16 +4,15 @@ using AElf.Kernel.SmartContract.Events;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus;
 
-namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
+namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee;
+
+internal class CleanTotalTransactionFeesMapChangeHeightEventHandler :
+    CleanBlockExecutedDataChangeHeightBaseEventHandler<TotalTransactionFeesMap>,
+    ILocalEventHandler<CleanBlockExecutedDataChangeHeightEventData>, ITransientDependency
 {
-    internal class CleanTotalTransactionFeesMapChangeHeightEventHandler :
-        CleanBlockExecutedDataChangeHeightBaseEventHandler<TotalTransactionFeesMap>,
-        ILocalEventHandler<CleanBlockExecutedDataChangeHeightEventData>, ITransientDependency
+    public CleanTotalTransactionFeesMapChangeHeightEventHandler(
+        ICachedBlockchainExecutedDataService<TotalTransactionFeesMap> cachedBlockchainExecutedDataService) : base(
+        cachedBlockchainExecutedDataService)
     {
-        public CleanTotalTransactionFeesMapChangeHeightEventHandler(
-            ICachedBlockchainExecutedDataService<TotalTransactionFeesMap> cachedBlockchainExecutedDataService) : base(
-            cachedBlockchainExecutedDataService)
-        {
-        }
     }
 }

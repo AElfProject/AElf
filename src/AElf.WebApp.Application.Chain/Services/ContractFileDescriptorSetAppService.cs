@@ -1,9 +1,9 @@
 using System;
+using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Volo.Abp;
 using Volo.Abp.Application.Services;
@@ -20,8 +20,6 @@ public class ContractFileDescriptorSetAppService : ApplicationService, IContract
     private static IBlockchainService _blockchainService;
     private static ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
 
-    public ILogger<ContractFileDescriptorSetAppService> Logger { get; set; }
-
     public ContractFileDescriptorSetAppService(IBlockchainService blockchainService,
         ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService)
     {
@@ -29,8 +27,10 @@ public class ContractFileDescriptorSetAppService : ApplicationService, IContract
         _transactionReadOnlyExecutionService = transactionReadOnlyExecutionService;
     }
 
+    public ILogger<ContractFileDescriptorSetAppService> Logger { get; set; }
+
     /// <summary>
-    /// Get the protobuf definitions related to a contract
+    ///     Get the protobuf definitions related to a contract
     /// </summary>
     /// <param name="address">contract address</param>
     /// <returns></returns>
@@ -51,7 +51,7 @@ public class ContractFileDescriptorSetAppService : ApplicationService, IContract
     private async Task<byte[]> GetFileDescriptorSetAsync(Address address)
     {
         var chain = await _blockchainService.GetChainAsync();
-        var chainContext = new ChainContext()
+        var chainContext = new ChainContext
         {
             BlockHash = chain.BestChainHash,
             BlockHeight = chain.BestChainHeight

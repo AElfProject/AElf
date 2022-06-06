@@ -2,37 +2,31 @@ using AElf.CrossChain.Cache.Infrastructure;
 using Google.Protobuf;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.CrossChain.Cache.Application
+namespace AElf.CrossChain.Cache.Application;
+
+public interface IBlockCacheEntityConsumer
 {
-    public interface IBlockCacheEntityConsumer
+    T Take<T>(int crossChainId, long height, bool isCacheSizeLimited) where T : IMessage, new();
+}
+
+public class BlockCacheEntityConsumer : IBlockCacheEntityConsumer, ITransientDependency
+{
+    private readonly ICrossChainCacheEntityProvider _crossChainCacheEntityProvider;
+
+    public BlockCacheEntityConsumer(ICrossChainCacheEntityProvider crossChainCacheEntityProvider)
     {
-        T Take<T>(int crossChainId, long height, bool isCacheSizeLimited) where T : IMessage, new();
+        _crossChainCacheEntityProvider = crossChainCacheEntityProvider;
     }
-    
-    public class BlockCacheEntityConsumer : IBlockCacheEntityConsumer, ITransientDependency
+
+    public T Take<T>(int crossChainId, long height, bool isCacheSizeLimited) where T : IMessage, new()
     {
-        private readonly ICrossChainCacheEntityProvider _crossChainCacheEntityProvider;
+        if (!_crossChainCacheEntityProvider.TryGetChainCacheEntity(crossChainId, out var chainCacheEntity))
+            return default;
 
-        public BlockCacheEntityConsumer(ICrossChainCacheEntityProvider crossChainCacheEntityProvider)
-        {
-            _crossChainCacheEntityProvider = crossChainCacheEntityProvider;
-        }
+        if (!chainCacheEntity.TryTake(height, out var blockCacheEntity, isCacheSizeLimited)) return default;
 
-        public T Take<T>(int crossChainId, long height, bool isCacheSizeLimited) where T : IMessage, new()
-        {
-            if (!_crossChainCacheEntityProvider.TryGetChainCacheEntity(crossChainId, out var chainCacheEntity))
-            {
-                return default(T);
-            }
-
-            if (!chainCacheEntity.TryTake(height, out var blockCacheEntity, isCacheSizeLimited))
-            {
-                return default(T);
-            }
-
-            var t = new T();
-            t.MergeFrom(blockCacheEntity.ToByteString());
-            return t;
-        }
+        var t = new T();
+        t.MergeFrom(blockCacheEntity.ToByteString());
+        return t;
     }
 }

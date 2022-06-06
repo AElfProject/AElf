@@ -1,17 +1,17 @@
-using AElf.Kernel;
-using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.SmartContract.Application;
-using AElf.Types;
-using AElf.WebApp.Application.Chain.Dto;
-using Google.Protobuf;
-using Google.Protobuf.Reflection;
-using Google.Protobuf.WellKnownTypes;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using AElf.Kernel;
+using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.TransactionPool;
+using AElf.Types;
+using AElf.WebApp.Application.Chain.Dto;
 using AElf.WebApp.Application.Chain.Infrastructure;
+using Google.Protobuf;
+using Google.Protobuf.Reflection;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp;
@@ -37,14 +37,10 @@ public interface ITransactionAppService
 
 public class TransactionAppService : AElfAppService, ITransactionAppService
 {
-    private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
     private readonly IBlockchainService _blockchainService;
     private readonly IObjectMapper<ChainApplicationWebAppAElfModule> _objectMapper;
+    private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
     private readonly ITransactionResultStatusCacheProvider _transactionResultStatusCacheProvider;
-
-    public ILocalEventBus LocalEventBus { get; set; }
-
-    public ILogger<TransactionAppService> Logger { get; set; }
 
     public TransactionAppService(ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService,
         IBlockchainService blockchainService, IObjectMapper<ChainApplicationWebAppAElfModule> objectMapper,
@@ -59,8 +55,12 @@ public class TransactionAppService : AElfAppService, ITransactionAppService
         Logger = NullLogger<TransactionAppService>.Instance;
     }
 
+    public ILocalEventBus LocalEventBus { get; set; }
+
+    public ILogger<TransactionAppService> Logger { get; set; }
+
     /// <summary>
-    /// Call a read-only method on a contract.
+    ///     Call a read-only method on a contract.
     /// </summary>
     /// <returns></returns>
     public async Task<string> ExecuteTransactionAsync(ExecuteTransactionDto input)
@@ -74,16 +74,14 @@ public class TransactionAppService : AElfAppService, ITransactionAppService
         }
         catch (Exception e)
         {
-            Logger.LogError(e, e.Message); //for debug
+            Logger.LogError(e, "{ErrorMessage}", e.Message); //for debug
             throw new UserFriendlyException(Error.Message[Error.InvalidParams],
                 Error.InvalidParams.ToString());
         }
 
         if (!transaction.VerifySignature())
-        {
             throw new UserFriendlyException(Error.Message[Error.InvalidSignature],
                 Error.InvalidSignature.ToString());
-        }
 
         try
         {
@@ -110,16 +108,14 @@ public class TransactionAppService : AElfAppService, ITransactionAppService
         }
         catch (Exception e)
         {
-            Logger.LogError(e, e.Message); //for debug
+            Logger.LogError(e, "{ErrorMessage}", e.Message); //for debug
             throw new UserFriendlyException(Error.Message[Error.InvalidParams],
                 Error.InvalidParams.ToString());
         }
 
         if (!transaction.VerifySignature())
-        {
             throw new UserFriendlyException(Error.Message[Error.InvalidSignature],
                 Error.InvalidSignature.ToString());
-        }
 
         try
         {
@@ -145,7 +141,7 @@ public class TransactionAppService : AElfAppService, ITransactionAppService
     }
 
     /// <summary>
-    /// Creates an unsigned serialized transaction
+    ///     Creates an unsigned serialized transaction
     /// </summary>
     /// <param name="input"></param>
     /// <returns></returns>
@@ -182,7 +178,7 @@ public class TransactionAppService : AElfAppService, ITransactionAppService
     }
 
     /// <summary>
-    /// send a transaction
+    ///     send a transaction
     /// </summary>
     /// <param name="input"></param>
     /// <returns></returns>
@@ -203,16 +199,12 @@ public class TransactionAppService : AElfAppService, ITransactionAppService
         var contractMethodDescriptor =
             await GetContractMethodDescriptorAsync(transaction.To, transaction.MethodName);
         if (contractMethodDescriptor == null)
-        {
             throw new UserFriendlyException(Error.Message[Error.NoMatchMethodInContractAddress],
                 Error.NoMatchMethodInContractAddress.ToString());
-        }
 
         var parameters = contractMethodDescriptor.InputType.Parser.ParseFrom(transaction.Params);
         if (!IsValidMessage(parameters))
-        {
             throw new UserFriendlyException(Error.Message[Error.InvalidParams], Error.InvalidParams.ToString());
-        }
 
         transactionDto.Params = JsonFormatter.ToDiagnosticString(parameters);
         output.Transaction = transactionDto;
@@ -221,7 +213,7 @@ public class TransactionAppService : AElfAppService, ITransactionAppService
     }
 
     /// <summary>
-    /// Broadcast a transaction
+    ///     Broadcast a transaction
     /// </summary>
     /// <returns></returns>
     public async Task<SendTransactionOutput> SendTransactionAsync(SendTransactionInput input)
@@ -234,7 +226,7 @@ public class TransactionAppService : AElfAppService, ITransactionAppService
     }
 
     /// <summary>
-    /// Broadcast multiple transactions
+    ///     Broadcast multiple transactions
     /// </summary>
     /// <returns></returns>
     public async Task<string[]> SendTransactionsAsync(SendTransactionsInput input)
@@ -275,24 +267,18 @@ public class TransactionAppService : AElfAppService, ITransactionAppService
             var parameters = contractMethodDescriptor.InputType.Parser.ParseFrom(transaction.Params);
 
             if (!IsValidMessage(parameters))
-            {
                 throw new UserFriendlyException(Error.Message[Error.InvalidParams], Error.InvalidParams.ToString());
-            }
 
             if (!transaction.VerifySignature())
-            {
                 throw new UserFriendlyException(Error.Message[Error.InvalidSignature],
                     Error.InvalidSignature.ToString());
-            }
 
             transactions.Add(transaction);
             txIds[i] = transaction.GetHash().ToHex();
         }
 
         foreach (var transaction in transactions)
-        {
             _transactionResultStatusCacheProvider.AddTransactionResultStatus(transaction.GetHash());
-        }
 
         await LocalEventBus.PublishAsync(new TransactionsReceivedEvent
         {
@@ -332,7 +318,7 @@ public class TransactionAppService : AElfAppService, ITransactionAppService
     private async Task<ChainContext> GetChainContextAsync()
     {
         var chain = await _blockchainService.GetChainAsync();
-        var chainContext = new ChainContext()
+        var chainContext = new ChainContext
         {
             BlockHash = chain.BestChainHash,
             BlockHeight = chain.BestChainHeight

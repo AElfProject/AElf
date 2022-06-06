@@ -1,61 +1,60 @@
 using System.Linq;
 using AElf.Types;
 
-namespace AElf.Contracts.Vote
+namespace AElf.Contracts.Vote;
+
+public partial class VoteContract
 {
-    public partial class VoteContract
+    public override VotingRecords GetVotingRecords(GetVotingRecordsInput input)
     {
-        public override VotingRecords GetVotingRecords(GetVotingRecordsInput input)
-        {
-            var votingRecords = new VotingRecords();
-            votingRecords.Records.AddRange(input.Ids.Select(id => State.VotingRecords[id]));
-            return votingRecords;
-        }
+        var votingRecords = new VotingRecords();
+        votingRecords.Records.AddRange(input.Ids.Select(id => State.VotingRecords[id]));
+        return votingRecords;
+    }
 
-        public override VotedItems GetVotedItems(Address input)
-        {
-            return State.VotedItemsMap[input] ?? new VotedItems();
-        }
+    public override VotedItems GetVotedItems(Address input)
+    {
+        return State.VotedItemsMap[input] ?? new VotedItems();
+    }
 
-        public override VotingRecord GetVotingRecord(Hash input)
-        {
-            var votingRecord = State.VotingRecords[input];
-            Assert(votingRecord != null, "Voting record not found.");
-            return votingRecord;
-        }
+    public override VotingRecord GetVotingRecord(Hash input)
+    {
+        var votingRecord = State.VotingRecords[input];
+        Assert(votingRecord != null, "Voting record not found.");
+        return votingRecord;
+    }
 
-        public override VotingItem GetVotingItem(GetVotingItemInput input)
-        {
-            var votingEvent = State.VotingItems[input.VotingItemId];
-            Assert(votingEvent != null, "Voting item not found.");
-            return votingEvent;
-        }
+    public override VotingItem GetVotingItem(GetVotingItemInput input)
+    {
+        var votingEvent = State.VotingItems[input.VotingItemId];
+        Assert(votingEvent != null, "Voting item not found.");
+        return votingEvent;
+    }
 
-        public override VotingResult GetVotingResult(GetVotingResultInput input)
+    public override VotingResult GetVotingResult(GetVotingResultInput input)
+    {
+        var votingResultHash = new VotingResult
         {
-            var votingResultHash = new VotingResult
-            {
-                VotingItemId = input.VotingItemId,
-                SnapshotNumber = input.SnapshotNumber
-            }.GetHash();
-            return State.VotingResults[votingResultHash];
-        }
+            VotingItemId = input.VotingItemId,
+            SnapshotNumber = input.SnapshotNumber
+        }.GetHash();
+        return State.VotingResults[votingResultHash];
+    }
 
-        public override VotingResult GetLatestVotingResult(Hash input)
+    public override VotingResult GetLatestVotingResult(Hash input)
+    {
+        var votingItem = AssertVotingItem(input);
+        var votingResultHash = new VotingResult
         {
-            var votingItem = AssertVotingItem(input);
-            var votingResultHash = new VotingResult
-            {
-                VotingItemId = input,
-                SnapshotNumber = votingItem.CurrentSnapshotNumber
-            }.GetHash();
-            return State.VotingResults[votingResultHash];
-        }
+            VotingItemId = input,
+            SnapshotNumber = votingItem.CurrentSnapshotNumber
+        }.GetHash();
+        return State.VotingResults[votingResultHash];
+    }
 
-        public override VotedIds GetVotingIds(GetVotingIdsInput input)
-        {
-            return State.VotedItemsMap[input.Voter].VotedItemVoteIds.Where(p => p.Key == input.VotingItemId.ToHex())
-                .Select(p => p.Value).First();
-        }
+    public override VotedIds GetVotingIds(GetVotingIdsInput input)
+    {
+        return State.VotedItemsMap[input.Voter].VotedItemVoteIds.Where(p => p.Key == input.VotingItemId.ToHex())
+            .Select(p => p.Value).First();
     }
 }

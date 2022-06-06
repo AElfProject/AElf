@@ -1,15 +1,14 @@
 using System;
 
-namespace AElf.Runtime.CSharp
-{
-    public class InvalidAssemblyException : Exception
-    {
-        public InvalidAssemblyException()
-        {
-        }
+namespace AElf.Runtime.CSharp;
 
-        public InvalidAssemblyException(string message) : base(message)
-        {
-        }
+public class InvalidAssemblyException : Exception
+{
+    public InvalidAssemblyException()
+    {
+    }
+
+    public InvalidAssemblyException(string message) : base(message)
+    {
     }
 }

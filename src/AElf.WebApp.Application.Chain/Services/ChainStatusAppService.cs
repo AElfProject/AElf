@@ -1,7 +1,7 @@
+using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.WebApp.Application.Chain.Dto;
-using System.Threading.Tasks;
 using Volo.Abp.ObjectMapping;
 
 namespace AElf.WebApp.Application.Chain;
@@ -13,11 +13,10 @@ public interface IChainStatusAppService
 
 public class ChainStatusAppService : AElfAppService, IChainStatusAppService
 {
-    private readonly ISmartContractAddressService _smartContractAddressService;
-
     private readonly IBlockchainService _blockchainService;
 
     private readonly IObjectMapper<ChainApplicationWebAppAElfModule> _objectMapper;
+    private readonly ISmartContractAddressService _smartContractAddressService;
 
     public ChainStatusAppService(ISmartContractAddressService smartContractAddressService,
         IBlockchainService blockchainService,
@@ -29,7 +28,7 @@ public class ChainStatusAppService : AElfAppService, IChainStatusAppService
     }
 
     /// <summary>
-    /// Get the current status of the block chain.
+    ///     Get the current status of the block chain.
     /// </summary>
     /// <returns></returns>
     public async Task<ChainStatusDto> GetChainStatusAsync()

@@ -1,13 +1,12 @@
 using System;
 using System.Globalization;
-using System.Numerics;
-using AElf.Sdk.CSharp;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 using AElf.Cryptography.SecretSharing;
 using AElf.CSharp.Core;
 using AElf.Kernel.SmartContract;
+using AElf.Sdk.CSharp;
 using AElf.Types;
 using Volo.Abp.DependencyInjection;
 
@@ -94,7 +93,7 @@ public class WhitelistProvider : IWhitelistProvider
                 .Type(nameof(Decimal), Permission.Allowed)
                 .Type(nameof(String), Permission.Allowed, member => member
                     .Constructor(Permission.Denied))
-                .Type(typeof(Byte[]).Name, Permission.Allowed)
+                .Type(typeof(byte[]).Name, Permission.Allowed)
             );
     }
 
@@ -135,7 +134,7 @@ public class WhitelistProvider : IWhitelistProvider
                 .Type(nameof(RuntimeHelpers), Permission.Denied, member => member
                     .Member(nameof(RuntimeHelpers.InitializeArray), Permission.Allowed))
                 .Type(nameof(DefaultInterpolatedStringHandler), Permission.Allowed)
-                )
+            )
             .Namespace("System.Text", Permission.Denied, type => type
                 .Type(nameof(Encoding), Permission.Denied, member => member
                     .Member(nameof(Encoding.UTF8), Permission.Allowed)

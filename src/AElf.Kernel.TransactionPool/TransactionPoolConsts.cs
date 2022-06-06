@@ -1,7 +1,6 @@
-namespace AElf.Kernel.TransactionPool
+namespace AElf.Kernel.TransactionPool;
+
+public class TransactionPoolConsts
 {
-    public class TransactionPoolConsts
-    {
-        public const int TransactionSizeLimit = 1024 * 1024 * 5; // 5M
-    }
+    public const int TransactionSizeLimit = 1024 * 1024 * 5; // 5M
 }

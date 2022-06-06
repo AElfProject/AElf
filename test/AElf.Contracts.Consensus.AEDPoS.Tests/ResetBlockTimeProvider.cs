@@ -1,10 +1,9 @@
 using AElf.ContractTestKit;
 
-namespace AElf.Contracts.Consensus.AEDPoS
+namespace AElf.Contracts.Consensus.AEDPoS;
+
+public class ResetBlockTimeProvider : IResetBlockTimeProvider
 {
-    public class ResetBlockTimeProvider : IResetBlockTimeProvider
-    {
-        public bool Enabled => false;
-        public int StepMilliseconds => 0;
-    }
+    public bool Enabled => false;
+    public int StepMilliseconds => 0;
 }

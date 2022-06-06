@@ -6,56 +6,55 @@ using Google.Protobuf;
 using Microsoft.Extensions.Options;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.Kernel.SmartContract.Infrastructure
+namespace AElf.Kernel.SmartContract.Infrastructure;
+
+public interface IDefaultContractZeroCodeProvider
 {
-    public interface IDefaultContractZeroCodeProvider
+    SmartContractRegistration DefaultContractZeroRegistration { get; set; }
+
+    Address ContractZeroAddress { get; }
+
+    void SetDefaultContractZeroRegistrationByType(Type defaultZero);
+
+    Address GetZeroSmartContractAddress(int chainId);
+}
+
+public class DefaultContractZeroCodeProvider : IDefaultContractZeroCodeProvider, ISingletonDependency
+{
+    private readonly ContractOptions _contractOptions;
+    private readonly IStaticChainInformationProvider _staticChainInformationProvider;
+
+    public DefaultContractZeroCodeProvider(IStaticChainInformationProvider staticChainInformationProvider,
+        IOptionsSnapshot<ContractOptions> contractOptions)
     {
-        SmartContractRegistration DefaultContractZeroRegistration { get; set; }
-
-        Address ContractZeroAddress { get; }
-
-        void SetDefaultContractZeroRegistrationByType(Type defaultZero);
-        
-        Address GetZeroSmartContractAddress(int chainId);
+        _staticChainInformationProvider = staticChainInformationProvider;
+        _contractOptions = contractOptions.Value;
     }
 
-    public class DefaultContractZeroCodeProvider : IDefaultContractZeroCodeProvider, ISingletonDependency
+    public SmartContractRegistration DefaultContractZeroRegistration { get; set; }
+    public Address ContractZeroAddress => _staticChainInformationProvider.ZeroSmartContractAddress;
+
+    public virtual void SetDefaultContractZeroRegistrationByType(Type defaultZero)
     {
-        private readonly IStaticChainInformationProvider _staticChainInformationProvider;
-        private readonly ContractOptions _contractOptions;
-
-        public DefaultContractZeroCodeProvider(IStaticChainInformationProvider staticChainInformationProvider,
-            IOptionsSnapshot<ContractOptions> contractOptions)
+        var dllPath = Directory.Exists(_contractOptions.GenesisContractDir)
+            ? Path.Combine(_contractOptions.GenesisContractDir, $"{defaultZero.Assembly.GetName().Name}.dll")
+            : defaultZero.Assembly.Location;
+        var code = File.ReadAllBytes(dllPath);
+        DefaultContractZeroRegistration = new SmartContractRegistration
         {
-            _staticChainInformationProvider = staticChainInformationProvider;
-            _contractOptions = contractOptions.Value;
-        }
+            Category = GetCategory(),
+            Code = ByteString.CopyFrom(code),
+            CodeHash = HashHelper.ComputeFrom(code)
+        };
+    }
 
-        public SmartContractRegistration DefaultContractZeroRegistration { get; set; }
-        public Address ContractZeroAddress => _staticChainInformationProvider.ZeroSmartContractAddress;
+    public Address GetZeroSmartContractAddress(int chainId)
+    {
+        return _staticChainInformationProvider.GetZeroSmartContractAddress(chainId);
+    }
 
-        public virtual void SetDefaultContractZeroRegistrationByType(Type defaultZero)
-        {
-            var dllPath = Directory.Exists(_contractOptions.GenesisContractDir)
-                ? Path.Combine(_contractOptions.GenesisContractDir, $"{defaultZero.Assembly.GetName().Name}.dll")
-                : defaultZero.Assembly.Location;
-            var code = File.ReadAllBytes(dllPath);
-            DefaultContractZeroRegistration = new SmartContractRegistration()
-            {
-                Category = GetCategory(),
-                Code = ByteString.CopyFrom(code),
-                CodeHash = HashHelper.ComputeFrom(code)
-            };
-        }
-
-        protected virtual int GetCategory()
-        {
-            return KernelConstants.DefaultRunnerCategory;
-        }
-
-        public Address GetZeroSmartContractAddress(int chainId)
-        {
-            return _staticChainInformationProvider.GetZeroSmartContractAddress(chainId);
-        }
+    protected virtual int GetCategory()
+    {
+        return KernelConstants.DefaultRunnerCategory;
     }
 }

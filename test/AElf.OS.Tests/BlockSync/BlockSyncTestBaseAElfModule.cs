@@ -6,25 +6,22 @@ using Moq;
 using Volo.Abp.BackgroundWorkers;
 using Volo.Abp.Modularity;
 
-namespace AElf.OS.BlockSync
-{
-    [DependsOn(typeof(OSTestAElfModule))]
-    public class BlockSyncTestBaseAElfModule : AElfModule
-    {
-        public override void ConfigureServices(ServiceConfigurationContext context)
-        {
-            context.Services.AddTransient(o =>
-            {
-                var taskQueue = new Mock<ITaskQueue>();
-                taskQueue.Setup(t => t.Enqueue(It.IsAny<Func<Task>>())).Callback<Func<Task>>(async task =>
-                {
-                    await task();
-                });
+namespace AElf.OS.BlockSync;
 
-                return taskQueue.Object;
-            });
-            
-            Configure<AbpBackgroundWorkerOptions>(o => { o.IsEnabled = false; });
-        }
+[DependsOn(typeof(OSTestAElfModule))]
+public class BlockSyncTestBaseAElfModule : AElfModule
+{
+    public override void ConfigureServices(ServiceConfigurationContext context)
+    {
+        context.Services.AddTransient(o =>
+        {
+            var taskQueue = new Mock<ITaskQueue>();
+            taskQueue.Setup(t => t.Enqueue(It.IsAny<Func<Task>>()))
+                .Callback<Func<Task>>(async task => { await task(); });
+
+            return taskQueue.Object;
+        });
+
+        Configure<AbpBackgroundWorkerOptions>(o => { o.IsEnabled = false; });
     }
 }
