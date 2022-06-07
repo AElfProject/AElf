@@ -3,116 +3,101 @@ using System.Collections.Generic;
 using System.Linq;
 using Google.Protobuf;
 
-namespace AElf.Kernel
+namespace AElf.Kernel;
+
+public class Bloom
 {
-    public class Bloom
+    private const int Length = 256;
+
+    private const uint BucketPerVal = 3; // number of hash functions
+
+    public Bloom()
     {
-        private const int Length = 256;
-        public static byte[] AndMultipleBloomBytes(IEnumerable<byte[]> multipleBytes)
+        Data = new byte[0];
+    }
+
+    public Bloom(byte[] data)
+    {
+        if (data.Length == 0)
         {
-            var res = new byte[Length];
-            foreach (var bytes in multipleBytes)
-            {
-                for (var i = 0; i < Length; i++)
-                {
-                    res[i] |= bytes[i];
-                }
-            }
-            return res;
+            Data = new byte[0];
+            return;
         }
 
-        private const uint BucketPerVal = 3; // number of hash functions
-        private byte[] _data;
+        if (data.Length != Length) throw new InvalidOperationException($"Bloom data has to be {Length} bytes long.");
 
-        public byte[] Data => _data;
+        Data = (byte[])data.Clone();
+    }
 
-        public Bloom()
-        {
-            _data = new byte[0];
-        }
+    public Bloom(Bloom bloom) : this(bloom.Data)
+    {
+    }
 
-        public Bloom(byte[] data)
-        {
-            if (data.Length == 0)
-            {
-                _data = new byte[0];
-                return;
-            }
-            if (data.Length != Length)
-            {
-                throw new InvalidOperationException($"Bloom data has to be {Length} bytes long.");
-            }
+    public byte[] Data { get; private set; }
 
-            _data = (byte[]) data.Clone();
-        }
-
-        public Bloom(Bloom bloom) : this(bloom.Data)
-        {
-        }
-
-        public void AddValue(byte[] bytes)
-        {
-            AddSha256Hash(bytes.ComputeHash());
-        }
-
-        public void AddValue(IMessage message)
-        {
-            if (message == null) return;
-            var bytes = message.ToByteArray();
-            AddValue(bytes);
-        }
-
-        public void AddSha256Hash(byte[] hash256)
-        {
-            if (hash256.Length != 32)
-            {
-                throw new InvalidOperationException("Invalid input.");
-            }
-
-            if (_data.Length == 0) _data = new byte[Length];
-            for (uint i = 0; i < BucketPerVal * 2; i += 2)
-            {
-                var index = ((hash256[i] << 8) | hash256[i + 1]) & 2047;
-                var byteToSet = (byte) (((uint) 1) << (index % 8));
-                _data[255 - index / 8] |= byteToSet;
-            }
-        }
-
-        /// <summary>
-        /// Combines some other blooms into current bloom.
-        /// </summary>
-        /// <param name="blooms">Other blooms</param>
-        public void Combine(IEnumerable<Bloom> blooms)
-        {
-            if (!blooms.Any(b => b.Data.Length > 0)) return;
-            if (_data.Length == 0) _data = new byte[Length];
-            foreach (var bloom in blooms)
-            {
-                for (var i = 0; i < Length; i++)
-                {
-                    _data[i] |= bloom.Data[i];
-                }
-            }
-        }
-
-        /// <summary>
-        /// Checks if current bloom is contained in the input bloom.
-        /// </summary>
-        /// <param name="bloom">Other bloom</param>
-        /// <returns></returns>
-        public bool IsIn(Bloom bloom)
-        {
-            if (bloom.Data.Length == 0 || _data.Length == 0) return false;
+    public static byte[] AndMultipleBloomBytes(IEnumerable<byte[]> multipleBytes)
+    {
+        var res = new byte[Length];
+        foreach (var bytes in multipleBytes)
             for (var i = 0; i < Length; i++)
-            {
-                var curByte = _data[i];
-                if ((curByte & bloom.Data[i]) != curByte)
-                {
-                    return false;
-                }
-            }
+                res[i] |= bytes[i];
+        return res;
+    }
 
-            return true;
+    public void AddValue(byte[] bytes)
+    {
+        AddSha256Hash(bytes.ComputeHash());
+    }
+
+    public void AddValue(IMessage message)
+    {
+        if (message == null) return;
+        var bytes = message.ToByteArray();
+        AddValue(bytes);
+    }
+
+    public void AddSha256Hash(byte[] hash256)
+    {
+        if (hash256.Length != 32) throw new InvalidOperationException("Invalid input.");
+
+        if (Data.Length == 0) Data = new byte[Length];
+        for (uint i = 0; i < BucketPerVal * 2; i += 2)
+        {
+            var index = ((hash256[i] << 8) | hash256[i + 1]) & 2047;
+            var byteToSet = (byte)((uint)1 << (index % 8));
+            Data[255 - index / 8] |= byteToSet;
         }
+    }
+
+    /// <summary>
+    ///     Combines some other blooms into current bloom.
+    /// </summary>
+    /// <param name="blooms">Other blooms</param>
+    public void Combine(IEnumerable<Bloom> blooms)
+    {
+        if (blooms == null) return;
+        var bloomsList = blooms.ToList();
+        if (!bloomsList.Any(b => b.Data.Length > 0)) return;
+        if (Data.Length == 0) Data = new byte[Length];
+        foreach (var bloom in bloomsList)
+            for (var i = 0; i < Length; i++)
+                Data[i] |= bloom.Data[i];
+    }
+
+    /// <summary>
+    ///     Checks if current bloom is contained in the input bloom.
+    /// </summary>
+    /// <param name="bloom">Other bloom</param>
+    /// <returns></returns>
+    public bool IsIn(Bloom bloom)
+    {
+        if (bloom.Data.Length == 0 || Data.Length == 0) return false;
+        for (var i = 0; i < Length; i++)
+        {
+            var curByte = Data[i];
+            if ((curByte & bloom.Data[i]) != curByte) return false;
+        }
+
+        return true;
     }
 }

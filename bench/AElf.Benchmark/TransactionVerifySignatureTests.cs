@@ -4,27 +4,26 @@ using AElf.OS;
 using AElf.Types;
 using BenchmarkDotNet.Attributes;
 
-namespace AElf.Benchmark
+namespace AElf.Benchmark;
+
+[MarkdownExporterAttribute.GitHub]
+public class TransactionVerifySignatureTests : BenchmarkTestBase
 {
-    [MarkdownExporterAttribute.GitHub]
-    public class TransactionVerifySignatureTests : BenchmarkTestBase
+    private OSTestHelper _osTestHelper;
+
+    private Transaction _transaction;
+
+    [GlobalSetup]
+    public async Task GlobalSetup()
     {
-        private OSTestHelper _osTestHelper;
+        _osTestHelper = GetRequiredService<OSTestHelper>();
 
-        private Transaction _transaction;
+        _transaction = await _osTestHelper.GenerateTransferTransaction();
+    }
 
-        [GlobalSetup]
-        public async Task GlobalSetup()
-        {
-            _osTestHelper = GetRequiredService<OSTestHelper>();
-
-            _transaction = await _osTestHelper.GenerateTransferTransaction();
-        }
-
-        [Benchmark]
-        public void VerifySignatureTest()
-        {
-            _transaction.VerifySignature();
-        }
+    [Benchmark]
+    public void VerifySignatureTest()
+    {
+        _transaction.VerifySignature();
     }
 }

@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>netstandard2.0</TargetFramework>
+        <TargetFramework>net6.0</TargetFramework>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
@@ -9,7 +9,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\src\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
@@ -17,7 +17,7 @@
             <Link>Protobuf\Proto\authority_info.proto</Link>
         </CommonMessage>
     </ItemGroup>
-    
+
     <ItemGroup>
         <ContractReference Include="..\..\protobuf\test_a_contract.proto">
             <Link>Protobuf\Proto\reference\test_a_contract.proto</Link>

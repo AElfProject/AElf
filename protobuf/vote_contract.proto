@@ -97,6 +97,10 @@ message VotingRegisterInput {
     int64 total_snapshot_number = 5;
     // The list of options.
     repeated string options = 6;
+    // Is quadratic voting.
+    bool is_quadratic = 7;
+    // Quadratic voting item ticket cost.
+    int64 ticket_cost = 8;
 }
 
 message VotingItem {
@@ -122,6 +126,10 @@ message VotingItem {
     google.protobuf.Timestamp current_snapshot_start_timestamp = 10;
     // The sponsor address of the voting activity.
     aelf.Address sponsor = 11;
+    // Is quadratic voting.
+    bool is_quadratic = 12;
+    // Quadratic voting item ticket cost.
+    int64 ticket_cost = 13;
 }
 
 message VoteInput {
@@ -304,4 +312,8 @@ message VotingItemRegistered {
     google.protobuf.Timestamp current_snapshot_start_timestamp = 9;
     // The sponsor address of the voting activity.
     aelf.Address sponsor = 10;
+    // Is quadratic voting.
+    bool is_quadratic = 11;
+    // Quadratic voting item ticket cost.
+    int64 ticket_cost = 12;
 }

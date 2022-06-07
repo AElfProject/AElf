@@ -1,17 +1,17 @@
 <Project Sdk="Microsoft.NET.Sdk">
-    <Import Project="..\..\common.props" />
+    <Import Project="..\..\common.props"/>
     <PropertyGroup>
-        <TargetFramework>netstandard2.0</TargetFramework>
+        <TargetFramework>net6.0</TargetFramework>
         <PackageId>AElf.GovernmentSystem</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Description>Projects for AElf Government System contracts releated stuff.</Description>
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\AElf.Kernel.Consensus.AEDPoS\AElf.Kernel.Consensus.AEDPoS.csproj" />
-        <ProjectReference Include="..\AElf.Kernel.Proposal\AElf.Kernel.Proposal.csproj" />
-        <ProjectReference Include="..\AElf.Kernel.SmartContract\AElf.Kernel.SmartContract.csproj" />
-        <ProjectReference Include="..\AElf.OS.Core\AElf.OS.Core.csproj" />
+        <ProjectReference Include="..\AElf.Kernel.Consensus.AEDPoS\AElf.Kernel.Consensus.AEDPoS.csproj"/>
+        <ProjectReference Include="..\AElf.Kernel.Proposal\AElf.Kernel.Proposal.csproj"/>
+        <ProjectReference Include="..\AElf.Kernel.SmartContract\AElf.Kernel.SmartContract.csproj"/>
+        <ProjectReference Include="..\AElf.OS.Core\AElf.OS.Core.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
@@ -19,7 +19,7 @@
             <Link>Protobuf\Proto\authority_info.proto</Link>
         </CommonMessage>
     </ItemGroup>
-    
+
     <ItemGroup>
         <ContractMessage Include="..\..\protobuf\acs3.proto">
             <Link>Protobuf\Proto\acs3.proto</Link>

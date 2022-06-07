@@ -18,15 +18,15 @@
 
 using AElf.CSharp.Core;
 
-namespace AElf.Runtime.CSharp
+namespace AElf.Runtime.CSharp;
+
+internal static class ServerCalls
 {
-    internal static class ServerCalls
+    public static IServerCallHandler UnaryCall<TRequest, TResponse>(Method<TRequest, TResponse> method,
+        UnaryServerMethod<TRequest, TResponse> handler)
+        where TRequest : class
+        where TResponse : class
     {
-        public static IServerCallHandler UnaryCall<TRequest, TResponse>(Method<TRequest, TResponse> method, UnaryServerMethod<TRequest, TResponse> handler)
-            where TRequest : class
-            where TResponse : class
-        {
-            return new UnaryServerCallHandler<TRequest, TResponse>(method, handler);
-        }
+        return new UnaryServerCallHandler<TRequest, TResponse>(method, handler);
     }
 }

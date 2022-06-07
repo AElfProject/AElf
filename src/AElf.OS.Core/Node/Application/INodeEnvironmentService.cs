@@ -1,7 +1,6 @@
-namespace AElf.OS.Node.Application
+namespace AElf.OS.Node.Application;
+
+public interface INodeEnvironmentService
 {
-    public interface INodeEnvironmentService
-    {
-        string GetAppDataPath();
-    }
+    string GetAppDataPath();
 }

@@ -1,10 +1,9 @@
 using AElf.Types;
 
-namespace AElf.Kernel
+namespace AElf.Kernel;
+
+public interface IStateCache
 {
-    public interface IStateCache
-    {
-        bool TryGetValue(ScopedStatePath key, out byte[] value);
-        byte[] this[ScopedStatePath key] { set; }
-    }
+    byte[] this[ScopedStatePath key] { set; }
+    bool TryGetValue(ScopedStatePath key, out byte[] value);
 }

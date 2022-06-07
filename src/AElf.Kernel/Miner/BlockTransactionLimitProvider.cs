@@ -1,58 +1,55 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
 using Google.Protobuf.WellKnownTypes;
-using Microsoft.Extensions.Logging;
-using Volo.Abp.DependencyInjection;
 
-namespace AElf.Kernel.Miner
+namespace AElf.Kernel.Miner;
+
+public interface IBlockTransactionLimitProvider
 {
-    public interface IBlockTransactionLimitProvider
+    Task<int> GetLimitAsync(IBlockIndex blockIndex);
+    Task SetLimitAsync(IBlockIndex blockIndex, int limit);
+}
+
+internal class BlockTransactionLimitProvider : BlockExecutedDataBaseProvider<Int32Value>,
+    IBlockTransactionLimitProvider,
+    ISingletonDependency
+{
+    private const string BlockExecutedDataName = "BlockTransactionLimit";
+    private readonly int _systemTransactionCount;
+
+    public BlockTransactionLimitProvider(
+        ICachedBlockchainExecutedDataService<Int32Value> cachedBlockchainExecutedDataService,
+        IEnumerable<ISystemTransactionGenerator> systemTransactionGenerators) : base(
+        cachedBlockchainExecutedDataService)
     {
-        Task<int> GetLimitAsync(IBlockIndex blockIndex);
-        Task SetLimitAsync(IBlockIndex blockIndex, int limit);
+        _systemTransactionCount = systemTransactionGenerators.Count();
     }
 
-    internal class BlockTransactionLimitProvider : BlockExecutedDataBaseProvider<Int32Value>, IBlockTransactionLimitProvider,
-        ISingletonDependency
+    public ILogger<BlockTransactionLimitProvider> Logger { get; set; }
+
+    public Task<int> GetLimitAsync(IBlockIndex blockIndex)
     {
-        private const string BlockExecutedDataName = "BlockTransactionLimit";
-        private readonly int _systemTransactionCount;
+        var limit = GetBlockExecutedData(blockIndex);
+        return Task.FromResult(limit?.Value ?? int.MaxValue);
+    }
 
-        public ILogger<BlockTransactionLimitProvider> Logger { get; set; }
-        
-        public BlockTransactionLimitProvider(
-            ICachedBlockchainExecutedDataService<Int32Value> cachedBlockchainExecutedDataService, 
-            IEnumerable<ISystemTransactionGenerator> systemTransactionGenerators) : base(
-            cachedBlockchainExecutedDataService)
-        {
-            _systemTransactionCount = systemTransactionGenerators.Count();
-        }
+    public async Task SetLimitAsync(IBlockIndex blockIndex, int limit)
+    {
+        if (limit <= _systemTransactionCount)
+            return;
 
-        public Task<int> GetLimitAsync(IBlockIndex blockIndex)
+        var blockTransactionLimit = new Int32Value
         {
-            var limit = GetBlockExecutedData(blockIndex);
-            return Task.FromResult(limit?.Value ?? int.MaxValue);
-        }
+            Value = limit
+        };
+        await AddBlockExecutedDataAsync(blockIndex, blockTransactionLimit);
+        Logger.LogDebug($"BlockTransactionLimit has been changed to {limit}");
+    }
 
-        public async Task SetLimitAsync(IBlockIndex blockIndex, int limit)
-        {
-            if (limit <= _systemTransactionCount)
-                return;
-            
-            var blockTransactionLimit = new Int32Value
-            {
-                Value = limit
-            };
-            await AddBlockExecutedDataAsync(blockIndex, blockTransactionLimit);
-            Logger.LogDebug($"BlockTransactionLimit has been changed to {limit}");
-        }
-
-        protected override string GetBlockExecutedDataName()
-        {
-            return BlockExecutedDataName;
-        }
+    protected override string GetBlockExecutedDataName()
+    {
+        return BlockExecutedDataName;
     }
 }

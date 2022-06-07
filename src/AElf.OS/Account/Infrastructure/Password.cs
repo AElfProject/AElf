@@ -1,19 +1,18 @@
 ﻿using Org.BouncyCastle.OpenSsl;
 
-namespace AElf.OS.Account.Infrastructure
+namespace AElf.OS.Account.Infrastructure;
+
+public class Password : IPasswordFinder
 {
-    public class Password : IPasswordFinder
+    private readonly char[] _password;
+
+    public Password(char[] word)
     {
-        private readonly char[] _password;
+        _password = (char[])word.Clone();
+    }
 
-        public Password(char[] word)
-        {
-            _password = (char[]) word.Clone();
-        }
-
-        public char[] GetPassword()
-        {
-            return (char[]) _password.Clone();
-        }
+    public char[] GetPassword()
+    {
+        return (char[])_password.Clone();
     }
 }

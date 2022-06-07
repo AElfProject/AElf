@@ -1,9 +1,8 @@
 using AElf.Types;
 
-namespace AElf.Kernel.SmartContract
+namespace AElf.Kernel.SmartContract;
+
+public interface IScopedStateProvider : ICachedStateProvider
 {
-    public interface IScopedStateProvider : ICachedStateProvider
-    {
-        Address ContractAddress { get; }
-    }
+    Address ContractAddress { get; }
 }

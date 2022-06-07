@@ -1,16 +1,15 @@
 using Shouldly;
 using Xunit;
 
-namespace AElf.Types.Tests.Helper
+namespace AElf.Types.Tests.Helper;
+
+public class BlockHelperTest
 {
-    public class BlockHelperTest
+    [Fact]
+    public void GetRefBlockPrefix_Test()
     {
-        [Fact]
-        public void GetRefBlockPrefix_Test()
-        {
-            var blockHash = HashHelper.ComputeFrom("test");
-            var get = BlockHelper.GetRefBlockPrefix(blockHash);
-            get.Length.ShouldBe(4);
-        }
+        var blockHash = HashHelper.ComputeFrom("test");
+        var get = BlockHelper.GetRefBlockPrefix(blockHash);
+        get.Length.ShouldBe(4);
     }
 }

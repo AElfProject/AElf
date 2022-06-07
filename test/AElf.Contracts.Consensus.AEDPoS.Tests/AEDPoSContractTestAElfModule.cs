@@ -5,15 +5,14 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Volo.Abp.Modularity;
 
-namespace AElf.Contracts.Consensus.AEDPoS
+namespace AElf.Contracts.Consensus.AEDPoS;
+
+[DependsOn(typeof(EconomicContractsTestModule))]
+public class AEDPoSContractTestAElfModule : EconomicContractsTestModule
 {
-    [DependsOn(typeof(EconomicContractsTestModule))]
-    public class AEDPoSContractTestAElfModule : EconomicContractsTestModule
+    public override void ConfigureServices(ServiceConfigurationContext context)
     {
-        public override void ConfigureServices(ServiceConfigurationContext context)
-        {
-            context.Services.RemoveAll<IPreExecutionPlugin>();
-            context.Services.AddSingleton<IResetBlockTimeProvider, ResetBlockTimeProvider>();
-        }
+        context.Services.RemoveAll<IPreExecutionPlugin>();
+        context.Services.AddSingleton<IResetBlockTimeProvider, ResetBlockTimeProvider>();
     }
 }

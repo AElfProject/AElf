@@ -1,7 +1,6 @@
-namespace AElf.Contracts.MultiToken
+namespace AElf.Contracts.MultiToken;
+
+public partial class TokenContract
 {
-    public partial class TokenContract
-    {
-        private string _primaryTokenSymbol;
-    }
+    private string _primaryTokenSymbol;
 }

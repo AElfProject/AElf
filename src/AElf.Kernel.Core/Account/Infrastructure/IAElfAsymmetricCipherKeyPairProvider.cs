@@ -1,10 +1,9 @@
 using AElf.Cryptography;
 
-namespace AElf.Kernel.Account.Infrastructure
+namespace AElf.Kernel.Account.Infrastructure;
+
+public interface IAElfAsymmetricCipherKeyPairProvider
 {
-    public interface IAElfAsymmetricCipherKeyPairProvider
-    {
-        void SetKeyPair(IAElfAsymmetricCipherKeyPair ecKeyPair);
-        IAElfAsymmetricCipherKeyPair GetKeyPair();
-    }
+    void SetKeyPair(IAElfAsymmetricCipherKeyPair ecKeyPair);
+    IAElfAsymmetricCipherKeyPair GetKeyPair();
 }

@@ -1,7 +1,6 @@
-namespace AElf.Providers
+namespace AElf.Providers;
+
+public interface ITestProvider
 {
-    public interface ITestProvider
-    {
-        string Name { get; }
-    }
+    string Name { get; }
 }

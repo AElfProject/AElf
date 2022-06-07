@@ -16,67 +16,62 @@
 
 #endregion
 
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using AElf.CSharp.Core;
-using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.Runtime.CSharp
+namespace AElf.Runtime.CSharp;
+
+internal interface IServerCallHandler
 {
-    internal interface IServerCallHandler
+    bool IsView();
+    byte[] Execute(byte[] input);
+    object ReturnBytesToObject(byte[] returnBytes);
+    string ReturnBytesToString(byte[] returnBytes);
+    object InputBytesToObject(byte[] inputBytes);
+    string InputBytesToString(byte[] inputBytes);
+}
+
+internal class UnaryServerCallHandler<TRequest, TResponse> : IServerCallHandler
+    where TRequest : class
+    where TResponse : class
+{
+    private readonly UnaryServerMethod<TRequest, TResponse> handler;
+    private readonly Method<TRequest, TResponse> method;
+
+    public UnaryServerCallHandler(Method<TRequest, TResponse> method, UnaryServerMethod<TRequest, TResponse> handler)
     {
-        bool IsView();
-        byte[] Execute(byte[] input);
-        object ReturnBytesToObject(byte[] returnBytes);
-        string ReturnBytesToString(byte[] returnBytes);
-        object InputBytesToObject(byte[] inputBytes);
-        string InputBytesToString(byte[] inputBytes);
+        this.method = method;
+        this.handler = handler;
     }
 
-    internal class UnaryServerCallHandler<TRequest, TResponse> : IServerCallHandler
-        where TRequest : class
-        where TResponse : class
+    public bool IsView()
     {
-        readonly Method<TRequest, TResponse> method;
-        readonly UnaryServerMethod<TRequest, TResponse> handler;
+        return method.Type == MethodType.View;
+    }
 
-        public UnaryServerCallHandler(Method<TRequest, TResponse> method, UnaryServerMethod<TRequest, TResponse> handler)
-        {
-            this.method = method;
-            this.handler = handler;
-        }
+    public byte[] Execute(byte[] input)
+    {
+        var inputObj = method.RequestMarshaller.Deserializer(input);
+        var response = handler(inputObj);
+        return response != null ? method.ResponseMarshaller.Serializer(response) : null;
+    }
 
-        public bool IsView()
-        {
-            return method.Type == MethodType.View;
-        }
+    public object ReturnBytesToObject(byte[] returnBytes)
+    {
+        return method.ResponseMarshaller.Deserializer(returnBytes);
+    }
 
-        public byte[] Execute(byte[] input)
-        {
-            var inputObj = method.RequestMarshaller.Deserializer(input);
-            var response = handler(inputObj);
-            return response != null ? method.ResponseMarshaller.Serializer(response) : null;
-        }
+    public string ReturnBytesToString(byte[] returnBytes)
+    {
+        return method.ResponseMarshaller.Deserializer(returnBytes).ToString();
+    }
 
-        public object ReturnBytesToObject(byte[] returnBytes)
-        {
-            return method.ResponseMarshaller.Deserializer(returnBytes);
-        }
+    public object InputBytesToObject(byte[] inputBytes)
+    {
+        return method.RequestMarshaller.Deserializer(inputBytes);
+    }
 
-        public string ReturnBytesToString(byte[] returnBytes)
-        {
-            return method.ResponseMarshaller.Deserializer(returnBytes).ToString();
-        }
-
-        public object InputBytesToObject(byte[] inputBytes)
-        {
-            return method.RequestMarshaller.Deserializer(inputBytes);
-        }
-
-        public string InputBytesToString(byte[] inputBytes)
-        {
-            return method.RequestMarshaller.Deserializer(inputBytes).ToString();
-        }
+    public string InputBytesToString(byte[] inputBytes)
+    {
+        return method.RequestMarshaller.Deserializer(inputBytes).ToString();
     }
 }

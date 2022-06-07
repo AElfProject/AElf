@@ -3,7 +3,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel;
-using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Modularity;
 using AElf.OS.Network;
@@ -16,71 +15,68 @@ using Volo.Abp;
 using Volo.Abp.Modularity;
 using Volo.Abp.Threading;
 
-namespace AElf.OS.BlockSync
+namespace AElf.OS.BlockSync;
+
+[DependsOn(typeof(BlockSyncTestBaseAElfModule))]
+public class BlockSyncForkedTestAElfModule : AElfModule
 {
-    [DependsOn(typeof(BlockSyncTestBaseAElfModule))]
-    public class BlockSyncForkedTestAElfModule : AElfModule
+    private readonly Dictionary<Hash, Block> _peerBlockList = new();
+
+    public override void ConfigureServices(ServiceConfigurationContext context)
     {
-        private readonly Dictionary<Hash, Block> _peerBlockList = new Dictionary<Hash, Block>();
-
-        public override void ConfigureServices(ServiceConfigurationContext context)
+        context.Services.AddSingleton(o =>
         {
-            context.Services.AddSingleton(o =>
-            {
-                var networkServiceMock = new Mock<INetworkService>();
-                networkServiceMock
-                    .Setup(p => p.GetBlocksAsync(It.IsAny<Hash>(), It.IsAny<int>(),
-                        It.IsAny<string>()))
-                    .Returns<Hash, int, string>((previousBlockHash, count, peerPubKey) =>
+            var networkServiceMock = new Mock<INetworkService>();
+            networkServiceMock
+                .Setup(p => p.GetBlocksAsync(It.IsAny<Hash>(), It.IsAny<int>(),
+                    It.IsAny<string>()))
+                .Returns<Hash, int, string>((previousBlockHash, count, peerPubKey) =>
+                {
+                    var result = new List<BlockWithTransactions>();
+
+                    var hash = previousBlockHash;
+
+                    while (result.Count < count && _peerBlockList.TryGetValue(hash, out var block))
                     {
-                        var result = new List<BlockWithTransactions>();
+                        result.Add(new BlockWithTransactions { Header = block.Header });
 
-                        var hash = previousBlockHash;
+                        hash = block.GetHash();
+                    }
 
-                        while (result.Count < count && _peerBlockList.TryGetValue(hash, out var block))
-                        {
-                            result.Add(new BlockWithTransactions {Header = block.Header});
+                    return Task.FromResult(new Response<List<BlockWithTransactions>>(result));
+                });
 
-                            hash = block.GetHash();
-                        }
+            networkServiceMock.Setup(p => p.GetPeerByPubkey(It.IsAny<string>())).Returns(new PeerInfo());
 
-                        return Task.FromResult(new Response<List<BlockWithTransactions>>(result));
-                    });
+            return networkServiceMock.Object;
+        });
+    }
 
-                networkServiceMock.Setup(p => p.GetPeerByPubkey(It.IsAny<string>())).Returns(new PeerInfo());
+    public override void OnApplicationInitialization(ApplicationInitializationContext context)
+    {
+        var exec = context.ServiceProvider.GetRequiredService<IBlockExecutingService>();
+        var osTestHelper = context.ServiceProvider.GetService<OSTestHelper>();
 
-                return networkServiceMock.Object;
-            });
-        }
+        var previousBlockHash = osTestHelper.ForkBranchBlockList.Last().GetHash();
+        var height = osTestHelper.ForkBranchBlockList.Last().Height;
 
-        public override void OnApplicationInitialization(ApplicationInitializationContext context)
+        foreach (var block in osTestHelper.ForkBranchBlockList)
+            _peerBlockList.Add(block.Header.PreviousBlockHash, block);
+
+        var forkBranchHeight = height;
+
+        for (var i = forkBranchHeight; i < forkBranchHeight + 20; i++)
         {
-            var exec = context.ServiceProvider.GetRequiredService<IBlockExecutingService>();
-            var osTestHelper = context.ServiceProvider.GetService<OSTestHelper>();
+            var block = osTestHelper.GenerateBlock(previousBlockHash, height);
 
-            var previousBlockHash = osTestHelper.ForkBranchBlockList.Last().GetHash();
-            var height = osTestHelper.ForkBranchBlockList.Last().Height;
+            // no choice need to execute the block to finalize it.
+            var newBlock = AsyncHelper.RunSync(() => exec.ExecuteBlockAsync(block.Header, new List<Transaction>(),
+                new List<Transaction>(), CancellationToken.None)).Block;
 
-            foreach (var block in osTestHelper.ForkBranchBlockList)
-            {
-                _peerBlockList.Add(block.Header.PreviousBlockHash, block);
-            }
+            previousBlockHash = newBlock.GetHash();
+            height++;
 
-            var forkBranchHeight = height;
-
-            for (var i = forkBranchHeight; i < forkBranchHeight + 20; i++)
-            {
-                var block = osTestHelper.GenerateBlock(previousBlockHash, height);
-
-                // no choice need to execute the block to finalize it.
-                var newBlock = AsyncHelper.RunSync(() => exec.ExecuteBlockAsync(block.Header, new List<Transaction>(),
-                    new List<Transaction>(), CancellationToken.None)).Block;
-
-                previousBlockHash = newBlock.GetHash();
-                height++;
-
-                _peerBlockList.Add(newBlock.Header.PreviousBlockHash, newBlock);
-            }
+            _peerBlockList.Add(newBlock.Header.PreviousBlockHash, newBlock);
         }
     }
 }

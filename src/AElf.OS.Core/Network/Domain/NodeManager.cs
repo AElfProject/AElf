@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading.Tasks;
@@ -8,71 +7,69 @@ using Microsoft.Extensions.Options;
 using Volo.Abp;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.OS.Network.Domain
+namespace AElf.OS.Network.Domain;
+
+public interface INodeManager
 {
-    public interface INodeManager
+    Task<bool> AddNodeAsync(NodeInfo nodeInfo);
+    Task<NodeList> GetRandomNodesAsync(int maxCount);
+    Task<NodeInfo> GetNodeAsync(string endpoint);
+    Task UpdateNodeAsync(NodeInfo nodeInfo);
+    Task RemoveNodeAsync(string endpoint);
+}
+
+public class NodeManager : INodeManager, ISingletonDependency
+{
+    private readonly NetworkOptions _networkOptions;
+    private readonly ConcurrentDictionary<string, NodeInfo> _nodes;
+
+    public NodeManager(IOptionsSnapshot<NetworkOptions> networkOptions)
     {
-        Task<bool> AddNodeAsync(NodeInfo nodeInfo);
-        Task<NodeList> GetRandomNodesAsync(int maxCount);
-        Task<NodeInfo> GetNodeAsync(string endpoint);
-        Task UpdateNodeAsync(NodeInfo nodeInfo);
-        Task RemoveNodeAsync(string endpoint);
+        _nodes = new ConcurrentDictionary<string, NodeInfo>();
+
+        _networkOptions = networkOptions.Value;
+        Logger = NullLogger<NodeManager>.Instance;
     }
-    
-    public class NodeManager : INodeManager, ISingletonDependency
+
+    public ILogger<NodeManager> Logger { get; set; }
+
+    public Task<bool> AddNodeAsync(NodeInfo nodeInfo)
     {
-        private readonly ConcurrentDictionary<string, NodeInfo> _nodes;
-        public ILogger<NodeManager> Logger { get; set;}
-        private readonly NetworkOptions _networkOptions;
+        if (_nodes.Count >= _networkOptions.PeerDiscoveryMaxNodesToKeep)
+            return Task.FromResult(false);
 
-        public NodeManager(IOptionsSnapshot<NetworkOptions> networkOptions)
-        {
-            _nodes = new ConcurrentDictionary<string, NodeInfo>();
-            
-            _networkOptions = networkOptions.Value;
-            Logger = NullLogger<NodeManager>.Instance;
-        }
+        var addResult = _nodes.TryAdd(nodeInfo.Endpoint, nodeInfo);
+        return Task.FromResult(addResult);
+    }
 
-        public Task<bool> AddNodeAsync(NodeInfo nodeInfo)
-        {
-            if (_nodes.Count >= _networkOptions.PeerDiscoveryMaxNodesToKeep)
-                return Task.FromResult(false);
+    public Task<NodeList> GetRandomNodesAsync(int maxCount)
+    {
+        var randomPeers = _nodes.OrderBy(x => RandomHelper.GetRandom()).Take(maxCount).Select(n => n.Value)
+            .ToList();
 
-            var addResult = _nodes.TryAdd(nodeInfo.Endpoint, nodeInfo);
-            return Task.FromResult(addResult);
-        }
+        var nodes = new NodeList();
+        nodes.Nodes.AddRange(randomPeers);
 
-        public Task<NodeList> GetRandomNodesAsync(int maxCount)
-        {
-            var randomPeers = _nodes.OrderBy(x => RandomHelper.GetRandom()).Take(maxCount).Select(n => n.Value)
-                .ToList();
+        return Task.FromResult(nodes);
+    }
 
-            NodeList nodes = new NodeList();
-            nodes.Nodes.AddRange(randomPeers);
+    public Task<NodeInfo> GetNodeAsync(string endpoint)
+    {
+        _nodes.TryGetValue(endpoint, out var nodeInfo);
+        return Task.FromResult(nodeInfo);
+    }
 
-            return Task.FromResult(nodes);
-        }
+    public Task UpdateNodeAsync(NodeInfo nodeInfo)
+    {
+        if (_nodes.TryGetValue(nodeInfo.Endpoint, out var oldNodeInfo) && oldNodeInfo.Pubkey != nodeInfo.Pubkey)
+            _nodes.TryUpdate(nodeInfo.Endpoint, nodeInfo, oldNodeInfo);
 
-        public Task<NodeInfo> GetNodeAsync(string endpoint)
-        {
-            _nodes.TryGetValue(endpoint, out var nodeInfo);
-            return Task.FromResult(nodeInfo);
-        }
+        return Task.CompletedTask;
+    }
 
-        public Task UpdateNodeAsync(NodeInfo nodeInfo)
-        {
-            if (_nodes.TryGetValue(nodeInfo.Endpoint, out var oldNodeInfo) && oldNodeInfo.Pubkey!=nodeInfo.Pubkey)
-            {
-                _nodes.TryUpdate(nodeInfo.Endpoint, nodeInfo, oldNodeInfo);
-            }
-
-            return Task.CompletedTask;
-        }
-
-        public Task RemoveNodeAsync(string endpoint)
-        {
-            _nodes.TryRemove(endpoint, out _);
-            return Task.CompletedTask;
-        }
+    public Task RemoveNodeAsync(string endpoint)
+    {
+        _nodes.TryRemove(endpoint, out _);
+        return Task.CompletedTask;
     }
 }

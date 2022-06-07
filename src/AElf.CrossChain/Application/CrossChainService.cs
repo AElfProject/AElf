@@ -5,47 +5,45 @@ using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace AElf.CrossChain.Application
+namespace AElf.CrossChain.Application;
+
+internal class CrossChainService : ICrossChainService
 {
-    internal class CrossChainService : ICrossChainService
+    private readonly ICrossChainCacheEntityService _crossChainCacheEntityService;
+    private readonly ICrossChainIndexingDataService _crossChainIndexingDataService;
+
+    public CrossChainService(ICrossChainCacheEntityService crossChainCacheEntityService,
+        ICrossChainIndexingDataService crossChainIndexingDataService)
     {
-        private readonly ICrossChainCacheEntityService _crossChainCacheEntityService;
-        private readonly ICrossChainIndexingDataService _crossChainIndexingDataService;
-        public ILogger<CrossChainService> Logger { get; set; }
+        _crossChainCacheEntityService = crossChainCacheEntityService;
+        _crossChainIndexingDataService = crossChainIndexingDataService;
+    }
 
-        public CrossChainService(ICrossChainCacheEntityService crossChainCacheEntityService, 
-            ICrossChainIndexingDataService crossChainIndexingDataService)
-        {
-            _crossChainCacheEntityService = crossChainCacheEntityService;
-            _crossChainIndexingDataService = crossChainIndexingDataService;
-        }
+    public ILogger<CrossChainService> Logger { get; set; }
 
-        public IOptions<CrossChainConfigOptions> CrossChainConfigOptions { get; set; }
+    public IOptions<CrossChainConfigOptions> CrossChainConfigOptions { get; set; }
 
-        public async Task FinishInitialSyncAsync()
-        {
-            CrossChainConfigOptions.Value.CrossChainDataValidationIgnored = false;
-            var chainIdHeightPairs =
-                await _crossChainIndexingDataService.GetAllChainIdHeightPairsAtLibAsync();
-            foreach (var chainIdHeight in chainIdHeightPairs.IdHeightDict)
-            {
-                // register new chain
-                _crossChainCacheEntityService.RegisterNewChain(chainIdHeight.Key, chainIdHeight.Value);
-            }
-        }
+    public async Task FinishInitialSyncAsync()
+    {
+        CrossChainConfigOptions.Value.CrossChainDataValidationIgnored = false;
+        var chainIdHeightPairs =
+            await _crossChainIndexingDataService.GetAllChainIdHeightPairsAtLibAsync();
+        foreach (var chainIdHeight in chainIdHeightPairs.IdHeightDict)
+            // register new chain
+            _crossChainCacheEntityService.RegisterNewChain(chainIdHeight.Key, chainIdHeight.Value);
+    }
 
-        public async Task UpdateCrossChainDataWithLibAsync(Hash blockHash, long blockHeight)
-        {
-            if (CrossChainConfigOptions.Value.CrossChainDataValidationIgnored
-                || blockHeight <= AElfConstants.GenesisBlockHeight)
-                return;
+    public async Task UpdateCrossChainDataWithLibAsync(Hash blockHash, long blockHeight)
+    {
+        if (CrossChainConfigOptions.Value.CrossChainDataValidationIgnored
+            || blockHeight <= AElfConstants.GenesisBlockHeight)
+            return;
 
-            _crossChainIndexingDataService.UpdateCrossChainDataWithLib(blockHash, blockHeight);
+        _crossChainIndexingDataService.UpdateCrossChainDataWithLib(blockHash, blockHeight);
 
-            var chainIdHeightPairs =
-                await _crossChainIndexingDataService.GetAllChainIdHeightPairsAtLibAsync();
+        var chainIdHeightPairs =
+            await _crossChainIndexingDataService.GetAllChainIdHeightPairsAtLibAsync();
 
-            await _crossChainCacheEntityService.UpdateCrossChainCacheAsync(blockHash, blockHeight, chainIdHeightPairs);
-        }
+        await _crossChainCacheEntityService.UpdateCrossChainCacheAsync(blockHash, blockHeight, chainIdHeightPairs);
     }
 }

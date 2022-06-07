@@ -9,65 +9,64 @@ using AElf.Kernel.SmartContractExecution.Application;
 using AElf.OS;
 using BenchmarkDotNet.Attributes;
 
-namespace AElf.Benchmark
+namespace AElf.Benchmark;
+
+[MarkdownExporterAttribute.GitHub]
+public class BlockAttachTests : BenchmarkTestBase
 {
-    [MarkdownExporterAttribute.GitHub]
-    public class BlockAttachTests : BenchmarkTestBase
+    private Block _block;
+    private IBlockAttachService _blockAttachService;
+    private IBlockchainService _blockchainService;
+    private IBlockManager _blockManager;
+    private INotModifiedCachedStateStore<BlockStateSet> _blockStateSets;
+
+    private Chain _chain;
+    private IChainManager _chainManager;
+    private IBlockchainStore<Chain> _chains;
+    private OSTestHelper _osTestHelper;
+    private ITransactionManager _transactionManager;
+
+    [Params(1, 10, 100, 1000, 3000, 5000)] public int TransactionCount;
+
+    [GlobalSetup]
+    public async Task GlobalSetup()
     {
-        private IBlockchainStore<Chain> _chains;
-        private INotModifiedCachedStateStore<BlockStateSet> _blockStateSets;
-        private IBlockManager _blockManager;
-        private IChainManager _chainManager;
-        private IBlockchainService _blockchainService;
-        private IBlockAttachService _blockAttachService;
-        private ITransactionManager _transactionManager;
-        private OSTestHelper _osTestHelper;
+        _chains = GetRequiredService<IBlockchainStore<Chain>>();
+        _blockStateSets = GetRequiredService<INotModifiedCachedStateStore<BlockStateSet>>();
+        _chainManager = GetRequiredService<IChainManager>();
+        _blockManager = GetRequiredService<IBlockManager>();
+        _blockchainService = GetRequiredService<IBlockchainService>();
+        _blockAttachService = GetRequiredService<IBlockAttachService>();
+        _transactionManager = GetRequiredService<ITransactionManager>();
+        _osTestHelper = GetRequiredService<OSTestHelper>();
 
-        private Chain _chain;
-        private Block _block;
+        _chain = await _blockchainService.GetChainAsync();
+    }
 
-        [Params(1, 10, 100, 1000, 3000, 5000)] public int TransactionCount;
+    [IterationSetup]
+    public async Task IterationSetup()
+    {
+        var transactions = await _osTestHelper.GenerateTransferTransactions(TransactionCount);
+        await _blockchainService.AddTransactionsAsync(transactions);
+        _block = _osTestHelper.GenerateBlock(_chain.BestChainHash, _chain.BestChainHeight, transactions);
 
-        [GlobalSetup]
-        public async Task GlobalSetup()
-        {
-            _chains = GetRequiredService<IBlockchainStore<Chain>>();
-            _blockStateSets = GetRequiredService<INotModifiedCachedStateStore<BlockStateSet>>();
-            _chainManager = GetRequiredService<IChainManager>();
-            _blockManager = GetRequiredService<IBlockManager>();
-            _blockchainService = GetRequiredService<IBlockchainService>();
-            _blockAttachService = GetRequiredService<IBlockAttachService>();
-            _transactionManager = GetRequiredService<ITransactionManager>();
-            _osTestHelper = GetRequiredService<OSTestHelper>();
+        await _blockchainService.AddBlockAsync(_block);
+    }
 
-            _chain = await _blockchainService.GetChainAsync();
-        }
+    [Benchmark]
+    public async Task AttachBlockTest()
+    {
+        await _blockAttachService.AttachBlockAsync(_block);
+    }
 
-        [IterationSetup]
-        public async Task IterationSetup()
-        {
-            var transactions = await _osTestHelper.GenerateTransferTransactions(TransactionCount);
-            await _blockchainService.AddTransactionsAsync(transactions);
-            _block = _osTestHelper.GenerateBlock(_chain.BestChainHash, _chain.BestChainHeight, transactions);
-
-            await _blockchainService.AddBlockAsync(_block);
-        }
-
-        [Benchmark]
-        public async Task AttachBlockTest()
-        {
-            await _blockAttachService.AttachBlockAsync(_block);
-        }
-
-        [IterationCleanup]
-        public async Task IterationCleanup()
-        {
-            await _blockStateSets.RemoveAsync(_block.GetHash().ToStorageKey());
-            await _transactionManager.RemoveTransactionsAsync(_block.Body.TransactionIds);
-            await RemoveTransactionResultsAsync(_block.Body.TransactionIds, _block.GetHash());
-            await _chainManager.RemoveChainBlockLinkAsync(_block.GetHash());
-            await _blockManager.RemoveBlockAsync(_block.GetHash());
-            await _chains.SetAsync(_chain.Id.ToStorageKey(), _chain);
-        }
+    [IterationCleanup]
+    public async Task IterationCleanup()
+    {
+        await _blockStateSets.RemoveAsync(_block.GetHash().ToStorageKey());
+        await _transactionManager.RemoveTransactionsAsync(_block.Body.TransactionIds);
+        await RemoveTransactionResultsAsync(_block.Body.TransactionIds, _block.GetHash());
+        await _chainManager.RemoveChainBlockLinkAsync(_block.GetHash());
+        await _blockManager.RemoveBlockAsync(_block.GetHash());
+        await _chains.SetAsync(_chain.Id.ToStorageKey(), _chain);
     }
 }

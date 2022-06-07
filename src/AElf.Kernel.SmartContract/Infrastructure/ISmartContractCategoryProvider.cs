@@ -1,7 +1,6 @@
-namespace AElf.Kernel.SmartContract.Infrastructure
+namespace AElf.Kernel.SmartContract.Infrastructure;
+
+public interface ISmartContractCategoryProvider
 {
-    public interface ISmartContractCategoryProvider
-    {
-        int Category { get; }
-    }
+    int Category { get; }
 }

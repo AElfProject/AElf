@@ -8,77 +8,69 @@ using AElf.Types;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 
-namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
+namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee;
+
+internal class DonateResourceTransactionGenerator : ISystemTransactionGenerator
 {
-    internal class DonateResourceTransactionGenerator : ISystemTransactionGenerator
+    private readonly ISmartContractAddressService _smartContractAddressService;
+    private readonly ITotalResourceTokensMapsProvider _totalResourceTokensMapsProvider;
+
+
+    public DonateResourceTransactionGenerator(ISmartContractAddressService smartContractAddressService,
+        ITotalResourceTokensMapsProvider totalResourceTokensMapsProvider)
     {
-        private readonly ISmartContractAddressService _smartContractAddressService;
-        private readonly ITotalResourceTokensMapsProvider _totalResourceTokensMapsProvider;
+        _smartContractAddressService = smartContractAddressService;
+        _totalResourceTokensMapsProvider = totalResourceTokensMapsProvider;
+    }
 
-        public ILogger<DonateResourceTransactionGenerator> Logger { get; set; }
+    public ILogger<DonateResourceTransactionGenerator> Logger { get; set; }
 
+    public async Task<List<Transaction>> GenerateTransactionsAsync(Address from, long preBlockHeight,
+        Hash preBlockHash)
+    {
+        var generatedTransactions = new List<Transaction>();
 
-        public DonateResourceTransactionGenerator(ISmartContractAddressService smartContractAddressService,
-            ITotalResourceTokensMapsProvider totalResourceTokensMapsProvider)
+        var chainContext = new ChainContext
         {
-            _smartContractAddressService = smartContractAddressService;
-            _totalResourceTokensMapsProvider = totalResourceTokensMapsProvider;
-        }
+            BlockHash = preBlockHash,
+            BlockHeight = preBlockHeight
+        };
 
-        public async Task<List<Transaction>> GenerateTransactionsAsync(Address @from, long preBlockHeight,
-            Hash preBlockHash)
-        {
-            var generatedTransactions = new List<Transaction>();
+        var tokenContractAddress =
+            await _smartContractAddressService.GetAddressByContractNameAsync(chainContext,
+                TokenSmartContractAddressNameProvider.StringName);
 
-            var chainContext = new ChainContext
+        if (tokenContractAddress == null) return generatedTransactions;
+
+        var totalResourceTokensMaps = await _totalResourceTokensMapsProvider.GetTotalResourceTokensMapsAsync(
+            chainContext);
+
+        ByteString input;
+        if (totalResourceTokensMaps != null && totalResourceTokensMaps.BlockHeight == preBlockHeight &&
+            totalResourceTokensMaps.BlockHash == preBlockHash)
+            // If totalResourceTokensMaps match current block.
+            input = totalResourceTokensMaps.ToByteString();
+        else
+            input = new TotalResourceTokensMaps
             {
                 BlockHash = preBlockHash,
                 BlockHeight = preBlockHeight
-            };
+            }.ToByteString();
 
-            var tokenContractAddress =
-                await _smartContractAddressService.GetAddressByContractNameAsync(chainContext,
-                    TokenSmartContractAddressNameProvider.StringName);
-
-            if (tokenContractAddress == null)
+        generatedTransactions.AddRange(new List<Transaction>
+        {
+            new()
             {
-                return generatedTransactions;
+                From = from,
+                MethodName = nameof(TokenContractImplContainer.TokenContractImplStub.DonateResourceToken),
+                To = tokenContractAddress,
+                RefBlockNumber = preBlockHeight,
+                RefBlockPrefix = BlockHelper.GetRefBlockPrefix(preBlockHash),
+                Params = input
             }
+        });
 
-            var totalResourceTokensMaps = await _totalResourceTokensMapsProvider.GetTotalResourceTokensMapsAsync(
-                chainContext);
-
-            ByteString input;
-            if (totalResourceTokensMaps != null && totalResourceTokensMaps.BlockHeight == preBlockHeight &&
-                totalResourceTokensMaps.BlockHash == preBlockHash)
-            {
-                // If totalResourceTokensMaps match current block.
-                input = totalResourceTokensMaps.ToByteString();
-            }
-            else
-            {
-                input = new TotalResourceTokensMaps
-                {
-                    BlockHash = preBlockHash,
-                    BlockHeight = preBlockHeight
-                }.ToByteString();
-            }
-
-            generatedTransactions.AddRange(new List<Transaction>
-            {
-                new Transaction
-                {
-                    From = from,
-                    MethodName = nameof(TokenContractImplContainer.TokenContractImplStub.DonateResourceToken),
-                    To = tokenContractAddress,
-                    RefBlockNumber = preBlockHeight,
-                    RefBlockPrefix = BlockHelper.GetRefBlockPrefix(preBlockHash),
-                    Params = input
-                }
-            });
-
-            Logger.LogTrace("Tx DonateResourceToken generated.");
-            return generatedTransactions;
-        }
+        Logger.LogTrace("Tx DonateResourceToken generated.");
+        return generatedTransactions;
     }
 }

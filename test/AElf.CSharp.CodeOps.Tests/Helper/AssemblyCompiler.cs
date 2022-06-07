@@ -5,37 +5,37 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Mono.Cecil;
 
-namespace AElf.CSharp.CodeOps.Helper
+namespace AElf.CSharp.CodeOps.Helper;
+
+public static class AssemblyCompiler
 {
-    public static class AssemblyCompiler
+    private static readonly Assembly[] References =
     {
-        private static readonly Assembly[] References = {
-            Assembly.Load("System.Runtime"),
-            typeof(object).Assembly
-        };
+        Assembly.Load("System.Runtime"),
+        typeof(object).Assembly
+    };
 
-        public static AssemblyDefinition Compile(string assemblyName, string code)
-        {
-            var compilation = CSharpCompilation.Create(
-                assemblyName,
-                new [] { CSharpSyntaxTree.ParseText(code)},
-                References.Select(r => MetadataReference.CreateFromFile(r.Location)),
-                new CSharpCompilationOptions(
-                    OutputKind.DynamicallyLinkedLibrary,
-                    checkOverflow: true,
-                    optimizationLevel: OptimizationLevel.Release,
-                    deterministic: true)
-            );
-            
-            var dllStream = new MemoryStream();
-            var emitResult = compilation.Emit(dllStream);
+    public static AssemblyDefinition Compile(string assemblyName, string code)
+    {
+        var compilation = CSharpCompilation.Create(
+            assemblyName,
+            new[] { CSharpSyntaxTree.ParseText(code) },
+            References.Select(r => MetadataReference.CreateFromFile(r.Location)),
+            new CSharpCompilationOptions(
+                OutputKind.DynamicallyLinkedLibrary,
+                checkOverflow: true,
+                optimizationLevel: OptimizationLevel.Release,
+                deterministic: true)
+        );
 
-            if (!emitResult.Success)
-                return null;
-            
-            dllStream.Position = 0;
+        var dllStream = new MemoryStream();
+        var emitResult = compilation.Emit(dllStream);
 
-            return AssemblyDefinition.ReadAssembly(dllStream);
-        }
+        if (!emitResult.Success)
+            return null;
+
+        dllStream.Position = 0;
+
+        return AssemblyDefinition.ReadAssembly(dllStream);
     }
 }
