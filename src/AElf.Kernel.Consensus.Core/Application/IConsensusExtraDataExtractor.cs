@@ -1,9 +1,8 @@
 using Google.Protobuf;
 
-namespace AElf.Kernel.Consensus.Application
+namespace AElf.Kernel.Consensus.Application;
+
+public interface IConsensusExtraDataExtractor
 {
-    public interface IConsensusExtraDataExtractor
-    {
-        ByteString ExtractConsensusExtraData(BlockHeader header);
-    }
+    ByteString ExtractConsensusExtraData(BlockHeader header);
 }

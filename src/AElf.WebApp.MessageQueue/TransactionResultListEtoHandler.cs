@@ -1,13 +1,13 @@
+using System;
 using System.Threading.Tasks;
 using Volo.Abp.BackgroundJobs;
 
-namespace AElf.WebApp.MessageQueue
+namespace AElf.WebApp.MessageQueue;
+
+public class TransactionResultListEtoHandler : IAsyncBackgroundJob<TransactionResultListEto>
 {
-    public class TransactionResultListEtoHandler : IAsyncBackgroundJob<TransactionResultListEto>
+    public Task ExecuteAsync(TransactionResultListEto args)
     {
-        public Task ExecuteAsync(TransactionResultListEto args)
-        {
-            throw new System.NotImplementedException();
-        }
+        throw new NotImplementedException();
     }
 }

@@ -1,24 +1,23 @@
 using AElf.Types;
 
-namespace AElf.Kernel
+namespace AElf.Kernel;
+
+public interface IBlockIndex
 {
-    public interface IBlockIndex
+    Hash BlockHash { get; }
+    long BlockHeight { get; }
+}
+
+public partial class BlockIndex : IBlockIndex
+{
+    public BlockIndex(Hash hash, long height)
     {
-        Hash BlockHash { get; }
-        long BlockHeight { get; }
+        BlockHash = hash;
+        BlockHeight = height;
     }
 
-    public partial class BlockIndex : IBlockIndex
+    public string ToDiagnosticString()
     {
-        public BlockIndex(Hash hash, long height)
-        {
-            BlockHash = hash;
-            BlockHeight = height;
-        }
-
-        public string ToDiagnosticString()
-        {
-            return $"[{BlockHash}: {BlockHeight}]";
-        }
+        return $"[{BlockHash}: {BlockHeight}]";
     }
 }

@@ -4,5 +4,4 @@ namespace AElf.WebApp.Application;
 
 public abstract class AElfAppService : ApplicationService
 {
-    
 }

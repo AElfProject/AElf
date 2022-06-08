@@ -3,36 +3,35 @@ using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
 // ReSharper disable once CheckNamespace
-namespace AElf.Contracts.Consensus.AEDPoS
+namespace AElf.Contracts.Consensus.AEDPoS;
+
+// ReSharper disable once InconsistentNaming
+public partial class AEDPoSContract
 {
-    // ReSharper disable once InconsistentNaming
-    public partial class AEDPoSContract
+    private class ConsensusCommandProvider
     {
-        private class ConsensusCommandProvider
+        private readonly ICommandStrategy _commandStrategy;
+
+        public ConsensusCommandProvider(ICommandStrategy commandStrategy)
         {
-            private readonly ICommandStrategy _commandStrategy;
+            _commandStrategy = commandStrategy;
+        }
 
-            /// <summary>
-            /// No, you can't mine blocks.
-            /// </summary>
-            public static ConsensusCommand InvalidConsensusCommand => new ConsensusCommand
+        /// <summary>
+        ///     No, you can't mine blocks.
+        /// </summary>
+        public static ConsensusCommand InvalidConsensusCommand => new()
+        {
+            ArrangedMiningTime = new Timestamp { Seconds = int.MaxValue },
+            Hint = ByteString.CopyFrom(new AElfConsensusHint
             {
-                ArrangedMiningTime = new Timestamp {Seconds = int.MaxValue},
-                Hint = ByteString.CopyFrom(new AElfConsensusHint
-                {
-                    Behaviour = AElfConsensusBehaviour.Nothing
-                }.ToByteArray())
-            };
+                Behaviour = AElfConsensusBehaviour.Nothing
+            }.ToByteArray())
+        };
 
-            public ConsensusCommandProvider(ICommandStrategy commandStrategy)
-            {
-                _commandStrategy = commandStrategy;
-            }
-
-            public ConsensusCommand GetConsensusCommand()
-            {
-                return _commandStrategy.GetConsensusCommand();
-            }
+        public ConsensusCommand GetConsensusCommand()
+        {
+            return _commandStrategy.GetConsensusCommand();
         }
     }
 }

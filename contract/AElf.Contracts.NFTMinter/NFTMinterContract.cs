@@ -1,20 +1,19 @@
 ﻿using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.Contracts.NFTMinter
+namespace AElf.Contracts.NFTMinter;
+
+public partial class NFTMinterContract : NFTMinterContractContainer.NFTMinterContractBase
 {
-    public partial class NFTMinterContract : NFTMinterContractContainer.NFTMinterContractBase
+    public override Empty Initialize(InitializeInput input)
     {
-        public override Empty Initialize(InitializeInput input)
-        {
-            State.NFTContract.Value = input.NftContractAddress;
-            State.AdminAddress.Value = input.AdminAddress ?? Context.Sender;
-            State.RandomNumberProviderContract.Value = input.RandomNumberProviderContractAddress ??
-                                                       Context.GetContractAddressByName(SmartContractConstants
-                                                           .ConsensusContractSystemName);
-            State.TokenContract.Value =
-                Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
-            return new Empty();
-        }
+        State.NFTContract.Value = input.NftContractAddress;
+        State.AdminAddress.Value = input.AdminAddress ?? Context.Sender;
+        State.RandomNumberProviderContract.Value = input.RandomNumberProviderContractAddress ??
+                                                   Context.GetContractAddressByName(SmartContractConstants
+                                                       .ConsensusContractSystemName);
+        State.TokenContract.Value =
+            Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
+        return new Empty();
     }
 }

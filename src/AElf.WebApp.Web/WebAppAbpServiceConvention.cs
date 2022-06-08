@@ -9,6 +9,5 @@ public class WebAppAbpServiceConvention : AbpServiceConvention
     public WebAppAbpServiceConvention(IOptions<AbpAspNetCoreMvcOptions> options,
         IConventionalRouteBuilder conventionalRouteBuilder) : base(options, conventionalRouteBuilder)
     {
-
     }
 }

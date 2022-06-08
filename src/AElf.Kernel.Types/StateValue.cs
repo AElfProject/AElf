@@ -1,31 +1,30 @@
 using Google.Protobuf;
 
-namespace AElf.Kernel
+namespace AElf.Kernel;
+
+public partial class StateValue
 {
-    public partial class StateValue
+    public bool IsDirty => OriginalValue != CurrentValue;
+
+    public static StateValue Create(byte[] value)
     {
-        public bool IsDirty => OriginalValue != CurrentValue;
-
-        public static StateValue Create(byte[] value)
+        var sc = new StateValue();
+        if (value != null)
         {
-            var sc = new StateValue();
-            if (value != null)
-            {
-                sc.OriginalValue = ByteString.CopyFrom(value);
-                sc.CurrentValue = ByteString.CopyFrom(value);
-            }
-
-            return sc;
+            sc.OriginalValue = ByteString.CopyFrom(value);
+            sc.CurrentValue = ByteString.CopyFrom(value);
         }
 
-        public byte[] Get()
-        {
-            return CurrentValue?.ToByteArray();
-        }
+        return sc;
+    }
 
-        public void Set(byte[] value)
-        {
-            CurrentValue = ByteString.CopyFrom(value);
-        }
+    public byte[] Get()
+    {
+        return CurrentValue?.ToByteArray();
+    }
+
+    public void Set(byte[] value)
+    {
+        CurrentValue = ByteString.CopyFrom(value);
     }
 }

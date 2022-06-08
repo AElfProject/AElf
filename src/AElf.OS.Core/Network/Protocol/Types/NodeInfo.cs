@@ -1,10 +1,9 @@
-namespace AElf.OS.Network
+namespace AElf.OS.Network;
+
+public partial class NodeInfo
 {
-    public partial class NodeInfo
+    public string ToDiagnosticString()
     {
-        public string ToDiagnosticString()
-        {
-            return $"{{ endpoint: {Endpoint}, key: {Pubkey.ToHex().Substring(0, 45)}... }}";
-        }
+        return $"{{ endpoint: {Endpoint}, key: {Pubkey.ToHex().Substring(0, 45)}... }}";
     }
 }

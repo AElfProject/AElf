@@ -4,32 +4,31 @@ using AElf.CSharp.Core;
 using AElf.Types;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.ContractTestKit
+namespace AElf.ContractTestKit;
+
+public interface IContractTesterFactory
 {
-    public interface IContractTesterFactory
+    T Create<T>(Address contractAddress, ECKeyPair senderKey) where T : ContractStubBase, new();
+}
+
+public class ContractTesterFactory : IContractTesterFactory, ITransientDependency
+{
+    private readonly IServiceProvider _serviceProvider;
+
+    public ContractTesterFactory(IServiceProvider serviceProvider)
     {
-        T Create<T>(Address contractAddress, ECKeyPair senderKey) where T : ContractStubBase, new();
+        _serviceProvider = serviceProvider;
     }
 
-    public class ContractTesterFactory : IContractTesterFactory, ITransientDependency
+    public T Create<T>(Address contractAddress, ECKeyPair senderKey) where T : ContractStubBase, new()
     {
-        private readonly IServiceProvider _serviceProvider;
-
-        public ContractTesterFactory(IServiceProvider serviceProvider)
+        return new T
         {
-            _serviceProvider = serviceProvider;
-        }
-
-        public T Create<T>(Address contractAddress, ECKeyPair senderKey) where T : ContractStubBase, new()
-        {
-            return new T
+            __factory = new MethodStubFactory(_serviceProvider)
             {
-                __factory = new MethodStubFactory(_serviceProvider)
-                {
-                    ContractAddress = contractAddress,
-                    KeyPair = senderKey
-                }
-            };
-        }
+                ContractAddress = contractAddress,
+                KeyPair = senderKey
+            }
+        };
     }
 }

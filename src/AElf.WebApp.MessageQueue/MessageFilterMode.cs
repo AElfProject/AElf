@@ -1,13 +1,12 @@
-namespace AElf.WebApp.MessageQueue
+namespace AElf.WebApp.MessageQueue;
+
+public enum MessageFilterMode
 {
-    public enum MessageFilterMode
-    {
-        OnlyTo,
-        OnlyFrom,
-        OnlyEventName,
-        ToAndEventName,
-        FromAndEventName,
-        FromAndTo,
-        All
-    }
+    OnlyTo,
+    OnlyFrom,
+    OnlyEventName,
+    ToAndEventName,
+    FromAndEventName,
+    FromAndTo,
+    All
 }

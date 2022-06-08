@@ -2,45 +2,42 @@ using System.Collections.Generic;
 using Microsoft.Extensions.Options;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.WebApp.MessageQueue
+namespace AElf.WebApp.MessageQueue;
+
+public interface IEventInParallelProvider
 {
-    public interface IEventInParallelProvider
+    bool IsEventHandleParallel(LogEventEto logEventEto);
+}
+
+public class EventInParallelProvider : IEventInParallelProvider, ISingletonDependency
+{
+    private readonly Dictionary<string, HashSet<string>> _isEventInParallelQueueDic;
+
+    public EventInParallelProvider(IOptionsSnapshot<EventHandleOptions> eventHandleOptions)
     {
-        bool IsEventHandleParallel(LogEventEto logEventEto);
+        _isEventInParallelQueueDic = InitializeParallelQueueEvent(eventHandleOptions.Value);
     }
 
-    public class EventInParallelProvider : IEventInParallelProvider, ISingletonDependency
+    public bool IsEventHandleParallel(LogEventEto logEventEto)
     {
-        private readonly Dictionary<string, HashSet<string>> _isEventInParallelQueueDic;
+        if (_isEventInParallelQueueDic == null)
+            return false;
+        return _isEventInParallelQueueDic.TryGetValue(logEventEto.Address, out var eventsSet) &&
+               eventsSet.Contains(logEventEto.Name);
+    }
 
-        public EventInParallelProvider(IOptionsSnapshot<EventHandleOptions> eventHandleOptions)
+    private Dictionary<string, HashSet<string>> InitializeParallelQueueEvent(EventHandleOptions option)
+    {
+        if (option?.ParallelHandleEventInfo == null)
+            return null;
+        var eventInParallelQueueDictionary = new Dictionary<string, HashSet<string>>();
+        foreach (var contract in option.ParallelHandleEventInfo)
         {
-            _isEventInParallelQueueDic = InitializeParallelQueueEvent(eventHandleOptions.Value);
+            eventInParallelQueueDictionary.TryAdd(contract.ContractName, new HashSet<string>());
+            foreach (var eventName in contract.EventNames)
+                eventInParallelQueueDictionary[contract.ContractName].Add(eventName);
         }
 
-        public bool IsEventHandleParallel(LogEventEto logEventEto)
-        {
-            if (_isEventInParallelQueueDic == null)
-                return false;
-            return _isEventInParallelQueueDic.TryGetValue(logEventEto.Address, out var eventsSet) &&
-                   eventsSet.Contains(logEventEto.Name);
-        }
-
-        private Dictionary<string, HashSet<string>> InitializeParallelQueueEvent(EventHandleOptions option)
-        {
-            if (option?.ParallelHandleEventInfo == null)
-                return null;
-            var eventInParallelQueueDictionary = new Dictionary<string, HashSet<string>>();
-            foreach (var contract in option.ParallelHandleEventInfo)
-            {
-                eventInParallelQueueDictionary.TryAdd(contract.ContractName, new HashSet<string>());
-                foreach (var eventName in contract.EventNames)
-                {
-                    eventInParallelQueueDictionary[contract.ContractName].Add(eventName);
-                }
-            }
-
-            return eventInParallelQueueDictionary;
-        }
+        return eventInParallelQueueDictionary;
     }
 }

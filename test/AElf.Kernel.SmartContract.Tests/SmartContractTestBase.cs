@@ -1,17 +1,15 @@
-﻿using System;
-using AElf.TestBase;
+﻿using AElf.TestBase;
 
-namespace AElf.Kernel.SmartContract
+namespace AElf.Kernel.SmartContract;
+
+public class SmartContractTestBase : AElfIntegratedTest<SmartContractTestAElfModule>
 {
-    public class SmartContractTestBase : AElfIntegratedTest<SmartContractTestAElfModule>
-    {
-    }
-    
-    public class SmartContractRunnerTestBase : AElfIntegratedTest<SmartContractRunnerTestAElfModule>
-    {
-    }
+}
 
-    public class LogEventTestBase : AElfIntegratedTest<LogEventTestAElfModule>
-    {
-    }
+public class SmartContractRunnerTestBase : AElfIntegratedTest<SmartContractRunnerTestAElfModule>
+{
+}
+
+public class LogEventTestBase : AElfIntegratedTest<LogEventTestAElfModule>
+{
 }

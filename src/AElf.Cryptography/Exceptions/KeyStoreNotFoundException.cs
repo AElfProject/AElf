@@ -1,11 +1,10 @@
 ﻿using System;
 
-namespace AElf.Cryptography.Exceptions
+namespace AElf.Cryptography.Exceptions;
+
+public class KeyStoreNotFoundException : Exception
 {
-    public class KeyStoreNotFoundException : Exception
+    public KeyStoreNotFoundException(string message, Exception innerException) : base(message, innerException)
     {
-        public KeyStoreNotFoundException(string message, Exception innerException) : base(message, innerException)
-        {
-        }
     }
 }

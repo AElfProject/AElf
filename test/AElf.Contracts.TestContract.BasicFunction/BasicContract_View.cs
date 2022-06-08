@@ -1,59 +1,58 @@
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.Contracts.TestContract.BasicFunction
+namespace AElf.Contracts.TestContract.BasicFunction;
+
+/// <summary>
+///     View methods
+/// </summary>
+public partial class BasicFunctionContract
 {
-    /// <summary>
-    ///     View methods
-    /// </summary>
-    public partial class BasicFunctionContract
+    public override StringValue GetContractName(Empty input)
     {
-        public override StringValue GetContractName(Empty input)
+        return new StringValue
         {
-            return new StringValue
-            {
-                Value = nameof(BasicFunctionContract)
-            };
-        }
+            Value = nameof(BasicFunctionContract)
+        };
+    }
 
-        public override MoneyOutput QueryWinMoney(Empty input)
+    public override MoneyOutput QueryWinMoney(Empty input)
+    {
+        return new MoneyOutput
         {
-            return new MoneyOutput
-            {
-                Int64Value = State.TotalBetBalance.Value
-            };
-        }
+            Int64Value = State.TotalBetBalance.Value
+        };
+    }
 
-        public override MoneyOutput QueryRewardMoney(Empty input)
+    public override MoneyOutput QueryRewardMoney(Empty input)
+    {
+        return new MoneyOutput
         {
-            return new MoneyOutput
-            {
-                Int64Value = State.RewardBalance.Value
-            };
-        }
+            Int64Value = State.RewardBalance.Value
+        };
+    }
 
-        public override MoneyOutput QueryUserWinMoney(Address address)
+    public override MoneyOutput QueryUserWinMoney(Address address)
+    {
+        return new MoneyOutput
         {
-            return new MoneyOutput
-            {
-                Int64Value = State.WinerHistory[address]
-            };
-        }
+            Int64Value = State.WinerHistory[address]
+        };
+    }
 
-        public override MoneyOutput QueryUserLoseMoney(Address address)
+    public override MoneyOutput QueryUserLoseMoney(Address address)
+    {
+        return new MoneyOutput
         {
-            return new MoneyOutput
-            {
-                Int64Value = State.LoserHistory[address]
-            };
-        }
+            Int64Value = State.LoserHistory[address]
+        };
+    }
 
-        public override OtherResourceInfo GetResourceInfo(Transaction input)
+    public override OtherResourceInfo GetResourceInfo(Transaction input)
+    {
+        return new OtherResourceInfo
         {
-            return new OtherResourceInfo
-            {
-                Address = Context.Self
-            };
-        }
+            Address = Context.Self
+        };
     }
 }

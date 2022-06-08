@@ -1,10 +1,9 @@
 using AElf.Types;
 
-namespace AElf.Kernel.TransactionPool
+namespace AElf.Kernel.TransactionPool;
+
+public class TransactionAcceptedEvent
 {
-    public class TransactionAcceptedEvent
-    {
-        public int ChainId { get; set; }
-        public Transaction Transaction { get; set; }
-    }
+    public int ChainId { get; set; }
+    public Transaction Transaction { get; set; }
 }

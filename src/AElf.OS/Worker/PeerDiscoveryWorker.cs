@@ -8,77 +8,71 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.BackgroundWorkers;
 using Volo.Abp.Threading;
 
-namespace AElf.OS.Worker
+namespace AElf.OS.Worker;
+
+public class PeerDiscoveryWorker : AsyncPeriodicBackgroundWorkerBase
 {
-    public class PeerDiscoveryWorker : AsyncPeriodicBackgroundWorkerBase
+    private readonly INetworkService _networkService;
+    private readonly IPeerDiscoveryService _peerDiscoveryService;
+    private readonly IReconnectionService _reconnectionService;
+
+    public PeerDiscoveryWorker(AbpAsyncTimer timer, IPeerDiscoveryService peerDiscoveryService,
+        INetworkService networkService,
+        IReconnectionService reconnectionService,
+        IServiceScopeFactory serviceScopeFactory) : base(timer, serviceScopeFactory)
     {
-        private readonly IPeerDiscoveryService _peerDiscoveryService;
-        private readonly INetworkService _networkService;
-        private readonly IReconnectionService _reconnectionService;
+        _peerDiscoveryService = peerDiscoveryService;
+        Timer.Period = NetworkConstants.DefaultDiscoveryPeriod;
 
-        public new ILogger<PeerDiscoveryWorker> Logger { get; set; }
+        _networkService = networkService;
+        _reconnectionService = reconnectionService;
 
-        public PeerDiscoveryWorker(AbpAsyncTimer timer, IPeerDiscoveryService peerDiscoveryService,
-            INetworkService networkService, 
-            IReconnectionService reconnectionService,
-            IServiceScopeFactory serviceScopeFactory) : base(timer, serviceScopeFactory)
-        {
-            _peerDiscoveryService = peerDiscoveryService;
-            Timer.Period = NetworkConstants.DefaultDiscoveryPeriod;
+        Logger = NullLogger<PeerDiscoveryWorker>.Instance;
+    }
 
-            _networkService = networkService;
-            _reconnectionService = reconnectionService;
+    public new ILogger<PeerDiscoveryWorker> Logger { get; set; }
 
-            Logger = NullLogger<PeerDiscoveryWorker>.Instance;
-        }
+    protected override async Task DoWorkAsync(PeriodicBackgroundWorkerContext workerContext)
+    {
+        await ProcessPeerDiscoveryJobAsync();
+    }
 
-        protected override async Task DoWorkAsync(PeriodicBackgroundWorkerContext workerContext)
-        {
-            await ProcessPeerDiscoveryJobAsync();
-        }
+    internal async Task ProcessPeerDiscoveryJobAsync()
+    {
+        await _peerDiscoveryService.RefreshNodeAsync();
 
-        internal async Task ProcessPeerDiscoveryJobAsync()
-        {
-            await _peerDiscoveryService.RefreshNodeAsync();
+        await _peerDiscoveryService.DiscoverNodesAsync();
 
-            await _peerDiscoveryService.DiscoverNodesAsync();
+        if (_networkService.IsPeerPoolFull()) return;
 
-            if (_networkService.IsPeerPoolFull())
+        var nodes = await _peerDiscoveryService.GetNodesAsync(10);
+        foreach (var node in nodes.Nodes)
+            try
             {
-                return;
-            }
+                if (_networkService.IsPeerPoolFull())
+                {
+                    Logger.LogTrace("Peer pool is full, aborting add.");
+                    break;
+                }
 
-            var nodes = await _peerDiscoveryService.GetNodesAsync(10);
-            foreach (var node in nodes.Nodes)
+                var reconnectingPeer = _reconnectionService.GetReconnectingPeer(node.Endpoint);
+                if (reconnectingPeer != null)
+                {
+                    Logger.LogDebug($"Peer {node.Endpoint} is already in the reconnection queue.");
+                    continue;
+                }
+
+                if (_networkService.GetPeerByPubkey(node.Pubkey.ToHex()) != null)
+                {
+                    Logger.LogDebug($"Peer {node} is already in the peer pool.");
+                    continue;
+                }
+
+                await _networkService.AddPeerAsync(node.Endpoint);
+            }
+            catch (Exception e)
             {
-                try
-                {
-                    if (_networkService.IsPeerPoolFull())
-                    {
-                        Logger.LogTrace("Peer pool is full, aborting add.");
-                        break;
-                    }
-                    
-                    var reconnectingPeer = _reconnectionService.GetReconnectingPeer(node.Endpoint);
-                    if (reconnectingPeer != null)
-                    {
-                        Logger.LogDebug($"Peer {node.Endpoint} is already in the reconnection queue.");
-                        continue;
-                    }
-                    
-                    if (_networkService.GetPeerByPubkey(node.Pubkey.ToHex()) != null)
-                    {
-                        Logger.LogDebug($"Peer {node} is already in the peer pool.");
-                        continue;
-                    }
-
-                    await _networkService.AddPeerAsync(node.Endpoint);
-                }
-                catch (Exception e)
-                {
-                    Logger.LogError(e, $"Exception connecting to {node.Endpoint}.");
-                }
+                Logger.LogError(e, $"Exception connecting to {node.Endpoint}.");
             }
-        }
     }
 }

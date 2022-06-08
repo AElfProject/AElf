@@ -8,8 +8,9 @@
         <Description>Core functionality for crosschain operations.</Description>
     </PropertyGroup>
 
-    <ItemGroup>
-    </ItemGroup>
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+        <NoWarn>1701;1702</NoWarn>
+    </PropertyGroup>
 
     <ItemGroup>
         <ProjectReference Include="..\AElf.Kernel.Node\AElf.Kernel.Node.csproj"/>

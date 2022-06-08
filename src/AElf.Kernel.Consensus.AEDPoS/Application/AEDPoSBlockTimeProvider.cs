@@ -6,35 +6,32 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.Kernel.Consensus.AEDPoS.Application
+namespace AElf.Kernel.Consensus.AEDPoS.Application;
+
+public class AEDPoSBlockTimeProvider : IBlockTimeProvider, ISingletonDependency
 {
-    public class AEDPoSBlockTimeProvider : IBlockTimeProvider, ISingletonDependency
+    private readonly MemoryCache _blockTimeCache;
+    private readonly ConsensusOptions _consensusOptions;
+
+    public AEDPoSBlockTimeProvider(IOptionsSnapshot<ConsensusOptions> consensusOptions)
     {
-        private readonly MemoryCache _blockTimeCache;
-        private readonly ConsensusOptions _consensusOptions;
-
-        public AEDPoSBlockTimeProvider(IOptionsSnapshot<ConsensusOptions> consensusOptions)
+        _consensusOptions = consensusOptions.Value;
+        _blockTimeCache = new MemoryCache(new MemoryCacheOptions
         {
-            _consensusOptions = consensusOptions.Value;
-            _blockTimeCache = new MemoryCache(new MemoryCacheOptions
-            {
-                ExpirationScanFrequency = TimeSpan.FromMilliseconds(_consensusOptions.MiningInterval)
-            });
-        }
+            ExpirationScanFrequency = TimeSpan.FromMilliseconds(_consensusOptions.MiningInterval)
+        });
+    }
 
-        public Timestamp GetBlockTime(Hash blockHash)
-        {
-            if (blockHash != null && _blockTimeCache.TryGetValue(blockHash, out var blockTime))
-            {
-                return blockTime as Timestamp;
-            }
+    public Timestamp GetBlockTime(Hash blockHash)
+    {
+        if (blockHash != null && _blockTimeCache.TryGetValue(blockHash, out var blockTime))
+            return blockTime as Timestamp;
 
-            return new Timestamp();
-        }
+        return new Timestamp();
+    }
 
-        public void SetBlockTime(Timestamp blockTime, Hash blockHash)
-        {
-            _blockTimeCache.Set(blockHash, blockTime, TimeSpan.FromMilliseconds(_consensusOptions.MiningInterval));
-        }
+    public void SetBlockTime(Timestamp blockTime, Hash blockHash)
+    {
+        _blockTimeCache.Set(blockHash, blockTime, TimeSpan.FromMilliseconds(_consensusOptions.MiningInterval));
     }
 }

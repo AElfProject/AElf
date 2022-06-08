@@ -1,16 +1,15 @@
 using System.Threading.Tasks;
 using AElf.OS.BlockSync.Types;
 
-namespace AElf.OS.BlockSync.Infrastructure
+namespace AElf.OS.BlockSync.Infrastructure;
+
+public interface IBlockDownloadJobStore
 {
-    public interface IBlockDownloadJobStore
-    {
-        Task<bool> AddAsync(BlockDownloadJobInfo blockDownloadJobInfo);
+    Task<bool> AddAsync(BlockDownloadJobInfo blockDownloadJobInfo);
 
-        Task<BlockDownloadJobInfo> GetFirstWaitingJobAsync();
+    Task<BlockDownloadJobInfo> GetFirstWaitingJobAsync();
 
-        Task UpdateAsync(BlockDownloadJobInfo blockDownloadJobInfo);
+    Task UpdateAsync(BlockDownloadJobInfo blockDownloadJobInfo);
 
-        Task RemoveAsync(string jobId);
-    }
+    Task RemoveAsync(string jobId);
 }

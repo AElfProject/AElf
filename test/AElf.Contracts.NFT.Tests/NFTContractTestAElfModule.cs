@@ -10,19 +10,18 @@ using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp;
 using Volo.Abp.Modularity;
 
-namespace AElf.Contracts.NFT
+namespace AElf.Contracts.NFT;
+
+[DependsOn(typeof(ContractTestModule), typeof(AEDPoSAElfModule),
+    typeof(TokenKernelAElfModule),
+    typeof(GovernmentSystemAElfModule),
+    typeof(EconomicSystemAElfModule),
+    typeof(MultiTokenContractTestAElfModule))]
+public class NFTContractTestAElfModule : AbpModule
 {
-    [DependsOn(typeof(ContractTestModule), typeof(AEDPoSAElfModule),
-        typeof(TokenKernelAElfModule),
-        typeof(GovernmentSystemAElfModule),
-        typeof(EconomicSystemAElfModule),
-        typeof(MultiTokenContractTestAElfModule))]
-    public class NFTContractTestAElfModule : AbpModule
+    public override void OnPreApplicationInitialization(ApplicationInitializationContext context)
     {
-        public override void OnPreApplicationInitialization(ApplicationInitializationContext context)
-        {
-            var contractCodeProvider = context.ServiceProvider.GetService<IContractCodeProvider>();
-            contractCodeProvider.Codes = ContractsDeployer.GetContractCodes<NFTContractTestAElfModule>();
-        }
+        var contractCodeProvider = context.ServiceProvider.GetService<IContractCodeProvider>();
+        contractCodeProvider.Codes = ContractsDeployer.GetContractCodes<NFTContractTestAElfModule>();
     }
 }

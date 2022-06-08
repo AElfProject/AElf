@@ -1,116 +1,105 @@
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using AElf.Database;
-using Google.Protobuf;
 
-namespace AElf.Kernel.Infrastructure
+namespace AElf.Kernel.Infrastructure;
+
+public interface IStoreKeyPrefixProvider<T>
+    where T : IMessage<T>, new()
 {
-    public interface IStoreKeyPrefixProvider<T>
-        where T : IMessage<T>, new()
+    string GetStoreKeyPrefix();
+}
+
+public class StoreKeyPrefixProvider<T> : IStoreKeyPrefixProvider<T>
+    where T : IMessage<T>, new()
+{
+    private static readonly string TypeName = typeof(T).Name;
+
+    public string GetStoreKeyPrefix()
     {
-        string GetStoreKeyPrefix();
+        return TypeName;
+    }
+}
+
+public class FastStoreKeyPrefixProvider<T> : IStoreKeyPrefixProvider<T>
+    where T : IMessage<T>, new()
+{
+    private readonly string _prefix;
+
+    public FastStoreKeyPrefixProvider(string prefix)
+    {
+        _prefix = prefix;
     }
 
-    public class StoreKeyPrefixProvider<T> : IStoreKeyPrefixProvider<T>
-        where T : IMessage<T>, new()
+    public string GetStoreKeyPrefix()
     {
-        private static readonly string _typeName = typeof(T).Name;
+        return _prefix;
+    }
+}
 
-        public string GetStoreKeyPrefix()
-        {
-            return _typeName;
-        }
+public abstract class KeyValueStoreBase<TKeyValueDbContext, T> : IKeyValueStore<T>
+    where TKeyValueDbContext : KeyValueDbContext<TKeyValueDbContext>
+    where T : class, IMessage<T>, new()
+{
+    private readonly IKeyValueCollection _collection;
+
+    private readonly MessageParser<T> _messageParser;
+
+    public KeyValueStoreBase(TKeyValueDbContext keyValueDbContext, IStoreKeyPrefixProvider<T> prefixProvider)
+    {
+        _collection = keyValueDbContext.Collection(prefixProvider.GetStoreKeyPrefix());
+
+        _messageParser = new MessageParser<T>(() => new T());
     }
 
-    public class FastStoreKeyPrefixProvider<T> : IStoreKeyPrefixProvider<T>
-        where T : IMessage<T>, new()
+    public async Task SetAsync(string key, T value)
     {
-        private readonly string _prefix;
-
-        public FastStoreKeyPrefixProvider(string prefix)
-        {
-            _prefix = prefix;
-        }
-
-        public string GetStoreKeyPrefix()
-        {
-            return _prefix;
-        }
+        await _collection.SetAsync(key, Serialize(value));
     }
 
-
-    public abstract class KeyValueStoreBase<TKeyValueDbContext, T> : IKeyValueStore<T>
-        where TKeyValueDbContext : KeyValueDbContext<TKeyValueDbContext>
-        where T : class, IMessage<T>, new()
+    public async Task SetAllAsync(Dictionary<string, T> pipelineSet)
     {
-        private readonly TKeyValueDbContext _keyValueDbContext;
+        await _collection.SetAllAsync(
+            pipelineSet.ToDictionary(k => k.Key, v => Serialize(v.Value)));
+    }
 
-        private readonly IKeyValueCollection _collection;
+    public virtual async Task<T> GetAsync(string key)
+    {
+        var result = await _collection.GetAsync(key);
 
-        private readonly MessageParser<T> _messageParser;
+        return result == null ? default : Deserialize(result);
+    }
 
+    public virtual async Task RemoveAsync(string key)
+    {
+        await _collection.RemoveAsync(key);
+    }
 
-        public KeyValueStoreBase(TKeyValueDbContext keyValueDbContext, IStoreKeyPrefixProvider<T> prefixProvider)
-        {
-            _keyValueDbContext = keyValueDbContext;
-            // ReSharper disable once VirtualMemberCallInConstructor
-            _collection = keyValueDbContext.Collection(prefixProvider.GetStoreKeyPrefix());
+    public async Task<bool> IsExistsAsync(string key)
+    {
+        return await _collection.IsExistsAsync(key);
+    }
 
-            _messageParser = new MessageParser<T>(() => new T());
-        }
+    public virtual async Task<List<T>> GetAllAsync(List<string> keys)
+    {
+        var result = await _collection.GetAllAsync(keys);
 
-        public async Task SetAsync(string key, T value)
-        {
-            await _collection.SetAsync(key, Serialize(value));
-        }
+        return result == null || result.Count == 0
+            ? default
+            : result.Select(r => r == null ? default : Deserialize(r)).ToList();
+    }
 
-        private static byte[] Serialize(T value)
-        {
-            return value?.ToByteArray();
-        }
+    public virtual async Task RemoveAllAsync(List<string> keys)
+    {
+        await _collection.RemoveAllAsync(keys);
+    }
 
-        public async Task SetAllAsync(Dictionary<string, T> pipelineSet)
-        {
-            await _collection.SetAllAsync(
-                pipelineSet.ToDictionary(k => k.Key, v => Serialize(v.Value)));
-        }
+    private static byte[] Serialize(T value)
+    {
+        return value?.ToByteArray();
+    }
 
-        public virtual async Task<T> GetAsync(string key)
-        {
-            var result = await _collection.GetAsync(key);
-
-            return result == null ? default(T) : Deserialize(result);
-        }
-
-        private T Deserialize(byte[] result)
-        {
-            return _messageParser.ParseFrom(result);
-        }
-
-        public virtual async Task RemoveAsync(string key)
-        {
-            await _collection.RemoveAsync(key);
-        }
-
-        public async Task<bool> IsExistsAsync(string key)
-        {
-            return await _collection.IsExistsAsync(key);
-        }
-
-        public virtual async Task<List<T>> GetAllAsync(List<string> keys)
-        {
-            var result = await _collection.GetAllAsync(keys);
-
-            return result == null || result.Count == 0
-                ? default
-                : result.Select(r => r == null ? default : Deserialize(r)).ToList();
-        }
-
-        public virtual async Task RemoveAllAsync(List<string> keys)
-        {
-            await _collection.RemoveAllAsync(keys);
-        }
+    private T Deserialize(byte[] result)
+    {
+        return _messageParser.ParseFrom(result);
     }
 }

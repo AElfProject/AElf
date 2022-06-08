@@ -33,108 +33,106 @@ using Volo.Abp.AspNetCore;
 using Volo.Abp.Modularity;
 using Volo.Abp.Threading;
 
-namespace AElf.Blockchains.BasicBaseChain
+namespace AElf.Blockchains.BasicBaseChain;
+
+[DependsOn(
+    typeof(CrossChainAElfModule),
+    typeof(KernelAElfModule),
+    typeof(AEDPoSAElfModule),
+    typeof(TokenKernelAElfModule),
+    typeof(OSAElfModule),
+    typeof(AbpAspNetCoreModule),
+    typeof(CSharpRuntimeAElfModule),
+    typeof(CSharpCodeOpsAElfModule),
+    typeof(GrpcNetworkModule),
+    typeof(RuntimeSetupAElfModule),
+    typeof(GrpcCrossChainAElfModule),
+    typeof(GovernmentSystemAElfModule),
+    typeof(EconomicSystemAElfModule),
+
+    //web api module
+    typeof(WebWebAppAElfModule),
+    typeof(ParallelExecutionModule),
+
+    //plugin
+    typeof(ExecutionPluginForMethodFeeModule),
+    typeof(ExecutionPluginForResourceFeeModule),
+    typeof(ExecutionPluginForCallThresholdModule),
+    
+    typeof(MessageQueueAElfModule)
+)]
+public class BasicBaseChainAElfModule : AElfModule
 {
-    [DependsOn(
-        typeof(CrossChainAElfModule),
-        typeof(KernelAElfModule),
-        typeof(AEDPoSAElfModule),
-        typeof(TokenKernelAElfModule),
-        typeof(OSAElfModule),
-        typeof(AbpAspNetCoreModule),
-        typeof(CSharpRuntimeAElfModule),
-        typeof(CSharpCodeOpsAElfModule),
-        typeof(GrpcNetworkModule),
-        typeof(RuntimeSetupAElfModule),
-        typeof(GrpcCrossChainAElfModule),
+    public OsBlockchainNodeContext OsBlockchainNodeContext { get; set; }
 
-        typeof(GovernmentSystemAElfModule),
-        typeof(EconomicSystemAElfModule),
-
-        //web api module
-        typeof(WebWebAppAElfModule),
-        typeof(ParallelExecutionModule),
-
-        //plugin
-        typeof(ExecutionPluginForMethodFeeModule),
-        typeof(ExecutionPluginForResourceFeeModule),
-        typeof(ExecutionPluginForCallThresholdModule),
-
-        typeof(MessageQueueAElfModule)
-    )]
-    public class BasicBaseChainAElfModule : AElfModule
+    public override void PreConfigureServices(ServiceConfigurationContext context)
     {
-        public OsBlockchainNodeContext OsBlockchainNodeContext { get; set; }
+        var configuration = context.Services.GetConfiguration();
+        var hostingEnvironment = context.Services.GetHostingEnvironment();
+        var contentRootPath = hostingEnvironment.ContentRootPath;
+        var hostBuilderContext = context.Services.GetSingletonInstanceOrNull<HostBuilderContext>();
 
-        public override void PreConfigureServices(ServiceConfigurationContext context)
+        var chainType = configuration.GetValue("ChainType", ChainType.MainChain);
+        var netType = configuration.GetValue("NetType", NetType.MainNet);
+
+        var newConfig = new ConfigurationBuilder().AddConfiguration(configuration)
+            .AddJsonFile($"appsettings.{chainType}.{netType}.json")
+            .AddJsonFile($"appsettings.{hostingEnvironment.EnvironmentName}.json", true)
+            .SetBasePath(contentRootPath)
+            .Build();
+
+        hostBuilderContext.Configuration = newConfig;
+
+        Configure<EconomicOptions>(newConfig.GetSection("Economic"));
+        Configure<ChainOptions>(option =>
         {
-            var configuration = context.Services.GetConfiguration();
-            var hostingEnvironment = context.Services.GetHostingEnvironment();
-            var contentRootPath = hostingEnvironment.ContentRootPath;
-            var hostBuilderContext = context.Services.GetSingletonInstanceOrNull<HostBuilderContext>();
+            option.ChainId = ChainHelper.ConvertBase58ToChainId(newConfig["ChainId"]);
+            option.ChainType = chainType;
+            option.NetType = netType;
+        });
 
-            var chainType = configuration.GetValue("ChainType", ChainType.MainChain);
-            var netType = configuration.GetValue("NetType", NetType.MainNet);
-
-            var newConfig = new ConfigurationBuilder().AddConfiguration(configuration)
-                .AddJsonFile($"appsettings.{chainType}.{netType}.json")
-                .AddJsonFile($"appsettings.{hostingEnvironment.EnvironmentName}.json", true)
-                .SetBasePath(contentRootPath)
-                .Build();
-
-            hostBuilderContext.Configuration = newConfig;
-
-            Configure<EconomicOptions>(newConfig.GetSection("Economic"));
-            Configure<ChainOptions>(option =>
-            {
-                option.ChainId = ChainHelper.ConvertBase58ToChainId(newConfig["ChainId"]);
-                option.ChainType = chainType;
-                option.NetType = netType;
-            });
-
-            Configure<HostSmartContractBridgeContextOptions>(options =>
-            {
-                options.ContextVariables[ContextVariableDictionary.NativeSymbolName] =
-                    newConfig.GetValue("Economic:Symbol", "ELF");
-                options.ContextVariables["SymbolListToPayTxFee"] =
-                    newConfig.GetValue("Economic:SymbolListToPayTxFee", "WRITE,READ,STORAGE,TRAFFIC");
-                options.ContextVariables["SymbolListToPayRental"] =
-                    newConfig.GetValue("Economic:SymbolListToPayRental", "CPU,RAM,DISK,NET");
-            });
-
-            Configure<ContractOptions>(newConfig.GetSection("Contract"));
-            Configure<ContractOptions>(options =>
-            {
-                options.GenesisContractDir = Path.Combine(contentRootPath, "genesis");
-            });
-            Configure<WebAppOptions>(newConfig.GetSection("WebApp"));
-        }
-
-        public override void OnApplicationInitialization(ApplicationInitializationContext context)
+        Configure<HostSmartContractBridgeContextOptions>(options =>
         {
-            var chainOptions = context.ServiceProvider.GetService<IOptionsSnapshot<ChainOptions>>().Value;
-            var dto = new OsBlockchainNodeContextStartDto()
-            {
-                ChainId = chainOptions.ChainId,
-                ZeroSmartContract = typeof(BasicContractZero)
-            };
+            options.ContextVariables[ContextVariableDictionary.NativeSymbolName] =
+                newConfig.GetValue("Economic:Symbol", "ELF");
+            options.ContextVariables["SymbolListToPayTxFee"] =
+                newConfig.GetValue("Economic:SymbolListToPayTxFee", "WRITE,READ,STORAGE,TRAFFIC");
+            options.ContextVariables["SymbolListToPayRental"] =
+                newConfig.GetValue("Economic:SymbolListToPayRental", "CPU,RAM,DISK,NET");
+        });
 
-            var dtoProvider = context.ServiceProvider.GetRequiredService<IGenesisSmartContractDtoProvider>();
-
-            dto.InitializationSmartContracts = dtoProvider.GetGenesisSmartContractDtos().ToList();
-            var contractOptions = context.ServiceProvider.GetService<IOptionsSnapshot<ContractOptions>>().Value;
-            dto.ContractDeploymentAuthorityRequired = contractOptions.ContractDeploymentAuthorityRequired;
-
-            var osService = context.ServiceProvider.GetService<IOsBlockchainNodeContextService>();
-            var that = this;
-            AsyncHelper.RunSync(async () => { that.OsBlockchainNodeContext = await osService.StartAsync(dto); });
-        }
-
-        public override void OnApplicationShutdown(ApplicationShutdownContext context)
+        Configure<ContractOptions>(newConfig.GetSection("Contract"));
+        Configure<ContractOptions>(options =>
         {
-            var osService = context.ServiceProvider.GetService<IOsBlockchainNodeContextService>();
-            var that = this;
-            AsyncHelper.RunSync(() => osService.StopAsync(that.OsBlockchainNodeContext));
-        }
+            options.GenesisContractDir = Path.Combine(contentRootPath, "genesis");
+        });
+        Configure<WebAppOptions>(newConfig.GetSection("WebApp"));
+    }
+
+    public override void OnApplicationInitialization(ApplicationInitializationContext context)
+    {
+        var chainOptions = context.ServiceProvider.GetService<IOptionsSnapshot<ChainOptions>>().Value;
+        var dto = new OsBlockchainNodeContextStartDto
+        {
+            ChainId = chainOptions.ChainId,
+            ZeroSmartContract = typeof(BasicContractZero)
+        };
+
+        var dtoProvider = context.ServiceProvider.GetRequiredService<IGenesisSmartContractDtoProvider>();
+
+        dto.InitializationSmartContracts = dtoProvider.GetGenesisSmartContractDtos().ToList();
+        var contractOptions = context.ServiceProvider.GetService<IOptionsSnapshot<ContractOptions>>().Value;
+        dto.ContractDeploymentAuthorityRequired = contractOptions.ContractDeploymentAuthorityRequired;
+
+        var osService = context.ServiceProvider.GetService<IOsBlockchainNodeContextService>();
+        var that = this;
+        AsyncHelper.RunSync(async () => { that.OsBlockchainNodeContext = await osService.StartAsync(dto); });
+    }
+
+    public override void OnApplicationShutdown(ApplicationShutdownContext context)
+    {
+        var osService = context.ServiceProvider.GetService<IOsBlockchainNodeContextService>();
+        var that = this;
+        AsyncHelper.RunSync(() => osService.StopAsync(that.OsBlockchainNodeContext));
     }
 }

@@ -1,14 +1,13 @@
-namespace AElf.CSharp.CodeOps.Validators.Whitelist
-{
-    public class MemberRule
-    {
-        public string Name { get; }
-        public Permission Permission { get; }
+namespace AElf.CSharp.CodeOps.Validators.Whitelist;
 
-        public MemberRule(string name, Permission permission)
-        {
-            Name = name;
-            Permission = permission;
-        }
+public class MemberRule
+{
+    public MemberRule(string name, Permission permission)
+    {
+        Name = name;
+        Permission = permission;
     }
+
+    public string Name { get; }
+    public Permission Permission { get; }
 }

@@ -1,10 +1,9 @@
 ﻿using AElf.Types;
 using Google.Protobuf.Collections;
 
-namespace AElf.Kernel
+namespace AElf.Kernel;
+
+public interface IBlockBody : IHashProvider
 {
-    public interface IBlockBody : IHashProvider
-    {
-        RepeatedField<Hash> TransactionIds { get; }
-    }
+    RepeatedField<Hash> TransactionIds { get; }
 }

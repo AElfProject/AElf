@@ -1,8 +1,7 @@
 using AElf.CrossChain.Communication.Infrastructure;
 
-namespace AElf.CrossChain.Grpc.Client
+namespace AElf.CrossChain.Grpc.Client;
+
+public class GrpcCrossChainClientCreationContext : CrossChainClientCreationContext
 {
-    public class GrpcCrossChainClientCreationContext : CrossChainClientCreationContext
-    {
-    }
 }

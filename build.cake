@@ -7,7 +7,7 @@ var srcPath      = rootPath + "src/";
 var contractPath = rootPath + "contract/";
 var testPath     = rootPath + "test/";
 var distPath     = rootPath + "aelf-node/";
-var solution     = rootPath + "AElf.sln";
+var solution     = rootPath + "AElf.All.sln";
 var srcProjects  = GetFiles(srcPath + "**/*.csproj");
 var contractProjects  = GetFiles(contractPath + "**/*.csproj");
 

@@ -1,13 +1,11 @@
 using AElf.Modularity;
 using Volo.Abp.Modularity;
 
-namespace AElf.Runtime.CSharp.Core
+namespace AElf.Runtime.CSharp.Core;
+
+public class CSharpRuntimeCoreTestAElfModule : AElfModule
 {
-    public class CSharpRuntimeCoreTestAElfModule : AElfModule
+    public override void ConfigureServices(ServiceConfigurationContext context)
     {
-        public override void ConfigureServices(ServiceConfigurationContext context)
-        {
-            
-        }
     }
 }

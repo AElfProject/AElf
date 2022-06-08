@@ -7,34 +7,34 @@ using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus;
 using Volo.Abp.EventBus.Local;
 
-namespace AElf.OS.Handlers
+namespace AElf.OS.Handlers;
+
+public class PeerConnectedEventHandler : ILocalEventHandler<PeerConnectedEventData>, ITransientDependency
 {
-    public class PeerConnectedEventHandler : ILocalEventHandler<PeerConnectedEventData>, ITransientDependency
+    private readonly IPeerDiscoveryService _peerDiscoveryService;
+
+    public PeerConnectedEventHandler(IPeerDiscoveryService peerDiscoveryService)
     {
-        public ILogger<AnnouncementReceivedEventHandler> Logger { get; set; }
-        public ILocalEventBus LocalEventBus { get; set; }
+        _peerDiscoveryService = peerDiscoveryService;
+    }
 
-        private readonly IPeerDiscoveryService _peerDiscoveryService;
+    public ILogger<AnnouncementReceivedEventHandler> Logger { get; set; }
+    public ILocalEventBus LocalEventBus { get; set; }
 
-        public PeerConnectedEventHandler(IPeerDiscoveryService peerDiscoveryService)
+    public async Task HandleEventAsync(PeerConnectedEventData eventData)
+    {
+        Logger.LogDebug($"Peer connection event {eventData.NodeInfo}");
+
+        await _peerDiscoveryService.AddNodeAsync(eventData.NodeInfo);
+
+        var blockAnnouncement = new BlockAnnouncement
         {
-            _peerDiscoveryService = peerDiscoveryService;
-        }
+            BlockHash = eventData.BestChainHash,
+            BlockHeight = eventData.BestChainHeight
+        };
 
-        public async Task HandleEventAsync(PeerConnectedEventData eventData)
-        {
-            Logger.LogDebug($"Peer connection event {eventData.NodeInfo}");
-            
-            await _peerDiscoveryService.AddNodeAsync(eventData.NodeInfo);
-            
-            var blockAnnouncement = new BlockAnnouncement {
-                BlockHash = eventData.BestChainHash,
-                BlockHeight = eventData.BestChainHeight
-            };
-            
-            var announcement = new AnnouncementReceivedEventData(blockAnnouncement, eventData.NodeInfo.Pubkey.ToHex());
-            
-            await LocalEventBus.PublishAsync(announcement);
-        }
+        var announcement = new AnnouncementReceivedEventData(blockAnnouncement, eventData.NodeInfo.Pubkey.ToHex());
+
+        await LocalEventBus.PublishAsync(announcement);
     }
 }

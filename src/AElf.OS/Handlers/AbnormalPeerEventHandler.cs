@@ -6,27 +6,26 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus;
 
-namespace AElf.OS.Handlers
+namespace AElf.OS.Handlers;
+
+public class AbnormalPeerEventHandler : ILocalEventHandler<AbnormalPeerFoundEventData>, ITransientDependency
 {
-    public class AbnormalPeerEventHandler : ILocalEventHandler<AbnormalPeerFoundEventData>, ITransientDependency
+    private readonly INetworkService _networkService;
+
+    public AbnormalPeerEventHandler(INetworkService networkService)
     {
-        private readonly INetworkService _networkService;
+        Logger = NullLogger<AbnormalPeerEventHandler>.Instance;
 
-        public ILogger<AbnormalPeerEventHandler> Logger { get; set; }
+        _networkService = networkService;
+    }
 
-        public AbnormalPeerEventHandler(INetworkService networkService)
-        {
-            Logger = NullLogger<AbnormalPeerEventHandler>.Instance;
+    public ILogger<AbnormalPeerEventHandler> Logger { get; set; }
 
-            _networkService = networkService;
-        }
+    public async Task HandleEventAsync(AbnormalPeerFoundEventData eventData)
+    {
+        Logger.LogDebug(
+            $"Remove abnormal peer: {eventData.PeerPubkey}, block hash: {eventData.BlockHash}, block height: {eventData.BlockHeight}");
 
-        public async Task HandleEventAsync(AbnormalPeerFoundEventData eventData)
-        {
-            Logger.LogDebug(
-                $"Remove abnormal peer: {eventData.PeerPubkey}, block hash: {eventData.BlockHash}, block height: {eventData.BlockHeight}");
-
-            await _networkService.RemovePeerByPubkeyAsync(eventData.PeerPubkey);
-        }
+        await _networkService.RemovePeerByPubkeyAsync(eventData.PeerPubkey);
     }
 }

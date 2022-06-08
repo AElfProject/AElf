@@ -18,12 +18,12 @@ namespace AElf.WebApp.Application;
 
 public class WebAppTestBase : AbpAspNetCoreIntegratedTestBase<WebAppTestStartup>, ITestOutputHelperAccessor
 {
-    public ITestOutputHelper OutputHelper { get; set; }
-
     public WebAppTestBase(ITestOutputHelper outputHelper)
     {
         OutputHelper = outputHelper;
     }
+
+    public ITestOutputHelper OutputHelper { get; set; }
 
     protected override IHostBuilder CreateHostBuilder()
     {
@@ -150,7 +150,7 @@ public class BasicAuth
 
     public static string DefaultPassword = "password";
 
-    public static readonly BasicAuth Default = new BasicAuth
+    public static readonly BasicAuth Default = new()
     {
         UserName = DefaultUserName,
         Password = DefaultPassword

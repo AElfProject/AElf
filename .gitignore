@@ -252,6 +252,7 @@ paket-files/
 # JetBrains Rider
 .idea/
 *.sln.iml
+workspace.xml
 
 # Visual Studio Code
 .vscode
