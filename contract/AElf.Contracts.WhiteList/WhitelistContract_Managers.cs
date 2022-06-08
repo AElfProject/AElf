@@ -21,115 +21,18 @@ namespace AElf.Contracts.Whitelist
 
             var managerList = SetManagerList(whitelistHash, input.Creator,input.ManagerList);
             
-            WhitelistInfo whitelistInfo;
-            var alreadyExistsAddressList = new List<Address>();
-            if (input.ExtraInfoList == null)
+            var whitelistInfo = new WhitelistInfo
             {
-                whitelistInfo = new WhitelistInfo
-                {
-                    WhitelistId = whitelistHash,
-                    ProjectId = input.ProjectId,
-                    Creator = input.Creator ?? Context.Sender,
-                    IsAvailable = false,
-                    IsCloneable = input.IsCloneable,
-                    Remark = input.Remark,
-                    Manager = managerList,
-                    StrategyType = input.StrategyType
-                };
-            }
-            else
-            {
-                //Remove duplicate addresses.
-                var extraInfoList = input.ExtraInfoList.Value;
-
-                if (input.StrategyType == StrategyType.Basic)
-                {
-                    var addressList = new AddressList();
-                    foreach (var extraInfo in extraInfoList)
-                    {
-                        foreach (var address in extraInfo.AddressList.Value)
-                        {
-                            if (addressList.Value.Contains(address))
-                            {
-                                throw new AssertionException($"Duplicate address: ${address}.");
-                            }
-                            addressList.Value.Add(address);
-                        }
-                    }
-                    
-                    var extraInfoIdList = new ExtraInfoIdList
-                    {
-                        Value = {new ExtraInfoId
-                        {
-                            AddressList = addressList
-                        }}
-                    };
-
-                    whitelistInfo = new WhitelistInfo
-                    {
-                        WhitelistId = whitelistHash,
-                        ProjectId = input.ProjectId,
-                        ExtraInfoIdList = extraInfoIdList,
-                        Creator = input.Creator ?? Context.Sender,
-                        IsAvailable = true,
-                        IsCloneable = input.IsCloneable,
-                        Remark = input.Remark,
-                        Manager = managerList,
-                        StrategyType = input.StrategyType
-                    };
-                }
-                else
-                {
-                    var extraInfoIdList = extraInfoList.Select(e =>
-                    {
-                        var id = CreateTagInfo(e.Info, input.ProjectId,whitelistHash);
-                        //Set tagInfo list according to the owner and projectId.
-                        var idList = State.ManagerTagInfoMap[input.ProjectId][whitelistHash] ??
-                                     new HashList();
-                        idList.Value.Add(id);
-                        State.ManagerTagInfoMap[input.ProjectId][whitelistHash] = idList;
-                        //Set address list according to the tagInfoId.
-                        var addressList = State.TagInfoIdAddressListMap[whitelistHash][id] ?? new AddressList();
-                        addressList.Value.AddRange(e.AddressList.Value);
-                        State.TagInfoIdAddressListMap[whitelistHash][id] = addressList;
-                        //Map address and tagInfoId.
-                        foreach (var address in e.AddressList.Value)
-                        {
-                            State.AddressTagInfoIdMap[whitelistHash][address] = id;
-                            if (alreadyExistsAddressList.Contains(address))
-                            {
-                                throw new AssertionException($"Duplicate address: ${address}.");
-                            }
-
-                            alreadyExistsAddressList.Add(address);
-                        }
-                        return new ExtraInfoId
-                        {
-                            AddressList = e.AddressList,
-                            Id = id
-                        };
-                    }).ToList();
-                    whitelistInfo = new WhitelistInfo
-                    {
-                        WhitelistId = whitelistHash,
-                        ProjectId = input.ProjectId,
-                        ExtraInfoIdList = new ExtraInfoIdList() {Value = {extraInfoIdList}},
-                        Creator = input.Creator ?? Context.Sender,
-                        IsAvailable = true,
-                        IsCloneable = input.IsCloneable,
-                        Remark = input.Remark,
-                        Manager = managerList,
-                        StrategyType = input.StrategyType
-                    };
-                }
-            }
-            State.WhitelistInfoMap[whitelistHash] = whitelistInfo;
-            SetWhitelistIdManager(whitelistHash, managerList);
-            var projectWhitelist = State.WhitelistProjectMap[input.ProjectId] ?? new WhitelistIdList();
-            projectWhitelist.WhitelistId.Add(whitelistHash);
-            State.WhitelistProjectMap[input.ProjectId] = projectWhitelist;
-            State.ProjectWhitelistIdMap[whitelistHash] = whitelistInfo.ProjectId;
-            
+                WhitelistId = whitelistHash,
+                ProjectId = input.ProjectId,
+                ExtraInfoIdList = null,
+                Creator = input.Creator ?? Context.Sender,
+                IsAvailable = true,
+                IsCloneable = input.IsCloneable,
+                Remark = input.Remark,
+                Manager = managerList,
+                StrategyType = input.StrategyType
+            };
             Context.Fire(new WhitelistCreated
             {
                 WhitelistId = whitelistHash,
@@ -142,7 +45,83 @@ namespace AElf.Contracts.Whitelist
                 Manager = whitelistInfo.Manager,
                 StrategyType = whitelistInfo.StrategyType
             });
-            
+            var alreadyExistsAddressList = new List<Address>();
+            //Remove duplicate addresses.
+            var extraInfoList = input.ExtraInfoList.Value;
+            if (input.StrategyType == StrategyType.Basic)
+            { 
+                var addressList = new AddressList();
+                foreach (var extraInfo in extraInfoList)
+                {
+                    foreach (var address in extraInfo.AddressList.Value)
+                    {
+                        if (addressList.Value.Contains(address))
+                        {
+                            throw new AssertionException($"Duplicate address: ${address}.");
+                        }
+                        addressList.Value.Add(address);
+                    }
+                }
+                var extraInfoIdList = new ExtraInfoIdList
+                {
+                    Value = {new ExtraInfoId
+                    {
+                        AddressList = addressList
+                    }}
+                };
+
+                whitelistInfo.ExtraInfoIdList = extraInfoIdList;
+                Context.Fire(new WhitelistAddressInfoAdded()
+                {
+                    WhitelistId = whitelistHash,
+                    ExtraInfoIdList = whitelistInfo.ExtraInfoIdList
+                });
+            }
+            else
+            {
+                var extraInfoIdList = extraInfoList.Select(e =>
+                {
+                    var id = CreateTagInfo(e.Info, input.ProjectId,whitelistHash);
+                    //Set tagInfo list according to the owner and projectId.
+                    var idList = State.ManagerTagInfoMap[input.ProjectId][whitelistHash] ??
+                                 new HashList();
+                    idList.Value.Add(id);
+                    State.ManagerTagInfoMap[input.ProjectId][whitelistHash] = idList;
+                    //Set address list according to the tagInfoId.
+                    var addressList = State.TagInfoIdAddressListMap[whitelistHash][id] ?? new AddressList();
+                    addressList.Value.AddRange(e.AddressList.Value);
+                    State.TagInfoIdAddressListMap[whitelistHash][id] = addressList;
+                    //Map address and tagInfoId.
+                    foreach (var address in e.AddressList.Value)
+                    {
+                        State.AddressTagInfoIdMap[whitelistHash][address] = id;
+                        if (alreadyExistsAddressList.Contains(address))
+                        {
+                            throw new AssertionException($"Duplicate address: ${address}.");
+                        }
+
+                        alreadyExistsAddressList.Add(address);
+                    }
+                    return new ExtraInfoId
+                    {
+                        AddressList = e.AddressList,
+                        Id = id
+                    };
+                }).ToList();
+                whitelistInfo.ExtraInfoIdList = new ExtraInfoIdList() {Value = {extraInfoIdList}};
+                Context.Fire(new WhitelistAddressInfoAdded()
+                {
+                    WhitelistId = whitelistHash,
+                    ExtraInfoIdList = whitelistInfo.ExtraInfoIdList
+                });
+            } 
+            State.WhitelistInfoMap[whitelistHash] = whitelistInfo;
+            SetWhitelistIdManager(whitelistHash, managerList);
+            var projectWhitelist = State.WhitelistProjectMap[input.ProjectId] ?? new WhitelistIdList();
+            projectWhitelist.WhitelistId.Add(whitelistHash);
+            State.WhitelistProjectMap[input.ProjectId] = projectWhitelist;
+            State.ProjectWhitelistIdMap[whitelistHash] = whitelistInfo.ProjectId;
+
             return whitelistHash;
         }
         
