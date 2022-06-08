@@ -1,13 +1,13 @@
-using Newtonsoft.Json.Serialization;
+using System.Text.Json;
 
 namespace AElf.WebApp.Web;
 
-public class UpperCamelCaseNamingStrategy : CamelCaseNamingStrategy
+public class UpperCamelCaseNamingStrategy : JsonNamingPolicy
 {
-    protected override string ResolvePropertyName(string name)
+    public override string ConvertName(string name)
     {
-        var result = base.ResolvePropertyName(name);
-        result = char.ToUpperInvariant(result[0]) + result.Substring(1);
+        var result = CamelCase.ConvertName(name);
+        result = char.ToUpperInvariant(result[0]) + result[1..];
         return result;
     }
 }
