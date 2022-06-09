@@ -6,6 +6,7 @@ using AElf.Contracts.NFTMarket;
 using AElf.Contracts.Whitelist;
 using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
+using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
@@ -886,6 +887,7 @@ namespace AElf.Contracts.NFT
                     PublicTime = TimestampHelper.GetUtcNow().AddDays((1))
                 },
                 Quantity = 10,
+                IsMergeToPreviousListedInfo = true,
                 IsWhitelistAvailable = true
             });
             var whitelistId = await SellerNFTMarketContractStub.GetWhitelistId.CallAsync(new GetWhitelistIdInput()
@@ -1018,7 +1020,7 @@ namespace AElf.Contracts.NFT
                 NftContractAddress = NFTContractAddress,
                 ServiceFeeReceiver = MarketServiceFeeReceiverAddress
             });
-            await AdminNFTMarketContractStub.SetWhitelistContract.SendAsync(WhitelistContractAddress);
+            await BuyerNFTMarketContractStub.SetWhitelistContract.SendAsync(WhitelistContractAddress);
             var createWhitelistInput = new CreateWhitelistInput
             {
                 ProjectId = HashHelper.ComputeFrom("Badge Test"),
@@ -1095,6 +1097,57 @@ namespace AElf.Contracts.NFT
                     });
                 ifExist.Value.ShouldBe(false);
             }
+            return symbol;
+        }
+        
+        [Fact]
+        public async Task<string> CreateBadgeTest_new_whitelistIdNull()
+        {
+            await BuyerNFTMarketContractStub.Initialize.SendAsync(new InitializeInput
+            {
+                NftContractAddress = NFTContractAddress,
+                ServiceFeeReceiver = MarketServiceFeeReceiverAddress
+            });
+            await BuyerNFTMarketContractStub.SetWhitelistContract.SendAsync(WhitelistContractAddress);
+
+            var executionResult = await NFTContractStub.Create.SendAsync(new CreateInput
+            {
+                BaseUri = BaseUri,
+                Creator = DefaultAddress,
+                IsBurnable = true,
+                Metadata = new Metadata
+                {
+                    Value =
+                    {
+                        {"Description", "Stands for the human race."}
+                    }
+                },
+                NftType = NFTType.Badges.ToString(),
+                ProtocolName = "Badge",
+                TotalSupply = 1_000_000_000 // One billion
+            });
+            var symbol = executionResult.Output.Value;
+            await NFTContractStub.Mint.SendAsync(new MintInput
+            {
+                Symbol = symbol,
+                Alias = "badge",
+                Metadata = new Metadata
+                {
+                    Value =
+                    {
+                        {"Special Property", "A Value"},
+                        {"aelf_badge_whitelist", new Hash().ToHex()}
+                    }
+                },
+                Owner = DefaultAddress,
+                Uri = $"{BaseUri}foo"
+            });
+            var executionResult1 = await BuyerNFTMarketContractStub.MintBadge.SendWithExceptionAsync(new MintBadgeInput()
+            {
+                Symbol = symbol,
+                TokenId = 1
+            });
+            executionResult1.TransactionResult.Error.ShouldContain("No whitelist.");
             return symbol;
         }
     }
