@@ -150,6 +150,16 @@ namespace AElf.Contracts.NFTMarket
                                 Owner = listedNftInfo.Owner
                             });
                         }
+                        Context.Fire(new ListedNFTChanged
+                        {
+                            Symbol = listedNftInfo.Symbol,
+                            TokenId = listedNftInfo.TokenId,
+                            Duration = listedNftInfo.Duration,
+                            Owner = listedNftInfo.Owner,
+                            PreviousDuration = listedNftInfo.Duration,
+                            Quantity = listedNftInfo.Quantity,
+                            Price = listedNftInfo.Price
+                        });
                     }
 
                     break;
@@ -171,6 +181,16 @@ namespace AElf.Contracts.NFTMarket
                                 Owner = listedNftInfo.Owner
                             });
                         }
+                        Context.Fire(new ListedNFTChanged
+                        {
+                            Symbol = listedNftInfo.Symbol,
+                            TokenId = listedNftInfo.TokenId,
+                            Duration = listedNftInfo.Duration,
+                            Owner = listedNftInfo.Owner,
+                            PreviousDuration = listedNftInfo.Duration,
+                            Quantity = listedNftInfo.Quantity,
+                            Price = listedNftInfo.Price
+                        });
                     }
 
                     break;
@@ -840,6 +860,7 @@ namespace AElf.Contracts.NFTMarket
             Assert(nftInfo.Metadata.Value.ContainsKey(BadgeMintWhitelistIdMetadataKey),
                 $"Metadata {BadgeMintWhitelistIdMetadataKey} not found.");
             var whitelistIdHex = nftInfo.Metadata.Value[BadgeMintWhitelistIdMetadataKey];
+            Assert(!string.IsNullOrWhiteSpace(whitelistIdHex),$"No whitelist.{whitelistIdHex}");
             var whitelistId = Hash.LoadFromHex(whitelistIdHex);
             //Whether NFT Market Contract is the manager.
             var isManager = State.WhitelistContract.GetManagerExistFromWhitelist.Call(new GetManagerExistFromWhitelistInput()
