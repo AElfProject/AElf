@@ -623,6 +623,21 @@ namespace AElf.Contracts.NFTMarket
 
                 price = offer.Price;
                 totalAmount = price.Amount.Mul(input.Quantity);
+                Context.Fire(new OfferChanged
+                {
+                    Symbol = input.Symbol,
+                    TokenId = input.TokenId,
+                    OfferFrom = input.OfferFrom,
+                    OfferTo = Context.Sender,
+                    Quantity = input.Quantity,
+                    Price = new Price
+                    {
+                        Symbol = input.Symbol,
+                        TokenId = input.TokenId,
+                        Amount = totalAmount
+                    },
+                    ExpireTime = offer.ExpireTime
+                });
             }
 
             var listedNftInfoList = State.ListedNFTInfoListMap[input.Symbol][input.TokenId][Context.Sender];

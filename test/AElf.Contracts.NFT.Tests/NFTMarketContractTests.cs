@@ -289,7 +289,7 @@ namespace AElf.Contracts.NFT
                 Quantity = 1
             });
             
-            await SellerNFTMarketContractStub.Deal.SendAsync(new DealInput
+            var executionResult1 = await SellerNFTMarketContractStub.Deal.SendAsync(new DealInput
             {
                 Symbol = symbol,
                 TokenId = 233,
@@ -297,7 +297,11 @@ namespace AElf.Contracts.NFT
                 Quantity = 1,
                 Price = offer.Price
             });
-
+            var log = OfferChanged.Parser.ParseFrom(executionResult1.TransactionResult.Logs
+                .First(l => l.Name == nameof(OfferChanged)).NonIndexed);
+            log.Quantity.ShouldBe(1);
+            log.Price.Amount.ShouldBe(90_00000000);
+            offer.From.ShouldBe(User2Address);
             {
                 var balance = await TokenContractStub.GetBalance.CallAsync(new MultiToken.GetBalanceInput
                 {
