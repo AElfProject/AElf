@@ -51,7 +51,7 @@ namespace AElf.Contracts.NFTMarket
                         MaybeReceiveRemainDeposit(requestInfo);
                     }
                 }
-                else if (whitelists != null)
+                else
                 {
                     var extraInfoList = ConvertToExtraInfo(whitelists);
                     //Listed for the first time, create whitelist.
@@ -75,7 +75,7 @@ namespace AElf.Contracts.NFTMarket
                     {
                         //Add address list to the existing whitelist.
                         whitelistId = State.WhitelistIdMap[input.Symbol][input.TokenId][Context.Sender];
-                        var extraInfoIdList = whitelists.Whitelists.GroupBy(p => p.PriceTag)
+                        var extraInfoIdList = whitelists?.Whitelists.GroupBy(p => p.PriceTag)
                             .ToDictionary(e=>e.Key, e =>e.ToList())
                             .Select(extra =>
                             {
@@ -116,7 +116,7 @@ namespace AElf.Contracts.NFTMarket
                                 }
                                 return toAddExtraInfoIdList;
                             }).ToList();
-                        if (extraInfoIdList.Count != 0)
+                        if (extraInfoList != null && extraInfoIdList != null && extraInfoIdList.Count != 0)
                         {
                             var toAdd = new ExtraInfoIdList();
                             foreach (var extra in extraInfoIdList)

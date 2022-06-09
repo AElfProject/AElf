@@ -574,6 +574,10 @@ namespace AElf.Contracts.NFTMarket
         private ExtraInfoList ConvertToExtraInfo(WhitelistInfoList input)
         {
             var extraInfoList = new ExtraInfoList();
+            if (input == null)
+            {
+                return extraInfoList;
+            }
             foreach (var whitelist in input.Whitelists)
             {
                 var extraInfo = new ExtraInfo

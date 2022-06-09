@@ -125,14 +125,15 @@ namespace AElf.Contracts.Whitelist
             }
             else
             {
-                var addressList = State.TagInfoIdAddressListMap[whitelist.WhitelistId][input.ExtraInfoId.Id];
+                var addressList = State.TagInfoIdAddressListMap[whitelist.WhitelistId][input.ExtraInfoId.Id] ?? new AddressList();
                 return input.ExtraInfoId.AddressList.Value.Any(address => !addressList.Value.Contains(address)) ? new BoolValue() {Value = false} : new BoolValue() {Value = true};
             }
         }
 
         public override BoolValue GetManagerExistFromWhitelist(GetManagerExistFromWhitelistInput input)
         {
-            var ifExist = State.ManagerListMap[input.WhitelistId].Value.Contains(input.Manager);
+            var whitelistIdList = State.ManagerListMap[input.WhitelistId] ?? new AddressList();
+            var ifExist = whitelistIdList.Value.Contains(input.Manager);
             return new BoolValue(){Value = ifExist};
         }
 
@@ -141,7 +142,7 @@ namespace AElf.Contracts.Whitelist
             var whitelist = GetWhitelist(input.WhitelistId);
             MakeSureProjectCorrect(whitelist.WhitelistId,input.ProjectId);
             var tagId = whitelist.WhitelistId.CalculateExtraInfoId(whitelist.ProjectId, input.TagInfo.TagName);
-            var tagIdList = State.ManagerTagInfoMap[whitelist.ProjectId][whitelist.WhitelistId];
+            var tagIdList = State.ManagerTagInfoMap[whitelist.ProjectId][whitelist.WhitelistId] ?? new HashList();
             var ifExist = tagIdList.Value.Contains(tagId);
             return new BoolValue() {Value = ifExist};
         }
