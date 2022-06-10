@@ -1,21 +1,19 @@
 ﻿using AElf.Contracts.MultiToken;
 using AElf.Kernel.SmartContract;
 
-namespace AElf.Kernel.FeeCalculation.Infrastructure
+namespace AElf.Kernel.FeeCalculation.Infrastructure;
+
+internal class StorageFeeProvider : TokenFeeProviderBase, IResourceTokenFeeProvider
 {
-    internal class StorageFeeProvider : TokenFeeProviderBase, IResourceTokenFeeProvider
+    public StorageFeeProvider(ICalculateFunctionProvider calculateFunctionProvider) : base(
+        calculateFunctionProvider, (int)FeeTypeEnum.Storage)
     {
-        public StorageFeeProvider(ICalculateFunctionProvider calculateFunctionProvider) : base(
-            calculateFunctionProvider, (int) FeeTypeEnum.Storage)
-        {
+    }
 
-        }
+    public string TokenName => "STORAGE";
 
-        public string TokenName => "STORAGE";
-
-        protected override int GetCalculateCount(ITransactionContext transactionContext)
-        {
-            return transactionContext.Transaction.Size();
-        }
+    protected override int GetCalculateCount(ITransactionContext transactionContext)
+    {
+        return transactionContext.Transaction.Size();
     }
 }

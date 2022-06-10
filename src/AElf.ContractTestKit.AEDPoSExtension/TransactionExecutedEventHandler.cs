@@ -3,22 +3,21 @@ using AElf.Kernel.SmartContractExecution.Events;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus;
 
-namespace AElf.ContractTestKit.AEDPoSExtension
+namespace AElf.ContractTestKit.AEDPoSExtension;
+
+public class TransactionExecutedEventHandler : ILocalEventHandler<TransactionExecutedEventData>,
+    ITransientDependency
 {
-    public class TransactionExecutedEventHandler : ILocalEventHandler<TransactionExecutedEventData>,
-        ITransientDependency
+    private readonly ITransactionTraceProvider _traceProvider;
+
+    public TransactionExecutedEventHandler(ITransactionTraceProvider traceProvider)
     {
-        private readonly ITransactionTraceProvider _traceProvider;
+        _traceProvider = traceProvider;
+    }
 
-        public TransactionExecutedEventHandler(ITransactionTraceProvider traceProvider)
-        {
-            _traceProvider = traceProvider;
-        }
-
-        public Task HandleEventAsync(TransactionExecutedEventData eventData)
-        {
-            _traceProvider.AddTransactionTrace(eventData.TransactionTrace);
-            return Task.CompletedTask;
-        }
+    public Task HandleEventAsync(TransactionExecutedEventData eventData)
+    {
+        _traceProvider.AddTransactionTrace(eventData.TransactionTrace);
+        return Task.CompletedTask;
     }
 }

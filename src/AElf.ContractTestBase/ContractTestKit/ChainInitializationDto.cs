@@ -1,7 +1,5 @@
-namespace AElf.ContractTestBase.ContractTestKit
+namespace AElf.ContractTestBase.ContractTestKit;
+
+public class ChainInitializationDto : ChainInitializationOptions
 {
-    public class ChainInitializationDto : ChainInitializationOptions
-    {
-        
-    }
 }

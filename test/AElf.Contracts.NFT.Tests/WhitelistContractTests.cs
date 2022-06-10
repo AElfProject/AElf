@@ -9,8 +9,6 @@ using Shouldly;
 using Xunit;
 using PriceTag = AElf.Contracts.Whitelist.PriceTag;
 
-//using InitializeInput = AElf.Contracts.Whitelist.InitializeInput;
-
 namespace AElf.Contracts.NFT
 {
     public partial class WhitelistContractTests : NFTContractTestBase

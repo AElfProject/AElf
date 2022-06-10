@@ -4,18 +4,17 @@ using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
 
-namespace AElf.Kernel.SmartContract
+namespace AElf.Kernel.SmartContract;
+
+[DependsOn(typeof(CoreKernelAElfModule))]
+public class SmartContractAElfModule : AElfModule
 {
-    [DependsOn(typeof(CoreKernelAElfModule))]
-    public class SmartContractAElfModule : AElfModule
+    public override void ConfigureServices(ServiceConfigurationContext context)
     {
-        public override void ConfigureServices(ServiceConfigurationContext context)
-        {
-            context.Services.AddSingleton<ISmartContractRunnerContainer, SmartContractRunnerContainer>();
-            context.Services.AddSingleton<ITransactionExecutingService, PlainTransactionExecutingService>();
-            context.Services.AddSingleton<IPlainTransactionExecutingService, PlainTransactionExecutingService>();
-            context.Services.AddTransient(typeof(IContractReaderFactory<>), typeof(ContractReaderFactory<>));
-            context.Services.AddSingleton(typeof(ILogEventProcessingService<>), typeof(LogEventProcessingService<>));
-        }
+        context.Services.AddSingleton<ISmartContractRunnerContainer, SmartContractRunnerContainer>();
+        context.Services.AddSingleton<ITransactionExecutingService, PlainTransactionExecutingService>();
+        context.Services.AddSingleton<IPlainTransactionExecutingService, PlainTransactionExecutingService>();
+        context.Services.AddTransient(typeof(IContractReaderFactory<>), typeof(ContractReaderFactory<>));
+        context.Services.AddSingleton(typeof(ILogEventProcessingService<>), typeof(LogEventProcessingService<>));
     }
 }

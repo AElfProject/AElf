@@ -5,17 +5,16 @@ using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
 
-namespace AElf.Kernel.SmartContract.Parallel
+namespace AElf.Kernel.SmartContract.Parallel;
+
+[DependsOn(typeof(SmartContractAElfModule))]
+public class ParallelExecutionModule : AElfModule
 {
-    [DependsOn(typeof(SmartContractAElfModule))]
-    public class ParallelExecutionModule : AElfModule
+    public override void ConfigureServices(ServiceConfigurationContext context)
     {
-        public override void ConfigureServices(ServiceConfigurationContext context)
-        {
-            context.Services.AddTransient<IBlockExecutingService, BlockParallelExecutingService>();
-            context.Services
-                .AddSingleton<IParallelTransactionExecutingService, LocalParallelTransactionExecutingService>();
-            context.Services.AddSingleton<ITransactionExecutingService, LocalParallelTransactionExecutingService>();
-        }
+        context.Services.AddTransient<IBlockExecutingService, BlockParallelExecutingService>();
+        context.Services
+            .AddSingleton<IParallelTransactionExecutingService, LocalParallelTransactionExecutingService>();
+        context.Services.AddSingleton<ITransactionExecutingService, LocalParallelTransactionExecutingService>();
     }
 }

@@ -1,10 +1,9 @@
 using AElf.Modularity;
 using Volo.Abp.Modularity;
 
-namespace AElf.ContractDeployer
+namespace AElf.ContractDeployer;
+
+[DependsOn(typeof(ContractDeployerModule))]
+public class ContractDeployerTestAElfModule : AElfModule
 {
-    [DependsOn(typeof(ContractDeployerModule))]
-    public class ContractDeployerTestAElfModule : AElfModule
-    {
-    }
 }

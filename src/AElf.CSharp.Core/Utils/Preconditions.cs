@@ -18,35 +18,28 @@
 
 using System;
 
-namespace AElf.CSharp.Core.Utils
-{
-    public class Preconditions
-    {
-        /// <summary>
-        /// Throws <see cref="ArgumentNullException"/> if reference is null.
-        /// </summary>
-        /// <param name="reference">The reference.</param>
-        public static T CheckNotNull<T>(T reference)
-        {
-            if (reference == null)
-            {
-                throw new ArgumentNullException();
-            }
-            return reference;
-        }
+namespace AElf.CSharp.Core.Utils;
 
-        /// <summary>
-        /// Throws <see cref="ArgumentNullException"/> if reference is null.
-        /// </summary>
-        /// <param name="reference">The reference.</param>
-        /// <param name="paramName">The parameter name.</param>
-        public static T CheckNotNull<T>(T reference, string paramName)
-        {
-            if (reference == null)
-            {
-                throw new ArgumentNullException(paramName);
-            }
-            return reference;
-        }
+public class Preconditions
+{
+    /// <summary>
+    ///     Throws <see cref="ArgumentNullException" /> if reference is null.
+    /// </summary>
+    /// <param name="reference">The reference.</param>
+    public static T CheckNotNull<T>(T reference)
+    {
+        if (reference == null) throw new ArgumentNullException();
+        return reference;
+    }
+
+    /// <summary>
+    ///     Throws <see cref="ArgumentNullException" /> if reference is null.
+    /// </summary>
+    /// <param name="reference">The reference.</param>
+    /// <param name="paramName">The parameter name.</param>
+    public static T CheckNotNull<T>(T reference, string paramName)
+    {
+        if (reference == null) throw new ArgumentNullException(paramName);
+        return reference;
     }
 }

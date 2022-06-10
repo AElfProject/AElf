@@ -1,11 +1,10 @@
 using System;
 
-namespace AElf.Cryptography.Exceptions
+namespace AElf.Cryptography.Exceptions;
+
+public class PublicKeyOperationException : Exception
 {
-    public class PublicKeyOperationException : Exception
+    public PublicKeyOperationException(string message) : base(message)
     {
-        public PublicKeyOperationException(string message) : base(message)
-        {
-        }
     }
 }

@@ -3,34 +3,33 @@ using AElf.Kernel.Blockchain.Events;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus;
 
-namespace AElf.Kernel.Consensus.Application
+namespace AElf.Kernel.Consensus.Application;
+
+/// <summary>
+///     Trigger consensus to update mining scheduler.
+/// </summary>
+public class ConsensusBestChainFoundEventHandler : ILocalEventHandler<BestChainFoundEventData>, ITransientDependency
 {
-    /// <summary>
-    /// Trigger consensus to update mining scheduler.
-    /// </summary>
-    public class ConsensusBestChainFoundEventHandler : ILocalEventHandler<BestChainFoundEventData>, ITransientDependency
+    private readonly IConsensusService _consensusService;
+
+    public ConsensusBestChainFoundEventHandler(IConsensusService consensusService)
     {
-        private readonly IConsensusService _consensusService;
+        _consensusService = consensusService;
+    }
 
-        public ConsensusBestChainFoundEventHandler(IConsensusService consensusService)
+    /// <summary>
+    ///     Trigger consensus mining process after event BestChainFoundEventData published by EventBus.
+    /// </summary>
+    /// <param name="eventData"></param>
+    /// <returns></returns>
+    public Task HandleEventAsync(BestChainFoundEventData eventData)
+    {
+        _consensusService.TriggerConsensusAsync(new ChainContext
         {
-            _consensusService = consensusService;
-        }
+            BlockHash = eventData.BlockHash,
+            BlockHeight = eventData.BlockHeight
+        });
 
-        /// <summary>
-        /// Trigger consensus mining process after event BestChainFoundEventData published by EventBus.
-        /// </summary>
-        /// <param name="eventData"></param>
-        /// <returns></returns>
-        public Task HandleEventAsync(BestChainFoundEventData eventData)
-        {
-            _consensusService.TriggerConsensusAsync(new ChainContext
-            {
-                BlockHash = eventData.BlockHash,
-                BlockHeight = eventData.BlockHeight
-            });
-
-            return Task.CompletedTask;
-        }
+        return Task.CompletedTask;
     }
 }

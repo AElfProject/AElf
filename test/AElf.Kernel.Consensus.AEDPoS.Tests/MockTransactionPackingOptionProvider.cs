@@ -1,21 +1,20 @@
 using System.Threading.Tasks;
 using AElf.Kernel.Txn.Application;
 
-namespace AElf.Kernel.Consensus.DPoS.Tests
+namespace AElf.Kernel.Consensus.DPoS.Tests;
+
+public class MockTransactionPackingOptionProvider : ITransactionPackingOptionProvider
 {
-    public class MockTransactionPackingOptionProvider : ITransactionPackingOptionProvider
+    private bool _isTransactionPackable = true;
+
+    public Task SetTransactionPackingOptionAsync(IBlockIndex blockIndex, bool isTransactionPackable)
     {
-        private bool _isTransactionPackable = true;
+        _isTransactionPackable = isTransactionPackable;
+        return Task.CompletedTask;
+    }
 
-        public Task SetTransactionPackingOptionAsync(IBlockIndex blockIndex, bool isTransactionPackable)
-        {
-            _isTransactionPackable = isTransactionPackable;
-            return Task.CompletedTask;
-        }
-
-        public bool IsTransactionPackable(IChainContext chainContext)
-        {
-            return _isTransactionPackable;
-        }
+    public bool IsTransactionPackable(IChainContext chainContext)
+    {
+        return _isTransactionPackable;
     }
 }

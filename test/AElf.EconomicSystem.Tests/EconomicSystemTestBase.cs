@@ -1,8 +1,7 @@
 using AElf.TestBase;
 
-namespace AElf.EconomicSystem.Tests
+namespace AElf.EconomicSystem.Tests;
+
+public class EconomicSystemTestBase : AElfIntegratedTest<EconomicSystemTestModule>
 {
-    public class EconomicSystemTestBase : AElfIntegratedTest<EconomicSystemTestModule>
-    {
-    }
 }

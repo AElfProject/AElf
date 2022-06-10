@@ -9,89 +9,90 @@ using Microsoft.Extensions.Options;
 using Shouldly;
 using Xunit;
 
-namespace AElf.Kernel.SmartContract.Application
+namespace AElf.Kernel.SmartContract.Application;
+
+public sealed class SmartContractBridgeServiceTests : SmartContractTestBase
 {
-    public sealed class SmartContractBridgeServiceTests : SmartContractTestBase
+    private readonly IBlockchainService _blockchainService;
+    private readonly IBlockStateSetManger _blockStateSetManger;
+    private readonly ChainOptions _chainOptions;
+    private readonly KernelTestHelper _kernelTestHelper;
+    private readonly ISmartContractBridgeService _smartContractBridgeService;
+    private readonly SmartContractHelper _smartContractHelper;
+
+    public SmartContractBridgeServiceTests()
     {
-        private readonly IBlockchainService _blockchainService;
-        private readonly ISmartContractBridgeService _smartContractBridgeService;
-        private readonly KernelTestHelper _kernelTestHelper;
-        private readonly ChainOptions _chainOptions;
-        private readonly IBlockStateSetManger _blockStateSetManger;
-        private readonly SmartContractHelper _smartContractHelper;
+        _blockchainService = GetRequiredService<IBlockchainService>();
+        _smartContractBridgeService = GetRequiredService<ISmartContractBridgeService>();
+        _kernelTestHelper = GetRequiredService<KernelTestHelper>();
+        _chainOptions = GetRequiredService<IOptionsSnapshot<ChainOptions>>().Value;
+        _blockStateSetManger = GetRequiredService<IBlockStateSetManger>();
+        _smartContractHelper = GetRequiredService<SmartContractHelper>();
+    }
 
-        public SmartContractBridgeServiceTests()
+    [Fact]
+    public async Task GetBlockTransactions_Test()
+    {
+        var transactions = new List<Transaction>();
+        for (var i = 0; i < 3; i++)
         {
-            _blockchainService = GetRequiredService<IBlockchainService>();
-            _smartContractBridgeService = GetRequiredService<ISmartContractBridgeService>();
-            _kernelTestHelper = GetRequiredService<KernelTestHelper>();
-            _chainOptions = GetRequiredService<IOptionsSnapshot<ChainOptions>>().Value;
-            _blockStateSetManger = GetRequiredService<IBlockStateSetManger>();
-            _smartContractHelper = GetRequiredService<SmartContractHelper>();
+            var transaction = _kernelTestHelper.GenerateTransaction();
+            transactions.Add(transaction);
         }
 
-        [Fact]
-        public async Task GetBlockTransactions_Test()
+        var block = _kernelTestHelper.GenerateBlock(0, Hash.Empty, transactions);
+
+        await _blockchainService.AddBlockAsync(block);
+        await _blockchainService.AddTransactionsAsync(transactions);
+
+        var blockTransactions = await _smartContractBridgeService.GetBlockTransactions(block.GetHash());
+        blockTransactions.ShouldBe(transactions);
+    }
+
+    [Fact]
+    public void GetChainId_Test()
+    {
+        _smartContractBridgeService.GetChainId().ShouldBe(_chainOptions.ChainId);
+    }
+
+    [Fact]
+    public void GetZeroSmartContractAddress_Test()
+    {
+        _smartContractBridgeService.GetZeroSmartContractAddress()
+            .ShouldBe(_smartContractBridgeService.GetZeroSmartContractAddress(_chainOptions.ChainId));
+    }
+
+    [Fact]
+    public async Task GetStateAsync_Test()
+    {
+        var chain = await _smartContractHelper.CreateChainAsync();
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => _smartContractBridgeService.GetStateAsync(
+            SampleAddress.AddressList[0], string.Empty,
+            chain.BestChainHeight,
+            chain.BestChainHash));
+
+
+        var scopedStatePath = new ScopedStatePath
         {
-            var transactions = new List<Transaction>();
-            for (var i = 0; i < 3; i++)
+            Address = SampleAddress.AddressList[0],
+            Path = new StatePath
             {
-                var transaction = _kernelTestHelper.GenerateTransaction();
-                transactions.Add(transaction);
+                Parts = { "part" }
             }
+        };
+        var state = await _smartContractBridgeService.GetStateAsync(SampleAddress.AddressList[0],
+            scopedStatePath.ToStateKey(),
+            chain.BestChainHeight, chain.BestChainHash);
+        state.ShouldBeNull();
 
-            var block = _kernelTestHelper.GenerateBlock(0, Hash.Empty, transactions);
+        var blockStateSet = await _blockStateSetManger.GetBlockStateSetAsync(chain.BestChainHash);
+        blockStateSet.Changes[scopedStatePath.ToStateKey()] = ByteString.Empty;
+        await _blockStateSetManger.SetBlockStateSetAsync(blockStateSet);
 
-            await _blockchainService.AddBlockAsync(block);
-            await _blockchainService.AddTransactionsAsync(transactions);
-
-            var blockTransactions = await _smartContractBridgeService.GetBlockTransactions(block.GetHash());
-            blockTransactions.ShouldBe(transactions);
-        }
-
-        [Fact]
-        public void GetChainId_Test()
-        {
-            _smartContractBridgeService.GetChainId().ShouldBe(_chainOptions.ChainId);
-        }
-
-        [Fact]
-        public void GetZeroSmartContractAddress_Test()
-        {
-            _smartContractBridgeService.GetZeroSmartContractAddress()
-                .ShouldBe(_smartContractBridgeService.GetZeroSmartContractAddress(_chainOptions.ChainId));
-        }
-
-        [Fact]
-        public async Task GetStateAsync_Test()
-        {
-            var chain = await _smartContractHelper.CreateChainAsync();
-
-            await Assert.ThrowsAsync<InvalidOperationException>(() => _smartContractBridgeService.GetStateAsync(
-                SampleAddress.AddressList[0], string.Empty,
-                chain.BestChainHeight,
-                chain.BestChainHash));
-            
-            
-            var scopedStatePath = new ScopedStatePath
-            {
-                Address = SampleAddress.AddressList[0],
-                Path = new StatePath
-                {
-                    Parts = { "part"}
-                }
-            };
-            var state = await _smartContractBridgeService.GetStateAsync(SampleAddress.AddressList[0], scopedStatePath.ToStateKey(),
-                chain.BestChainHeight, chain.BestChainHash);
-            state.ShouldBeNull();
-            
-            var blockStateSet = await _blockStateSetManger.GetBlockStateSetAsync(chain.BestChainHash);
-            blockStateSet.Changes[scopedStatePath.ToStateKey()] = ByteString.Empty;
-            await _blockStateSetManger.SetBlockStateSetAsync(blockStateSet);
-            
-            state = await _smartContractBridgeService.GetStateAsync(SampleAddress.AddressList[0], scopedStatePath.ToStateKey(),
-                chain.BestChainHeight, chain.BestChainHash);
-            state.ShouldBe(ByteString.Empty);
-        }
+        state = await _smartContractBridgeService.GetStateAsync(SampleAddress.AddressList[0],
+            scopedStatePath.ToStateKey(),
+            chain.BestChainHeight, chain.BestChainHash);
+        state.ShouldBe(ByteString.Empty);
     }
 }

@@ -313,10 +313,10 @@ namespace AElf.Contracts.NFTMarket
                     return false;
                 }
 
-                var whiteListDueTime1 = requestInfo.ConfirmTime.AddHours(requestInfo.WorkHours)
+                var whitelistDueTime1 = requestInfo.ConfirmTime.AddHours(requestInfo.WorkHours)
                     .AddHours(requestInfo.WhiteListHours);
                 var whiteListDueTime2 = requestInfo.ListTime.AddHours(requestInfo.WhiteListHours);
-                if (Context.CurrentBlockTime <= whiteListDueTime1 || Context.CurrentBlockTime <= whiteListDueTime2)
+                if (Context.CurrentBlockTime <= whitelistDueTime1 || Context.CurrentBlockTime <= whiteListDueTime2)
                 {
                     return false;
                 }

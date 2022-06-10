@@ -3,25 +3,21 @@ using System.Threading.Tasks;
 using AElf.Kernel.Blockchain;
 using AElf.Kernel.SmartContract.Application;
 
-namespace AElf.Kernel.Configuration.Tests
+namespace AElf.Kernel.Configuration.Tests;
+
+public class OptionalLogEventProcessingService<T> : ILogEventProcessingService<T> where T : ILogEventProcessor
 {
-    public class OptionalLogEventProcessingService<T> : ILogEventProcessingService<T> where T : ILogEventProcessor
+    private readonly LogEventProcessingService<T> _inner;
+
+    public OptionalLogEventProcessingService(LogEventProcessingService<T> inner)
     {
-        private LogEventProcessingService<T> _inner;
+        _inner = inner;
+    }
 
-        public OptionalLogEventProcessingService(LogEventProcessingService<T> inner)
-        {
-            _inner = inner;
-        }
+    public static bool Enabled { get; set; }
 
-        public static bool Enabled { get; set; }
-
-        public async Task ProcessAsync(List<BlockExecutedSet> blockExecutedSets)
-        {
-            if (Enabled)
-            {
-                await _inner.ProcessAsync(blockExecutedSets);
-            }
-        }
+    public async Task ProcessAsync(List<BlockExecutedSet> blockExecutedSets)
+    {
+        if (Enabled) await _inner.ProcessAsync(blockExecutedSets);
     }
 }

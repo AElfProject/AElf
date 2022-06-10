@@ -2,16 +2,15 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Cryptography.ECDSA;
 
-namespace AElf.OS.Account.Infrastructure
+namespace AElf.OS.Account.Infrastructure;
+
+public interface IKeyStore
 {
-    public interface IKeyStore
-    {
-        Task<AccountError> UnlockAccountAsync(string address, string password);
+    Task<AccountError> UnlockAccountAsync(string address, string password);
 
-        ECKeyPair GetAccountKeyPair(string address);
+    ECKeyPair GetAccountKeyPair(string address);
 
-        Task<ECKeyPair> CreateAccountKeyPairAsync(string password);
+    Task<ECKeyPair> CreateAccountKeyPairAsync(string password);
 
-        Task<List<string>> GetAccountsAsync();
-    }
+    Task<List<string>> GetAccountsAsync();
 }

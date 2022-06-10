@@ -1,12 +1,10 @@
 using System.Threading.Tasks;
 using AElf.Types;
 
-namespace AElf.Kernel.SmartContract.Infrastructure
+namespace AElf.Kernel.SmartContract.Infrastructure;
+
+public interface ISmartContractRunner : ISmartContractCategoryProvider
 {
-    public interface ISmartContractRunner : ISmartContractCategoryProvider
-    {
-        Task<IExecutive> RunAsync(SmartContractRegistration reg);
-        
-        string ContractVersion { get; }
-    }
+    string ContractVersion { get; }
+    Task<IExecutive> RunAsync(SmartContractRegistration reg);
 }

@@ -14,49 +14,48 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Volo.Abp;
 using Volo.Abp.Modularity;
 
-namespace AElf.Contracts.Association
+namespace AElf.Contracts.Association;
+
+[DependsOn(typeof(ContractTestModule), typeof(AEDPoSAElfModule),
+    typeof(TokenKernelAElfModule),
+    typeof(GovernmentSystemAElfModule))]
+public class AssociationContractTestAElfModule : AbpModule
 {
-    [DependsOn(typeof(ContractTestModule),typeof(AEDPoSAElfModule),
-        typeof(TokenKernelAElfModule),
-        typeof(GovernmentSystemAElfModule))]
-    public class AssociationContractTestAElfModule : AbpModule
+    public override void ConfigureServices(ServiceConfigurationContext context)
     {
-        public override void ConfigureServices(ServiceConfigurationContext context)
+        Configure<ConsensusOptions>(options =>
         {
-            Configure<ConsensusOptions>(options =>
-            {
-                options.MiningInterval = 4000;
-                options.InitialMinerList =
-                    SampleAccount.Accounts.Take(5).Select(a => a.KeyPair.PublicKey.ToHex()).ToList();
-            });
-            Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false);
-            context.Services.RemoveAll<IPreExecutionPlugin>();
-            context.Services.AddTransient<IContractDeploymentListProvider, ContractDeploymentListProvider>();
-            context.Services.AddTransient<IParliamentContractInitializationDataProvider,
-                MainChainParliamentContractInitializationDataProvider>();
-            context.Services.AddTransient<IAEDPoSContractInitializationDataProvider,
-                MainChainAEDPoSContractInitializationDataProvider>();
-            context.Services.AddTransient<ITokenContractInitializationDataProvider,
-                MainChainTokenContractInitializationDataProvider>();
-            context.Services.RemoveAll(s => s.ImplementationType == typeof(TokenContractInitializationProvider));
-        }
-        
-        public override void OnPreApplicationInitialization(ApplicationInitializationContext context)
-        {
-            var contractCodeProvider = context.ServiceProvider.GetService<IContractCodeProvider>();
-            contractCodeProvider.Codes = ContractsDeployer.GetContractCodes<AssociationContractTestAElfModule>();
-        }
+            options.MiningInterval = 4000;
+            options.InitialMinerList =
+                SampleAccount.Accounts.Take(5).Select(a => a.KeyPair.PublicKey.ToHex()).ToList();
+        });
+        Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false);
+        context.Services.RemoveAll<IPreExecutionPlugin>();
+        context.Services.AddTransient<IContractDeploymentListProvider, ContractDeploymentListProvider>();
+        context.Services.AddTransient<IParliamentContractInitializationDataProvider,
+            MainChainParliamentContractInitializationDataProvider>();
+        context.Services.AddTransient<IAEDPoSContractInitializationDataProvider,
+            MainChainAEDPoSContractInitializationDataProvider>();
+        context.Services.AddTransient<ITokenContractInitializationDataProvider,
+            MainChainTokenContractInitializationDataProvider>();
+        context.Services.RemoveAll(s => s.ImplementationType == typeof(TokenContractInitializationProvider));
     }
 
-    [DependsOn(typeof(ContractTestModule),typeof(AEDPoSAElfModule),
-        typeof(TokenKernelAElfModule),
-        typeof(GovernmentSystemAElfModule))]
-    public class AssociationContractTestAElfModuleWithSpecificChainId : AssociationContractTestAElfModule
+    public override void OnPreApplicationInitialization(ApplicationInitializationContext context)
     {
-        public override void ConfigureServices(ServiceConfigurationContext context)
-        {
-            base.ConfigureServices(context);
-            Configure<ChainOptions>(options => options.ChainId = 1);
-        }
+        var contractCodeProvider = context.ServiceProvider.GetService<IContractCodeProvider>();
+        contractCodeProvider.Codes = ContractsDeployer.GetContractCodes<AssociationContractTestAElfModule>();
+    }
+}
+
+[DependsOn(typeof(ContractTestModule), typeof(AEDPoSAElfModule),
+    typeof(TokenKernelAElfModule),
+    typeof(GovernmentSystemAElfModule))]
+public class AssociationContractTestAElfModuleWithSpecificChainId : AssociationContractTestAElfModule
+{
+    public override void ConfigureServices(ServiceConfigurationContext context)
+    {
+        base.ConfigureServices(context);
+        Configure<ChainOptions>(options => options.ChainId = 1);
     }
 }

@@ -1,29 +1,28 @@
 using AElf.CrossChain.Application;
 using AElf.GovernmentSystem;
-using AElf.Kernel.Proposal;
 using Volo.Abp.Threading;
 
-namespace AElf.Blockchains.SideChain
+namespace AElf.Blockchains.SideChain;
+
+public class ParliamentContractInitializationDataProvider : IParliamentContractInitializationDataProvider
 {
-    public class ParliamentContractInitializationDataProvider : IParliamentContractInitializationDataProvider
+    private readonly ISideChainInitializationDataProvider _sideChainInitializationDataProvider;
+
+    public ParliamentContractInitializationDataProvider(
+        ISideChainInitializationDataProvider sideChainInitializationDataProvider)
     {
-        private readonly ISideChainInitializationDataProvider _sideChainInitializationDataProvider;
+        _sideChainInitializationDataProvider = sideChainInitializationDataProvider;
+    }
 
-        public ParliamentContractInitializationDataProvider(ISideChainInitializationDataProvider sideChainInitializationDataProvider)
+    public ParliamentContractInitializationData GetContractInitializationData()
+    {
+        var sideChainInitializationData =
+            AsyncHelper.RunSync(_sideChainInitializationDataProvider.GetChainInitializationDataAsync);
+
+        return new ParliamentContractInitializationData
         {
-            _sideChainInitializationDataProvider = sideChainInitializationDataProvider;
-        }
-
-        public ParliamentContractInitializationData GetContractInitializationData()
-        {
-            var sideChainInitializationData =
-                AsyncHelper.RunSync(_sideChainInitializationDataProvider.GetChainInitializationDataAsync);
-
-            return new ParliamentContractInitializationData
-            {
-                PrivilegedProposer = sideChainInitializationData.Creator,
-                ProposerAuthorityRequired = sideChainInitializationData.ChainCreatorPrivilegePreserved
-            };
-        }
+            PrivilegedProposer = sideChainInitializationData.Creator,
+            ProposerAuthorityRequired = sideChainInitializationData.ChainCreatorPrivilegePreserved
+        };
     }
 }

@@ -1,31 +1,29 @@
-using System;
-using System.Collections.Generic;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Net;
 
-namespace AElf.OS.Network.Infrastructure
+namespace AElf.OS.Network.Infrastructure;
+
+public interface IPeerPool
 {
-    public interface IPeerPool
-    {
-        int PeerCount { get; }
+    int PeerCount { get; }
 
-        bool IsFull();
-        bool IsPeerBlackListed(string host);
-        bool IsOverIpLimit(string host);
+    bool IsFull();
+    bool IsPeerBlackListed(string host);
+    bool IsOverIpLimit(string host);
 
-        bool AddHandshakingPeer(string host, string pubkey);
-        bool RemoveHandshakingPeer(string host, string pubkey);
-        Dictionary<string, ConcurrentDictionary<string, string>> GetHandshakingPeers();
+    bool AddHandshakingPeer(string host, string pubkey);
+    bool RemoveHandshakingPeer(string host, string pubkey);
+    Dictionary<string, ConcurrentDictionary<string, string>> GetHandshakingPeers();
 
-        List<IPeer> GetPeers(bool includeFailing = false);
+    List<IPeer> GetPeers(bool includeFailing = false);
 
-        IPeer FindPeerByEndpoint(DnsEndPoint peerEndpoint);
-        IPeer FindPeerByPublicKey(string remotePubKey);
+    IPeer FindPeerByEndpoint(DnsEndPoint peerEndpoint);
+    IPeer FindPeerByPublicKey(string remotePubKey);
 
-        List<IPeer> GetPeersByHost(string host);
+    List<IPeer> GetPeersByHost(string host);
 
-        bool TryReplace(string pubkey, IPeer oldPeer, IPeer newPeer);
-        bool TryAddPeer(IPeer peer);
-        IPeer RemovePeer(string publicKey);
-    }
+    bool TryReplace(string pubkey, IPeer oldPeer, IPeer newPeer);
+    bool TryAddPeer(IPeer peer);
+    IPeer RemovePeer(string publicKey);
 }

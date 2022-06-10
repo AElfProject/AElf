@@ -1,7 +1,6 @@
-namespace AElf.ContractTestBase.ContractTestKit
+namespace AElf.ContractTestBase.ContractTestKit;
+
+public static class ContractTestConstants
 {
-    public static class ContractTestConstants
-    {
-        public static readonly  Account DefaultAccount = SampleAccount.Accounts[0];
-    }
+    public static readonly Account DefaultAccount = SampleAccount.Accounts[0];
 }

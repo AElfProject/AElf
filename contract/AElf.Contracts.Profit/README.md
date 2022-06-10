@@ -10,7 +10,8 @@ Call `CreateScheme` and provide the token symbol you gonna use in this item. Als
 
 </details>
 
-## Actions 
+## Actions
+
 <details>
 
   <summary><b>InitializeProfitContract</b></summary>
@@ -41,9 +42,11 @@ For anyone to create a `ProfitItem`.
 
 ### Notes
 
-- A `ProfitItem` will be identified by a Hash value which called `SchemeId`. This Hash value is calculated from `TransactionId` of `CreateScheme` transction and the address of `Profit Contract`.
+- A `ProfitItem` will be identified by a Hash value which called `SchemeId`. This Hash value is calculated
+  from `TransactionId` of `CreateScheme` transction and the address of `Profit Contract`.
 
-- To create a `ProfitItem`, the creator need to provide its binded token symbol. Like for item `Treasury` created by `AElf Consensus Contract`, the binded token symbol is `ELF`.
+- To create a `ProfitItem`, the creator need to provide its binded token symbol. Like for item `Treasury` created
+  by `AElf Consensus Contract`, the binded token symbol is `ELF`.
 
 - `ExpiredPeriodNumber` is optional.
 
@@ -63,7 +66,8 @@ For a profit scheme `Creator` to register a `SubProfitScheme` to one `ProfitSche
 
 - Sender must be the `Creator` of the `ProfitItem` to register to.
 
-- To register a `ProfitItem` as `SubProfitItem`, sender should provide `SchemeId`s of two `ProfitItem`s and the `Shares` of `SubProfitItem`.
+- To register a `ProfitItem` as `SubProfitItem`, sender should provide `SchemeId`s of two `ProfitItem`s and the `Shares`
+  of `SubProfitItem`.
 
 - This method will actually call `AddBeneficiary` to add the `Shares` of `SubProfitItem`.
 
@@ -83,7 +87,8 @@ For a profit scheme `Creator` to add an Address to receive profits of one `Profi
 
 - `TotalShares` of this `ProfitItem` will be increased.
 
-- Will add a `ProfitDetail` to record this addition for Beneficiary address to profit from this `ProfitItem` in the future.
+- Will add a `ProfitDetail` to record this addition for Beneficiary address to profit from this `ProfitItem` in the
+  future.
 
 - Will remove expired `ProfitDetail`s.
 
@@ -107,7 +112,8 @@ For a profit scheme `Creator` to remove an Address to receive profits of one `Pr
 
 ### Purpose
 
-For a profit scheme `Creator` to release an amount of profits to a virtual address calculated by `ProfitItem` and current period number.
+For a profit scheme `Creator` to release an amount of profits to a virtual address calculated by `ProfitItem` and
+current period number.
 
 If this `ProfitItem` has `SubProfitItem`s, transfer tokens to `SubProfitItem`s' virtual addresses.
 
