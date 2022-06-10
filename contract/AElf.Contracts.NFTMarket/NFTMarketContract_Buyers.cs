@@ -903,14 +903,21 @@ namespace AElf.Contracts.NFTMarket
                 Address = Context.Sender
             });
             Assert(ifExist.Value,$"No permission.{Context.Sender}");
+            State.NFTContract.Mint.Send(new MintInput
+            {
+                Symbol = input.Symbol,
+                TokenId = input.TokenId,
+                Owner = Context.Sender,
+                Quantity = 1
+            });
             State.WhitelistContract.RemoveAddressInfoListFromWhitelist.Send(new RemoveAddressInfoListFromWhitelistInput()
             {
                 WhitelistId = whitelistId,
                 ExtraInfoIdList = new ExtraInfoIdList()
                 {
-                    Value = { new ExtraInfoId
+                    Value = { new ExtraInfoId()
                     {
-                        AddressList = new Whitelist.AddressList{Value = { Context.Sender }}
+                        AddressList = new Whitelist.AddressList(){Value = { Context.Sender }}
                     } }
                 }
             });
