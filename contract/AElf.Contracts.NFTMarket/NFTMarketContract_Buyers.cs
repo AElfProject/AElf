@@ -882,17 +882,17 @@ namespace AElf.Contracts.NFTMarket
                 Address = Context.Sender
             });
             Assert(ifExist.Value,$"No permission.{Context.Sender}");
-            State.WhitelistContract.RemoveAddressInfoListFromWhitelist.Send(new RemoveAddressInfoListFromWhitelistInput()
-            {
-                WhitelistId = whitelistId,
-                ExtraInfoIdList = new ExtraInfoIdList()
-                {
-                    Value = { new ExtraInfoId()
-                    {
-                        AddressList = new Whitelist.AddressList(){Value = { Context.Sender }}
-                    } }
-                }
-            });
+            // State.WhitelistContract.RemoveAddressInfoListFromWhitelist.Send(new RemoveAddressInfoListFromWhitelistInput()
+            // {
+            //     WhitelistId = whitelistId,
+            //     ExtraInfoIdList = new ExtraInfoIdList()
+            //     {
+            //         Value = { new ExtraInfoId
+            //         {
+            //             AddressList = new Whitelist.AddressList{Value = { Context.Sender }}
+            //         } }
+            //     }
+            // });
             return new Empty();
         }
     }
