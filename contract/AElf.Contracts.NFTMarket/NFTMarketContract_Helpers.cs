@@ -417,7 +417,11 @@ namespace AElf.Contracts.NFTMarket
                     Creator = Context.Self,
                     ExtraInfoList = extraInfoList,
                     IsCloneable = true,
-                    Remark = $"{input.Symbol}{input.TokenId}"
+                    Remark = $"{input.Symbol}{input.TokenId}",
+                    ManagerList = new Whitelist.AddressList
+                    {
+                        Value = { Context.Sender }
+                    }
                 });
                 whitelistId =
                     Context.GenerateId(State.WhitelistContract.Value,
