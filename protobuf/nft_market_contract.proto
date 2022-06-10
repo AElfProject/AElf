@@ -255,13 +255,13 @@ message ServiceFeeInfo {
     aelf.Address service_fee_receiver = 2;
 }
 
-message PriceTag{
+message PriceTagInfo{
     string tag_name = 1;
     Price price = 2;
 }
 
 message WhitelistInfo {
-    PriceTag price_tag = 1;
+    PriceTagInfo price_tag = 1;
     AddressList address_list = 2;
 }
 

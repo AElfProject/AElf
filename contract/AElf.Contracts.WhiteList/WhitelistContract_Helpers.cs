@@ -219,6 +219,13 @@ namespace AElf.Contracts.Whitelist
                 State.WhitelistIdMap[manager] = whitelistIdList;
             }
         }
+
+        private void SetManagerListToWhitelist(Hash whitelistId,AddressList addressList)
+        {
+            var whitelistInfo = GetWhitelist(whitelistId);
+            whitelistInfo.Manager.Value.Add(addressList.Value);
+            
+        }
         
         private void SetSubscribeIdManager(Hash subscribeId,AddressList managerList)
         {
@@ -238,6 +245,16 @@ namespace AElf.Contracts.Whitelist
                 if (whitelistIdList == null) continue;
                 whitelistIdList.WhitelistId.Remove(whitelistId);
                 State.WhitelistIdMap[manager] = whitelistIdList;
+            }
+        }
+
+        private void RemoveManagerListFromWhitelist(Hash whitelistId, AddressList managerList)
+        {
+            var whitelistInfo = GetWhitelist(whitelistId);
+            foreach (var manager in managerList.Value)
+            {
+                Assert(whitelistInfo.Manager.Value.Contains(manager),$"Manager is not exist.{manager}");
+                whitelistInfo.Manager.Value.Remove(manager);
             }
         }
         

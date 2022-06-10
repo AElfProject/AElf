@@ -12,7 +12,7 @@ using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
 using InitializeInput = AElf.Contracts.NFTMarket.InitializeInput;
-using PriceTag = AElf.Contracts.NFTMarket.PriceTag;
+using PriceTag = AElf.Contracts.NFTMarket.PriceTagInfo;
 using WhitelistInfo = AElf.Contracts.NFTMarket.WhitelistInfo;
 
 namespace AElf.Contracts.NFT
@@ -73,7 +73,7 @@ namespace AElf.Contracts.NFT
                         new WhitelistInfo()
                         {
                             AddressList = new NFTMarket.AddressList() {Value = {User2Address}},
-                            PriceTag = new PriceTag()
+                            PriceTag = new PriceTagInfo
                             {
                                 TagName = "10_00000000 ELF",
                                 Price = new Price
@@ -234,7 +234,7 @@ namespace AElf.Contracts.NFT
                         new WhitelistInfo()
                         {
                             AddressList = new NFTMarket.AddressList() {Value = {User2Address}},
-                            PriceTag = new PriceTag()
+                            PriceTag = new PriceTagInfo
                             {
                                 TagName = "110_00000000 ELF",
                                 Price = new Price
@@ -403,7 +403,7 @@ namespace AElf.Contracts.NFT
                         new WhitelistInfo()
                         {
                             AddressList = new NFTMarket.AddressList() {Value = {User2Address}},
-                            PriceTag = new PriceTag()
+                            PriceTag = new PriceTagInfo
                             {
                                 TagName = "90_00000000 ELF",
                                 Price = new Price
@@ -660,7 +660,7 @@ namespace AElf.Contracts.NFT
                             {
                                 Value = {User2Address}
                             },
-                            PriceTag = new PriceTag()
+                            PriceTag = new PriceTagInfo
                             {
                                 TagName = "90_00000000 ELF",
                                 Price = new Price
@@ -759,7 +759,7 @@ namespace AElf.Contracts.NFT
                                     User3Address, User4Address
                                 }
                             },
-                            PriceTag = new PriceTag()
+                            PriceTag = new PriceTagInfo
                             {
                                 TagName = "90_00000000 ELF",
                                 Price = new Price
@@ -772,7 +772,7 @@ namespace AElf.Contracts.NFT
                         new WhitelistInfo()
                         {
                             AddressList = new NFTMarket.AddressList() {Value = {User5Address}},
-                            PriceTag = new PriceTag()
+                            PriceTag = new PriceTagInfo
                             {
                                 TagName = "10_00000000 ELF",
                                 Price = new Price
@@ -947,7 +947,7 @@ namespace AElf.Contracts.NFT
                                     User3Address, User4Address
                                 }
                             },
-                            PriceTag = new PriceTag()
+                            PriceTag = new PriceTagInfo
                             {
                                 TagName = "90_00000000 ELF",
                                 Price = new Price
@@ -960,7 +960,7 @@ namespace AElf.Contracts.NFT
                         new WhitelistInfo()
                         {
                             AddressList = new NFTMarket.AddressList() {Value = {User5Address}},
-                            PriceTag = new PriceTag()
+                            PriceTag = new PriceTagInfo
                             {
                                 TagName = "10_00000000 ELF",
                                 Price = new Price

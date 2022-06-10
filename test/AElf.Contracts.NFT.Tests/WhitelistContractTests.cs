@@ -1093,6 +1093,12 @@ namespace AElf.Contracts.NFT
                 whitelistIdList.WhitelistId.Count.ShouldBe(2);
                 whitelistIdList.WhitelistId[1].ShouldBe(whitelistId);
             }
+            {
+                var whitelistInfo = await WhitelistContractStub.GetWhitelist.CallAsync(whitelistId);
+                whitelistInfo.Manager.Value.Count.ShouldBe(3);
+                whitelistInfo.Manager.Value[0].ShouldBe(User4Address);
+                whitelistInfo.Manager.Value[2].ShouldBe(User5Address);
+            }
             return whitelistId;
         }
         
@@ -1131,6 +1137,11 @@ namespace AElf.Contracts.NFT
             {
                 var exception = await WhitelistContractStub.GetWhitelistByManager.CallWithExceptionAsync(User4Address);
                 exception.Value.ShouldContain("No whitelist according to the manager.");
+            }
+            {
+                var whitelistInfo = await WhitelistContractStub.GetWhitelist.CallAsync(whitelistId);
+                whitelistInfo.Manager.Value.Count.ShouldBe(2);
+                whitelistInfo.Manager.Value[0].ShouldBe(DefaultAddress);
             }
         }
 

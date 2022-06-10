@@ -473,6 +473,9 @@ namespace AElf.Contracts.Whitelist
                 $"Manager already exists.{input}");
             whitelist.Manager.Value.Remove(Context.Sender);
             whitelist.Manager.Value.Add(input.Manager);
+            var whitelistInfo = GetWhitelist(whitelist.WhitelistId);
+            whitelistInfo.Manager.Value.Remove(Context.Sender);
+            whitelistInfo.Manager.Value.Add(input.Manager);
             State.WhitelistInfoMap[whitelist.WhitelistId] = whitelist;
             State.ManagerListMap[whitelist.WhitelistId].Value.Remove(Context.Sender);
             State.ManagerListMap[whitelist.WhitelistId].Value.Add(input.Manager);
@@ -505,8 +508,9 @@ namespace AElf.Contracts.Whitelist
 
             State.ManagerListMap[whitelist.WhitelistId] = managerList;
             SetWhitelistIdManager(whitelist.WhitelistId, addedManager);
+            SetManagerListToWhitelist(whitelist.WhitelistId, addedManager);
             
-            Context.Fire(new ManagerAdded()
+            Context.Fire(new ManagerAdded
             {
                 WhitelistId = whitelist.WhitelistId,
                 ManagerList = addedManager
@@ -534,6 +538,7 @@ namespace AElf.Contracts.Whitelist
             }
             State.ManagerListMap[whitelist.WhitelistId] = managerList;
             RemoveWhitelistIdManager(whitelist.WhitelistId, removedList);
+            RemoveManagerListFromWhitelist(whitelist.WhitelistId, removedList);
             Context.Fire(new ManagerRemoved()
             {
                 WhitelistId = whitelist.WhitelistId,

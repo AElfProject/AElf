@@ -90,8 +90,15 @@ namespace AElf.Contracts.NFTMarket
                                     {
                                         ProjectId = projectId,
                                         WhitelistId = whitelistId,
-                                        TagInfo = new TagInfo()
-                                            {TagName = extra.Key.TagName, Info = extra.Key.Price.ToByteString()}
+                                        TagInfo = new TagInfo
+                                            {
+                                                TagName = extra.Key.TagName, 
+                                                Info = new PriceTag
+                                                {
+                                                    Symbol = extra.Key.Price.Symbol,
+                                                    Amount = extra.Key.Price.Amount
+                                                }.ToByteString()
+                                            }
                                     }).Value;
                                 if (!ifExist)
                                 {
@@ -100,8 +107,15 @@ namespace AElf.Contracts.NFTMarket
                                     {
                                         ProjectId = projectId,
                                         WhitelistId = whitelistId,
-                                        TagInfo = new TagInfo()
-                                            {TagName = extra.Key.TagName, Info = extra.Key.Price.ToByteString()}
+                                        TagInfo = new TagInfo
+                                            {
+                                                TagName = extra.Key.TagName, 
+                                                Info = new PriceTag
+                                                {
+                                                    Symbol = extra.Key.Price.Symbol,
+                                                    Amount = extra.Key.Price.Amount
+                                                }.ToByteString()
+                                            }
                                     });
                                 }
                                 var tagId =

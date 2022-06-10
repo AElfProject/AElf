@@ -437,10 +437,14 @@ namespace AElf.Contracts.NFTMarket
                 {
                     WhitelistId = whitelistId,
                     ProjectId = projectId,
-                    TagInfo = new TagInfo()
+                    TagInfo = new TagInfo
                     {
                         TagName = tagName,
-                        Info = whitelistInfo.Whitelists[0].PriceTag.Price.ToByteString()
+                        Info = new PriceTag
+                        {
+                            Symbol = whitelistInfo.Whitelists[0].PriceTag.Price.Symbol,
+                            Amount = whitelistInfo.Whitelists[0].PriceTag.Price.Amount
+                        }.ToByteString()
                     }
                 }).Value;
                 if (ifExist)
@@ -470,7 +474,11 @@ namespace AElf.Contracts.NFTMarket
                         TagInfo = new TagInfo()
                         {
                             TagName = tagName,
-                            Info = whitelistInfo.Whitelists[0].PriceTag.Price.ToByteString()
+                            Info = new PriceTag
+                            {
+                                Symbol = whitelistInfo.Whitelists[0].PriceTag.Price.Symbol,
+                                Amount = whitelistInfo.Whitelists[0].PriceTag.Price.Amount
+                            }.ToByteString()
                         },
                         AddressList = new Whitelist.AddressList()
                         {
@@ -565,9 +573,13 @@ namespace AElf.Contracts.NFTMarket
 
         private Price DeserializedInfo(TagInfo tagInfo)
         {
-            var deserializedInfo = new Price();
+            var deserializedInfo = new PriceTag();
             deserializedInfo.MergeFrom(tagInfo.Info);
-            return deserializedInfo;
+            return new Price
+            {
+                Symbol = deserializedInfo.Symbol,
+                Amount = deserializedInfo.Amount
+            };
         }
 
         private Hash CalculateProjectId(string symbol, long tokenId,Address sender)
@@ -590,7 +602,11 @@ namespace AElf.Contracts.NFTMarket
                     Info = new TagInfo
                     {
                         TagName = whitelist.PriceTag.TagName,
-                        Info = whitelist.PriceTag.Price.ToByteString()
+                        Info = new PriceTag
+                        {
+                            Symbol = whitelist.PriceTag.Price.Symbol,
+                            Amount = whitelist.PriceTag.Price.Amount
+                        }.ToByteString()
                     }
                 };
                 extraInfoList.Value.Add(extraInfo);

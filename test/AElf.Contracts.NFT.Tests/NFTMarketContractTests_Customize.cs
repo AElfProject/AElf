@@ -232,7 +232,7 @@ namespace AElf.Contracts.NFT
                 Whitelists = { new WhitelistInfo()
                 {
                     AddressList = new NFTMarket.AddressList(){Value = { User2Address }},
-                    PriceTag = new PriceTag()
+                    PriceTag = new PriceTagInfo
                     {
                         TagName = "2ELF",
                         Price = new Price()
