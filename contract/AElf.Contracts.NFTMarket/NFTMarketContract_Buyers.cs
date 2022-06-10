@@ -150,16 +150,19 @@ namespace AElf.Contracts.NFTMarket
                                 Owner = listedNftInfo.Owner
                             });
                         }
-                        Context.Fire(new ListedNFTChanged
+                        else
                         {
-                            Symbol = listedNftInfo.Symbol,
-                            TokenId = listedNftInfo.TokenId,
-                            Duration = listedNftInfo.Duration,
-                            Owner = listedNftInfo.Owner,
-                            PreviousDuration = listedNftInfo.Duration,
-                            Quantity = listedNftInfo.Quantity,
-                            Price = listedNftInfo.Price
-                        });
+                            Context.Fire(new ListedNFTChanged
+                            {
+                                Symbol = listedNftInfo.Symbol,
+                                TokenId = listedNftInfo.TokenId,
+                                Duration = listedNftInfo.Duration,
+                                Owner = listedNftInfo.Owner,
+                                PreviousDuration = listedNftInfo.Duration,
+                                Quantity = listedNftInfo.Quantity,
+                                Price = listedNftInfo.Price
+                            });
+                        }
                     }
 
                     break;
@@ -181,16 +184,19 @@ namespace AElf.Contracts.NFTMarket
                                 Owner = listedNftInfo.Owner
                             });
                         }
-                        Context.Fire(new ListedNFTChanged
+                        else
                         {
-                            Symbol = listedNftInfo.Symbol,
-                            TokenId = listedNftInfo.TokenId,
-                            Duration = listedNftInfo.Duration,
-                            Owner = listedNftInfo.Owner,
-                            PreviousDuration = listedNftInfo.Duration,
-                            Quantity = listedNftInfo.Quantity,
-                            Price = listedNftInfo.Price
-                        });
+                            Context.Fire(new ListedNFTChanged
+                            {
+                                Symbol = listedNftInfo.Symbol,
+                                TokenId = listedNftInfo.TokenId,
+                                Duration = listedNftInfo.Duration,
+                                Owner = listedNftInfo.Owner,
+                                PreviousDuration = listedNftInfo.Duration,
+                                Quantity = listedNftInfo.Quantity,
+                                Price = listedNftInfo.Price
+                            });
+                        }
                     }
 
                     break;

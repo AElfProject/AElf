@@ -620,24 +620,21 @@ namespace AElf.Contracts.NFTMarket
                         ExpireTime = offer.ExpireTime
                     });
                 }
-
-                price = offer.Price;
-                totalAmount = price.Amount.Mul(input.Quantity);
-                Context.Fire(new OfferChanged
+                else
                 {
-                    Symbol = input.Symbol,
-                    TokenId = input.TokenId,
-                    OfferFrom = input.OfferFrom,
-                    OfferTo = Context.Sender,
-                    Quantity = input.Quantity,
-                    Price = new Price
+                    Context.Fire(new OfferChanged
                     {
                         Symbol = input.Symbol,
                         TokenId = input.TokenId,
-                        Amount = totalAmount
-                    },
-                    ExpireTime = offer.ExpireTime
-                });
+                        OfferFrom = input.OfferFrom,
+                        OfferTo = Context.Sender,
+                        Quantity = offer.Quantity,
+                        Price = offer.Price,
+                        ExpireTime = offer.ExpireTime
+                    });
+                }
+                price = offer.Price;
+                totalAmount = price.Amount.Mul(input.Quantity);
             }
 
             var listedNftInfoList = State.ListedNFTInfoListMap[input.Symbol][input.TokenId][Context.Sender];
