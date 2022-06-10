@@ -223,8 +223,8 @@ message WhitelistInfo {
 
 //Pricing strategy
 message PriceTag{
-    string symbol = 2;
-    int64 amount = 3;
+    string symbol = 1;
+    int64 amount = 2;
 }
 
 enum StrategyType{
