@@ -6,7 +6,6 @@ using AElf.CSharp.Core;
 using AElf.CSharp.Core.Extension;
 using AElf.Sdk.CSharp;
 using AElf.Types;
-using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using GetAllowanceInput = AElf.Contracts.MultiToken.GetAllowanceInput;
 using GetBalanceInput = AElf.Contracts.MultiToken.GetBalanceInput;
@@ -82,7 +81,15 @@ namespace AElf.Contracts.NFTMarket
             }
             
             var whitelistId = State.WhitelistIdMap[input.Symbol][input.TokenId][input.OfferTo];
-            var tagInfo = new TagInfo();
+            var ifExist = false;
+            if (whitelistId != null)
+            {
+                ifExist = State.WhitelistContract.GetAddressFromWhitelist.Call(new GetAddressFromWhitelistInput
+                {
+                    WhitelistId = whitelistId,
+                    Address = Context.Sender
+                }).Value;
+            }
             if (listedNftInfo == null || listedNftInfo.ListType == ListType.NotListed)
             {
                 if (whitelistId == null)
@@ -90,14 +97,18 @@ namespace AElf.Contracts.NFTMarket
                     PerformMakeOffer(input);
                     return new Empty();
                 }
-                //Whether buyer have their own price. 
-                tagInfo = State.WhitelistContract.GetExtraInfoByAddress.Call(new GetExtraInfoByAddressInput()
+                Price price = null;
+                if (ifExist)
                 {
-                    Address = Context.Sender,
-                    WhitelistId = whitelistId
-                });
-                var price = DeserializedInfo(tagInfo);
-                if (price.Amount <= input.Price.Amount && price.Symbol == input.Price.Symbol)
+                    var tagInfo = State.WhitelistContract.GetExtraInfoByAddress.Call(new GetExtraInfoByAddressInput
+                    {
+                        Address = Context.Sender,
+                        WhitelistId = whitelistId
+                    });
+                    price = DeserializedInfo(tagInfo);
+                }
+                //Whether buyer have their own price. 
+                if (price != null && price.Amount <= input.Price.Amount && price.Symbol == input.Price.Symbol)
                 {
                     listedNftInfo = new ListedNFTInfo
                     {
@@ -134,7 +145,7 @@ namespace AElf.Contracts.NFTMarket
 
             switch (listedNftInfo.ListType)
             {
-                case ListType.FixedPrice when whitelistId != null && tagInfo != null:
+                case ListType.FixedPrice when whitelistId != null && ifExist:
                     if (TryDealWithFixedPrice(input, listedNftInfo, out var actualQuantity))
                     {
                         MaybeRemoveRequest(input.Symbol, input.TokenId);
@@ -511,14 +522,22 @@ namespace AElf.Contracts.NFTMarket
         private bool TryDealWithFixedPrice(MakeOfferInput input, ListedNFTInfo listedNftInfo ,out long actualQuantity)
         {
             var whitelistId = State.WhitelistIdMap[input.Symbol][input.TokenId][input.OfferTo];
-            TagInfo whitelistPrice = null; 
+            TagInfo whitelistPrice = null;
             if (whitelistId != null)
             {
-                whitelistPrice = State.WhitelistContract.GetExtraInfoByAddress.Call(new GetExtraInfoByAddressInput()
+                var ifExist = State.WhitelistContract.GetAddressFromWhitelist.Call(new GetAddressFromWhitelistInput
                 {
-                    Address = Context.Sender,
-                    WhitelistId = whitelistId
-                });
+                    WhitelistId = whitelistId,
+                    Address = Context.Sender
+                }).Value;
+                if (ifExist)
+                {
+                    whitelistPrice = State.WhitelistContract.GetExtraInfoByAddress.Call(new GetExtraInfoByAddressInput()
+                    {
+                        Address = Context.Sender,
+                        WhitelistId = whitelistId
+                    });
+                }
             }
             var usePrice = input.Price;
             actualQuantity = Math.Min(input.Quantity, listedNftInfo.Quantity);
