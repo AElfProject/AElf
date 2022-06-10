@@ -1011,6 +1011,73 @@ namespace AElf.Contracts.NFT
                 });
             whitelistPrice.TagName.ShouldBe("90_00000000 ELF");
         }
+        [Fact]
+        public async Task ListWithFixedPriceWhitelist_NoWhitelistContract()
+        {
+            await AdminNFTMarketContractStub.Initialize.SendAsync(new InitializeInput
+            {
+                NftContractAddress = NFTContractAddress,
+                ServiceFeeReceiver = MarketServiceFeeReceiverAddress
+            });
+
+            var executionResult = await NFTContractStub.Create.SendAsync(new CreateInput
+            {
+                ProtocolName = "aelf Collections",
+                NftType = NFTType.Collectables.ToString(),
+                TotalSupply = 1000,
+                IsBurnable = false,
+                IsTokenIdReuse = true
+            });
+            var symbol = executionResult.Output.Value;
+
+            await NFTContractStub.Mint.SendAsync(new MintInput
+            {
+                Symbol = symbol,
+                Alias = "test",
+                Quantity = 20,
+                TokenId = 233
+            });
+
+            await TokenContractStub.Issue.SendAsync(new IssueInput
+            {
+                Symbol = "ELF",
+                Amount = InitialELFAmount,
+                To = DefaultAddress,
+            });
+            await TokenContractStub.Issue.SendAsync(new IssueInput
+            {
+                Symbol = "ELF",
+                Amount = InitialELFAmount,
+                To = User2Address,
+            });
+
+            await NFTContractStub.Approve.SendAsync(new ApproveInput
+            {
+                Symbol = symbol,
+                TokenId = 233,
+                Amount = 20,
+                Spender = NFTMarketContractAddress
+            });
+            var executionResult1 = await SellerNFTMarketContractStub.ListWithFixedPrice.SendWithExceptionAsync(new ListWithFixedPriceInput
+            {
+                Symbol = symbol,
+                TokenId = 233,
+                Price = new Price
+                {
+                    Symbol = "ELF",
+                    Amount = 100_00000000
+                },
+                Duration = new ListDuration
+                {
+                    DurationHours = 24,
+                    PublicTime = TimestampHelper.GetUtcNow().AddDays((1))
+                },
+                Quantity = 10,
+                IsMergeToPreviousListedInfo = true,
+                IsWhitelistAvailable = true
+            });
+            executionResult1.TransactionResult.Error.ShouldContain("Whitelist Contract not initialized.");
+        }
 
         [Fact]
         public async Task<string> CreateBadgeTest_new()

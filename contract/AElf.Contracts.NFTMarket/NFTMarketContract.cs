@@ -53,6 +53,11 @@ namespace AElf.Contracts.NFTMarket
             return new Empty();
         }
 
+        private void AssertWhitelistContractInitialized()
+        {
+            Assert(State.WhitelistContract.Value != null,"Whitelist Contract not initialized.");
+        }
+
         private void AssertSenderIsAdmin()
         {
             AssertContractInitialized();

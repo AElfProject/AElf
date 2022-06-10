@@ -17,6 +17,7 @@ namespace AElf.Contracts.NFTMarket
         public override Empty ListWithFixedPrice(ListWithFixedPriceInput input)
         {
             AssertContractInitialized();
+            AssertWhitelistContractInitialized();
             Assert(input.Price.Amount > 0, "Incorrect listing price.");
             Assert(input.Quantity > 0, "Incorrect quantity.");
             var duration = AdjustListDuration(input.Duration);
@@ -26,7 +27,7 @@ namespace AElf.Contracts.NFTMarket
             var whitelistId = new Hash();
             if (input.IsWhitelistAvailable)
             {
-                var whitelistManager = GetWhitelistManager();
+                //var whitelistManager = GetWhitelistManager();
                 if (requestInfo != null)
                 {
                     bool isWhiteListDueTimePassed;

@@ -277,7 +277,6 @@ message InitializeInput {
     int32 service_fee_rate = 3;
     aelf.Address service_fee_receiver = 4;
     int64 service_fee = 5;
-    aelf.Address whitelist_contract_address = 6;
 }
 
 message ListWithFixedPriceInput {
