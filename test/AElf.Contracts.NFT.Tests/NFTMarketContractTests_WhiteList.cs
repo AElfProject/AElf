@@ -1080,6 +1080,166 @@ namespace AElf.Contracts.NFT
         }
 
         [Fact]
+        public async Task MakeOfferTest_NotInWhitelist()
+        {
+            {
+                await AdminNFTMarketContractStub.Initialize.SendAsync(new InitializeInput
+                {
+                    NftContractAddress = NFTContractAddress,
+                    ServiceFeeReceiver = MarketServiceFeeReceiverAddress
+                });
+                await AdminNFTMarketContractStub.SetWhitelistContract.SendAsync(WhitelistContractAddress);
+
+                var executionResult = await NFTContractStub.Create.SendAsync(new CreateInput
+                {
+                    ProtocolName = "aelf Collections",
+                    NftType = NFTType.Collectables.ToString(),
+                    TotalSupply = 1000,
+                    IsBurnable = false,
+                    IsTokenIdReuse = true
+                });
+                var symbol = executionResult.Output.Value;
+
+                await NFTContractStub.Mint.SendAsync(new MintInput
+                {
+                    Symbol = symbol,
+                    Alias = "test",
+                    Quantity = 20,
+                    TokenId = 233
+                });
+
+                await TokenContractStub.Issue.SendAsync(new IssueInput
+                {
+                    Symbol = "ELF",
+                    Amount = InitialELFAmount,
+                    To = DefaultAddress,
+                });
+                await TokenContractStub.Issue.SendAsync(new IssueInput
+                {
+                    Symbol = "ELF",
+                    Amount = InitialELFAmount,
+                    To = User2Address,
+                });
+                await TokenContractStub.Issue.SendAsync(new IssueInput
+                {
+                    Symbol = "ELF",
+                    Amount = InitialELFAmount,
+                    To = User3Address,
+                });
+
+                await NFTContractStub.Approve.SendAsync(new ApproveInput
+                {
+                    Symbol = symbol,
+                    TokenId = 233,
+                    Amount = 20,
+                    Spender = NFTMarketContractAddress
+                });
+                await SellerNFTMarketContractStub.ListWithFixedPrice.SendAsync(
+                    new ListWithFixedPriceInput
+                    {
+                        Symbol = symbol,
+                        TokenId = 233,
+                        Price = new Price
+                        {
+                            Symbol = "ELF",
+                            Amount = 100_00000000
+                        },
+                        Duration = new ListDuration
+                        {
+                            DurationHours = 24,
+                            //PublicTime = TimestampHelper.GetUtcNow().AddDays((1))
+                        },
+                        Quantity = 10,
+                        Whitelists = new WhitelistInfoList()
+                        {
+                            Whitelists =
+                            {
+                                new WhitelistInfo()
+                                {
+                                    AddressList = new NFTMarket.AddressList
+                                    {
+                                        Value = {User3Address}
+                                    },
+                                    PriceTag = new PriceTagInfo
+                                    {
+                                        TagName = "90_00000000 ELF",
+                                        Price = new Price
+                                        {
+                                            Symbol = "ELF",
+                                            Amount = 90_00000000
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        IsWhitelistAvailable = true
+                    });
+
+                await NFTBuyerTokenContractStub.Approve.SendAsync(new MultiToken.ApproveInput
+                {
+                    Symbol = "ELF",
+                    Amount = long.MaxValue,
+                    Spender = NFTMarketContractAddress
+                });
+                await BuyerNFTMarketContractStub.MakeOffer.SendAsync(new MakeOfferInput
+                {
+                    Symbol = symbol,
+                    TokenId = 233,
+                    OfferTo = DefaultAddress,
+                    Quantity = 2,
+                    Price = new Price
+                    {
+                        Symbol = "ELF",
+                        Amount = 101_00000000
+                    },
+                });
+                {
+                    var balance = await TokenContractStub.GetBalance.CallAsync(new MultiToken.GetBalanceInput
+                    {
+                        Symbol = "ELF",
+                        Owner = User2Address
+                    });
+                    balance.Balance.ShouldBe(InitialELFAmount - 200_00000000);
+                }
+                {
+                    var nftBalance = await NFTContractStub.GetBalance.CallAsync(new GetBalanceInput
+                    {
+                        Symbol = symbol,
+                        TokenId = 233,
+                        Owner = User2Address
+                    });
+                    nftBalance.Balance.ShouldBe(2);
+                }
+                await NFTBuyer2TokenContractStub.Approve.SendAsync(new MultiToken.ApproveInput
+                {
+                    Symbol = "ELF",
+                    Amount = long.MaxValue,
+                    Spender = NFTMarketContractAddress
+                });
+                await Buyer2NFTMarketContractStub.MakeOffer.SendAsync(new MakeOfferInput
+                {
+                    Symbol = symbol,
+                    TokenId = 233,
+                    OfferTo = DefaultAddress,
+                    Quantity = 1,
+                    Price = new Price
+                    {
+                        Symbol = "ELF",
+                        Amount = 90_00000000
+                    },
+                });
+                {
+                    var balance = await TokenContractStub.GetBalance.CallAsync(new MultiToken.GetBalanceInput
+                    {
+                        Symbol = "ELF",
+                        Owner = User3Address
+                    });
+                    balance.Balance.ShouldBe(InitialELFAmount - 90_00000000);
+                }
+            }
+        }
+        
+        [Fact]
         public async Task<string> CreateBadgeTest_new()
         {
             await BuyerNFTMarketContractStub.Initialize.SendAsync(new InitializeInput
