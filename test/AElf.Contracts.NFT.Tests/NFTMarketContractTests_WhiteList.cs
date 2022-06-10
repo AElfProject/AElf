@@ -1164,6 +1164,14 @@ namespace AElf.Contracts.NFT
                     });
                 ifExist.Value.ShouldBe(false);
             }
+
+            var userBalance = await NFTContractStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Symbol = symbol,
+                TokenId = 1,
+                Owner = User3Address
+            });
+            userBalance.Balance.ShouldBe(1);
             return symbol;
         }
         
