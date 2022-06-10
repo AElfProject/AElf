@@ -1286,7 +1286,12 @@ namespace AElf.Contracts.NFT
                 },
                 NftType = NFTType.Badges.ToString(),
                 ProtocolName = "Badge",
-                TotalSupply = 1_000_000_000 // One billion
+                IsTokenIdReuse = true,
+                MinterList = new MinterList
+                {
+                    Value = { NFTMarketContractAddress }
+                },
+                TotalSupply = 1_000_000_000// One billion
             });
             var symbol = executionResult.Output.Value;
             await NFTContractStub.Mint.SendAsync(new MintInput
@@ -1329,7 +1334,7 @@ namespace AElf.Contracts.NFT
             {
                 Symbol = symbol,
                 TokenId = 1,
-                Owner = User3Address
+                Owner = User2Address
             });
             userBalance.Balance.ShouldBe(1);
             return symbol;
