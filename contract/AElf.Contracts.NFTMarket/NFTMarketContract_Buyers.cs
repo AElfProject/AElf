@@ -84,11 +84,12 @@ namespace AElf.Contracts.NFTMarket
             var ifExist = false;
             if (whitelistId != null)
             {
-                ifExist = State.WhitelistContract.GetAddressFromWhitelist.Call(new GetAddressFromWhitelistInput
-                {
-                    WhitelistId = whitelistId,
-                    Address = Context.Sender
-                }).Value;
+                ifExist = State.WhitelistContract.GetAddressFromWhitelist.Call(
+                    new GetAddressFromWhitelistInput
+                    {
+                        WhitelistId = whitelistId,
+                        Address = Context.Sender
+                    }).Value;
             }
             if (listedNftInfo == null || listedNftInfo.ListType == ListType.NotListed)
             {
@@ -179,7 +180,6 @@ namespace AElf.Contracts.NFTMarket
                     break;
                 case ListType.FixedPrice when input.Price.Symbol == listedNftInfo.Price.Symbol &&
                                               input.Price.Amount >= listedNftInfo.Price.Amount:
-                    input.Price.Amount = Math.Min(input.Price.Amount, listedNftInfo.Price.Amount);
                     input.Quantity = Math.Min(input.Quantity, listedNftInfo.Quantity);
                     if (TryDealWithFixedPrice(input, listedNftInfo, out var dealQuantity))
                     {
@@ -539,7 +539,10 @@ namespace AElf.Contracts.NFTMarket
                     });
                 }
             }
-            var usePrice = input.Price;
+
+            var usePrice = input.Price.Clone();
+            usePrice.Amount = Math.Min(input.Price.Amount, listedNftInfo.Price.Amount);
+            
             actualQuantity = Math.Min(input.Quantity, listedNftInfo.Quantity);
             if (Context.CurrentBlockTime < listedNftInfo.Duration.StartTime)
             {
@@ -593,7 +596,6 @@ namespace AElf.Contracts.NFTMarket
                 PerformMakeOffer(input);
                 return false;
             }
-
             var totalAmount = usePrice.Amount.Mul(actualQuantity);
             PerformDeal(new PerformDealInput
             {

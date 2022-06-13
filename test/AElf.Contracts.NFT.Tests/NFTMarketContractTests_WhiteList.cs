@@ -541,8 +541,9 @@ public partial class NFTContractTests
                 Address = User2Address
             });
             offerList.Value.Count.ShouldBe(2);
-            // TODO: Should be 100 ELF?
-            //offerList.Value.Last().Price.Amount.ShouldBe(110_00000000);
+            offerList.Value.First().Price.Amount.ShouldBe(101_00000000);
+            offerList.Value.First().Quantity.ShouldBe(1);
+            offerList.Value.Last().Price.Amount.ShouldBe(110_00000000);
             offerList.Value.Last().Quantity.ShouldBe(3);
         }
 
@@ -589,8 +590,9 @@ public partial class NFTContractTests
                 TokenId = 233,
                 Address = User2Address
             });
-            offerList.Value.Count.ShouldBe(3);
-            offerList.Value.Last().Quantity.ShouldBe(2);
+            offerList.Value.Count.ShouldBe(4);
+            offerList.Value.Last().Quantity.ShouldBe(1);
+            offerList.Value.Last().Price.Amount.ShouldBe(200_00000000);
         }
     }
 
@@ -1157,8 +1159,7 @@ public partial class NFTContractTests
                     },
                     Duration = new ListDuration
                     {
-                        DurationHours = 24,
-                        //PublicTime = TimestampHelper.GetUtcNow().AddDays((1))
+                        DurationHours = 24
                     },
                     Quantity = 10,
                     Whitelists = new WhitelistInfoList()
