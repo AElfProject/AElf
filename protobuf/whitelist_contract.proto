@@ -158,6 +158,10 @@ service WhitelistContract {
         option (aelf.is_view) = true;
     }
     
+    rpc GetWhitelistIdList(GetWhitelistIdListInput) returns (WhitelistIdList){
+        option (aelf.is_view) = true;
+    }
+    
     //Get manager list according to the whitelist_id.
     rpc GetManagerList(aelf.Hash) returns (AddressList){
         option (aelf.is_view) = true;
@@ -430,6 +434,11 @@ message GetTagInfoFromWhitelistInput{
     aelf.Hash whitelist_id = 1;
     aelf.Hash project_id = 2;
     TagInfo tag_info = 3;
+}
+
+message GetWhitelistIdListInput{
+    aelf.Address address = 1;
+    WhitelistIdList whitelist_id_list = 2;
 }
 
 message GetManagerExistFromWhitelistInput{

@@ -199,4 +199,22 @@ public partial class WhitelistContract
             $"No subscribe id according to the manager.{input}");
         return subscribeIdList;
     }
+
+    public override WhitelistIdList GetWhitelistIdList(GetWhitelistIdListInput input)
+    {
+        var whitelistIdList = new WhitelistIdList();
+        foreach (var whitelistId in input.WhitelistIdList.WhitelistId)
+        {
+            var ifExist = GetAddressFromWhitelist(new GetAddressFromWhitelistInput
+            {
+                WhitelistId = whitelistId,
+                Address = input.Address
+            }).Value;
+            if (ifExist)
+            {
+                whitelistIdList.WhitelistId.Add(whitelistId);
+            }
+        }
+        return whitelistIdList;
+    }
 }

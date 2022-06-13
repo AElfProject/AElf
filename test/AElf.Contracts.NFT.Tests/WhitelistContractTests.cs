@@ -128,7 +128,43 @@ namespace AElf.Contracts.NFT
                 },
                 StrategyType = StrategyType.Price
             })).Output;
-            
+            {
+                var whitelistIdList = await WhitelistContractStub.GetWhitelistIdList.CallAsync(
+                    new GetWhitelistIdListInput
+                    {
+                        Address = User1Address,
+                        WhitelistIdList = new WhitelistIdList
+                        {
+                            WhitelistId = {whitelistId, whitelistId2}
+                        }
+                    });
+                whitelistIdList.WhitelistId.Count.ShouldBe(2);
+                whitelistIdList.WhitelistId[0].Value.ShouldBe(whitelistId);
+            }
+            {
+                var whitelistIdList = await WhitelistContractStub.GetWhitelistIdList.CallAsync(
+                    new GetWhitelistIdListInput
+                    {
+                        Address = User6Address,
+                        WhitelistIdList = new WhitelistIdList
+                        {
+                            WhitelistId = {whitelistId, whitelistId2}
+                        }
+                    });
+                whitelistIdList.WhitelistId.Count.ShouldBe(0);
+            }
+            {
+                var whitelistIdList = await WhitelistContractStub.GetWhitelistIdList.CallAsync(
+                    new GetWhitelistIdListInput
+                    {
+                        Address = User3Address,
+                        WhitelistIdList = new WhitelistIdList
+                        {
+                            WhitelistId = {whitelistId, whitelistId2}
+                        }
+                    });
+                whitelistIdList.WhitelistId.Count.ShouldBe(1);
+            }
             {
                 var whitelist = await WhitelistContractStub.GetWhitelist.CallAsync(whitelistId);
                 whitelist.ExtraInfoIdList.Value.Count.ShouldBe(2);
@@ -938,7 +974,7 @@ namespace AElf.Contracts.NFT
             {
                 var whitelist = await WhitelistContractStub.GetWhitelist.CallAsync(whitelistId);
                 whitelist.ExtraInfoIdList.Value.Count.ShouldBe(2);
-                whitelist.ExtraInfoIdList.Value[0].AddressList.Value.Count.ShouldBe(1);
+                whitelist.ExtraInfoIdList.Value[0].AddressList.Value.Count.ShouldBe(2);
                 whitelist.ExtraInfoIdList.Value[0].AddressList.Value.ShouldNotContain(User2Address);
                 whitelist.ExtraInfoIdList.Value[0].Id.ShouldBe(CalculateId(whitelistId, _projectId, "INFO1"));
             }
@@ -948,7 +984,7 @@ namespace AElf.Contracts.NFT
                     WhitelistId = whitelistId,
                     TagInfoId = CalculateId(whitelistId, _projectId, "INFO1")
                 });
-                extraInfo.AddressList.Value.Count.ShouldBe(1);
+                extraInfo.AddressList.Value.Count.ShouldBe(2);
                 //extraInfo.AddressList.Value[0].ShouldBe(User1Address);
                 extraInfo.AddressList.Value[0].ShouldBe(User5Address);
             }
@@ -958,7 +994,7 @@ namespace AElf.Contracts.NFT
                     WhitelistId = whitelistId,
                     TagInfoId = CalculateId(whitelistId, _projectId, "INFO3")
                 });
-                extraInfo.AddressList.Value.Count.ShouldBe(5);
+                extraInfo.AddressList.Value.Count.ShouldBe(4);
                 extraInfo.AddressList.Value.ShouldContain(User1Address);
                 extraInfo.AddressList.Value.ShouldContain(User2Address);
             }
