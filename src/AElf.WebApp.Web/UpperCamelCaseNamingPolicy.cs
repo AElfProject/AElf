@@ -2,7 +2,7 @@ using System.Text.Json;
 
 namespace AElf.WebApp.Web;
 
-public class UpperCamelCaseNamingStrategy : JsonNamingPolicy
+public class UpperCamelCaseNamingPolicy : JsonNamingPolicy
 {
     public override string ConvertName(string name)
     {
