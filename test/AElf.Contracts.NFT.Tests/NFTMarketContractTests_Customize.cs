@@ -259,14 +259,13 @@ namespace AElf.Contracts.NFT
                 TokenId = 2
             });
             requestInfo.ListTime.ShouldNotBeNull();
-
-            var whiteListId = await CreatorNFTMarketContractStub.GetWhitelistId.CallAsync(
+            
+            var whiteListId = (await CreatorNFTMarketContractStub.GetWhitelistId.CallAsync(
                 new GetWhitelistIdInput()
                 {
                     Symbol = symbol,
-                    TokenId = 2,
-                    Owner = DefaultAddress
-                });
+                    TokenId = 2
+                })).WhitelistId;
             var whitelistIds = await WhitelistContractStub.GetWhitelistByManager.CallAsync(NFTMarketContractAddress);
             whitelistIds.WhitelistId.Count.ShouldBe(1);
             whitelistIds.WhitelistId[0].ShouldBe(whiteListId);

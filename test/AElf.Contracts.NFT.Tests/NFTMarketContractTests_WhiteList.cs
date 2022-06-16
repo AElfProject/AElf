@@ -87,13 +87,12 @@ public partial class NFTContractTests
             IsWhitelistAvailable = true
         });
         {
-            var whiteListId = await CreatorNFTMarketContractStub.GetWhitelistId.CallAsync(
+            var whiteListId = (await CreatorNFTMarketContractStub.GetWhitelistId.CallAsync(
                 new GetWhitelistIdInput()
                 {
                     Symbol = symbol,
-                    TokenId = 233,
-                    Owner = DefaultAddress
-                });
+                    TokenId = 233
+                })).WhitelistId;
             var whitelistIds =
                 await WhitelistContractStub.GetWhitelistByManager.CallAsync(NFTMarketContractAddress);
             whitelistIds.WhitelistId.Count.ShouldBe(1);
@@ -417,12 +416,11 @@ public partial class NFTContractTests
             IsWhitelistAvailable = true
         });
 
-        var whitelistId = await SellerNFTMarketContractStub.GetWhitelistId.CallAsync(new GetWhitelistIdInput()
+        var whitelistId = (await SellerNFTMarketContractStub.GetWhitelistId.CallAsync(new GetWhitelistIdInput()
         {
-            Owner = DefaultAddress,
             Symbol = symbol,
             TokenId = 233
-        });
+        })).WhitelistId;
         var whitelistPrice = await WhitelistContractStub.GetExtraInfoByAddress.CallAsync(
             new GetExtraInfoByAddressInput
             {
@@ -684,12 +682,11 @@ public partial class NFTContractTests
                 },
                 IsWhitelistAvailable = true
             });
-        var whitelistId = await SellerNFTMarketContractStub.GetWhitelistId.CallAsync(new GetWhitelistIdInput()
+        var whitelistId = (await SellerNFTMarketContractStub.GetWhitelistId.CallAsync(new GetWhitelistIdInput()
         {
-            Owner = DefaultAddress,
             Symbol = symbol,
             TokenId = 233
-        });
+        })).WhitelistId;
         var log = FixedPriceNFTListed.Parser.ParseFrom(executionResult1.TransactionResult.Logs
             .First(l => l.Name == nameof(FixedPriceNFTListed)).NonIndexed).WhitelistId;
         log.Value.ShouldBe(whitelistId);
@@ -901,12 +898,11 @@ public partial class NFTContractTests
                 IsMergeToPreviousListedInfo = true,
                 IsWhitelistAvailable = true
             });
-        var whitelistId = await SellerNFTMarketContractStub.GetWhitelistId.CallAsync(new GetWhitelistIdInput()
+        var whitelistId = (await SellerNFTMarketContractStub.GetWhitelistId.CallAsync(new GetWhitelistIdInput()
         {
-            Owner = DefaultAddress,
             Symbol = symbol,
             TokenId = 233
-        });
+        })).WhitelistId;
         var log = FixedPriceNFTListed.Parser.ParseFrom(executionResult1.TransactionResult.Logs
             .First(l => l.Name == nameof(FixedPriceNFTListed)).NonIndexed).WhitelistId;
         log.Value.ShouldBe(whitelistId);

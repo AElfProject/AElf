@@ -11,15 +11,16 @@ namespace AElf.Contracts.NFTMarket
             return State.ListedNFTInfoListMap[input.Symbol][input.TokenId][input.Owner];
         }
 
-        public override Hash GetWhitelistId(Hash input)
+        public override GetWhitelistIdOutput GetWhitelistId(GetWhitelistIdInput input)
         {
-            Assert(State.WhitelistIdMap[input] != null,$"Whitelist not found.{input}");
-            return State.WhitelistIdMap[input];
-        }
-
-        public override Hash GetProjectId(GetProjectIdInput input)
-        {
-            return CalculateProjectId(input.Symbol, input.TokenId,Context.Sender);
+            var projectId = CalculateProjectId(input.Symbol, input.TokenId,Context.Sender);
+            Assert(State.WhitelistIdMap[projectId] != null, $"Whitelist id not found.Project id:{projectId}");
+            var whitelistId = State.WhitelistIdMap[projectId];
+            return new GetWhitelistIdOutput
+            {
+                WhitelistId = whitelistId,
+                ProjectId = projectId
+            };
         }
 
         public override AddressList GetOfferAddressList(GetAddressListInput input)
