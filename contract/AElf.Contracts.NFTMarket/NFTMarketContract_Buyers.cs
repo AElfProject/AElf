@@ -79,8 +79,9 @@ namespace AElf.Contracts.NFTMarket
             {
                 listedNftInfo = listedNftInfoList.Value.First();
             }
-            
-            var whitelistId = State.WhitelistIdMap[input.Symbol][input.TokenId][input.OfferTo];
+
+            var projectId = CalculateProjectId(input.Symbol, input.TokenId, input.OfferTo);
+            var whitelistId = State.WhitelistIdMap[projectId];
             var ifExist = false;
             if (whitelistId != null)
             {
@@ -521,7 +522,8 @@ namespace AElf.Contracts.NFTMarket
         /// </summary>
         private bool TryDealWithFixedPrice(MakeOfferInput input, ListedNFTInfo listedNftInfo ,out long actualQuantity)
         {
-            var whitelistId = State.WhitelistIdMap[input.Symbol][input.TokenId][input.OfferTo];
+            var projectId = CalculateProjectId(input.Symbol, input.TokenId, input.OfferTo);
+            var whitelistId = State.WhitelistIdMap[projectId];
             TagInfo whitelistPrice = null;
             if (whitelistId != null)
             {

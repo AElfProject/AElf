@@ -56,7 +56,7 @@ namespace AElf.Contracts.NFTMarket
                 {
                     var extraInfoList = ConvertToExtraInfo(whitelists);
                     //Listed for the first time, create whitelist.
-                    if (State.WhitelistIdMap[input.Symbol][input.TokenId][Context.Sender] == null)
+                    if (State.WhitelistIdMap[projectId]== null)
                     {
                         State.WhitelistContract.CreateWhitelist.Send(new CreateWhitelistInput()
                         {
@@ -74,12 +74,12 @@ namespace AElf.Contracts.NFTMarket
                         whitelistId =
                             Context.GenerateId(State.WhitelistContract.Value,
                                 ByteArrayHelper.ConcatArrays(Context.Self.ToByteArray(), projectId.ToByteArray()));
-                        State.WhitelistIdMap[input.Symbol][input.TokenId][Context.Sender] = whitelistId;
+                        State.WhitelistIdMap[projectId] = whitelistId;
                     }
                     else
                     {
                         //Add address list to the existing whitelist.
-                        whitelistId = State.WhitelistIdMap[input.Symbol][input.TokenId][Context.Sender];
+                        whitelistId = State.WhitelistIdMap[projectId];
                         var extraInfoIdList = whitelists?.Whitelists.GroupBy(p => p.PriceTag)
                             .ToDictionary(e=>e.Key, e =>e.ToList())
                             .Select(extra =>
@@ -151,6 +151,14 @@ namespace AElf.Contracts.NFTMarket
                                 });
                         }
                     }
+                }
+            }
+            else
+            {
+                whitelistId = State.WhitelistIdMap[projectId];
+                if (whitelistId != null)
+                {
+                    State.WhitelistContract.DisableWhitelist.Send(whitelistId);
                 }
             }
 
@@ -451,6 +459,11 @@ namespace AElf.Contracts.NFTMarket
             {
                 case ListType.FixedPrice when input.Quantity >= listedNftInfo.Quantity:
                     State.ListedNFTInfoListMap[input.Symbol][input.TokenId][Context.Sender].Value.Remove(listedNftInfo);
+                    // if (State.WhitelistIdMap[input.Symbol][input.TokenId][Context.Sender] != null)
+                    // {
+                    //     var whitelistId = State.WhitelistIdMap[projectId];
+                    //     State.WhitelistContract.DisableWhitelist.Send(whitelistId);
+                    // }
                     Context.Fire(new ListedNFTRemoved
                     {
                         Symbol = listedNftInfo.Symbol,

@@ -73,7 +73,10 @@ service NFTMarketContract {
     rpc GetListedNFTInfoList (GetListedNFTInfoListInput) returns (ListedNFTInfoList) {
         option (aelf.is_view) = true;
     }
-    rpc GetWhitelistId (GetWhitelistIdInput) returns (aelf.Hash) {
+    rpc GetWhitelistId (aelf.Hash) returns (aelf.Hash) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetProjectId(GetProjectIdInput) returns (aelf.Hash){
         option (aelf.is_view) = true;
     }
     rpc GetOfferAddressList (GetAddressListInput) returns (AddressList) {
@@ -376,10 +379,9 @@ message GetListedNFTInfoListInput {
     aelf.Address owner = 3;
 }
 
-message GetWhitelistIdInput{
+message GetProjectIdInput{
     string symbol = 1;
     int64 token_id = 2;
-    aelf.Address owner = 3;
 }
 
 message GetAddressListInput {

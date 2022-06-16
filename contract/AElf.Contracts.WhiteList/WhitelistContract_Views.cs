@@ -55,6 +55,21 @@ public partial class WhitelistContract
         return idList;
     }
 
+    public override TagInfoList GetTagInfoListByWhitelist(GetTagInfoListByWhitelistInput input)
+    {
+        var tagInfoList = new TagInfoList();
+        var tagIdList = GetExtraInfoIdList(new GetExtraInfoIdListInput
+        {
+            WhitelistId = input.WhitelistId,
+            ProjectId = input.ProjectId
+        });
+        foreach (var tagId in tagIdList.Value)
+        {
+            tagInfoList.Value.Add(GetTagInfoByHash(tagId));
+        }
+        return tagInfoList;
+    }
+
     public override TagInfo GetExtraInfoByAddress(GetExtraInfoByAddressInput input)
     {
         var whitelist = GetWhitelist(input.WhitelistId);

@@ -137,6 +137,10 @@ service WhitelistContract {
         option (aelf.is_view) = true;
     }
     
+    rpc GetTagInfoListByWhitelist(GetTagInfoListByWhitelistInput) returns (TagInfoList){
+        option (aelf.is_view) = true;
+    }
+    
     //Get tagId according to the whitelist_id and address.
     rpc GetTagIdByAddress(GetTagIdByAddressInput) returns (aelf.Hash){
         option (aelf.is_view) = true;
@@ -420,6 +424,11 @@ message GetExtraInfoByAddressInput{
 }
 
 message GetExtraInfoIdListInput{
+    aelf.Hash whitelist_id = 1;
+    aelf.Hash project_id = 2;
+}
+
+message GetTagInfoListByWhitelistInput{
     aelf.Hash whitelist_id = 1;
     aelf.Hash project_id = 2;
 }

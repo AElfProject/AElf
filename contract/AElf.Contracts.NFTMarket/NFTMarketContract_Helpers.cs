@@ -374,7 +374,8 @@ namespace AElf.Contracts.NFTMarket
             {
                 throw new AssertionException("Incorrect white list address price list.");
             }
-            var whitelistId = State.WhitelistIdMap[input.Symbol][input.TokenId][Context.Sender];
+            var projectId = CalculateProjectId(input.Symbol, input.TokenId, Context.Sender);
+            var whitelistId = State.WhitelistIdMap[projectId];
             //TODO:Whether to adjust whitelist info to be correct.
             Assert(whitelistInfo.Whitelists.Count == 1 &&
                    whitelistInfo.Whitelists.Any(p =>
@@ -405,7 +406,6 @@ namespace AElf.Contracts.NFTMarket
             whitelistInfo.Whitelists[0].PriceTag.Price.Amount = Math.Min(input.Price.Amount,
                 Math.Min(whiteListRemainPrice, whitelistInfo.Whitelists[0].PriceTag.Price.Amount));
             var tagName = $"Requested {whitelistInfo.Whitelists[0].PriceTag.Price.Amount}{whitelistInfo.Whitelists[0].PriceTag.Price.Symbol}";
-            var projectId = CalculateProjectId(input.Symbol, input.TokenId, Context.Sender);
             if (whitelistId == null)
             {
                 whitelistInfo.Whitelists[0].PriceTag.TagName = tagName;
@@ -426,7 +426,7 @@ namespace AElf.Contracts.NFTMarket
                 whitelistId =
                     Context.GenerateId(State.WhitelistContract.Value,
                         ByteArrayHelper.ConcatArrays(Context.Self.ToByteArray(), projectId.ToByteArray()));
-                State.WhitelistIdMap[input.Symbol][input.TokenId][Context.Sender] = whitelistId;
+                State.WhitelistIdMap[projectId] = whitelistId;
             }
             else
             {

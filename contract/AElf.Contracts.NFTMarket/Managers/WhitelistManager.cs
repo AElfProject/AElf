@@ -8,11 +8,11 @@ namespace AElf.Contracts.NFTMinter.Managers
     internal class WhitelistManager : IWhitelistManager
     {
         private readonly CSharpSmartContractContext _context;
-        private readonly MappedState<string, long, Address, Hash> _whitelistIdMap;
+        private readonly MappedState<Hash, Hash> _whitelistIdMap;
         private readonly WhitelistContractContainer.WhitelistContractReferenceState _whitelistContract;
 
         public WhitelistManager(CSharpSmartContractContext context,
-            MappedState<string, long, Address, Hash> whitelistIdMap,
+            MappedState<Hash, Hash> whitelistIdMap,
             WhitelistContractContainer.WhitelistContractReferenceState whitelistContract)
         {
             _context = context;
