@@ -913,6 +913,72 @@ namespace AElf.Contracts.NFT
                 });
             executionResult.TransactionResult.Error.ShouldContain("ExtraInfo does not exist Or already been removed.");
         }
+
+        [Fact]
+        public async Task RemoveInfoFromWhitelistTest()
+        {
+            var whitelistId = await AddAddressInfoListToWhitelistTest();
+            await WhitelistContractStub.RemoveInfoFromWhitelist.SendAsync(new RemoveInfoFromWhitelistInput
+            {
+                WhitelistId = whitelistId,
+                AddressList = new Whitelist.AddressList
+                {
+                    Value = {User1Address, User3Address, User5Address}
+                }
+            });
+            {
+                var whitelistInfo = await WhitelistContractStub.GetWhitelistDetail.CallAsync(whitelistId);
+                whitelistInfo.Value.Count.ShouldBe(2);
+                whitelistInfo.Value[0].AddressList.Value.Count.ShouldBe(2);
+                whitelistInfo.Value[1].AddressList.Value.Count.ShouldBe(1);
+            }
+            {
+                var addressList = await WhitelistContractStub.GetExtraInfoByTag.CallAsync(new GetExtraInfoByTagInput
+                {
+                    WhitelistId = whitelistId,
+                    TagInfoId = CalculateId(whitelistId, _projectId, "INFO1")
+                });
+                addressList.AddressList.Value.Count.ShouldBe(2);
+            }
+            {
+                var ifExist = await WhitelistContractStub.GetAddressFromWhitelist.CallAsync(
+                    new GetAddressFromWhitelistInput
+                    {
+                        WhitelistId = whitelistId,
+                        Address = User1Address
+                    });
+                ifExist.Value.ShouldBe(false);
+            }
+        }
+        
+        [Fact]
+        public async Task RemoveInfoFromWhitelistTest_Basic()
+        {
+            var whitelistId = await AddAddressInfoListToWhitelistTest_Address();
+            await WhitelistContractStub.RemoveInfoFromWhitelist.SendAsync(new RemoveInfoFromWhitelistInput
+            {
+                WhitelistId = whitelistId,
+                AddressList = new Whitelist.AddressList
+                {
+                    Value = {User1Address, User3Address, User5Address}
+                }
+            });
+            {
+                var whitelistInfo = await WhitelistContractStub.GetWhitelistDetail.CallAsync(whitelistId);
+                whitelistInfo.Value.Count.ShouldBe(1);
+                whitelistInfo.Value[0].AddressList.Value.Count.ShouldBe(2);
+            }
+            {
+                var ifExist = await WhitelistContractStub.GetAddressFromWhitelist.CallAsync(
+                    new GetAddressFromWhitelistInput
+                    {
+                        WhitelistId = whitelistId,
+                        Address = User1Address
+                    });
+                ifExist.Value.ShouldBe(false);
+            }
+        }
+        
         [Fact]
         public async Task DisableWhitelistTest()
         {

@@ -33,6 +33,10 @@ service WhitelistContract {
     //Remove multiple addresses from an existing whitelist.
     rpc RemoveAddressInfoListFromWhitelist (RemoveAddressInfoListFromWhitelistInput) returns (google.protobuf.Empty){
     }
+    
+    //Remove address list from whitelist.(Only input addressList)
+    rpc RemoveInfoFromWhitelist(RemoveInfoFromWhitelistInput) returns (google.protobuf.Empty){
+    }
 
     //Remove tag info.
     rpc RemoveTagInfo (RemoveTagInfoInput) returns (google.protobuf.Empty){
@@ -321,6 +325,11 @@ message AddAddressInfoListToWhitelistInput {
 message RemoveAddressInfoListFromWhitelistInput{
     aelf.Hash whitelist_id = 1;
     ExtraInfoIdList extra_info_id_list = 2;
+}
+
+message RemoveInfoFromWhitelistInput{
+    aelf.Hash whitelist_id = 1;
+    AddressList address_list = 2;
 }
 
 message ChangeWhitelistCloneableInput{

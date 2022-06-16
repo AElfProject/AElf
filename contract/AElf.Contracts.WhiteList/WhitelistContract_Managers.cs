@@ -368,6 +368,31 @@ public partial class WhitelistContract
         return new Empty();
     }
 
+    public override Empty RemoveInfoFromWhitelist(RemoveInfoFromWhitelistInput input)
+    {
+        AssertWhitelistInfo(input.WhitelistId);
+        AssertWhitelistIsAvailable(input.WhitelistId);
+        var whitelistInfo = AssertWhitelistManager(input.WhitelistId);
+        var extraInfoIdList = new ExtraInfoIdList();
+        foreach (var address in input.AddressList.Value)
+        {
+            extraInfoIdList.Value.Add(new ExtraInfoId
+            {
+                Id = State.AddressTagInfoIdMap[whitelistInfo.WhitelistId][address] ?? null,
+                AddressList = new AddressList
+                {
+                    Value = { address }
+                }
+            });
+        }
+
+        RemoveAddressInfoListFromWhitelist(new RemoveAddressInfoListFromWhitelistInput
+        {
+            WhitelistId = whitelistInfo.WhitelistId,
+            ExtraInfoIdList = extraInfoIdList
+        });
+        return new Empty();
+    }
 
     public override Empty DisableWhitelist(Hash input)
     {
