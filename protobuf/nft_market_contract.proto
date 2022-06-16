@@ -666,6 +666,7 @@ message ListedNFTChanged {
     Price price = 5;
     ListDuration duration = 6;
     ListDuration previous_duration = 7;
+    aelf.Hash whitelist_id = 8;
 }
 
 message ListedNFTRemoved {
