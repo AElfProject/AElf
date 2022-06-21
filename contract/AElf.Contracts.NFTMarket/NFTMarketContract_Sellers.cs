@@ -241,7 +241,7 @@ namespace AElf.Contracts.NFTMarket
             {
                 Owner = listedNftInfo.Owner,
                 Price = listedNftInfo.Price,
-                Quantity = listedNftInfo.Quantity,
+                Quantity = input.Quantity,
                 Symbol = listedNftInfo.Symbol,
                 TokenId = listedNftInfo.TokenId,
                 Duration = listedNftInfo.Duration,
@@ -456,6 +456,9 @@ namespace AElf.Contracts.NFTMarket
                 State.RequestInfoMap[input.Symbol][input.TokenId] = requestInfo;
             }
 
+            var projectId = CalculateProjectId(input.Symbol, input.TokenId, Context.Sender);
+            var whitelistId = State.WhitelistIdMap[projectId];
+            
             switch (listedNftInfo.ListType)
             {
                 case ListType.FixedPrice when input.Quantity >= listedNftInfo.Quantity:
@@ -483,7 +486,8 @@ namespace AElf.Contracts.NFTMarket
                         Duration = listedNftInfo.Duration,
                         Owner = listedNftInfo.Owner,
                         Price = listedNftInfo.Price,
-                        Quantity = listedNftInfo.Quantity
+                        Quantity = listedNftInfo.Quantity,
+                        WhitelistId = whitelistId
                     });
                     break;
                 case ListType.EnglishAuction:

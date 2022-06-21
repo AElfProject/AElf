@@ -173,7 +173,8 @@ namespace AElf.Contracts.NFTMarket
                                 Owner = listedNftInfo.Owner,
                                 PreviousDuration = listedNftInfo.Duration,
                                 Quantity = listedNftInfo.Quantity,
-                                Price = listedNftInfo.Price
+                                Price = listedNftInfo.Price,
+                                WhitelistId = whitelistId
                             });
                         }
                     }
@@ -206,7 +207,8 @@ namespace AElf.Contracts.NFTMarket
                                 Owner = listedNftInfo.Owner,
                                 PreviousDuration = listedNftInfo.Duration,
                                 Quantity = listedNftInfo.Quantity,
-                                Price = listedNftInfo.Price
+                                Price = listedNftInfo.Price,
+                                WhitelistId = whitelistId
                             });
                         }
                     }
