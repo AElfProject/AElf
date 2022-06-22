@@ -1,5 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
-    <Import Project="..\..\common.props"/>
+    <Import Project="..\..\common.props" />
 
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
@@ -69,5 +69,9 @@
         <ContractCode Include="..\..\protobuf\nft_market_contract.proto">
             <Link>Protobuf\Proto\nft_market_contract.proto</Link>
         </ContractCode>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\AElf.Contracts.Whitelist\AElf.Contracts.Whitelist.csproj" />
     </ItemGroup>
 </Project>

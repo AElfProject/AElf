@@ -616,5 +616,107 @@ namespace AElf.Contracts.NFTMarket
 
             return extraInfoList;
         }
+        
+         private void DealRequestInfoInWhitelist(ListWithFixedPriceInput input,ListDuration duration,RequestInfo requestInfo)
+        {
+            bool isWhiteListDueTimePassed;
+            if (requestInfo.ListTime == null) // Never listed before or delisted before.
+            {
+                isWhiteListDueTimePassed = requestInfo.WhiteListDueTime > Context.CurrentBlockTime;
+            }
+            else
+            {
+                isWhiteListDueTimePassed = requestInfo.ListTime.AddHours(requestInfo.WhiteListHours) >
+                                           Context.CurrentBlockTime;
+            }
+
+            if (isWhiteListDueTimePassed)
+            {
+                // White list hours not passed -> will refresh list time and white list price.
+                ListRequestedNFT(input, requestInfo, input.Whitelists);
+                duration.StartTime = Context.CurrentBlockTime;
+            }
+            else
+            {
+                MaybeReceiveRemainDeposit(requestInfo);
+            }
+        }
+
+        private void ExistWhitelist(Hash projectId, WhitelistInfoList whitelistInfoList, ExtraInfoList extraInfoList)
+        {
+            var whitelistManager = GetWhitelistManager();
+            var whitelistId = State.WhitelistIdMap[projectId];
+            //Format data.
+            var extraInfoIdList = whitelistInfoList?.Whitelists.GroupBy(p => p.PriceTag)
+                                .ToDictionary(e => e.Key, e => e.ToList())
+                                .Select(extra =>
+                                {
+                                    //Whether price tag already exists.
+                                    var ifExist = whitelistManager.GetTagInfoFromWhitelist(
+                                        new GetTagInfoFromWhitelistInput()
+                                        {
+                                            ProjectId = projectId,
+                                            WhitelistId = whitelistId,
+                                            TagInfo = new TagInfo
+                                            {
+                                                TagName = extra.Key.TagName,
+                                                Info = new PriceTag
+                                                {
+                                                    Symbol = extra.Key.Price.Symbol,
+                                                    Amount = extra.Key.Price.Amount
+                                                }.ToByteString()
+                                            }
+                                        });
+                                    if (!ifExist)
+                                    {
+                                        //Doesn't exist,add tag info.
+                                        whitelistManager.AddExtraInfo(new AddExtraInfoInput()
+                                        {
+                                            ProjectId = projectId,
+                                            WhitelistId = whitelistId,
+                                            TagInfo = new TagInfo
+                                            {
+                                                TagName = extra.Key.TagName,
+                                                Info = new PriceTag
+                                                {
+                                                    Symbol = extra.Key.Price.Symbol,
+                                                    Amount = extra.Key.Price.Amount
+                                                }.ToByteString()
+                                            }
+                                        });
+                                    }
+                                    var tagId =
+                                        HashHelper.ComputeFrom(
+                                            $"{whitelistId}{projectId}{extra.Key.TagName}");
+                                    var toAddExtraInfoIdList = new ExtraInfoIdList();
+                                    foreach (var whitelistInfo in extra.Value.Where(whitelistInfo =>
+                                                 whitelistInfo.AddressList.Value.Any()))
+                                    {
+                                        toAddExtraInfoIdList.Value.Add(new ExtraInfoId()
+                                        {
+                                            AddressList = new Whitelist.AddressList
+                                            {
+                                                Value = {whitelistInfo.AddressList.Value}
+                                            },
+                                            Id = tagId
+                                        });
+                                    }
+                                    return toAddExtraInfoIdList;
+                                }).ToList();
+            if (extraInfoList == null || extraInfoIdList == null || extraInfoIdList.Count == 0) return;
+            {
+                var toAdd = new ExtraInfoIdList();
+                foreach (var extra in extraInfoIdList)
+                {
+                    toAdd.Value.Add(extra.Value);
+                }
+                whitelistManager.AddAddressInfoListToWhitelist(
+                    new AddAddressInfoListToWhitelistInput()
+                    {
+                        WhitelistId = whitelistId,
+                        ExtraInfoIdList = toAdd
+                    });
+            }
+        }
     }
 }

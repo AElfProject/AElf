@@ -30,6 +30,8 @@ service NFTMarketContract {
     }
     rpc ListWithDutchAuction (ListWithDutchAuctionInput) returns (google.protobuf.Empty) {
     }
+    rpc ListForFree(ListForFreeInput) returns (google.protobuf.Empty){
+    }
     rpc Deal (DealInput) returns (google.protobuf.Empty) {
     }
     rpc Delist (DelistInput) returns (google.protobuf.Empty) {
@@ -289,6 +291,14 @@ message ListWithFixedPriceInput {
     WhitelistInfoList whitelists = 6;
     bool is_merge_to_previous_listed_info = 7;
     bool is_whitelist_available = 8;
+}
+
+message ListForFreeInput{
+    string symbol = 1;
+    int64 token_id = 2;
+    Price price = 3;
+    int64 quantity = 4;
+    ListDuration duration = 5;
 }
 
 message ListWithEnglishAuctionInput {

@@ -8,5 +8,6 @@ namespace AElf.Contracts.NFTMinter.Managers
         void AddExtraInfo(AddExtraInfoInput input);
         void AddAddressInfoListToWhitelist(AddAddressInfoListToWhitelistInput input);
         void RemoveAddressInfoListFromWhitelist(RemoveAddressInfoListFromWhitelistInput input);
+        bool GetTagInfoFromWhitelist(GetTagInfoFromWhitelistInput input);
     }
 }

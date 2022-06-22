@@ -27,38 +27,18 @@ namespace AElf.Contracts.NFTMarket
             var whitelistId = new Hash();
             if (input.IsWhitelistAvailable)
             {
-                //var whitelistManager = GetWhitelistManager();
+                var whitelistManager = GetWhitelistManager();
                 if (requestInfo != null)
                 {
-                    bool isWhiteListDueTimePassed;
-                    if (requestInfo.ListTime == null) // Never listed before or delisted before.
-                    {
-                        isWhiteListDueTimePassed = requestInfo.WhiteListDueTime > Context.CurrentBlockTime;
-                    }
-                    else
-                    {
-                        isWhiteListDueTimePassed = requestInfo.ListTime.AddHours(requestInfo.WhiteListHours) >
-                                                   Context.CurrentBlockTime;
-                    }
-
-                    if (isWhiteListDueTimePassed)
-                    {
-                        // White list hours not passed -> will refresh list time and white list price.
-                        ListRequestedNFT(input, requestInfo, whitelists);
-                        duration.StartTime = Context.CurrentBlockTime;
-                    }
-                    else
-                    {
-                        MaybeReceiveRemainDeposit(requestInfo);
-                    }
+                    DealRequestInfoInWhitelist(input, duration, requestInfo);
                 }
                 else
                 {
                     var extraInfoList = ConvertToExtraInfo(whitelists);
                     //Listed for the first time, create whitelist.
-                    if (State.WhitelistIdMap[projectId]== null)
+                    if (State.WhitelistIdMap[projectId] == null)
                     {
-                        State.WhitelistContract.CreateWhitelist.Send(new CreateWhitelistInput()
+                        whitelistManager.CreateWhitelist(new CreateWhitelistInput
                         {
                             ProjectId = projectId,
                             StrategyType = StrategyType.Price,
@@ -68,7 +48,7 @@ namespace AElf.Contracts.NFTMarket
                             Remark = $"{input.Symbol}{input.TokenId}",
                             ManagerList = new Whitelist.AddressList
                             {
-                                Value = { Context.Sender }
+                                Value = {Context.Sender}
                             }
                         });
                         whitelistId =
@@ -79,77 +59,7 @@ namespace AElf.Contracts.NFTMarket
                     else
                     {
                         //Add address list to the existing whitelist.
-                        whitelistId = State.WhitelistIdMap[projectId];
-                        var extraInfoIdList = whitelists?.Whitelists.GroupBy(p => p.PriceTag)
-                            .ToDictionary(e=>e.Key, e =>e.ToList())
-                            .Select(extra =>
-                            {
-                                //Whether price tag already exists.
-                                var ifExist = State.WhitelistContract.GetTagInfoFromWhitelist.Call(
-                                    new GetTagInfoFromWhitelistInput()
-                                    {
-                                        ProjectId = projectId,
-                                        WhitelistId = whitelistId,
-                                        TagInfo = new TagInfo
-                                            {
-                                                TagName = extra.Key.TagName, 
-                                                Info = new PriceTag
-                                                {
-                                                    Symbol = extra.Key.Price.Symbol,
-                                                    Amount = extra.Key.Price.Amount
-                                                }.ToByteString()
-                                            }
-                                    }).Value;
-                                if (!ifExist)
-                                {
-                                    //Doesn't exist,add tag info.
-                                    State.WhitelistContract.AddExtraInfo.Send(new AddExtraInfoInput()
-                                    {
-                                        ProjectId = projectId,
-                                        WhitelistId = whitelistId,
-                                        TagInfo = new TagInfo
-                                            {
-                                                TagName = extra.Key.TagName, 
-                                                Info = new PriceTag
-                                                {
-                                                    Symbol = extra.Key.Price.Symbol,
-                                                    Amount = extra.Key.Price.Amount
-                                                }.ToByteString()
-                                            }
-                                    });
-                                }
-                                var tagId =
-                                    HashHelper.ComputeFrom(
-                                        $"{whitelistId}{projectId}{extra.Key.TagName}");
-                                var toAddExtraInfoIdList = new ExtraInfoIdList();
-                                foreach (var whitelistInfo in extra.Value.Where(whitelistInfo => whitelistInfo.AddressList.Value.Any()))
-                                {
-                                    toAddExtraInfoIdList.Value.Add(new ExtraInfoId()
-                                    {
-                                        AddressList = new Whitelist.AddressList
-                                        {
-                                            Value = {whitelistInfo.AddressList.Value}
-                                        },
-                                        Id = tagId
-                                    });
-                                }
-                                return toAddExtraInfoIdList;
-                            }).ToList();
-                        if (extraInfoList != null && extraInfoIdList != null && extraInfoIdList.Count != 0)
-                        {
-                            var toAdd = new ExtraInfoIdList();
-                            foreach (var extra in extraInfoIdList)
-                            {
-                                toAdd.Value.Add(extra.Value);
-                            }
-                            State.WhitelistContract.AddAddressInfoListToWhitelist.Send(
-                                new AddAddressInfoListToWhitelistInput()
-                                {
-                                    WhitelistId = whitelistId,
-                                    ExtraInfoIdList = toAdd
-                                    
-                                });
-                        }
+                        ExistWhitelist(projectId,whitelists,extraInfoList);
                     }
                 }
             }
@@ -252,6 +162,12 @@ namespace AElf.Contracts.NFTMarket
             return new Empty();
         }
 
+        public override Empty ListForFree(ListForFreeInput input)
+        {
+            //TODO:List price is 0.
+            return base.ListForFree(input);
+        }
+        
         public override Empty ListWithEnglishAuction(ListWithEnglishAuctionInput input)
         {
             AssertContractInitialized();
