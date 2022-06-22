@@ -3,42 +3,59 @@ using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.State;
 using AElf.Types;
 
-namespace AElf.Contracts.NFTMinter.Managers
+namespace AElf.Contracts.NFTMarket.Managers;
+
+internal class WhitelistManager : IWhitelistManager
 {
-    internal class WhitelistManager : IWhitelistManager
+    private readonly CSharpSmartContractContext _context;
+    private readonly MappedState<Hash, Hash> _whitelistIdMap;
+    private readonly WhitelistContractContainer.WhitelistContractReferenceState _whitelistContract;
+
+    public WhitelistManager(CSharpSmartContractContext context,
+        MappedState<Hash, Hash> whitelistIdMap,
+        WhitelistContractContainer.WhitelistContractReferenceState whitelistContract)
     {
-        private readonly CSharpSmartContractContext _context;
-        private readonly MappedState<Hash, Hash> _whitelistIdMap;
-        private readonly WhitelistContractContainer.WhitelistContractReferenceState _whitelistContract;
+        _context = context;
+        _whitelistIdMap = whitelistIdMap;
+        _whitelistContract = whitelistContract;
+    }
 
-        public WhitelistManager(CSharpSmartContractContext context,
-            MappedState<Hash, Hash> whitelistIdMap,
-            WhitelistContractContainer.WhitelistContractReferenceState whitelistContract)
+    public void CreateWhitelist(CreateWhitelistInput input)
+    {
+        _whitelistContract.CreateWhitelist.Send(input);
+    }
+
+    public void AddExtraInfo(AddExtraInfoInput input)
+    {
+        _whitelistContract.AddExtraInfo.Send(input);
+    }
+
+    public void AddAddressInfoListToWhitelist(AddAddressInfoListToWhitelistInput input)
+    {
+        _whitelistContract.AddAddressInfoListToWhitelist.Send(input);
+    }
+
+    public void RemoveAddressInfoListFromWhitelist(RemoveAddressInfoListFromWhitelistInput input)
+    {
+        _whitelistContract.RemoveAddressInfoListFromWhitelist.Send(input);
+    }
+
+    public bool IsAddressInWhitelist(Address address, Hash whitelistId)
+    {
+        if (whitelistId == null)
         {
-            _context = context;
-            _whitelistIdMap = whitelistIdMap;
-            _whitelistContract = whitelistContract;
+            return false;
         }
 
-        public void CreateWhitelist(CreateWhitelistInput input)
+        return _whitelistContract.GetAddressFromWhitelist.Call(new GetAddressFromWhitelistInput
         {
-            _whitelistContract.CreateWhitelist.Send(input);
-        }
+            Address = address,
+            WhitelistId = whitelistId
+        }).Value;
+    }
 
-        public void AddExtraInfo(AddExtraInfoInput input)
-        {
-            
-        }
-
-        public void AddAddressInfoListToWhitelist(AddAddressInfoListToWhitelistInput input)
-        {
-            
-        }
-
-        public void RemoveAddressInfoListFromWhitelist(RemoveAddressInfoListFromWhitelistInput input)
-        {
-           
-        }
-        
+    public TagInfo GetExtraInfoByAddress(GetExtraInfoByAddressInput input)
+    {
+        return _whitelistContract.GetExtraInfoByAddress.Call(input);
     }
 }

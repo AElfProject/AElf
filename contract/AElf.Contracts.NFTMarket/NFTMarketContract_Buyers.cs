@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using AElf.Contracts.NFT;
+using AElf.Contracts.NFTMarket.Services;
 using AElf.Contracts.Whitelist;
 using AElf.CSharp.Core;
 using AElf.CSharp.Core.Extension;
@@ -26,206 +28,81 @@ namespace AElf.Contracts.NFTMarket
         public override Empty MakeOffer(MakeOfferInput input)
         {
             AssertContractInitialized();
-
-            Assert(Context.Sender != input.OfferTo, "Origin owner cannot be sender himself.");
-
+            
             var nftInfo = State.NFTContract.GetNFTInfo.Call(new GetNFTInfoInput
             {
                 Symbol = input.Symbol,
                 TokenId = input.TokenId
             });
 
-            if (nftInfo.Quantity != 0 && input.OfferTo == null)
+            var listedNftInfoList =
+                State.ListedNFTInfoListMap[input.Symbol][input.TokenId][input.OfferTo ?? nftInfo.Creator];
+
+            if (listedNftInfoList.Value.All(i => i.ListType == ListType.FixedPrice))
             {
-                input.OfferTo = nftInfo.Creator;
-            }
-
-            var protocolInfo = State.NFTContract.GetNFTProtocolInfo.Call(new StringValue {Value = input.Symbol});
-
-            if (nftInfo.Quantity == 0 && !protocolInfo.IsTokenIdReuse && input.Quantity == 1)
-            {
-                // NFT not minted.
-                PerformRequestNewItem(input.Symbol, input.TokenId, input.Price, input.ExpireTime);
-                return new Empty();
-            }
-
-            Assert(nftInfo.Quantity > 0, "NFT does not exist.");
-
-            var listedNftInfoList = State.ListedNFTInfoListMap[input.Symbol][input.TokenId][input.OfferTo];
-
-            if (listedNftInfoList == null || listedNftInfoList.Value.All(i => i.ListType == ListType.NotListed))
-            {
-                // NFT not listed by the owner.
-                PerformMakeOffer(input);
-                return new Empty();
-            }
-
-            var validListedNftInfoList = listedNftInfoList.Value.Where(i =>
-                (i.Price.Symbol == input.Price.Symbol && i.Price.Amount <= input.Price.Amount ||
-                 i.ListType != ListType.FixedPrice) &&
-                !IsListedNftTimedOut(i)).ToList();
-            ListedNFTInfo listedNftInfo;
-            if (validListedNftInfoList.Any())
-            {
-                listedNftInfo = validListedNftInfoList.First();
-
-                if (validListedNftInfoList.Count > 1)
-                {
-                    var totalQuantity = validListedNftInfoList.Sum(i => i.Quantity);
-                    listedNftInfo.Quantity = totalQuantity;
-                }
-            }
-            else
-            {
-                listedNftInfo = listedNftInfoList.Value.First();
-            }
-
-            var projectId = CalculateProjectId(input.Symbol, input.TokenId, input.OfferTo);
-            var whitelistId = State.WhitelistIdMap[projectId];
-            var ifExist = false;
-            if (whitelistId != null)
-            {
-                ifExist = State.WhitelistContract.GetAddressFromWhitelist.Call(
-                    new GetAddressFromWhitelistInput
-                    {
-                        WhitelistId = whitelistId,
-                        Address = Context.Sender
-                    }).Value;
-            }
-            if (listedNftInfo == null || listedNftInfo.ListType == ListType.NotListed)
-            {
-                if (whitelistId == null)
+                var auctionInfo = listedNftInfoList.Value.FirstOrDefault();
+                if (auctionInfo == null || IsListedNftTimedOut(auctionInfo))
                 {
                     PerformMakeOffer(input);
-                    return new Empty();
-                }
-                Price price = null;
-                if (ifExist)
-                {
-                    var tagInfo = State.WhitelistContract.GetExtraInfoByAddress.Call(new GetExtraInfoByAddressInput
-                    {
-                        Address = Context.Sender,
-                        WhitelistId = whitelistId
-                    });
-                    price = DeserializedInfo(tagInfo);
-                }
-                //Whether buyer have their own price. 
-                if (price != null && price.Amount <= input.Price.Amount && price.Symbol == input.Price.Symbol)
-                {
-                    listedNftInfo = new ListedNFTInfo
-                    {
-                        Symbol = input.Symbol,
-                        TokenId = input.TokenId,
-                        Price = price,
-                        ListType = ListType.FixedPrice,
-                        Quantity = 1,
-                        Owner = listedNftInfoList.Value.First().Owner,
-                        Duration = listedNftInfoList.Value.First().Duration
-                    };
                 }
                 else
                 {
-                    PerformMakeOffer(input);
-                    return new Empty();
+                    if (auctionInfo.ListType == ListType.EnglishAuction)
+                    {
+                        TryPlaceBidForEnglishAuction(input);
+                    }
+
+                    if (auctionInfo.ListType == ListType.DutchAuction)
+                    {
+                        if (PerformMakeOfferToDutchAuction(input))
+                        {
+                            listedNftInfoList.Value.Remove(auctionInfo);
+                        }
+                    }
                 }
-            }
 
-            var quantity = input.Quantity;
-            if (quantity > listedNftInfo.Quantity)
-            {
-                var makerOfferInput = input.Clone();
-                makerOfferInput.Quantity = quantity.Sub(listedNftInfo.Quantity);
-                PerformMakeOffer(makerOfferInput);
-                input.Quantity = listedNftInfo.Quantity;
-            }
+                State.ListedNFTInfoListMap[input.Symbol][input.TokenId][input.OfferTo] = listedNftInfoList;
 
-            if (IsListedNftTimedOut(listedNftInfo))
-            {
-                PerformMakeOffer(input);
                 return new Empty();
             }
 
-            switch (listedNftInfo.ListType)
+            var makeOfferService = GetMakeOfferService();
+            makeOfferService.ValidateOffer(input);
+
+            var offerStatus = makeOfferService.GetDealStatus(input, out var affordableNftInfoList);
+            switch(offerStatus)
             {
-                case ListType.FixedPrice when whitelistId != null && ifExist:
-                    if (TryDealWithFixedPrice(input, listedNftInfo, out var actualQuantity))
-                    {
-                        MaybeRemoveRequest(input.Symbol, input.TokenId);
-                        listedNftInfo.Quantity = listedNftInfo.Quantity.Sub(actualQuantity);
-                        if (listedNftInfo.Quantity == 0 && listedNftInfoList.Value.Contains(listedNftInfo))
-                        {
-                            listedNftInfoList.Value.Remove(listedNftInfo);
-                            Context.Fire(new ListedNFTRemoved
-                            {
-                                Symbol = listedNftInfo.Symbol,
-                                TokenId = listedNftInfo.TokenId,
-                                Duration = listedNftInfo.Duration,
-                                Owner = listedNftInfo.Owner
-                            });
-                        }
-                        else
-                        {
-                            Context.Fire(new ListedNFTChanged
-                            {
-                                Symbol = listedNftInfo.Symbol,
-                                TokenId = listedNftInfo.TokenId,
-                                Duration = listedNftInfo.Duration,
-                                Owner = listedNftInfo.Owner,
-                                PreviousDuration = listedNftInfo.Duration,
-                                Quantity = listedNftInfo.Quantity,
-                                Price = listedNftInfo.Price
-                            });
-                        }
-                    }
-
-                    break;
-                case ListType.FixedPrice when input.Price.Symbol == listedNftInfo.Price.Symbol &&
-                                              input.Price.Amount >= listedNftInfo.Price.Amount:
-                    input.Quantity = Math.Min(input.Quantity, listedNftInfo.Quantity);
-                    if (TryDealWithFixedPrice(input, listedNftInfo, out var dealQuantity))
-                    {
-                        listedNftInfo.Quantity = listedNftInfo.Quantity.Sub(dealQuantity);
-                        if (listedNftInfo.Quantity == 0)
-                        {
-                            listedNftInfoList.Value.Remove(listedNftInfo);
-                            Context.Fire(new ListedNFTRemoved
-                            {
-                                Symbol = listedNftInfo.Symbol,
-                                TokenId = listedNftInfo.TokenId,
-                                Duration = listedNftInfo.Duration,
-                                Owner = listedNftInfo.Owner
-                            });
-                        }
-                        else
-                        {
-                            Context.Fire(new ListedNFTChanged
-                            {
-                                Symbol = listedNftInfo.Symbol,
-                                TokenId = listedNftInfo.TokenId,
-                                Duration = listedNftInfo.Duration,
-                                Owner = listedNftInfo.Owner,
-                                PreviousDuration = listedNftInfo.Duration,
-                                Quantity = listedNftInfo.Quantity,
-                                Price = listedNftInfo.Price
-                            });
-                        }
-                    }
-
-                    break;
-
-                case ListType.EnglishAuction:
-                    TryPlaceBidForEnglishAuction(input);
-                    break;
-                case ListType.DutchAuction:
-                    if (PerformMakeOfferToDutchAuction(input))
-                    {
-                        listedNftInfoList.Value.Remove(listedNftInfo);
-                    }
-
-                    break;
-                default:
+                case OfferStatus.NFTNotMined:
+                    PerformRequestNewItem(input.Symbol, input.TokenId, input.Price, input.ExpireTime);
+                    return new Empty();
+                case OfferStatus.NotDeal:
                     PerformMakeOffer(input);
-                    break;
+                    return new Empty();
+            }
+            
+            Assert(nftInfo.Quantity > 0, "NFT does not exist.");
+
+            var dealResultList = new List<DealResult>();
+            if (makeOfferService.IsSenderInWhitelist(input))
+            {
+                // Deal one NFT with whitelist price.
+                
+                //dealResultList.Add(new DealResult());
+            }
+
+            var dealService = GetDealService();
+            var normalPriceDealResultList = dealService.GetDealResultList(new GetDealResultListInput(input,
+                new ListedNFTInfoList
+                {
+                    Value =
+                    {
+                        affordableNftInfoList
+                    }
+                })).ToList();
+            dealResultList.AddRange(normalPriceDealResultList);
+            foreach (var dealResult in normalPriceDealResultList)
+            {
+
             }
 
             State.ListedNFTInfoListMap[input.Symbol][input.TokenId][input.OfferTo] = listedNftInfoList;
