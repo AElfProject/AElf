@@ -194,7 +194,7 @@ public partial class WhitelistContract
         MakeSureProjectCorrect(input.WhitelistId, input.ProjectId);
         AssertWhitelistInfo(input.WhitelistId);
         AssertWhitelistIsAvailable(input.WhitelistId);
-        AssertWhitelistManager(input.WhitelistId);
+        var whitelist = AssertWhitelistManager(input.WhitelistId);
 
         Assert(State.ManagerTagInfoMap[input.ProjectId][input.WhitelistId].Value.Contains(input.TagId),
             $"Incorrect tagInfoId.{input.TagId.ToHex()}");
@@ -204,6 +204,12 @@ public partial class WhitelistContract
         var tagInfo = State.TagInfoMap[input.TagId];
         State.TagInfoMap.Remove(input.TagId);
         State.TagInfoIdAddressListMap[input.WhitelistId].Remove(input.TagId);
+        foreach (var extraInfoId in whitelist.ExtraInfoIdList.Value)
+        {
+            if (extraInfoId.Id != input.TagId) continue;
+            whitelist.ExtraInfoIdList.Value.Remove(extraInfoId);
+            break;
+        }
         Context.Fire(new TagInfoRemoved()
         {
             ProjectId = input.ProjectId,

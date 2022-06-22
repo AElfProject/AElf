@@ -513,6 +513,10 @@ namespace AElf.Contracts.NFT
                     });
                 exist.Value.ShouldBe(false);
             }
+            {
+                var extraInfo = await WhitelistContractStub.GetWhitelistDetail.CallAsync(whitelistId);
+                extraInfo.Value[0].Info.TagName.ShouldBe("INFO3");
+            }
         }
 
         [Fact]
