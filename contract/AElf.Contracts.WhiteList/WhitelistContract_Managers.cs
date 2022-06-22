@@ -614,7 +614,7 @@ public partial class WhitelistContract
         }
 
         whitelist.ExtraInfoIdList.Value.Clear();
-        var idList = State.ManagerTagInfoMap[input.ProjectId][input.WhitelistId];
+        var idList = State.ManagerTagInfoMap[input.ProjectId][input.WhitelistId].Clone();
         if (idList == null)
         {
             throw new AssertionException($"No tagInfo.{whitelist.WhitelistId}");

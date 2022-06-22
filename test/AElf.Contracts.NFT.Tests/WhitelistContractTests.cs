@@ -1281,6 +1281,15 @@ namespace AElf.Contracts.NFT
                 });
                 exception.Value.ShouldContain("No extraInfo id list.");
             }
+            await WhitelistContractStub.AddExtraInfo.SendAsync(new AddExtraInfoInput
+            {
+                WhitelistId = whitelistId, ProjectId = _projectId, 
+                TagInfo = new TagInfo()
+                {
+                    TagName = "INFO1",
+                    Info = Info1
+                }
+            });
         }
     }
 }
