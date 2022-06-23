@@ -618,31 +618,31 @@ public partial class WhitelistContract
         {
             throw new AssertionException($"No extraInfo.{whitelist.WhitelistId}");
         }
-
-        whitelist.ExtraInfoIdList.Value.Clear();
-        var idList = State.ManagerTagInfoMap[input.ProjectId][input.WhitelistId].Clone();
-        if (idList == null)
+        if (whitelist.StrategyType != StrategyType.Basic)
         {
-            throw new AssertionException($"No tagInfo.{whitelist.WhitelistId}");
-        }
-
-        var addressList = whitelist.ExtraInfoIdList.Value.Select(e => e.AddressList).ToList();
-        State.ManagerTagInfoMap[input.ProjectId][input.WhitelistId].Value.Clear();
-        foreach (var id in idList.Value)
-        {
-            State.TagInfoMap.Remove(id);
-            State.TagInfoIdAddressListMap[input.WhitelistId].Remove(id);
-        }
-
-        foreach (var addresses in addressList)
-        {
-            foreach (var address in addresses.Value)
+            var idList = State.ManagerTagInfoMap[input.ProjectId][input.WhitelistId].Clone();
+            if (idList == null)
             {
-                State.AddressTagInfoIdMap[input.WhitelistId].Remove(address);
+                throw new AssertionException($"No tagInfo.{whitelist.WhitelistId}");
+            }
+
+            var addressList = whitelist.ExtraInfoIdList.Value.Select(e => e.AddressList).ToList();
+            State.ManagerTagInfoMap[input.ProjectId][input.WhitelistId].Value.Clear();
+            foreach (var id in idList.Value)
+            {
+                State.TagInfoMap.Remove(id);
+                State.TagInfoIdAddressListMap[input.WhitelistId].Remove(id);
+            }
+            foreach (var addresses in addressList)
+            {
+                foreach (var address in addresses.Value)
+                {
+                    State.AddressTagInfoIdMap[input.WhitelistId].Remove(address);
+                }
             }
         }
-
-        Context.Fire(new WhitelistReset()
+        whitelist.ExtraInfoIdList.Value.Clear();
+        Context.Fire(new WhitelistReset
         {
             WhitelistId = whitelist.WhitelistId,
             ProjectId = whitelist.ProjectId

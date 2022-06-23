@@ -241,10 +241,9 @@ namespace AElf.Contracts.NFT
         public async Task<Hash> CreateWhitelist_Address()
         {
             await InitializeTest();
-            var projectId = new Hash();
             var whitelistId = (await WhitelistContractStub.CreateWhitelist.SendAsync(new CreateWhitelistInput()
             {
-                ProjectId = projectId,
+                ProjectId = _projectId2,
                 ExtraInfoList = new ExtraInfoList()
                 {
                     Value =
@@ -1294,6 +1293,40 @@ namespace AElf.Contracts.NFT
                     Info = Info1
                 }
             });
+        }
+        
+        [Fact]
+        public async Task ResetWhitelist_Basic()
+        {
+            var whitelistId = await CreateWhitelist_Address();
+            await WhitelistContractStub.ResetWhitelist.SendAsync(new ResetWhitelistInput()
+            {
+                WhitelistId = whitelistId,
+                ProjectId = _projectId2
+            });
+            var executionResult = await UserWhitelistContractStub.ResetWhitelist.SendWithExceptionAsync(new ResetWhitelistInput()
+            {
+                WhitelistId = whitelistId,
+                ProjectId = _projectId
+            });
+            executionResult.TransactionResult.Error.ShouldContain("is not the manager of the whitelist");
+            
+            var exceptionExecutionResult
+                = await WhitelistContractStub.ResetWhitelist.SendWithExceptionAsync(new ResetWhitelistInput()
+            {
+                WhitelistId = whitelistId,
+                ProjectId = HashHelper.ComputeFrom("aaa")
+            });
+            exceptionExecutionResult.TransactionResult.Error.ShouldContain("Incorrect projectId.");
+            {
+                var whitelist = await WhitelistContractStub.GetWhitelist.CallAsync(whitelistId);
+                whitelist.ExtraInfoIdList.Value.Count.ShouldBe(0);
+                whitelist.ProjectId.ShouldBe(_projectId2);
+            }
+            {
+                var extra = await WhitelistContractStub.GetWhitelistDetail.CallAsync(whitelistId);
+                extra.Value.Count.ShouldBe(0);
+            }
         }
     }
 }

@@ -13,7 +13,8 @@ namespace AElf.Contracts.NFTMarket
 
         public override GetWhitelistIdOutput GetWhitelistId(GetWhitelistIdInput input)
         {
-            var projectId = CalculateProjectId(input.Symbol, input.TokenId,Context.Sender);
+            var owner = input.Owner ?? Context.Sender;
+            var projectId = CalculateProjectId(input.Symbol, input.TokenId,owner);
             Assert(State.WhitelistIdMap[projectId] != null, $"Whitelist id not found.Project id:{projectId}");
             var whitelistId = State.WhitelistIdMap[projectId];
             return new GetWhitelistIdOutput
