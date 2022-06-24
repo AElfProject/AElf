@@ -108,7 +108,7 @@ namespace AElf.Contracts.NFTMarket
                 }
 
                 var actualAmount = performDealInput.PurchaseAmount.Sub(serviceFee).Sub(royaltyFee);
-                Assert(actualAmount > 0, "Incorrect deal amount.");
+                //Assert(actualAmount > 0, "Incorrect deal amount.");
                 State.TokenContract.TransferFrom.Send(new TransferFromInput
                 {
                     From = performDealInput.NFTTo,

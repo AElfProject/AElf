@@ -264,7 +264,8 @@ namespace AElf.Contracts.NFT
                 new GetWhitelistIdInput()
                 {
                     Symbol = symbol,
-                    TokenId = 2
+                    TokenId = 2,
+                    Owner = DefaultAddress
                 })).WhitelistId;
             var whitelistIds = await WhitelistContractStub.GetWhitelistByManager.CallAsync(NFTMarketContractAddress);
             whitelistIds.WhitelistId.Count.ShouldBe(1);
