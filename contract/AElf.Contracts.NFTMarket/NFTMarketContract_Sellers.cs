@@ -59,7 +59,7 @@ namespace AElf.Contracts.NFTMarket
                     else
                     {
                         //Add address list to the existing whitelist.
-                        ExistWhitelist(projectId,whitelists,extraInfoList);
+                        whitelistId = ExistWhitelist(projectId,whitelists,extraInfoList);
                     }
                 }
             }

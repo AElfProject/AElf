@@ -7,6 +7,7 @@ using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using AElf.Types;
 using Google.Protobuf;
+using QuickGraph;
 using Shouldly;
 using Xunit;
 using InitializeInput = AElf.Contracts.NFTMarket.InitializeInput;
@@ -1671,7 +1672,7 @@ public partial class NFTContractTests
             Amount = 20,
             Spender = NFTMarketContractAddress
         });
-        await SellerNFTMarketContractStub.ListWithFixedPrice.SendAsync(
+        var executionResult1 = await SellerNFTMarketContractStub.ListWithFixedPrice.SendAsync(
             new ListWithFixedPriceInput
             {
                 Symbol = symbol,
@@ -1711,6 +1712,16 @@ public partial class NFTContractTests
                 },
                 IsWhitelistAvailable = true
             });
+        var whitelistId = (await SellerNFTMarketContractStub.GetWhitelistId.CallAsync(new GetWhitelistIdInput
+        {
+            Symbol = symbol,
+            TokenId = 233,
+            Owner = DefaultAddress
+        })).WhitelistId;
+        var log = ListedNFTAdded.Parser
+            .ParseFrom(executionResult1.TransactionResult.Logs.First(l => l.Name == nameof(ListedNFTAdded)).NonIndexed)
+            .WhitelistId;
+        log.ShouldBe(whitelistId);
         await SellerNFTMarketContractStub.ListWithFixedPrice.SendAsync(
             new ListWithFixedPriceInput
             {
@@ -1730,6 +1741,10 @@ public partial class NFTContractTests
                 IsWhitelistAvailable = true,
                 IsMergeToPreviousListedInfo = false
             });
+        var log1 = ListedNFTAdded.Parser
+            .ParseFrom(executionResult1.TransactionResult.Logs.First(l => l.Name == nameof(ListedNFTAdded)).NonIndexed)
+            .WhitelistId;
+        log1.ShouldBe(whitelistId);
         await NFTBuyerTokenContractStub.Approve.SendAsync(new MultiToken.ApproveInput
         {
             Symbol = "ELF",

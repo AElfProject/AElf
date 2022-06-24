@@ -642,7 +642,7 @@ namespace AElf.Contracts.NFTMarket
             }
         }
 
-        private void ExistWhitelist(Hash projectId, WhitelistInfoList whitelistInfoList, ExtraInfoList extraInfoList)
+        private Hash ExistWhitelist(Hash projectId, WhitelistInfoList whitelistInfoList, ExtraInfoList extraInfoList)
         {
             var whitelistManager = GetWhitelistManager();
             var whitelistId = State.WhitelistIdMap[projectId];
@@ -703,7 +703,7 @@ namespace AElf.Contracts.NFTMarket
                                     }
                                     return toAddExtraInfoIdList;
                                 }).ToList();
-            if (extraInfoList == null || extraInfoIdList == null || extraInfoIdList.Count == 0) return;
+            if (extraInfoList == null || extraInfoIdList == null || extraInfoIdList.Count == 0) return whitelistId;
             {
                 var toAdd = new ExtraInfoIdList();
                 foreach (var extra in extraInfoIdList)
@@ -717,6 +717,7 @@ namespace AElf.Contracts.NFTMarket
                         ExtraInfoIdList = toAdd
                     });
             }
+            return whitelistId;
         }
     }
 }
