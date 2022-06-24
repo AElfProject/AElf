@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel;
@@ -9,7 +8,6 @@ using AElf.Kernel.Blockchain.Domain;
 using AElf.Types;
 using AElf.WebApp.MessageQueue.Dtos;
 using AElf.WebApp.MessageQueue.Entities;
-using AElf.WebApp.MessageQueue.Extensions;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.WebApp.MessageQueue.Helpers
@@ -22,14 +20,15 @@ namespace AElf.WebApp.MessageQueue.Helpers
             CancellationToken ctsToken);
     }
 
-    public class EventFilterAsyncMessageGeneratorAsyncEventFilterAsyncMessageGeneratorAsyncMessageGenerator : EventFilterAsyncMessageGeneratorAbstract,
+    [ExposeServices(typeof(IEventFilterAsyncMessageGenerator))]
+    public class EventFilterAsyncMessageGenerator : EventFilterAsyncMessageGeneratorAbstract,
         IEventFilterAsyncMessageGenerator, ITransientDependency
     {
         private readonly ITransactionResultQueryService _transactionResultQueryService;
         private readonly ITransactionManager _transactionManager;
 
 
-        public EventFilterAsyncMessageGeneratorAsyncEventFilterAsyncMessageGeneratorAsyncMessageGenerator(
+        public EventFilterAsyncMessageGenerator(
             ITransactionResultQueryService transactionResultQueryService,
             ITransactionManager transactionManager, ITransactionEtoGenerator transactionEtoGenerator) : base(
             transactionEtoGenerator)

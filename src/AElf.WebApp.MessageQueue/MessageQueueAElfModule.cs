@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net.Security;
 using System.Security.Authentication;
+using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Modularity;
 using AElf.WebApp.Application;
@@ -29,8 +30,13 @@ namespace AElf.WebApp.MessageQueue
 
         public override void OnApplicationShutdown(ApplicationShutdownContext context)
         {
+            AsyncHelper.RunSync(() => OnApplicationShutdownAsync(context));
+        }
+
+        public override async Task OnApplicationShutdownAsync(ApplicationShutdownContext context)
+        {
             var taskManageService = context.ServiceProvider.GetRequiredService<IEventSendTaskManager>();
-            AsyncHelper.RunSync(taskManageService.StopAsync);
+            await taskManageService.StopAsync();
         }
 
         private void ConfigureRabbitMqEventBus(IConfiguration configuration)
@@ -38,6 +44,7 @@ namespace AElf.WebApp.MessageQueue
             Configure<AbpRabbitMqEventBusOptions>(options =>
             {
                 var messageQueueConfig = configuration.GetSection("MessageQueue");
+                options.ExchangeType = RabbitMqConsts.ExchangeTypes.Topic;
                 options.ClientName = messageQueueConfig.GetSection("ClientName").Value;
                 options.ExchangeName = messageQueueConfig.GetSection("ExchangeName").Value;
             });

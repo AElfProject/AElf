@@ -16,7 +16,7 @@ namespace AElf.WebApp.MessageQueue.Helpers
             List<BlockExecutedSet> blockExecutedSets, List<EventFilterEntity> eventFilters);
     }
 
-    public class EventFilterAsyncMessageGeneratorSyncMessageGenerator : EventFilterAsyncMessageGeneratorAbstract,
+    public class EventFilterSyncMessageGenerator : EventFilterAsyncMessageGeneratorAbstract,
         IEventFilterSyncMessageGenerator,
         ITransientDependency
     {
@@ -38,7 +38,7 @@ namespace AElf.WebApp.MessageQueue.Helpers
             _blockExecutedSetDic = blockExecutedSets.ToDictionary(k => k.GetHash(), v => v);
         }
 
-        public EventFilterAsyncMessageGeneratorSyncMessageGenerator(ITransactionEtoGenerator transactionEtoGenerator) :
+        public EventFilterSyncMessageGenerator(ITransactionEtoGenerator transactionEtoGenerator) :
             base(
                 transactionEtoGenerator)
         {

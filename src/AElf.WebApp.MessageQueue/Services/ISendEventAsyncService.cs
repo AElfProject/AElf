@@ -63,7 +63,7 @@ namespace AElf.WebApp.MessageQueue.Services
                     new List<Block> { block }, eventFilterDic, eventFilterSets, ctsToken);
                 if (messageDic == null)
                 {
-                    return;
+                    continue;
                 }
 
                 if (!eventFilters.Any())

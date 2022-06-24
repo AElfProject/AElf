@@ -1,33 +1,26 @@
-using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.WebApp.MessageQueue.EventBus;
 using Volo.Abp.DependencyInjection;
-using Volo.Abp.EventBus.Distributed;
 
 namespace AElf.WebApp.MessageQueue.Services
 {
     public interface IMessageEventBusService
     {
-        Task PublishMessageAsync(string topic, List<TransactionResultListEto> messages);
         Task PublishMessageAsync(string topic, TransactionResultListEto messages);
     }
 
     public class MessageEventBusService : IMessageEventBusService, ISingletonDependency
     {
-        private readonly IDistributedEventBus _distributedEventBus;
+        private readonly ITopicRabbitMqDistributedEventBus _topicRabbitMqDistributedEventBus;
 
-        public MessageEventBusService(IDistributedEventBus distributedEventBus)
+        public MessageEventBusService(ITopicRabbitMqDistributedEventBus topicRabbitMqDistributedEventBus)
         {
-            _distributedEventBus = distributedEventBus;
+            _topicRabbitMqDistributedEventBus = topicRabbitMqDistributedEventBus;
         }
 
-        public Task PublishMessageAsync(string topic, List<TransactionResultListEto> messages)
+        public async Task PublishMessageAsync(string topic, TransactionResultListEto messages)
         {
-            throw new System.NotImplementedException();
-        }
-
-        public Task PublishMessageAsync(string topic, TransactionResultListEto messages)
-        {
-            throw new System.NotImplementedException();
+            await _topicRabbitMqDistributedEventBus.PublishTopicMessageAsync(topic, messages);
         }
     }
 }

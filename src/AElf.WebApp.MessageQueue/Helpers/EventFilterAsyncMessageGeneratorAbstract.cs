@@ -40,7 +40,7 @@ namespace AElf.WebApp.MessageQueue.Helpers
                     await GetTransactionResultEtoByBlockAsync(block, eventFilters, eventFilterSets, ctsToken);
                 if (msgDicByBlock == null)
                 {
-                    return null;
+                    continue;
                 }
 
                 foreach (var msgKp in msgDicByBlock)
@@ -101,6 +101,10 @@ namespace AElf.WebApp.MessageQueue.Helpers
                 var eventMsgByPerTransactionDic =
                     await GetTransactionResultEtoByTransactionAsync(block, txId, eventFiltersDic, validEventSetInBlock,
                         ctsToken);
+                if (eventMsgByPerTransactionDic == null)
+                {
+                    continue;
+                }
 
                 foreach (var kp in eventMsgByPerTransactionDic)
                 {
