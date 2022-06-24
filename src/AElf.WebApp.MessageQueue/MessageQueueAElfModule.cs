@@ -5,11 +5,15 @@ using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Modularity;
 using AElf.WebApp.Application;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using RabbitMQ.Client;
+using StackExchange.Redis;
 using Volo.Abp;
 using Volo.Abp.AutoMapper;
+using Volo.Abp.Caching;
+using Volo.Abp.Caching.StackExchangeRedis;
 using Volo.Abp.EventBus.RabbitMq;
 using Volo.Abp.Modularity;
 using Volo.Abp.RabbitMQ;
@@ -18,6 +22,7 @@ using Volo.Abp.Threading;
 namespace AElf.WebApp.MessageQueue
 {
     [DependsOn(typeof(CoreKernelAElfModule), typeof(AbpEventBusRabbitMqModule),
+        typeof(AbpCachingStackExchangeRedisModule),
         typeof(CoreApplicationWebAppAElfModule))]
     public class MessageQueueAElfModule : AElfModule
     {
@@ -26,6 +31,7 @@ namespace AElf.WebApp.MessageQueue
             var configuration = context.Services.GetConfiguration();
             Configure<AbpAutoMapperOptions>(options => { options.AddMaps<MessageQueueAElfModule>(); });
             ConfigureRabbitMqEventBus(configuration);
+            ConfigureCache();
         }
 
         public override void OnApplicationShutdown(ApplicationShutdownContext context)
@@ -37,6 +43,30 @@ namespace AElf.WebApp.MessageQueue
         {
             var taskManageService = context.ServiceProvider.GetRequiredService<IEventSendTaskManager>();
             await taskManageService.StopAsync();
+        }
+        
+        private void ConfigureCache()
+        {
+            Configure<AbpDistributedCacheOptions>(options =>
+            {
+                options.KeyPrefix = "EventFilterApp:";
+            });
+        }
+        
+        private void ConfigureRedis(
+            ServiceConfigurationContext context,
+            IConfiguration configuration)
+        {
+            var config = configuration["Redis:Configuration"];
+            if (string.IsNullOrEmpty(config))
+            {
+                return;
+            }
+
+            var redis = ConnectionMultiplexer.Connect(config);
+            context.Services
+                .AddDataProtection()
+                .PersistKeysToStackExchangeRedis(redis, "EventFilter-Protection-Keys");
         }
 
         private void ConfigureRabbitMqEventBus(IConfiguration configuration)

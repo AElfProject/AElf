@@ -25,24 +25,18 @@ namespace AElf.WebApp.MessageQueue.Entities
         public long CurrentHeight { get; set; }
         public EventFilterStatus Status { get; set; }
 
-        private void FromEventFilterChanged(IEventFilterEntity<Guid> eventFilterEntity)
+        public void FromEventFilterChanged(IEventFilterEntity<Guid> eventFilterEntity)
         {
             EventDetails = eventFilterEntity.EventDetails;
             FromHeight = eventFilterEntity.FromHeight;
             ToHeight = eventFilterEntity.ToHeight;
             CurrentHeight = eventFilterEntity.CurrentHeight;
-            if (eventFilterEntity.Status == EventFilterStatus.AsyncRunning ||
-                eventFilterEntity.Status == EventFilterStatus.SyncRunning)
-            {
-                return;
-            }
-
             Status = eventFilterEntity.Status;
         }
 
         public string GetTopic()
         {
-            return string.Empty; //todo
+            return $"{Id}-{FromHeight}-{ToHeight}";
         }
     }
 }

@@ -6,7 +6,7 @@ namespace AElf.WebApp.MessageQueue.Entities
 {
     public class EventFilterChangedEntity : IEventFilterEntity<Guid>
     {
-        public EventFilterChangedEntity(IEventFilterEntity<Guid> eventFilterEntity, bool? isToDelete = null)
+        public EventFilterChangedEntity(IEventFilterEntity<Guid> eventFilterEntity, EventFilterOperate operateType)
         {
             Id = eventFilterEntity.Id;
             EventDetails = eventFilterEntity.EventDetails;
@@ -14,14 +14,10 @@ namespace AElf.WebApp.MessageQueue.Entities
             ToHeight = eventFilterEntity.ToHeight;
             CurrentHeight = eventFilterEntity.CurrentHeight;
             Status = EventFilterStatus.Stopped;
-            IsToDelete = false;
-            if (isToDelete.HasValue)
-            {
-                IsToDelete = isToDelete.Value;
-            }
+            OperateType = operateType;
         }
 
-        public bool IsToDelete { get; set; }
+        public EventFilterOperate OperateType { get; set; }
         public Guid Id { get; }
         public List<EventDetail> EventDetails { get; set; }
         public long FromHeight { get; set; }
