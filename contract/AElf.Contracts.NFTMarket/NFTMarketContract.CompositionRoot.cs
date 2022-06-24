@@ -5,18 +5,18 @@ namespace AElf.Contracts.NFTMarket;
 
 public partial class NFTMarketContract
 {
-    private IWhitelistManager GetWhitelistManager()
+    private WhitelistManager GetWhitelistManager()
     {
         return new WhitelistManager(Context, State.WhitelistIdMap, State.WhitelistContract);
     }
 
-    private IMakeOfferService GetMakeOfferService(IWhitelistManager? whitelistManager = null)
+    private MakeOfferService GetMakeOfferService(WhitelistManager whitelistManager = null)
     {
         return new MakeOfferService(State.NFTContract, State.WhitelistIdMap, State.ListedNFTInfoListMap,
             whitelistManager ?? GetWhitelistManager(), Context);
     }
 
-    private IDealService GetDealService()
+    private DealService GetDealService()
     {
         return new DealService(Context);
     }

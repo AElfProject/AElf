@@ -6,7 +6,7 @@ using AElf.Types;
 
 namespace AElf.Contracts.NFTMarket.Managers;
 
-internal class WhitelistManager : IWhitelistManager
+internal class WhitelistManager
 {
     private readonly CSharpSmartContractContext _context;
     private readonly MappedState<Hash, Hash> _whitelistIdMap;

@@ -12,19 +12,19 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.NFTMarket.Services;
 
-internal class MakeOfferService : IMakeOfferService
+internal class MakeOfferService
 {
     private readonly NFTContractContainer.NFTContractReferenceState _nftContract;
     private readonly WhitelistContractContainer.WhitelistContractReferenceState _whitelistContract;
     private readonly MappedState<Hash, Hash> _whitelistIdMap;
     private readonly MappedState<string, long, Address, ListedNFTInfoList> _listedNFTInfoListMap;
-    private readonly IWhitelistManager _whitelistManager;
+    private readonly WhitelistManager _whitelistManager;
     private readonly CSharpSmartContractContext _context;
 
     public MakeOfferService(NFTContractContainer.NFTContractReferenceState nftContract,
         MappedState<Hash, Hash> whitelistIdMap,
         MappedState<string, long, Address, ListedNFTInfoList> listedNFTInfoListMap,
-        IWhitelistManager whitelistManager,
+        WhitelistManager whitelistManager,
         CSharpSmartContractContext context)
     {
         _nftContract = nftContract;
@@ -109,4 +109,12 @@ internal class MakeOfferService : IMakeOfferService
         var expireTime = listedNftInfo.Duration.StartTime.AddHours(listedNftInfo.Duration.DurationHours);
         return _context.CurrentBlockTime > expireTime;
     }
+}
+
+public enum DealStatus
+{
+    NFTNotMined,
+    NotDeal,
+    DealWithOnePrice,
+    DealWithMultiPrice,
 }
