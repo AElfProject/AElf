@@ -773,6 +773,8 @@ message CrossChainReceived {
     int32 issue_chain_id = 7;
     // The parent chain height of the transfer transaction.
     int64 parent_chain_height = 8;
+    // The id of transfer transaction.
+    aelf.Hash transfer_transaction_id =9;
 }
 
 message ExternalInfoChanged {

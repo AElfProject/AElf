@@ -264,3 +264,15 @@ message AcceptCrossChainIndexingProposalInput{
     // The chain id of accepted indexing.
     int32 chain_id = 1;
 }
+
+message SideChainIndexed {
+    option (aelf.is_event) = true;
+    int32 chain_id = 1 [(aelf.is_indexed) = true];
+    int64 indexed_height = 2;
+}
+
+message ParentChainIndexed {
+    option (aelf.is_event) = true;
+    int32 chain_id = 1 [(aelf.is_indexed) = true];
+    int64 indexed_height = 2;
+}

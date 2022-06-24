@@ -555,7 +555,8 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
             Memo = crossChainTransferInput.Memo,
             FromChainId = input.FromChainId,
             ParentChainHeight = input.ParentChainHeight,
-            IssueChainId = issueChainId
+            IssueChainId = issueChainId,
+            TransferTransactionId = transferTransactionId
         });
         return new Empty();
     }
