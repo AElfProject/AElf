@@ -1,11 +1,9 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Contracts.NFT;
 using AElf.Contracts.NFTMarket.Helpers;
 using AElf.Contracts.NFTMarket.Managers;
 using AElf.Contracts.Whitelist;
-using AElf.CSharp.Core;
 using AElf.CSharp.Core.Extension;
 using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.State;
@@ -44,15 +42,15 @@ internal class MakeOfferService : IMakeOfferService
         }
     }
 
-    public bool IsSenderInWhitelist(MakeOfferInput makeOfferInput)
+    public bool IsSenderInWhitelist(MakeOfferInput makeOfferInput,out Hash whitelistId)
     {
         var projectId =
             WhitelistHelper.CalculateProjectId(makeOfferInput.Symbol, makeOfferInput.TokenId, makeOfferInput.OfferTo);
-        var whitelistId = _whitelistIdMap[projectId];
+        whitelistId = _whitelistIdMap[projectId];
         return whitelistId != null && _whitelistManager.IsAddressInWhitelist(_context.Sender, whitelistId);
     }
 
-    public OfferStatus GetDealStatus(MakeOfferInput makeOfferInput, out List<ListedNFTInfo> affordableNftInfoList)
+    public DealStatus GetDealStatus(MakeOfferInput makeOfferInput, out List<ListedNFTInfo> affordableNftInfoList)
     {
         affordableNftInfoList = new List<ListedNFTInfo>();
         var nftInfo = _nftContract.GetNFTInfo.Call(new GetNFTInfoInput
@@ -64,7 +62,7 @@ internal class MakeOfferService : IMakeOfferService
         if (nftInfo.Quantity == 0 && !protocolInfo.IsTokenIdReuse && makeOfferInput.Quantity == 1)
         {
             // NFT not minted.
-            return OfferStatus.NFTNotMined;
+            return DealStatus.NFTNotMined;
         }
 
         if (nftInfo.Quantity <= 0)
@@ -79,21 +77,21 @@ internal class MakeOfferService : IMakeOfferService
         if (listedNftInfoList == null || listedNftInfoList.Value.All(i => i.ListType == ListType.NotListed))
         {
             // NFT not listed.
-            return OfferStatus.NotDeal;
+            return DealStatus.NotDeal;
         }
 
         affordableNftInfoList = GetAffordableNftInfoList(makeOfferInput, listedNftInfoList);
         if (!affordableNftInfoList.Any())
         {
-            return OfferStatus.NotDeal;
+            return DealStatus.NotDeal;
         }
 
         if (affordableNftInfoList.Count == 1 || affordableNftInfoList.First().Quantity >= makeOfferInput.Quantity)
         {
-            return OfferStatus.DealWithOnePrice;
+            return DealStatus.DealWithOnePrice;
         }
 
-        return OfferStatus.DealWithMultiPrice;
+        return DealStatus.DealWithMultiPrice;
     }
 
     private List<ListedNFTInfo> GetAffordableNftInfoList(MakeOfferInput makeOfferInput,
@@ -104,6 +102,7 @@ internal class MakeOfferService : IMakeOfferService
              i.ListType != ListType.FixedPrice) &&
             !IsListedNftTimedOut(i)).OrderBy(i => i.Price.Amount).ToList();
     }
+    
 
     private bool IsListedNftTimedOut(ListedNFTInfo listedNftInfo)
     {

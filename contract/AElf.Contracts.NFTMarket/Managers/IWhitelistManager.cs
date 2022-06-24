@@ -10,6 +10,6 @@ namespace AElf.Contracts.NFTMarket.Managers
         void AddAddressInfoListToWhitelist(AddAddressInfoListToWhitelistInput input);
         void RemoveAddressInfoListFromWhitelist(RemoveAddressInfoListFromWhitelistInput input);
         bool IsAddressInWhitelist(Address address, Hash whitelistId);
-        TagInfo GetExtraInfoByAddress(GetExtraInfoByAddressInput input);
+        Price GetExtraInfoByAddress(Hash whitelistId);
     }
 }

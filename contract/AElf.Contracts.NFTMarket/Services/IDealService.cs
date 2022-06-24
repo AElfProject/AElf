@@ -7,7 +7,22 @@ public interface IDealService
     IEnumerable<DealResult> GetDealResultList(GetDealResultListInput input);
 }
 
-public record GetDealResultListInput(MakeOfferInput MakeOfferInput, ListedNFTInfoList ListedNftInfoList);
+public class GetDealResultListInput
+{
+    internal MakeOfferInput MakeOfferInput { get; set; }
+    internal ListedNFTInfoList ListedNftInfoList{ get; set; }
+}
 
-public record DealResult(string Symbol, long TokenId, long Quantity, string PurchaseSymbol, long PurchaseTokenId,
-    long PurchaseAmount);
+
+public class DealResult
+{
+    internal string Symbol { get; set; }
+    internal long TokenId{ get; set; }
+    internal long Quantity{ get; set; }
+    internal string PurchaseSymbol{ get; set; }
+    internal long PurchaseTokenId{ get; set; }
+    internal long PurchaseAmount{ get; set; }
+    internal ListDuration Duration { get; set; }
+    internal int Index { get; set; }
+}
+

@@ -18,6 +18,6 @@ public partial class NFTMarketContract
 
     private IDealService GetDealService()
     {
-        return new DealService();
+        return new DealService(Context);
     }
 }

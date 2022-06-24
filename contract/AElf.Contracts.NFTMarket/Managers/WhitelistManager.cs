@@ -1,3 +1,4 @@
+using AElf.Contracts.NFTMarket.Helpers;
 using AElf.Contracts.Whitelist;
 using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.State;
@@ -54,8 +55,13 @@ internal class WhitelistManager : IWhitelistManager
         }).Value;
     }
 
-    public TagInfo GetExtraInfoByAddress(GetExtraInfoByAddressInput input)
+    public Price GetExtraInfoByAddress(Hash whitelistId)
     {
-        return _whitelistContract.GetExtraInfoByAddress.Call(input);
+        var tagInfo = _whitelistContract.GetExtraInfoByAddress.Call(new GetExtraInfoByAddressInput
+        {
+            WhitelistId = whitelistId,
+            Address = _context.Sender
+        });
+        return WhitelistHelper.DeserializedInfo(tagInfo);
     }
 }

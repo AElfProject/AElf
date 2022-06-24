@@ -675,4 +675,5 @@ message ListedNFTRemoved {
     int64 token_id = 2;
     aelf.Address owner = 3;
     ListDuration duration = 4;
+    Price price = 5;
 }
