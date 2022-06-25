@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Modularity;
 using AElf.WebApp.Application;
+using AElf.WebApp.MessageQueue.Provider;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -32,6 +33,17 @@ namespace AElf.WebApp.MessageQueue
             Configure<AbpAutoMapperOptions>(options => { options.AddMaps<MessageQueueAElfModule>(); });
             ConfigureRabbitMqEventBus(configuration);
             ConfigureCache();
+        }
+        
+        public override void OnApplicationInitialization(ApplicationInitializationContext context)
+        {
+            AsyncHelper.RunSync(() => OnApplicationInitializationAsync(context));
+        }
+
+        public override async Task OnApplicationInitializationAsync(ApplicationInitializationContext context)
+        {
+            var eventFiltersProvider = context.ServiceProvider.GetRequiredService<IEventFiltersProvider>();
+            await eventFiltersProvider.InitializeEventFiltersAsync();
         }
 
         public override void OnApplicationShutdown(ApplicationShutdownContext context)

@@ -37,7 +37,7 @@ namespace AElf.WebApp.MessageQueue.Services
             var currentHeight = blockExecutedSets.First().Height - 1;
             await _eventFiltersProvider.SyncEventFiltersAsync();
             var (asyncEventFilters, syncEventFilters) =
-                await _eventFiltersProvider.GetGroupedEventFilterAsync(currentHeight);
+                _eventFiltersProvider.GetGroupedEventFilters(currentHeight);
             _eventSendTaskManager.Start(asyncEventFilters);
             await SyncSendMsgAsync(chainId, blockExecutedSets, syncEventFilters);
         }

@@ -1,39 +1,49 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.WebApp.MessageQueue.Dtos;
 using AElf.WebApp.MessageQueue.Entities;
+using AElf.WebApp.MessageQueue.Provider;
 using Volo.Abp.Application.Services;
 
 namespace AElf.WebApp.MessageQueue
 {
     public interface IEventFilterAppService : IApplicationService
     {
-        Task AddEventFilterAsync(AddEventFilterInput input);
-        Task DeleteEventFilterAsync(DeleteEventFilterInput input);
-        Task UpdateEventFilterAsync(UpdateEventFilterInput input);
+        Task<Guid?> AddEventFilterAsync(AddEventFilterInput input);
+        Task<bool> DeleteEventFilterAsync(DeleteEventFilterInput input);
+        Task<bool> UpdateEventFilterAsync(UpdateEventFilterInput input);
         Task<List<EventFilterEntity>> GetEventFilterAsync(GetEventFilterInput input);
     }
 
     public class EventFilterAppService : IEventFilterAppService
     {
-        public Task AddEventFilterAsync(AddEventFilterInput input)
+        private readonly IEventFiltersProvider _eventFiltersProvider;
+
+        public EventFilterAppService(IEventFiltersProvider eventFiltersProvider)
         {
-            throw new System.NotImplementedException();
+            _eventFiltersProvider = eventFiltersProvider;
         }
 
-        public Task DeleteEventFilterAsync(DeleteEventFilterInput input)
+        public Task<Guid?> AddEventFilterAsync(AddEventFilterInput input)
         {
-            throw new System.NotImplementedException();
+            var newId = _eventFiltersProvider.Add(input);
+            return Task.FromResult(newId);
         }
 
-        public Task UpdateEventFilterAsync(UpdateEventFilterInput input)
+        public Task<bool> DeleteEventFilterAsync(DeleteEventFilterInput input)
         {
-            throw new System.NotImplementedException();
+            return Task.FromResult(_eventFiltersProvider.Delete(input));
+        }
+
+        public Task<bool> UpdateEventFilterAsync(UpdateEventFilterInput input)
+        {
+            return Task.FromResult(_eventFiltersProvider.Update(input));
         }
 
         public Task<List<EventFilterEntity>> GetEventFilterAsync(GetEventFilterInput input)
         {
-            throw new System.NotImplementedException();
+            return Task.FromResult(_eventFiltersProvider.GetEventFilters(input.Id));
         }
     }
 }

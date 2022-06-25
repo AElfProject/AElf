@@ -6,15 +6,10 @@ namespace AElf.WebApp.MessageQueue.Entities
 {
     public class EventFilterChangedEntity : IEventFilterEntity<Guid>
     {
-        public EventFilterChangedEntity(IEventFilterEntity<Guid> eventFilterEntity, EventFilterOperate operateType)
+        public EventFilterChangedEntity(Guid id)
         {
-            Id = eventFilterEntity.Id;
-            EventDetails = eventFilterEntity.EventDetails;
-            FromHeight = eventFilterEntity.FromHeight;
-            ToHeight = eventFilterEntity.ToHeight;
-            CurrentHeight = eventFilterEntity.CurrentHeight;
+            Id = id;
             Status = EventFilterStatus.Stopped;
-            OperateType = operateType;
         }
 
         public EventFilterOperate OperateType { get; set; }

@@ -4,6 +4,6 @@ namespace AElf.WebApp.MessageQueue.Dtos
 {
     public class DeleteEventFilterInput
     {
-        public Guid EventFilterId { get; set; }
+        public Guid Id { get; set; }
     }
 }

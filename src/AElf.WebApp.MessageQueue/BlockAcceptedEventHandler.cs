@@ -15,6 +15,9 @@ namespace AElf.WebApp.MessageQueue
     {
         private readonly IBlockchainService _blockchainService;
         private readonly IMessagePublishService _messagePublishService;
+        private readonly List<BlockExecutedSet> _blockExecutedSets;
+        private const int SkipCount = 10;
+        private long _startSyncHeight;
         public ILogger<BlockAcceptedEventHandler> Logger { get; set; }
 
         public BlockAcceptedEventHandler(IBlockchainService blockchainService,
@@ -23,13 +26,26 @@ namespace AElf.WebApp.MessageQueue
             _blockchainService = blockchainService;
             _messagePublishService = messagePublishService;
             Logger = NullLogger<BlockAcceptedEventHandler>.Instance;
+            _blockExecutedSets = new List<BlockExecutedSet>();
         }
 
         public async Task HandleEventAsync(BlockAcceptedEvent eventData)
         {
+            if (_startSyncHeight == 0)
+            {
+                _startSyncHeight = eventData.Block.Height;
+            }
+
+            if (_blockExecutedSets.Count < SkipCount)
+            {
+                _blockExecutedSets.Add(eventData.BlockExecutedSet);
+                return;
+            }
+          
             var chain = await _blockchainService.GetChainAsync();
-            await _messagePublishService.PublishEventsAsync(chain.Id,
-                new List<BlockExecutedSet> { eventData.BlockExecutedSet });
+            await _messagePublishService.PublishEventsAsync(chain.Id, _blockExecutedSets);
+            _startSyncHeight = eventData.Block.Height;
+            _blockExecutedSets.Clear();
         }
     }
 }
