@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Net.Security;
 using System.Security.Authentication;
 using System.Threading.Tasks;
@@ -44,6 +45,12 @@ namespace AElf.WebApp.MessageQueue
         {
             var eventFiltersProvider = context.ServiceProvider.GetRequiredService<IEventFiltersProvider>();
             await eventFiltersProvider.InitializeEventFiltersAsync();
+            // var eventFilters = eventFiltersProvider.GetEventFilters();
+            // if (eventFilters.Any())
+            // {
+            //     var taskManageService = context.ServiceProvider.GetRequiredService<IEventSendTaskManager>();
+            //     taskManageService.Start(eventFilters);
+            // }
         }
 
         public override void OnApplicationShutdown(ApplicationShutdownContext context)
@@ -54,7 +61,7 @@ namespace AElf.WebApp.MessageQueue
         public override async Task OnApplicationShutdownAsync(ApplicationShutdownContext context)
         {
             var taskManageService = context.ServiceProvider.GetRequiredService<IEventSendTaskManager>();
-            await taskManageService.StopAsync();
+            await taskManageService.StopAllAsync();
         }
         
         private void ConfigureCache()

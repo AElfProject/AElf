@@ -18,7 +18,7 @@ namespace AElf.WebApp.MessageQueue.Provider
         Guid? Add(AddEventFilterInput input);
         bool Update(UpdateEventFilterInput input);
         bool Delete(DeleteEventFilterInput input);
-        List<EventFilterEntity> GetEventFilters(Guid? id);
+        List<EventFilterEntity> GetEventFilters(Guid? id = null);
         (List<EventFilterEntity>, List<EventFilterEntity>) GetGroupedEventFilters(long currentHeight);
         Task SyncEventFiltersAsync();
         Task UpdateEventFiltersHeightAsync(EventFilterEntity filter, long latestHeight);

@@ -17,7 +17,7 @@ namespace AElf.WebApp.MessageQueue
 public interface IEventSendTaskManager
 {
     bool Start(IEnumerable<EventFilterEntity> eventFilters);
-    Task<bool> StopAsync();
+    Task<bool> StopAllAsync();
     bool IsStopped();
 }
 
@@ -126,7 +126,7 @@ public class EventSendTaskManager : IEventSendTaskManager, ISingletonDependency
         }
     }
 
-    public async Task<bool> StopAsync()
+    public async Task<bool> StopAllAsync()
     {
         if (_stopCancellationTokenSource == null)
         {

@@ -44,7 +44,7 @@ namespace AElf.WebApp.MessageQueue
           
             var chain = await _blockchainService.GetChainAsync();
             await _messagePublishService.PublishEventsAsync(chain.Id, _blockExecutedSets);
-            _startSyncHeight = eventData.Block.Height;
+            _startSyncHeight = eventData.Block.Height + 1;
             _blockExecutedSets.Clear();
         }
     }
