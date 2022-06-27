@@ -34,7 +34,7 @@ namespace AElf.WebApp.MessageQueue.Services
         public async Task PublishEventsAsync(int chainId, List<BlockExecutedSet> blockExecutedSets)
         {
             await _eventSendTaskManager.StopAllAsync();
-            var currentHeight = blockExecutedSets.First().Height - 1;
+            var currentHeight = blockExecutedSets.First().Height;
             await _eventFiltersProvider.SyncEventFiltersAsync();
             var (asyncEventFilters, syncEventFilters) =
                 _eventFiltersProvider.GetGroupedEventFilters(currentHeight);

@@ -4,9 +4,9 @@ using AElf.WebApp.MessageQueue.Enums;
 
 namespace AElf.WebApp.MessageQueue.Entities
 {
-    public class EventFilterChangedEntity : IEventFilterEntity<Guid>
+    public class EventFilterChanged : IEventFilterEntity<Guid>
     {
-        public EventFilterChangedEntity(Guid id)
+        public EventFilterChanged(Guid id)
         {
             Id = id;
             Status = EventFilterStatus.Stopped;

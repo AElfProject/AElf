@@ -32,7 +32,7 @@ namespace AElf.WebApp.MessageQueue.Provider
         private readonly IDistributedCache<EventFilterEntity, Guid> _currentValidEventFilterCache;
 
         private readonly List<EventFilterEntity> _currentValidEventFilters;
-        private readonly ConcurrentDictionary<Guid, EventFilterChangedEntity> _changedEventFilters;
+        private readonly ConcurrentDictionary<Guid, EventFilterChanged> _changedEventFilters;
 
         private readonly IGuidGenerator _guidGenerator;
         public EventFiltersProvider(
@@ -43,7 +43,7 @@ namespace AElf.WebApp.MessageQueue.Provider
             _currentValidEventFilterIdsCache = currentValidEventFilterIdsCache;
             _guidGenerator = guidGenerator;
             _currentValidEventFilters = new List<EventFilterEntity>();
-            _changedEventFilters = new ConcurrentDictionary<Guid, EventFilterChangedEntity>();
+            _changedEventFilters = new ConcurrentDictionary<Guid, EventFilterChanged>();
         }
 
         public async Task InitializeEventFiltersAsync()
@@ -56,7 +56,7 @@ namespace AElf.WebApp.MessageQueue.Provider
         public Guid? Add(AddEventFilterInput input)
         {
             var newId = _guidGenerator.Create();
-            var newEventFilter = new EventFilterChangedEntity(newId)
+            var newEventFilter = new EventFilterChanged(newId)
             {
                 Status = EventFilterStatus.Stopped,
                 CurrentHeight = 0,
@@ -77,7 +77,7 @@ namespace AElf.WebApp.MessageQueue.Provider
         public bool Update(UpdateEventFilterInput input)
         {
             if (!_changedEventFilters.TryGetValue(input.Id, out _))
-                return _changedEventFilters.TryAdd(input.Id, new EventFilterChangedEntity(input.Id)
+                return _changedEventFilters.TryAdd(input.Id, new EventFilterChanged(input.Id)
                 {
                     Status = EventFilterStatus.Stopped,
                     CurrentHeight = 0,
@@ -99,7 +99,7 @@ namespace AElf.WebApp.MessageQueue.Provider
 
         public bool Delete(DeleteEventFilterInput input)
         {
-            if (_changedEventFilters.TryAdd(input.Id, new EventFilterChangedEntity(input.Id)
+            if (_changedEventFilters.TryAdd(input.Id, new EventFilterChanged(input.Id)
                 {
                     OperateType = EventFilterOperate.Delete
                 }))
@@ -176,7 +176,7 @@ namespace AElf.WebApp.MessageQueue.Provider
             _changedEventFilters.Clear();
             var groupedByOperateType = changedEventFilters.GroupBy(x => x.OperateType);
             var addedEventFilters = new List<EventFilterEntity>();
-            var updatedEventFilters = new List<EventFilterChangedEntity>();
+            var updatedEventFilters = new List<EventFilterChanged>();
             var deleteIds = new List<Guid>();
             foreach (var groupedChangedEventFilters in groupedByOperateType)
             {
@@ -191,6 +191,8 @@ namespace AElf.WebApp.MessageQueue.Provider
                     case EventFilterOperate.Delete:
                         deleteIds.AddRange(groupedChangedEventFilters.Select(x => x.Id));
                         continue;
+                    case EventFilterOperate.Stop:
+                    case EventFilterOperate.Prepared:
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
@@ -232,7 +234,7 @@ namespace AElf.WebApp.MessageQueue.Provider
                 return true;
             }
 
-            async Task UpdateAsync(List<EventFilterChangedEntity> updatedFilters)
+            async Task UpdateAsync(List<EventFilterChanged> updatedFilters)
             {
                 foreach (var updatedEventFilter in updatedFilters)
                 {

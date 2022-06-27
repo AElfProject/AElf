@@ -4,5 +4,7 @@ public enum EventFilterOperate
 {
     Add,
     Update,
-    Delete
+    Delete,
+    Stop,
+    Prepared
 }
