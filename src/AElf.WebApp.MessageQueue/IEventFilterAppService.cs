@@ -14,6 +14,7 @@ namespace AElf.WebApp.MessageQueue
         Task<bool> DeleteEventFilterAsync(DeleteEventFilterInput input);
         Task<bool> UpdateEventFilterAsync(UpdateEventFilterInput input);
         Task<List<EventFilterEntity>> GetEventFilterAsync(GetEventFilterInput input);
+        Task<bool> SetStateAsync(SetStateInput input);
     }
 
     public class EventFilterAppService : IEventFilterAppService
@@ -44,6 +45,11 @@ namespace AElf.WebApp.MessageQueue
         public Task<List<EventFilterEntity>> GetEventFilterAsync(GetEventFilterInput input)
         {
             return Task.FromResult(_eventFiltersProvider.GetEventFilters(input.Id));
+        }
+        
+        public Task<bool> SetStateAsync(SetStateInput input)
+        {
+            return Task.FromResult(_eventFiltersProvider.SetState(input.Id, input.IsStop));
         }
     }
 }

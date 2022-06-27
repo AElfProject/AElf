@@ -15,7 +15,7 @@ namespace AElf.WebApp.MessageQueue.Entities
         public EventFilterEntity(IEventFilterEntity<Guid> eventFilterEntity)
         {
             Id = eventFilterEntity.Id;
-            FromEventFilterChanged(eventFilterEntity);
+            FromEventFilterToChange(eventFilterEntity);
         }
 
         public Guid Id { get; }
@@ -25,7 +25,7 @@ namespace AElf.WebApp.MessageQueue.Entities
         public long CurrentHeight { get; set; }
         public EventFilterStatus Status { get; set; }
 
-        public void FromEventFilterChanged(IEventFilterEntity<Guid> eventFilterEntity)
+        public void FromEventFilterToChange(IEventFilterEntity<Guid> eventFilterEntity)
         {
             EventDetails = eventFilterEntity.EventDetails;
             FromHeight = eventFilterEntity.FromHeight;

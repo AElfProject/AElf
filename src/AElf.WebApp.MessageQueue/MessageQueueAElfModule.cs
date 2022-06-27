@@ -45,12 +45,12 @@ namespace AElf.WebApp.MessageQueue
         {
             var eventFiltersProvider = context.ServiceProvider.GetRequiredService<IEventFiltersProvider>();
             await eventFiltersProvider.InitializeEventFiltersAsync();
-            // var eventFilters = eventFiltersProvider.GetEventFilters();
-            // if (eventFilters.Any())
-            // {
-            //     var taskManageService = context.ServiceProvider.GetRequiredService<IEventSendTaskManager>();
-            //     taskManageService.Start(eventFilters);
-            // }
+            var eventFilters = eventFiltersProvider.GetEventFilters();
+            if (eventFilters.Any())
+            {
+                var taskManageService = context.ServiceProvider.GetRequiredService<IEventSendTaskManager>();
+                taskManageService.Start(eventFilters);
+            }
         }
 
         public override void OnApplicationShutdown(ApplicationShutdownContext context)
