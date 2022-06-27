@@ -2,28 +2,30 @@
 using System.Net.Security;
 using System.Security.Authentication;
 using AElf.Modularity;
+using AElf.WebApp.Application;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using RabbitMQ.Client;
-using Volo.Abp.BackgroundJobs;
-using Volo.Abp.BackgroundJobs.RabbitMQ;
+using Volo.Abp.AutoMapper;
 using Volo.Abp.EventBus.RabbitMq;
 using Volo.Abp.Modularity;
 using Volo.Abp.RabbitMQ;
 
 namespace AElf.WebApp.MessageQueue;
 
-[DependsOn(typeof(AbpEventBusRabbitMqModule),
-    typeof(AbpBackgroundJobsRabbitMqModule))]
+[DependsOn(typeof(AbpAutoMapperModule), typeof(AbpEventBusRabbitMqModule), typeof(CoreApplicationWebAppAElfModule))]
 public class MessageQueueAElfModule : AElfModule
 {
     public override void ConfigureServices(ServiceConfigurationContext context)
     {
         var configuration = context.Services.GetConfiguration();
-
+        Configure<AbpAutoMapperOptions>(options => { options.AddMaps<MessageQueueAElfModule>(); });
         Configure<MessageQueueOptions>(options => { configuration.GetSection("MessageQueue").Bind(options); });
-        Configure<EventHandleOptions>(options => { configuration.GetSection("EventHandleOptions").Bind(options); });
+        ConfigureRabbitMqEventBus(configuration);
+    }
 
+    private void ConfigureRabbitMqEventBus(IConfiguration configuration)
+    {
         Configure<AbpRabbitMqEventBusOptions>(options =>
         {
             var messageQueueConfig = configuration.GetSection("MessageQueue");
@@ -50,27 +52,6 @@ public class MessageQueueAElfModule : AElfModule
             };
             options.Connections.Default.VirtualHost = "/";
             options.Connections.Default.Uri = new Uri(messageQueueConfig.GetSection("Uri").Value);
-        });
-
-        ConfigureParallelEventHandleQueue(configuration);
-    }
-
-    private void ConfigureParallelEventHandleQueue(IConfiguration configuration)
-    {
-        Configure<AbpBackgroundJobOptions>(options =>
-        {
-            options.IsJobExecutionEnabled = false;
-            options.AddJob(typeof(TransactionResultListEtoHandler));
-        });
-
-        Configure<AbpRabbitMqBackgroundJobOptions>(options =>
-        {
-            var parallelQueueConfiguration = configuration.GetSection("EventHandleOptions");
-            var connection = parallelQueueConfiguration.GetSection("Connection").Value;
-            var queueName = parallelQueueConfiguration.GetSection("ParallelHandleQueue").Value;
-            if (!string.IsNullOrEmpty(queueName) && !string.IsNullOrEmpty(connection))
-                options.JobQueues[typeof(TransactionResultListEto)] =
-                    new JobQueueConfiguration(typeof(TransactionResultListEto), queueName, connection);
         });
     }
 }
