@@ -38,12 +38,18 @@ namespace AElf.Contracts.NFTMarket
             var makeOfferService = GetMakeOfferService();
             makeOfferService.ValidateOffer(input);
 
-            var listedNftInfoList =
-                State.ListedNFTInfoListMap[input.Symbol][input.TokenId][input.OfferTo ?? nftInfo.Creator];
-            
-            if (makeOfferService.IsSenderInWhitelist(input,out var whitelistId))
+            if (nftInfo.Quantity != 0 && input.OfferTo == null)
             {
-                var whitelistManager = GetWhitelistManager();
+                input.OfferTo = nftInfo.Creator;
+            }
+
+            var listedNftInfoList =
+                State.ListedNFTInfoListMap[input.Symbol][input.TokenId][input.OfferTo];
+            
+            var whitelistManager = GetWhitelistManager();
+            
+            if (makeOfferService.IsSenderInWhitelist(input,out var whitelistId) && whitelistManager.IsWhitelistAvailable(whitelistId))
+            {
                 // Deal one NFT with whitelist price.
                 var price = whitelistManager.GetExtraInfoByAddress(whitelistId);
                 if (price != null && price.Amount <= input.Price.Amount && price.Symbol == input.Price.Symbol)
@@ -133,7 +139,7 @@ namespace AElf.Contracts.NFTMarket
                     }
                 }
 
-                State.ListedNFTInfoListMap[input.Symbol][input.TokenId][input.OfferTo ?? nftInfo.Creator] = listedNftInfoList;
+                State.ListedNFTInfoListMap[input.Symbol][input.TokenId][input.OfferTo] = listedNftInfoList;
 
                 return new Empty();
             }
@@ -160,6 +166,7 @@ namespace AElf.Contracts.NFTMarket
                 dealResult.Quantity = dealResult.Quantity.Sub(dealQuantity);
                 var listedNftInfo = listedNftInfoList.Value[dealResult.Index];
                 listedNftInfo.Quantity = listedNftInfoList.Value[dealResult.Index].Quantity.Sub(dealQuantity);
+                input.Quantity = input.Quantity.Sub(dealQuantity);
                 if (listedNftInfoList.Value[dealResult.Index].Quantity == 0)
                 {
                     toRemove.Value.Add(listedNftInfoList.Value[dealResult.Index]);
@@ -196,7 +203,12 @@ namespace AElf.Contracts.NFTMarket
                 }
             }
 
-            State.ListedNFTInfoListMap[input.Symbol][input.TokenId][input.OfferTo ?? nftInfo.Creator] = listedNftInfoList;
+            if (input.Quantity > 0)
+            {
+                PerformMakeOffer(input);
+            }
+
+            State.ListedNFTInfoListMap[input.Symbol][input.TokenId][input.OfferTo] = listedNftInfoList;
 
             return new Empty();
         }
@@ -531,11 +543,6 @@ namespace AElf.Contracts.NFTMarket
             actualQuantity = Math.Min(input.Quantity, listedNftInfo.Quantity);
             
             var totalAmount = usePrice.Amount.Mul(actualQuantity);
-            if (input.Quantity > actualQuantity)
-            {
-                input.Quantity = input.Quantity.Sub(actualQuantity);
-                PerformMakeOffer(input);
-            }
             PerformDeal(new PerformDealInput
             {
                 NFTFrom = input.OfferTo,

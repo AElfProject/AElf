@@ -54,6 +54,11 @@ internal class WhitelistManager
             WhitelistId = whitelistId
         }).Value;
     }
+    
+    public bool IsWhitelistAvailable(Hash whitelistId)
+    {
+        return whitelistId != null && _whitelistContract.GetWhitelist.Call(whitelistId).IsAvailable;
+    }
 
     public Price GetExtraInfoByAddress(Hash whitelistId)
     {

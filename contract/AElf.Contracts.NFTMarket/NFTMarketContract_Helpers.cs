@@ -109,32 +109,36 @@ namespace AElf.Contracts.NFTMarket
 
                 var actualAmount = performDealInput.PurchaseAmount.Sub(serviceFee).Sub(royaltyFee);
                 //Assert(actualAmount > 0, "Incorrect deal amount.");
-                State.TokenContract.TransferFrom.Send(new TransferFromInput
-                {
-                    From = performDealInput.NFTTo,
-                    To = performDealInput.NFTFrom,
-                    Symbol = performDealInput.PurchaseSymbol,
-                    Amount = actualAmount
-                });
-                if (serviceFee > 0)
+                if (actualAmount != 0)
                 {
                     State.TokenContract.TransferFrom.Send(new TransferFromInput
                     {
                         From = performDealInput.NFTTo,
-                        To = State.ServiceFeeReceiver.Value,
+                        To = performDealInput.NFTFrom,
                         Symbol = performDealInput.PurchaseSymbol,
-                        Amount = serviceFee
+                        Amount = actualAmount
                     });
-                }
-                if (royaltyFeeReceiver != null && royaltyFee > 0)
-                {
-                    State.TokenContract.TransferFrom.Send(new TransferFromInput
+                    if (serviceFee > 0 && performDealInput.NFTTo != State.ServiceFeeReceiver.Value)
                     {
-                        From = performDealInput.NFTTo,
-                        To = royaltyFeeReceiver,
-                        Symbol = performDealInput.PurchaseSymbol,
-                        Amount = royaltyFee
-                    });
+                        State.TokenContract.TransferFrom.Send(new TransferFromInput
+                        {
+                            From = performDealInput.NFTTo,
+                            To = State.ServiceFeeReceiver.Value,
+                            Symbol = performDealInput.PurchaseSymbol,
+                            Amount = serviceFee
+                        });
+                    }
+
+                    if (royaltyFeeReceiver != null && royaltyFee > 0)
+                    {
+                        State.TokenContract.TransferFrom.Send(new TransferFromInput
+                        {
+                            From = performDealInput.NFTTo,
+                            To = royaltyFeeReceiver,
+                            Symbol = performDealInput.PurchaseSymbol,
+                            Amount = royaltyFee
+                        });
+                    }
                 }
             }
             else

@@ -61,14 +61,18 @@ public class NFTContractTestBase : ContractTestBase<NFTContractTestAElfModule>
     protected Address NFTMinterContractAddress { get; set; }
     protected Address WhitelistContractAddress { get; set; }
     internal NFTContractContainer.NFTContractStub NFTContractStub { get; set; }
+    internal NFTContractContainer.NFTContractStub NFT2ContractStub { get; set; }
     internal NFTContractContainer.NFTContractStub MinterNFTContractStub { get; set; }
 
     internal NFTMinterContractContainer.NFTMinterContractStub CreatorNFTMinterContractStub { get; set; }
     internal NFTMinterContractContainer.NFTMinterContractStub UserNFTMinterContractStub { get; set; }
 
     internal NFTMarketContractContainer.NFTMarketContractStub SellerNFTMarketContractStub { get; set; }
+    
+    internal NFTMarketContractContainer.NFTMarketContractStub Seller2NFTMarketContractStub { get; set; }
     internal NFTMarketContractContainer.NFTMarketContractStub BuyerNFTMarketContractStub { get; set; }
     internal NFTMarketContractContainer.NFTMarketContractStub Buyer2NFTMarketContractStub { get; set; }
+    internal NFTMarketContractContainer.NFTMarketContractStub Buyer3NFTMarketContractStub { get; set; }
     internal NFTMarketContractContainer.NFTMarketContractStub CreatorNFTMarketContractStub { get; set; }
     internal NFTMarketContractContainer.NFTMarketContractStub AdminNFTMarketContractStub { get; set; }
     internal WhitelistContractContainer.WhitelistContractStub WhitelistContractStub { get; set; }
@@ -92,6 +96,7 @@ public class NFTContractTestBase : ContractTestBase<NFTContractTestAElfModule>
         WhitelistContractAddress = SystemContractAddresses[WhitelistContractName];
 
         NFTContractStub = GetTester<NFTContractContainer.NFTContractStub>(NFTContractAddress, DefaultKeyPair);
+        NFT2ContractStub = GetTester<NFTContractContainer.NFTContractStub>(NFTContractAddress, User2KeyPair);
         MinterNFTContractStub = GetTester<NFTContractContainer.NFTContractStub>(NFTContractAddress, MinterKeyPair);
 
         CreatorNFTMinterContractStub =
@@ -101,10 +106,14 @@ public class NFTContractTestBase : ContractTestBase<NFTContractTestAElfModule>
 
         SellerNFTMarketContractStub =
             GetTester<NFTMarketContractContainer.NFTMarketContractStub>(NFTMarketContractAddress, DefaultKeyPair);
+        Seller2NFTMarketContractStub =
+            GetTester<NFTMarketContractContainer.NFTMarketContractStub>(NFTMarketContractAddress, User2KeyPair);
         BuyerNFTMarketContractStub =
             GetTester<NFTMarketContractContainer.NFTMarketContractStub>(NFTMarketContractAddress, User2KeyPair);
         Buyer2NFTMarketContractStub =
             GetTester<NFTMarketContractContainer.NFTMarketContractStub>(NFTMarketContractAddress, User3KeyPair);
+        Buyer3NFTMarketContractStub =
+            GetTester<NFTMarketContractContainer.NFTMarketContractStub>(NFTMarketContractAddress, DefaultKeyPair);
         CreatorNFTMarketContractStub =
             GetTester<NFTMarketContractContainer.NFTMarketContractStub>(NFTMarketContractAddress, DefaultKeyPair);
         AdminNFTMarketContractStub =
