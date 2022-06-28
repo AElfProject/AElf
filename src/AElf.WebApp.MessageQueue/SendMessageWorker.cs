@@ -1,4 +1,5 @@
 using System;
+using System.Data;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.WebApp.MessageQueue.Enum;
@@ -44,6 +45,10 @@ public class SendMessageWorker : ISingletonDependency
                 if (await blockMessageService.SendMessageAsync(nextHeight, cancellationToken))
                 {
                     nextHeight++;
+                }
+                else
+                {
+                    await _syncBlockStateProvider.UpdateStateAsync(null, SyncState.Prepared);
                 }
 
                 currentState = _syncBlockStateProvider.GetCurrentState();
