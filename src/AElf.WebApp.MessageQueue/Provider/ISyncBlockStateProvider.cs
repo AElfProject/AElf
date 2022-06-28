@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using AElf.WebApp.MessageQueue.Enum;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Volo.Abp.Caching;
 using Volo.Abp.DependencyInjection;
@@ -20,27 +21,36 @@ public class SyncBlockStateProvider : ISyncBlockStateProvider, ISingletonDepende
     private const string BlockSynState = "BlockSynState";
     private readonly IDistributedCache<SyncInformation> _distributedCache;
     private readonly MessageQueueOptions _messageQueueOptions;
+    private ILogger<SyncBlockStateProvider> _logger;
 
     public SyncBlockStateProvider(IDistributedCache<SyncInformation> distributedCache,
-        IOptionsSnapshot<MessageQueueOptions> messageQueueEnableOptions)
+        IOptionsSnapshot<MessageQueueOptions> messageQueueEnableOptions, ILogger<SyncBlockStateProvider> logger)
     {
         _messageQueueOptions = messageQueueEnableOptions.Value;
         _distributedCache = distributedCache;
+        _logger = logger;
     }
 
     public async Task InitializeAsync()
     {
         _blockSynStateInformation = await _distributedCache.GetAsync(BlockSynState);
         if (_blockSynStateInformation != null)
-        { 
+        {
             _blockSynStateInformation.State = !_messageQueueOptions.Enable ? SyncState.Stopped : SyncState.Prepared;
-            return;
+        }
+        else
+        {
+            _blockSynStateInformation = new SyncInformation
+            {
+                State = SyncState.Stopped,
+                CurrentHeight = _messageQueueOptions.StartPublishMessageHeight > 0
+                    ? _messageQueueOptions.StartPublishMessageHeight - 1
+                    : 0
+            };
         }
 
-        _blockSynStateInformation = new SyncInformation
-        {
-            State = SyncState.Stopped
-        };
+        _logger.LogInformation(
+            $"BlockSynState initialized\nState: {_blockSynStateInformation.State}  CurrentHeight: {_blockSynStateInformation.CurrentHeight}");
     }
 
     public SyncInformation GetCurrentState()
@@ -60,25 +70,16 @@ public class SyncBlockStateProvider : ISyncBlockStateProvider, ISingletonDepende
         var dataToUpdate = new SyncInformation();
         lock (_distributedCache)
         {
-            if (_blockSynStateInformation == null)
-            {
-                _blockSynStateInformation = new SyncInformation
-                {
-                    State = state ?? SyncState.Stopped,
-                    CurrentHeight = height ?? 0
-                };
-            }
-            else
-            {
-                _blockSynStateInformation.State = state ?? _blockSynStateInformation.State;
-                _blockSynStateInformation.CurrentHeight = height ?? _blockSynStateInformation.CurrentHeight;
-            }
-
+            _blockSynStateInformation.State = state ?? _blockSynStateInformation.State;
+            _blockSynStateInformation.CurrentHeight = height ?? _blockSynStateInformation.CurrentHeight;
             dataToUpdate.State = _blockSynStateInformation.State;
             dataToUpdate.CurrentHeight = _blockSynStateInformation.CurrentHeight;
         }
 
         await _distributedCache.SetAsync(BlockSynState, dataToUpdate);
+        _logger.LogInformation(
+            $"BlockSynState updated\nState: {dataToUpdate.State}  CurrentHeight: {dataToUpdate.CurrentHeight}");
+
     }
 }
 

@@ -40,12 +40,20 @@ public class MessageSendAppService : AElfAppService, IMessageSendAppService
 
     public async Task<bool> StopAsync()
     {
+        var currentState = _syncBlockStateProvider.GetCurrentState();
+        if (currentState.State == SyncState.Stopped)
+        {
+            return true;
+        }
         await _syncBlockStateProvider.UpdateStateAsync(null, SyncState.Stopped);
         return true;
     }
 
     public async Task<bool> StartAsync()
     {
+        var currentState = _syncBlockStateProvider.GetCurrentState();
+        if (currentState.State != SyncState.Stopped)
+            return false;
         await _syncBlockStateProvider.UpdateStateAsync(null, SyncState.Prepared);
         return true;
     }
