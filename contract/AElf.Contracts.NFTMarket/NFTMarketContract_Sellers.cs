@@ -569,7 +569,7 @@ namespace AElf.Contracts.NFTMarket
                         Symbol = input.Symbol,
                         TokenId = input.TokenId,
                         OfferFrom = input.OfferFrom,
-                        OfferTo = Context.Sender,
+                        OfferTo = offer.To,
                         ExpireTime = offer.ExpireTime
                     });
                 }
@@ -580,7 +580,7 @@ namespace AElf.Contracts.NFTMarket
                         Symbol = input.Symbol,
                         TokenId = input.TokenId,
                         OfferFrom = input.OfferFrom,
-                        OfferTo = Context.Sender,
+                        OfferTo = offer.To,
                         Quantity = offer.Quantity,
                         Price = offer.Price,
                         ExpireTime = offer.ExpireTime

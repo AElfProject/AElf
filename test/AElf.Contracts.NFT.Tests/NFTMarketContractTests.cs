@@ -778,7 +778,7 @@ namespace AElf.Contracts.NFT
             }
         }
         
-         [Fact]
+        [Fact]
         public async Task MakeOffer()
         {
             await AdminNFTMarketContractStub.Initialize.SendAsync(new InitializeInput
