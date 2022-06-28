@@ -25,9 +25,9 @@ namespace AElf.Contracts.NFTMarket
             var requestInfo = State.RequestInfoMap[input.Symbol][input.TokenId];
             var projectId = CalculateProjectId(input.Symbol, input.TokenId,Context.Sender);
             var whitelistId = new Hash();
+            var whitelistManager = GetWhitelistManager();
             if (input.IsWhitelistAvailable)
             {
-                var whitelistManager = GetWhitelistManager();
                 if (requestInfo != null)
                 {
                     DealRequestInfoInWhitelist(input, duration, requestInfo);
@@ -66,7 +66,7 @@ namespace AElf.Contracts.NFTMarket
             else
             {
                 whitelistId = State.WhitelistIdMap[projectId];
-                if (whitelistId != null)
+                if (whitelistId != null && whitelistManager.IsWhitelistAvailable(whitelistId))
                 {
                     State.WhitelistContract.DisableWhitelist.Send(whitelistId);
                 }
