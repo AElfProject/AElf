@@ -1,6 +1,8 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.WebApp.MessageQueue.Enum;
+using AElf.WebApp.MessageQueue.Provider;
 using AElf.WebApp.MessageQueue.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -15,12 +17,16 @@ public class SendMessageWorker : ISingletonDependency
     public IAbpLazyServiceProvider LazyServiceProvider { get; set; }
     protected IServiceScopeFactory ServiceScopeFactory { get; }
     protected ILoggerFactory LoggerFactory => LazyServiceProvider.LazyGetRequiredService<ILoggerFactory>();
+
     protected ILogger Logger => LazyServiceProvider.LazyGetService<ILogger>(provider =>
         LoggerFactory?.CreateLogger(GetType().FullName) ?? NullLogger.Instance);
-    
-    public SendMessageWorker(IServiceScopeFactory serviceScopeFactory)
+
+    private readonly ISyncBlockStateProvider _syncBlockStateProvider;
+
+    public SendMessageWorker(IServiceScopeFactory serviceScopeFactory, ISyncBlockStateProvider syncBlockStateProvider)
     {
         ServiceScopeFactory = serviceScopeFactory;
+        _syncBlockStateProvider = syncBlockStateProvider;
     }
 
     public async Task StartAsync(long height, CancellationToken cancellationToken)
@@ -32,12 +38,15 @@ public class SendMessageWorker : ISingletonDependency
         try
         {
             var blockMessageService = scope.ServiceProvider.GetRequiredService<IBlockMessageService>();
-            while (!cancellationToken.IsCancellationRequested)
+            var currentState = _syncBlockStateProvider.GetCurrentState();
+            while (!cancellationToken.IsCancellationRequested && currentState.State == SyncState.Running)
             {
                 if (await blockMessageService.SendMessageAsync(nextHeight, cancellationToken))
                 {
                     nextHeight++;
                 }
+
+                currentState = _syncBlockStateProvider.GetCurrentState();
             }
         }
         catch (Exception ex)

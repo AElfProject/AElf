@@ -1,19 +1,26 @@
 ﻿using System;
 using System.Net.Security;
 using System.Security.Authentication;
+using System.Threading.Tasks;
 using AElf.Modularity;
 using AElf.WebApp.Application;
+using AElf.WebApp.MessageQueue.Provider;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using RabbitMQ.Client;
+using Volo.Abp;
 using Volo.Abp.AutoMapper;
+using Volo.Abp.Caching;
+using Volo.Abp.Caching.StackExchangeRedis;
 using Volo.Abp.EventBus.RabbitMq;
 using Volo.Abp.Modularity;
 using Volo.Abp.RabbitMQ;
+using Volo.Abp.Threading;
 
 namespace AElf.WebApp.MessageQueue;
 
-[DependsOn(typeof(AbpAutoMapperModule), typeof(AbpEventBusRabbitMqModule), typeof(CoreApplicationWebAppAElfModule))]
+[DependsOn(typeof(AbpAutoMapperModule), typeof(AbpEventBusRabbitMqModule), typeof(CoreApplicationWebAppAElfModule),
+    typeof(AbpCachingStackExchangeRedisModule))]
 public class MessageQueueAElfModule : AElfModule
 {
     public override void ConfigureServices(ServiceConfigurationContext context)
@@ -22,6 +29,7 @@ public class MessageQueueAElfModule : AElfModule
         Configure<AbpAutoMapperOptions>(options => { options.AddMaps<MessageQueueAElfModule>(); });
         Configure<MessageQueueOptions>(options => { configuration.GetSection("MessageQueue").Bind(options); });
         ConfigureRabbitMqEventBus(configuration);
+        ConfigureCache();
     }
 
     private void ConfigureRabbitMqEventBus(IConfiguration configuration)
@@ -53,5 +61,32 @@ public class MessageQueueAElfModule : AElfModule
             options.Connections.Default.VirtualHost = "/";
             options.Connections.Default.Uri = new Uri(messageQueueConfig.GetSection("Uri").Value);
         });
+    }
+
+    private void ConfigureCache()
+    {
+        Configure<AbpDistributedCacheOptions>(options => { options.KeyPrefix = "EventFilterApp:"; });
+    }
+
+    public override void OnApplicationInitialization(ApplicationInitializationContext context)
+    {
+        AsyncHelper.RunSync(() => OnApplicationInitializationAsync(context));
+    }
+
+    public override async Task OnApplicationInitializationAsync(ApplicationInitializationContext context)
+    {
+        var syncBlockStateProvider = context.ServiceProvider.GetRequiredService<ISyncBlockStateProvider>();
+        await syncBlockStateProvider.InitializeAsync();
+    }
+
+    public override void OnApplicationShutdown(ApplicationShutdownContext context)
+    {
+        AsyncHelper.RunSync(() => OnApplicationShutdownAsync(context));
+    }
+
+    public override async Task OnApplicationShutdownAsync(ApplicationShutdownContext context)
+    {
+        var taskManageService = context.ServiceProvider.GetRequiredService<ISendMessageByDesignateHeightTaskManager>();
+        await taskManageService.StopAsync();
     }
 }

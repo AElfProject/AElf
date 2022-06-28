@@ -1,6 +1,8 @@
 using System.Linq;
 using AElf.Kernel;
 using AElf.Types;
+using AElf.WebApp.MessageQueue.Dtos;
+using AElf.WebApp.MessageQueue.Provider;
 using AutoMapper;
 using Volo.Abp.AutoMapper;
 
@@ -43,5 +45,9 @@ public class WebAppMsmqAutoMapperProfile : Profile
                 opt => opt.MapFrom(source => source.Header.Time.ToDateTime()))
             .ForMember(destination => destination.Bloom,
                 opt => opt.MapFrom(source => source.Header.Bloom.ToHex(false)));
+
+        CreateMap<SyncInformation, SyncInformationDto>()
+            .ForMember(destination => destination.State,
+                opt => opt.MapFrom(source => source.State.ToString()));
     }
 }

@@ -1,5 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.Kernel.Blockchain;
 using AElf.WebApp.MessageQueue.Provider;
 using Volo.Abp.DependencyInjection;
 
@@ -8,6 +9,7 @@ namespace AElf.WebApp.MessageQueue.Services;
 public interface IBlockMessageService
 {
     Task<bool> SendMessageAsync(long height, CancellationToken cts);
+    Task<bool> SendMessageAsync(BlockExecutedSet blockExecutedSet);
 }
 
 public class BlockMessageService : IBlockMessageService, ITransientDependency
@@ -28,7 +30,16 @@ public class BlockMessageService : IBlockMessageService, ITransientDependency
         var isSuccess = await _messagePublishService.PublishAsync(height, cts);
         if (!isSuccess)
             return false;
-        await _syncBlockStateProvider.UpdateAsync(height);
+        await _syncBlockStateProvider.UpdateStateAsync(height);
+        return true;
+    }
+
+    public async Task<bool> SendMessageAsync(BlockExecutedSet blockExecutedSet)
+    {
+        var isSuccess = await _messagePublishService.PublishAsync(blockExecutedSet);
+        if (!isSuccess)
+            return false;
+        await _syncBlockStateProvider.UpdateStateAsync(blockExecutedSet.Height);
         return true;
     }
 }
