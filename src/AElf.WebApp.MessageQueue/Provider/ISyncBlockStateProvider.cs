@@ -31,7 +31,16 @@ public class SyncBlockStateProvider : ISyncBlockStateProvider, ISingletonDepende
     public async Task InitializeAsync()
     {
         _blockSynStateInformation = await _distributedCache.GetAsync(BlockSynState);
-        _blockSynStateInformation.State = !_messageQueueOptions.Enable ? SyncState.Stopped : SyncState.Prepared;
+        if (_blockSynStateInformation != null)
+        { 
+            _blockSynStateInformation.State = !_messageQueueOptions.Enable ? SyncState.Stopped : SyncState.Prepared;
+            return;
+        }
+
+        _blockSynStateInformation = new SyncInformation
+        {
+            State = SyncState.Stopped
+        };
     }
 
     public SyncInformation GetCurrentState()

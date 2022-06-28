@@ -1,21 +1,21 @@
 using System.Threading.Tasks;
+using AElf.WebApp.Application;
 using AElf.WebApp.MessageQueue.Dtos;
 using AElf.WebApp.MessageQueue.Enum;
 using AElf.WebApp.MessageQueue.Provider;
-using Volo.Abp.Application.Services;
 using Volo.Abp.ObjectMapping;
 
 namespace AElf.WebApp.MessageQueue;
 
-public interface IMessageSendAppService : IApplicationService
+public interface IMessageSendAppService
 {
     Task<bool> UpdateAsync(long height);
     Task<bool> StopAsync();
     Task<bool> StartAsync();
-    Task<SyncInformationDto> GetAsync();
+    SyncInformationDto GetAsync();
 }
 
-public class MessageSendAppService : IMessageSendAppService
+public class MessageSendAppService : AElfAppService, IMessageSendAppService
 {
     private readonly ISyncBlockStateProvider _syncBlockStateProvider;
     private readonly IAutoObjectMappingProvider _mapperProvider;
@@ -50,7 +50,7 @@ public class MessageSendAppService : IMessageSendAppService
         return true;
     }
 
-    public async Task<SyncInformationDto> GetAsync()
+    public SyncInformationDto GetAsync()
     {
         var currentState = _syncBlockStateProvider.GetCurrentState();
         return _mapperProvider.Map<SyncInformation, SyncInformationDto>(currentState);
