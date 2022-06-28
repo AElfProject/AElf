@@ -37,5 +37,4 @@ public class LogEventEto
     public string[] Indexed { get; set; }
 
     public string NonIndexed { get; set; }
-    public string Bloom { get; set; }
 }

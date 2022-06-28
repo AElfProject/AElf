@@ -21,9 +21,7 @@ public class WebAppMsmqAutoMapperProfile : Profile
             .ForMember(destination => destination.Indexed,
                 opt => opt.MapFrom(source => source.Indexed.Select(i => i.ToBase64()).ToArray()))
             .ForMember(destination => destination.NonIndexed,
-                opt => opt.MapFrom(source => source.NonIndexed.ToBase64()))
-            .ForMember(destination => destination.Bloom,
-                opt => opt.MapFrom(source => source.GetBloom().Data.ToHex(false)));
+                opt => opt.MapFrom(source => source.NonIndexed.ToBase64()));
 
         CreateMap<TransactionResult, TransactionMessageEto>()
             .Ignore(x => x.ToAddress)
