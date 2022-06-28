@@ -20,12 +20,12 @@ public class TransactionMessageEto
     public string TransactionId { get; set; }
     public string Status { get; set; }
     public LogEventEto[] Logs { get; set; }
+    public string Bloom { get; set; }
     public string ReturnValue { get; set; }
     public string Error { get; set; }
     public string MethodName { get; set; }
     public string FromAddress { get; set; }
     public string ToAddress { get; set; }
-    public string Bloom { get; set; }
 }
 
 public class LogEventEto

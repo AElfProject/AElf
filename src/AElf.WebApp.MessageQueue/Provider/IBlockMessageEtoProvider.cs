@@ -22,18 +22,16 @@ public class BlockMessageEtoProvider : IBlockMessageEtoProvider, ISingletonDepen
     private readonly IBlockchainService _blockchainService;
     private readonly ITransactionResultQueryService _transactionResultQueryService;
     private readonly ITransactionManager _transactionManager;
-    private readonly IAutoObjectMappingProvider _mapperProvider;
-    private readonly IObjectMapper<BlockExecutedSet, BlockMessageEto> _blockMapper;
+    private readonly IObjectMapper _objectMapper;
 
     public BlockMessageEtoProvider(IBlockchainService blockchainService,
         ITransactionResultQueryService transactionResultQueryService, ITransactionManager transactionManager,
-        IAutoObjectMappingProvider mapperProvider, IObjectMapper<BlockExecutedSet, BlockMessageEto> blockMapper)
+        IObjectMapper objectMapper)
     {
         _blockchainService = blockchainService;
         _transactionResultQueryService = transactionResultQueryService;
         _transactionManager = transactionManager;
-        _mapperProvider = mapperProvider;
-        _blockMapper = blockMapper;
+        _objectMapper = objectMapper;
     }
 
     public async Task<BlockMessageEto> GetBlockMessageEtoByHeightAsync(long height, CancellationToken cts)
@@ -45,7 +43,7 @@ public class BlockMessageEtoProvider : IBlockMessageEtoProvider, ISingletonDepen
             return null;
         }
         
-        var blockMessageEto = _mapperProvider.Map<Block, BlockMessageEto>(block);
+        var blockMessageEto = _objectMapper.Map<Block, BlockMessageEto>(block);
         var blockHash = block.Header.GetHash();
 
         foreach (var txId in block.TransactionIds)
@@ -67,7 +65,7 @@ public class BlockMessageEtoProvider : IBlockMessageEtoProvider, ISingletonDepen
                 continue; // todo add log
             }
 
-            var transactionMessageEto = _mapperProvider.Map<TransactionResult, TransactionMessageEto>(block);
+            var transactionMessageEto = _objectMapper.Map<TransactionResult, TransactionMessageEto>(transactionResult);
             FillTransactionInformation(transactionMessageEto, transaction);
             blockMessageEto.TransactionMessageList.Add(transactionMessageEto);
         }
@@ -77,7 +75,7 @@ public class BlockMessageEtoProvider : IBlockMessageEtoProvider, ISingletonDepen
 
     public BlockMessageEto GetBlockMessageEto(BlockExecutedSet blockExecutedSet)
     {
-        return _blockMapper.Map(blockExecutedSet);
+        return _objectMapper.Map<BlockExecutedSet, BlockMessageEto>(blockExecutedSet);
     }
 
     private async Task<Block> GetBlockByHeightAsync(long height)

@@ -26,6 +26,9 @@ public class WebAppMsmqAutoMapperProfile : Profile
                 opt => opt.MapFrom(source => source.GetBloom().Data.ToHex(false)));
 
         CreateMap<TransactionResult, TransactionMessageEto>()
+            .Ignore(x => x.ToAddress)
+            .Ignore(x => x.FromAddress)
+            .Ignore(x => x.MethodName)
             .ForMember(destination => destination.TransactionId,
                 opt => opt.MapFrom(source => source.TransactionId.ToHex()))
             .ForMember(destination => destination.Status,
