@@ -29,7 +29,12 @@ public class MessageSendAppService : IMessageSendAppService
 
     public async Task<bool> UpdateAsync(long height)
     {
-        await _syncBlockStateProvider.UpdateStateAsync(height, SyncState.Stopped);
+        if (height < 0)
+        {
+            return false;
+        }
+        
+        await _syncBlockStateProvider.UpdateStateAsync(height - 1, SyncState.Stopped);
         return true;
     }
 

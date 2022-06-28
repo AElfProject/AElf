@@ -52,7 +52,7 @@ public class BlockAcceptedEventHandler : ILocalEventHandler<BlockAcceptedEvent>,
         {
             await _sendMessageByDesignateHeightTaskManager.StopAsync();
             blockSyncState = _syncBlockStateProvider.GetCurrentState();
-            _sendMessageByDesignateHeightTaskManager.Start(blockSyncState.CurrentHeight);
+            _sendMessageByDesignateHeightTaskManager.Start(blockSyncState.CurrentHeight + 1);
             await _syncBlockStateProvider.UpdateStateAsync(null, SyncState.Running);
         }
     }
