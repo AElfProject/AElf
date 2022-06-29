@@ -1,5 +1,4 @@
 using System;
-using System.Data;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.WebApp.MessageQueue.Enum;
@@ -48,7 +47,7 @@ public class SendMessageWorker : ISingletonDependency
                 }
                 else
                 {
-                    await _syncBlockStateProvider.UpdateStateAsync(null, SyncState.Prepared);
+                    await _syncBlockStateProvider.UpdateStateAsync(null, SyncState.Prepared, SyncState.Running);
                 }
 
                 currentState = _syncBlockStateProvider.GetCurrentState();

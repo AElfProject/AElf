@@ -39,13 +39,13 @@ public class BlockAcceptedEventHandler : ILocalEventHandler<BlockAcceptedEvent>,
 
         if (blockSyncState.CurrentHeight + 1 == eventData.Block.Height)
         {
+            if (blockSyncState.State == SyncState.Prepared)
+            {
+                await _syncBlockStateProvider.UpdateStateAsync(null, SyncState.Running, SyncState.Prepared);
+            }
             _logger.LogInformation("Publish message synchronously");
             await _sendMessageByDesignateHeightTaskManager.StopAsync();
             await _blockMessageService.SendMessageAsync(eventData.BlockExecutedSet);
-            if (blockSyncState.State == SyncState.Prepared)
-            {
-                await _syncBlockStateProvider.UpdateStateAsync(null, SyncState.Running);
-            }
         }
 
         else if (blockSyncState.CurrentHeight < eventData.Block.Height && blockSyncState.State == SyncState.Prepared)
@@ -53,7 +53,7 @@ public class BlockAcceptedEventHandler : ILocalEventHandler<BlockAcceptedEvent>,
             _logger.LogInformation("Start to publish message asynchronously");
             await _sendMessageByDesignateHeightTaskManager.StopAsync();
             blockSyncState = _syncBlockStateProvider.GetCurrentState();
-            await _syncBlockStateProvider.UpdateStateAsync(null, SyncState.Running);
+            await _syncBlockStateProvider.UpdateStateAsync(null, SyncState.Running, SyncState.Prepared);
             _sendMessageByDesignateHeightTaskManager.Start(blockSyncState.CurrentHeight + 1);
         }
     }

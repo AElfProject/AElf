@@ -12,7 +12,7 @@ public interface ISyncBlockStateProvider
     Task InitializeAsync();
     SyncInformation GetCurrentState();
 
-    Task UpdateStateAsync(long? height, SyncState? state = null);
+    Task UpdateStateAsync(long? height, SyncState? state = null, SyncState? expectationState = null);
 }
 
 public class SyncBlockStateProvider : ISyncBlockStateProvider, ISingletonDependency
@@ -21,7 +21,7 @@ public class SyncBlockStateProvider : ISyncBlockStateProvider, ISingletonDepende
     private const string BlockSynState = "BlockSynState";
     private readonly IDistributedCache<SyncInformation> _distributedCache;
     private readonly MessageQueueOptions _messageQueueOptions;
-    private ILogger<SyncBlockStateProvider> _logger;
+    private readonly ILogger<SyncBlockStateProvider> _logger;
 
     public SyncBlockStateProvider(IDistributedCache<SyncInformation> distributedCache,
         IOptionsSnapshot<MessageQueueOptions> messageQueueEnableOptions, ILogger<SyncBlockStateProvider> logger)
@@ -65,11 +65,16 @@ public class SyncBlockStateProvider : ISyncBlockStateProvider, ISingletonDepende
         return currentData;
     }
 
-    public async Task UpdateStateAsync(long? height, SyncState? state = null)
+    public async Task UpdateStateAsync(long? height, SyncState? state = null, SyncState? expectationState = null)
     {
         var dataToUpdate = new SyncInformation();
         lock (_distributedCache)
         {
+            if (expectationState != _blockSynStateInformation.State)
+            {
+                return;
+            }
+
             _blockSynStateInformation.State = state ?? _blockSynStateInformation.State;
             _blockSynStateInformation.CurrentHeight = height ?? _blockSynStateInformation.CurrentHeight;
             dataToUpdate.State = _blockSynStateInformation.State;
@@ -79,7 +84,6 @@ public class SyncBlockStateProvider : ISyncBlockStateProvider, ISingletonDepende
         await _distributedCache.SetAsync(BlockSynState, dataToUpdate);
         _logger.LogInformation(
             $"BlockSynState updated\nState: {dataToUpdate.State}  CurrentHeight: {dataToUpdate.CurrentHeight}");
-
     }
 }
 
