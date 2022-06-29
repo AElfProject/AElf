@@ -70,7 +70,7 @@ public class SyncBlockStateProvider : ISyncBlockStateProvider, ISingletonDepende
         var dataToUpdate = new SyncInformation();
         lock (_distributedCache)
         {
-            if (expectationState != _blockSynStateInformation.State)
+            if (expectationState.HasValue && expectationState != _blockSynStateInformation.State)
             {
                 return;
             }
