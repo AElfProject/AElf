@@ -79,7 +79,8 @@ public class BlockAcceptedEventHandler : ILocalEventHandler<BlockAcceptedEvent>,
         {
             await _syncBlockStateProvider.UpdateStateAsync(null, SyncState.AsyncRunning);
             _logger.LogInformation("Start to publish message asynchronously");
-            _sendMessageByDesignateHeightTaskManager.Start(blockSyncState.CurrentHeight + 1);
+            var from = blockSyncState.CurrentHeight;
+            _sendMessageByDesignateHeightTaskManager.Start(from);
         }
     }
 
@@ -93,8 +94,8 @@ public class BlockAcceptedEventHandler : ILocalEventHandler<BlockAcceptedEvent>,
             return;
         }
 
-        var from = blockSyncState.CurrentHeight + 1;
-        var to = currentHeight - 1;
+        var from = blockSyncState.CurrentHeight;
+        var to = currentHeight - 2;
         if (from > to + 1 || to - from > 10)
         {
             await _syncBlockStateProvider.UpdateStateAsync(null, SyncState.Prepared);
@@ -102,7 +103,11 @@ public class BlockAcceptedEventHandler : ILocalEventHandler<BlockAcceptedEvent>,
         }
 
         await _syncBlockStateProvider.UpdateStateAsync(null, SyncState.SyncRunning);
-        _logger.LogInformation($"Catch up to current block, from: {from} - to: {to}");
+        if (from >= to)
+        {
+            _logger.LogInformation($"Catch up to current block, from: {from + 1} - to: {to + 1}");
+        }
+
         for (var i = from; i <= to; i++)
         {
             await _blockMessageService.SendMessageAsync(i);

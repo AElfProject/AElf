@@ -30,7 +30,7 @@ public class BlockMessageService : IBlockMessageService, ITransientDependency
         var isSuccess = await _messagePublishService.PublishAsync(height, cts);
         if (!isSuccess)
             return false;
-        await _syncBlockStateProvider.UpdateStateAsync(height);
+        await _syncBlockStateProvider.UpdateStateAsync(height + 1);
         return true;
     }
 
