@@ -3,7 +3,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain;
 using AElf.WebApp.MessageQueue.Helpers;
-using AElf.WebApp.MessageQueue.Provider;
 using Microsoft.Extensions.Logging;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus.Distributed;

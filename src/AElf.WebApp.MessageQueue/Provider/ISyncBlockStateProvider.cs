@@ -54,7 +54,7 @@ public class SyncBlockStateProvider : ISyncBlockStateProvider, ISingletonDepende
         }
 
         _logger.LogInformation(
-            $"BlockSynState initialized\nState: {_blockSynStateInformation.State}  CurrentHeight: {_blockSynStateInformation.CurrentHeight}");
+            $"BlockSynState initialized, State: {_blockSynStateInformation.State}  CurrentHeight: {_blockSynStateInformation.CurrentHeight}");
     }
 
     public async Task<SyncInformation> GetCurrentStateAsync()
