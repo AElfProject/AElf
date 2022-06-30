@@ -50,5 +50,20 @@ public class WebAppMsmqAutoMapperProfile : Profile
         CreateMap<SyncInformation, SyncInformationDto>()
             .ForMember(destination => destination.State,
                 opt => opt.MapFrom(source => source.State.ToString()));
+
+        CreateMap<TransactionResult, TransactionResultEto>()
+            .Ignore(x => x.ToAddress)
+            .Ignore(x => x.FromAddress)
+            .Ignore(x => x.MethodName)
+            .Ignore(x => x.BlockHash)
+            .Ignore(x => x.BlockTime)
+            .Ignore(x => x.BlockNumber)
+            .ForMember(destination => destination.TransactionId,
+                opt => opt.MapFrom(source => source.TransactionId.ToHex()))
+            .ForMember(destination => destination.Status,
+                opt => opt.MapFrom(source => source.Status.ToString().ToUpper()))
+            .ForMember(destination => destination.ReturnValue,
+                opt => opt.MapFrom(source => source.ReturnValue.ToHex(false)));
+
     }
 }

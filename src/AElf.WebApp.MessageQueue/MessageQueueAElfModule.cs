@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using AElf.Modularity;
 using AElf.WebApp.Application;
 using AElf.WebApp.MessageQueue.Enum;
+using AElf.WebApp.MessageQueue.Helpers;
 using AElf.WebApp.MessageQueue.Provider;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -31,6 +32,7 @@ public class MessageQueueAElfModule : AElfModule
         Configure<MessageQueueOptions>(options => { configuration.GetSection("MessageQueue").Bind(options); });
         ConfigureRabbitMqEventBus(configuration);
         ConfigureCache();
+        context.Services.AddTransient<IBlockMessageEtoGenerator, TransactionListEtoGenerator>();
     }
 
     private void ConfigureRabbitMqEventBus(IConfiguration configuration)

@@ -6,11 +6,11 @@ using Volo.Abp.ObjectMapping;
 
 namespace AElf.WebApp.MessageQueue;
 
-public class BlockExecutedSetMapper : IObjectMapper<BlockExecutedSet, BlockMessageEto>, ITransientDependency
+public class BlockMessageMapper : IObjectMapper<BlockExecutedSet, BlockMessageEto>, ITransientDependency
 {
     private readonly IAutoObjectMappingProvider _mapperProvider;
 
-    public BlockExecutedSetMapper(IAutoObjectMappingProvider mapperProvider)
+    public BlockMessageMapper(IAutoObjectMappingProvider mapperProvider)
     {
         _mapperProvider = mapperProvider;
     }

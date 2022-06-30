@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -7,28 +9,21 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
-using Volo.Abp.DependencyInjection;
 using Volo.Abp.ObjectMapping;
 
-namespace AElf.WebApp.MessageQueue.Provider;
+namespace AElf.WebApp.MessageQueue.Helpers;
 
-public interface IBlockMessageEtoProvider
-{
-    Task<BlockMessageEto> GetBlockMessageEtoByHeightAsync(long height, CancellationToken cts);
-    BlockMessageEto GetBlockMessageEto(BlockExecutedSet blockExecutedSet);
-}
-
-public class BlockMessageEtoProvider : IBlockMessageEtoProvider, ISingletonDependency
+public class TransactionListEtoGenerator : IBlockMessageEtoGenerator
 {
     private readonly IBlockchainService _blockchainService;
     private readonly ITransactionResultQueryService _transactionResultQueryService;
     private readonly ITransactionManager _transactionManager;
     private readonly IObjectMapper _objectMapper;
-    private readonly ILogger<BlockMessageEtoProvider> _logger;
+    private readonly ILogger<TransactionListEtoGenerator> _logger;
 
-    public BlockMessageEtoProvider(IBlockchainService blockchainService,
+    public TransactionListEtoGenerator(IBlockchainService blockchainService,
         ITransactionResultQueryService transactionResultQueryService, ITransactionManager transactionManager,
-        IObjectMapper objectMapper, ILogger<BlockMessageEtoProvider> logger)
+        IObjectMapper objectMapper, ILogger<TransactionListEtoGenerator> logger)
     {
         _blockchainService = blockchainService;
         _transactionResultQueryService = transactionResultQueryService;
@@ -37,17 +32,26 @@ public class BlockMessageEtoProvider : IBlockMessageEtoProvider, ISingletonDepen
         _logger = logger;
     }
 
-    public async Task<BlockMessageEto> GetBlockMessageEtoByHeightAsync(long height, CancellationToken cts)
+    public async Task<object> GetBlockMessageEtoByHeightAsync(long height, CancellationToken cts)
     {
         var block = await GetBlockByHeightAsync(height);
         if (block == null)
         {
-            _logger.LogWarning($"Failed to find block information, height: {height}");
+            _logger.LogWarning($"Failed to find block information, height: {height + 1}");
             return null;
         }
 
-        var blockMessageEto = _objectMapper.Map<Block, BlockMessageEto>(block);
         var blockHash = block.Header.GetHash();
+        var blockHashStr = blockHash.ToHex();
+        var blockHeight = block.Height;
+        var blockTime = block.Header.Time.ToDateTime();
+        var transactionResultList = new TransactionResultListEto
+        {
+            StartBlockNumber = blockHeight,
+            EndBlockNumber = blockHeight,
+            ChainId = block.Header.ChainId
+        };
+        var transactionResults = new Dictionary<string, List<TransactionResultEto>>();
 
         foreach (var txId in block.TransactionIds)
         {
@@ -59,7 +63,8 @@ public class BlockMessageEtoProvider : IBlockMessageEtoProvider, ISingletonDepen
             var transactionResult = await _transactionResultQueryService.GetTransactionResultAsync(txId, blockHash);
             if (transactionResult == null)
             {
-                _logger.LogWarning($"Failed to find transactionResult, block hash: {blockHash},  transaction ID: {txId}");
+                _logger.LogWarning(
+                    $"Failed to find transactionResult, block hash: {blockHash},  transaction ID: {txId}");
                 continue;
             }
 
@@ -70,17 +75,26 @@ public class BlockMessageEtoProvider : IBlockMessageEtoProvider, ISingletonDepen
                 continue;
             }
 
-            var transactionMessageEto = _objectMapper.Map<TransactionResult, TransactionMessageEto>(transactionResult);
-            FillTransactionInformation(transactionMessageEto, transaction);
-            blockMessageEto.TransactionMessageList.Add(transactionMessageEto);
+            var newTransactionResult = _objectMapper.Map<TransactionResult, TransactionResultEto>(transactionResult);
+            FillTransactionInformation(blockHeight, blockHashStr, blockTime, newTransactionResult, transaction);
+            if (transactionResults.TryGetValue(newTransactionResult.TransactionId, out var txList))
+            {
+                txList.Add(newTransactionResult);
+            }
+            else
+            {
+                transactionResults.Add(newTransactionResult.TransactionId,
+                    new List<TransactionResultEto> { newTransactionResult });
+            }
         }
 
-        return blockMessageEto;
+        transactionResultList.TransactionResults = transactionResults;
+        return transactionResultList;
     }
 
-    public BlockMessageEto GetBlockMessageEto(BlockExecutedSet blockExecutedSet)
+    public object GetBlockMessageEto(BlockExecutedSet blockExecutedSet)
     {
-        return _objectMapper.Map<BlockExecutedSet, BlockMessageEto>(blockExecutedSet);
+        return _objectMapper.Map<BlockExecutedSet, TransactionResultListEto>(blockExecutedSet);
     }
 
     private async Task<Block> GetBlockByHeightAsync(long height)
@@ -91,8 +105,12 @@ public class BlockMessageEtoProvider : IBlockMessageEtoProvider, ISingletonDepen
         return blocks.Any() ? blocks.First() : null;
     }
 
-    private static void FillTransactionInformation(TransactionMessageEto transactionMessage, Transaction transaction)
+    private static void FillTransactionInformation(long blockHeight, string blockHash, DateTime blockTime,
+        TransactionResultEto transactionMessage, Transaction transaction)
     {
+        transactionMessage.BlockHash = blockHash;
+        transactionMessage.BlockNumber = blockHeight;
+        transactionMessage.BlockTime = blockTime;
         transactionMessage.MethodName = transaction.MethodName;
         transactionMessage.FromAddress = transaction.From.ToBase58();
         transactionMessage.ToAddress = transaction.To.ToBase58();
