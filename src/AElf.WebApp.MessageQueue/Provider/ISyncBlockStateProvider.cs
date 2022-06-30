@@ -1,16 +1,18 @@
+using System.Threading;
 using System.Threading.Tasks;
 using AElf.WebApp.MessageQueue.Enum;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Volo.Abp.Caching;
 using Volo.Abp.DependencyInjection;
+using Volo.Abp.Threading;
 
 namespace AElf.WebApp.MessageQueue.Provider;
 
 public interface ISyncBlockStateProvider
 {
     Task InitializeAsync();
-    SyncInformation GetCurrentState();
+    Task<SyncInformation> GetCurrentStateAsync();
 
     Task UpdateStateAsync(long? height, SyncState? state = null, SyncState? expectationState = null);
 }
@@ -22,6 +24,7 @@ public class SyncBlockStateProvider : ISyncBlockStateProvider, ISingletonDepende
     private readonly IDistributedCache<SyncInformation> _distributedCache;
     private readonly MessageQueueOptions _messageQueueOptions;
     private readonly ILogger<SyncBlockStateProvider> _logger;
+    private SemaphoreSlim SyncSemaphore { get; }
 
     public SyncBlockStateProvider(IDistributedCache<SyncInformation> distributedCache,
         IOptionsSnapshot<MessageQueueOptions> messageQueueEnableOptions, ILogger<SyncBlockStateProvider> logger)
@@ -29,6 +32,7 @@ public class SyncBlockStateProvider : ISyncBlockStateProvider, ISingletonDepende
         _messageQueueOptions = messageQueueEnableOptions.Value;
         _distributedCache = distributedCache;
         _logger = logger;
+        SyncSemaphore = new SemaphoreSlim(1, 1);
     }
 
     public async Task InitializeAsync()
@@ -43,9 +47,9 @@ public class SyncBlockStateProvider : ISyncBlockStateProvider, ISingletonDepende
             _blockSynStateInformation = new SyncInformation
             {
                 State = SyncState.Stopped,
-                CurrentHeight = _messageQueueOptions.StartPublishMessageHeight > 0
+                CurrentHeight = _messageQueueOptions.StartPublishMessageHeight > 1
                     ? _messageQueueOptions.StartPublishMessageHeight - 1
-                    : 0
+                    : 1
             };
         }
 
@@ -53,10 +57,10 @@ public class SyncBlockStateProvider : ISyncBlockStateProvider, ISingletonDepende
             $"BlockSynState initialized\nState: {_blockSynStateInformation.State}  CurrentHeight: {_blockSynStateInformation.CurrentHeight}");
     }
 
-    public SyncInformation GetCurrentState()
+    public async Task<SyncInformation> GetCurrentStateAsync()
     {
         var currentData = new SyncInformation();
-        lock (_distributedCache)
+        using (await SyncSemaphore.LockAsync())
         {
             currentData.State = _blockSynStateInformation.State;
             currentData.CurrentHeight = _blockSynStateInformation.CurrentHeight;
@@ -68,7 +72,7 @@ public class SyncBlockStateProvider : ISyncBlockStateProvider, ISingletonDepende
     public async Task UpdateStateAsync(long? height, SyncState? state = null, SyncState? expectationState = null)
     {
         var dataToUpdate = new SyncInformation();
-        lock (_distributedCache)
+        using (await SyncSemaphore.LockAsync())
         {
             if (expectationState.HasValue && expectationState != _blockSynStateInformation.State)
             {
@@ -79,11 +83,10 @@ public class SyncBlockStateProvider : ISyncBlockStateProvider, ISingletonDepende
             _blockSynStateInformation.CurrentHeight = height ?? _blockSynStateInformation.CurrentHeight;
             dataToUpdate.State = _blockSynStateInformation.State;
             dataToUpdate.CurrentHeight = _blockSynStateInformation.CurrentHeight;
+            await _distributedCache.SetAsync(BlockSynState, dataToUpdate);
         }
-
-        await _distributedCache.SetAsync(BlockSynState, dataToUpdate);
         _logger.LogInformation(
-            $"BlockSynState updated\nState: {dataToUpdate.State}  CurrentHeight: {dataToUpdate.CurrentHeight}");
+            $"BlockSynState updated, State: {dataToUpdate.State}  CurrentHeight: {dataToUpdate.CurrentHeight}");
     }
 }
 

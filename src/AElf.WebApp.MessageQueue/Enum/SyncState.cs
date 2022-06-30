@@ -4,5 +4,7 @@ public enum SyncState
 {
     Stopped,
     Prepared,
-    Running
+    SyncPrepared,
+    SyncRunning,
+    AsyncRunning
 }

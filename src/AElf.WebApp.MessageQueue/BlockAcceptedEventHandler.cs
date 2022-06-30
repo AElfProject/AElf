@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Events;
 using AElf.WebApp.MessageQueue.Enum;
@@ -29,32 +30,84 @@ public class BlockAcceptedEventHandler : ILocalEventHandler<BlockAcceptedEvent>,
 
     public async Task HandleEventAsync(BlockAcceptedEvent eventData)
     {
-        var blockSyncState = _syncBlockStateProvider.GetCurrentState();
-        if (blockSyncState.State == SyncState.Stopped)
+        var blockSyncState = await _syncBlockStateProvider.GetCurrentStateAsync();
+        switch (blockSyncState.State)
         {
-            _logger.LogInformation("Publish message has stopped");
-            await _sendMessageByDesignateHeightTaskManager.StopAsync();
+            case SyncState.Stopped:
+                await StopAsync();
+                return;
+            case SyncState.SyncPrepared:
+                await AsyncPreparedToRun(eventData);
+                return;
+            case SyncState.SyncRunning:
+                await RunningAsync(eventData);
+                return;
+            case SyncState.Prepared:
+                await PreparedToRunAsync(eventData);
+                return;
+            case SyncState.AsyncRunning:
+                return;
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+    }
+
+    private async Task StopAsync()
+    {
+        _logger.LogInformation("Publish message has stopped");
+        await _sendMessageByDesignateHeightTaskManager.StopAsync();
+    }
+
+    private async Task RunningAsync(BlockAcceptedEvent eventData)
+    {
+        _logger.LogInformation("Publish message synchronously");
+        await _blockMessageService.SendMessageAsync(eventData.BlockExecutedSet);
+    }
+
+    private async Task PreparedToRunAsync(BlockAcceptedEvent eventData)
+    {
+        await _sendMessageByDesignateHeightTaskManager.StopAsync();
+        var blockSyncState = await _syncBlockStateProvider.GetCurrentStateAsync();
+        if (blockSyncState.CurrentHeight + 1 == eventData.Block.Height)
+        {
+            _logger.LogInformation("Publish message synchronously");
+            await _blockMessageService.SendMessageAsync(eventData.BlockExecutedSet);
+            await _syncBlockStateProvider.UpdateStateAsync(null, SyncState.SyncRunning);
+        }
+
+        else if (blockSyncState.CurrentHeight < eventData.Block.Height - 1)
+        {
+            await _syncBlockStateProvider.UpdateStateAsync(null, SyncState.AsyncRunning);
+            _logger.LogInformation("Start to publish message asynchronously");
+            _sendMessageByDesignateHeightTaskManager.Start(blockSyncState.CurrentHeight + 1);
+        }
+    }
+
+    private async Task AsyncPreparedToRun(BlockAcceptedEvent eventData)
+    {
+        await _sendMessageByDesignateHeightTaskManager.StopAsync();
+        var currentHeight = eventData.Block.Height;
+        var blockSyncState = await _syncBlockStateProvider.GetCurrentStateAsync();
+        if (blockSyncState.CurrentHeight >= currentHeight)
+        {
             return;
         }
 
-        if (blockSyncState.CurrentHeight + 1 == eventData.Block.Height)
+        var from = blockSyncState.CurrentHeight + 1;
+        var to = currentHeight - 1;
+        if (from > to + 1 || to - from > 10)
         {
-            if (blockSyncState.State == SyncState.Prepared)
-            {
-                await _syncBlockStateProvider.UpdateStateAsync(null, SyncState.Running, SyncState.Prepared);
-            }
-            _logger.LogInformation("Publish message synchronously");
-            await _sendMessageByDesignateHeightTaskManager.StopAsync();
-            await _blockMessageService.SendMessageAsync(eventData.BlockExecutedSet);
+            await _syncBlockStateProvider.UpdateStateAsync(null, SyncState.Prepared);
+            return;
         }
 
-        else if (blockSyncState.CurrentHeight < eventData.Block.Height && blockSyncState.State == SyncState.Prepared)
+        await _syncBlockStateProvider.UpdateStateAsync(null, SyncState.SyncRunning);
+        _logger.LogInformation($"Catch up to current block, from: {from} - to: {to}");
+        for (var i = from; i <= to; i++)
         {
-            _logger.LogInformation("Start to publish message asynchronously");
-            await _sendMessageByDesignateHeightTaskManager.StopAsync();
-            blockSyncState = _syncBlockStateProvider.GetCurrentState();
-            await _syncBlockStateProvider.UpdateStateAsync(null, SyncState.Running, SyncState.Prepared);
-            _sendMessageByDesignateHeightTaskManager.Start(blockSyncState.CurrentHeight + 1);
+            await _blockMessageService.SendMessageAsync(i);
         }
+
+        await _blockMessageService.SendMessageAsync(eventData.BlockExecutedSet);
     }
 }

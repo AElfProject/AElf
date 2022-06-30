@@ -34,8 +34,11 @@ public class MessagePublishService : IMessagePublishService, ITransientDependenc
     public async Task<bool> PublishAsync(long height, CancellationToken cts)
     {
         var blockMessageEto = await _blockMessageEtoProvider.GetBlockMessageEtoByHeightAsync(height, cts);
-        if (blockMessageEto != null) return await PublishAsync(blockMessageEto, Asynchronous);
-        _logger.LogWarning($"Failed to find block information, height: {height}");
+        if (blockMessageEto != null)
+        {
+            return await PublishAsync(blockMessageEto, Asynchronous);
+        }
+
         return false;
     }
 
@@ -48,11 +51,11 @@ public class MessagePublishService : IMessagePublishService, ITransientDependenc
     private async Task<bool> PublishAsync(BlockMessageEto message, string runningPattern)
     {
         var height = message.Height;
+        _logger.LogInformation($"{runningPattern} start publish block: {height}.");
         try
         {
-            _logger.LogInformation($"{runningPattern} start publish block: {height} events.");
             await _distributedEventBus.PublishAsync(message);
-            _logger.LogInformation($"{runningPattern} End publish block: {height} events.");
+            _logger.LogInformation($"{runningPattern} End publish block: {height}.");
             return true;
         }
         catch (Exception e)

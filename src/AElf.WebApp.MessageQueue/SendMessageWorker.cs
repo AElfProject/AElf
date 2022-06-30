@@ -38,8 +38,8 @@ public class SendMessageWorker : ISingletonDependency
         try
         {
             var blockMessageService = scope.ServiceProvider.GetRequiredService<IBlockMessageService>();
-            var currentState = _syncBlockStateProvider.GetCurrentState();
-            while (!cancellationToken.IsCancellationRequested && currentState.State == SyncState.Running)
+            var currentState = await _syncBlockStateProvider.GetCurrentStateAsync();
+            while (!cancellationToken.IsCancellationRequested && currentState.State == SyncState.AsyncRunning)
             {
                 if (await blockMessageService.SendMessageAsync(nextHeight, cancellationToken))
                 {
@@ -47,10 +47,11 @@ public class SendMessageWorker : ISingletonDependency
                 }
                 else
                 {
-                    await _syncBlockStateProvider.UpdateStateAsync(null, SyncState.Prepared, SyncState.Running);
+                    await _syncBlockStateProvider.UpdateStateAsync(null, SyncState.SyncPrepared,
+                        SyncState.AsyncRunning);
                 }
 
-                currentState = _syncBlockStateProvider.GetCurrentState();
+                currentState = await _syncBlockStateProvider.GetCurrentStateAsync();
             }
         }
         catch (Exception ex)

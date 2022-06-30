@@ -12,7 +12,7 @@ public interface IMessageSendAppService
     Task<bool> UpdateAsync(long height);
     Task<bool> StopAsync();
     Task<bool> StartAsync();
-    SyncInformationDto GetAsync();
+    Task<SyncInformationDto> GetAsync();
 }
 
 public class MessageSendAppService : AElfAppService, IMessageSendAppService
@@ -40,7 +40,7 @@ public class MessageSendAppService : AElfAppService, IMessageSendAppService
 
     public async Task<bool> StopAsync()
     {
-        var currentState = _syncBlockStateProvider.GetCurrentState();
+        var currentState = await _syncBlockStateProvider.GetCurrentStateAsync();
         if (currentState.State == SyncState.Stopped)
         {
             return true;
@@ -51,16 +51,16 @@ public class MessageSendAppService : AElfAppService, IMessageSendAppService
 
     public async Task<bool> StartAsync()
     {
-        var currentState = _syncBlockStateProvider.GetCurrentState();
+        var currentState = await _syncBlockStateProvider.GetCurrentStateAsync();
         if (currentState.State != SyncState.Stopped)
             return false;
         await _syncBlockStateProvider.UpdateStateAsync(null, SyncState.Prepared);
         return true;
     }
 
-    public SyncInformationDto GetAsync()
+    public async Task<SyncInformationDto> GetAsync()
     {
-        var currentState = _syncBlockStateProvider.GetCurrentState();
+        var currentState = await _syncBlockStateProvider.GetCurrentStateAsync();
         return _mapperProvider.Map<SyncInformation, SyncInformationDto>(currentState);
     }
 }

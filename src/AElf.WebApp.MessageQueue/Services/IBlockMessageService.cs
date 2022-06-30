@@ -8,7 +8,7 @@ namespace AElf.WebApp.MessageQueue.Services;
 
 public interface IBlockMessageService
 {
-    Task<bool> SendMessageAsync(long height, CancellationToken cts);
+    Task<bool> SendMessageAsync(long height, CancellationToken cts = default);
     Task<bool> SendMessageAsync(BlockExecutedSet blockExecutedSet);
 }
 

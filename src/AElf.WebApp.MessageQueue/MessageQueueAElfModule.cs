@@ -4,6 +4,7 @@ using System.Security.Authentication;
 using System.Threading.Tasks;
 using AElf.Modularity;
 using AElf.WebApp.Application;
+using AElf.WebApp.MessageQueue.Enum;
 using AElf.WebApp.MessageQueue.Provider;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -88,5 +89,7 @@ public class MessageQueueAElfModule : AElfModule
     {
         var taskManageService = context.ServiceProvider.GetRequiredService<ISendMessageByDesignateHeightTaskManager>();
         await taskManageService.StopAsync();
+        var syncBlockStateProvider = context.ServiceProvider.GetRequiredService<ISyncBlockStateProvider>();
+        await syncBlockStateProvider.UpdateStateAsync(null, SyncState.Stopped);
     }
 }

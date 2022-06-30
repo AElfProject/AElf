@@ -6,6 +6,7 @@ using AElf.Kernel.Blockchain;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Types;
+using Microsoft.Extensions.Logging;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.ObjectMapping;
 
@@ -23,15 +24,17 @@ public class BlockMessageEtoProvider : IBlockMessageEtoProvider, ISingletonDepen
     private readonly ITransactionResultQueryService _transactionResultQueryService;
     private readonly ITransactionManager _transactionManager;
     private readonly IObjectMapper _objectMapper;
+    private readonly ILogger<BlockMessageEtoProvider> _logger;
 
     public BlockMessageEtoProvider(IBlockchainService blockchainService,
         ITransactionResultQueryService transactionResultQueryService, ITransactionManager transactionManager,
-        IObjectMapper objectMapper)
+        IObjectMapper objectMapper, ILogger<BlockMessageEtoProvider> logger)
     {
         _blockchainService = blockchainService;
         _transactionResultQueryService = transactionResultQueryService;
         _transactionManager = transactionManager;
         _objectMapper = objectMapper;
+        _logger = logger;
     }
 
     public async Task<BlockMessageEto> GetBlockMessageEtoByHeightAsync(long height, CancellationToken cts)
@@ -39,10 +42,10 @@ public class BlockMessageEtoProvider : IBlockMessageEtoProvider, ISingletonDepen
         var block = await GetBlockByHeightAsync(height);
         if (block == null)
         {
-            // todo add log
+            _logger.LogWarning($"Failed to find block information, height: {height}");
             return null;
         }
-        
+
         var blockMessageEto = _objectMapper.Map<Block, BlockMessageEto>(block);
         var blockHash = block.Header.GetHash();
 
@@ -56,13 +59,15 @@ public class BlockMessageEtoProvider : IBlockMessageEtoProvider, ISingletonDepen
             var transactionResult = await _transactionResultQueryService.GetTransactionResultAsync(txId, blockHash);
             if (transactionResult == null)
             {
-                continue; // todo add log
+                _logger.LogWarning($"Failed to find transactionResult, block hash: {blockHash},  transaction ID: {txId}");
+                continue;
             }
 
             var transaction = await _transactionManager.GetTransactionAsync(txId);
             if (transaction == null)
             {
-                continue; // todo add log
+                _logger.LogWarning($"Failed to find transaction, block hash: {blockHash},  transaction ID: {txId}");
+                continue;
             }
 
             var transactionMessageEto = _objectMapper.Map<TransactionResult, TransactionMessageEto>(transactionResult);
@@ -86,7 +91,7 @@ public class BlockMessageEtoProvider : IBlockMessageEtoProvider, ISingletonDepen
         return blocks.Any() ? blocks.First() : null;
     }
 
-    private void FillTransactionInformation(TransactionMessageEto transactionMessage, Transaction transaction)
+    private static void FillTransactionInformation(TransactionMessageEto transactionMessage, Transaction transaction)
     {
         transactionMessage.MethodName = transaction.MethodName;
         transactionMessage.FromAddress = transaction.From.ToBase58();

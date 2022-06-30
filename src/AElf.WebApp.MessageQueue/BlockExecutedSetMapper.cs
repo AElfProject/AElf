@@ -23,7 +23,7 @@ public class BlockExecutedSetMapper : IObjectMapper<BlockExecutedSet, BlockMessa
         {
             if(!source.TransactionMap.TryGetValue(transactionResultKeyPair.Key, out var transaction))
             {
-                continue; // todo add log
+                continue;
             }
             
             var transactionMessageEto = _mapperProvider.Map<TransactionResult, TransactionMessageEto>(transactionResultKeyPair.Value);
@@ -39,7 +39,7 @@ public class BlockExecutedSetMapper : IObjectMapper<BlockExecutedSet, BlockMessa
         throw new System.NotImplementedException();
     }
 
-    private void FillTransactionInformation(TransactionMessageEto transactionMessage, Transaction transaction)
+    private static void FillTransactionInformation(TransactionMessageEto transactionMessage, Transaction transaction)
     {
         transactionMessage.MethodName = transaction.MethodName;
         transactionMessage.FromAddress = transaction.From.ToBase58();
