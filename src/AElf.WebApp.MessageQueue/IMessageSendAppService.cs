@@ -33,7 +33,7 @@ public class MessageSendAppService : AElfAppService, IMessageSendAppService
         if (height < 1)
         {
             msgRet.IsSuccess = false;
-            msgRet.Status = "height should be greater than 1";
+            msgRet.Status = "Height should be greater than 1";
             return msgRet;
         }
 
@@ -41,7 +41,7 @@ public class MessageSendAppService : AElfAppService, IMessageSendAppService
         if (currentState.State != SyncState.Stopped)
         {
             msgRet.IsSuccess = false;
-            msgRet.Status = "It is required to stop block message sending";
+            msgRet.Status = "It is required to stop block message sending first";
             return msgRet;
         }
 
@@ -71,7 +71,7 @@ public class MessageSendAppService : AElfAppService, IMessageSendAppService
         if (currentState.State != SyncState.Stopped)
         {
             msgRet.IsSuccess = false;
-            msgRet.Status = "It is required to stop block message sending";
+            msgRet.Status = "It is required to stop block message sending first";
             return msgRet;
         }
 
