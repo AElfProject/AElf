@@ -24,6 +24,7 @@ public class SyncBlockStateProvider : ISyncBlockStateProvider, ISingletonDepende
     private readonly IDistributedCache<SyncInformation> _distributedCache;
     private readonly MessageQueueOptions _messageQueueOptions;
     private readonly ILogger<SyncBlockStateProvider> _logger;
+    private readonly string _blockSynState;
     private SemaphoreSlim SyncSemaphore { get; }
 
     public SyncBlockStateProvider(IDistributedCache<SyncInformation> distributedCache,
@@ -33,11 +34,12 @@ public class SyncBlockStateProvider : ISyncBlockStateProvider, ISingletonDepende
         _distributedCache = distributedCache;
         _logger = logger;
         SyncSemaphore = new SemaphoreSlim(1, 1);
+        _blockSynState = $"{BlockSynState}-{_messageQueueOptions.ClientName}";
     }
 
     public async Task InitializeAsync()
     {
-        _blockSynStateInformation = await _distributedCache.GetAsync(BlockSynState);
+        _blockSynStateInformation = await _distributedCache.GetAsync(_blockSynState);
         if (_blockSynStateInformation == null)
         {
             _blockSynStateInformation = new SyncInformation
@@ -85,7 +87,7 @@ public class SyncBlockStateProvider : ISyncBlockStateProvider, ISingletonDepende
             _blockSynStateInformation.CurrentHeight = height ?? _blockSynStateInformation.CurrentHeight;
             dataToUpdate.State = _blockSynStateInformation.State;
             dataToUpdate.CurrentHeight = _blockSynStateInformation.CurrentHeight;
-            await _distributedCache.SetAsync(BlockSynState, dataToUpdate);
+            await _distributedCache.SetAsync(_blockSynState, dataToUpdate);
         }
 
         _logger.LogInformation(
