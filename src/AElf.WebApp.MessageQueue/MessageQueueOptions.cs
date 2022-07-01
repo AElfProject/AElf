@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace AElf.WebApp.MessageQueue;
 
 public class MessageQueueOptions

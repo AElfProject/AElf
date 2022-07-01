@@ -37,22 +37,14 @@ public class SyncBlockStateProvider : ISyncBlockStateProvider, ISingletonDepende
 
     public async Task InitializeAsync()
     {
-        _blockSynStateInformation = await _distributedCache.GetAsync(BlockSynState);
-        if (_blockSynStateInformation != null)
+        _blockSynStateInformation = await _distributedCache.GetAsync(BlockSynState) ?? new SyncInformation
         {
-            _blockSynStateInformation.State = !_messageQueueOptions.Enable ? SyncState.Stopped : SyncState.Prepared;
-        }
-        else
-        {
-            _blockSynStateInformation = new SyncInformation
-            {
-                State = SyncState.Stopped,
-                CurrentHeight = _messageQueueOptions.StartPublishMessageHeight > 1
-                    ? _messageQueueOptions.StartPublishMessageHeight - 1
-                    : 1
-            };
-        }
+            CurrentHeight = _messageQueueOptions.StartPublishMessageHeight > 1
+                ? _messageQueueOptions.StartPublishMessageHeight - 1
+                : 1
+        };
 
+        _blockSynStateInformation.State = _messageQueueOptions.Enable ? SyncState.Prepared : SyncState.Stopped;
         _logger.LogInformation(
             $"BlockSynState initialized, State: {_blockSynStateInformation.State}  CurrentHeight: {_blockSynStateInformation.CurrentHeight}");
     }
@@ -85,6 +77,7 @@ public class SyncBlockStateProvider : ISyncBlockStateProvider, ISingletonDepende
             dataToUpdate.CurrentHeight = _blockSynStateInformation.CurrentHeight;
             await _distributedCache.SetAsync(BlockSynState, dataToUpdate);
         }
+
         _logger.LogInformation(
             $"BlockSynState updated, State: {dataToUpdate.State}  CurrentHeight: {dataToUpdate.CurrentHeight}");
     }
