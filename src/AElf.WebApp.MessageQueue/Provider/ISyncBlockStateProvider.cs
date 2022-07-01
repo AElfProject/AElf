@@ -37,12 +37,22 @@ public class SyncBlockStateProvider : ISyncBlockStateProvider, ISingletonDepende
 
     public async Task InitializeAsync()
     {
-        _blockSynStateInformation = await _distributedCache.GetAsync(BlockSynState) ?? new SyncInformation
+        _blockSynStateInformation = await _distributedCache.GetAsync(BlockSynState);
+        if (_blockSynStateInformation == null)
         {
-            CurrentHeight = _messageQueueOptions.StartPublishMessageHeight > 1
-                ? _messageQueueOptions.StartPublishMessageHeight - 1
-                : 1
-        };
+            _blockSynStateInformation = new SyncInformation
+            {
+                CurrentHeight = _messageQueueOptions.StartPublishMessageHeight >= 1
+                    ? _messageQueueOptions.StartPublishMessageHeight - 1
+                    : 1
+            };
+        }
+
+        else if (_blockSynStateInformation.CurrentHeight <
+                 _messageQueueOptions.StartPublishMessageHeight - 1)
+        {
+            _blockSynStateInformation.CurrentHeight = _messageQueueOptions.StartPublishMessageHeight - 1;
+        }
 
         _blockSynStateInformation.State = _messageQueueOptions.Enable ? SyncState.Prepared : SyncState.Stopped;
         _logger.LogInformation(
