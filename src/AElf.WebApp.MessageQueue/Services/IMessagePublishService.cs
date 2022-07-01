@@ -36,7 +36,7 @@ public class MessagePublishService : IMessagePublishService, ITransientDependenc
         var blockMessageEto = await _blockMessageEtoGenerator.GetBlockMessageEtoByHeightAsync(height, cts);
         if (blockMessageEto != null)
         {
-            return await PublishAsync(blockMessageEto, height + 1, Asynchronous);
+            return await PublishAsync(blockMessageEto, Asynchronous);
         }
 
         return false;
@@ -45,16 +45,16 @@ public class MessagePublishService : IMessagePublishService, ITransientDependenc
     public async Task<bool> PublishAsync(BlockExecutedSet blockExecutedSet)
     {
         var blockMessageEto = _blockMessageEtoGenerator.GetBlockMessageEto(blockExecutedSet);
-        return await PublishAsync(blockMessageEto, blockExecutedSet.Height, Synchronous);
+        return await PublishAsync(blockMessageEto, Synchronous);
     }
 
-    private async Task<bool> PublishAsync(object message, long height, string runningPattern)
+    private async Task<bool> PublishAsync(IBlockMessage message, string runningPattern)
     {
-        _logger.LogInformation($"{runningPattern} start publish block: {height}.");
+        _logger.LogInformation($"{runningPattern} start publish block: {message.Height}.");
         try
         {
             await _distributedEventBus.PublishAsync(message.GetType(), message);
-            _logger.LogInformation($"{runningPattern} End publish block: {height}.");
+            _logger.LogInformation($"{runningPattern} End publish block: {message.Height}.");
             return true;
         }
         catch (Exception e)

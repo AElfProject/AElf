@@ -30,7 +30,7 @@ public class BlockMessageEtoGenerator : IBlockMessageEtoGenerator
         _logger = logger;
     }
 
-    public async Task<object> GetBlockMessageEtoByHeightAsync(long height, CancellationToken cts)
+    public async Task<IBlockMessage> GetBlockMessageEtoByHeightAsync(long height, CancellationToken cts)
     {
         var block = await GetBlockByHeightAsync(height);
         if (block == null)
@@ -72,7 +72,7 @@ public class BlockMessageEtoGenerator : IBlockMessageEtoGenerator
         return blockMessageEto;
     }
 
-    public object GetBlockMessageEto(BlockExecutedSet blockExecutedSet)
+    public IBlockMessage GetBlockMessageEto(BlockExecutedSet blockExecutedSet)
     {
         return _objectMapper.Map<BlockExecutedSet, BlockMessageEto>(blockExecutedSet);
     }

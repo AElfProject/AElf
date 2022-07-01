@@ -6,6 +6,6 @@ namespace AElf.WebApp.MessageQueue.Helpers;
 
 public interface IBlockMessageEtoGenerator
 {
-    Task<object> GetBlockMessageEtoByHeightAsync(long height, CancellationToken cts);
-    object GetBlockMessageEto(BlockExecutedSet blockExecutedSet);
+    Task<IBlockMessage> GetBlockMessageEtoByHeightAsync(long height, CancellationToken cts);
+    IBlockMessage GetBlockMessageEto(BlockExecutedSet blockExecutedSet);
 }

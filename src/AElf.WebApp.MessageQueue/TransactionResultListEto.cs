@@ -5,12 +5,13 @@ using Volo.Abp.EventBus;
 namespace AElf.WebApp.MessageQueue;
 
 [EventName("AElf.WebApp.MessageQueue.TransactionResultListEto")]
-public class TransactionResultListEto
+public class TransactionResultListEto : IBlockMessage
 {
     public Dictionary<string, List<TransactionResultEto>> TransactionResults { get; set; }
     public long StartBlockNumber { get; set; }
     public long EndBlockNumber { get; set; }
     public int ChainId { get; set; }
+    public long Height => StartBlockNumber;
 }
 
 public class TransactionResultEto

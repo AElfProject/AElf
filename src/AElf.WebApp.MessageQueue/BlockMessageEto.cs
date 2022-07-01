@@ -4,14 +4,19 @@ using Volo.Abp.EventBus;
 
 namespace AElf.WebApp.MessageQueue;
 
+public interface IBlockMessage
+{
+    public long Height { get; }
+}
+
 [EventName("AElf.WebMessage.BlockMessageEto")]
-public class BlockMessageEto
+public class BlockMessageEto : IBlockMessage
 {
     public int ChainId { get; set; }
     public long Height { get; set; }
     public DateTime BlockTime { get; set; }
     public string BlockHash { get; set; }
-    public List<TransactionMessageEto> TransactionMessageList { get;} = new List<TransactionMessageEto>();
+    public List<TransactionMessageEto> TransactionMessageList { get; } = new List<TransactionMessageEto>();
     public string Bloom { get; set; }
 }
 
