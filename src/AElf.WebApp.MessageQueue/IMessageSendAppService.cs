@@ -9,9 +9,9 @@ namespace AElf.WebApp.MessageQueue;
 
 public interface IMessageSendAppService
 {
-    Task<bool> UpdateAsync(long height);
+    Task<MessageResultDto> UpdateAsync(long height);
     Task<bool> StopAsync();
-    Task<bool> StartAsync();
+    Task<MessageResultDto> StartAsync();
     Task<SyncInformationDto> GetAsync();
 }
 
@@ -27,15 +27,29 @@ public class MessageSendAppService : AElfAppService, IMessageSendAppService
         _mapperProvider = mapperProvider;
     }
 
-    public async Task<bool> UpdateAsync(long height)
+    public async Task<MessageResultDto> UpdateAsync(long height)
     {
-        if (height < 0)
+        var msgRet = new MessageResultDto();
+        if (height < 1)
         {
-            return false;
+            msgRet.IsSuccess = false;
+            msgRet.Status = "height should be greater than 1";
+            return msgRet;
         }
-        
+
+        var currentState = await _syncBlockStateProvider.GetCurrentStateAsync();
+        if (currentState.State != SyncState.Stopped)
+        {
+            msgRet.IsSuccess = false;
+            msgRet.Status = "It is required to stop block message sending";
+            return msgRet;
+        }
+
         await _syncBlockStateProvider.UpdateStateAsync(height - 1, SyncState.Stopped);
-        return true;
+
+        msgRet.IsSuccess = true;
+        msgRet.Status = "Ok";
+        return msgRet;
     }
 
     public async Task<bool> StopAsync()
@@ -45,17 +59,26 @@ public class MessageSendAppService : AElfAppService, IMessageSendAppService
         {
             return true;
         }
+
         await _syncBlockStateProvider.UpdateStateAsync(null, SyncState.Stopped);
         return true;
     }
 
-    public async Task<bool> StartAsync()
+    public async Task<MessageResultDto> StartAsync()
     {
+        var msgRet = new MessageResultDto();
         var currentState = await _syncBlockStateProvider.GetCurrentStateAsync();
         if (currentState.State != SyncState.Stopped)
-            return false;
+        {
+            msgRet.IsSuccess = false;
+            msgRet.Status = "It is required to stop block message sending";
+            return msgRet;
+        }
+
         await _syncBlockStateProvider.UpdateStateAsync(null, SyncState.Prepared);
-        return true;
+        msgRet.IsSuccess = true;
+        msgRet.Status = "Ok";
+        return msgRet;
     }
 
     public async Task<SyncInformationDto> GetAsync()
