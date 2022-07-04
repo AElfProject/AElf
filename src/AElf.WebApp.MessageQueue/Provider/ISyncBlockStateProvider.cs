@@ -19,8 +19,8 @@ public interface ISyncBlockStateProvider
 
 public class SyncBlockStateProvider : ISyncBlockStateProvider, ISingletonDependency
 {
-    private SyncInformation _blockSynStateInformation;
-    private const string BlockSynState = "BlockSynState";
+    private SyncInformation _blockSyncStateInformation;
+    private const string BlockSyncState = "BlockSyncState";
     private readonly IDistributedCache<SyncInformation> _distributedCache;
     private readonly MessageQueueOptions _messageQueueOptions;
     private readonly ILogger<SyncBlockStateProvider> _logger;
@@ -34,15 +34,15 @@ public class SyncBlockStateProvider : ISyncBlockStateProvider, ISingletonDepende
         _distributedCache = distributedCache;
         _logger = logger;
         SyncSemaphore = new SemaphoreSlim(1, 1);
-        _blockSynState = $"{BlockSynState}-{_messageQueueOptions.ClientName}";
+        _blockSynState = $"{BlockSyncState}-{_messageQueueOptions.ClientName}";
     }
 
     public async Task InitializeAsync()
     {
-        _blockSynStateInformation = await _distributedCache.GetAsync(_blockSynState);
-        if (_blockSynStateInformation == null)
+        _blockSyncStateInformation = await _distributedCache.GetAsync(_blockSynState);
+        if (_blockSyncStateInformation == null)
         {
-            _blockSynStateInformation = new SyncInformation
+            _blockSyncStateInformation = new SyncInformation
             {
                 CurrentHeight = _messageQueueOptions.StartPublishMessageHeight >= 1
                     ? _messageQueueOptions.StartPublishMessageHeight - 1
@@ -50,15 +50,15 @@ public class SyncBlockStateProvider : ISyncBlockStateProvider, ISingletonDepende
             };
         }
 
-        else if (_blockSynStateInformation.CurrentHeight <
+        else if (_blockSyncStateInformation.CurrentHeight <
                  _messageQueueOptions.StartPublishMessageHeight - 1)
         {
-            _blockSynStateInformation.CurrentHeight = _messageQueueOptions.StartPublishMessageHeight - 1;
+            _blockSyncStateInformation.CurrentHeight = _messageQueueOptions.StartPublishMessageHeight - 1;
         }
 
-        _blockSynStateInformation.State = _messageQueueOptions.Enable ? SyncState.Prepared : SyncState.Stopped;
+        _blockSyncStateInformation.State = _messageQueueOptions.Enable ? SyncState.Prepared : SyncState.Stopped;
         _logger.LogInformation(
-            $"BlockSynState initialized, State: {_blockSynStateInformation.State}  CurrentHeight: {_blockSynStateInformation.CurrentHeight}");
+            $"BlockSyncState initialized, State: {_blockSyncStateInformation.State}  CurrentHeight: {_blockSyncStateInformation.CurrentHeight}");
     }
 
     public async Task<SyncInformation> GetCurrentStateAsync()
@@ -66,8 +66,8 @@ public class SyncBlockStateProvider : ISyncBlockStateProvider, ISingletonDepende
         var currentData = new SyncInformation();
         using (await SyncSemaphore.LockAsync())
         {
-            currentData.State = _blockSynStateInformation.State;
-            currentData.CurrentHeight = _blockSynStateInformation.CurrentHeight;
+            currentData.State = _blockSyncStateInformation.State;
+            currentData.CurrentHeight = _blockSyncStateInformation.CurrentHeight;
         }
 
         return currentData;
@@ -78,15 +78,15 @@ public class SyncBlockStateProvider : ISyncBlockStateProvider, ISingletonDepende
         var dataToUpdate = new SyncInformation();
         using (await SyncSemaphore.LockAsync())
         {
-            if (expectationState.HasValue && expectationState != _blockSynStateInformation.State)
+            if (expectationState.HasValue && expectationState != _blockSyncStateInformation.State)
             {
                 return;
             }
 
-            _blockSynStateInformation.State = state ?? _blockSynStateInformation.State;
-            _blockSynStateInformation.CurrentHeight = height ?? _blockSynStateInformation.CurrentHeight;
-            dataToUpdate.State = _blockSynStateInformation.State;
-            dataToUpdate.CurrentHeight = _blockSynStateInformation.CurrentHeight;
+            _blockSyncStateInformation.State = state ?? _blockSyncStateInformation.State;
+            _blockSyncStateInformation.CurrentHeight = height ?? _blockSyncStateInformation.CurrentHeight;
+            dataToUpdate.State = _blockSyncStateInformation.State;
+            dataToUpdate.CurrentHeight = _blockSyncStateInformation.CurrentHeight;
             await _distributedCache.SetAsync(_blockSynState, dataToUpdate);
         }
 
