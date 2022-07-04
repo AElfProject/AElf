@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 using Volo.Abp.EventBus;
 
 namespace AElf.WebApp.MessageQueue;
@@ -11,6 +12,7 @@ public class TransactionResultListEto : IBlockMessage
     public long StartBlockNumber { get; set; }
     public long EndBlockNumber { get; set; }
     public int ChainId { get; set; }
+    [JsonIgnore]
     public long Height => StartBlockNumber;
 }
 
