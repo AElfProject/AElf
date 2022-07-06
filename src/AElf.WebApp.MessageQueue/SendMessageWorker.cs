@@ -4,6 +4,7 @@ using AElf.WebApp.MessageQueue.Enum;
 using AElf.WebApp.MessageQueue.Provider;
 using AElf.WebApp.MessageQueue.Services;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Volo.Abp.BackgroundWorkers;
 using Volo.Abp.Threading;
@@ -30,6 +31,13 @@ public class SendMessageWorker : AsyncPeriodicBackgroundWorkerBase
     {
         await base.StartAsync(cancellationToken);
         CancellationToken = cancellationToken;
+    }
+    
+    public override Task StopAsync(CancellationToken cancellationToken = default)
+    {
+        Timer.Stop(cancellationToken);
+        Logger.LogDebug("Stopped background worker: " + ToString());
+        return Task.CompletedTask;
     }
 
     protected override async Task DoWorkAsync(PeriodicBackgroundWorkerContext workerContext)

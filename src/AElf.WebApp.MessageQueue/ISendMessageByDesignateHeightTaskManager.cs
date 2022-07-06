@@ -1,3 +1,4 @@
+using System.Threading;
 using System.Threading.Tasks;
 using Volo.Abp.DependencyInjection;
 
@@ -12,7 +13,7 @@ public interface ISendMessageByDesignateHeightTaskManager
 public class SendMessageByDesignateHeightTaskManager : ISendMessageByDesignateHeightTaskManager, ISingletonDependency
 {
     private readonly SendMessageWorker _sendMessageWorker;
-    private bool _isStart;
+    private CancellationTokenSource _cancellationTokenSource = null;
 
     public SendMessageByDesignateHeightTaskManager(SendMessageWorker sendMessageWorker)
     {
@@ -21,22 +22,24 @@ public class SendMessageByDesignateHeightTaskManager : ISendMessageByDesignateHe
 
     public async Task StartAsync()
     {
-        if (_isStart)
+        if (_cancellationTokenSource != null)
         {
             return;
         }
-        
-        await _sendMessageWorker.StartAsync();
+
+        _cancellationTokenSource = new CancellationTokenSource();
+        await _sendMessageWorker.StartAsync(_cancellationTokenSource.Token);
     }
 
     public async Task StopAsync()
     {
-        if (!_isStart)
+        if (_cancellationTokenSource == null)
         {
             return;
         }
         
+        _cancellationTokenSource.Cancel();
         await _sendMessageWorker.StopAsync();
-        _isStart = false;
+        _cancellationTokenSource = null;
     }
 }
