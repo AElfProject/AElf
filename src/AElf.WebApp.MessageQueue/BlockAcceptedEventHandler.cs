@@ -79,8 +79,7 @@ public class BlockAcceptedEventHandler : ILocalEventHandler<BlockAcceptedEvent>,
         {
             await _syncBlockStateProvider.UpdateStateAsync(null, SyncState.AsyncRunning);
             _logger.LogInformation("Start to publish message asynchronously");
-            var from = blockSyncState.CurrentHeight;
-            _sendMessageByDesignateHeightTaskManager.Start(from);
+            await _sendMessageByDesignateHeightTaskManager.StartAsync();
         }
     }
 

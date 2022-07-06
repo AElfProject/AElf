@@ -1,66 +1,57 @@
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.WebApp.MessageQueue.Enum;
 using AElf.WebApp.MessageQueue.Provider;
 using AElf.WebApp.MessageQueue.Services;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
-using Volo.Abp.DependencyInjection;
-using Volo.Abp.ExceptionHandling;
+using Microsoft.Extensions.Options;
+using Volo.Abp.BackgroundWorkers;
+using Volo.Abp.Threading;
 
 namespace AElf.WebApp.MessageQueue;
 
-public class SendMessageWorker : ISingletonDependency
+public class SendMessageWorker : AsyncPeriodicBackgroundWorkerBase
 {
-    public IAbpLazyServiceProvider LazyServiceProvider { get; set; }
-    protected IServiceScopeFactory ServiceScopeFactory { get; }
-    protected ILoggerFactory LoggerFactory => LazyServiceProvider.LazyGetRequiredService<ILoggerFactory>();
-
-    protected ILogger Logger => LazyServiceProvider.LazyGetService<ILogger>(provider =>
-        LoggerFactory?.CreateLogger(GetType().FullName) ?? NullLogger.Instance);
-
     private readonly ISyncBlockStateProvider _syncBlockStateProvider;
+    protected CancellationToken CancellationToken { get; set; }
+    private readonly int _queryCount;
 
-    public SendMessageWorker(IServiceScopeFactory serviceScopeFactory, ISyncBlockStateProvider syncBlockStateProvider)
+    public SendMessageWorker(ISyncBlockStateProvider syncBlockStateProvider, AbpAsyncTimer timer,
+        IServiceScopeFactory serviceScopeFactory, IOptionsSnapshot<MessageQueueOptions> option) : base(timer,
+        serviceScopeFactory)
     {
-        ServiceScopeFactory = serviceScopeFactory;
         _syncBlockStateProvider = syncBlockStateProvider;
+        _queryCount = option.Value.QueryCount;
+        Timer.Period = option.Value.Period;
+        timer.RunOnStart = true;
     }
 
-    public async Task StartAsync(long height, CancellationToken cancellationToken)
+    public override async Task StartAsync(CancellationToken cancellationToken = default)
     {
-        await Task.Yield();
-        var nextHeight = height;
+        await base.StartAsync(cancellationToken);
+        CancellationToken = cancellationToken;
+    }
 
-        using var scope = ServiceScopeFactory.CreateScope();
-        try
+    protected override async Task DoWorkAsync(PeriodicBackgroundWorkerContext workerContext)
+    {
+        var blockMessageService = workerContext.ServiceProvider.GetRequiredService<IBlockMessageService>();
+        var currentState = await _syncBlockStateProvider.GetCurrentStateAsync();
+        var nextHeight = currentState.CurrentHeight;
+        var startCount = 0;
+        while (startCount++ < _queryCount && !CancellationToken.IsCancellationRequested &&
+               currentState.State == SyncState.AsyncRunning)
         {
-            var blockMessageService = scope.ServiceProvider.GetRequiredService<IBlockMessageService>();
-            var currentState = await _syncBlockStateProvider.GetCurrentStateAsync();
-            while (!cancellationToken.IsCancellationRequested && currentState.State == SyncState.AsyncRunning)
+            if (await blockMessageService.SendMessageAsync(nextHeight, CancellationToken))
             {
-                if (await blockMessageService.SendMessageAsync(nextHeight, cancellationToken))
-                {
-                    nextHeight++;
-                }
-                else
-                {
-                    await _syncBlockStateProvider.UpdateStateAsync(null, SyncState.SyncPrepared,
-                        SyncState.AsyncRunning);
-                }
-
-                currentState = await _syncBlockStateProvider.GetCurrentStateAsync();
+                nextHeight++;
             }
-        }
-        catch (Exception ex)
-        {
-            await scope.ServiceProvider
-                .GetRequiredService<IExceptionNotifier>()
-                .NotifyAsync(new ExceptionNotificationContext(ex));
+            else
+            {
+                await _syncBlockStateProvider.UpdateStateAsync(null, SyncState.SyncPrepared,
+                    SyncState.AsyncRunning);
+            }
 
-            Logger.LogException(ex);
+            currentState = await _syncBlockStateProvider.GetCurrentStateAsync();
         }
     }
 }

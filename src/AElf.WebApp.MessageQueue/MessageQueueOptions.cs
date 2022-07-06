@@ -10,4 +10,6 @@ public class MessageQueueOptions
     public string UserName { get; set; } = "aelf";
     public string PassWord { get; set; } = "12345678";
     public long StartPublishMessageHeight { get; set; }
+    public int Period { get; set; } = 1000;
+    public int QueryCount = 3;
 }
