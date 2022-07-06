@@ -14,14 +14,14 @@ public class SendMessageWorker : AsyncPeriodicBackgroundWorkerBase
 {
     private readonly ISyncBlockStateProvider _syncBlockStateProvider;
     protected CancellationToken CancellationToken { get; set; }
-    private readonly int _queryCount;
+    private readonly int _blockCount;
 
     public SendMessageWorker(ISyncBlockStateProvider syncBlockStateProvider, AbpAsyncTimer timer,
         IServiceScopeFactory serviceScopeFactory, IOptionsSnapshot<MessageQueueOptions> option) : base(timer,
         serviceScopeFactory)
     {
         _syncBlockStateProvider = syncBlockStateProvider;
-        _queryCount = option.Value.QueryCount;
+        _blockCount = option.Value.BlockCountPerPeriod;
         Timer.Period = option.Value.Period;
         timer.RunOnStart = true;
     }
@@ -38,7 +38,7 @@ public class SendMessageWorker : AsyncPeriodicBackgroundWorkerBase
         var currentState = await _syncBlockStateProvider.GetCurrentStateAsync();
         var nextHeight = currentState.CurrentHeight;
         var startCount = 0;
-        while (startCount++ < _queryCount && !CancellationToken.IsCancellationRequested &&
+        while (startCount++ < _blockCount && !CancellationToken.IsCancellationRequested &&
                currentState.State == SyncState.AsyncRunning)
         {
             if (await blockMessageService.SendMessageAsync(nextHeight, CancellationToken))
