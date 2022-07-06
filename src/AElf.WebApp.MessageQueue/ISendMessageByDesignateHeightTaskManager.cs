@@ -7,7 +7,7 @@ namespace AElf.WebApp.MessageQueue;
 public interface ISendMessageByDesignateHeightTaskManager
 {
     Task StartAsync();
-    Task StopAsync();
+    Task StopAsync(bool stopWorker = false);
 }
 
 public class SendMessageByDesignateHeightTaskManager : ISendMessageByDesignateHeightTaskManager, ISingletonDependency
@@ -31,15 +31,23 @@ public class SendMessageByDesignateHeightTaskManager : ISendMessageByDesignateHe
         await _sendMessageWorker.StartAsync(_cancellationTokenSource.Token);
     }
 
-    public async Task StopAsync()
+    public async Task StopAsync(bool stopWorker = false)
     {
         if (_cancellationTokenSource == null)
         {
             return;
         }
-        
+
         _cancellationTokenSource.Cancel();
-        await _sendMessageWorker.StopAsync();
+        if (stopWorker)
+        {
+            await _sendMessageWorker.StopAsync();
+        }
+        else
+        {
+            await _sendMessageWorker.StopTimerAsync();
+        }
+       
         _cancellationTokenSource.Dispose();
         _cancellationTokenSource = null;
     }

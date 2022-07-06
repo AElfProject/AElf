@@ -90,7 +90,7 @@ public class MessageQueueAElfModule : AElfModule
     public override async Task OnApplicationShutdownAsync(ApplicationShutdownContext context)
     {
         var taskManageService = context.ServiceProvider.GetRequiredService<ISendMessageByDesignateHeightTaskManager>();
-        await taskManageService.StopAsync();
+        await taskManageService.StopAsync(true);
         var syncBlockStateProvider = context.ServiceProvider.GetRequiredService<ISyncBlockStateProvider>();
         await syncBlockStateProvider.UpdateStateAsync(null, SyncState.Stopped);
     }
