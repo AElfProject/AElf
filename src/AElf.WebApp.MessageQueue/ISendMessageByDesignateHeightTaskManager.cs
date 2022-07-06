@@ -40,6 +40,7 @@ public class SendMessageByDesignateHeightTaskManager : ISendMessageByDesignateHe
         
         _cancellationTokenSource.Cancel();
         await _sendMessageWorker.StopAsync();
+        _cancellationTokenSource.Dispose();
         _cancellationTokenSource = null;
     }
 }

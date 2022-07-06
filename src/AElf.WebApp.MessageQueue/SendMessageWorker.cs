@@ -25,6 +25,8 @@ public class SendMessageWorker : AsyncPeriodicBackgroundWorkerBase
         _blockCount = option.Value.BlockCountPerPeriod;
         Timer.Period = option.Value.Period;
         timer.RunOnStart = true;
+        StoppingTokenSource.Cancel();
+        StoppingTokenSource.Dispose();
     }
 
     public override async Task StartAsync(CancellationToken cancellationToken = default)
