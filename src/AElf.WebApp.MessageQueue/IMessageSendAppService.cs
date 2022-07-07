@@ -13,18 +13,21 @@ public interface IMessageSendAppService
     Task<bool> StopAsync();
     Task<MessageResultDto> StartAsync();
     Task<SyncInformationDto> GetAsync();
+    Task<MessageResultDto> SetWorkerAsync(SetWorkerInput input);
 }
 
 public class MessageSendAppService : AElfAppService, IMessageSendAppService
 {
     private readonly ISyncBlockStateProvider _syncBlockStateProvider;
+    private readonly ISendMessageByDesignateHeightTaskManager _workerManager;
     private readonly IAutoObjectMappingProvider _mapperProvider;
 
     public MessageSendAppService(ISyncBlockStateProvider syncBlockStateProvider,
-        IAutoObjectMappingProvider mapperProvider)
+        IAutoObjectMappingProvider mapperProvider, ISendMessageByDesignateHeightTaskManager workerManager)
     {
         _syncBlockStateProvider = syncBlockStateProvider;
         _mapperProvider = mapperProvider;
+        _workerManager = workerManager;
     }
 
     public async Task<MessageResultDto> UpdateAsync(long height)
@@ -45,8 +48,7 @@ public class MessageSendAppService : AElfAppService, IMessageSendAppService
             return msgRet;
         }
 
-        await _syncBlockStateProvider.UpdateStateAsync(height - 1, SyncState.Stopped);
-
+        await _syncBlockStateProvider.UpdateStateAsync(height - 1);
         msgRet.IsSuccess = true;
         msgRet.Status = "Ok";
         return msgRet;
@@ -55,12 +57,12 @@ public class MessageSendAppService : AElfAppService, IMessageSendAppService
     public async Task<bool> StopAsync()
     {
         var currentState = await _syncBlockStateProvider.GetCurrentStateAsync();
-        if (currentState.State == SyncState.Stopped)
+        if (currentState.State is SyncState.Stopping or SyncState.Stopped)
         {
             return true;
         }
 
-        await _syncBlockStateProvider.UpdateStateAsync(null, SyncState.Stopped);
+        await _syncBlockStateProvider.UpdateStateAsync(null, SyncState.Stopping);
         return true;
     }
 
@@ -71,7 +73,7 @@ public class MessageSendAppService : AElfAppService, IMessageSendAppService
         if (currentState.State != SyncState.Stopped)
         {
             msgRet.IsSuccess = false;
-            msgRet.Status = "It is required to stop block message sending first";
+            msgRet.Status = "It is required to stop sending block message first";
             return msgRet;
         }
 
@@ -85,5 +87,36 @@ public class MessageSendAppService : AElfAppService, IMessageSendAppService
     {
         var currentState = await _syncBlockStateProvider.GetCurrentStateAsync();
         return _mapperProvider.Map<SyncInformation, SyncInformationDto>(currentState);
+    }
+
+    public async Task<MessageResultDto> SetWorkerAsync(SetWorkerInput input)
+    {
+        var msgRet = new MessageResultDto();
+        var currentState = await _syncBlockStateProvider.GetCurrentStateAsync();
+        if (currentState.State != SyncState.Stopped)
+        {
+            msgRet.IsSuccess = false;
+            msgRet.Status = "It is required to stop sending block message first";
+            return msgRet;
+        }
+
+        if (input.Period is <= 0)
+        {
+            msgRet.IsSuccess = false;
+            msgRet.Status = $"Invalid input, period should be greater than 0, actually is {input.Period}";
+            return msgRet;
+        }
+
+        if (input.BlockCountPerPeriod is <= 0)
+        {
+            msgRet.IsSuccess = false;
+            msgRet.Status = $"Invalid input, BlockCountPerPeriod should be greater than 0, actually is {input.BlockCountPerPeriod}";
+            return msgRet;
+        }
+        
+        _workerManager.SetWorker(input.Period, input.BlockCountPerPeriod);
+        msgRet.IsSuccess = true;
+        msgRet.Status = "Ok";
+        return msgRet;
     }
 }

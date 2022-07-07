@@ -34,6 +34,9 @@ public class BlockAcceptedEventHandler : ILocalEventHandler<BlockAcceptedEvent>,
         switch (blockSyncState.State)
         {
             case SyncState.Stopped:
+            case SyncState.AsyncRunning:
+                return;
+            case SyncState.Stopping:
                 await StopAsync();
                 return;
             case SyncState.SyncPrepared:
@@ -45,8 +48,6 @@ public class BlockAcceptedEventHandler : ILocalEventHandler<BlockAcceptedEvent>,
             case SyncState.Prepared:
                 await PreparedToRunAsync(eventData);
                 return;
-            case SyncState.AsyncRunning:
-                return;
             default:
                 throw new ArgumentOutOfRangeException();
         }
@@ -56,6 +57,7 @@ public class BlockAcceptedEventHandler : ILocalEventHandler<BlockAcceptedEvent>,
     {
         _logger.LogInformation("Publish message has stopped");
         await _sendMessageByDesignateHeightTaskManager.StopAsync();
+        await _syncBlockStateProvider.UpdateStateAsync(null, SyncState.Stopped);
     }
 
     private async Task RunningAsync(BlockAcceptedEvent eventData)

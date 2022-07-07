@@ -14,7 +14,7 @@ public class SendMessageWorker : AsyncPeriodicBackgroundWorkerBase
 {
     private readonly ISyncBlockStateProvider _syncBlockStateProvider;
     protected CancellationToken CancellationToken { get; set; }
-    private readonly int _blockCount;
+    private int _blockCount;
 
     public SendMessageWorker(ISyncBlockStateProvider syncBlockStateProvider, AbpAsyncTimer timer,
         IServiceScopeFactory serviceScopeFactory, IOptionsSnapshot<MessageQueueOptions> option) : base(timer,
@@ -24,6 +24,19 @@ public class SendMessageWorker : AsyncPeriodicBackgroundWorkerBase
         _blockCount = option.Value.BlockCountPerPeriod;
         Timer.Period = option.Value.Period;
         timer.RunOnStart = true;
+    }
+
+    public void SetWork(int? period, int? blockCountPerPeriod)
+    {
+        if (period.HasValue)
+        {
+            Timer.Period = period.Value;
+        }
+
+        if (blockCountPerPeriod.HasValue)
+        {
+            _blockCount = blockCountPerPeriod.Value;
+        }
     }
 
     public override async Task StartAsync(CancellationToken cancellationToken = default)

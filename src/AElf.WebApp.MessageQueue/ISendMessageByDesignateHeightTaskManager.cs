@@ -8,6 +8,8 @@ public interface ISendMessageByDesignateHeightTaskManager
 {
     Task StartAsync();
     Task StopAsync(bool stopWorker = false);
+
+    void SetWorker(int? period, int? blockCountPerPeriod);
 }
 
 public class SendMessageByDesignateHeightTaskManager : ISendMessageByDesignateHeightTaskManager, ISingletonDependency
@@ -50,5 +52,10 @@ public class SendMessageByDesignateHeightTaskManager : ISendMessageByDesignateHe
        
         _cancellationTokenSource.Dispose();
         _cancellationTokenSource = null;
+    }
+
+    public void SetWorker(int? period, int? blockCountPerPeriod)
+    {
+        _sendMessageWorker.SetWork(period, blockCountPerPeriod);
     }
 }
