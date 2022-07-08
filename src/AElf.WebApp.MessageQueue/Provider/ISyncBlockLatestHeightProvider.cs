@@ -12,7 +12,6 @@ public interface ISyncBlockLatestHeightProvider
 public class SyncBlockLatestHeightProvider : ISyncBlockLatestHeightProvider, ISingletonDependency
 {
     private long _latestHeight;
-    private int _lockFlag;
 
     public void SetLatestHeight(long height)
     {
@@ -21,32 +20,11 @@ public class SyncBlockLatestHeightProvider : ISyncBlockLatestHeightProvider, ISi
             return;
         }
 
-        while (IsNotEnter())
-        {
-        }
-
-        _latestHeight = height;
-        Reset();
+        Interlocked.Exchange(ref _latestHeight, height);
     }
 
     public long GetLatestHeight()
     {
-        while (IsNotEnter())
-        {
-        }
-
-        var latestHeight = _latestHeight;
-        Reset();
-        return latestHeight;
-    }
-
-    private bool IsNotEnter()
-    {
-        return Interlocked.CompareExchange(ref _lockFlag, 1, 0) == 1;
-    }
-
-    private void Reset()
-    {
-        _lockFlag = 0;
+        return Interlocked.Read(ref _latestHeight);
     }
 }
