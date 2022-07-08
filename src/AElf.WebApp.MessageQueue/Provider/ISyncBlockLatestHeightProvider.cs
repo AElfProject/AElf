@@ -21,7 +21,7 @@ public class SyncBlockLatestHeightProvider : ISyncBlockLatestHeightProvider, ISi
             return;
         }
 
-        while (IsEnter())
+        while (IsNotEnter())
         {
         }
 
@@ -31,7 +31,7 @@ public class SyncBlockLatestHeightProvider : ISyncBlockLatestHeightProvider, ISi
 
     public long GetLatestHeight()
     {
-        while (IsEnter())
+        while (IsNotEnter())
         {
         }
 
@@ -40,7 +40,7 @@ public class SyncBlockLatestHeightProvider : ISyncBlockLatestHeightProvider, ISi
         return latestHeight;
     }
 
-    private bool IsEnter()
+    private bool IsNotEnter()
     {
         return Interlocked.CompareExchange(ref _lockFlag, 1, 0) == 1;
     }

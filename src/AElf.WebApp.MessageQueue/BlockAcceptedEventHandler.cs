@@ -15,17 +15,20 @@ public class BlockAcceptedEventHandler : ILocalEventHandler<BlockAcceptedEvent>,
     private readonly IBlockMessageService _blockMessageService;
     private readonly ISyncBlockStateProvider _syncBlockStateProvider;
     private readonly ISendMessageByDesignateHeightTaskManager _sendMessageByDesignateHeightTaskManager;
+    private readonly ISyncBlockLatestHeightProvider _latestHeightProvider;
     private readonly ILogger<BlockAcceptedEventHandler> _logger;
 
     public BlockAcceptedEventHandler(
         ISyncBlockStateProvider syncBlockStateProvider,
         ISendMessageByDesignateHeightTaskManager sendMessageByDesignateHeightTaskManager,
-        IBlockMessageService blockMessageService, ILogger<BlockAcceptedEventHandler> logger)
+        IBlockMessageService blockMessageService, ILogger<BlockAcceptedEventHandler> logger,
+        ISyncBlockLatestHeightProvider latestHeightProvider)
     {
         _syncBlockStateProvider = syncBlockStateProvider;
         _sendMessageByDesignateHeightTaskManager = sendMessageByDesignateHeightTaskManager;
         _blockMessageService = blockMessageService;
         _logger = logger;
+        _latestHeightProvider = latestHeightProvider;
     }
 
     public async Task HandleEventAsync(BlockAcceptedEvent eventData)
@@ -35,22 +38,24 @@ public class BlockAcceptedEventHandler : ILocalEventHandler<BlockAcceptedEvent>,
         {
             case SyncState.Stopped:
             case SyncState.AsyncRunning:
-                return;
+                break;
             case SyncState.Stopping:
                 await StopAsync();
-                return;
+                break;
             case SyncState.SyncPrepared:
                 await AsyncPreparedToRun(eventData);
-                return;
+                break;
             case SyncState.SyncRunning:
                 await RunningAsync(eventData);
-                return;
+                break;
             case SyncState.Prepared:
                 await PreparedToRunAsync(eventData);
-                return;
+                break;
             default:
                 throw new ArgumentOutOfRangeException();
         }
+
+        _latestHeightProvider.SetLatestHeight(eventData.Block.Height);
     }
 
     private async Task StopAsync()
