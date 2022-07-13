@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using System.Reflection;
-using System.Text.Json;
 using System.Threading.Tasks;
 using AElf.Modularity;
 using AElf.WebApp.Application.Chain;
@@ -21,7 +20,6 @@ using Microsoft.Net.Http.Headers;
 using Microsoft.OpenApi.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using Newtonsoft.Json.Serialization;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using Volo.Abp;
 using Volo.Abp.AspNetCore.Mvc;
@@ -30,7 +28,6 @@ using Volo.Abp.Authorization;
 using Volo.Abp.Castle;
 using Volo.Abp.Castle.DynamicProxy;
 using Volo.Abp.Modularity;
-using JsonSerializer = Newtonsoft.Json.JsonSerializer;
 
 namespace AElf.WebApp.Web;
 
