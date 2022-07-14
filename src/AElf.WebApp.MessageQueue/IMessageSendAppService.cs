@@ -114,7 +114,14 @@ public class MessageSendAppService : AElfAppService, IMessageSendAppService
             return msgRet;
         }
         
-        _workerManager.SetWorker(input.Period, input.BlockCountPerPeriod);
+        if (input.ParallelCount is <= 0)
+        {
+            msgRet.IsSuccess = false;
+            msgRet.Status = $"Invalid input, ParallelCount should be greater than 0, actually is {input.ParallelCount}";
+            return msgRet;
+        }
+        
+        _workerManager.SetWorker(input.Period, input.BlockCountPerPeriod, input.ParallelCount);
         msgRet.IsSuccess = true;
         msgRet.Status = "Ok";
         return msgRet;

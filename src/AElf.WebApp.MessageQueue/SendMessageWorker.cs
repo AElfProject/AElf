@@ -32,7 +32,7 @@ public class SendMessageWorker : AsyncPeriodicBackgroundWorkerBase
         timer.RunOnStart = true;
     }
 
-    public void SetWork(int? period, int? blockCountPerPeriod)
+    public void SetWork(int? period, int? blockCountPerPeriod, int? parallelCount)
     {
         if (period.HasValue)
         {
@@ -42,6 +42,11 @@ public class SendMessageWorker : AsyncPeriodicBackgroundWorkerBase
         if (blockCountPerPeriod.HasValue)
         {
             _blockCount = blockCountPerPeriod.Value;
+        }
+
+        if (parallelCount.HasValue)
+        {
+            _parallelCount = parallelCount.Value;
         }
     }
 
