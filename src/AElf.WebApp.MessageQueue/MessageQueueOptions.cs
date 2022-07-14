@@ -12,4 +12,5 @@ public class MessageQueueOptions
     public long StartPublishMessageHeight { get; set; }
     public int Period { get; set; } = 1000;
     public int BlockCountPerPeriod = 3;
+    public int ParallelCount = 10;
 }

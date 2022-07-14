@@ -12,6 +12,7 @@ namespace AElf.WebApp.MessageQueue.Services;
 public interface IMessagePublishService
 {
     Task<bool> PublishAsync(long height, CancellationToken cts);
+    Task<bool> PublishAsync(IBlockMessage blockMessage);
     Task<bool> PublishAsync(BlockExecutedSet blockExecutedSet);
 }
 
@@ -46,6 +47,11 @@ public class MessagePublishService : IMessagePublishService, ITransientDependenc
     {
         var blockMessageEto = _blockMessageEtoGenerator.GetBlockMessageEto(blockExecutedSet);
         return await PublishAsync(blockMessageEto, Synchronous);
+    }
+
+    public async Task<bool> PublishAsync(IBlockMessage message)
+    {
+        return await PublishAsync(message, Asynchronous);
     }
 
     private async Task<bool> PublishAsync(IBlockMessage message, string runningPattern)

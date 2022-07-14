@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.WebApp.MessageQueue.Enum;
@@ -16,6 +17,7 @@ public class SendMessageWorker : AsyncPeriodicBackgroundWorkerBase
     private readonly ISyncBlockLatestHeightProvider _latestHeightProvider;
     protected CancellationToken CancellationToken { get; set; }
     private int _blockCount;
+    private int _parallelCount;
 
     public SendMessageWorker(ISyncBlockStateProvider syncBlockStateProvider, AbpAsyncTimer timer,
         IServiceScopeFactory serviceScopeFactory, IOptionsSnapshot<MessageQueueOptions> option,
@@ -25,6 +27,7 @@ public class SendMessageWorker : AsyncPeriodicBackgroundWorkerBase
         _syncBlockStateProvider = syncBlockStateProvider;
         _latestHeightProvider = latestHeightProvider;
         _blockCount = option.Value.BlockCountPerPeriod;
+        _parallelCount = option.Value.ParallelCount;
         Timer.Period = option.Value.Period;
         timer.RunOnStart = true;
     }
@@ -59,6 +62,33 @@ public class SendMessageWorker : AsyncPeriodicBackgroundWorkerBase
         var blockMessageService = workerContext.ServiceProvider.GetRequiredService<IBlockMessageService>();
         var currentState = await _syncBlockStateProvider.GetCurrentStateAsync();
         var nextHeight = currentState.CurrentHeight;
+
+        var remainCount = _blockCount;
+        while (IsContinue(remainCount, currentState.State))
+        {
+            var syncThreshold = GetSyncThresholdHeight();
+            var startHeight = nextHeight;
+            var endHeight = Math.Min(startHeight + _parallelCount - 1, syncThreshold);
+            if (startHeight >= syncThreshold)
+            {
+                await PreparedToSyncMessageAsync();
+                break;
+            }
+            
+            var syncBlockHeight = await blockMessageService.SendMessageAsync(startHeight, endHeight, CancellationToken);
+            if (syncBlockHeight <= 0)
+            {
+                await PreparedToSyncMessageAsync();
+                break;
+            }
+
+            remainCount -= (int)(syncBlockHeight - startHeight + 1);
+            nextHeight = syncBlockHeight;
+            currentState = await _syncBlockStateProvider.GetCurrentStateAsync();
+        }
+        
+        
+        
         var startCount = 0;
         while (IsContinue(startCount++, currentState.State))
         {
@@ -82,11 +112,16 @@ public class SendMessageWorker : AsyncPeriodicBackgroundWorkerBase
             currentState = await _syncBlockStateProvider.GetCurrentStateAsync();
         }
     }
-
-    private bool IsContinue(long height, SyncState state)
+    
+    private bool IsContinue(long remainCount, SyncState state)
     {
-        return height < _blockCount && !CancellationToken.IsCancellationRequested &&
+        return remainCount > 0 && !CancellationToken.IsCancellationRequested &&
                state == SyncState.AsyncRunning;
+    }
+
+    private long GetSyncThresholdHeight()
+    {
+        return _latestHeightProvider.GetLatestHeight() - 3;
     }
 
     private async Task PreparedToSyncMessageAsync()
