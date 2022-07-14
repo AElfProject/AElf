@@ -56,7 +56,7 @@ public class MessagePublishService : IMessagePublishService, ITransientDependenc
 
     private async Task<bool> PublishAsync(IBlockMessage message, string runningPattern)
     {
-        _logger.LogInformation($"{runningPattern} start publish block: {message.Height}.");
+        _logger.LogInformation($"{runningPattern} Start publish block: {message.Height}.");
         try
         {
             await _distributedEventBus.PublishAsync(message.GetType(), message);
