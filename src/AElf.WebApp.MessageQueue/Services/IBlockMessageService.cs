@@ -1,11 +1,13 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain;
 using AElf.WebApp.MessageQueue.Helpers;
 using AElf.WebApp.MessageQueue.Provider;
+using AutoMapper.Internal;
 using Microsoft.Extensions.Logging;
 using Nito.AsyncEx;
 using Volo.Abp.DependencyInjection;
@@ -64,13 +66,15 @@ public class BlockMessageService : IBlockMessageService, ITransientDependency
         }
 
         await queryTasks.WhenAll();
-        
         if (!blockMessageList.Any())
         {
             _logger.LogError($"Failed to query message from: {from + 1} to: {to + 1}, 0 messages found");
             return -1;
         }
-        
+
+        var queryHeightLog = new StringBuilder($"Query height from: {from} to: {to}: ");
+        blockMessageList.ForAll(b => queryHeightLog.Append($"|{b.Height}|"));
+        _logger.LogInformation(queryHeightLog.ToString());
         var sortedMessageQuery = blockMessageList.OrderBy(b => b.Height);
         long heightIndex = 0;
         foreach (var message in sortedMessageQuery)
