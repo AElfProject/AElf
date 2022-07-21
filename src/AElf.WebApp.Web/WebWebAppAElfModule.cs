@@ -61,17 +61,13 @@ public class WebWebAppAElfModule : AElfModule
 
         ConfigureSwaggerServices(context.Services);
 
-        context.Services.AddControllers(options =>
+        context.Services.AddControllers(configure =>
         {
-            options.InputFormatters.Add(new ProtobufInputFormatter());
-            options.OutputFormatters.Add(new ProtobufOutputFormatter());
-        }).AddNewtonsoftJson(options =>
+            configure.InputFormatters.Add(new ProtobufInputFormatter());
+            configure.OutputFormatters.Add(new ProtobufOutputFormatter());
+        }).AddJsonOptions(options =>
         {
-            options.SerializerSettings.ContractResolver = new DefaultContractResolver
-            {
-                NamingStrategy = new UpperCamelCaseNamingStrategy()
-            };
-            options.SerializerSettings.Converters.Add(new ProtoMessageConverter());
+            options.JsonSerializerOptions.PropertyNamingPolicy = new UpperCamelCaseNamingPolicy();
         });
 
         context.Services.AddAuthentication("BasicAuthentication")
