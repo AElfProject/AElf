@@ -60,9 +60,10 @@ public class BlockAcceptedEventHandler : ILocalEventHandler<BlockAcceptedEvent>,
 
     private async Task StopAsync()
     {
-        _logger.LogInformation("Publish message has stopped");
+        _logger.LogInformation("Publish message is stopping");
         await _sendMessageByDesignateHeightTaskManager.StopAsync();
         await _syncBlockStateProvider.UpdateStateAsync(null, SyncState.Stopped);
+        _logger.LogInformation("Publish message has stopped");
     }
 
     private async Task RunningAsync(BlockAcceptedEvent eventData)
