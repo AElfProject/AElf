@@ -68,7 +68,7 @@ public class WebWebAppAElfModule : AElfModule
             configure.OutputFormatters.Add(new ProtobufOutputFormatter());
         }).AddJsonOptions(options =>
         {
-            options.JsonSerializerOptions.PropertyNamingPolicy = new UpperCamelCaseNamingStrategy();
+            options.JsonSerializerOptions.PropertyNamingPolicy = new UpperCamelCaseNamingPolicy();
         });
 
         context.Services.AddAuthentication("BasicAuthentication")
