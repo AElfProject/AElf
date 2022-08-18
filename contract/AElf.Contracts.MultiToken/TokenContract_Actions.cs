@@ -362,7 +362,8 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
                                tokenInfo.Issuer == input.Issuer && tokenInfo.TotalSupply == input.TotalSupply &&
                                tokenInfo.IssueChainId == input.IssueChainId;
 
-        if (tokenInfo.ExternalInfo != null && tokenInfo.ExternalInfo.Value.Count > 0)
+        if (tokenInfo.ExternalInfo != null && tokenInfo.ExternalInfo.Value.Count > 0 ||
+            input.ExternalInfo != null && input.ExternalInfo.Count > 0)
         {
             validationResult = validationResult && tokenInfo.ExternalInfo.Value.Count == input.ExternalInfo.Count;
             if (tokenInfo.ExternalInfo.Value.Any(keyPair =>
