@@ -83,7 +83,7 @@ public class MiningService : IMiningService
                                   "previous: {PreviousBlockHash}, " +
                                   "executed transactions: {TransactionsCount}, " +
                                   "not executed transactions {NotExecutedTransactionsCount}",
-                block.ToDiagnosticString(), block.Header.PreviousBlockHash, block.Body.TransactionsCount,
+                block.ToDiagnosticString(), block.Header.PreviousBlockHash.ToHex(), block.Body.TransactionsCount,
                 pending.Count + systemTransactions.Count - block.Body.TransactionsCount);
             return blockExecutedSet;
         }
