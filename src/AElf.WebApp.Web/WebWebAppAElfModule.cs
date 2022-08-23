@@ -20,7 +20,6 @@ using Microsoft.Net.Http.Headers;
 using Microsoft.OpenApi.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using Newtonsoft.Json.Serialization;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using Volo.Abp;
 using Volo.Abp.AspNetCore.Mvc;
@@ -61,17 +60,13 @@ public class WebWebAppAElfModule : AElfModule
 
         ConfigureSwaggerServices(context.Services);
 
-        context.Services.AddControllers(options =>
+        context.Services.AddControllers(configure =>
         {
-            options.InputFormatters.Add(new ProtobufInputFormatter());
-            options.OutputFormatters.Add(new ProtobufOutputFormatter());
-        }).AddNewtonsoftJson(options =>
+            configure.InputFormatters.Add(new ProtobufInputFormatter());
+            configure.OutputFormatters.Add(new ProtobufOutputFormatter());
+        }).AddJsonOptions(options =>
         {
-            options.SerializerSettings.ContractResolver = new DefaultContractResolver
-            {
-                NamingStrategy = new UpperCamelCaseNamingStrategy()
-            };
-            options.SerializerSettings.Converters.Add(new ProtoMessageConverter());
+            options.JsonSerializerOptions.PropertyNamingPolicy = new UpperCamelCaseNamingPolicy();
         });
 
         context.Services.AddAuthentication("BasicAuthentication")
