@@ -531,8 +531,7 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
         var tokenInfo = AssertValidToken(symbol, amount);
         var issueChainId = GetIssueChainId(symbol);
         Assert(issueChainId == crossChainTransferInput.IssueChainId, "Incorrect issue chain id.");
-        Assert(transferSender == Context.Sender && targetChainId == Context.ChainId,
-            "Unable to claim cross chain token.");
+        Assert(targetChainId == Context.ChainId, "Unable to claim cross chain token.");
         var registeredTokenContractAddress = State.CrossChainTransferWhiteList[input.FromChainId];
         AssertCrossChainTransaction(transferTransaction, registeredTokenContractAddress,
             nameof(CrossChainTransfer));
