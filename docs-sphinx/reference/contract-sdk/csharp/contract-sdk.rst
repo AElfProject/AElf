@@ -671,7 +671,7 @@ Parameters
 |              | -us/dotnet/api/ |                                        |
 |              | system.func-1?v |                                        |
 |              | iew=netcore     |                                        |
-|              | -3.1>`__        |                                        |
+|              | -6.0>`__        |                                        |
 +--------------+-----------------+----------------------------------------+
 
 .. _AElf-Sdk-CSharp-CSharpSmartContractContext-RecoverPublicKey:
