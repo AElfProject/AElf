@@ -1,33 +1,32 @@
 using System.Net;
 
-namespace AElf.CrossChain.Grpc
+namespace AElf.CrossChain.Grpc;
+
+public static class GrpcUriHelper
 {
-    public static class GrpcUriHelper
+    /// <summary>
+    ///     Tries to parse a grpc URI. format: ipv4:127.0.0.1:8000 "
+    /// </summary>
+    /// <param name="url"></param>
+    /// <param name="endPoint"></param>
+    /// <returns></returns>
+    public static bool TryParsePrefixedEndpoint(string url, out IPEndPoint endPoint)
     {
-        /// <summary>
-        /// Tries to parse a grpc URI. format: ipv4:127.0.0.1:8000 "
-        /// </summary>
-        /// <param name="url"></param>
-        /// <param name="endPoint"></param>
-        /// <returns></returns>
-        public static bool TryParsePrefixedEndpoint(string url, out IPEndPoint endPoint)
-        {
-            endPoint = null;
-            
-            var splitRes = url.Split(':');
+        endPoint = null;
 
-            if (splitRes.Length != 3)
-                return false;
+        var splitRes = url.Split(':');
 
-            if (!IPAddress.TryParse(splitRes[1], out IPAddress parsedAddress))
-                return false;
+        if (splitRes.Length != 3)
+            return false;
 
-            if (!int.TryParse(splitRes[2], out int parsedPort))
-                return false;
+        if (!IPAddress.TryParse(splitRes[1], out var parsedAddress))
+            return false;
 
-            endPoint = new IPEndPoint(parsedAddress, parsedPort);
+        if (!int.TryParse(splitRes[2], out var parsedPort))
+            return false;
 
-            return true;
-        }
+        endPoint = new IPEndPoint(parsedAddress, parsedPort);
+
+        return true;
     }
 }

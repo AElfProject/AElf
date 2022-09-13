@@ -1,13 +1,12 @@
-namespace AElf.Kernel.SmartContract
+namespace AElf.Kernel.SmartContract;
+
+public interface IExecutionObserver
 {
-    public interface IExecutionObserver
-    {
-        void BranchCount();
+    void BranchCount();
 
-        void CallCount();
+    void CallCount();
 
-        int GetCallCount();
-        
-        int GetBranchCount();
-    }
+    int GetCallCount();
+
+    int GetBranchCount();
 }

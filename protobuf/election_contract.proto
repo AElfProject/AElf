@@ -29,13 +29,15 @@ service ElectionContract {
     // Take snapshot according to term number, and distribute profits.
     rpc TakeSnapshot (TakeElectionSnapshotInput) returns (google.protobuf.Empty) {
     }
-    
+
     // To be a block producer, a user should first register to be a candidate and lock some token as a deposit. 
     // If the data center is not full, the user will be added in automatically and get one weight 
     // for sharing bonus in the future.
     rpc AnnounceElection (aelf.Address) returns (google.protobuf.Empty) {
     }
-    
+    rpc AnnounceElectionFor (AnnounceElectionForInput) returns (google.protobuf.Empty) {
+    }
+
     // A candidate is able to quit the election provided he is not currently elected. If you quit successfully, 
     // the candidate will get his locked tokens back and will not receive anymore bonus.
     rpc QuitElection (google.protobuf.StringValue) returns (google.protobuf.Empty) {
@@ -46,15 +48,24 @@ service ElectionContract {
     // sharing the bonus in the future. And return the vote id.
     rpc Vote (VoteMinerInput) returns (aelf.Hash) {
     }
-    
+
+    rpc VoteWithExpiredVotes (VoteMinerInput) returns (aelf.Hash) {
+    }
+
     // Before the end time, you are able to change your vote target to other candidates.
     rpc ChangeVotingOption (ChangeVotingOptionInput) returns (google.protobuf.Empty) {
     }
-    
+
     // After the lock time, your locked tokens will be unlocked and you can withdraw them according to the vote id.
     rpc Withdraw (aelf.Hash) returns (google.protobuf.Empty) {
     }
+
+    rpc AssistWithdraw (AssistWithdrawInput) returns (google.protobuf.Empty) {
+    }
     
+    rpc FixTotalWeights (FixTotalWeightsInput) returns (google.protobuf.Empty) {
+    }
+
     // Update candidate information by consensus contract.
     rpc UpdateCandidateInformation (UpdateCandidateInformationInput) returns (google.protobuf.Empty) {
     }
@@ -90,6 +101,17 @@ service ElectionContract {
     // Set admin address of candidate (mostly supply)
     rpc SetCandidateAdmin (SetCandidateAdminInput) returns (google.protobuf.Empty) {
     }
+    
+    rpc RemoveEvilNode (google.protobuf.StringValue) returns (google.protobuf.Empty) {
+    }
+    
+    rpc EnableElection (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    }
+    
+    rpc SetProfitsReceiver (SetProfitsReceiverInput) returns (google.protobuf.Empty) {
+    }
+
+    // Views
     
     // Get all candidates’ public keys.
     rpc GetCandidates (google.protobuf.Empty) returns (PubkeyList) {
@@ -219,6 +241,14 @@ service ElectionContract {
     
     // Query the old pubkey.
     rpc GetReplacedPubkey (google.protobuf.StringValue) returns (google.protobuf.StringValue) {
+        option (aelf.is_view) = true;
+    }
+
+    rpc GetSponsor (google.protobuf.StringValue) returns (aelf.Address) {
+        option (aelf.is_view) = true;
+    }
+    
+    rpc GetManagedPubkeys (aelf.Address) returns (PubkeyList) {
         option (aelf.is_view) = true;
     }
 }
@@ -426,10 +456,10 @@ message SetTreasurySchemeIdsInput {
     aelf.Hash welfare_hash = 2;
     // The scheme id of subsidy reward.
     aelf.Hash subsidy_hash = 3;
-    // The scheme id of votes reward.
-    aelf.Hash votes_reward_hash = 4;
-    // The scheme id of re-election reward.
-    aelf.Hash re_election_reward_hash = 5;
+    // The scheme id of welcome reward.
+    aelf.Hash welcome_hash = 4;
+    // The scheme id of flexible reward.
+    aelf.Hash flexible_hash = 5;
 }
 
 message DataCenterRankingList {
@@ -484,6 +514,26 @@ message ReplaceCandidatePubkeyInput {
 message SetCandidateAdminInput {
     string pubkey = 1;
     aelf.Address admin = 2;
+}
+
+message AssistWithdrawInput {
+    string pubkey = 1;
+    aelf.Hash vote_id = 2;
+}
+
+message AnnounceElectionForInput {
+    string pubkey = 1;
+    aelf.Address admin = 2;
+}
+
+message SetProfitsReceiverInput {
+    aelf.Address candidate_address = 1;
+    aelf.Address receiver_address = 2;
+}
+
+message FixTotalWeightsInput {
+    repeated aelf.Hash vote_ids = 1;
+    
 }
 
 message EvilMinerDetected {

@@ -4,36 +4,35 @@ using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Txn.Application;
 using Google.Protobuf;
-using Microsoft.Extensions.Options;
 
-namespace AElf.CrossChain.Application
+namespace AElf.CrossChain.Application;
+
+internal class CrossChainBlockExtraDataProvider : IBlockExtraDataProvider
 {
-    internal class CrossChainBlockExtraDataProvider : IBlockExtraDataProvider
+    private readonly ICrossChainIndexingDataService _crossChainIndexingDataService;
+    private readonly ITransactionPackingOptionProvider _transactionPackingOptionProvider;
+
+    public CrossChainBlockExtraDataProvider(ICrossChainIndexingDataService crossChainIndexingDataService,
+        ITransactionPackingOptionProvider transactionPackingOptionProvider)
     {
-        private readonly ICrossChainIndexingDataService _crossChainIndexingDataService;
-        private readonly ITransactionPackingOptionProvider _transactionPackingOptionProvider;
-        public string BlockHeaderExtraDataKey => CrossChainConstants.CrossChainExtraDataKey;
+        _crossChainIndexingDataService = crossChainIndexingDataService;
+        _transactionPackingOptionProvider = transactionPackingOptionProvider;
+    }
 
-        public CrossChainBlockExtraDataProvider(ICrossChainIndexingDataService crossChainIndexingDataService,
-            ITransactionPackingOptionProvider transactionPackingOptionProvider)
-        {
-            _crossChainIndexingDataService = crossChainIndexingDataService;
-            _transactionPackingOptionProvider = transactionPackingOptionProvider;
-        }
+    public string BlockHeaderExtraDataKey => CrossChainConstants.CrossChainExtraDataKey;
 
-        public async Task<ByteString> GetBlockHeaderExtraDataAsync(BlockHeader blockHeader)
-        {
-            if (blockHeader.Height == AElfConstants.GenesisBlockHeight)
-                return ByteString.Empty;
+    public async Task<ByteString> GetBlockHeaderExtraDataAsync(BlockHeader blockHeader)
+    {
+        if (blockHeader.Height == AElfConstants.GenesisBlockHeight)
+            return ByteString.Empty;
 
-            if (!_transactionPackingOptionProvider.IsTransactionPackable(new ChainContext
-                {BlockHash = blockHeader.PreviousBlockHash, BlockHeight = blockHeader.Height - 1}))
-                return ByteString.Empty;
+        if (!_transactionPackingOptionProvider.IsTransactionPackable(new ChainContext
+                { BlockHash = blockHeader.PreviousBlockHash, BlockHeight = blockHeader.Height - 1 }))
+            return ByteString.Empty;
 
-            var bytes = await _crossChainIndexingDataService.PrepareExtraDataForNextMiningAsync(
-                blockHeader.PreviousBlockHash, blockHeader.Height - 1);
+        var bytes = await _crossChainIndexingDataService.PrepareExtraDataForNextMiningAsync(
+            blockHeader.PreviousBlockHash, blockHeader.Height - 1);
 
-            return bytes;
-        }
+        return bytes;
     }
 }

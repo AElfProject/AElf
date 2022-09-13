@@ -5,19 +5,18 @@ using AElf.Runtime.CSharp;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
 
-namespace AElf.OS
+namespace AElf.OS;
+
+[DependsOn(
+    typeof(CoreOSAElfModule),
+    typeof(AEDPoSAElfModule),
+    typeof(CSharpRuntimeAElfModule),
+    typeof(KernelTestAElfModule)
+)]
+public class OSTestBaseAElfModule : AElfModule
 {
-    [DependsOn(
-        typeof(CoreOSAElfModule),
-        typeof(AEDPoSAElfModule),
-        typeof(CSharpRuntimeAElfModule),
-        typeof(KernelTestAElfModule)
-    )]
-    public class OSTestBaseAElfModule : AElfModule
+    public override void ConfigureServices(ServiceConfigurationContext context)
     {
-        public override void ConfigureServices(ServiceConfigurationContext context)
-        {
-            context.Services.AddSingleton<OSTestHelper>();
-        }
+        context.Services.AddSingleton<OSTestHelper>();
     }
 }

@@ -13,128 +13,127 @@ using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
 
-namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
+namespace AElf.Contracts.AEDPoSExtension.Demo.Tests;
+
+public class SideChainConsensusInformationTest : AEDPoSExtensionDemoTestBase
 {
-    public class SideChainConsensusInformationTest : AEDPoSExtensionDemoTestBase
+    [Fact]
+    public async Task SideChainDividendPoolTest()
     {
-        [Fact]
-        public async Task SideChainDividendPoolTest()
+        InitialContracts();
+
+        await ConsensusStub.SetSymbolList.SendWithExceptionAsync(new SymbolList());
+        await ConsensusStub.GetDividends.CallAsync(new Int64Value { Value = 1 });
+    }
+
+    [Fact]
+    public async Task UpdateInformationFromCrossChainTest()
+    {
+        SetToSideChain();
+        InitialContracts();
+        var mockedCrossChain = SampleAccount.Accounts.Last();
+        var mockedCrossChainStub =
+            GetTester<AEDPoSContractImplContainer.AEDPoSContractImplStub>(
+                ContractAddresses[ConsensusSmartContractAddressNameProvider.Name],
+                mockedCrossChain.KeyPair);
+
+        var headerInformation = new AElfConsensusHeaderInformation
         {
-            InitialContracts();
-
-            await ConsensusStub.SetSymbolList.SendWithExceptionAsync(new SymbolList());
-            await ConsensusStub.GetDividends.CallAsync(new Int64Value {Value = 1});
-        }
-
-        [Fact]
-        public async Task UpdateInformationFromCrossChainTest()
-        {
-            SetToSideChain();
-            InitialContracts();
-            var mockedCrossChain = SampleAccount.Accounts.Last();
-            var mockedCrossChainStub =
-                GetTester<AEDPoSContractImplContainer.AEDPoSContractImplStub>(
-                    ContractAddresses[ConsensusSmartContractAddressNameProvider.Name],
-                    mockedCrossChain.KeyPair);
-
-            var headerInformation = new AElfConsensusHeaderInformation
+            Round = new Round
             {
-                Round = new Round
+                RoundNumber = 2,
+                RealTimeMinersInformation =
                 {
-                    RoundNumber = 2,
-                    RealTimeMinersInformation =
-                    {
-                        {Accounts[0].KeyPair.PublicKey.ToHex(), new MinerInRound()},
-                        {Accounts[1].KeyPair.PublicKey.ToHex(), new MinerInRound()},
-                        {Accounts[2].KeyPair.PublicKey.ToHex(), new MinerInRound()},
-                    }
+                    { Accounts[0].KeyPair.PublicKey.ToHex(), new MinerInRound() },
+                    { Accounts[1].KeyPair.PublicKey.ToHex(), new MinerInRound() },
+                    { Accounts[2].KeyPair.PublicKey.ToHex(), new MinerInRound() }
                 }
-            };
+            }
+        };
 
-            await CreateAndIssueToken("ELF");
-            await CreateAndIssueToken("READ");
-            await TokenStub.Transfer.SendAsync(new TransferInput
-            {
-                Symbol = "READ",
-                Amount = 10_00000000,
-                To = ContractAddresses[ConsensusSmartContractAddressNameProvider.Name]
-            });
-
-            await mockedCrossChainStub.UpdateInformationFromCrossChain.SendAsync(new BytesValue
-            {
-                Value = headerInformation.ToByteString()
-            });
-
-            var minerList = await ConsensusStub.GetMainChainCurrentMinerList.CallAsync(new Empty());
-            minerList.Pubkeys.Select(m => m.ToHex()).ShouldBe(headerInformation.Round.RealTimeMinersInformation.Keys);
-
-            var balance = await TokenStub.GetBalance.CallAsync(new GetBalanceInput
-            {
-                Owner = Address.FromPublicKey(MissionedECKeyPairs.InitialKeyPairs.Skip(1).First().PublicKey),
-                Symbol = "READ"
-            });
-            balance.Balance.ShouldBe(2_00000000);
-        }
-
-        private async Task CreateAndIssueToken(string symbol)
+        await CreateAndIssueToken("ELF");
+        await CreateAndIssueToken("READ");
+        await TokenStub.Transfer.SendAsync(new TransferInput
         {
-            var createTokenTransaction = TokenStub.Create.GetTransaction(new CreateInput
-            {
-                Symbol = symbol,
-                Decimals = 8,
-                TokenName = "Test",
-                Issuer = Accounts[0].Address,
-                IsBurnable = true,
-                TotalSupply = 1_000_000_000_00000000
-            });
-            const long issueTokenAmount = 10_0000_00000000;
-            var issueToAddress = Address.FromPublicKey(MissionedECKeyPairs.InitialKeyPairs.First().PublicKey);
-            var issueTokenTransaction = TokenStub.Issue.GetTransaction(new IssueInput
-            {
-                Symbol = symbol,
-                Amount = issueTokenAmount,
-                To = issueToAddress
-            });
-            await BlockMiningService.MineBlockAsync(new List<Transaction>
-            {
-                createTokenTransaction,
-                issueTokenTransaction
-            });
-        }
+            Symbol = "READ",
+            Amount = 10_00000000,
+            To = ContractAddresses[ConsensusSmartContractAddressNameProvider.Name]
+        });
 
-        [Fact]
-        public async Task UpdateInformationFromCrossChainTest_LowRoundNumber()
+        await mockedCrossChainStub.UpdateInformationFromCrossChain.SendAsync(new BytesValue
         {
-            SetToSideChain();
-            InitialContracts();
-            var mockedCrossChain = SampleAccount.Accounts.Last();
-            var mockedCrossChainStub =
-                GetTester<AEDPoSContractImplContainer.AEDPoSContractImplStub>(
-                    ContractAddresses[ConsensusSmartContractAddressNameProvider.Name],
-                    mockedCrossChain.KeyPair);
+            Value = headerInformation.ToByteString()
+        });
 
-            var headerInformation = new AElfConsensusHeaderInformation
+        var minerList = await ConsensusStub.GetMainChainCurrentMinerList.CallAsync(new Empty());
+        minerList.Pubkeys.Select(m => m.ToHex()).ShouldBe(headerInformation.Round.RealTimeMinersInformation.Keys);
+
+        var balance = await TokenStub.GetBalance.CallAsync(new GetBalanceInput
+        {
+            Owner = Address.FromPublicKey(MissionedECKeyPairs.InitialKeyPairs.Skip(1).First().PublicKey),
+            Symbol = "READ"
+        });
+        balance.Balance.ShouldBe(2_00000000);
+    }
+
+    private async Task CreateAndIssueToken(string symbol)
+    {
+        var createTokenTransaction = TokenStub.Create.GetTransaction(new CreateInput
+        {
+            Symbol = symbol,
+            Decimals = 8,
+            TokenName = "Test",
+            Issuer = Accounts[0].Address,
+            IsBurnable = true,
+            TotalSupply = 1_000_000_000_00000000
+        });
+        const long issueTokenAmount = 10_0000_00000000;
+        var issueToAddress = Address.FromPublicKey(MissionedECKeyPairs.InitialKeyPairs.First().PublicKey);
+        var issueTokenTransaction = TokenStub.Issue.GetTransaction(new IssueInput
+        {
+            Symbol = symbol,
+            Amount = issueTokenAmount,
+            To = issueToAddress
+        });
+        await BlockMiningService.MineBlockAsync(new List<Transaction>
+        {
+            createTokenTransaction,
+            issueTokenTransaction
+        });
+    }
+
+    [Fact]
+    public async Task UpdateInformationFromCrossChainTest_LowRoundNumber()
+    {
+        SetToSideChain();
+        InitialContracts();
+        var mockedCrossChain = SampleAccount.Accounts.Last();
+        var mockedCrossChainStub =
+            GetTester<AEDPoSContractImplContainer.AEDPoSContractImplStub>(
+                ContractAddresses[ConsensusSmartContractAddressNameProvider.Name],
+                mockedCrossChain.KeyPair);
+
+        var headerInformation = new AElfConsensusHeaderInformation
+        {
+            Round = new Round
             {
-                Round = new Round
+                RoundNumber = 0,
+                RealTimeMinersInformation =
                 {
-                    RoundNumber = 0,
-                    RealTimeMinersInformation =
-                    {
-                        {Accounts[0].KeyPair.PublicKey.ToHex(), new MinerInRound()},
-                        {Accounts[1].KeyPair.PublicKey.ToHex(), new MinerInRound()},
-                        {Accounts[2].KeyPair.PublicKey.ToHex(), new MinerInRound()},
-                    }
+                    { Accounts[0].KeyPair.PublicKey.ToHex(), new MinerInRound() },
+                    { Accounts[1].KeyPair.PublicKey.ToHex(), new MinerInRound() },
+                    { Accounts[2].KeyPair.PublicKey.ToHex(), new MinerInRound() }
                 }
-            };
+            }
+        };
 
-            await mockedCrossChainStub.UpdateInformationFromCrossChain.SendAsync(new BytesValue
-            {
-                Value = headerInformation.ToByteString()
-            });
+        await mockedCrossChainStub.UpdateInformationFromCrossChain.SendAsync(new BytesValue
+        {
+            Value = headerInformation.ToByteString()
+        });
 
-            var minerList = await ConsensusStub.GetMainChainCurrentMinerList.CallAsync(new Empty());
-            minerList.Pubkeys.Select(m => m.ToHex())
-                .ShouldNotBe(headerInformation.Round.RealTimeMinersInformation.Keys);
-        }
+        var minerList = await ConsensusStub.GetMainChainCurrentMinerList.CallAsync(new Empty());
+        minerList.Pubkeys.Select(m => m.ToHex())
+            .ShouldNotBe(headerInformation.Round.RealTimeMinersInformation.Keys);
     }
 }

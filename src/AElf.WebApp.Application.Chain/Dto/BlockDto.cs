@@ -1,13 +1,12 @@
-namespace AElf.WebApp.Application.Chain.Dto
+namespace AElf.WebApp.Application.Chain.Dto;
+
+public class BlockDto
 {
-    public class BlockDto
-    {
-        public string BlockHash { get; set; }
-        
-        public BlockHeaderDto Header { get; set; }
-        
-        public BlockBodyDto Body { get; set; }
-        
-        public int BlockSize { get; set; }
-    }
+    public string BlockHash { get; set; }
+
+    public BlockHeaderDto Header { get; set; }
+
+    public BlockBodyDto Body { get; set; }
+
+    public int BlockSize { get; set; }
 }

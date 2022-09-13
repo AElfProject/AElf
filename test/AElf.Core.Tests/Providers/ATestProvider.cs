@@ -1,9 +1,8 @@
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.Providers
+namespace AElf.Providers;
+
+public class ATestProvider : ITestProvider, ISingletonDependency
 {
-    public class ATestProvider : ITestProvider, ISingletonDependency
-    {
-        public string Name => nameof(ATestProvider);
-    }
+    public string Name => nameof(ATestProvider);
 }

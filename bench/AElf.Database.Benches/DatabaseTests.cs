@@ -6,66 +6,62 @@ using Pro.NBench.xUnit.XunitExtensions;
 using Volo.Abp.Threading;
 using Xunit.Abstractions;
 
-namespace AElf.Database.Benches
+namespace AElf.Database.Benches;
+
+public class DatabaseTests : BenchBaseTest<DatabaseBenchAElfModule>
 {
-    public class DatabaseTests : BenchBaseTest<DatabaseBenchAElfModule>
+    private Counter _counter;
+    private DbContext _dbContext;
+
+    private IKeyValueDatabase<DbContext> _memoryDatabase;
+
+    private readonly byte[] _testBytes = "BenchmarkContextBenchmarkContextBenchmarkContextBenchmarkContext".GetBytes();
+
+    public DatabaseTests(ITestOutputHelper output)
     {
-        public DatabaseTests(ITestOutputHelper output)
-        {
-            Trace.Listeners.Clear();
-            Trace.Listeners.Add(new XunitTraceListener(output));
-            
-            SetTestOutputHelper(output);
-            
-            GetService<ILogger<DatabaseTests>>().LogWarning("Hello");
-        }
-        
+        Trace.Listeners.Clear();
+        Trace.Listeners.Add(new XunitTraceListener(output));
 
-        private Counter _counter;
+        SetTestOutputHelper(output);
 
-        private IKeyValueDatabase<DbContext> _memoryDatabase;
-        private DbContext _dbContext;
+        GetService<ILogger<DatabaseTests>>().LogWarning("Hello");
+    }
 
-        private byte[] _testBytes = "BenchmarkContextBenchmarkContextBenchmarkContextBenchmarkContext".GetBytes();
+    [PerfSetup]
+    public void Setup(BenchmarkContext context)
+    {
+        _counter = context.GetCounter("TestCounter");
 
-        [PerfSetup]
-        public void Setup(BenchmarkContext context)
-        {
-            _counter = context.GetCounter("TestCounter");
+        _dbContext = GetService<DbContext>();
 
-            _dbContext = this.GetService<DbContext>();
+        _memoryDatabase = _dbContext.Database;
+        _memoryDatabase.SetAsync("hello", _testBytes);
+    }
 
-            _memoryDatabase = _dbContext.Database;
-            _memoryDatabase.SetAsync("hello", _testBytes);
-            
-            
-        }
+    [NBenchFact]
+    [PerfBenchmark(NumberOfIterations = 3, RunMode = RunMode.Throughput,
+        RunTimeMilliseconds = 5000, TestMode = TestMode.Test)]
+    [CounterThroughputAssertion("TestCounter", MustBe.GreaterThan, 0d)]
+    public void Set()
+    {
+        AsyncHelper.RunSync(() => _memoryDatabase.SetAsync("hello", _testBytes));
+        _counter.Increment();
+    }
 
-        [NBenchFact]
-        [PerfBenchmark(NumberOfIterations = 3, RunMode = RunMode.Throughput,
-            RunTimeMilliseconds = 5000, TestMode = TestMode.Test)]
-        [CounterThroughputAssertion("TestCounter", MustBe.GreaterThan, 0d)]
-        public void Set()
-        {
-            AsyncHelper.RunSync(() => _memoryDatabase.SetAsync("hello", _testBytes));
-            _counter.Increment();
-        }
+    [NBenchFact]
+    [PerfBenchmark(NumberOfIterations = 3, RunMode = RunMode.Throughput,
+        RunTimeMilliseconds = 5000, TestMode = TestMode.Test)]
+    [CounterThroughputAssertion("TestCounter", MustBe.GreaterThan, 0d)]
+    public void Get()
+    {
+        AsyncHelper.RunSync(() => _memoryDatabase.GetAsync("hello"));
 
-        [NBenchFact]
-        [PerfBenchmark(NumberOfIterations = 3, RunMode = RunMode.Throughput,
-            RunTimeMilliseconds = 5000, TestMode = TestMode.Test)]
-        [CounterThroughputAssertion("TestCounter", MustBe.GreaterThan, 0d)]
-        public void Get()
-        {
-            AsyncHelper.RunSync(() => _memoryDatabase.GetAsync("hello"));
+        _counter.Increment();
+    }
 
-            _counter.Increment();
-        }
-
-        [PerfCleanup]
-        public void Cleanup()
-        {
-            // does nothing
-        }
+    [PerfCleanup]
+    public void Cleanup()
+    {
+        // does nothing
     }
 }

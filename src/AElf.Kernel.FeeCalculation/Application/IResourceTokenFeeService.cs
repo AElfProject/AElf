@@ -2,11 +2,10 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel.SmartContract;
 
-namespace AElf.Kernel.FeeCalculation.Application
+namespace AElf.Kernel.FeeCalculation.Application;
+
+public interface IResourceTokenFeeService
 {
-    public interface IResourceTokenFeeService
-    {
-        Task<Dictionary<string, long>> CalculateFeeAsync(ITransactionContext transactionContext,
-            IChainContext chainContext);
-    }
+    Task<Dictionary<string, long>> CalculateFeeAsync(ITransactionContext transactionContext,
+        IChainContext chainContext);
 }

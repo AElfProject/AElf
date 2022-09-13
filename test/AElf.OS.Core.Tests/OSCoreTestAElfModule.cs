@@ -12,61 +12,57 @@ using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Volo.Abp.Modularity;
 
-namespace AElf.OS
+namespace AElf.OS;
+
+[DependsOn(
+    typeof(OSTestBaseAElfModule)
+)]
+public class OSCoreTestAElfModule : AElfModule
 {
-    [DependsOn(
-        typeof(OSTestBaseAElfModule)
-    )]
-    public class OSCoreTestAElfModule : AElfModule
+    public override void ConfigureServices(ServiceConfigurationContext context)
     {
-        public override void ConfigureServices(ServiceConfigurationContext context)
+        Configure<ChainOptions>(o => { o.ChainId = ChainHelper.ConvertBase58ToChainId("AELF"); });
+
+        var ecKeyPair = CryptoHelper.GenerateKeyPair();
+        var nodeAccount = Address.FromPublicKey(ecKeyPair.PublicKey).ToBase58();
+        var nodeAccountPassword = "123";
+
+        Configure<AccountOptions>(o =>
         {
-            Configure<ChainOptions>(o => { o.ChainId = ChainHelper.ConvertBase58ToChainId("AELF"); });
+            o.NodeAccount = nodeAccount;
+            o.NodeAccountPassword = nodeAccountPassword;
+        });
 
-            var ecKeyPair = CryptoHelper.GenerateKeyPair();
-            var nodeAccount = Address.FromPublicKey(ecKeyPair.PublicKey).ToBase58();
-            var nodeAccountPassword = "123";
+        Configure<ConsensusOptions>(o =>
+        {
+            var miners = new List<string>();
+            for (var i = 0; i < 3; i++) miners.Add(CryptoHelper.GenerateKeyPair().PublicKey.ToHex());
 
-            Configure<AccountOptions>(o =>
-            {
-                o.NodeAccount = nodeAccount;
-                o.NodeAccountPassword = nodeAccountPassword;
-            });
+            o.InitialMinerList = miners;
+            o.MiningInterval = 4000;
+            o.PeriodSeconds = 604800;
+            o.MinerIncreaseInterval = 31536000;
+        });
 
-            Configure<ConsensusOptions>(o =>
-            {
-                var miners = new List<string>();
-                for (var i = 0; i < 3; i++)
-                {
-                    miners.Add(CryptoHelper.GenerateKeyPair().PublicKey.ToHex());
-                }
+        context.Services.AddTransient(o =>
+        {
+            var mockService = new Mock<IAccountService>();
+            mockService.Setup(a => a.SignAsync(It.IsAny<byte[]>())).Returns<byte[]>(data =>
+                Task.FromResult(CryptoHelper.SignWithPrivateKey(ecKeyPair.PrivateKey, data)));
 
-                o.InitialMinerList = miners;
-                o.MiningInterval = 4000;
-                o.PeriodSeconds = 604800;
-                o.MinerIncreaseInterval = 31536000;
-            });
+            mockService.Setup(a => a.GetPublicKeyAsync()).ReturnsAsync(ecKeyPair.PublicKey);
 
-            context.Services.AddTransient(o =>
-            {
-                var mockService = new Mock<IAccountService>();
-                mockService.Setup(a => a.SignAsync(It.IsAny<byte[]>())).Returns<byte[]>(data =>
-                    Task.FromResult(CryptoHelper.SignWithPrivateKey(ecKeyPair.PrivateKey, data)));
+            return mockService.Object;
+        });
 
-                mockService.Setup(a => a.GetPublicKeyAsync()).ReturnsAsync(ecKeyPair.PublicKey);
+        context.Services.AddSingleton(o => Mock.Of<IAElfNetworkServer>());
 
-                return mockService.Object;
-            });
-
-            context.Services.AddSingleton(o => Mock.Of<IAElfNetworkServer>());
-            
-            Configure<NetworkOptions>(o=>
-            {
-                o.PeerInvalidTransactionLimit = 5;
-                o.PeerInvalidTransactionTimeout = 1000;
-                o.PeerDiscoveryMaxNodesToKeep = 5;
-                o.MaxPeers = 5;
-            });
-        }
+        Configure<NetworkOptions>(o =>
+        {
+            o.PeerInvalidTransactionLimit = 5;
+            o.PeerInvalidTransactionTimeout = 1000;
+            o.PeerDiscoveryMaxNodesToKeep = 5;
+            o.MaxPeers = 5;
+        });
     }
 }

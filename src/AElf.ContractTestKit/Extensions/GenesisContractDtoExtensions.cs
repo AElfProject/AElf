@@ -1,18 +1,19 @@
 using AElf.Standards.ACS0;
 using Google.Protobuf;
 
-namespace AElf.ContractTestKit
+namespace AElf.ContractTestKit;
+
+public static class GenesisContractDtoExtensions
 {
-    public static class GenesisContractDtoExtensions
+    public static void Add(
+        this SystemContractDeploymentInput.Types.SystemTransactionMethodCallList systemTransactionMethodCallList,
+        string methodName,
+        IMessage input)
     {
-        public static void Add(this SystemContractDeploymentInput.Types.SystemTransactionMethodCallList systemTransactionMethodCallList, string methodName,
-            IMessage input)
+        systemTransactionMethodCallList.Value.Add(new SystemContractDeploymentInput.Types.SystemTransactionMethodCall
         {
-            systemTransactionMethodCallList.Value.Add(new SystemContractDeploymentInput.Types.SystemTransactionMethodCall()
-            {
-                MethodName = methodName,
-                Params = input?.ToByteString() ?? ByteString.Empty
-            });
-        }
+            MethodName = methodName,
+            Params = input?.ToByteString() ?? ByteString.Empty
+        });
     }
 }

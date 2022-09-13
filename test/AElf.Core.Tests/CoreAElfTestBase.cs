@@ -1,8 +1,7 @@
 using AElf.TestBase;
 
-namespace AElf
+namespace AElf;
+
+public class CoreAElfTestBase : AElfIntegratedTest<CoreAElfTestModule>
 {
-    public class CoreAElfTestBase : AElfIntegratedTest<CoreAElfTestModule>
-    {
-    }
 }

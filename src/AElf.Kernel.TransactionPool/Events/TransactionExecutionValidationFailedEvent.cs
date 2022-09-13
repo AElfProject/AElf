@@ -1,9 +1,8 @@
 using AElf.Types;
 
-namespace AElf.Kernel.TransactionPool
+namespace AElf.Kernel.TransactionPool;
+
+public class TransactionExecutionValidationFailedEvent
 {
-    public class TransactionExecutionValidationFailedEvent
-    {
-        public Hash TransactionId { get; set; }
-    }
+    public Hash TransactionId { get; set; }
 }

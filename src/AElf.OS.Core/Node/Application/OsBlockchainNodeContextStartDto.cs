@@ -3,21 +3,19 @@ using System.Collections.Generic;
 using AElf.Kernel;
 using AElf.Types;
 
-namespace AElf.OS.Node.Application
+namespace AElf.OS.Node.Application;
+
+public class OsBlockchainNodeContextStartDto
 {
-    public class OsBlockchainNodeContextStartDto
-    {
-        public int ChainId { get; set; }
+    public int ChainId { get; set; }
 
-        public List<GenesisSmartContractDto> InitializationSmartContracts { get; set; } =
-            new List<GenesisSmartContractDto>();
+    public List<GenesisSmartContractDto> InitializationSmartContracts { get; set; } = new();
 
-        public Transaction[] InitializationTransactions { get; set; }
+    public Transaction[] InitializationTransactions { get; set; }
 
-        public Type ZeroSmartContract { get; set; }
+    public Type ZeroSmartContract { get; set; }
 
-        public int SmartContractRunnerCategory { get; set; } = KernelConstants.DefaultRunnerCategory;
-        
-        public bool ContractDeploymentAuthorityRequired { get; set; }
-    }
+    public int SmartContractRunnerCategory { get; set; } = KernelConstants.DefaultRunnerCategory;
+
+    public bool ContractDeploymentAuthorityRequired { get; set; }
 }

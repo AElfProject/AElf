@@ -1,8 +1,7 @@
 using AElf.TestBase;
 
-namespace AElf.CrossChain
+namespace AElf.CrossChain;
+
+public class CrossChainCommunicationTestBase : AElfIntegratedTest<CrossChainCommunicationTestModule>
 {
-    public class CrossChainCommunicationTestBase : AElfIntegratedTest<CrossChainCommunicationTestModule>
-    {
-    }
 }

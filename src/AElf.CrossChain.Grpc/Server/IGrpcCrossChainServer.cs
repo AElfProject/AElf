@@ -1,11 +1,10 @@
 using System;
 using System.Threading.Tasks;
 
-namespace AElf.CrossChain.Grpc.Server
+namespace AElf.CrossChain.Grpc.Server;
+
+public interface IGrpcCrossChainServer : IDisposable
 {
-    public interface IGrpcCrossChainServer : IDisposable
-    {
-        Task StartAsync(int listeningPort);
-        bool IsStarted { get; }
-    }
+    bool IsStarted { get; }
+    Task StartAsync(int listeningPort);
 }

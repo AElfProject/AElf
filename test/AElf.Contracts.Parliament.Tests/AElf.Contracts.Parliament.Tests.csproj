@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>netcoreapp3.1</TargetFramework>
+        <TargetFramework>net6.0</TargetFramework>
         <RootNamespace>AElf.Contracts.Parliament</RootNamespace>
         <IsPackable>false</IsPackable>
     </PropertyGroup>
@@ -10,16 +10,16 @@
         <NoWarn>0436</NoWarn>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="coverlet.collector" Version="1.3.0" />
-        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.7.1" />
-        <PackageReference Include="Shouldly" Version="3.0.2" />
-        <PackageReference Include="xunit" Version="2.4.1" />
-        <PackageReference Include="xunit.runner.console" Version="2.4.1" />
-        <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3" />
+        <PackageReference Include="coverlet.collector" Version="1.3.0"/>
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.7.1"/>
+        <PackageReference Include="Shouldly" Version="4.0.3"/>
+        <PackageReference Include="xunit" Version="2.4.1"/>
+        <PackageReference Include="xunit.runner.console" Version="2.4.1"/>
+        <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3"/>
     </ItemGroup>
     <ItemGroup>
-        <ProjectReference Include="..\..\src\AElf.ContractTestKit\AElf.ContractTestKit.csproj" />
-        <ProjectReference Include="..\AElf.Contracts.TestBase\AElf.Contracts.TestBase.csproj" />
+        <ProjectReference Include="..\..\src\AElf.ContractTestKit\AElf.ContractTestKit.csproj"/>
+        <ProjectReference Include="..\AElf.Contracts.TestBase\AElf.Contracts.TestBase.csproj"/>
     </ItemGroup>
     <ItemGroup>
         <CommonMessage Include="..\..\protobuf\authority_info.proto">
@@ -85,6 +85,6 @@
             <Link>Protobuf\Proto\configuration_contract_impl.proto</Link>
         </ContractStub>
     </ItemGroup>
-    
-    <Import Project="..\..\test\AllContracts.props" />
+
+    <Import Project="..\..\test\AllContracts.props"/>
 </Project>

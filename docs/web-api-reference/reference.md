@@ -662,6 +662,11 @@ POST /api/net/peer
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|boolean|
+|**401**|Unauthorized||
+
+
+#### Security
+* Basic Authentication
 
 
 #### Consumes
@@ -705,7 +710,11 @@ DELETE /api/net/peer
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|boolean|
+|**401**|Unauthorized||
 
+
+#### Security
+* Basic Authentication
 
 #### Produces
 

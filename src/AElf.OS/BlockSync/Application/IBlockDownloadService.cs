@@ -3,16 +3,15 @@ using AElf.OS.BlockSync.Dto;
 using AElf.OS.BlockSync.Types;
 using AElf.Types;
 
-namespace AElf.OS.BlockSync.Application
+namespace AElf.OS.BlockSync.Application;
+
+public interface IBlockDownloadService
 {
-    public interface IBlockDownloadService
-    {
-        Task<DownloadBlocksResult> DownloadBlocksAsync(DownloadBlockDto downloadBlockDto);
+    Task<DownloadBlocksResult> DownloadBlocksAsync(DownloadBlockDto downloadBlockDto);
 
-        bool ValidateQueueAvailabilityBeforeDownload();
+    bool ValidateQueueAvailabilityBeforeDownload();
 
-        void RemoveDownloadJobTargetState(Hash targetBlockHash);
+    void RemoveDownloadJobTargetState(Hash targetBlockHash);
 
-        bool IsNotReachedDownloadTarget(Hash targetBlockHash);
-    }
+    bool IsNotReachedDownloadTarget(Hash targetBlockHash);
 }

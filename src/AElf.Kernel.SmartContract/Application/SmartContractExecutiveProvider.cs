@@ -7,56 +7,55 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.Kernel.SmartContract.Application
+namespace AElf.Kernel.SmartContract.Application;
+
+public interface ISmartContractExecutiveProvider
 {
-    public interface ISmartContractExecutiveProvider
+    IReadOnlyDictionary<Address, ConcurrentBag<IExecutive>> GetExecutivePools();
+    ConcurrentBag<IExecutive> GetPool(Address address);
+    bool TryGetValue(Address address, out ConcurrentBag<IExecutive> executiveBag);
+    bool TryRemove(Address address, out ConcurrentBag<IExecutive> executiveBag);
+}
+
+public class SmartContractExecutiveProvider : ISmartContractExecutiveProvider, ISingletonDependency
+{
+    private readonly ConcurrentDictionary<Address, ConcurrentBag<IExecutive>>
+        _executivePools = new();
+
+    private readonly IReadOnlyDictionary<Address, ConcurrentBag<IExecutive>> ExecutivePools;
+
+    public SmartContractExecutiveProvider()
     {
-        IReadOnlyDictionary<Address, ConcurrentBag<IExecutive>> GetExecutivePools();
-        ConcurrentBag<IExecutive> GetPool(Address address);
-        bool TryGetValue(Address address, out ConcurrentBag<IExecutive> executiveBag);
-        bool TryRemove(Address address, out ConcurrentBag<IExecutive> executiveBag);
+        ExecutivePools =
+            new ReadOnlyDictionary<Address, ConcurrentBag<IExecutive>>(_executivePools);
+        Logger = NullLogger<SmartContractExecutiveProvider>.Instance;
     }
 
-    public class SmartContractExecutiveProvider : ISmartContractExecutiveProvider, ISingletonDependency
+    public ILogger<SmartContractExecutiveProvider> Logger { get; set; }
+
+    public IReadOnlyDictionary<Address, ConcurrentBag<IExecutive>> GetExecutivePools()
     {
-        private readonly ConcurrentDictionary<Address, ConcurrentBag<IExecutive>>
-            _executivePools = new ConcurrentDictionary<Address, ConcurrentBag<IExecutive>>();
+        return ExecutivePools;
+    }
 
-        private readonly IReadOnlyDictionary<Address, ConcurrentBag<IExecutive>> ExecutivePools;
-
-        public ILogger<SmartContractExecutiveProvider> Logger { get; set; }
-
-        public SmartContractExecutiveProvider()
+    public ConcurrentBag<IExecutive> GetPool(Address address)
+    {
+        if (!_executivePools.TryGetValue(address, out var pool))
         {
-            ExecutivePools =
-                new ReadOnlyDictionary<Address, ConcurrentBag<IExecutive>>(_executivePools);
-            Logger = NullLogger<SmartContractExecutiveProvider>.Instance;
+            pool = new ConcurrentBag<IExecutive>();
+            _executivePools[address] = pool;
         }
 
-        public IReadOnlyDictionary<Address, ConcurrentBag<IExecutive>> GetExecutivePools()
-        {
-            return ExecutivePools;
-        }
+        return pool;
+    }
 
-        public ConcurrentBag<IExecutive> GetPool(Address address)
-        {
-            if (!_executivePools.TryGetValue(address, out var pool))
-            {
-                pool = new ConcurrentBag<IExecutive>();
-                _executivePools[address] = pool;
-            }
+    public bool TryGetValue(Address address, out ConcurrentBag<IExecutive> executiveBag)
+    {
+        return _executivePools.TryGetValue(address, out executiveBag);
+    }
 
-            return pool;
-        }
-
-        public bool TryGetValue(Address address, out ConcurrentBag<IExecutive> executiveBag)
-        {
-            return _executivePools.TryGetValue(address, out executiveBag);
-        }
-
-        public bool TryRemove(Address address, out ConcurrentBag<IExecutive> executiveBag)
-        {
-            return _executivePools.TryRemove(address, out executiveBag);
-        }
+    public bool TryRemove(Address address, out ConcurrentBag<IExecutive> executiveBag)
+    {
+        return _executivePools.TryRemove(address, out executiveBag);
     }
 }

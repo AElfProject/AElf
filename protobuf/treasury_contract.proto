@@ -48,6 +48,9 @@ service TreasuryContract {
     rpc RecordMinerReplacement (RecordMinerReplacementInput) returns (google.protobuf.Empty) {
     }
     
+    rpc SetProfitsReceiver (SetProfitsReceiverInput) returns (google.protobuf.Empty) {
+    }
+
     // Used to estimate the revenue weight of 10000 tokens voted by users.
     rpc GetWelfareRewardAmountSample (GetWelfareRewardAmountSampleInput) returns (GetWelfareRewardAmountSampleOutput) {
         option (aelf.is_view) = true;
@@ -70,6 +73,10 @@ service TreasuryContract {
     
     // Query the governance authority information.
     rpc GetTreasuryController (google.protobuf.Empty) returns (AuthorityInfo) {
+        option (aelf.is_view) = true;
+    }
+    
+    rpc GetProfitsReceiver (google.protobuf.StringValue) returns (aelf.Address) {
         option (aelf.is_view) = true;
     }
 }
@@ -95,21 +102,21 @@ message MinerReElectionInformation {
 }
 
 message DividendPoolWeightSetting {
-    // The dividend weight of citizen welfare.
+    // The dividend weight for citizen.
     int32 citizen_welfare_weight = 1;
-    // The dividend weight of candidate nodes.
+    // The dividend weight for backup nodes.
     int32 backup_subsidy_weight = 2;
-    // The dividend weight of miner.
+    // The dividend weight for miners.
     int32 miner_reward_weight = 3;
 }
 
 message MinerRewardWeightSetting {
-    // The dividend weight of the basic income of the miner.
+    // The dividend weight for all current miners.
     int32 basic_miner_reward_weight = 1;
-    // The dividend weight of the vote of the miner.
-    int32 votes_weight_reward_weight = 2;
-    // The dividend weight of the reappointment of the miner.
-    int32 re_election_reward_weight = 3;
+    // The dividend weight for new miners.
+    int32 welcome_reward_weight = 2;
+    // The dividend weight for the flexible scheme.
+    int32 flexible_reward_weight = 3;
 }
 
 message SchemeProportionInfo {
@@ -132,13 +139,23 @@ message MinerRewardWeightProportion {
     // The proportion of the basic income of the miner.
     SchemeProportionInfo basic_miner_reward_proportion_info = 1;
     // The proportion of the vote of the miner.
-    SchemeProportionInfo votes_weight_reward_proportion_info = 2;
+    SchemeProportionInfo welcome_reward_proportion_info = 2;
     // The proportion of the reappointment of the miner.
-    SchemeProportionInfo re_election_reward_proportion_info = 3;
+    SchemeProportionInfo flexible_reward_proportion_info = 3;
 }
 
 message RecordMinerReplacementInput {
     string old_pubkey = 1;
     string new_pubkey = 2;
     int64 current_term_number = 3;
+    bool is_old_pubkey_evil = 4;
+}
+
+message SetProfitsReceiverInput {
+    string pubkey = 1;
+    aelf.Address profits_receiver_address = 2;
+}
+
+message StringList {
+    repeated string value = 1;
 }

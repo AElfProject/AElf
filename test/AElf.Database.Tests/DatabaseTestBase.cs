@@ -1,8 +1,7 @@
 using AElf.TestBase;
 
-namespace AElf.Database.Tests
+namespace AElf.Database.Tests;
+
+public abstract class DatabaseTestBase : AElfIntegratedTest<TestsDatabaseAElfModule>
 {
-    public abstract class DatabaseTestBase : AElfIntegratedTest<TestsDatabaseAElfModule>
-    {
-    }
 }

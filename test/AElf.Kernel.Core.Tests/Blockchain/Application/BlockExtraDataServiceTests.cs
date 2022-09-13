@@ -1,53 +1,49 @@
 using System.Linq;
-using System.Threading.Tasks;
-using Google.Protobuf;
-using Shouldly;
-using Xunit;
 
-namespace AElf.Kernel.Blockchain.Application
+namespace AElf.Kernel.Blockchain.Application;
+
+[Trait("Category", AElfMinerModule)]
+public sealed class BlockExtraDataServiceTests : AElfMinerTestBase
 {
-    public class BlockExtraDataServiceTests: AElfMinerTestBase
+    private readonly IBlockExtraDataService _blockExtraDataService;
+
+    public BlockExtraDataServiceTests()
     {
-        private readonly IBlockExtraDataService _blockExtraDataService;
+        _blockExtraDataService = GetRequiredService<IBlockExtraDataService>();
+    }
 
-        public BlockExtraDataServiceTests()
+    [Fact]
+    public void GetBlockExtraData_Test()
+    {
+        var blockHeader = new BlockHeader
         {
-            _blockExtraDataService = GetRequiredService<IBlockExtraDataService>();
-        }
+            Height = 1, // no extra data in genesis block
+            ExtraData = { { "ExtraDataKey", ByteString.CopyFromUtf8("test1") } }
+        };
 
-        [Fact]
-        public void GetBlockExtraData_Test()
+        var queryResult = _blockExtraDataService.GetExtraDataFromBlockHeader("ExtraDataKey", blockHeader);
+        queryResult.ShouldBeNull();
+
+        blockHeader.Height = 2;
+        queryResult = _blockExtraDataService.GetExtraDataFromBlockHeader("ExtraDataKey", blockHeader);
+        queryResult.ShouldBe(blockHeader.ExtraData.First().Value);
+
+        var queryResult1 = _blockExtraDataService.GetExtraDataFromBlockHeader("NotExistExtraDataKey", blockHeader);
+        queryResult1.ShouldBeNull();
+    }
+
+    [Fact]
+    public async Task FillBlockExtraData_Test()
+    {
+        var blockHeader = new BlockHeader
         {
-            var blockHeader = new BlockHeader()
-            {
-                Height = 1, // no extra data in genesis block
-                ExtraData = { {"ExtraDataKey", ByteString.CopyFromUtf8("test1")} }
-            };
-            
-            var queryResult = _blockExtraDataService.GetExtraDataFromBlockHeader("ExtraDataKey", blockHeader);
-            queryResult.ShouldBeNull();
+            Height = 100
+        };
+        await _blockExtraDataService.FillBlockExtraDataAsync(blockHeader);
+        blockHeader.ExtraData.Count.ShouldBe(0);
 
-            blockHeader.Height = 2;
-            queryResult = _blockExtraDataService.GetExtraDataFromBlockHeader("ExtraDataKey", blockHeader);
-            queryResult.ShouldBe(blockHeader.ExtraData.First().Value);
-            
-            var queryResult1 = _blockExtraDataService.GetExtraDataFromBlockHeader("NotExistExtraDataKey", blockHeader);
-            queryResult1.ShouldBeNull();
-        }
-
-        [Fact]
-        public async Task FillBlockExtraData_Test()
-        {
-            var blockHeader = new BlockHeader()
-            {
-                Height = 100,
-            };
-            await _blockExtraDataService.FillBlockExtraDataAsync(blockHeader);
-            blockHeader.ExtraData.Count.ShouldBe(0);
-
-            blockHeader.Height = 1;
-            await _blockExtraDataService.FillBlockExtraDataAsync(blockHeader);
-            blockHeader.ExtraData.Count.ShouldBe(1);
-        }
+        blockHeader.Height = 1;
+        await _blockExtraDataService.FillBlockExtraDataAsync(blockHeader);
+        blockHeader.ExtraData.Count.ShouldBe(1);
     }
 }

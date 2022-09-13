@@ -7,62 +7,60 @@ using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
+namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee;
+
+internal class SymbolListToPayTxFeeUpdatedLogEventProcessor : LogEventProcessorBase, IBlockAcceptedLogEventProcessor
 {
-    internal class SymbolListToPayTxFeeUpdatedLogEventProcessor : LogEventProcessorBase, IBlockAcceptedLogEventProcessor
+    private readonly ISmartContractAddressService _smartContractAddressService;
+    private readonly ITransactionSizeFeeSymbolsProvider _transactionSizeFeeSymbolsProvider;
+
+    public SymbolListToPayTxFeeUpdatedLogEventProcessor(ISmartContractAddressService smartContractAddressService,
+        ITransactionSizeFeeSymbolsProvider transactionSizeFeeSymbolsProvider)
     {
-        private readonly ISmartContractAddressService _smartContractAddressService;
-        private readonly ITransactionSizeFeeSymbolsProvider _transactionSizeFeeSymbolsProvider;
-        private ILogger<SymbolListToPayTxFeeUpdatedLogEventProcessor> Logger { get; set; }
+        _smartContractAddressService = smartContractAddressService;
+        _transactionSizeFeeSymbolsProvider = transactionSizeFeeSymbolsProvider;
+        Logger = NullLogger<SymbolListToPayTxFeeUpdatedLogEventProcessor>.Instance;
+    }
 
-        public SymbolListToPayTxFeeUpdatedLogEventProcessor(ISmartContractAddressService smartContractAddressService,
-            ITransactionSizeFeeSymbolsProvider transactionSizeFeeSymbolsProvider)
-        {
-            _smartContractAddressService = smartContractAddressService;
-            _transactionSizeFeeSymbolsProvider = transactionSizeFeeSymbolsProvider;
-            Logger = NullLogger<SymbolListToPayTxFeeUpdatedLogEventProcessor>.Instance;
-        }
-        
-        public override async Task<InterestedEvent> GetInterestedEventAsync(IChainContext chainContext)
-        {
-            if (InterestedEvent != null)
-                return InterestedEvent;
+    private ILogger<SymbolListToPayTxFeeUpdatedLogEventProcessor> Logger { get; }
 
-            var smartContractAddressDto = await _smartContractAddressService.GetSmartContractAddressAsync(
-                chainContext, TokenSmartContractAddressNameProvider.StringName);
-            if (smartContractAddressDto == null) return null;
-            
-            var interestedEvent =
-                GetInterestedEvent<ExtraTokenListModified>(smartContractAddressDto.SmartContractAddress.Address);
-            if (!smartContractAddressDto.Irreversible) return interestedEvent;
-            InterestedEvent = interestedEvent;
-
+    public override async Task<InterestedEvent> GetInterestedEventAsync(IChainContext chainContext)
+    {
+        if (InterestedEvent != null)
             return InterestedEvent;
-        }
 
-        protected override async Task ProcessLogEventAsync(Block block, LogEvent logEvent)
+        var smartContractAddressDto = await _smartContractAddressService.GetSmartContractAddressAsync(
+            chainContext, TokenSmartContractAddressNameProvider.StringName);
+        if (smartContractAddressDto == null) return null;
+
+        var interestedEvent =
+            GetInterestedEvent<ExtraTokenListModified>(smartContractAddressDto.SmartContractAddress.Address);
+        if (!smartContractAddressDto.Irreversible) return interestedEvent;
+        InterestedEvent = interestedEvent;
+
+        return InterestedEvent;
+    }
+
+    protected override async Task ProcessLogEventAsync(Block block, LogEvent logEvent)
+    {
+        var eventData = new ExtraTokenListModified();
+        eventData.MergeFrom(logEvent);
+        if (eventData.SymbolListToPayTxSizeFee == null)
+            return;
+
+        var transactionSizeFeeSymbols = new TransactionSizeFeeSymbols();
+        foreach (var symbolToPayTxSizeFee in eventData.SymbolListToPayTxSizeFee.SymbolsToPayTxSizeFee)
+            transactionSizeFeeSymbols.TransactionSizeFeeSymbolList.Add(new TransactionSizeFeeSymbol
+            {
+                TokenSymbol = symbolToPayTxSizeFee.TokenSymbol,
+                AddedTokenWeight = symbolToPayTxSizeFee.AddedTokenWeight,
+                BaseTokenWeight = symbolToPayTxSizeFee.BaseTokenWeight
+            });
+
+        await _transactionSizeFeeSymbolsProvider.SetTransactionSizeFeeSymbolsAsync(new BlockIndex
         {
-            var eventData = new ExtraTokenListModified();
-            eventData.MergeFrom(logEvent);
-            if (eventData.SymbolListToPayTxSizeFee == null)
-                return;
-
-            var transactionSizeFeeSymbols = new TransactionSizeFeeSymbols();
-            foreach (var symbolToPayTxSizeFee in eventData.SymbolListToPayTxSizeFee.SymbolsToPayTxSizeFee)
-            {
-                transactionSizeFeeSymbols.TransactionSizeFeeSymbolList.Add(new TransactionSizeFeeSymbol
-                {
-                    TokenSymbol = symbolToPayTxSizeFee.TokenSymbol,
-                    AddedTokenWeight = symbolToPayTxSizeFee.AddedTokenWeight,
-                    BaseTokenWeight = symbolToPayTxSizeFee.BaseTokenWeight
-                });
-            }
-
-            await _transactionSizeFeeSymbolsProvider.SetTransactionSizeFeeSymbolsAsync(new BlockIndex
-            {
-                BlockHash = block.GetHash(),
-                BlockHeight = block.Height
-            }, transactionSizeFeeSymbols);
-        }
+            BlockHash = block.GetHash(),
+            BlockHeight = block.Height
+        }, transactionSizeFeeSymbols);
     }
 }
