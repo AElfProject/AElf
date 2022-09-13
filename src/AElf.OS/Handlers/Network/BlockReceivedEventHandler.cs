@@ -11,55 +11,52 @@ using Microsoft.Extensions.Options;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus;
 
-namespace AElf.OS.Handlers
+namespace AElf.OS.Handlers;
+
+public class BlockReceivedEventHandler : ILocalEventHandler<BlockReceivedEvent>, ITransientDependency
 {
-    public class BlockReceivedEventHandler : ILocalEventHandler<BlockReceivedEvent>, ITransientDependency
+    private readonly IBlockchainService _blockchainService;
+    private readonly BlockSyncOptions _blockSyncOptions;
+    private readonly IBlockSyncService _blockSyncService;
+    private readonly IBlockSyncValidationService _blockSyncValidationService;
+
+    public BlockReceivedEventHandler(IBlockSyncService blockSyncService,
+        IBlockSyncValidationService blockSyncValidationService,
+        IBlockchainService blockchainService,
+        IOptionsSnapshot<BlockSyncOptions> blockSyncOptions)
     {
-        private readonly IBlockSyncService _blockSyncService;
-        private readonly IBlockSyncValidationService _blockSyncValidationService;
-        private readonly IBlockchainService _blockchainService;
-        private readonly BlockSyncOptions _blockSyncOptions;
+        _blockSyncService = blockSyncService;
+        _blockSyncValidationService = blockSyncValidationService;
+        _blockchainService = blockchainService;
+        _blockSyncOptions = blockSyncOptions.Value;
 
-        public ILogger<BlockReceivedEventHandler> Logger { get; set; }
+        Logger = NullLogger<BlockReceivedEventHandler>.Instance;
+    }
 
-        public BlockReceivedEventHandler(IBlockSyncService blockSyncService,
-            IBlockSyncValidationService blockSyncValidationService,
-            IBlockchainService blockchainService,
-            IOptionsSnapshot<BlockSyncOptions> blockSyncOptions)
-        {
-            _blockSyncService = blockSyncService;
-            _blockSyncValidationService = blockSyncValidationService;
-            _blockchainService = blockchainService;
-            _blockSyncOptions = blockSyncOptions.Value;
+    public ILogger<BlockReceivedEventHandler> Logger { get; set; }
 
-            Logger = NullLogger<BlockReceivedEventHandler>.Instance;
-        }
+    public Task HandleEventAsync(BlockReceivedEvent eventData)
+    {
+        var _ = ProcessNewBlockAsync(eventData.BlockWithTransactions, eventData.SenderPubkey);
+        return Task.CompletedTask;
+    }
 
-        public Task HandleEventAsync(BlockReceivedEvent eventData)
-        {
-            var _ = ProcessNewBlockAsync(eventData.BlockWithTransactions, eventData.SenderPubkey);
-            return Task.CompletedTask;
-        }
+    private async Task ProcessNewBlockAsync(BlockWithTransactions blockWithTransactions, string senderPubkey)
+    {
+        var chain = await _blockchainService.GetChainAsync();
 
-        private async Task ProcessNewBlockAsync(BlockWithTransactions blockWithTransactions, string senderPubkey)
-        {
-            var chain = await _blockchainService.GetChainAsync();
+        Logger.LogDebug(
+            $"About to process new block: {blockWithTransactions.Header.GetHash()} of height {blockWithTransactions.Height}");
 
-            Logger.LogDebug(
-                $"About to process new block: {blockWithTransactions.Header.GetHash()} of height {blockWithTransactions.Height}");
-
-            if (!await _blockSyncValidationService.ValidateBlockBeforeSyncAsync(chain, blockWithTransactions,
+        if (!await _blockSyncValidationService.ValidateBlockBeforeSyncAsync(chain, blockWithTransactions,
                 senderPubkey))
-            {
-                return;
-            }
+            return;
 
-            await _blockSyncService.SyncByBlockAsync(chain, new SyncBlockDto
-            {
-                BlockWithTransactions = blockWithTransactions,
-                BatchRequestBlockCount = _blockSyncOptions.MaxBatchRequestBlockCount,
-                SuggestedPeerPubkey = senderPubkey
-            });
-        }
+        await _blockSyncService.SyncByBlockAsync(chain, new SyncBlockDto
+        {
+            BlockWithTransactions = blockWithTransactions,
+            BatchRequestBlockCount = _blockSyncOptions.MaxBatchRequestBlockCount,
+            SuggestedPeerPubkey = senderPubkey
+        });
     }
 }

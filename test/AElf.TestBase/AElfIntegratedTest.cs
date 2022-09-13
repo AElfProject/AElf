@@ -1,27 +1,25 @@
 using MartinCostello.Logging.XUnit;
 using Volo.Abp;
-using Volo.Abp.Testing;
 using Volo.Abp.Modularity;
+using Volo.Abp.Testing;
 using Xunit.Abstractions;
 
-namespace AElf.TestBase
+namespace AElf.TestBase;
+
+public class AElfIntegratedTest<TModule> : AbpIntegratedTest<TModule>
+    where TModule : IAbpModule
 {
-    public class AElfIntegratedTest<TModule> : AbpIntegratedTest<TModule>
-        where TModule : IAbpModule
+    protected override void SetAbpApplicationCreationOptions(AbpApplicationCreationOptions options)
     {
-        protected override void SetAbpApplicationCreationOptions(AbpApplicationCreationOptions options)
-        {
-            options.UseAutofac();
-        }
-
-
-        protected void SetTestOutputHelper(ITestOutputHelper testOutputHelper)
-        {
-            GetRequiredService<ITestOutputHelperAccessor>().OutputHelper = testOutputHelper;
-        }
+        options.UseAutofac();
     }
 
-    public class AElfIntegratedTest : AElfIntegratedTest<TestBaseAElfModule>
+    protected void SetTestOutputHelper(ITestOutputHelper testOutputHelper)
     {
+        GetRequiredService<ITestOutputHelperAccessor>().OutputHelper = testOutputHelper;
     }
+}
+
+public class AElfIntegratedTest : AElfIntegratedTest<TestBaseAElfModule>
+{
 }

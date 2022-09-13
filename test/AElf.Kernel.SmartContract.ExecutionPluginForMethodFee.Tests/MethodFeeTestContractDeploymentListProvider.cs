@@ -5,17 +5,16 @@ using AElf.Kernel.Token;
 using AElf.Types;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
+namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests;
+
+public class MethodFeeTestContractDeploymentListProvider : IContractDeploymentListProvider, ITransientDependency
 {
-    public class MethodFeeTestContractDeploymentListProvider : IContractDeploymentListProvider, ITransientDependency
+    public List<Hash> GetDeployContractNameList()
     {
-        public List<Hash> GetDeployContractNameList()
+        return new List<Hash>
         {
-            return new List<Hash>
-            {
-                ConsensusSmartContractAddressNameProvider.Name,
-                TokenSmartContractAddressNameProvider.Name
-            };
-        }
+            ConsensusSmartContractAddressNameProvider.Name,
+            TokenSmartContractAddressNameProvider.Name
+        };
     }
 }

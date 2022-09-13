@@ -1,0 +1,94 @@
+syntax = "proto3";
+
+package acs721;
+
+import public "aelf/options.proto";
+import public "google/protobuf/empty.proto";
+import public "google/protobuf/wrappers.proto";
+import "aelf/core.proto";
+import "authority_info.proto";
+
+option (aelf.identity) = "acs721";
+option csharp_namespace = "AElf.Standards.ACS721";
+
+service StandardNonFungibleTokenContract {
+
+    // Actions
+
+    rpc SafeTransferFrom (TransferFromInput) returns (google.protobuf.BoolValue) {
+    }
+
+    rpc TransferFrom (TransferFromInput) returns (google.protobuf.BoolValue) {
+    }
+
+    rpc Approve (ApproveInput) returns (google.protobuf.BoolValue) {
+    }
+
+    rpc SetApprovalForAll (SetApprovalForAllInput) returns (google.protobuf.BoolValue) {
+    }
+
+    // Views
+
+    rpc BalanceOf (aelf.Address) returns (google.protobuf.Int64Value) {
+        option (aelf.is_view) = true;
+    }
+
+    rpc OwnerOf (google.protobuf.Int64Value) returns (aelf.Address) {
+        option (aelf.is_view) = true;
+    }
+
+    rpc GetApproved (google.protobuf.Int64Value) returns (aelf.Address) {
+        option (aelf.is_view) = true;
+    }
+
+    rpc IsApprovedForAll (IsApprovedForAllInput) returns (google.protobuf.BoolValue) {
+        option (aelf.is_view) = true;
+    }
+}
+
+// Inputs
+
+message TransferFromInput {
+    aelf.Address from = 1;
+    aelf.Address to = 2;
+    int64 token_id = 3;
+    bytes data = 4;
+}
+
+message ApproveInput {
+    aelf.Address approved = 1;
+    int64 value = 4;
+}
+
+message SetApprovalForAllInput {
+    aelf.Address operator = 1;
+    bool approved = 2;
+}
+
+message IsApprovedForAllInput {
+    aelf.Address owner = 1;
+    aelf.Address operator = 2;
+}
+
+// Events
+
+message Transfer {
+    option (aelf.is_event) = true;
+    aelf.Address from = 1 [(aelf.is_indexed) = true];
+    aelf.Address to = 2 [(aelf.is_indexed) = true];
+    int64 token_id = 3 [(aelf.is_indexed) = true];
+}
+
+message Approval {
+    option (aelf.is_event) = true;
+    aelf.Address owner = 1 [(aelf.is_indexed) = true];
+    aelf.Address approved = 2 [(aelf.is_indexed) = true];
+    int64 token_id = 3 [(aelf.is_indexed) = true];
+}
+
+message ApprovalForAll {
+    option (aelf.is_event) = true;
+    aelf.Address owner = 1 [(aelf.is_indexed) = true];
+    aelf.Address operator = 2 [(aelf.is_indexed) = true];
+    bool approved = 3;
+}

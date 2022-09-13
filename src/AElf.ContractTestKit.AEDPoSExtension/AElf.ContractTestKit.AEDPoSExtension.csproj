@@ -1,15 +1,18 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>netcoreapp3.1</TargetFramework>
+        <TargetFramework>net6.0</TargetFramework>
+        <PackageId>AElf.ContractTestKit.AEDPoSExtension</PackageId>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Description>Contract testing kit using AEDPoS Consensus.</Description>
         <!--Conflict with genesis contract-->
         <NoWarn>0436</NoWarn>
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\AElf.ContractTestKit\AElf.ContractTestKit.csproj" />
-        <ProjectReference Include="..\AElf.EconomicSystem\AElf.EconomicSystem.csproj" />
-        <ProjectReference Include="..\AElf.GovernmentSystem\AElf.GovernmentSystem.csproj" />
+        <ProjectReference Include="..\AElf.ContractTestKit\AElf.ContractTestKit.csproj"/>
+        <ProjectReference Include="..\AElf.EconomicSystem\AElf.EconomicSystem.csproj"/>
+        <ProjectReference Include="..\AElf.GovernmentSystem\AElf.GovernmentSystem.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
@@ -17,7 +20,7 @@
             <Link>Protobuf\Proto\authority_info.proto</Link>
         </CommonMessage>
     </ItemGroup>
-    
+
     <ItemGroup>
         <ContractStub Include="..\..\protobuf\acs0.proto">
             <Link>Protobuf\Proto\acs0.proto</Link>
@@ -46,10 +49,10 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="xunit.extensibility.core" Version="2.4.1" />
-      <PackageReference Include="xunit.extensibility.execution" Version="2.4.1" />
+        <PackageReference Include="xunit.extensibility.core" Version="2.4.1"/>
+        <PackageReference Include="xunit.extensibility.execution" Version="2.4.1"/>
     </ItemGroup>
 
-    <Import Project="..\..\test\AllContracts.props" />
+    <Import Project="..\..\test\AllContracts.props"/>
 
 </Project>

@@ -1,9 +1,8 @@
 using AElf.Types;
 
-namespace AElf.Kernel.SmartContract
+namespace AElf.Kernel.SmartContract;
+
+public interface IStateProvider
 {
-    public interface IStateProvider
-    {
-        byte[] Get(StatePath path);
-    }
+    byte[] Get(StatePath path);
 }

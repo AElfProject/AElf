@@ -1,8 +1,7 @@
-namespace AElf.CSharp.CodeOps.Validators.Whitelist
+namespace AElf.CSharp.CodeOps.Validators.Whitelist;
+
+public enum Trust
 {
-    public enum Trust
-    {
-        Full,
-        Partial
-    }
+    Full,
+    Partial
 }

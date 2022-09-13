@@ -1,54 +1,49 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
-using AElf.Types;
-using Google.Protobuf.WellKnownTypes;
-using Shouldly;
-using Xunit;
 
-namespace AElf.Kernel.Blockchain.Application
+namespace AElf.Kernel.Blockchain.Application;
+
+[Trait("Category", AElfBlockchainModule)]
+public sealed class FullBlockchainServiceCreateChainTests : AElfKernelTestBase
 {
-    public class FullBlockchainServiceCreateChainTests: AElfKernelTestBase
+    private readonly FullBlockchainService _fullBlockchainService;
+    private readonly KernelTestHelper _kernelTestHelper;
+
+    public FullBlockchainServiceCreateChainTests()
     {
-        private readonly FullBlockchainService _fullBlockchainService;
-        private readonly KernelTestHelper _kernelTestHelper;
+        _fullBlockchainService = GetRequiredService<FullBlockchainService>();
+        _kernelTestHelper = GetRequiredService<KernelTestHelper>();
+    }
 
-        public FullBlockchainServiceCreateChainTests()
+    [Fact]
+    public async Task Create_Chain_Success()
+    {
+        var transactions = new List<Transaction>
         {
-            _fullBlockchainService = GetRequiredService<FullBlockchainService>();
-            _kernelTestHelper = GetRequiredService<KernelTestHelper>();
-        }
-        
-        [Fact]
-        public async Task Create_Chain_Success()
-        {
-            var transactions = new List<Transaction>
-            {
-                _kernelTestHelper.GenerateTransaction(),
-                _kernelTestHelper.GenerateTransaction()
-            };
-                
-            var block = _kernelTestHelper.GenerateBlock(0, Hash.Empty, transactions);
+            _kernelTestHelper.GenerateTransaction(),
+            _kernelTestHelper.GenerateTransaction()
+        };
 
-            var chain = await _fullBlockchainService.GetChainAsync();
-            chain.ShouldBeNull();
-            
-            var existBlock = await _fullBlockchainService.GetBlockByHashAsync(block.GetHash());
-            existBlock.ShouldBeNull();
+        var block = _kernelTestHelper.GenerateBlock(0, Hash.Empty, transactions);
 
-            var createChainResult = await _fullBlockchainService.CreateChainAsync(block, transactions);
+        var chain = await _fullBlockchainService.GetChainAsync();
+        chain.ShouldBeNull();
 
-            chain = await _fullBlockchainService.GetChainAsync();
-            chain.ShouldNotBeNull();
-            chain.ShouldBe(createChainResult);
+        var existBlock = await _fullBlockchainService.GetBlockByHashAsync(block.GetHash());
+        existBlock.ShouldBeNull();
 
-            existBlock = await _fullBlockchainService.GetBlockByHashAsync(block.GetHash());
-            existBlock.GetHash().ShouldBe(block.GetHash());
+        var createChainResult = await _fullBlockchainService.CreateChainAsync(block, transactions);
 
-            var existTransactions = await _fullBlockchainService.GetTransactionsAsync(transactions.Select(t => t.GetHash()));
-            existTransactions.ShouldContain(transactions[0]);
-            existTransactions.ShouldContain(transactions[1]);
-        }
+        chain = await _fullBlockchainService.GetChainAsync();
+        chain.ShouldNotBeNull();
+        chain.ShouldBe(createChainResult);
+
+        existBlock = await _fullBlockchainService.GetBlockByHashAsync(block.GetHash());
+        existBlock.GetHash().ShouldBe(block.GetHash());
+
+        var existTransactions =
+            await _fullBlockchainService.GetTransactionsAsync(transactions.Select(t => t.GetHash()));
+        existTransactions.ShouldContain(transactions[0]);
+        existTransactions.ShouldContain(transactions[1]);
     }
 }

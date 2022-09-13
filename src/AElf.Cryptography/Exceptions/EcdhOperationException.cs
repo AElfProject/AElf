@@ -1,11 +1,10 @@
 using System;
 
-namespace AElf.Cryptography.Exceptions
+namespace AElf.Cryptography.Exceptions;
+
+public class EcdhOperationException : Exception
 {
-    public class EcdhOperationException : Exception
+    public EcdhOperationException(string message) : base(message)
     {
-        public EcdhOperationException(string message) : base(message)
-        {
-        }
     }
 }

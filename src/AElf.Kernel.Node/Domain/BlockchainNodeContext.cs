@@ -1,9 +1,6 @@
-using AElf.Kernel.TransactionPool.Application;
+namespace AElf.Kernel.Node.Domain;
 
-namespace AElf.Kernel.Node.Domain
+public class BlockchainNodeContext
 {
-    public class BlockchainNodeContext
-    {        
-        public int ChainId { get; set; }
-    }
+    public int ChainId { get; set; }
 }

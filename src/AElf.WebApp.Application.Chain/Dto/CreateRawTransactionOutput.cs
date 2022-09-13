@@ -1,7 +1,6 @@
-namespace AElf.WebApp.Application.Chain.Dto
+namespace AElf.WebApp.Application.Chain.Dto;
+
+public class CreateRawTransactionOutput
 {
-    public class CreateRawTransactionOutput
-    {
-        public string RawTransaction { get; set; }
-    }
+    public string RawTransaction { get; set; }
 }

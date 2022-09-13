@@ -1,10 +1,9 @@
-namespace AElf.OS.Account.Infrastructure
+namespace AElf.OS.Account.Infrastructure;
+
+public enum AccountError
 {
-    public enum AccountError
-    {
-        None = 0,
-        AccountAlreadyUnlocked = 1,
-        WrongPassword = 2,
-        AccountFileNotFound = 3
-    }
+    None = 0,
+    AccountAlreadyUnlocked = 1,
+    WrongPassword = 2,
+    AccountFileNotFound = 3
 }

@@ -1,9 +1,8 @@
-namespace AElf.WebApp.Application.Chain.Dto
+namespace AElf.WebApp.Application.Chain.Dto;
+
+public class TaskQueueInfoDto
 {
-    public class TaskQueueInfoDto
-    {
-        public string Name { get; set; }
-        
-        public int Size { get; set; }
-    }
+    public string Name { get; set; }
+
+    public int Size { get; set; }
 }

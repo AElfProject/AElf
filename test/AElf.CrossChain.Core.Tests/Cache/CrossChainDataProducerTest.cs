@@ -1,76 +1,74 @@
 using System;
 using System.Collections.Generic;
-using AElf.Standards.ACS7;
 using AElf.CrossChain.Cache.Application;
 using AElf.CrossChain.Cache.Infrastructure;
-using AElf.Types;
+using AElf.Standards.ACS7;
 using Xunit;
 
-namespace AElf.CrossChain.Cache
+namespace AElf.CrossChain.Cache;
+
+public class CrossChainDataProducerTest : CrossChainTestBase
 {
-    public class CrossChainDataProducerTest : CrossChainTestBase
+    private readonly IBlockCacheEntityProducer _blockCacheEntityProducer;
+
+    public CrossChainDataProducerTest()
     {
-        private readonly IBlockCacheEntityProducer _blockCacheEntityProducer;
+        _blockCacheEntityProducer = GetRequiredService<IBlockCacheEntityProducer>();
+    }
 
-        public CrossChainDataProducerTest()
-        {
-            _blockCacheEntityProducer = GetRequiredService<IBlockCacheEntityProducer>();
-        }
-        
-        [Fact]
-        public void TryAdd_Null()
-        {
-            Assert.Throws<ArgumentNullException>(() => _blockCacheEntityProducer.TryAddBlockCacheEntity(null));
-        }
+    [Fact]
+    public void TryAdd_Null()
+    {
+        Assert.Throws<ArgumentNullException>(() => _blockCacheEntityProducer.TryAddBlockCacheEntity(null));
+    }
 
-        [Fact]
-        public void TryAdd_NotExistChain()
+    [Fact]
+    public void TryAdd_NotExistChain()
+    {
+        var chainId = 123;
+        var res = _blockCacheEntityProducer.TryAddBlockCacheEntity(new SideChainBlockData
         {
-            int chainId = 123;
-            var res = _blockCacheEntityProducer.TryAddBlockCacheEntity(new SideChainBlockData
-            {
-                ChainId = chainId
-            });
-            Assert.False(res);
-        }
-        
-        [Fact]
-        public void TryAdd_ExistChain_WrongIndex()
+            ChainId = chainId
+        });
+        Assert.False(res);
+    }
+
+    [Fact]
+    public void TryAdd_ExistChain_WrongIndex()
+    {
+        var chainId = 123;
+        var dict = new Dictionary<int, ChainCacheEntity>
         {
-            int chainId = 123;
-            var dict = new Dictionary<int, ChainCacheEntity>
             {
-                {
-                    chainId, new ChainCacheEntity(chainId, 1)
-                }
-            };
-            CreateFakeCache(dict);
-            var res = _blockCacheEntityProducer.TryAddBlockCacheEntity(new SideChainBlockData
-            {
-                ChainId = chainId,
-                Height = 2
-            });
-            Assert.False(res);
-        }
-        
-        [Fact]
-        public void TryAdd_ExistChain_CorrectIndex()
+                chainId, new ChainCacheEntity(chainId, 1)
+            }
+        };
+        CreateFakeCache(dict);
+        var res = _blockCacheEntityProducer.TryAddBlockCacheEntity(new SideChainBlockData
         {
-            int chainId = 123;
-            var dict = new Dictionary<int, ChainCacheEntity>
+            ChainId = chainId,
+            Height = 2
+        });
+        Assert.False(res);
+    }
+
+    [Fact]
+    public void TryAdd_ExistChain_CorrectIndex()
+    {
+        var chainId = 123;
+        var dict = new Dictionary<int, ChainCacheEntity>
+        {
             {
-                {
-                    chainId, new ChainCacheEntity(chainId, 1)
-                }
-            };
-            CreateFakeCache(dict);
-            var res = _blockCacheEntityProducer.TryAddBlockCacheEntity(new SideChainBlockData
-            {
-                ChainId = chainId,
-                Height = 1,
-                TransactionStatusMerkleTreeRoot = HashHelper.ComputeFrom("1")
-            });
-            Assert.True(res);
-        }
+                chainId, new ChainCacheEntity(chainId, 1)
+            }
+        };
+        CreateFakeCache(dict);
+        var res = _blockCacheEntityProducer.TryAddBlockCacheEntity(new SideChainBlockData
+        {
+            ChainId = chainId,
+            Height = 1,
+            TransactionStatusMerkleTreeRoot = HashHelper.ComputeFrom("1")
+        });
+        Assert.True(res);
     }
 }

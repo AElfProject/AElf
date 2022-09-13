@@ -1,13 +1,12 @@
 using AElf.BenchBase;
 using Volo.Abp.Modularity;
 
-namespace AElf.Database.Benches
+namespace AElf.Database.Benches;
+
+public class DatabaseBenchAElfModule : BenchBaseAElfModule
 {
-    public class DatabaseBenchAElfModule : BenchBaseAElfModule
+    public override void ConfigureServices(ServiceConfigurationContext context)
     {
-        public override void ConfigureServices(ServiceConfigurationContext context)
-        {
-            context.Services.AddKeyValueDbContext<DbContext>(o => o.UseInMemoryDatabase());
-        }
+        context.Services.AddKeyValueDbContext<DbContext>(o => o.UseInMemoryDatabase());
     }
 }

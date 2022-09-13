@@ -1,22 +1,21 @@
 using AElf.Types;
 
-namespace AElf.Contracts.Association
+namespace AElf.Contracts.Association;
+
+public partial class OrganizationMemberList
 {
-    public partial class OrganizationMemberList
+    public int Count()
     {
-        public int Count()
-        {
-            return organizationMembers_.Count;
-        }
+        return organizationMembers_.Count;
+    }
 
-        public bool Empty()
-        {
-            return Count() == 0;
-        }
+    public bool Empty()
+    {
+        return Count() == 0;
+    }
 
-        public bool Contains(Address address)
-        {
-            return organizationMembers_.Contains(address);
-        }
+    public bool Contains(Address address)
+    {
+        return organizationMembers_.Contains(address);
     }
 }

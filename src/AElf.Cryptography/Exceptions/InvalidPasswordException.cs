@@ -1,11 +1,10 @@
 ﻿using System;
 
-namespace AElf.Cryptography.Exceptions
+namespace AElf.Cryptography.Exceptions;
+
+public class InvalidPasswordException : Exception
 {
-    public class InvalidPasswordException : Exception
+    public InvalidPasswordException(string message, Exception innerException) : base(message, innerException)
     {
-        public InvalidPasswordException(string message, Exception innerException) : base(message, innerException)
-        {
-        }
     }
 }

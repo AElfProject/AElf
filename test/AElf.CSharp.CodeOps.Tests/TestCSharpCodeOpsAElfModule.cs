@@ -4,19 +4,18 @@ using AElf.Runtime.CSharp;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
 
-namespace AElf.CSharp.CodeOps
+namespace AElf.CSharp.CodeOps;
+
+[DependsOn(
+    typeof(CSharpRuntimeAElfModule),
+    typeof(SmartContractTestAElfModule),
+    typeof(CSharpCodeOpsAElfModule)
+)]
+public class TestCSharpCodeOpsAElfModule : AElfModule
 {
-    [DependsOn(
-        typeof(CSharpRuntimeAElfModule),
-        typeof(SmartContractTestAElfModule),
-        typeof(CSharpCodeOpsAElfModule)
-    )]
-    public class TestCSharpCodeOpsAElfModule : AElfModule
+    public override void ConfigureServices(ServiceConfigurationContext context)
     {
-        public override void ConfigureServices(ServiceConfigurationContext context)
-        {
-            context.Services.AddSingleton<ContractAuditor>();
-            context.Services.AddSingleton<CSharpContractAuditor>();
-        }
+        context.Services.AddSingleton<ContractAuditor>();
+        context.Services.AddSingleton<CSharpContractAuditor>();
     }
 }

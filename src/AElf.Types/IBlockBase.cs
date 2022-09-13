@@ -1,10 +1,9 @@
 using System.Collections.Generic;
 using AElf.Types;
 
-namespace AElf
+namespace AElf;
+
+public interface IBlockBase : IHashProvider
 {
-    public interface IBlockBase : IHashProvider
-    {
-        IEnumerable<Hash> TransactionIds { get; }
-    }
+    IEnumerable<Hash> TransactionIds { get; }
 }

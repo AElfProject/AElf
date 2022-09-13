@@ -4,21 +4,20 @@ using AElf.Kernel.Proposal.Application;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus;
 
-namespace AElf.Kernel.Proposal
+namespace AElf.Kernel.Proposal;
+
+public class NewIrreversibleBlockFoundEventHandler : ILocalEventHandler<NewIrreversibleBlockFoundEvent>,
+    ITransientDependency
 {
-    public class NewIrreversibleBlockFoundEventHandler : ILocalEventHandler<NewIrreversibleBlockFoundEvent>,
-        ITransientDependency
+    private readonly IProposalService _proposalService;
+
+    public NewIrreversibleBlockFoundEventHandler(IProposalService proposalService)
     {
-        private readonly IProposalService _proposalService;
+        _proposalService = proposalService;
+    }
 
-        public NewIrreversibleBlockFoundEventHandler(IProposalService proposalService)
-        {
-            _proposalService = proposalService;
-        }
-
-        public async Task HandleEventAsync(NewIrreversibleBlockFoundEvent eventData)
-        {
-            await _proposalService.ClearProposalByLibAsync(eventData.BlockHash, eventData.BlockHeight);
-        }
+    public async Task HandleEventAsync(NewIrreversibleBlockFoundEvent eventData)
+    {
+        await _proposalService.ClearProposalByLibAsync(eventData.BlockHash, eventData.BlockHeight);
     }
 }

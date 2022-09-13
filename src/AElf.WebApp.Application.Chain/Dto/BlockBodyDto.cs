@@ -1,11 +1,10 @@
 using System.Collections.Generic;
 
-namespace AElf.WebApp.Application.Chain.Dto
+namespace AElf.WebApp.Application.Chain.Dto;
+
+public class BlockBodyDto
 {
-    public class BlockBodyDto
-    {
-        public int TransactionsCount { get; set; }
-        
-        public List<string> Transactions { get; set; }
-    }
+    public int TransactionsCount { get; set; }
+
+    public List<string> Transactions { get; set; }
 }

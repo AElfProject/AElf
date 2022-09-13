@@ -1,10 +1,9 @@
-using AElf.Standards.ACS1;
 using AElf.Sdk.CSharp.State;
+using AElf.Standards.ACS1;
 
-namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests.TestContract
+namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests.TestContract;
+
+public class ContractState : Sdk.CSharp.State.ContractState
 {
-    public class ContractState : AElf.Sdk.CSharp.State.ContractState
-    {
-        public MappedState<string,MethodFees> TransactionFees { get; set; }
-    }
+    public MappedState<string, MethodFees> TransactionFees { get; set; }
 }

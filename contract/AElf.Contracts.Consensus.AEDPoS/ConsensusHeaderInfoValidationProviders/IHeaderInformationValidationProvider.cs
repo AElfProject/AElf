@@ -1,10 +1,9 @@
 using AElf.Standards.ACS4;
 
 // ReSharper disable once CheckNamespace
-namespace AElf.Contracts.Consensus.AEDPoS
+namespace AElf.Contracts.Consensus.AEDPoS;
+
+public interface IHeaderInformationValidationProvider
 {
-    public interface IHeaderInformationValidationProvider
-    {
-        ValidationResult ValidateHeaderInformation(ConsensusValidationContext validationContext);
-    }
+    ValidationResult ValidateHeaderInformation(ConsensusValidationContext validationContext);
 }

@@ -4,268 +4,268 @@ using Shouldly;
 using Xunit;
 using CustomContract = AElf.Runtime.CSharp.Tests.TestContract;
 
-namespace AElf.Sdk.CSharp.Tests
+namespace AElf.Sdk.CSharp.Tests;
+
+public class TestContractTests : SdkCSharpTestBase
 {
-    public class TestContractTests : SdkCSharpTestBase
+    private readonly CustomContract.TestContract Contract = new();
+
+    public TestContractTests()
     {
-        private CustomContract.TestContract Contract = new CustomContract.TestContract();
+        BridgeContext.TransactionContext = TransactionContext;
+        Contract.InternalInitialize(BridgeContext);
+    }
 
-        public TestContractTests()
+    [Fact]
+    public void TestBoolState()
+    {
+        var input = new CustomContract.BoolInput
         {
-            BridgeContext.TransactionContext = TransactionContext;
-            Contract.InternalInitialize(BridgeContext);
-        }
+            BoolValue = true
+        };
 
-        [Fact]
-        public void TestBoolState()
+        var output = Contract.TestBoolState(input);
+        output.BoolValue.ShouldBeTrue();
+
+        input.BoolValue = false;
+        output = Contract.TestBoolState(input);
+        output.BoolValue.ShouldBeFalse();
+    }
+
+    [Fact]
+    public void TestInt32State()
+    {
+        var input = new CustomContract.Int32Input
         {
-            var input = new CustomContract.BoolInput
-            {
-                BoolValue = true
-            };
-            
-            var output = Contract.TestBoolState(input);
-            output.BoolValue.ShouldBeTrue();
+            Int32Value = 36
+        };
+        var output = Contract.TestInt32State(input);
+        output.Int32Value.ShouldBe(-36);
 
-            input.BoolValue = false;
-            output = Contract.TestBoolState(input);
-            output.BoolValue.ShouldBeFalse();
-        }
+        input.Int32Value = -100;
+        output = Contract.TestInt32State(input);
+        output.Int32Value.ShouldBe(64);
+    }
 
-        [Fact]
-        public void TestInt32State()
+    [Fact]
+    public void UInt32Output()
+    {
+        var input = new CustomContract.UInt32Input
         {
-            var input = new CustomContract.Int32Input
-            {
-                Int32Value = 36
-            };
-            var output = Contract.TestInt32State(input);
-            output.Int32Value.ShouldBe(-36);
+            UInt32Value = 24
+        };
+        var output = Contract.TestUInt32State(input);
+        output.UInt32Value.ShouldBe(24u);
 
-            input.Int32Value = -100;
-            output = Contract.TestInt32State(input);
-            output.Int32Value.ShouldBe(64);
-        }
+        input.UInt32Value = 100;
+        output = Contract.TestUInt32State(input);
+        output.UInt32Value.ShouldBe(124u);
+    }
 
-        [Fact]
-        public void UInt32Output()
+    [Fact]
+    public void TestInt64State()
+    {
+        var input = new CustomContract.Int64Input
         {
-            var input = new CustomContract.UInt32Input
-            {
-                UInt32Value = 24
-            };
-            var output = Contract.TestUInt32State(input);
-            output.UInt32Value.ShouldBe(24u);
+            Int64Value = 36
+        };
+        var output = Contract.TestInt64State(input);
+        output.Int64Value.ShouldBe(-36);
 
-            input.UInt32Value = 100;
-            output = Contract.TestUInt32State(input);
-            output.UInt32Value.ShouldBe(124u);
-        }
+        input.Int64Value = -100;
+        output = Contract.TestInt64State(input);
+        output.Int64Value.ShouldBe(64);
+    }
 
-        [Fact]
-        public void TestInt64State()
+    [Fact]
+    public void TestUInt64State()
+    {
+        var input = new CustomContract.UInt64Input
         {
-            var input = new CustomContract.Int64Input
-            {
-                Int64Value = 36
-            };
-            var output = Contract.TestInt64State(input);
-            output.Int64Value.ShouldBe(-36);
+            UInt64Value = 24
+        };
+        var output = Contract.TestUInt64State(input);
+        output.UInt64Value.ShouldBe(24ul);
 
-            input.Int64Value = -100;
-            output = Contract.TestInt64State(input);
-            output.Int64Value.ShouldBe(64);
-        }
+        input.UInt64Value = 100;
+        output = Contract.TestUInt64State(input);
+        output.UInt64Value.ShouldBe(124ul);
+    }
 
-        [Fact]
-        public void TestUInt64State()
+    [Fact]
+    public void TestStringState()
+    {
+        var input = new CustomContract.StringInput
         {
-            var input = new CustomContract.UInt64Input
-            {
-                UInt64Value = 24
-            };
-            var output = Contract.TestUInt64State(input);
-            output.UInt64Value.ShouldBe(24ul);
+            StringValue = "hello"
+        };
+        var output = Contract.TestStringState(input);
+        output.StringValue.ShouldBe("hello");
 
-            input.UInt64Value = 100;
-            output = Contract.TestUInt64State(input);
-            output.UInt64Value.ShouldBe(124ul);
-        }
+        input.StringValue = " elf";
+        output = Contract.TestStringState(input);
+        output.StringValue.ShouldBe("hello elf");
+    }
 
-        [Fact]
-        public void TestStringState()
+    [Fact]
+    public void TestBytesState()
+    {
+        var input = new CustomContract.BytesInput
         {
-            var input = new CustomContract.StringInput
-            {
-                StringValue = "hello"
-            };
-            var output = Contract.TestStringState(input);
-            output.StringValue.ShouldBe("hello");
+            BytesValue = SampleAddress.AddressList[0].ToByteString()
+        };
 
-            input.StringValue = " elf";
-            output = Contract.TestStringState(input);
-            output.StringValue.ShouldBe("hello elf");
-        }
+        var output = Contract.TestBytesState(input);
+        output.BytesValue.ShouldBe(input.BytesValue);
+    }
 
-        [Fact]
-        public void TestBytesState()
+    [Fact]
+    public void TestProtobufState()
+    {
+        var input = new CustomContract.ProtobufInput
         {
-            var input = new CustomContract.BytesInput
-            {
-                BytesValue = SampleAddress.AddressList[0].ToByteString()
-            };
-
-            var output = Contract.TestBytesState(input);
-            output.BytesValue.ShouldBe(input.BytesValue);
-        }
-
-        [Fact]
-        public void TestProtobufState()
-        {
-            var input = new CustomContract.ProtobufInput
-            {
-                 ProtobufValue = new CustomContract.ProtobufMessage
-                 {
-                     BoolValue = true,
-                     Int64Value = 128,
-                     StringValue = "test"
-                 }
-            };
-            
-            var output = Contract.TestProtobufState(input);
-            output.ProtobufValue.BoolValue.ShouldBeTrue();
-            output.ProtobufValue.Int64Value.ShouldBe(128);
-            output.ProtobufValue.StringValue.ShouldBe("test");
-        }
-
-        [Fact]
-        public void TestComplex1State()
-        {
-            var input = new CustomContract.Complex1Input
+            ProtobufValue = new CustomContract.ProtobufMessage
             {
                 BoolValue = true,
-                Int32Value = 120
-            };
-            var output = Contract.TestComplex1State(input);
-            output.BoolValue.ShouldBe(true);
-            output.Int32Value.ShouldBe(120);
-        }
+                Int64Value = 128,
+                StringValue = "test"
+            }
+        };
 
-        [Fact]
-        public void TestComplex2State()
+        var output = Contract.TestProtobufState(input);
+        output.ProtobufValue.BoolValue.ShouldBeTrue();
+        output.ProtobufValue.Int64Value.ShouldBe(128);
+        output.ProtobufValue.StringValue.ShouldBe("test");
+    }
+
+    [Fact]
+    public void TestComplex1State()
+    {
+        var input = new CustomContract.Complex1Input
         {
-            var input = new CustomContract.Complex2Input
-            {
-                BoolData = new CustomContract.BoolInput(){ BoolValue = true },
-                Int32Data = new CustomContract.Int32Input() { Int32Value = 12 }
-            };
-            var output = Contract.TestComplex2State(input);
-            output.BoolData.BoolValue.ShouldBeTrue();
-            output.Int32Data.Int32Value.ShouldBe(12);
-        }
+            BoolValue = true,
+            Int32Value = 120
+        };
+        var output = Contract.TestComplex1State(input);
+        output.BoolValue.ShouldBe(true);
+        output.Int32Value.ShouldBe(120);
+    }
 
-        [Fact]
-        public void TestMappedState()
+    [Fact]
+    public void TestComplex2State()
+    {
+        var input = new CustomContract.Complex2Input
         {
-            var input = new CustomContract.ProtobufInput
-            {
-                ProtobufValue = new CustomContract.ProtobufMessage
-                {
-                    BoolValue = false,
-                    Int64Value = 100,
-                    StringValue = "test"
-                }
-            };
+            BoolData = new CustomContract.BoolInput { BoolValue = true },
+            Int32Data = new CustomContract.Int32Input { Int32Value = 12 }
+        };
+        var output = Contract.TestComplex2State(input);
+        output.BoolData.BoolValue.ShouldBeTrue();
+        output.Int32Data.Int32Value.ShouldBe(12);
+    }
 
-            var output = Contract.TestMappedState(input);
-            output.Collection.Count.ShouldBe(1);
-            output.Collection[0].BoolValue.ShouldBeFalse();            
-            output.Collection[0].Int64Value.ShouldBe(100);
-            output.Collection[0].StringValue.ShouldBe("test");
-
-            input.ProtobufValue.Int64Value = 200;
-            output = Contract.TestMappedState(input);
-            output.Collection[0].Int64Value.ShouldBe(200);
-        }
-        
-        [Fact]
-        public void TestMapped1State()
+    [Fact]
+    public void TestMappedState()
+    {
+        var input = new CustomContract.ProtobufInput
         {
-            var input = new CustomContract.Complex3Input
+            ProtobufValue = new CustomContract.ProtobufMessage
             {
-                From = "A",
-                PairA = "USD",
-                To = "B",
-                PairB = "RMB",
-                TradeDetails = new CustomContract.TradeMessage
-                {
-                    FromAmount = 100,
-                    ToAmount = 620
-                }
-            };
-            
-            var tradeMessage = Contract.TestMapped1State(input);
-            tradeMessage.FromAmount.ShouldBe(100);
-            tradeMessage.ToAmount.ShouldBe(620);
-            
-            tradeMessage = Contract.TestMapped1State(input);
-            tradeMessage.FromAmount.ShouldBe(200);
-            tradeMessage.ToAmount.ShouldBe(1240);
+                BoolValue = false,
+                Int64Value = 100,
+                StringValue = "test"
+            }
+        };
 
-            input = new CustomContract.Complex3Input
-            {
-                From = "A",
-                PairA = "EUR",
-                To = "B",
-                PairB = "RMB",
-                TradeDetails = new CustomContract.TradeMessage
-                {
-                    FromAmount = 100,
-                    ToAmount = 758
-                }
-            };
-            tradeMessage = Contract.TestMapped1State(input);
-            tradeMessage.FromAmount.ShouldBe(100);
-            tradeMessage.ToAmount.ShouldBe(758);
-        }
+        var output = Contract.TestMappedState(input);
+        output.Collection.Count.ShouldBe(1);
+        output.Collection[0].BoolValue.ShouldBeFalse();
+        output.Collection[0].Int64Value.ShouldBe(100);
+        output.Collection[0].StringValue.ShouldBe("test");
 
-        [Fact]
-        public void TestReadonlyState()
+        input.ProtobufValue.Int64Value = 200;
+        output = Contract.TestMappedState(input);
+        output.Collection[0].Int64Value.ShouldBe(200);
+    }
+
+    [Fact]
+    public void TestMapped1State()
+    {
+        var input = new CustomContract.Complex3Input
         {
-            var firstInput = new CustomContract.BoolInput
+            From = "A",
+            PairA = "USD",
+            To = "B",
+            PairB = "RMB",
+            TradeDetails = new CustomContract.TradeMessage
             {
-                BoolValue = true
-            };
+                FromAmount = 100,
+                ToAmount = 620
+            }
+        };
 
-            var firstOutput = Contract.TestReadonlyState(firstInput);
-            firstOutput.BoolValue.ShouldBeTrue();
+        var tradeMessage = Contract.TestMapped1State(input);
+        tradeMessage.FromAmount.ShouldBe(100);
+        tradeMessage.ToAmount.ShouldBe(620);
 
-            var secondInput = new CustomContract.BoolInput
-            {
-                BoolValue = false
-            };
+        tradeMessage = Contract.TestMapped1State(input);
+        tradeMessage.FromAmount.ShouldBe(200);
+        tradeMessage.ToAmount.ShouldBe(1240);
 
-            var secondOutput = Contract.TestReadonlyState(secondInput);
-            // Still true
-            secondOutput.BoolValue.ShouldBeTrue();
-        }
-
-        [Fact]
-        public void SendVirtualInline_Test()
+        input = new CustomContract.Complex3Input
         {
-            BridgeContext.SendVirtualInline(HashHelper.ComputeFrom("hash"), SampleAddress.AddressList[0], "TestMethod", new CustomContract.StringInput
+            From = "A",
+            PairA = "EUR",
+            To = "B",
+            PairB = "RMB",
+            TradeDetails = new CustomContract.TradeMessage
+            {
+                FromAmount = 100,
+                ToAmount = 758
+            }
+        };
+        tradeMessage = Contract.TestMapped1State(input);
+        tradeMessage.FromAmount.ShouldBe(100);
+        tradeMessage.ToAmount.ShouldBe(758);
+    }
+
+    [Fact]
+    public void TestReadonlyState()
+    {
+        var firstInput = new CustomContract.BoolInput
+        {
+            BoolValue = true
+        };
+
+        var firstOutput = Contract.TestReadonlyState(firstInput);
+        firstOutput.BoolValue.ShouldBeTrue();
+
+        var secondInput = new CustomContract.BoolInput
+        {
+            BoolValue = false
+        };
+
+        var secondOutput = Contract.TestReadonlyState(secondInput);
+        // Still true
+        secondOutput.BoolValue.ShouldBeTrue();
+    }
+
+    [Fact]
+    public void SendVirtualInline_Test()
+    {
+        BridgeContext.SendVirtualInline(HashHelper.ComputeFrom("hash"), SampleAddress.AddressList[0], "TestMethod",
+            new CustomContract.StringInput
             {
                 StringValue = "test send virtual inline"
             });
-        }
+    }
 
-        [Fact]
-        public void SendInline_Test()
+    [Fact]
+    public void SendInline_Test()
+    {
+        BridgeContext.SendInline(SampleAddress.AddressList[0], "TestMethod", new CustomContract.StringInput
         {
-            BridgeContext.SendInline(SampleAddress.AddressList[0], "TestMethod", new CustomContract.StringInput
-            {
-                StringValue = "test send inline"
-            });
-        }
+            StringValue = "test send inline"
+        });
     }
 }

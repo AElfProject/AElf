@@ -1,41 +1,39 @@
-using System.Threading.Tasks;
 using AElf.Types;
 using Volo.Abp.Threading;
 
-namespace AElf.Kernel.SmartContract
-{
-    public class NullStateCache : IStateCache
-    {
-        public bool TryGetValue(ScopedStatePath key, out byte[] value)
-        {
-            value = null;
-            return false;
-        }
+namespace AElf.Kernel.SmartContract;
 
-        public byte[] this[ScopedStatePath key]
-        {
-            get => null;
-            set { }
-        }
+public class NullStateCache : IStateCache
+{
+    public bool TryGetValue(ScopedStatePath key, out byte[] value)
+    {
+        value = null;
+        return false;
     }
 
-    internal class ScopedStateProvider : IScopedStateProvider
+    public byte[] this[ScopedStatePath key]
     {
-        public IHostSmartContractBridgeContext HostSmartContractBridgeContext { get; set; }
-        public IStateCache Cache { get; set; } = new NullStateCache();
+        get => null;
+        set { }
+    }
+}
 
-        public Address ContractAddress { get; set; }
+internal class ScopedStateProvider : IScopedStateProvider
+{
+    public IHostSmartContractBridgeContext HostSmartContractBridgeContext { get; set; }
+    public IStateCache Cache { get; set; } = new NullStateCache();
 
-        public byte[] Get(StatePath path)
+    public Address ContractAddress { get; set; }
+
+    public byte[] Get(StatePath path)
+    {
+        var scoped = new ScopedStatePath
         {
-            var scoped = new ScopedStatePath()
-            {
-                Address = ContractAddress,
-                Path = path
-            };
-            var byteString =
-                AsyncHelper.RunSync(() => HostSmartContractBridgeContext.GetStateAsync(scoped.ToStateKey()));
-            return byteString?.ToByteArray();
-        }
+            Address = ContractAddress,
+            Path = path
+        };
+        var byteString =
+            AsyncHelper.RunSync(() => HostSmartContractBridgeContext.GetStateAsync(scoped.ToStateKey()));
+        return byteString?.ToByteArray();
     }
 }

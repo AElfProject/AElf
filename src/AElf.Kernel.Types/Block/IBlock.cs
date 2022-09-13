@@ -1,8 +1,7 @@
-﻿namespace AElf.Kernel
+﻿namespace AElf.Kernel;
+
+public interface IBlock : IBlockBase
 {
-    public interface IBlock : IBlockBase
-    {
-        BlockHeader Header { get; }
-        BlockBody Body { get; }
-    }
+    BlockHeader Header { get; }
+    BlockBody Body { get; }
 }

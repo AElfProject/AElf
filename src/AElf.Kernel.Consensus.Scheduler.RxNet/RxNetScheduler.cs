@@ -7,55 +7,57 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus.Local;
 
-namespace AElf.Kernel.Consensus.Scheduler.RxNet
+namespace AElf.Kernel.Consensus.Scheduler.RxNet;
+
+public class RxNetScheduler : IConsensusScheduler, IObserver<ConsensusRequestMiningEventData>, ISingletonDependency
 {
-    public class RxNetScheduler : IConsensusScheduler, IObserver<ConsensusRequestMiningEventData>, ISingletonDependency
+    private IDisposable _observables;
+
+    public RxNetScheduler()
     {
-        private IDisposable _observables;
+        LocalEventBus = NullLocalEventBus.Instance;
 
-        public ILocalEventBus LocalEventBus { get; set; }
+        Logger = NullLogger<RxNetScheduler>.Instance;
+    }
 
-        public ILogger<RxNetScheduler> Logger { get; set; }
+    public ILocalEventBus LocalEventBus { get; set; }
 
-        public RxNetScheduler()
-        {
-            LocalEventBus = NullLocalEventBus.Instance;
+    public ILogger<RxNetScheduler> Logger { get; set; }
 
-            Logger = NullLogger<RxNetScheduler>.Instance;
-        }
+    public void NewEvent(long countingMilliseconds, ConsensusRequestMiningEventData consensusRequestMiningEventData)
+    {
+        _observables = Subscribe(countingMilliseconds, consensusRequestMiningEventData);
+    }
 
-        public void NewEvent(long countingMilliseconds, ConsensusRequestMiningEventData consensusRequestMiningEventData)
-        {
-            _observables = Subscribe(countingMilliseconds, consensusRequestMiningEventData);
-        }
+    public void CancelCurrentEvent()
+    {
+        _observables?.Dispose();
+    }
 
-        public void CancelCurrentEvent()
-        {
-            _observables?.Dispose();
-        }
+    public void OnCompleted()
+    {
+    }
 
-        public IDisposable Subscribe(long countingMilliseconds, ConsensusRequestMiningEventData consensusRequestMiningEventData)
-        {
-            Logger.LogDebug($"Will produce block after {countingMilliseconds} ms - " +
-                            $"{TimestampHelper.GetUtcNow().AddMilliseconds(countingMilliseconds).ToDateTime():yyyy-MM-dd HH.mm.ss,fff}");
+    public void OnError(Exception error)
+    {
+    }
 
-            return Observable.Timer(TimeSpan.FromMilliseconds(countingMilliseconds))
-                .Select(_ => consensusRequestMiningEventData).Subscribe(this);
-        }
+    // This is the callback.
+    public void OnNext(ConsensusRequestMiningEventData value)
+    {
+        Logger.LogDebug("Published block mining event. Current block height: {PreviousBlockHeight}",
+            value.PreviousBlockHeight);
+        LocalEventBus.PublishAsync(value);
+    }
 
-        public void OnCompleted()
-        {
-        }
+    public IDisposable Subscribe(long countingMilliseconds,
+        ConsensusRequestMiningEventData consensusRequestMiningEventData)
+    {
+        Logger.LogDebug("Will produce block after {CountingMilliseconds} ms - {Time}", countingMilliseconds,
+            TimestampHelper.GetUtcNow().AddMilliseconds(countingMilliseconds).ToDateTime()
+                .ToString("yyyy-MM-dd HH.mm.ss,fff"));
 
-        public void OnError(Exception error)
-        {
-        }
-
-        // This is the callback.
-        public void OnNext(ConsensusRequestMiningEventData value)
-        {
-            Logger.LogDebug($"Published block mining event. Current block height: {value.PreviousBlockHeight}");
-            LocalEventBus.PublishAsync(value);
-        }
+        return Observable.Timer(TimeSpan.FromMilliseconds(countingMilliseconds))
+            .Select(_ => consensusRequestMiningEventData).Subscribe(this);
     }
 }

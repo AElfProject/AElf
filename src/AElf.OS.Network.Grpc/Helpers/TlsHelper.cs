@@ -12,57 +12,57 @@ using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.X509;
 
-namespace AElf.OS.Network.Grpc.Helpers
+namespace AElf.OS.Network.Grpc.Helpers;
+
+public static class TlsHelper
 {
-    public static class TlsHelper
+    private const int RsaKeyLength = 2048;
+    private const string X509NamePrefix = "CN=";
+
+    public static string ObjectToPem(object obj)
     {
-        private const int RsaKeyLength = 2048;
-        private const string X509NamePrefix = "CN=";
-        
-        public static string ObjectToPem(object obj)
-        {
-            TextWriter textWriter = new StringWriter();
-            PemWriter pemWriter = new PemWriter(textWriter);
-            pemWriter.WriteObject(obj);
-            pemWriter.Writer.Flush();
-            
-            return textWriter.ToString();
-        }
+        TextWriter textWriter = new StringWriter();
+        var pemWriter = new PemWriter(textWriter);
+        pemWriter.WriteObject(obj);
+        pemWriter.Writer.Flush();
 
-        public static AsymmetricCipherKeyPair GenerateRsaKeyPair()
-        {
-            RsaKeyPairGenerator generator = new RsaKeyPairGenerator();
-            generator.Init(new KeyGenerationParameters(new SecureRandom(), RsaKeyLength));
-            
-            return generator.GenerateKeyPair();
-        }
+        return textWriter.ToString();
+    }
 
-        public static X509Certificate GenerateCertificate(X509Name issuer, X509Name subject, 
-            AsymmetricKeyParameter issuerPrivate, AsymmetricKeyParameter subjectPublic)
-        {
-            ISignatureFactory signatureFactory = new Asn1SignatureFactory(
-                PkcsObjectIdentifiers.Sha256WithRsaEncryption.ToString(), issuerPrivate);
+    public static AsymmetricCipherKeyPair GenerateRsaKeyPair()
+    {
+        var generator = new RsaKeyPairGenerator();
+        generator.Init(new KeyGenerationParameters(new SecureRandom(), RsaKeyLength));
 
-            var certGenerator = new X509V3CertificateGenerator();
-            certGenerator.SetIssuerDN(issuer);
-            certGenerator.SetSubjectDN(subject);
-            certGenerator.SetSerialNumber(BigIntegers.CreateRandomInRange(BigInteger.One, BigInteger.ValueOf(long.MaxValue), new SecureRandom()));
-            certGenerator.SetNotBefore(DateTime.UtcNow.Date);
-            certGenerator.SetNotAfter(DateTime.MaxValue);
-            certGenerator.SetPublicKey(subjectPublic);
+        return generator.GenerateKeyPair();
+    }
 
-            return certGenerator.Generate(signatureFactory);
-        }
+    public static X509Certificate GenerateCertificate(X509Name issuer, X509Name subject,
+        AsymmetricKeyParameter issuerPrivate, AsymmetricKeyParameter subjectPublic)
+    {
+        ISignatureFactory signatureFactory = new Asn1SignatureFactory(
+            PkcsObjectIdentifiers.Sha256WithRsaEncryption.ToString(), issuerPrivate);
 
-        public static KeyCertificatePair GenerateKeyCertificatePair()
-        {
-            var rsaKeyPair = GenerateRsaKeyPair();
-            var certificate = GenerateCertificate(new X509Name(X509NamePrefix + GrpcConstants.DefaultTlsCommonName),
-                new X509Name(X509NamePrefix + GrpcConstants.DefaultTlsCommonName), rsaKeyPair.Private, rsaKeyPair.Public);
+        var certGenerator = new X509V3CertificateGenerator();
+        certGenerator.SetIssuerDN(issuer);
+        certGenerator.SetSubjectDN(subject);
+        certGenerator.SetSerialNumber(BigIntegers.CreateRandomInRange(BigInteger.One, BigInteger.ValueOf(long.MaxValue),
+            new SecureRandom()));
+        certGenerator.SetNotBefore(DateTime.UtcNow.Date);
+        certGenerator.SetNotAfter(DateTime.MaxValue);
+        certGenerator.SetPublicKey(subjectPublic);
 
-            var keyCertificatePair = new KeyCertificatePair(ObjectToPem(certificate), ObjectToPem(rsaKeyPair.Private));
+        return certGenerator.Generate(signatureFactory);
+    }
 
-            return keyCertificatePair;
-        }
+    public static KeyCertificatePair GenerateKeyCertificatePair()
+    {
+        var rsaKeyPair = GenerateRsaKeyPair();
+        var certificate = GenerateCertificate(new X509Name(X509NamePrefix + GrpcConstants.DefaultTlsCommonName),
+            new X509Name(X509NamePrefix + GrpcConstants.DefaultTlsCommonName), rsaKeyPair.Private, rsaKeyPair.Public);
+
+        var keyCertificatePair = new KeyCertificatePair(ObjectToPem(certificate), ObjectToPem(rsaKeyPair.Private));
+
+        return keyCertificatePair;
     }
 }

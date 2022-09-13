@@ -1,12 +1,11 @@
 using System.Threading.Tasks;
 using AElf.Standards.ACS7;
 
-namespace AElf.CrossChain.Application
-{
-    public interface ICrossChainRequestService
-    {
-        Task RequestCrossChainDataFromOtherChainsAsync();
+namespace AElf.CrossChain.Application;
 
-        Task<ChainInitializationData> RequestChainInitializationDataAsync(int chainId);
-    }
+public interface ICrossChainRequestService
+{
+    Task RequestCrossChainDataFromOtherChainsAsync();
+
+    Task<ChainInitializationData> RequestChainInitializationDataAsync(int chainId);
 }

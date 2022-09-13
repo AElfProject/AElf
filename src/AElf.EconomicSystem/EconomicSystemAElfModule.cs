@@ -1,8 +1,7 @@
 using AElf.Modularity;
 
-namespace AElf.EconomicSystem
+namespace AElf.EconomicSystem;
+
+public class EconomicSystemAElfModule : AElfModule
 {
-    public class EconomicSystemAElfModule : AElfModule
-    {
-    }
 }

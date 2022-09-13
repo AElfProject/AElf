@@ -1,10 +1,9 @@
-namespace AElf.GovernmentSystem.Tests
+namespace AElf.GovernmentSystem.Tests;
+
+public class ParliamentContractInitializationDataProvider : IParliamentContractInitializationDataProvider
 {
-    public class ParliamentContractInitializationDataProvider : IParliamentContractInitializationDataProvider
+    public ParliamentContractInitializationData GetContractInitializationData()
     {
-        public ParliamentContractInitializationData GetContractInitializationData()
-        {
-            return new ParliamentContractInitializationData();
-        }
+        return new ParliamentContractInitializationData();
     }
 }

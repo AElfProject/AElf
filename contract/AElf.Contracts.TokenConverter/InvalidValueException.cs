@@ -1,11 +1,10 @@
 using AElf.Sdk.CSharp;
 
-namespace AElf.Contracts.TokenConverter
+namespace AElf.Contracts.TokenConverter;
+
+public class InvalidValueException : BaseAElfException
 {
-    public class InvalidValueException : BaseAElfException
+    public InvalidValueException(string message) : base(message)
     {
-        public InvalidValueException(string message) : base(message)
-        {
-        }
     }
 }

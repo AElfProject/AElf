@@ -1,19 +1,18 @@
 using AElf.Types;
 
-namespace AElf.Kernel.TransactionPool
+namespace AElf.Kernel.TransactionPool;
+
+public class TransactionMockExecutionHelper
 {
-    public class TransactionMockExecutionHelper
+    private TransactionResultStatus _transactionResultStatus;
+
+    internal void SetTransactionResultStatus(TransactionResultStatus transactionResultStatus)
     {
-        private TransactionResultStatus _transactionResultStatus;
+        _transactionResultStatus = transactionResultStatus;
+    }
 
-        internal void SetTransactionResultStatus(TransactionResultStatus transactionResultStatus)
-        {
-            _transactionResultStatus = transactionResultStatus;
-        }
-
-        internal TransactionResultStatus GetTransactionResultStatus()
-        {
-            return _transactionResultStatus;
-        }
+    internal TransactionResultStatus GetTransactionResultStatus()
+    {
+        return _transactionResultStatus;
     }
 }
