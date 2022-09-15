@@ -230,7 +230,7 @@ Github](https://github.com/protocolbuffers/protobuf)):
 On Windows, open a **Powershell** and enter the following commands:
 
 ``` bash
-choco install protoc --version=3.21.5 -y
+choco install protoc -y
 choco upgrade unzip -y
 ```
 
