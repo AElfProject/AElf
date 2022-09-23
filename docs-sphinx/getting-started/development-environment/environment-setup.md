@@ -204,9 +204,9 @@ Most of AElf is developed with dotnet core, so you will need to download
 and install the .NET Core SDK before you start:
 
 [Download .NET Core
-3.1](https://dotnet.microsoft.com/download/dotnet-core/3.1)
+6.0](https://dotnet.microsoft.com/download/dotnet-core/6.0)
 
-For now AElf depends on version 3.1 of the SDK, on the provided link
+For now AElf depends on version 6.0 of the SDK, on the provided link
 find the download for your platform (for Windows and macOS the installer
 for x64 is the most convenient if your platform is compatible - most are
 these days), the page looks like this:
@@ -230,18 +230,18 @@ Github](https://github.com/protocolbuffers/protobuf)):
 On Windows, open a **Powershell** and enter the following commands:
 
 ``` bash
-choco install protoc --version=3.11.4 -y
+choco install protoc -y
 choco upgrade unzip -y
 ```
 
 On Linux:
 
 ``` bash
-# Make sure you grab 3.11.4 for protoc
-curl -OL https://github.com/google/protobuf/releases/download/v3.11.4/protoc-3.11.4-linux-x86_64.zip
+# Make sure you grab 3.21.5 for protoc
+curl -OL https://github.com/protocolbuffers/protobuf/releases/download/v21.5/protoc-21.5-linux-x86_64.zip
 
 # Unzip
-unzip protoc-3.11.4-linux-x86_64.zip -d protoc3
+unzip protoc-21.5-linux-x86_64.zip -d protoc3
 
 # Move protoc to /usr/local/bin/
 sudo mv protoc3/bin/* /usr/local/bin/
@@ -257,11 +257,11 @@ sudo chown -R ${USER} /usr/local/include/google
 on macOS:
 
 ``` bash
-# Make sure you grab 3.11.4 for protoc
-curl -OL https://github.com/protocolbuffers/protobuf/releases/download/v3.11.4/protoc-3.11.4-osx-x86_64.zip
+# Make sure you grab 3.21.5 for protoc
+curl -OL https://github.com/protocolbuffers/protobuf/releases/download/v21.5/protoc-21.5-osx-x86_64.zip
 
 # Unzip
-unzip protoc-3.11.4-osx-x86_64.zip -d protoc3
+unzip protoc-21.5-osx-x86_64.zip -d protoc3
 
 # Move protoc to /usr/local/bin/
 sudo mv protoc3/bin/* /usr/local/bin/
