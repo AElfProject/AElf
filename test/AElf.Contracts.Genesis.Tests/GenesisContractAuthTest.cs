@@ -104,8 +104,8 @@ public class GenesisContractAuthTest : BasicContractZeroTestBase
             .ParseFrom(proposingTxResult.Logs.First(l => l.Name.Contains(nameof(ProposalCreated))).NonIndexed)
             .ProposalId;
         proposalId.ShouldNotBeNull();
-        var expiredTime = ContractExpiredTime.Parser
-            .ParseFrom(proposingTxResult.Logs.First(l => l.Name.Contains(nameof(ContractExpiredTime))).NonIndexed)
+        var expiredTime = ContractProposed.Parser
+            .ParseFrom(proposingTxResult.Logs.First(l => l.Name.Contains(nameof(ContractProposed))).NonIndexed)
             .ExpiredTime;
         expiredTime.ShouldBe(contractDeploymentInput.ExpiredTime);
         var proposedContractInputHash = ContractProposed.Parser
@@ -375,8 +375,8 @@ public class GenesisContractAuthTest : BasicContractZeroTestBase
             .ParseFrom(proposingTxResult.Logs.First(l => l.Name.Contains(nameof(ProposalCreated))).NonIndexed)
             .ProposalId;
         proposalId.ShouldNotBeNull();
-        var expiredTime = ContractExpiredTime.Parser
-            .ParseFrom(proposingTxResult.Logs.First(l => l.Name.Contains(nameof(ContractExpiredTime))).NonIndexed)
+        var expiredTime = ContractProposed.Parser
+            .ParseFrom(proposingTxResult.Logs.First(l => l.Name.Contains(nameof(ContractProposed))).NonIndexed)
             .ExpiredTime;
         expiredTime.ShouldBe(contractUpdateInput.ExpiredTime);
         var proposedContractInputHash = ContractProposed.Parser

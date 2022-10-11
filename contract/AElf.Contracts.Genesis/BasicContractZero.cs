@@ -124,11 +124,10 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
                     IsSystemContract = false
                 }.ToByteString(),
                 OrganizationAddress = State.ContractDeploymentController.Value.OwnerAddress,
-                //ExpiredTime = Context.CurrentBlockTime.AddSeconds(ContractProposalExpirationTimePeriod)
                 ExpiredTime = Context.CurrentBlockTime.AddSeconds(
-                    (input.ExpiredTime > 0 && input.ExpiredTime <= 604800)
+                    (input.ExpiredTime > 0 && input.ExpiredTime <= ContractProposalMaxExpirationTimePeriod)
                         ? input.ExpiredTime
-                        : ContractProposalExpirationTimePeriod)
+                        : ContractProposalMaxExpirationTimePeriod)
             },
             OriginProposer = Context.Sender
         };
@@ -138,10 +137,7 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
 
         Context.Fire(new ContractProposed
         {
-            ProposedContractInputHash = proposedContractInputHash
-        });
-        Context.Fire(new ContractExpiredTime
-        {
+            ProposedContractInputHash = proposedContractInputHash,
             ExpiredTime = input.ExpiredTime
         });
         return proposedContractInputHash;
@@ -174,11 +170,10 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
                     IsSystemContract = info.IsSystemContract
                 }.ToByteString(),
                 OrganizationAddress = State.ContractDeploymentController.Value.OwnerAddress,
-                //ExpiredTime = Context.CurrentBlockTime.AddSeconds(ContractProposalExpirationTimePeriod)
                 ExpiredTime = Context.CurrentBlockTime.AddSeconds(
-                    (input.ExpiredTime > 0 && input.ExpiredTime <= 604800)
+                    (input.ExpiredTime > 0 && input.ExpiredTime <= ContractProposalMaxExpirationTimePeriod)
                         ? input.ExpiredTime
-                        : ContractProposalExpirationTimePeriod)
+                        : ContractProposalMaxExpirationTimePeriod)
             },
             OriginProposer = Context.Sender
         };
@@ -188,10 +183,7 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
 
         Context.Fire(new ContractProposed
         {
-            ProposedContractInputHash = proposedContractInputHash
-        });
-        Context.Fire(new ContractExpiredTime
-        {
+            ProposedContractInputHash = proposedContractInputHash,
             ExpiredTime = input.ExpiredTime
         });
         return proposedContractInputHash;

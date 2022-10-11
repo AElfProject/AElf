@@ -172,11 +172,8 @@ message ContractProposed
     option (aelf.is_event) = true;
     // The id of the proposed contract.
     aelf.Hash proposed_contract_input_hash = 1;
-}
-message ContractExpiredTime{
-    option (aelf.is_event) = true;
     // need test to do
-    int64 expired_time = 1;
+    int64 expired_time = 2;
 }
 message ContractDeployed
 {
