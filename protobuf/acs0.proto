@@ -117,6 +117,8 @@ message ContractDeploymentInput {
     sint32 category = 1;
     // The byte array of the contract code.
     bytes code = 2;
+    // input ExpiredTime
+    int64 expired_time = 3;
 }
 
 message SystemContractDeploymentInput {
@@ -146,6 +148,8 @@ message ContractUpdateInput {
     aelf.Address address = 1;
     // The byte array of the new contract code.
     bytes code = 2;
+    // input ExpiredTime
+    int64 expired_time = 3;
 }
 
 message ContractCodeCheckInput{
@@ -169,7 +173,11 @@ message ContractProposed
     // The id of the proposed contract.
     aelf.Hash proposed_contract_input_hash = 1;
 }
-
+message ContractExpiredTime{
+    option (aelf.is_event) = true;
+    // need test to do
+    int64 expired_time = 1;
+}
 message ContractDeployed
 {
     option (aelf.is_event) = true;

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -92,18 +93,21 @@ public class GenesisContractAuthTest : BasicContractZeroTestBase
         var contractDeploymentInput = new ContractDeploymentInput
         {
             Category = KernelConstants.DefaultRunnerCategory, // test the default runner
-            Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("TokenConverter")).Value)
+            Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("TokenConverter")).Value),
+            ExpiredTime = 604800 // 60 * 60 * 24 * 7
         };
-
         // propose contract code
         var proposingTxResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
             nameof(BasicContractZero.ProposeNewContract), contractDeploymentInput);
         proposingTxResult.Status.ShouldBe(TransactionResultStatus.Mined);
-
         var proposalId = ProposalCreated.Parser
             .ParseFrom(proposingTxResult.Logs.First(l => l.Name.Contains(nameof(ProposalCreated))).NonIndexed)
             .ProposalId;
         proposalId.ShouldNotBeNull();
+        var expiredTime = ContractExpiredTime.Parser
+            .ParseFrom(proposingTxResult.Logs.First(l => l.Name.Contains(nameof(ContractExpiredTime))).NonIndexed)
+            .ExpiredTime;
+        expiredTime.ShouldBe(contractDeploymentInput.ExpiredTime);
         var proposedContractInputHash = ContractProposed.Parser
             .ParseFrom(proposingTxResult.Logs.First(l => l.Name.Contains(nameof(ContractProposed))).NonIndexed)
             .ProposedContractInputHash;
@@ -114,12 +118,12 @@ public class GenesisContractAuthTest : BasicContractZeroTestBase
                 BasicContractZeroAddress,
                 nameof(BasicContractZero.ProposeContractCodeCheck), new ContractCodeCheckInput
                 {
-                    ProposedContractInputHash = proposedContractInputHash
+                    ProposedContractInputHash = proposedContractInputHash,
                 });
             noPermissionCodeCheckProposingTxResult.Status.ShouldBe(TransactionResultStatus.Failed);
             noPermissionCodeCheckProposingTxResult.Error.ShouldContain("Unauthorized behavior.");
         }
-
+        
         {
             // not proposed
             var releaseNotExistApprovedContractTxResult = await Tester.ExecuteContractWithMiningAsync(
@@ -243,7 +247,7 @@ public class GenesisContractAuthTest : BasicContractZeroTestBase
             new ReleaseContractInput
                 { ProposedContractInputHash = proposedContractInputHash, ProposalId = codeCheckProposalId });
         deploymentResult.Status.ShouldBe(TransactionResultStatus.Mined);
-
+        
         var creator = ContractDeployed.Parser.ParseFrom(deploymentResult.Logs[1].Indexed[0]).Author;
         creator.ShouldBe(BasicContractZeroAddress);
         var deployAddress = ContractDeployed.Parser.ParseFrom(deploymentResult.Logs[1].NonIndexed).Address;
@@ -255,7 +259,6 @@ public class GenesisContractAuthTest : BasicContractZeroTestBase
             nameof(BasicContractZeroImplContainer.BasicContractZeroImplStub.GetContractInfo), deployAddress));
         contractInfo.Version.ShouldBe(1);
         contractInfo.Author.ShouldBe(BasicContractZeroAddress);
-
         {
             var releaseContractAlreadyFinished = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
                 nameof(BasicContractZeroImplContainer.BasicContractZeroImplStub.ReleaseCodeCheckedContract),
@@ -353,7 +356,6 @@ public class GenesisContractAuthTest : BasicContractZeroTestBase
             Category = KernelConstants.DefaultRunnerCategory, // test the default runner
             Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("TokenConverter")).Value)
         };
-
         var newAddress = await DeployAsync(Tester, ParliamentAddress, contractDeploymentInput);
         var contractInfo = ContractInfo.Parser.ParseFrom(await Tester.CallContractMethodAsync(BasicContractZeroAddress,
             nameof(BasicContractZeroImplContainer.BasicContractZeroImplStub.GetContractInfo), newAddress));
@@ -361,7 +363,8 @@ public class GenesisContractAuthTest : BasicContractZeroTestBase
         var contractUpdateInput = new ContractUpdateInput
         {
             Address = newAddress,
-            Code = contractDeploymentInput.Code
+            Code = contractDeploymentInput.Code,
+            ExpiredTime = 604800 // 60 * 60 * 24 * 7
         };
 
         var proposingTxResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
@@ -372,6 +375,10 @@ public class GenesisContractAuthTest : BasicContractZeroTestBase
             .ParseFrom(proposingTxResult.Logs.First(l => l.Name.Contains(nameof(ProposalCreated))).NonIndexed)
             .ProposalId;
         proposalId.ShouldNotBeNull();
+        var expiredTime = ContractExpiredTime.Parser
+            .ParseFrom(proposingTxResult.Logs.First(l => l.Name.Contains(nameof(ContractExpiredTime))).NonIndexed)
+            .ExpiredTime;
+        expiredTime.ShouldBe(contractUpdateInput.ExpiredTime);
         var proposedContractInputHash = ContractProposed.Parser
             .ParseFrom(proposingTxResult.Logs.First(l => l.Name.Contains(nameof(ContractProposed))).NonIndexed)
             .ProposedContractInputHash;
