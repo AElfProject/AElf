@@ -8,51 +8,44 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus;
 
-namespace AElf.OS.Handlers
+namespace AElf.OS.Handlers;
+
+public class BlockMinedEventHandler : ILocalEventHandler<BlockMinedEventData>, ITransientDependency
 {
-    public class BlockMinedEventHandler : ILocalEventHandler<BlockMinedEventData>, ITransientDependency
+    private readonly IBlockchainService _blockchainService;
+    private readonly INetworkService _networkService;
+    private readonly ISyncStateService _syncStateService;
+
+    public BlockMinedEventHandler(INetworkService networkService, IBlockchainService blockchainService,
+        ISyncStateService syncStateService)
     {
-        private readonly INetworkService _networkService;
-        private readonly IBlockchainService _blockchainService;
-        private readonly ISyncStateService _syncStateService;
+        _networkService = networkService;
+        _blockchainService = blockchainService;
+        _syncStateService = syncStateService;
 
-        public ILogger<BlockMinedEventHandler> Logger { get; set; }
+        Logger = NullLogger<BlockMinedEventHandler>.Instance;
+    }
 
-        public BlockMinedEventHandler(INetworkService networkService, IBlockchainService blockchainService,
-            ISyncStateService syncStateService)
+    public ILogger<BlockMinedEventHandler> Logger { get; set; }
+
+    public async Task HandleEventAsync(BlockMinedEventData eventData)
+    {
+        if (_syncStateService.SyncState != SyncState.Finished) return;
+
+        if (eventData?.BlockHeader == null) return;
+
+        var blockWithTransactions =
+            await _blockchainService.GetBlockWithTransactionsByHashAsync(eventData.BlockHeader.GetHash());
+
+        if (blockWithTransactions == null)
         {
-            _networkService = networkService;
-            _blockchainService = blockchainService;
-            _syncStateService = syncStateService;
-
-            Logger = NullLogger<BlockMinedEventHandler>.Instance;
+            Logger.LogWarning($"Could not find {eventData.BlockHeader.GetHash()}.");
+            return;
         }
 
-        public async Task HandleEventAsync(BlockMinedEventData eventData)
-        {
-            if (_syncStateService.SyncState != SyncState.Finished)
-            {
-                return;
-            }
+        Logger.LogDebug(
+            $"Got full block hash {eventData.BlockHeader.GetHash()}, height {eventData.BlockHeader.Height}");
 
-            if (eventData?.BlockHeader == null)
-            {
-                return;
-            }
-
-            var blockWithTransactions =
-                await _blockchainService.GetBlockWithTransactionsByHashAsync(eventData.BlockHeader.GetHash());
-
-            if (blockWithTransactions == null)
-            {
-                Logger.LogWarning($"Could not find {eventData.BlockHeader.GetHash()}.");
-                return;
-            }
-
-            Logger.LogDebug(
-                $"Got full block hash {eventData.BlockHeader.GetHash()}, height {eventData.BlockHeader.Height}");
-
-            var _ = _networkService.BroadcastBlockWithTransactionsAsync(blockWithTransactions);
-        }
+        var _ = _networkService.BroadcastBlockWithTransactionsAsync(blockWithTransactions);
     }
 }

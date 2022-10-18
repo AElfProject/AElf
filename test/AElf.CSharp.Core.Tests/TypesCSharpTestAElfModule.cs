@@ -1,8 +1,7 @@
 using AElf.Modularity;
 
-namespace AElf.CSharp.Core
+namespace AElf.CSharp.Core;
+
+public class TypesCSharpTestAElfModule : AElfModule
 {
-    public class TypesCSharpTestAElfModule : AElfModule
-    {
-    }
 }

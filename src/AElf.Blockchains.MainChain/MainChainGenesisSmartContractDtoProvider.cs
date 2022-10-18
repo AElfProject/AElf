@@ -5,27 +5,26 @@ using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
 using Microsoft.Extensions.Options;
 
-namespace AElf.Blockchains.MainChain
+namespace AElf.Blockchains.MainChain;
+
+/// <summary>
+///     Provide dtos for genesis block contract deployment and initialization.
+/// </summary>
+public class MainChainGenesisSmartContractDtoProvider : GenesisSmartContractDtoProviderBase
 {
-    /// <summary>
-    /// Provide dtos for genesis block contract deployment and initialization.
-    /// </summary>
-    public class MainChainGenesisSmartContractDtoProvider : GenesisSmartContractDtoProviderBase
+    private readonly ContractOptions _contractOptions;
+
+    public MainChainGenesisSmartContractDtoProvider(IContractDeploymentListProvider contractDeploymentListProvider,
+        IEnumerable<IContractInitializationProvider> contractInitializationProviders,
+        IOptionsSnapshot<ContractOptions> contractOptions)
+        : base(contractDeploymentListProvider, contractInitializationProviders)
     {
-        private readonly ContractOptions _contractOptions;
+        _contractOptions = contractOptions.Value;
+    }
 
-        public MainChainGenesisSmartContractDtoProvider(IContractDeploymentListProvider contractDeploymentListProvider,
-            IEnumerable<IContractInitializationProvider> contractInitializationProviders,
-            IOptionsSnapshot<ContractOptions> contractOptions)
-            : base(contractDeploymentListProvider, contractInitializationProviders)
-        {
-            _contractOptions = contractOptions.Value;
-        }
-
-        protected override IReadOnlyDictionary<string, byte[]> GetContractCodes()
-        {
-            return ContractsDeployer.GetContractCodes<MainChainGenesisSmartContractDtoProvider>(_contractOptions
-                .GenesisContractDir);
-        }
+    protected override IReadOnlyDictionary<string, byte[]> GetContractCodes()
+    {
+        return ContractsDeployer.GetContractCodes<MainChainGenesisSmartContractDtoProvider>(_contractOptions
+            .GenesisContractDir);
     }
 }

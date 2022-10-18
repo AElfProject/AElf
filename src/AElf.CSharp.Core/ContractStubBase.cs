@@ -1,10 +1,9 @@
 using System.Diagnostics.CodeAnalysis;
 
-namespace AElf.CSharp.Core
+namespace AElf.CSharp.Core;
+
+public class ContractStubBase
 {
-    public class ContractStubBase
-    {
-        [SuppressMessage("ReSharper", "InconsistentNaming")]
-        public IMethodStubFactory __factory { get; set; }
-    }
+    [SuppressMessage("ReSharper", "InconsistentNaming")]
+    public IMethodStubFactory __factory { get; set; }
 }

@@ -1,20 +1,19 @@
 using System.Text;
 
-namespace AElf.CSharp.Core.Utils
+namespace AElf.CSharp.Core.Utils;
+
+/// <summary>
+///     Helper class for serializing strings.
+/// </summary>
+public class EncodingHelper
 {
     /// <summary>
-    /// Helper class for serializing strings.
+    ///     Serializes a UTF-8 string to a byte array.
     /// </summary>
-    public class EncodingHelper
+    /// <param name="str">the string to serialize.</param>
+    /// <returns>the serialized string.</returns>
+    public static byte[] EncodeUtf8(string str)
     {
-        /// <summary>
-        /// Serializes a UTF-8 string to a byte array.
-        /// </summary>
-        /// <param name="str">the string to serialize.</param>
-        /// <returns>the serialized string.</returns>
-        public static byte[] EncodeUtf8(string str)
-        {
-            return Encoding.UTF8.GetBytes(str);
-        }
+        return Encoding.UTF8.GetBytes(str);
     }
 }

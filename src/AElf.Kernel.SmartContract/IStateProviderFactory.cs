@@ -1,8 +1,6 @@
-namespace AElf.Kernel.SmartContract
-{
-    public interface IStateProviderFactory
-    {
-        IStateProvider CreateStateProvider();
+namespace AElf.Kernel.SmartContract;
 
-    }
+public interface IStateProviderFactory
+{
+    IStateProvider CreateStateProvider();
 }

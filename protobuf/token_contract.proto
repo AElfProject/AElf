@@ -124,7 +124,15 @@ service TokenContract {
     // This method is used to initialize the governance organization for some functions, 
     // including: the coefficient of the user transaction fee calculation formula, 
     // the coefficient of the contract developer resource fee calculation formula, and the side chain rental fee.
-    rpc InitializeAuthorizedController(google.protobuf.Empty) returns (google.protobuf.Empty){
+    rpc InitializeAuthorizedController (google.protobuf.Empty) returns (google.protobuf.Empty){
+    }
+
+    rpc ResetExternalInfo (ResetExternalInfoInput) returns (google.protobuf.Empty){
+    }
+    
+    rpc AddAddressToCreateTokenWhiteList (aelf.Address) returns (google.protobuf.Empty) {
+    }
+    rpc RemoveAddressFromCreateTokenWhiteList (aelf.Address) returns (google.protobuf.Empty) {
     }
 
     // Query token information.
@@ -200,6 +208,12 @@ service TokenContract {
     rpc IsTokenAvailableForMethodFee (google.protobuf.StringValue) returns (google.protobuf.BoolValue) {
         option (aelf.is_view) = true;
     }
+    rpc IsInCreateTokenWhiteList (aelf.Address) returns (google.protobuf.BoolValue) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetReservedExternalInfoKeyList (google.protobuf.Empty) returns (StringList) {
+        option (aelf.is_view) = true;
+    }
 }
 
 message TokenInfo {
@@ -221,6 +235,12 @@ message TokenInfo {
     int32 issue_chain_id = 8;
     // The amount of issued tokens.
     int64 issued = 9;
+    // The external information of the token.
+    ExternalInfo external_info = 10;
+}
+
+message ExternalInfo {
+    map<string, string> value = 1;
 }
 
 message CreateInput {
@@ -240,6 +260,8 @@ message CreateInput {
     repeated aelf.Address lock_white_list = 7;
     // The chain id of the token.
     int32 issue_chain_id = 8;
+    // The external information of the token.
+    ExternalInfo external_info = 9;
 }
 
 message SetPrimaryTokenSymbolInput {
@@ -462,6 +484,11 @@ message ChargeTransactionFeesOutput {
     string charging_information = 2;
 }
 
+message CallbackInfo {
+    aelf.Address contract_address = 1;
+    string method_name = 2;
+}
+
 message ExtraTokenListModified {
     option (aelf.is_event) = true;
     // Transaction fee token information.
@@ -592,6 +619,15 @@ message ChangeTokenIssuerInput
     aelf.Address new_token_Issuer = 2;
 }
 
+message ResetExternalInfoInput {
+    string symbol = 1;
+    ExternalInfo external_info = 2;
+}
+
+message StringList {
+    repeated string value = 1;
+}
+
 message Transferred {
     option (aelf.is_event) = true;
     // The source address of the transferred token.
@@ -647,7 +683,6 @@ message ChainPrimaryTokenSymbolSet {
     string token_symbol = 1;
 }
 
-
 message CalculateFeeAlgorithmUpdated {
     option (aelf.is_event) = true;
     // All calculate fee coefficients after modification.
@@ -686,6 +721,8 @@ message TokenCreated {
     bool is_burnable = 6;
     // The chain id of the token.
     int32 issue_chain_id = 7;
+    // The external information of the token.
+    ExternalInfo external_info = 8;
 }
 
 message Issued {
@@ -736,4 +773,10 @@ message CrossChainReceived {
     int32 issue_chain_id = 7;
     // The parent chain height of the transfer transaction.
     int64 parent_chain_height = 8;
+}
+
+message ExternalInfoChanged {
+    option (aelf.is_event) = true;
+    string symbol = 1;
+    ExternalInfo external_info = 2;
 }

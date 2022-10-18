@@ -1,10 +1,9 @@
 using AElf.Types;
 
-namespace AElf.Kernel.SmartContract.Parallel
+namespace AElf.Kernel.SmartContract.Parallel;
+
+public class TransactionWithResourceInfo
 {
-    public class TransactionWithResourceInfo
-    {
-        public Transaction Transaction { get; set; }
-        public TransactionResourceInfo TransactionResourceInfo { get; set; }
-    }
+    public Transaction Transaction { get; set; }
+    public TransactionResourceInfo TransactionResourceInfo { get; set; }
 }

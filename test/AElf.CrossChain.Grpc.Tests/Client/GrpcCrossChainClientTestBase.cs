@@ -3,29 +3,30 @@ using AElf.Kernel;
 using AElf.TestBase;
 using Microsoft.Extensions.Options;
 
-namespace AElf.CrossChain.Grpc.Client
+namespace AElf.CrossChain.Grpc.Client;
+
+public class GrpcCrossChainClientTestBase : AElfIntegratedTest<GrpcCrossChainClientTestModule>
 {
-    public class GrpcCrossChainClientTestBase : AElfIntegratedTest<GrpcCrossChainClientTestModule>
+    protected ChainOptions ChainOptions;
+    protected IGrpcCrossChainServer Server;
+
+    public GrpcCrossChainClientTestBase()
     {
-        protected ChainOptions ChainOptions;
-        protected IGrpcCrossChainServer Server;
-        
-        public GrpcCrossChainClientTestBase()
-        {
-            ChainOptions = GetRequiredService<IOptionsSnapshot<ChainOptions>>().Value;
-            Server = GetRequiredService<IGrpcCrossChainServer>();
-        }
+        ChainOptions = GetRequiredService<IOptionsSnapshot<ChainOptions>>().Value;
+        Server = GetRequiredService<IGrpcCrossChainServer>();
     }
-    
-    public class GrpcCrossChainClientWithoutParentChainTestBase : AElfIntegratedTest<GrpcCrossChainClientWithoutParentChainTestModule>
+}
+
+public class
+    GrpcCrossChainClientWithoutParentChainTestBase : AElfIntegratedTest<
+        GrpcCrossChainClientWithoutParentChainTestModule>
+{
+    protected ChainOptions ChainOptions;
+    protected IGrpcCrossChainServer Server;
+
+    public GrpcCrossChainClientWithoutParentChainTestBase()
     {
-        protected ChainOptions ChainOptions;
-        protected IGrpcCrossChainServer Server;
-        
-        public GrpcCrossChainClientWithoutParentChainTestBase()
-        {
-            ChainOptions = GetRequiredService<IOptionsSnapshot<ChainOptions>>().Value;
-            Server = GetRequiredService<IGrpcCrossChainServer>();
-        }
+        ChainOptions = GetRequiredService<IOptionsSnapshot<ChainOptions>>().Value;
+        Server = GetRequiredService<IGrpcCrossChainServer>();
     }
 }

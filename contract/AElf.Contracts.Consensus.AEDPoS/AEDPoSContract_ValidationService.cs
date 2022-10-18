@@ -1,31 +1,27 @@
 using System.Collections.Generic;
 using AElf.Standards.ACS4;
 
-namespace AElf.Contracts.Consensus.AEDPoS
+namespace AElf.Contracts.Consensus.AEDPoS;
+
+public class HeaderInformationValidationService
 {
-    public class HeaderInformationValidationService
+    private readonly IEnumerable<IHeaderInformationValidationProvider> _headerInformationValidationProviders;
+
+    public HeaderInformationValidationService(
+        IEnumerable<IHeaderInformationValidationProvider> headerInformationValidationProviders)
     {
-        private readonly IEnumerable<IHeaderInformationValidationProvider> _headerInformationValidationProviders;
+        _headerInformationValidationProviders = headerInformationValidationProviders;
+    }
 
-        public HeaderInformationValidationService(
-            IEnumerable<IHeaderInformationValidationProvider> headerInformationValidationProviders)
+    public ValidationResult ValidateInformation(ConsensusValidationContext validationContext)
+    {
+        foreach (var headerInformationValidationProvider in _headerInformationValidationProviders)
         {
-            _headerInformationValidationProviders = headerInformationValidationProviders;
+            var result =
+                headerInformationValidationProvider.ValidateHeaderInformation(validationContext);
+            if (!result.Success) return result;
         }
 
-        public ValidationResult ValidateInformation(ConsensusValidationContext validationContext)
-        {
-            foreach (var headerInformationValidationProvider in _headerInformationValidationProviders)
-            {
-                var result =
-                    headerInformationValidationProvider.ValidateHeaderInformation(validationContext);
-                if (!result.Success)
-                {
-                    return result;
-                }
-            }
-
-            return new ValidationResult {Success = true};
-        }
+        return new ValidationResult { Success = true };
     }
 }

@@ -5,30 +5,29 @@ using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp;
 using Volo.Abp.Modularity;
 
-namespace AElf.Cluster.Application
+namespace AElf.Cluster.Application;
+
+public class MainBlockchainStartup<T> where T : AbpModule
 {
-    public class MainBlockchainStartup<T> where T: AbpModule 
+    // This method gets called by the runtime. Use this method to add services to the container.
+    // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
+    public IServiceProvider ConfigureServices(IServiceCollection services)
     {
-        // This method gets called by the runtime. Use this method to add services to the container.
-        // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
-        public IServiceProvider ConfigureServices(IServiceCollection services)
-        {
-            services.AddApplication<T>(options => { options.UseAutofac(); });
+        services.AddApplication<T>(options => { options.UseAutofac(); });
 
-            return services.BuildAutofacServiceProvider();
-        }
+        return services.BuildAutofacServiceProvider();
+    }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
-        {
-            app.UseCors(builder => builder
-                .AllowAnyOrigin()
-                .AllowAnyHeader()
-                .AllowAnyMethod()
-                .AllowCredentials()
-            );
+    // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+    public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+    {
+        app.UseCors(builder => builder
+            .AllowAnyOrigin()
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials()
+        );
 
-            app.InitializeApplication();
-        }
+        app.InitializeApplication();
     }
 }

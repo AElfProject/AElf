@@ -1,7 +1,6 @@
-namespace AElf.CSharp.CodeOps
+namespace AElf.CSharp.CodeOps;
+
+public class CSharpCodeOpsOptions
 {
-    public class CSharpCodeOpsOptions
-    {
-        public int AuditTimeoutDuration { get; set; } = Constants.DefaultAuditTimeoutDuration;
-    }
+    public int AuditTimeoutDuration { get; set; } = Constants.DefaultAuditTimeoutDuration;
 }

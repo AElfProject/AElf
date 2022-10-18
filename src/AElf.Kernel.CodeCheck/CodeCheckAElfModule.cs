@@ -6,17 +6,16 @@ using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
 
-namespace AElf.Kernel.CodeCheck
+namespace AElf.Kernel.CodeCheck;
+
+public class CodeCheckAElfModule : AElfModule
 {
-    public class CodeCheckAElfModule : AElfModule
+    public override void ConfigureServices(ServiceConfigurationContext context)
     {
-        public override void ConfigureServices(ServiceConfigurationContext context)
-        {
-            context.Services
-                .AddSingleton<IBlocksExecutionSucceededLogEventProcessor, CodeCheckRequiredLogEventProcessor>();
-            //context.Services.AddSingleton<IBlockAcceptedLogEventProcessor, ContractDeployedLogEventProcessor>();
-            context.Services.AddSingleton<IContractAuditorContainer, ContractAuditorContainer>();
-            context.Services.AddSingleton<IBlockValidationProvider, CodeCheckValidationProvider>();
-        }
+        context.Services
+            .AddSingleton<IBlocksExecutionSucceededLogEventProcessor, CodeCheckRequiredLogEventProcessor>();
+        //context.Services.AddSingleton<IBlockAcceptedLogEventProcessor, ContractDeployedLogEventProcessor>();
+        context.Services.AddSingleton<IContractAuditorContainer, ContractAuditorContainer>();
+        context.Services.AddSingleton<IBlockValidationProvider, CodeCheckValidationProvider>();
     }
 }

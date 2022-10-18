@@ -4,24 +4,23 @@ using AElf.TestBase;
 using Shouldly;
 using Xunit;
 
-namespace AElf
+namespace AElf;
+
+public sealed class ServiceContainerTests : AElfIntegratedTest<CoreWithServiceContainerFactoryOptionsAElfTestModule>
 {
-    public sealed class ServiceContainerTests:AElfIntegratedTest<CoreWithServiceContainerFactoryOptionsAElfTestModule>
+    private readonly IServiceContainer<ITestProvider> _testProviders;
+
+    public ServiceContainerTests()
     {
-        private readonly IServiceContainer<ITestProvider> _testProviders;
+        _testProviders = GetRequiredService<IServiceContainer<ITestProvider>>();
+    }
 
-        public ServiceContainerTests()
-        {
-            _testProviders = GetRequiredService<IServiceContainer<ITestProvider>>();
-        }
-
-        [Fact]
-        public void ServiceContainerTest()
-        {
-            var types = _testProviders.Select(p => p.GetType()).ToList();
-            types[0].ShouldBe(typeof(ATestProvider));
-            types[1].ShouldBe(typeof(CTestProvider));
-            types[2].ShouldBe(typeof(BTestProvider));
-        }
+    [Fact]
+    public void ServiceContainerTest()
+    {
+        var types = _testProviders.Select(p => p.GetType()).ToList();
+        types[0].ShouldBe(typeof(ATestProvider));
+        types[1].ShouldBe(typeof(CTestProvider));
+        types[2].ShouldBe(typeof(BTestProvider));
     }
 }

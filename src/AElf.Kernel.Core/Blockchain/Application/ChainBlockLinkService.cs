@@ -1,47 +1,42 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Domain;
-using AElf.Types;
-using Volo.Abp.DependencyInjection;
 
-namespace AElf.Kernel.Blockchain.Application
+namespace AElf.Kernel.Blockchain.Application;
+
+public interface IChainBlockLinkService
 {
-    public interface IChainBlockLinkService
+    List<ChainBlockLink> GetCachedChainBlockLinks();
+    void CleanCachedChainBlockLinks(long height);
+    Task<List<ChainBlockLink>> GetNotExecutedChainBlockLinksAsync(Hash chainBranchBlockHash);
+    Task SetChainBlockLinkExecutionStatusAsync(Hash blockHash, ChainBlockLinkExecutionStatus status);
+}
+
+public class ChainBlockLinkService : IChainBlockLinkService, ITransientDependency
+{
+    private readonly IChainManager _chainManager;
+
+    public ChainBlockLinkService(IChainManager chainManager)
     {
-        List<ChainBlockLink> GetCachedChainBlockLinks();
-        void CleanCachedChainBlockLinks(long height);
-        Task<List<ChainBlockLink>> GetNotExecutedChainBlockLinksAsync(Hash chainBranchBlockHash);
-        Task SetChainBlockLinkExecutionStatusAsync(Hash blockHash, ChainBlockLinkExecutionStatus status);
+        _chainManager = chainManager;
     }
 
-    public class ChainBlockLinkService : IChainBlockLinkService, ITransientDependency
+    public List<ChainBlockLink> GetCachedChainBlockLinks()
     {
-        private readonly IChainManager _chainManager;
+        return _chainManager.GetCachedChainBlockLinks();
+    }
 
-        public ChainBlockLinkService(IChainManager chainManager)
-        {
-            _chainManager = chainManager;
-        }
+    public void CleanCachedChainBlockLinks(long height)
+    {
+        _chainManager.CleanCachedChainBlockLinks(height);
+    }
 
-        public List<ChainBlockLink> GetCachedChainBlockLinks()
-        {
-            return _chainManager.GetCachedChainBlockLinks();
-        }
+    public async Task<List<ChainBlockLink>> GetNotExecutedChainBlockLinksAsync(Hash chainBranchBlockHash)
+    {
+        return await _chainManager.GetNotExecutedBlocks(chainBranchBlockHash);
+    }
 
-        public void CleanCachedChainBlockLinks(long height)
-        {
-            _chainManager.CleanCachedChainBlockLinks(height);
-        }
-
-        public async Task<List<ChainBlockLink>> GetNotExecutedChainBlockLinksAsync(Hash chainBranchBlockHash)
-        {
-            return await _chainManager.GetNotExecutedBlocks(chainBranchBlockHash);
-        }
-
-        public async Task SetChainBlockLinkExecutionStatusAsync(Hash blockHash, ChainBlockLinkExecutionStatus status)
-        {
-            var chainBlockLink = await _chainManager.GetChainBlockLinkAsync(blockHash);
-            await _chainManager.SetChainBlockLinkExecutionStatusAsync(chainBlockLink, status);
-        }
+    public async Task SetChainBlockLinkExecutionStatusAsync(Hash blockHash, ChainBlockLinkExecutionStatus status)
+    {
+        var chainBlockLink = await _chainManager.GetChainBlockLinkAsync(blockHash);
+        await _chainManager.SetChainBlockLinkExecutionStatusAsync(chainBlockLink, status);
     }
 }

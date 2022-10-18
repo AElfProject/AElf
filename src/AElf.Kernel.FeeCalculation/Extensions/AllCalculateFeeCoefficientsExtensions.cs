@@ -3,15 +3,14 @@ using System.Linq;
 using AElf.Contracts.MultiToken;
 using AElf.Kernel.FeeCalculation.Infrastructure;
 
-namespace AElf.Kernel.FeeCalculation.Extensions
+namespace AElf.Kernel.FeeCalculation.Extensions;
+
+public static class AllCalculateFeeCoefficientsExtensions
 {
-    public static class AllCalculateFeeCoefficientsExtensions
+    internal static Dictionary<string, CalculateFunction> ToCalculateFunctionDictionary(
+        this AllCalculateFeeCoefficients allCalculateFeeCoefficients)
     {
-        internal static Dictionary<string, CalculateFunction> ToCalculateFunctionDictionary(
-            this AllCalculateFeeCoefficients allCalculateFeeCoefficients)
-        {
-            return allCalculateFeeCoefficients.Value.ToDictionary(c => ((FeeTypeEnum) c.FeeTokenType).ToString().ToUpper(),
-                c => c.ToCalculateFunction());
-        }
+        return allCalculateFeeCoefficients.Value.ToDictionary(c => ((FeeTypeEnum)c.FeeTokenType).ToString().ToUpper(),
+            c => c.ToCalculateFunction());
     }
 }

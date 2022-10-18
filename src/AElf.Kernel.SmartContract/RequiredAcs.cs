@@ -1,10 +1,9 @@
 using System.Collections.Generic;
 
-namespace AElf.Kernel.SmartContract
+namespace AElf.Kernel.SmartContract;
+
+public class RequiredAcs
 {
-    public class RequiredAcs
-    {
-        public bool RequireAll;
-        public List<string> AcsList;
-    }
+    public List<string> AcsList;
+    public bool RequireAll;
 }

@@ -1,9 +1,8 @@
-namespace AElf.CrossChain
-{
-    public class CrossChainConfigOptions
-    {
-        public string ParentChainId { get; set; }
+namespace AElf.CrossChain;
 
-        public bool CrossChainDataValidationIgnored { get; set; } = true;
-    }
+public class CrossChainConfigOptions
+{
+    public string ParentChainId { get; set; }
+
+    public bool CrossChainDataValidationIgnored { get; set; } = true;
 }

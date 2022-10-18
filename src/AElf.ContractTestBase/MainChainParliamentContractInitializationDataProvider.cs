@@ -1,13 +1,11 @@
 using AElf.GovernmentSystem;
-using Volo.Abp.DependencyInjection;
 
-namespace AElf.ContractTestBase
+namespace AElf.ContractTestBase;
+
+public class MainChainParliamentContractInitializationDataProvider : IParliamentContractInitializationDataProvider
 {
-    public class MainChainParliamentContractInitializationDataProvider : IParliamentContractInitializationDataProvider
+    public ParliamentContractInitializationData GetContractInitializationData()
     {
-        public ParliamentContractInitializationData GetContractInitializationData()
-        {
-            return new ParliamentContractInitializationData();
-        }
+        return new ParliamentContractInitializationData();
     }
 }

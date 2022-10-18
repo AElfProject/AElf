@@ -1,8 +1,8 @@
-namespace AElf.ContractTestBase
+using AElf.ContractTestBase.ContractTestKit;
+
+namespace AElf.ContractTestBase;
+
+public class MainChainContractTestBase<T> : ContractTestBase<T>
+    where T : MainChainContractTestModule
 {
-    public class MainChainContractTestBase<T> : ContractTestKit.ContractTestBase<T>
-        where T : MainChainContractTestModule
-    {
-        
-    }
 }

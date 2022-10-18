@@ -1,12 +1,11 @@
-namespace AElf.ContractTestKit.AEDPoSExtension
-{
-    public interface IChainTypeProvider
-    {
-        bool IsSideChain { get; set; }
-    }
+namespace AElf.ContractTestKit.AEDPoSExtension;
 
-    public class ChainTypeProvider : IChainTypeProvider
-    {
-        public bool IsSideChain { get; set; } = false;
-    }
+public interface IChainTypeProvider
+{
+    bool IsSideChain { get; set; }
+}
+
+public class ChainTypeProvider : IChainTypeProvider
+{
+    public bool IsSideChain { get; set; } = false;
 }

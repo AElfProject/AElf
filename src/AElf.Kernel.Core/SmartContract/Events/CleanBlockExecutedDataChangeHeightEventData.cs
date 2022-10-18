@@ -1,7 +1,6 @@
-namespace AElf.Kernel.SmartContract.Events
+namespace AElf.Kernel.SmartContract.Events;
+
+public class CleanBlockExecutedDataChangeHeightEventData
 {
-    public class CleanBlockExecutedDataChangeHeightEventData
-    {
-        public long IrreversibleBlockHeight { get; set; }
-    }
+    public long IrreversibleBlockHeight { get; set; }
 }

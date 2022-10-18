@@ -8,53 +8,54 @@ using AElf.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
 
-namespace AElf.Contracts.Association
+namespace AElf.Contracts.Association;
+
+public class AssociationContractTestBase<T> : ContractTestBase<T> where T : AbpModule
 {
-    public class AssociationContractTestBase<T> : ContractTestBase<T> where T : AbpModule
+    public AssociationContractTestBase()
     {
-        protected ECKeyPair DefaultSenderKeyPair => Accounts[0].KeyPair;
-        protected ECKeyPair Reviewer1KeyPair => Accounts[1].KeyPair;
-        protected ECKeyPair Reviewer2KeyPair => Accounts[2].KeyPair;
-        protected ECKeyPair Reviewer3KeyPair => Accounts[3].KeyPair;
-        protected Address DefaultSender => Accounts[0].Address;
-        protected Address Reviewer1 => Accounts[1].Address;
-        protected Address Reviewer2 => Accounts[2].Address;
-        protected Address Reviewer3 => Accounts[3].Address;
+        AssociationContractStub = GetAssociationContractTester(DefaultSenderKeyPair);
 
-        protected List<ECKeyPair> InitialCoreDataCenterKeyPairs =>
-            Accounts.Take(InitialCoreDataCenterCount).Select(a => a.KeyPair).ToList();
+        TokenContractStub = GetTokenContractTester(DefaultSenderKeyPair);
 
-        protected IBlockTimeProvider BlockTimeProvider =>
-            Application.ServiceProvider.GetRequiredService<IBlockTimeProvider>();
+        ParliamentContractStub = GetParliamentContractTester(DefaultSenderKeyPair);
+    }
 
-        internal TokenContractImplContainer.TokenContractImplStub TokenContractStub { get; }
-        internal AssociationContractImplContainer.AssociationContractImplStub AssociationContractStub { get; }
-        internal ParliamentContractImplContainer.ParliamentContractImplStub ParliamentContractStub { get; }
+    protected ECKeyPair DefaultSenderKeyPair => Accounts[0].KeyPair;
+    protected ECKeyPair Reviewer1KeyPair => Accounts[1].KeyPair;
+    protected ECKeyPair Reviewer2KeyPair => Accounts[2].KeyPair;
+    protected ECKeyPair Reviewer3KeyPair => Accounts[3].KeyPair;
+    protected Address DefaultSender => Accounts[0].Address;
+    protected Address Reviewer1 => Accounts[1].Address;
+    protected Address Reviewer2 => Accounts[2].Address;
+    protected Address Reviewer3 => Accounts[3].Address;
 
-        public AssociationContractTestBase()
-        {
-            AssociationContractStub = GetAssociationContractTester(DefaultSenderKeyPair);
+    protected List<ECKeyPair> InitialCoreDataCenterKeyPairs =>
+        Accounts.Take(InitialCoreDataCenterCount).Select(a => a.KeyPair).ToList();
 
-            TokenContractStub = GetTokenContractTester(DefaultSenderKeyPair);
+    protected IBlockTimeProvider BlockTimeProvider =>
+        Application.ServiceProvider.GetRequiredService<IBlockTimeProvider>();
 
-            ParliamentContractStub = GetParliamentContractTester(DefaultSenderKeyPair);
-        }
+    internal TokenContractImplContainer.TokenContractImplStub TokenContractStub { get; }
+    internal AssociationContractImplContainer.AssociationContractImplStub AssociationContractStub { get; }
+    internal ParliamentContractImplContainer.ParliamentContractImplStub ParliamentContractStub { get; }
 
-        internal AssociationContractImplContainer.AssociationContractImplStub GetAssociationContractTester(ECKeyPair keyPair)
-        {
-            return GetTester<AssociationContractImplContainer.AssociationContractImplStub>(AssociationContractAddress, keyPair);
-        }
+    internal AssociationContractImplContainer.AssociationContractImplStub GetAssociationContractTester(
+        ECKeyPair keyPair)
+    {
+        return GetTester<AssociationContractImplContainer.AssociationContractImplStub>(AssociationContractAddress,
+            keyPair);
+    }
 
-        internal TokenContractImplContainer.TokenContractImplStub GetTokenContractTester(ECKeyPair keyPair)
-        {
-            return GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, keyPair);
-        }
+    internal TokenContractImplContainer.TokenContractImplStub GetTokenContractTester(ECKeyPair keyPair)
+    {
+        return GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, keyPair);
+    }
 
-        internal ParliamentContractImplContainer.ParliamentContractImplStub GetParliamentContractTester(
-            ECKeyPair keyPair)
-        {
-            return GetTester<ParliamentContractImplContainer.ParliamentContractImplStub>(ParliamentContractAddress,
-                keyPair);
-        }
+    internal ParliamentContractImplContainer.ParliamentContractImplStub GetParliamentContractTester(
+        ECKeyPair keyPair)
+    {
+        return GetTester<ParliamentContractImplContainer.ParliamentContractImplStub>(ParliamentContractAddress,
+            keyPair);
     }
 }

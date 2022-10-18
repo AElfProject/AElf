@@ -1,54 +1,52 @@
 using System.Linq;
 using AElf.Cryptography.SecretSharing;
 using AElf.CSharp.Core;
-using AElf.Types;
 
-namespace AElf.Contracts.Consensus.AEDPoS
+namespace AElf.Contracts.Consensus.AEDPoS;
+
+// ReSharper disable once InconsistentNaming
+public partial class AEDPoSContract
 {
-    // ReSharper disable once InconsistentNaming
-    public partial class AEDPoSContract
+    private void RevealSharedInValues(Round currentRound, string publicKey)
     {
-        private void RevealSharedInValues(Round currentRound, string publicKey)
+        Context.LogDebug(() => "About to reveal shared in values.");
+
+        if (!currentRound.RealTimeMinersInformation.ContainsKey(publicKey)) return;
+
+        if (!TryToGetPreviousRoundInformation(out var previousRound)) return;
+
+        var minersCount = currentRound.RealTimeMinersInformation.Count;
+        var minimumCount = minersCount.Mul(2).Div(3);
+        minimumCount = minimumCount == 0 ? 1 : minimumCount;
+
+        foreach (var pair in previousRound.RealTimeMinersInformation.OrderBy(m => m.Value.Order))
         {
-            Context.LogDebug(() => "About to reveal shared in values.");
+            // Skip himself.
+            if (pair.Key == publicKey) continue;
 
-            if (!currentRound.RealTimeMinersInformation.ContainsKey(publicKey)) return;
+            if (!currentRound.RealTimeMinersInformation.Keys.Contains(pair.Key)) continue;
 
-            if (!TryToGetPreviousRoundInformation(out var previousRound)) return;
+            var publicKeyOfAnotherMiner = pair.Key;
+            var anotherMinerInPreviousRound = pair.Value;
 
-            var minersCount = currentRound.RealTimeMinersInformation.Count;
-            var minimumCount = minersCount.Mul(2).Div(3);
-            minimumCount = minimumCount == 0 ? 1 : minimumCount;
+            if (anotherMinerInPreviousRound.EncryptedPieces.Count < minimumCount) continue;
+            if (anotherMinerInPreviousRound.DecryptedPieces.Count < minersCount) continue;
 
-            foreach (var pair in previousRound.RealTimeMinersInformation.OrderBy(m => m.Value.Order))
-            {
-                // Skip himself.
-                if (pair.Key == publicKey) continue;
+            // Reveal another miner's in value for target round:
 
-                if (!currentRound.RealTimeMinersInformation.Keys.Contains(pair.Key)) continue;
+            var orders = anotherMinerInPreviousRound.DecryptedPieces.Select((t, i) =>
+                    previousRound.RealTimeMinersInformation.Values
+                        .First(m => m.Pubkey ==
+                                    anotherMinerInPreviousRound.DecryptedPieces.Keys.ToList()[i]).Order)
+                .ToList();
 
-                var publicKeyOfAnotherMiner = pair.Key;
-                var anotherMinerInPreviousRound = pair.Value;
+            var sharedParts = anotherMinerInPreviousRound.DecryptedPieces.Values.ToList()
+                .Select(s => s.ToByteArray()).ToList();
 
-                if (anotherMinerInPreviousRound.EncryptedPieces.Count < minimumCount) continue;
-                if (anotherMinerInPreviousRound.DecryptedPieces.Count < minersCount) continue;
+            var revealedInValue =
+                HashHelper.ComputeFrom(SecretSharingHelper.DecodeSecret(sharedParts, orders, minimumCount));
 
-                // Reveal another miner's in value for target round:
-
-                var orders = anotherMinerInPreviousRound.DecryptedPieces.Select((t, i) =>
-                        previousRound.RealTimeMinersInformation.Values
-                            .First(m => m.Pubkey ==
-                                        anotherMinerInPreviousRound.DecryptedPieces.Keys.ToList()[i]).Order)
-                    .ToList();
-
-                var sharedParts = anotherMinerInPreviousRound.DecryptedPieces.Values.ToList()
-                    .Select(s => s.ToByteArray()).ToList();
-
-                var revealedInValue =
-                    HashHelper.ComputeFrom(SecretSharingHelper.DecodeSecret(sharedParts, orders, minimumCount));
-
-                currentRound.RealTimeMinersInformation[publicKeyOfAnotherMiner].PreviousInValue = revealedInValue;
-            }
+            currentRound.RealTimeMinersInformation[publicKeyOfAnotherMiner].PreviousInValue = revealedInValue;
         }
     }
 }

@@ -2,46 +2,39 @@ using System.Collections.Concurrent;
 using System.IO;
 using System.Reflection;
 
-namespace AElf.Runtime.CSharp
+namespace AElf.Runtime.CSharp;
+
+public class SdkStreamManager : ISdkStreamManager
 {
-    public class SdkStreamManager : ISdkStreamManager
+    private readonly ConcurrentDictionary<string, byte[]> _cachedSdkStreams = new();
+
+    private readonly string _sdkDir;
+
+    public SdkStreamManager(string sdkDir)
     {
-        private readonly ConcurrentDictionary<string, byte[]> _cachedSdkStreams =
-            new ConcurrentDictionary<string, byte[]>();
+        _sdkDir = sdkDir;
+    }
 
-        private readonly string _sdkDir;
-
-        public SdkStreamManager(string sdkDir)
+    public Stream GetStream(AssemblyName assemblyName)
+    {
+        // TODO: Handle version
+        var path = Path.Combine(_sdkDir, assemblyName.Name + ".dll");
+        if (!File.Exists(path))
         {
-            _sdkDir = sdkDir;
+            var assembly = Assembly.Load(assemblyName);
+
+            path = assembly.Location;
         }
 
-        public Stream GetStream(AssemblyName assemblyName)
+        if (!_cachedSdkStreams.TryGetValue(path, out var buffer))
         {
-            // TODO: Handle version
-            var path = Path.Combine(_sdkDir, assemblyName.Name + ".dll");
-            if (!File.Exists(path))
-            {
-                var assembly = Assembly.Load(assemblyName);
-
-                if (assembly == null)
-                    return null;
-
-                path = assembly.Location;
-            }
-
-            if (!_cachedSdkStreams.TryGetValue(path, out var buffer))
-            {
-                using (var fs = new FileStream(path, FileMode.Open, FileAccess.Read))
-                {
-                    var length = (int)fs.Length;
-                    buffer = new byte[length];
-                    fs.Read(buffer, 0, length);
-                    _cachedSdkStreams.TryAdd(path, buffer);
-                }
-            }
-
-            return new MemoryStream(buffer);
+            using var fs = new FileStream(path, FileMode.Open, FileAccess.Read);
+            var length = (int)fs.Length;
+            buffer = new byte[length];
+            fs.Read(buffer, 0, length);
+            _cachedSdkStreams.TryAdd(path, buffer);
         }
+
+        return new MemoryStream(buffer);
     }
 }

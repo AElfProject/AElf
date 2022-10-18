@@ -1,11 +1,10 @@
 using System.Threading.Tasks;
 using AElf.Types;
 
-namespace AElf.OS.BlockSync.Domain
+namespace AElf.OS.BlockSync.Domain;
+
+public interface IBlockDownloadJobManager
 {
-    public interface IBlockDownloadJobManager
-    {
-        Task<string> EnqueueAsync(Hash syncBlockHash, long syncBlockHeight, int batchRequestBlockCount,
-            string suggestedPeerPubkey);
-    }
+    Task<string> EnqueueAsync(Hash syncBlockHash, long syncBlockHeight, int batchRequestBlockCount,
+        string suggestedPeerPubkey);
 }

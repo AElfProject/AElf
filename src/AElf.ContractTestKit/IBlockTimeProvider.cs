@@ -3,36 +3,36 @@ using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.ContractTestKit
+namespace AElf.ContractTestKit;
+
+/// <summary>
+///     Some contract method's result based on the calling time,
+///     like GetConsensusCommand method of consensus contract.
+/// </summary>
+public interface IBlockTimeProvider
 {
-    /// <summary>
-    /// Some contract method's result based on the calling time,
-    /// like GetConsensusCommand method of consensus contract.
-    /// </summary>
-    public interface IBlockTimeProvider
+    Timestamp GetBlockTime();
+    void SetBlockTime(Timestamp blockTime);
+    void SetBlockTime(int offsetMilliseconds);
+}
+
+public class BlockTimeProvider : IBlockTimeProvider
+{
+    private Timestamp _blockTime;
+
+    public Timestamp GetBlockTime()
     {
-        Timestamp GetBlockTime();
-        void SetBlockTime(Timestamp blockTime);
-        void SetBlockTime(int offsetMilliseconds);
+        return _blockTime == null ? TimestampHelper.GetUtcNow() : _blockTime;
     }
 
-    public class BlockTimeProvider : IBlockTimeProvider
+    public void SetBlockTime(Timestamp blockTime)
     {
-        private Timestamp _blockTime;
-        public Timestamp GetBlockTime()
-        {
-            return _blockTime == null ? TimestampHelper.GetUtcNow() : _blockTime;
-        }
+        Debug.WriteLine($"Update block time: {blockTime}");
+        _blockTime = blockTime;
+    }
 
-        public void SetBlockTime(Timestamp blockTime)
-        {
-            Debug.WriteLine($"Update block time: {blockTime}");
-            _blockTime = blockTime;
-        }
-
-        public void SetBlockTime(int offsetMilliseconds)
-        {
-            SetBlockTime(_blockTime.AddMilliseconds(offsetMilliseconds));
-        }
+    public void SetBlockTime(int offsetMilliseconds)
+    {
+        SetBlockTime(_blockTime.AddMilliseconds(offsetMilliseconds));
     }
 }

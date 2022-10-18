@@ -5,16 +5,15 @@ using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
 
-namespace AElf.Kernel.Consensus
+namespace AElf.Kernel.Consensus;
+
+public class CoreConsensusAElfModule : AElfModule
 {
-    public class CoreConsensusAElfModule : AElfModule
+    public override void ConfigureServices(ServiceConfigurationContext context)
     {
-        public override void ConfigureServices(ServiceConfigurationContext context)
-        {
-            context.Services.AddTransient<ISystemTransactionGenerator, ConsensusTransactionGenerator>();
-            context.Services.AddTransient<IBlockExtraDataProvider, ConsensusExtraDataProvider>();
-            context.Services.AddSingleton<IConsensusExtraDataProvider, ConsensusExtraDataProvider>();
-            context.Services.AddTransient<IBlockValidationProvider, ConsensusValidationProvider>();
-        }
+        context.Services.AddTransient<ISystemTransactionGenerator, ConsensusTransactionGenerator>();
+        context.Services.AddTransient<IBlockExtraDataProvider, ConsensusExtraDataProvider>();
+        context.Services.AddSingleton<IConsensusExtraDataProvider, ConsensusExtraDataProvider>();
+        context.Services.AddTransient<IBlockValidationProvider, ConsensusValidationProvider>();
     }
 }

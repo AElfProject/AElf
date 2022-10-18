@@ -16,14 +16,13 @@
 
 #endregion
 
-namespace AElf.CSharp.Core
-{
-    /// <summary>
-    /// Handler for a contract method.
-    /// </summary>
-    /// <typeparam name="TRequest">Request message type for this method.</typeparam>
-    /// <typeparam name="TResponse">Response message type for this method.</typeparam>
-    public delegate TResponse UnaryServerMethod<TRequest, TResponse>(TRequest request)
-        where TRequest : class
-        where TResponse : class;
-}
+namespace AElf.CSharp.Core;
+
+/// <summary>
+///     Handler for a contract method.
+/// </summary>
+/// <typeparam name="TRequest">Request message type for this method.</typeparam>
+/// <typeparam name="TResponse">Response message type for this method.</typeparam>
+public delegate TResponse UnaryServerMethod<TRequest, TResponse>(TRequest request)
+    where TRequest : class
+    where TResponse : class;

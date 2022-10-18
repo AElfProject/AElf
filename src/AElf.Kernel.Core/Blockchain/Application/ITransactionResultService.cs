@@ -1,81 +1,70 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Domain;
-using AElf.Types;
-using Volo.Abp.DependencyInjection;
 
-namespace AElf.Kernel.Blockchain.Application
+namespace AElf.Kernel.Blockchain.Application;
+
+public interface ITransactionResultQueryService
 {
-    public interface ITransactionResultQueryService
+    Task<TransactionResult> GetTransactionResultAsync(Hash transactionId);
+    Task<TransactionResult> GetTransactionResultAsync(Hash transactionId, Hash blockHash);
+}
+
+public interface ITransactionResultService : ITransactionResultQueryService
+{
+    Task AddTransactionResultsAsync(IList<TransactionResult> transactionResult, BlockHeader blockHeader);
+
+    Task ProcessTransactionResultAfterExecutionAsync(BlockHeader blockHeader, List<Hash> transactionIds);
+}
+
+public class TransactionResultService : ITransactionResultService, ITransientDependency
+{
+    private readonly ITransactionBlockIndexService _transactionBlockIndexService;
+    private readonly ITransactionResultManager _transactionResultManager;
+
+    public TransactionResultService(ITransactionResultManager transactionResultManager,
+        ITransactionBlockIndexService transactionBlockIndexService)
     {
-        Task<TransactionResult> GetTransactionResultAsync(Hash transactionId);
-        Task<TransactionResult> GetTransactionResultAsync(Hash transactionId, Hash blockHash);
+        _transactionResultManager = transactionResultManager;
+        _transactionBlockIndexService = transactionBlockIndexService;
     }
 
-    public interface ITransactionResultService : ITransactionResultQueryService
+    public async Task AddTransactionResultsAsync(IList<TransactionResult> transactionResults,
+        BlockHeader blockHeader)
     {
-        Task AddTransactionResultsAsync(IList<TransactionResult> transactionResult, BlockHeader blockHeader);
-
-        Task ProcessTransactionResultAfterExecutionAsync(BlockHeader blockHeader, List<Hash> transactionIds);
+        await _transactionResultManager.AddTransactionResultsAsync(transactionResults,
+            blockHeader.GetDisambiguatingHash());
     }
 
-
-    public class TransactionResultService : ITransactionResultService, ITransientDependency
+    public async Task<TransactionResult> GetTransactionResultAsync(Hash transactionId)
     {
-        private readonly ITransactionResultManager _transactionResultManager;
-        private readonly ITransactionBlockIndexService _transactionBlockIndexService;
-        private readonly IBlockchainService _blockchainService;
+        var transactionBlockIndex =
+            await _transactionBlockIndexService.GetTransactionBlockIndexAsync(transactionId);
 
-        public TransactionResultService(ITransactionResultManager transactionResultManager,
-            IBlockchainService blockchainService, ITransactionBlockIndexService transactionBlockIndexService)
+        if (transactionBlockIndex != null)
+            return await _transactionResultManager.GetTransactionResultAsync(transactionId,
+                transactionBlockIndex.BlockHash);
+
+        return null;
+    }
+
+    public async Task<TransactionResult> GetTransactionResultAsync(Hash transactionId, Hash blockHash)
+    {
+        var txResult = await _transactionResultManager.GetTransactionResultAsync(transactionId, blockHash);
+        return txResult;
+    }
+
+    public async Task ProcessTransactionResultAfterExecutionAsync(BlockHeader blockHeader,
+        List<Hash> transactionIds)
+    {
+        var blockIndex = new BlockIndex
         {
-            _transactionResultManager = transactionResultManager;
-            _blockchainService = blockchainService;
-            _transactionBlockIndexService = transactionBlockIndexService;
-        }
+            BlockHash = blockHeader.GetHash(),
+            BlockHeight = blockHeader.Height
+        };
 
-        public async Task AddTransactionResultsAsync(IList<TransactionResult> transactionResults,
-            BlockHeader blockHeader)
-        {
-            await _transactionResultManager.AddTransactionResultsAsync(transactionResults,
-                blockHeader.GetDisambiguatingHash());
-        }
+        if (transactionIds.Count == 0)
+            // This will only happen during test environment
+            return;
 
-        public async Task<TransactionResult> GetTransactionResultAsync(Hash transactionId)
-        {
-            var transactionBlockIndex =
-                await _transactionBlockIndexService.GetTransactionBlockIndexAsync(transactionId);
-
-            if (transactionBlockIndex != null)
-                return await _transactionResultManager.GetTransactionResultAsync(transactionId,
-                    transactionBlockIndex.BlockHash);
-
-            return null;
-        }
-
-        public async Task<TransactionResult> GetTransactionResultAsync(Hash transactionId, Hash blockHash)
-        {
-            var txResult = await _transactionResultManager.GetTransactionResultAsync(transactionId, blockHash);
-            return txResult;
-        }
-
-        public async Task ProcessTransactionResultAfterExecutionAsync(BlockHeader blockHeader,
-            List<Hash> transactionIds)
-        {
-            var blockIndex = new BlockIndex
-            {
-                BlockHash = blockHeader.GetHash(),
-                BlockHeight = blockHeader.Height
-            };
-
-            if (transactionIds.Count == 0)
-            {
-                // This will only happen during test environment
-                return;
-            }
-
-            await _transactionBlockIndexService.AddBlockIndexAsync(transactionIds, blockIndex);
-        }
+        await _transactionBlockIndexService.AddBlockIndexAsync(transactionIds, blockIndex);
     }
 }

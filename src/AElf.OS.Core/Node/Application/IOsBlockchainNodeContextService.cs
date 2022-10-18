@@ -1,12 +1,11 @@
 using System.Threading.Tasks;
 using AElf.OS.Node.Domain;
 
-namespace AElf.OS.Node.Application
-{
-    public interface IOsBlockchainNodeContextService
-    {
-        Task<OsBlockchainNodeContext> StartAsync(OsBlockchainNodeContextStartDto dto);
+namespace AElf.OS.Node.Application;
 
-        Task StopAsync(OsBlockchainNodeContext blockchainNodeContext);
-    }
+public interface IOsBlockchainNodeContextService
+{
+    Task<OsBlockchainNodeContext> StartAsync(OsBlockchainNodeContextStartDto dto);
+
+    Task StopAsync(OsBlockchainNodeContext blockchainNodeContext);
 }

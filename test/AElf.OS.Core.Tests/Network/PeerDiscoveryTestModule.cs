@@ -13,115 +13,114 @@ using Volo.Abp;
 using Volo.Abp.Modularity;
 using Volo.Abp.Threading;
 
-namespace AElf.OS.Network
+namespace AElf.OS.Network;
+
+[DependsOn(typeof(OSCoreTestAElfModule))]
+public class PeerDiscoveryTestModule : AElfModule
 {
-    [DependsOn(typeof(OSCoreTestAElfModule))]
-    public class PeerDiscoveryTestModule : AElfModule
+    public override void ConfigureServices(ServiceConfigurationContext context)
     {
-        public override void ConfigureServices(ServiceConfigurationContext context)
+        context.Services.AddSingleton(o =>
         {
-            context.Services.AddSingleton<IAElfNetworkServer>(o =>
-            {
-                var networkServer = new Mock<IAElfNetworkServer>();
+            var networkServer = new Mock<IAElfNetworkServer>();
 
-                networkServer.Setup(s => s.CheckEndpointAvailableAsync(It.IsAny<DnsEndPoint>())).Returns<DnsEndPoint>(
-                    endpoint =>
-                    {
-                        if (endpoint.Port == 8001)
-                            return Task.FromResult(false);
+            networkServer.Setup(s => s.CheckEndpointAvailableAsync(It.IsAny<DnsEndPoint>())).Returns<DnsEndPoint>(
+                endpoint =>
+                {
+                    if (endpoint.Port == 8001)
+                        return Task.FromResult(false);
 
-                        return Task.FromResult(true);
-                    });
+                    return Task.FromResult(true);
+                });
 
-                return networkServer.Object;
-            });
+            return networkServer.Object;
+        });
+    }
+
+    public override void OnApplicationInitialization(ApplicationInitializationContext context)
+    {
+        var peerPool = context.ServiceProvider.GetRequiredService<IPeerPool>();
+        var accountService = context.ServiceProvider.GetRequiredService<IAccountService>();
+        var pubkey = AsyncHelper.RunSync(accountService.GetPublicKeyAsync).ToHex();
+
+        {
+            var peerWithNoNode = new Mock<IPeer>();
+            peerWithNoNode.Setup(p => p.Info).Returns(new PeerConnectionInfo
+                { Pubkey = "PeerWithNoNode", ConnectionTime = TimestampHelper.GetUtcNow() });
+            peerWithNoNode.Setup(p => p.IsReady).Returns(true);
+            peerWithNoNode.Setup(p => p.RemoteEndpoint).Returns(new AElfPeerEndpoint("192.168.88.100", 8801));
+            peerWithNoNode.Setup(m => m.GetNodesAsync(It.IsAny<int>()))
+                .Returns(Task.FromResult(new NodeList()));
+
+            peerPool.TryAddPeer(peerWithNoNode.Object);
         }
 
-        public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
-            var peerPool = context.ServiceProvider.GetRequiredService<IPeerPool>();
-            var accountService = context.ServiceProvider.GetRequiredService<IAccountService>();
-            var pubkey = AsyncHelper.RunSync(accountService.GetPublicKeyAsync).ToHex();
-
-            {
-                var peerWithNoNode = new Mock<IPeer>();
-                peerWithNoNode.Setup(p => p.Info).Returns(new PeerConnectionInfo
-                    {Pubkey = "PeerWithNoNode", ConnectionTime = TimestampHelper.GetUtcNow()});
-                peerWithNoNode.Setup(p => p.IsReady).Returns(true);
-                peerWithNoNode.Setup(p => p.RemoteEndpoint).Returns(new AElfPeerEndpoint("192.168.88.100", 8801));
-                peerWithNoNode.Setup(m => m.GetNodesAsync(It.IsAny<int>()))
-                    .Returns(Task.FromResult(new NodeList()));
-
-                peerPool.TryAddPeer(peerWithNoNode.Object);
-            }
-
-            {
-                var peerWithUnavailableNode = new Mock<IPeer>();
-                peerWithUnavailableNode.Setup(p => p.Info).Returns(new PeerConnectionInfo
-                    {Pubkey = "PeerWithUnavailableNode", ConnectionTime = TimestampHelper.GetUtcNow()});
-                peerWithUnavailableNode.Setup(p => p.IsReady).Returns(true);
-                peerWithUnavailableNode.Setup(p => p.RemoteEndpoint)
-                    .Returns(new AElfPeerEndpoint("192.168.88.100", 8802));
-                peerWithUnavailableNode.Setup(m => m.GetNodesAsync(It.IsAny<int>()))
-                    .Returns(Task.FromResult(new NodeList
+            var peerWithUnavailableNode = new Mock<IPeer>();
+            peerWithUnavailableNode.Setup(p => p.Info).Returns(new PeerConnectionInfo
+                { Pubkey = "PeerWithUnavailableNode", ConnectionTime = TimestampHelper.GetUtcNow() });
+            peerWithUnavailableNode.Setup(p => p.IsReady).Returns(true);
+            peerWithUnavailableNode.Setup(p => p.RemoteEndpoint)
+                .Returns(new AElfPeerEndpoint("192.168.88.100", 8802));
+            peerWithUnavailableNode.Setup(m => m.GetNodesAsync(It.IsAny<int>()))
+                .Returns(Task.FromResult(new NodeList
+                {
+                    Nodes =
                     {
-                        Nodes =
+                        new NodeInfo
                         {
-                            new NodeInfo
-                            {
-                                Endpoint = "192.168.100.100:8001",
-                                Pubkey = ByteString.CopyFromUtf8("192.168.100.100:8001")
-                            }
+                            Endpoint = "192.168.100.100:8001",
+                            Pubkey = ByteString.CopyFromUtf8("192.168.100.100:8001")
                         }
-                    }));
+                    }
+                }));
 
-                peerPool.TryAddPeer(peerWithUnavailableNode.Object);
-            }
+            peerPool.TryAddPeer(peerWithUnavailableNode.Object);
+        }
 
-            {
-                var peerWittSamePubkeyNode = new Mock<IPeer>();
-                peerWittSamePubkeyNode.Setup(p => p.Info).Returns(new PeerConnectionInfo
-                    {Pubkey = "PeerWithSamePubkeyNode", ConnectionTime = TimestampHelper.GetUtcNow()});
-                peerWittSamePubkeyNode.Setup(p => p.IsReady).Returns(true);
-                peerWittSamePubkeyNode.Setup(p => p.RemoteEndpoint)
-                    .Returns(new AElfPeerEndpoint("192.168.88.100", 8803));
-                peerWittSamePubkeyNode.Setup(m => m.GetNodesAsync(It.IsAny<int>()))
-                    .Returns(Task.FromResult(new NodeList
+        {
+            var peerWittSamePubkeyNode = new Mock<IPeer>();
+            peerWittSamePubkeyNode.Setup(p => p.Info).Returns(new PeerConnectionInfo
+                { Pubkey = "PeerWithSamePubkeyNode", ConnectionTime = TimestampHelper.GetUtcNow() });
+            peerWittSamePubkeyNode.Setup(p => p.IsReady).Returns(true);
+            peerWittSamePubkeyNode.Setup(p => p.RemoteEndpoint)
+                .Returns(new AElfPeerEndpoint("192.168.88.100", 8803));
+            peerWittSamePubkeyNode.Setup(m => m.GetNodesAsync(It.IsAny<int>()))
+                .Returns(Task.FromResult(new NodeList
+                {
+                    Nodes =
                     {
-                        Nodes =
+                        new NodeInfo
                         {
-                            new NodeInfo
-                            {
-                                Endpoint = "192.168.100.100:8002",
-                                Pubkey = ByteStringHelper.FromHexString(pubkey)
-                            }
+                            Endpoint = "192.168.100.100:8002",
+                            Pubkey = ByteStringHelper.FromHexString(pubkey)
                         }
-                    }));
+                    }
+                }));
 
-                peerPool.TryAddPeer(peerWittSamePubkeyNode.Object);
-            }
+            peerPool.TryAddPeer(peerWittSamePubkeyNode.Object);
+        }
 
-            {
-                var peerWithNormalNode = new Mock<IPeer>();
-                peerWithNormalNode.Setup(p => p.Info).Returns(new PeerConnectionInfo
-                    {Pubkey = "PeerWithNormalNode", ConnectionTime = TimestampHelper.GetUtcNow()});
-                peerWithNormalNode.Setup(p => p.IsReady).Returns(true);
-                peerWithNormalNode.Setup(p => p.RemoteEndpoint).Returns(new AElfPeerEndpoint("192.168.88.100", 8804));
-                peerWithNormalNode.Setup(m => m.GetNodesAsync(It.IsAny<int>()))
-                    .Returns(Task.FromResult(new NodeList
+        {
+            var peerWithNormalNode = new Mock<IPeer>();
+            peerWithNormalNode.Setup(p => p.Info).Returns(new PeerConnectionInfo
+                { Pubkey = "PeerWithNormalNode", ConnectionTime = TimestampHelper.GetUtcNow() });
+            peerWithNormalNode.Setup(p => p.IsReady).Returns(true);
+            peerWithNormalNode.Setup(p => p.RemoteEndpoint).Returns(new AElfPeerEndpoint("192.168.88.100", 8804));
+            peerWithNormalNode.Setup(m => m.GetNodesAsync(It.IsAny<int>()))
+                .Returns(Task.FromResult(new NodeList
+                {
+                    Nodes =
                     {
-                        Nodes =
+                        new NodeInfo
                         {
-                            new NodeInfo
-                            {
-                                Endpoint = "192.168.100.100:8003",
-                                Pubkey = ByteString.CopyFromUtf8("192.168.100.100:8003")
-                            }
+                            Endpoint = "192.168.100.100:8003",
+                            Pubkey = ByteString.CopyFromUtf8("192.168.100.100:8003")
                         }
-                    }));
+                    }
+                }));
 
-                peerPool.TryAddPeer(peerWithNormalNode.Object);
-            }
+            peerPool.TryAddPeer(peerWithNormalNode.Object);
         }
     }
 }

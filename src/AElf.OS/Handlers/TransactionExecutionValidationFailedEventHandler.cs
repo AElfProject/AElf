@@ -6,30 +6,29 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus;
 
-namespace AElf.OS.Handlers
+namespace AElf.OS.Handlers;
+
+public class TransactionExecutionValidationFailedEventHandler :
+    ILocalEventHandler<TransactionExecutionValidationFailedEvent>,
+    ITransientDependency
 {
-    public class TransactionExecutionValidationFailedEventHandler :
-        ILocalEventHandler<TransactionExecutionValidationFailedEvent>,
-        ITransientDependency
+    private readonly IPeerInvalidTransactionProcessingService _peerInvalidTransactionProcessingService;
+
+    public TransactionExecutionValidationFailedEventHandler(
+        IPeerInvalidTransactionProcessingService peerInvalidTransactionProcessingService)
     {
-        private readonly IPeerInvalidTransactionProcessingService _peerInvalidTransactionProcessingService;
+        _peerInvalidTransactionProcessingService = peerInvalidTransactionProcessingService;
 
-        public ILogger<TransactionExecutionValidationFailedEventHandler> Logger { get; set; }
+        Logger = NullLogger<TransactionExecutionValidationFailedEventHandler>.Instance;
+    }
 
-        public TransactionExecutionValidationFailedEventHandler(
-            IPeerInvalidTransactionProcessingService peerInvalidTransactionProcessingService)
-        {
-            _peerInvalidTransactionProcessingService = peerInvalidTransactionProcessingService;
+    public ILogger<TransactionExecutionValidationFailedEventHandler> Logger { get; set; }
 
-            Logger = NullLogger<TransactionExecutionValidationFailedEventHandler>.Instance;
-        }
+    public Task HandleEventAsync(TransactionExecutionValidationFailedEvent eventData)
+    {
+        Logger.LogDebug($"Received a transaction that failed to verify: {eventData.TransactionId}");
+        _peerInvalidTransactionProcessingService.ProcessPeerInvalidTransactionAsync(eventData.TransactionId);
 
-        public Task HandleEventAsync(TransactionExecutionValidationFailedEvent eventData)
-        {
-            Logger.LogDebug($"Received a transaction that failed to verify: {eventData.TransactionId}");
-            _peerInvalidTransactionProcessingService.ProcessPeerInvalidTransactionAsync(eventData.TransactionId);
-
-            return Task.CompletedTask;
-        }
+        return Task.CompletedTask;
     }
 }

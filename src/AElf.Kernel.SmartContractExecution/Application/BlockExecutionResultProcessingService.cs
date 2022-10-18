@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.SmartContractExecution.Events;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
@@ -10,61 +9,58 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus.Local;
 
-namespace AElf.Kernel.SmartContractExecution.Application
+namespace AElf.Kernel.SmartContractExecution.Application;
+
+public class BlockExecutionResultProcessingService : IBlockExecutionResultProcessingService, ITransientDependency
 {
-    public class BlockExecutionResultProcessingService : IBlockExecutionResultProcessingService, ITransientDependency
+    private readonly IBlockchainService _blockchainService;
+    private readonly IChainBlockLinkService _chainBlockLinkService;
+
+    public BlockExecutionResultProcessingService(IBlockchainService blockchainService,
+        IChainBlockLinkService chainBlockLinkService)
     {
-        private readonly IBlockchainService _blockchainService;
-        private readonly IChainBlockLinkService _chainBlockLinkService;
+        _blockchainService = blockchainService;
+        _chainBlockLinkService = chainBlockLinkService;
 
-        public ILocalEventBus LocalEventBus { get; set; }
-        public ILogger<BlockExecutionResultProcessingService> Logger { get; set; }
+        LocalEventBus = NullLocalEventBus.Instance;
+        Logger = NullLogger<BlockExecutionResultProcessingService>.Instance;
+    }
 
-        public BlockExecutionResultProcessingService(IBlockchainService blockchainService,
-            IChainBlockLinkService chainBlockLinkService)
+    public ILocalEventBus LocalEventBus { get; set; }
+    public ILogger<BlockExecutionResultProcessingService> Logger { get; set; }
+
+    public async Task ProcessBlockExecutionResultAsync(Chain chain, BlockExecutionResult blockExecutionResult)
+    {
+        if (blockExecutionResult.ExecutedFailedBlocks.Any() ||
+            blockExecutionResult.SuccessBlockExecutedSets.Count == 0 ||
+            blockExecutionResult.SuccessBlockExecutedSets.Last().Height < chain.BestChainHeight)
         {
-            _blockchainService = blockchainService;
-            _chainBlockLinkService = chainBlockLinkService;
+            await SetBlockExecutionStatusAsync(blockExecutionResult.ExecutedFailedBlocks.Select(b => b.GetHash()),
+                ChainBlockLinkExecutionStatus.ExecutionFailed);
+            await _blockchainService.RemoveLongestBranchAsync(chain);
 
-            LocalEventBus = NullLocalEventBus.Instance;
-            Logger = NullLogger<BlockExecutionResultProcessingService>.Instance;
+            Logger.LogDebug("No block executed successfully or no block is higher than best chain.");
+            return;
         }
 
-        public async Task ProcessBlockExecutionResultAsync(Chain chain, BlockExecutionResult blockExecutionResult)
+        var lastExecutedSuccessBlock = blockExecutionResult.SuccessBlockExecutedSets.Last();
+        await _blockchainService.SetBestChainAsync(chain, lastExecutedSuccessBlock.Height,
+            lastExecutedSuccessBlock.GetHash());
+        await SetBlockExecutionStatusAsync(blockExecutionResult.SuccessBlockExecutedSets.Select(b => b.GetHash()),
+            ChainBlockLinkExecutionStatus.ExecutionSuccess);
+        await LocalEventBus.PublishAsync(new BlocksExecutionSucceededEvent
         {
-            if (blockExecutionResult.ExecutedFailedBlocks.Any() ||
-                blockExecutionResult.SuccessBlockExecutedSets.Count == 0 ||
-                blockExecutionResult.SuccessBlockExecutedSets.Last().Height < chain.BestChainHeight)
-            {
-                await SetBlockExecutionStatusAsync(blockExecutionResult.ExecutedFailedBlocks.Select(b => b.GetHash()),
-                    ChainBlockLinkExecutionStatus.ExecutionFailed);
-                await _blockchainService.RemoveLongestBranchAsync(chain);
+            BlockExecutedSets = blockExecutionResult.SuccessBlockExecutedSets
+        });
 
-                Logger.LogDebug("No block executed successfully or no block is higher than best chain.");
-                return;
-            }
+        Logger.LogInformation(
+            $"Attach blocks to best chain, best chain hash: {chain.BestChainHash}, height: {chain.BestChainHeight}");
+    }
 
-            var lastExecutedSuccessBlock = blockExecutionResult.SuccessBlockExecutedSets.Last();
-            await _blockchainService.SetBestChainAsync(chain, lastExecutedSuccessBlock.Height,
-                lastExecutedSuccessBlock.GetHash());
-            await SetBlockExecutionStatusAsync(blockExecutionResult.SuccessBlockExecutedSets.Select(b => b.GetHash()),
-                ChainBlockLinkExecutionStatus.ExecutionSuccess);
-            await LocalEventBus.PublishAsync(new BlocksExecutionSucceededEvent
-            {
-                BlockExecutedSets = blockExecutionResult.SuccessBlockExecutedSets
-            });
-
-            Logger.LogInformation(
-                $"Attach blocks to best chain, best chain hash: {chain.BestChainHash}, height: {chain.BestChainHeight}");
-        }
-
-        private async Task SetBlockExecutionStatusAsync(IEnumerable<Hash> blockHashes,
-            ChainBlockLinkExecutionStatus status)
-        {
-            foreach (var blockHash in blockHashes)
-            {
-                await _chainBlockLinkService.SetChainBlockLinkExecutionStatusAsync(blockHash, status);
-            }
-        }
+    private async Task SetBlockExecutionStatusAsync(IEnumerable<Hash> blockHashes,
+        ChainBlockLinkExecutionStatus status)
+    {
+        foreach (var blockHash in blockHashes)
+            await _chainBlockLinkService.SetChainBlockLinkExecutionStatusAsync(blockHash, status);
     }
 }

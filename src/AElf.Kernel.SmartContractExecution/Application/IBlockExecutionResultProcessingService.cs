@@ -1,9 +1,8 @@
 using System.Threading.Tasks;
 
-namespace AElf.Kernel.SmartContractExecution.Application
+namespace AElf.Kernel.SmartContractExecution.Application;
+
+public interface IBlockExecutionResultProcessingService
 {
-    public interface IBlockExecutionResultProcessingService
-    {
-        Task ProcessBlockExecutionResultAsync(Chain chain, BlockExecutionResult blockExecutionResult);
-    }
+    Task ProcessBlockExecutionResultAsync(Chain chain, BlockExecutionResult blockExecutionResult);
 }
