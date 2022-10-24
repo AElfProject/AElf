@@ -23,7 +23,7 @@ public static class GrpcTestPeerHelper
     public static GrpcPeer CreatePeerWithInfo(string ip, PeerConnectionInfo info)
     {
         AElfPeerEndpointHelper.TryParse(ip, out var endpoint);
-        var peer = new GrpcPeer(new GrpcClient(CreateMockChannel(), null), endpoint, info,1);
+        var peer = new GrpcPeer(new GrpcClient(CreateMockChannel(), null), endpoint, info,typeof(CoreOSAElfModule).Assembly.GetName().Version?.ToString());
         peer.InboundSessionId = new byte[] { 0, 1, 2 };
         return peer;
     }
@@ -32,7 +32,7 @@ public static class GrpcTestPeerHelper
     {
         AElfPeerEndpointHelper.TryParse(ip, out var endpoint);
         var peer = new GrpcPeer(new GrpcClient(CreateMockChannel(), client), endpoint,
-            new PeerConnectionInfo { Pubkey = pubkey, SessionId = new byte[] { 0, 1, 2 } },1);
+            new PeerConnectionInfo { Pubkey = pubkey, SessionId = new byte[] { 0, 1, 2 } },typeof(CoreOSAElfModule).Assembly.GetName().Version?.ToString());
         peer.InboundSessionId = new byte[] { 0, 1, 2 };
         return peer;
     }
@@ -64,7 +64,7 @@ public static class GrpcTestPeerHelper
         };
 
         AElfPeerEndpointHelper.TryParse(ipAddress, out var endpoint);
-        var peer = new GrpcPeer(new GrpcClient(channel, client), endpoint, connectionInfo,1);
+        var peer = new GrpcPeer(new GrpcClient(channel, client), endpoint, connectionInfo,typeof(CoreOSAElfModule).Assembly.GetName().Version?.ToString());
         peer.InboundSessionId = new byte[] { 0, 1, 2 };
 
         return peer;

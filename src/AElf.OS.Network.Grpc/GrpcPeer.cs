@@ -54,7 +54,7 @@ public class GrpcPeer : IPeer
 
     private AsyncClientStreamingCall<Transaction, VoidReply> _transactionStreamCall;
 
-    public GrpcPeer(GrpcClient client, DnsEndPoint remoteEndpoint, PeerConnectionInfo peerConnectionInfo, int nodeVersion)
+    public GrpcPeer(GrpcClient client, DnsEndPoint remoteEndpoint, PeerConnectionInfo peerConnectionInfo, string nodeVersion)
     {
         _channel = client.Channel;
         _client = client.Client;
@@ -135,7 +135,7 @@ public class GrpcPeer : IPeer
     public int BufferedAnnouncementsCount => _sendAnnouncementJobs.InputCount;
 
     public PeerConnectionInfo Info { get; }
-    public int NodeVersion { get; }
+    public string NodeVersion { get; }
 
     public Dictionary<string, List<RequestMetric>> GetRequestMetrics()
     {

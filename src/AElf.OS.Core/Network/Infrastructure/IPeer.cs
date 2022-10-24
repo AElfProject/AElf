@@ -29,7 +29,7 @@ public interface IPeer
 
     PeerConnectionInfo Info { get; }
 
-    int NodeVersion { get; }
+    string NodeVersion { get; }
     
     Task CheckHealthAsync();
 
