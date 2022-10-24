@@ -16,4 +16,5 @@ public static class KernelConstants
     public const string SignaturePlaceholder = "SignaturePlaceholder";
     public const string BlockExecutedDataKey = "BlockExecutedData";
     public static Duration AllowedFutureBlockTimeSpan = new() { Seconds = 4 };
+    public const int NodeVersion = 1;
 }

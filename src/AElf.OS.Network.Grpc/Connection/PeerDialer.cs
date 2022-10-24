@@ -86,7 +86,7 @@ public class PeerDialer : IPeerDialer
             ProtocolVersion = handshakeReply.Handshake.HandshakeData.Version,
             SessionId = handshakeReply.Handshake.SessionId.ToByteArray(),
             IsInbound = false
-        });
+        },handshakeReply.Handshake.HandshakeData.NodeVersion);
 
         peer.UpdateLastReceivedHandshake(handshakeReply.Handshake);
 
@@ -132,7 +132,7 @@ public class PeerDialer : IPeerDialer
             SessionId = handshake.SessionId.ToByteArray(),
             ProtocolVersion = handshake.HandshakeData.Version,
             IsInbound = true
-        });
+        },handshake.HandshakeData.NodeVersion);
 
         peer.UpdateLastReceivedHandshake(handshake);
 

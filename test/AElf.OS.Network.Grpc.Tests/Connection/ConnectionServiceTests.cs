@@ -216,6 +216,7 @@ public class ConnectionServiceTests : GrpcNetworkTestBase
         peer.ShouldNotBeNull();
         peer.IsConnected.ShouldBeTrue();
         peer.SyncState.ShouldBe(SyncState.Syncing);
+        peer.NodeVersion.ShouldBe(1);
 
         eventData.ShouldNotBeNull();
     }

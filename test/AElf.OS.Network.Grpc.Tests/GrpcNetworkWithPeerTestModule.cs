@@ -31,6 +31,6 @@ public class GrpcNetworkWithPeerTestModule : AElfModule
             throw new Exception($"Ip {NetworkTestConstants.FakeIpEndpoint} is invalid.");
 
         pool.TryAddPeer(new GrpcPeer(new GrpcClient(channel, new PeerService.PeerServiceClient(channel)), peerEndpoint,
-            connectionInfo));
+            connectionInfo,KernelConstants.NodeVersion));
     }
 }

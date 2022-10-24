@@ -43,7 +43,8 @@ public class HandshakeProvider : IHandshakeProvider
             BestChainHeight = chain.BestChainHeight,
             LastIrreversibleBlockHash = chain.LastIrreversibleBlockHash,
             LastIrreversibleBlockHeight = chain.LastIrreversibleBlockHeight,
-            Time = TimestampHelper.GetUtcNow()
+            Time = TimestampHelper.GetUtcNow(),
+            NodeVersion = KernelConstants.NodeVersion
         };
 
         var signature = await _accountService.SignAsync(HashHelper.ComputeFrom(handshakeData).ToByteArray());

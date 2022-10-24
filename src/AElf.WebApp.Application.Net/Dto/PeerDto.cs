@@ -14,4 +14,5 @@ public class PeerDto
     public int BufferedBlocksCount { get; set; }
     public int BufferedAnnouncementsCount { get; set; }
     public List<RequestMetric> RequestMetrics { get; set; }
+    public int NodeVersion { get; set; }
 }
