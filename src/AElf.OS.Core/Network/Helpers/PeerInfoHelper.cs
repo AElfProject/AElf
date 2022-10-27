@@ -22,7 +22,7 @@ public static class PeerInfoHelper
             BufferedBlocksCount = peer.BufferedBlocksCount,
             BufferedTransactionsCount = peer.BufferedTransactionsCount,
             RequestMetrics = peer.GetRequestMetrics()?.Values.SelectMany(kvp => kvp).ToList(),
-            NodeVersion = peer.NodeVersion
+            NodeVersion = peer.Info.NodeVersion
         };
     }
 }

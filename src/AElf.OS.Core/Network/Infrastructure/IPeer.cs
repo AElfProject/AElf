@@ -29,8 +29,6 @@ public interface IPeer
 
     PeerConnectionInfo Info { get; }
 
-    string NodeVersion { get; }
-    
     Task CheckHealthAsync();
 
     bool KnowsBlock(Hash hash);

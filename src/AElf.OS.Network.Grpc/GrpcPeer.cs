@@ -54,14 +54,13 @@ public class GrpcPeer : IPeer
 
     private AsyncClientStreamingCall<Transaction, VoidReply> _transactionStreamCall;
 
-    public GrpcPeer(GrpcClient client, DnsEndPoint remoteEndpoint, PeerConnectionInfo peerConnectionInfo, string nodeVersion)
+    public GrpcPeer(GrpcClient client, DnsEndPoint remoteEndpoint, PeerConnectionInfo peerConnectionInfo)
     {
         _channel = client.Channel;
         _client = client.Client;
 
         RemoteEndpoint = remoteEndpoint;
         Info = peerConnectionInfo;
-        NodeVersion = nodeVersion;
 
         _knownTransactionCache = new BoundedExpirationCache(TransactionCacheMaxItems, QueuedTransactionTimeout);
         _knownBlockCache = new BoundedExpirationCache(BlockCacheMaxItems, QueuedBlockTimeout);
@@ -135,8 +134,7 @@ public class GrpcPeer : IPeer
     public int BufferedAnnouncementsCount => _sendAnnouncementJobs.InputCount;
 
     public PeerConnectionInfo Info { get; }
-    public string NodeVersion { get; }
-
+    
     public Dictionary<string, List<RequestMetric>> GetRequestMetrics()
     {
         var metrics = new Dictionary<string, List<RequestMetric>>();

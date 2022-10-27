@@ -85,8 +85,9 @@ public class PeerDialer : IPeerDialer
             ConnectionTime = TimestampHelper.GetUtcNow(),
             ProtocolVersion = handshakeReply.Handshake.HandshakeData.Version,
             SessionId = handshakeReply.Handshake.SessionId.ToByteArray(),
-            IsInbound = false
-        },handshakeReply.Handshake.HandshakeData.NodeVersion);
+            IsInbound = false,
+            NodeVersion = handshakeReply.Handshake.HandshakeData.NodeVersion
+        });
 
         peer.UpdateLastReceivedHandshake(handshakeReply.Handshake);
 
@@ -131,8 +132,9 @@ public class PeerDialer : IPeerDialer
             ConnectionTime = TimestampHelper.GetUtcNow(),
             SessionId = handshake.SessionId.ToByteArray(),
             ProtocolVersion = handshake.HandshakeData.Version,
-            IsInbound = true
-        },handshake.HandshakeData.NodeVersion);
+            IsInbound = true,
+            NodeVersion = handshake.HandshakeData.NodeVersion
+        });
 
         peer.UpdateLastReceivedHandshake(handshake);
 

@@ -216,7 +216,8 @@ public class ConnectionServiceTests : GrpcNetworkTestBase
         peer.ShouldNotBeNull();
         peer.IsConnected.ShouldBeTrue();
         peer.SyncState.ShouldBe(SyncState.Syncing);
-        peer.NodeVersion.ShouldBe(typeof(CoreOSAElfModule).Assembly.GetName().Version?.ToString());
+        var nodeVersion = typeof(CoreOSAElfModule).Assembly.GetName().Version?.ToString();
+        peer.Info.NodeVersion.ShouldBe(nodeVersion);
 
         eventData.ShouldNotBeNull();
     }

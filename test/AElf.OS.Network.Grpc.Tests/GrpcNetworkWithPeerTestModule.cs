@@ -14,6 +14,8 @@ namespace AElf.OS.Network.Grpc;
 [DependsOn(typeof(GrpcNetworkBaseTestModule))]
 public class GrpcNetworkWithPeerTestModule : AElfModule
 {
+    private static readonly string NodeVersion = typeof(CoreOSAElfModule).Assembly.GetName().Version?.ToString();
+
     public override void OnApplicationInitialization(ApplicationInitializationContext context)
     {
         var pool = context.ServiceProvider.GetRequiredService<IPeerPool>();
@@ -24,13 +26,14 @@ public class GrpcNetworkWithPeerTestModule : AElfModule
             Pubkey = NetworkTestConstants.FakePubkey2,
             ProtocolVersion = KernelConstants.ProtocolVersion,
             ConnectionTime = TimestampHelper.GetUtcNow(),
-            IsInbound = true
+            IsInbound = true,
+            NodeVersion = NodeVersion
         };
 
         if (!AElfPeerEndpointHelper.TryParse(NetworkTestConstants.FakeIpEndpoint, out var peerEndpoint))
             throw new Exception($"Ip {NetworkTestConstants.FakeIpEndpoint} is invalid.");
 
         pool.TryAddPeer(new GrpcPeer(new GrpcClient(channel, new PeerService.PeerServiceClient(channel)), peerEndpoint,
-            connectionInfo,typeof(CoreOSAElfModule).Assembly.GetName().Version?.ToString()));
+            connectionInfo));
     }
 }
