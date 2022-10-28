@@ -49,9 +49,6 @@ service ElectionContract {
     rpc Vote (VoteMinerInput) returns (aelf.Hash) {
     }
 
-    rpc VoteWithExpiredVotes (VoteMinerInput) returns (aelf.Hash) {
-    }
-
     // Before the end time, you are able to change your vote target to other candidates.
     rpc ChangeVotingOption (ChangeVotingOptionInput) returns (google.protobuf.Empty) {
     }
@@ -60,24 +57,18 @@ service ElectionContract {
     rpc Withdraw (aelf.Hash) returns (google.protobuf.Empty) {
     }
 
-    rpc AssistWithdraw (AssistWithdrawInput) returns (google.protobuf.Empty) {
-    }
-    
-    rpc FixTotalWeights (FixTotalWeightsInput) returns (google.protobuf.Empty) {
-    }
-
     // Update candidate information by consensus contract.
     rpc UpdateCandidateInformation (UpdateCandidateInformationInput) returns (google.protobuf.Empty) {
     }
-    
+
     // Batch update candidate information by consensus contract.
     rpc UpdateMultipleCandidateInformation (UpdateMultipleCandidateInformationInput) returns (google.protobuf.Empty) {
     }
-    
+
     // Update the count of miner by consensus contract.
     rpc UpdateMinersCount (UpdateMinersCountInput) returns (google.protobuf.Empty) {
     }
-    
+
     // Set the treasury profit ids.
     rpc SetTreasurySchemeIds (SetTreasurySchemeIdsInput) returns (google.protobuf.Empty) {
     }
@@ -312,6 +303,8 @@ message ChangeVotingOptionInput {
     aelf.Hash vote_id = 1;
     // The new candidate public key.
     string candidate_pubkey = 2;
+    // Tokens will be locked another previous locking time if this is true.
+    bool is_reset_voting_time = 3;
 }
 
 message UpdateTermNumberInput {
