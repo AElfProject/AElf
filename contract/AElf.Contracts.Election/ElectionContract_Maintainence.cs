@@ -317,13 +317,16 @@ public partial class ElectionContract : ElectionContractImplContainer.ElectionCo
             });
         }
 
-        State.CandidateSponsorMap[newPubkey] = State.CandidateSponsorMap[oldPubkey];
+        State.CandidateSponsorMap[newPubkey] = GetSponsor(new StringValue { Value = oldPubkey });
         State.CandidateSponsorMap.Remove(oldPubkey);
 
         var managedPubkeys = State.ManagedCandidatePubkeysMap[Context.Sender];
-        managedPubkeys.Value.Remove(oldPubkeyByteString);
-        managedPubkeys.Value.Add(ByteString.CopyFrom(ByteArrayHelper.HexStringToByteArray(newPubkey)));
-        State.ManagedCandidatePubkeysMap[Context.Sender] = managedPubkeys;
+        if (managedPubkeys != null)
+        {
+            managedPubkeys.Value.Remove(oldPubkeyByteString);
+            managedPubkeys.Value.Add(ByteString.CopyFrom(ByteArrayHelper.HexStringToByteArray(newPubkey)));
+            State.ManagedCandidatePubkeysMap[Context.Sender] = managedPubkeys;
+        }
 
         Context.LogDebug(() => $"Pubkey replacement happened: {oldPubkey} -> {newPubkey}");
     }

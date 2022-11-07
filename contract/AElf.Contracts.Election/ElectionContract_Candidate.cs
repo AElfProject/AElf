@@ -273,11 +273,14 @@ public partial class ElectionContract
         }
 
         var managedCandidatePubkey = State.ManagedCandidatePubkeysMap[Context.Sender];
-        managedCandidatePubkey.Value.Remove(ByteString.CopyFrom(pubkeyBytes));
-        if (managedCandidatePubkey.Value.Any())
-            State.ManagedCandidatePubkeysMap[Context.Sender] = managedCandidatePubkey;
-        else
-            State.ManagedCandidatePubkeysMap.Remove(Context.Sender);
+        if (managedCandidatePubkey != null)
+        {
+            managedCandidatePubkey.Value.Remove(ByteString.CopyFrom(pubkeyBytes));
+            if (managedCandidatePubkey.Value.Any())
+                State.ManagedCandidatePubkeysMap[Context.Sender] = managedCandidatePubkey;
+            else
+                State.ManagedCandidatePubkeysMap.Remove(Context.Sender);
+        }
 
         State.CandidateSponsorMap.Remove(pubkey);
 
