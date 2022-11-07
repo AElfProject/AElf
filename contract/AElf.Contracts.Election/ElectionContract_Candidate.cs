@@ -304,4 +304,28 @@ public partial class ElectionContract
     }
 
     #endregion
+
+    public override Empty SetSponsor(SetSponsorInput input)
+    {
+        State.CandidateSponsorMap[input.Pubkey] = input.Sponsor;
+        return new Empty();
+    }
+
+    public override Empty RemoveSponsor(StringValue input)
+    {
+        State.CandidateSponsorMap.Remove(input.Value);
+        return new Empty();
+    }
+
+    public override Empty AddManagedPubkeys(AddManagedPubkeysInput input)
+    {
+        State.ManagedCandidatePubkeysMap[input.Admin] = input.PubkeyList;
+        return new Empty();
+    }
+
+    public override Empty RemoveManagedPubkeys(Address input)
+    {
+        State.ManagedCandidatePubkeysMap.Remove(input);
+        return new Empty();
+    }
 }

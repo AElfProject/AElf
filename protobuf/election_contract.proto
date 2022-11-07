@@ -110,6 +110,18 @@ service ElectionContract {
     
     rpc SetProfitsReceiver (SetProfitsReceiverInput) returns (google.protobuf.Empty) {
     }
+    
+    rpc RemoveSponsor (google.protobuf.StringValue) returns (google.protobuf.Empty) {
+    }
+
+    rpc SetSponsor (SetSponsorInput) returns (google.protobuf.Empty) {
+    }
+
+    rpc RemoveManagedPubkeys (aelf.Address) returns (google.protobuf.Empty) {
+    }
+
+    rpc AddManagedPubkeys (AddManagedPubkeysInput) returns (google.protobuf.Empty) {
+    }
 
     // Views
     
@@ -546,4 +558,14 @@ message CandidatePubkeyReplaced {
     option (aelf.is_event) = true;
     string old_pubkey = 1;
     string new_pubkey = 2;
+}
+
+message AddManagedPubkeysInput {
+    aelf.Address admin = 1;
+    PubkeyList pubkey_list = 2;
+}
+
+message SetSponsorInput {
+    string pubkey = 1;
+    aelf.Address sponsor = 2;
 }
