@@ -95,11 +95,12 @@ public partial class TokenContract
         var config = State.MethodFeeFreeAllowancesConfig.Value;
         if (State.Balances[address][Context.Variables.NativeSymbol] < config.Threshold)
         {
+            // Won't refresh method fee free allowance if inputted address hasn't reach the threshold.
             return;
         }
 
         var lastRefreshTime = State.MethodFeeFreeAllowancesLastRefreshTimeMap[address];
-        if (lastRefreshTime != null && config.Threshold > (Context.CurrentBlockTime - lastRefreshTime).Seconds)
+        if (lastRefreshTime != null && config.RefreshSeconds > (Context.CurrentBlockTime - lastRefreshTime).Seconds)
         {
             return;
         }
