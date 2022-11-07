@@ -3,79 +3,76 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Domain;
-using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.Miner.Application;
-using AElf.Kernel.TransactionPool;
 using AElf.Types;
 using BenchmarkDotNet.Attributes;
 
-namespace AElf.Benchmark
+namespace AElf.Benchmark;
+
+[MarkdownExporterAttribute.GitHub]
+public class MiningTxHubBenchmark : MiningWithTransactionsBenchmarkBase
 {
-    [MarkdownExporterAttribute.GitHub]
-    public class MiningTxHubBenchmark : MiningWithTransactionsBenchmarkBase
+    private readonly IMinerService _minerService;
+    private readonly List<Hash> _transactionIdList = new();
+    private readonly ITransactionManager _transactionManager;
+
+    private Chain _chain;
+
+    [Params(1000, 3000)] public int TransactionCount;
+
+    public MiningTxHubBenchmark()
     {
-        private readonly IMinerService _minerService;
-        private readonly ITransactionManager _transactionManager;
+        _minerService = GetRequiredService<IMinerService>();
+        _transactionManager = GetRequiredService<ITransactionManager>();
+    }
 
-        public MiningTxHubBenchmark()
+    [GlobalSetup]
+    public async Task GlobalSetup()
+    {
+        await InitializeChainAsync();
+        _chain = await BlockchainService.GetChainAsync();
+    }
+
+
+    [IterationSetup]
+    public async Task IterationSetup()
+    {
+        await AddTransactionsToTxHub(TransactionCount);
+    }
+
+    [Benchmark]
+    public async Task MineWithTxHubAsync()
+    {
+        var txCount = 0;
+        var preBlockHash = _chain.BestChainHash;
+        var preBlockHeight = _chain.BestChainHeight;
+
+        while (txCount < TransactionCount)
         {
-            _minerService = GetRequiredService<IMinerService>();
-            _transactionManager = GetRequiredService<ITransactionManager>();
+            var blockExecutedSet = await _minerService.MineAsync(preBlockHash, preBlockHeight,
+                TimestampHelper.GetUtcNow(), TimestampHelper.DurationFromMilliseconds(4000));
+            txCount += blockExecutedSet.TransactionIds.Count();
+            _transactionIdList.AddRange(blockExecutedSet.TransactionIds.ToList());
+            await BlockchainService.SetBestChainAsync(_chain, preBlockHeight, preBlockHash);
+            await TransactionPoolService.CleanByTransactionIdsAsync(blockExecutedSet.TransactionIds);
+            await TransactionPoolService.UpdateTransactionPoolByBestChainAsync(preBlockHash, preBlockHeight);
         }
+    }
 
-        private Chain _chain;
-        private readonly List<Hash> _transactionIdList = new List<Hash>();
+    [IterationCleanup]
+    public async Task IterationCleanup()
+    {
+        await _transactionManager.RemoveTransactionsAsync(_transactionIdList);
+        await TransactionPoolService.CleanByTransactionIdsAsync(_transactionIdList);
 
-        [Params(1000, 3000)] public int TransactionCount;
+        await TransactionPoolService.UpdateTransactionPoolByBestChainAsync(_chain.BestChainHash,
+            _chain.BestChainHeight);
+        _transactionIdList.Clear();
+    }
 
-        [GlobalSetup]
-        public async Task GlobalSetup()
-        {
-            await InitializeChainAsync();
-            _chain = await BlockchainService.GetChainAsync();
-        }
-
-
-        [IterationSetup]
-        public async Task IterationSetup()
-        {
-            await AddTransactionsToTxHub(TransactionCount);
-        }
-
-        [Benchmark]
-        public async Task MineWithTxHubAsync()
-        {
-            var txCount = 0;
-            var preBlockHash = _chain.BestChainHash;
-            var preBlockHeight = _chain.BestChainHeight;
-
-            while (txCount < TransactionCount)
-            {
-                var blockExecutedSet = await _minerService.MineAsync(preBlockHash, preBlockHeight,
-                    TimestampHelper.GetUtcNow(), TimestampHelper.DurationFromMilliseconds(4000));
-                txCount += blockExecutedSet.TransactionIds.Count();
-                _transactionIdList.AddRange(blockExecutedSet.TransactionIds.ToList());
-                await BlockchainService.SetBestChainAsync(_chain, preBlockHeight, preBlockHash);
-                await TransactionPoolService.CleanByTransactionIdsAsync(blockExecutedSet.TransactionIds);
-                await TransactionPoolService.UpdateTransactionPoolByBestChainAsync(preBlockHash, preBlockHeight);
-            }
-        }
-
-        [IterationCleanup]
-        public async Task IterationCleanup()
-        {
-            await _transactionManager.RemoveTransactionsAsync(_transactionIdList);
-            await TransactionPoolService.CleanByTransactionIdsAsync(_transactionIdList);
-
-            await TransactionPoolService.UpdateTransactionPoolByBestChainAsync(_chain.BestChainHash,
-                _chain.BestChainHeight);
-            _transactionIdList.Clear();
-        }
-
-        private async Task AddTransactionsToTxHub(int txCount)
-        {
-            var txList = await GenerateTransferTransactionsAsync(txCount);
-            await TransactionPoolService.AddTransactionsAsync(txList);
-        }
+    private async Task AddTransactionsToTxHub(int txCount)
+    {
+        var txList = await GenerateTransferTransactionsAsync(txCount);
+        await TransactionPoolService.AddTransactionsAsync(txList);
     }
 }

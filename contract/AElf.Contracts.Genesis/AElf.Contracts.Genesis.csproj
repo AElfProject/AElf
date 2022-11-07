@@ -1,19 +1,20 @@
 <Project Sdk="Microsoft.NET.Sdk">
-    <Import Project="..\..\common.props" />
+    <Import Project="..\..\common.props"/>
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
         <PackageId>AElf.Contracts.Genesis</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <Description>Genesis is a contract that implements base functionality of the chain such as contract proposal 
-            and updating.</Description>
+        <Description>Genesis is a contract that implements base functionality of the chain such as contract proposal
+            and updating.
+        </Description>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
-      <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
+        <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
-      <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
+        <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
     </PropertyGroup>
-    
+
     <ItemGroup>
         <CommonMessage Include="..\..\protobuf\authority_info.proto">
             <Link>Protobuf\Proto\authority_info.proto</Link>
@@ -35,7 +36,7 @@
             <SystemContract>true</SystemContract>
         </ContractCode>
     </ItemGroup>
-    
+
     <ItemGroup>
         <ContractReference Include="..\..\protobuf\acs3.proto">
             <Link>Protobuf\Proto\reference\acs3.proto</Link>

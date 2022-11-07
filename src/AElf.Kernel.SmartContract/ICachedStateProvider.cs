@@ -1,7 +1,6 @@
-namespace AElf.Kernel.SmartContract
+namespace AElf.Kernel.SmartContract;
+
+public interface ICachedStateProvider : IStateProvider
 {
-    public interface ICachedStateProvider : IStateProvider
-    {
-        IStateCache Cache { get; set; }
-    }
+    IStateCache Cache { get; set; }
 }

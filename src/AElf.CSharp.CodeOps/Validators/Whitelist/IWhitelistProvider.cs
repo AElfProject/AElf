@@ -1,6 +1,5 @@
 using System;
 using System.Globalization;
-using System.Numerics;
 using AElf.Sdk.CSharp;
 using System.Reflection;
 using System.Runtime.CompilerServices;

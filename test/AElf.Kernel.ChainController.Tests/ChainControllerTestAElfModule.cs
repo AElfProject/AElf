@@ -6,23 +6,21 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Volo.Abp.Modularity;
 
-namespace AElf.Kernel.ChainController
+namespace AElf.Kernel.ChainController;
+
+[DependsOn(
+    typeof(ChainControllerAElfModule),
+    typeof(KernelCoreTestAElfModule),
+    typeof(TokenKernelAElfModule)
+)]
+public class ChainControllerTestAElfModule : AElfModule
 {
-    [DependsOn(
-        typeof(ChainControllerAElfModule),
-        typeof(KernelCoreTestAElfModule),
-        typeof(TokenKernelAElfModule)
-    )]
-    public class ChainControllerTestAElfModule : AElfModule
+    public override void ConfigureServices(ServiceConfigurationContext context)
     {
-        public override void ConfigureServices(ServiceConfigurationContext context)
-        {
-            var services = context.Services;
+        var services = context.Services;
 
-            services.AddTransient<ChainCreationService>();
-            context.Services.Replace(ServiceDescriptor
-                .Singleton<ITransactionExecutingService, PlainTransactionExecutingService>());
-        }
-
+        services.AddTransient<ChainCreationService>();
+        context.Services.Replace(ServiceDescriptor
+            .Singleton<ITransactionExecutingService, PlainTransactionExecutingService>());
     }
 }

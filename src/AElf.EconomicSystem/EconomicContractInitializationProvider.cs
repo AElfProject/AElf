@@ -10,53 +10,54 @@ using Google.Protobuf;
 using Microsoft.Extensions.Options;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.EconomicSystem
+namespace AElf.EconomicSystem;
+
+public class EconomicContractInitializationProvider : IContractInitializationProvider, ITransientDependency
 {
-    public class EconomicContractInitializationProvider : IContractInitializationProvider, ITransientDependency
+    private readonly ConsensusOptions _consensusOptions;
+    private readonly EconomicOptions _economicOptions;
+
+
+    public EconomicContractInitializationProvider(
+        IOptionsSnapshot<EconomicOptions> economicOptions, IOptionsSnapshot<ConsensusOptions> consensusOptions)
     {
-        private readonly EconomicOptions _economicOptions;
-        private readonly ConsensusOptions _consensusOptions;
-        
-        public Hash SystemSmartContractName { get; } = EconomicSmartContractAddressNameProvider.Name;
-        public string ContractCodeName { get; } = "AElf.Contracts.Economic";
+        _consensusOptions = consensusOptions.Value;
+        _economicOptions = economicOptions.Value;
+    }
 
+    public Hash SystemSmartContractName { get; } = EconomicSmartContractAddressNameProvider.Name;
+    public string ContractCodeName { get; } = "AElf.Contracts.Economic";
 
-        public EconomicContractInitializationProvider(
-            IOptionsSnapshot<EconomicOptions> economicOptions, IOptionsSnapshot<ConsensusOptions> consensusOptions)
+    public List<ContractInitializationMethodCall> GetInitializeMethodList(byte[] contractCode)
+    {
+        return new List<ContractInitializationMethodCall>
         {
-            _consensusOptions = consensusOptions.Value;
-            _economicOptions = economicOptions.Value;
-        }
-        
-        public List<ContractInitializationMethodCall> GetInitializeMethodList(byte[] contractCode)
-        {
-            return new List<ContractInitializationMethodCall>
+            new()
             {
-                new ContractInitializationMethodCall{
-                    MethodName = nameof(EconomicContractContainer.EconomicContractStub.InitialEconomicSystem),
-                    Params = new InitialEconomicSystemInput
-                    {
-                        NativeTokenDecimals = _economicOptions.Decimals,
-                        IsNativeTokenBurnable = _economicOptions.IsBurnable,
-                        NativeTokenSymbol = _economicOptions.Symbol,
-                        NativeTokenName = _economicOptions.TokenName,
-                        NativeTokenTotalSupply = _economicOptions.TotalSupply,
-                        MiningRewardTotalAmount =
-                            Convert.ToInt64(_economicOptions.TotalSupply * _economicOptions.DividendPoolRatio),
-                        TransactionSizeFeeUnitPrice = _economicOptions.TransactionSizeFeeUnitPrice
-                    }.ToByteString()
-                },
-                new ContractInitializationMethodCall{
-                    MethodName = nameof(EconomicContractContainer.EconomicContractStub.IssueNativeToken),
-                    Params = new IssueNativeTokenInput
-                    {
-                        Amount = Convert.ToInt64(_economicOptions.TotalSupply * (1 - _economicOptions.DividendPoolRatio)),
-                        To = Address.FromPublicKey(
-                            ByteArrayHelper.HexStringToByteArray(_consensusOptions.InitialMinerList.First())),
-                        Memo = "Issue native token"
-                    }.ToByteString()
-                }
-            };
-        }
+                MethodName = nameof(EconomicContractContainer.EconomicContractStub.InitialEconomicSystem),
+                Params = new InitialEconomicSystemInput
+                {
+                    NativeTokenDecimals = _economicOptions.Decimals,
+                    IsNativeTokenBurnable = _economicOptions.IsBurnable,
+                    NativeTokenSymbol = _economicOptions.Symbol,
+                    NativeTokenName = _economicOptions.TokenName,
+                    NativeTokenTotalSupply = _economicOptions.TotalSupply,
+                    MiningRewardTotalAmount =
+                        Convert.ToInt64(_economicOptions.TotalSupply * _economicOptions.DividendPoolRatio),
+                    TransactionSizeFeeUnitPrice = _economicOptions.TransactionSizeFeeUnitPrice
+                }.ToByteString()
+            },
+            new()
+            {
+                MethodName = nameof(EconomicContractContainer.EconomicContractStub.IssueNativeToken),
+                Params = new IssueNativeTokenInput
+                {
+                    Amount = Convert.ToInt64(_economicOptions.TotalSupply * (1 - _economicOptions.DividendPoolRatio)),
+                    To = Address.FromPublicKey(
+                        ByteArrayHelper.HexStringToByteArray(_consensusOptions.InitialMinerList.First())),
+                    Memo = "Issue native token"
+                }.ToByteString()
+            }
+        };
     }
 }

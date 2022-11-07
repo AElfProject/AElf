@@ -9,7 +9,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\src\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
@@ -17,7 +17,7 @@
             <Link>Protobuf\Proto\authority_info.proto</Link>
         </CommonMessage>
     </ItemGroup>
-    
+
     <ItemGroup>
         <ContractReference Include="..\..\protobuf\test_a_contract.proto">
             <Link>Protobuf\Proto\reference\test_a_contract.proto</Link>

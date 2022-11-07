@@ -2,15 +2,14 @@ using AElf.Contracts.Consensus.AEDPoS;
 using Google.Protobuf;
 
 // ReSharper disable once CheckNamespace
-namespace AElf.Kernel.Consensus.AEDPoS
+namespace AElf.Kernel.Consensus.AEDPoS;
+
+public static class ByteStringExtensions
 {
-    public static class ByteStringExtensions
+    internal static AElfConsensusHint ToAElfConsensusHint(this ByteString byteString)
     {
-        internal static AElfConsensusHint ToAElfConsensusHint(this ByteString byteString)
-        {
-            var hint = new AElfConsensusHint();
-            hint.MergeFrom(byteString);
-            return hint;
-        }
+        var hint = new AElfConsensusHint();
+        hint.MergeFrom(byteString);
+        return hint;
     }
 }

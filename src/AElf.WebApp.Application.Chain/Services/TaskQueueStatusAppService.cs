@@ -1,5 +1,5 @@
-using AElf.WebApp.Application.Chain.Dto;
 using System.Collections.Generic;
+using AElf.WebApp.Application.Chain.Dto;
 using Volo.Abp.ObjectMapping;
 
 namespace AElf.WebApp.Application.Chain;
@@ -11,8 +11,8 @@ public interface ITaskQueueStatusAppService
 
 public class TaskQueueStatusAppService : AElfAppService, ITaskQueueStatusAppService
 {
-    private readonly ITaskQueueManager _taskQueueManager;
     private readonly IObjectMapper<ChainApplicationWebAppAElfModule> _objectMapper;
+    private readonly ITaskQueueManager _taskQueueManager;
 
     public TaskQueueStatusAppService(ITaskQueueManager taskQueueManager,
         IObjectMapper<ChainApplicationWebAppAElfModule> objectMapper)

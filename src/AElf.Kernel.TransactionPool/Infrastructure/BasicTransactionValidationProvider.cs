@@ -3,44 +3,43 @@ using AElf.Kernel.Txn.Application;
 using AElf.Types;
 using Volo.Abp.EventBus.Local;
 
-namespace AElf.Kernel.TransactionPool.Infrastructure
+namespace AElf.Kernel.TransactionPool.Infrastructure;
+
+public class BasicTransactionValidationProvider : ITransactionValidationProvider
 {
-    public class BasicTransactionValidationProvider : ITransactionValidationProvider
+    public BasicTransactionValidationProvider()
     {
-        public bool ValidateWhileSyncing => true;
-        public ILocalEventBus LocalEventBus { get; set; }
+        LocalEventBus = NullLocalEventBus.Instance;
+    }
 
-        public BasicTransactionValidationProvider()
+    public ILocalEventBus LocalEventBus { get; set; }
+    public bool ValidateWhileSyncing => true;
+
+    public async Task<bool> ValidateTransactionAsync(Transaction transaction, IChainContext chainContext)
+    {
+        var transactionId = transaction.GetHash();
+        if (!transaction.VerifySignature())
         {
-            LocalEventBus = NullLocalEventBus.Instance;
+            await LocalEventBus.PublishAsync(new TransactionValidationStatusChangedEvent
+            {
+                TransactionId = transactionId,
+                TransactionResultStatus = TransactionResultStatus.NodeValidationFailed,
+                Error = "Incorrect transaction signature."
+            });
+            return false;
         }
 
-        public async Task<bool> ValidateTransactionAsync(Transaction transaction, IChainContext chainContext)
+        if (transaction.CalculateSize() > TransactionPoolConsts.TransactionSizeLimit)
         {
-            var transactionId = transaction.GetHash();
-            if (!transaction.VerifySignature())
+            await LocalEventBus.PublishAsync(new TransactionValidationStatusChangedEvent
             {
-                await LocalEventBus.PublishAsync(new TransactionValidationStatusChangedEvent
-                {
-                    TransactionId = transactionId,
-                    TransactionResultStatus = TransactionResultStatus.NodeValidationFailed,
-                    Error = "Incorrect transaction signature."
-                });
-                return false;
-            }
-
-            if (transaction.CalculateSize() > TransactionPoolConsts.TransactionSizeLimit)
-            {
-                await LocalEventBus.PublishAsync(new TransactionValidationStatusChangedEvent
-                {
-                    TransactionId = transactionId,
-                    TransactionResultStatus = TransactionResultStatus.NodeValidationFailed,
-                    Error = "Transaction size exceeded."
-                });
-                return false;
-            }
-
-            return true;
+                TransactionId = transactionId,
+                TransactionResultStatus = TransactionResultStatus.NodeValidationFailed,
+                Error = "Transaction size exceeded."
+            });
+            return false;
         }
+
+        return true;
     }
 }

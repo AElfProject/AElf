@@ -16,7 +16,8 @@ Basically initial miners list are hard coded to `Genesis Block`.
 
 Initial miners will be replaced as soon as we have enough voted miners.
 
-Miners will be changed according to the amount of votes they obtained every time our Main Chain turn to next term, like every 7 days.
+Miners will be changed according to the amount of votes they obtained every time our Main Chain turn to next term, like
+every 7 days.
 
 Miners count will be changed every year.
 
@@ -26,4 +27,5 @@ Send a transaction of `AnnounceElection` to `Election Contract`, this will lock 
 
 ### Vote to candidates
 
-Voters can send a transaction of `Vote` to `Election Contract` voting for any registered candidate, this will lock a certain amount a ELF tokens of this voter, and transfer `VOTE` token to him from `Election Contract`.
+Voters can send a transaction of `Vote` to `Election Contract` voting for any registered candidate, this will lock a
+certain amount a ELF tokens of this voter, and transfer `VOTE` token to him from `Election Contract`.

@@ -1,8 +1,5 @@
-﻿using AElf.Kernel.SmartContract;
+﻿namespace AElf.Sdk.CSharp;
 
-namespace AElf.Sdk.CSharp
+public class CSharpSmartContract : ISmartContract
 {
-    public class CSharpSmartContract : ISmartContract
-    {
-    }
 }

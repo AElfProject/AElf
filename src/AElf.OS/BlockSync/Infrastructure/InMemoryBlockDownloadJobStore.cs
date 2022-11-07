@@ -3,54 +3,46 @@ using System.Threading.Tasks;
 using AElf.OS.BlockSync.Types;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.OS.BlockSync.Infrastructure
+namespace AElf.OS.BlockSync.Infrastructure;
+
+public class InMemoryBlockDownloadJobStore : IBlockDownloadJobStore, ISingletonDependency
 {
-    public class InMemoryBlockDownloadJobStore : IBlockDownloadJobStore, ISingletonDependency
+    private readonly ConcurrentQueue<string> _jobIds = new();
+
+    private readonly ConcurrentDictionary<string, BlockDownloadJobInfo> _jobs = new();
+
+    public Task<bool> AddAsync(BlockDownloadJobInfo blockDownloadJobInfo)
     {
-        private readonly ConcurrentQueue<string> _jobIds = new ConcurrentQueue<string>();
+        if (_jobs.Count >= 100)
+            return Task.FromResult(false);
 
-        private readonly ConcurrentDictionary<string, BlockDownloadJobInfo> _jobs =
-            new ConcurrentDictionary<string, BlockDownloadJobInfo>();
+        _jobIds.Enqueue(blockDownloadJobInfo.JobId);
+        _jobs[blockDownloadJobInfo.JobId] = blockDownloadJobInfo;
 
-        public Task<bool> AddAsync(BlockDownloadJobInfo blockDownloadJobInfo)
+        return Task.FromResult(true);
+    }
+
+    public Task<BlockDownloadJobInfo> GetFirstWaitingJobAsync()
+    {
+        while (true)
         {
-            if (_jobs.Count >= 100)
-                return Task.FromResult(false);
+            if (!_jobIds.TryPeek(out var jobId)) return Task.FromResult<BlockDownloadJobInfo>(null);
 
-            _jobIds.Enqueue(blockDownloadJobInfo.JobId);
-            _jobs[blockDownloadJobInfo.JobId] = blockDownloadJobInfo;
+            if (_jobs.TryGetValue(jobId, out var blockDownloadJobInfo)) return Task.FromResult(blockDownloadJobInfo);
 
-            return Task.FromResult(true);
+            _jobIds.TryDequeue(out _);
         }
+    }
 
-        public Task<BlockDownloadJobInfo> GetFirstWaitingJobAsync()
-        {
-            while (true)
-            {
-                if (!_jobIds.TryPeek(out var jobId))
-                {
-                    return Task.FromResult<BlockDownloadJobInfo>(null);
-                }
+    public Task UpdateAsync(BlockDownloadJobInfo blockDownloadJobInfo)
+    {
+        _jobs[blockDownloadJobInfo.JobId] = blockDownloadJobInfo;
+        return Task.CompletedTask;
+    }
 
-                if (_jobs.TryGetValue(jobId, out var blockDownloadJobInfo))
-                {
-                    return Task.FromResult(blockDownloadJobInfo);
-                }
-
-                _jobIds.TryDequeue(out _);
-            }
-        }
-
-        public Task UpdateAsync(BlockDownloadJobInfo blockDownloadJobInfo)
-        {
-            _jobs[blockDownloadJobInfo.JobId] = blockDownloadJobInfo;
-            return Task.CompletedTask;
-        }
-
-        public Task RemoveAsync(string jobId)
-        {
-            _jobs.TryRemove(jobId, out _);
-            return Task.CompletedTask;
-        }
+    public Task RemoveAsync(string jobId)
+    {
+        _jobs.TryRemove(jobId, out _);
+        return Task.CompletedTask;
     }
 }

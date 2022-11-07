@@ -7,7 +7,6 @@ using AElf.Kernel.Account.Infrastructure;
 using AElf.Kernel.ChainController;
 using AElf.Kernel.ChainController.Application;
 using AElf.Kernel.Consensus.Application;
-using AElf.Kernel.FeeCalculation.Application;
 using AElf.Kernel.Infrastructure;
 using AElf.Kernel.Node;
 using AElf.Kernel.Proposal;
@@ -39,146 +38,145 @@ using Volo.Abp.Modularity;
 using Volo.Abp.Threading;
 using Xunit.Abstractions;
 
-namespace AElf.ContractTestKit
+namespace AElf.ContractTestKit;
+
+public class ContractTestModule<TSelf> : ContractTestModule
+    where TSelf : ContractTestModule<TSelf>
 {
-    public class ContractTestModule<TSelf> : ContractTestModule
-        where TSelf : ContractTestModule<TSelf>
+    public override void ConfigureServices(ServiceConfigurationContext context)
     {
-        public override void ConfigureServices(ServiceConfigurationContext context)
-        {
-            context.Services.AddAssemblyOf<TSelf>();
-            base.ConfigureServices(context);
-        }
+        context.Services.AddAssemblyOf<TSelf>();
+        base.ConfigureServices(context);
     }
+}
 
-    [DependsOn(
-        typeof(AbpEventBusModule),
-        typeof(AbpTestBaseModule),
-        typeof(CoreKernelAElfModule),
-        typeof(KernelAElfModule),
-        typeof(NodeAElfModule),
-        typeof(CoreOSAElfModule),
-        typeof(SmartContractAElfModule),
-        typeof(SmartContractExecutionAElfModule),
-        typeof(TransactionPoolAElfModule),
-        typeof(ChainControllerAElfModule),
-        typeof(TokenKernelAElfModule),
-        typeof(CSharpRuntimeAElfModule))]
-    public class ContractTestModule : AbpModule
+[DependsOn(
+    typeof(AbpEventBusModule),
+    typeof(AbpTestBaseModule),
+    typeof(CoreKernelAElfModule),
+    typeof(KernelAElfModule),
+    typeof(NodeAElfModule),
+    typeof(CoreOSAElfModule),
+    typeof(SmartContractAElfModule),
+    typeof(SmartContractExecutionAElfModule),
+    typeof(TransactionPoolAElfModule),
+    typeof(ChainControllerAElfModule),
+    typeof(TokenKernelAElfModule),
+    typeof(CSharpRuntimeAElfModule))]
+public class ContractTestModule : AbpModule
+{
+    public int ChainId { get; } = 500;
+    public OsBlockchainNodeContext OsBlockchainNodeContext { get; set; }
+
+    public override void ConfigureServices(ServiceConfigurationContext context)
     {
-        public override void ConfigureServices(ServiceConfigurationContext context)
+        var services = context.Services;
+
+        Configure<HostSmartContractBridgeContextOptions>(options =>
         {
-            var services = context.Services;
+            options.ContextVariables[ContextVariableDictionary.NativeSymbolName] = "ELF";
+            options.ContextVariables["SymbolListToPayTxFee"] = "WRITE,READ,STORAGE,TRAFFIC";
+            options.ContextVariables["SymbolListToPayRental"] = "CPU,RAM,DISK,NET";
+        });
 
-            Configure<HostSmartContractBridgeContextOptions>(options =>
-            {
-                options.ContextVariables[ContextVariableDictionary.NativeSymbolName] = "ELF";
-                options.ContextVariables["SymbolListToPayTxFee"] = "WRITE,READ,STORAGE,TRAFFIC";
-                options.ContextVariables["SymbolListToPayRental"] = "CPU,RAM,DISK,NET";
-            });
+        Configure<ChainOptions>(options => options.ChainId = ChainId);
 
-            Configure<ChainOptions>(options => options.ChainId = ChainId);
+        #region Infra
 
-            #region Infra
+        services.AddKeyValueDbContext<BlockchainKeyValueDbContext>(o => o.UseInMemoryDatabase());
+        services.AddKeyValueDbContext<StateKeyValueDbContext>(o => o.UseInMemoryDatabase());
+        services.AddTransient<ChainCreationService>();
+        services.AddSingleton<TxHub>();
+        services.AddSingleton<SmartContractRunnerContainer>();
 
-            services.AddKeyValueDbContext<BlockchainKeyValueDbContext>(o => o.UseInMemoryDatabase());
-            services.AddKeyValueDbContext<StateKeyValueDbContext>(o => o.UseInMemoryDatabase());
-            services.AddTransient<ChainCreationService>();
-            services.AddSingleton<TxHub>();
-            services.AddSingleton<SmartContractRunnerContainer>();
+        #endregion
 
-            #endregion
+        #region Logger
 
-            #region Logger
+        ITestOutputHelperAccessor testOutputHelperAccessor = new TestOutputHelperAccessor();
+        services.AddSingleton(testOutputHelperAccessor);
+        services.AddLogging(o => { o.AddXUnit(testOutputHelperAccessor); });
 
-            ITestOutputHelperAccessor testOutputHelperAccessor = new TestOutputHelperAccessor();
-            services.AddSingleton(testOutputHelperAccessor);
-            services.AddLogging(o => { o.AddXUnit(testOutputHelperAccessor); });
+        #endregion
 
-            #endregion
+        #region Mocks
 
-            #region Mocks
+        services.AddSingleton(o => Mock.Of<IAElfNetworkServer>());
+        services.AddSingleton(o => Mock.Of<IPeerPool>());
 
-            services.AddSingleton(o => Mock.Of<IAElfNetworkServer>());
-            services.AddSingleton(o => Mock.Of<IPeerPool>());
+        services.AddSingleton(o => Mock.Of<INetworkService>());
 
-            services.AddSingleton(o => Mock.Of<INetworkService>());
-
-            // When testing contract and packaging transactions, no need to generate and schedule real consensus stuff.
+        // When testing contract and packaging transactions, no need to generate and schedule real consensus stuff.
 //            context.Services.AddSingleton(o => Mock.Of<IConsensusInformationGenerationService>());
 //            context.Services.AddSingleton(o => Mock.Of<IConsensusScheduler>());
-            context.Services.AddTransient(o => Mock.Of<IConsensusService>());
-            
-            context.Services.AddTransient(o =>
-            {
-                var mockService = new Mock<IGenesisSmartContractDtoProvider>();
-                mockService.Setup(s =>
-                        s.GetGenesisSmartContractDtos())
-                    .Returns(new List<GenesisSmartContractDto>());
-                return mockService.Object;
-            });
+        context.Services.AddTransient(o => Mock.Of<IConsensusService>());
 
-            #endregion
-
-            context.Services.AddTransient<IContractTesterFactory, ContractTesterFactory>();
-            context.Services.AddTransient<ITestTransactionExecutor, TestTransactionExecutor>();
-            context.Services.AddSingleton<IBlockTimeProvider, BlockTimeProvider>();
-            context.Services.AddSingleton<IResetBlockTimeProvider, ResetBlockTimeProvider>();
-            context.Services.Replace(ServiceDescriptor
-                .Singleton<ITransactionExecutingService, PlainTransactionExecutingService>());
-            context.Services.AddSingleton<ISmartContractRunner, UnitTestCSharpSmartContractRunner>(provider =>
-            {
-                var option = provider.GetService<IOptions<RunnerOptions>>();
-                return new UnitTestCSharpSmartContractRunner(
-                    option.Value.SdkDir);
-            });
-            context.Services.AddSingleton<IDefaultContractZeroCodeProvider, UnitTestContractZeroCodeProvider>();
-            context.Services.AddSingleton<ISmartContractAddressService, UnitTestSmartContractAddressService>();
-            context.Services
-                .AddSingleton<ISmartContractAddressNameProvider, ParliamentSmartContractAddressNameProvider>();
-        }
-
-        public int ChainId { get; } = 500;
-        public OsBlockchainNodeContext OsBlockchainNodeContext { get; set; }
-
-        public override void OnApplicationInitialization(ApplicationInitializationContext context)
+        context.Services.AddTransient(o =>
         {
-            context.ServiceProvider.GetService<IAElfAsymmetricCipherKeyPairProvider>()
-                .SetKeyPair(SampleAccount.Accounts[0].KeyPair);
+            var mockService = new Mock<IGenesisSmartContractDtoProvider>();
+            mockService.Setup(s =>
+                    s.GetGenesisSmartContractDtos())
+                .Returns(new List<GenesisSmartContractDto>());
+            return mockService.Object;
+        });
 
-            var dto = new OsBlockchainNodeContextStartDto
-            {
-                ChainId = context.ServiceProvider.GetService<IOptionsSnapshot<ChainOptions>>().Value.ChainId,
-                ZeroSmartContract = typeof(BasicContractZero),
-                SmartContractRunnerCategory = SmartContractTestConstants.TestRunnerCategory,
-            };
-            var dtoProvider = context.ServiceProvider.GetRequiredService<IGenesisSmartContractDtoProvider>();
-            dto.InitializationSmartContracts = dtoProvider.GetGenesisSmartContractDtos().ToList();
-            var contractOptions = context.ServiceProvider.GetService<IOptionsSnapshot<ContractOptions>>().Value;
-            dto.ContractDeploymentAuthorityRequired = contractOptions.ContractDeploymentAuthorityRequired;
-            var osService = context.ServiceProvider.GetService<IOsBlockchainNodeContextService>();
-            var that = this;
-            AsyncHelper.RunSync(async () => { that.OsBlockchainNodeContext = await osService.StartAsync(dto); });
-        }
+        #endregion
 
-        public override void OnApplicationShutdown(ApplicationShutdownContext context)
+        context.Services.AddTransient<IContractTesterFactory, ContractTesterFactory>();
+        context.Services.AddTransient<ITestTransactionExecutor, TestTransactionExecutor>();
+        context.Services.AddSingleton<IBlockTimeProvider, BlockTimeProvider>();
+        context.Services.AddSingleton<IResetBlockTimeProvider, ResetBlockTimeProvider>();
+        context.Services.Replace(ServiceDescriptor
+            .Singleton<ITransactionExecutingService, PlainTransactionExecutingService>());
+        context.Services.AddSingleton<ISmartContractRunner, UnitTestCSharpSmartContractRunner>(provider =>
         {
-            var osService = context.ServiceProvider.GetService<IOsBlockchainNodeContextService>();
-            var that = this;
-            AsyncHelper.RunSync(() => osService.StopAsync(that.OsBlockchainNodeContext));
-        }
+            var option = provider.GetService<IOptions<RunnerOptions>>();
+            return new UnitTestCSharpSmartContractRunner(
+                option.Value.SdkDir);
+        });
+        context.Services.AddSingleton<IDefaultContractZeroCodeProvider, UnitTestContractZeroCodeProvider>();
+        context.Services.AddSingleton<ISmartContractAddressService, UnitTestSmartContractAddressService>();
+        context.Services
+            .AddSingleton<ISmartContractAddressNameProvider, ParliamentSmartContractAddressNameProvider>();
     }
 
-    [DependsOn(typeof(ContractTestModule),
-        typeof(ExecutionPluginForResourceFeeModule),
-        typeof(ExecutionPluginForCallThresholdModule),
-        typeof(ExecutionPluginForMethodFeeModule))]
-    public class ContractTestWithExecutionPluginModule : AbpModule
+    public override void OnApplicationInitialization(ApplicationInitializationContext context)
     {
+        context.ServiceProvider.GetService<IAElfAsymmetricCipherKeyPairProvider>()
+            .SetKeyPair(SampleAccount.Accounts[0].KeyPair);
+
+        var dto = new OsBlockchainNodeContextStartDto
+        {
+            ChainId = context.ServiceProvider.GetService<IOptionsSnapshot<ChainOptions>>().Value.ChainId,
+            ZeroSmartContract = typeof(BasicContractZero),
+            SmartContractRunnerCategory = SmartContractTestConstants.TestRunnerCategory
+        };
+        var dtoProvider = context.ServiceProvider.GetRequiredService<IGenesisSmartContractDtoProvider>();
+        dto.InitializationSmartContracts = dtoProvider.GetGenesisSmartContractDtos().ToList();
+        var contractOptions = context.ServiceProvider.GetService<IOptionsSnapshot<ContractOptions>>().Value;
+        dto.ContractDeploymentAuthorityRequired = contractOptions.ContractDeploymentAuthorityRequired;
+        var osService = context.ServiceProvider.GetService<IOsBlockchainNodeContextService>();
+        var that = this;
+        AsyncHelper.RunSync(async () => { that.OsBlockchainNodeContext = await osService.StartAsync(dto); });
     }
 
-    public class TestOutputHelperAccessor : ITestOutputHelperAccessor
+    public override void OnApplicationShutdown(ApplicationShutdownContext context)
     {
-        public ITestOutputHelper OutputHelper { get; set; }
+        var osService = context.ServiceProvider.GetService<IOsBlockchainNodeContextService>();
+        var that = this;
+        AsyncHelper.RunSync(() => osService.StopAsync(that.OsBlockchainNodeContext));
     }
+}
+
+[DependsOn(typeof(ContractTestModule),
+    typeof(ExecutionPluginForResourceFeeModule),
+    typeof(ExecutionPluginForCallThresholdModule),
+    typeof(ExecutionPluginForMethodFeeModule))]
+public class ContractTestWithExecutionPluginModule : AbpModule
+{
+}
+
+public class TestOutputHelperAccessor : ITestOutputHelperAccessor
+{
+    public ITestOutputHelper OutputHelper { get; set; }
 }

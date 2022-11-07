@@ -24,20 +24,18 @@ public static class CryptoHelper
     public static ECKeyPair FromPrivateKey(byte[] privateKey)
     {
         if (privateKey == null || privateKey.Length != 32)
-        {
             throw new InvalidPrivateKeyException(
                 $"Private key has to have length of 32. Current length is {privateKey?.Length}.");
-        }
 
         try
         {
             Lock.AcquireWriterLock(Timeout.Infinite);
             var secp256K1PubKey = new byte[64];
 
-            if(!Secp256K1.PublicKeyCreate(secp256K1PubKey, privateKey))
+            if (!Secp256K1.PublicKeyCreate(secp256K1PubKey, privateKey))
                 throw new InvalidPrivateKeyException("Create public key failed.");
             var pubKey = new byte[Secp256k1.SERIALIZED_UNCOMPRESSED_PUBKEY_LENGTH];
-            if(!Secp256K1.PublicKeySerialize(pubKey, secp256K1PubKey))
+            if (!Secp256K1.PublicKeySerialize(pubKey, secp256K1PubKey))
                 throw new PublicKeyOperationException("Serialize public key failed.");
             return new ECKeyPair(privateKey, pubKey);
         }
@@ -62,10 +60,10 @@ public static class CryptoHelper
                 rnd.GetBytes(privateKey);
             } while (!Secp256K1.SecretKeyVerify(privateKey));
 
-            if(!Secp256K1.PublicKeyCreate(secp256K1PubKey, privateKey))
+            if (!Secp256K1.PublicKeyCreate(secp256K1PubKey, privateKey))
                 throw new InvalidPrivateKeyException("Create public key failed.");
             var pubKey = new byte[Secp256k1.SERIALIZED_UNCOMPRESSED_PUBKEY_LENGTH];
-            if(!Secp256K1.PublicKeySerialize(pubKey, secp256K1PubKey))
+            if (!Secp256K1.PublicKeySerialize(pubKey, secp256K1PubKey))
                 throw new PublicKeyOperationException("Serialize public key failed.");
             return new ECKeyPair(privateKey, pubKey);
         }
@@ -82,11 +80,11 @@ public static class CryptoHelper
             Lock.AcquireWriterLock(Timeout.Infinite);
             var recSig = new byte[65];
             var compactSig = new byte[65];
-            if(!Secp256K1.SignRecoverable(recSig, hash, privateKey))
+            if (!Secp256K1.SignRecoverable(recSig, hash, privateKey))
                 throw new SignatureOperationException("Create a recoverable ECDSA signature failed.");
-            if(!Secp256K1.RecoverableSignatureSerializeCompact(compactSig, out var recoverId, recSig))
+            if (!Secp256K1.RecoverableSignatureSerializeCompact(compactSig, out var recoverId, recSig))
                 throw new SignatureOperationException("Serialize an ECDSA signature failed.");
-            compactSig[64] = (byte) recoverId; // put recover id at the last slot
+            compactSig[64] = (byte)recoverId; // put recover id at the last slot
             return compactSig;
         }
         finally
@@ -150,10 +148,10 @@ public static class CryptoHelper
         {
             Lock.AcquireWriterLock(Timeout.Infinite);
             var usablePublicKey = new byte[Secp256k1.SERIALIZED_UNCOMPRESSED_PUBKEY_LENGTH];
-            if(!Secp256K1.PublicKeyParse(usablePublicKey, publicKey))
+            if (!Secp256K1.PublicKeyParse(usablePublicKey, publicKey))
                 throw new PublicKeyOperationException("Parse public key failed.");
             var ecdhKey = new byte[Secp256k1.SERIALIZED_COMPRESSED_PUBKEY_LENGTH];
-            if(!Secp256K1.Ecdh(ecdhKey, usablePublicKey, privateKey))
+            if (!Secp256K1.Ecdh(ecdhKey, usablePublicKey, privateKey))
                 throw new EcdhOperationException("Compute EC Diffie- secret failed.");
             return ecdhKey;
         }

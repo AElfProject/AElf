@@ -9,13 +9,13 @@
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
-      <NoWarn>1701;1702</NoWarn>
+        <NoWarn>1701;1702</NoWarn>
     </PropertyGroup>
 
     <ItemGroup>
         <ProjectReference Include="..\AElf.CrossChain.Core\AElf.CrossChain.Core.csproj" />
     </ItemGroup>
-    
+
     <ItemGroup>
         <None Include="..\..\protobuf\crosschain_rpc.proto">
             <Link>.\Protobuf\crosschain_rpc.proto</Link>
@@ -24,12 +24,13 @@
 
     <ItemGroup>
         <PackageReference Include="Grpc" Version="2.46.3" />
-        <PackageReference Include="Grpc.Tools" Version="2.46.3" />
+        <PackageReference Include="Grpc.Net.Client" Version="2.46.0" />
+        <PackageReference Include="Grpc.Tools" Version="2.46.3" PrivateAssets="All" />
         <PackageReference Include="Contrib.Grpc.Core.M1" Version="2.41.0" />
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Protobuf\Generated" />
+        <Folder Include="Protobuf\Generated" />
     </ItemGroup>
     <Target Name="Gen_rpc" BeforeTargets="BeforeBuild">
         <ItemGroup>

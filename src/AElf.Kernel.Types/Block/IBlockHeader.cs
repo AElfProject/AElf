@@ -1,12 +1,11 @@
 ﻿using AElf.Types;
 
-namespace AElf.Kernel
+namespace AElf.Kernel;
+
+public interface IBlockHeader : IHashProvider
 {
-    public interface IBlockHeader : IHashProvider
-    {
-        int Version { get; set; }
-        Hash MerkleTreeRootOfTransactions { get; set; }
-        int ChainId { get; set; }
-        long Height { get; }
-    }
+    int Version { get; set; }
+    Hash MerkleTreeRootOfTransactions { get; set; }
+    int ChainId { get; set; }
+    long Height { get; }
 }

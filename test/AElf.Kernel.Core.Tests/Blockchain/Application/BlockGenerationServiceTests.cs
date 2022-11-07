@@ -1,43 +1,36 @@
-using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Infrastructure;
-using AElf.Types;
-using Google.Protobuf.WellKnownTypes;
-using Shouldly;
-using Xunit;
 
-namespace AElf.Kernel.Blockchain.Application
+namespace AElf.Kernel.Blockchain.Application;
+
+[Trait("Category", AElfMinerModule)]
+public sealed class BlockGenerationServiceTests : AElfMinerTestBase
 {
-    public class BlockGenerationServiceTests : AElfMinerTestBase
+    private readonly BlockGenerationService _blockGenerationService;
+
+
+    private readonly IStaticChainInformationProvider _staticChainInformationProvider;
+
+    public BlockGenerationServiceTests()
     {
-        private readonly BlockGenerationService _blockGenerationService;
+        _blockGenerationService = GetRequiredService<BlockGenerationService>();
+        _staticChainInformationProvider = GetRequiredService<IStaticChainInformationProvider>();
+    }
 
-        private readonly IBlockchainService _blockchainService;
-
-        private readonly IStaticChainInformationProvider _staticChainInformationProvider;
-
-        public BlockGenerationServiceTests()
+    [Fact]
+    public async Task Generate_Block_Success()
+    {
+        var generateBlockDto = new GenerateBlockDto
         {
-            _blockchainService = GetRequiredService<IBlockchainService>();
-            _blockGenerationService = GetRequiredService<BlockGenerationService>();
-            _staticChainInformationProvider = GetRequiredService<IStaticChainInformationProvider>();
-        }
+            PreviousBlockHash = Hash.Empty,
+            PreviousBlockHeight = 1
+        };
 
-        [Fact]
-        public async Task Generate_Block_Success()
-        {
-            var generateBlockDto = new GenerateBlockDto
-            {
-                PreviousBlockHash = Hash.Empty,
-                PreviousBlockHeight = 1
-            };
+        var block = await _blockGenerationService.GenerateBlockBeforeExecutionAsync(generateBlockDto);
 
-            var block = await _blockGenerationService.GenerateBlockBeforeExecutionAsync(generateBlockDto);
-
-            block.Header.ChainId.ShouldBe(_staticChainInformationProvider.ChainId);
-            block.Header.Height.ShouldBe(generateBlockDto.PreviousBlockHeight + 1);
-            block.Header.PreviousBlockHash.ShouldBe(generateBlockDto.PreviousBlockHash);
-            block.Header.Time.ShouldBe(generateBlockDto.BlockTime);
-            block.Header.ExtraData.Count.ShouldBe(1);
-        }
+        block.Header.ChainId.ShouldBe(_staticChainInformationProvider.ChainId);
+        block.Header.Height.ShouldBe(generateBlockDto.PreviousBlockHeight + 1);
+        block.Header.PreviousBlockHash.ShouldBe(generateBlockDto.PreviousBlockHash);
+        block.Header.Time.ShouldBe(generateBlockDto.BlockTime);
+        block.Header.ExtraData.Count.ShouldBe(1);
     }
 }

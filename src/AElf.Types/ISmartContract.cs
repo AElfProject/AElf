@@ -1,6 +1,5 @@
-﻿namespace AElf
+﻿namespace AElf;
+
+public interface ISmartContract
 {
-    public interface ISmartContract
-    {
-    }
 }

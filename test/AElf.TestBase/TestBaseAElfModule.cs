@@ -6,28 +6,23 @@ using Volo.Abp;
 using Volo.Abp.Modularity;
 using Xunit.Abstractions;
 
-namespace AElf.TestBase
+namespace AElf.TestBase;
+
+[DependsOn(
+    typeof(AbpTestBaseModule))]
+public class TestBaseAElfModule : AElfModule
 {
-    [DependsOn(
-        typeof(AbpTestBaseModule))]
-    public class TestBaseAElfModule : AElfModule
+    public override void ConfigureServices(ServiceConfigurationContext context)
     {
-        public override void ConfigureServices(ServiceConfigurationContext context)
-        {
-            ITestOutputHelperAccessor testOutputHelperAccessor = new TestOutputHelperAccessor();
+        ITestOutputHelperAccessor testOutputHelperAccessor = new TestOutputHelperAccessor();
 
-            context.Services.AddSingleton(testOutputHelperAccessor);
+        context.Services.AddSingleton(testOutputHelperAccessor);
 
-            context.Services.AddLogging(o =>
-            {
-                o.AddXUnit(testOutputHelperAccessor);
-                 
-            });
-        }
+        context.Services.AddLogging(o => { o.AddXUnit(testOutputHelperAccessor); });
     }
+}
 
-    public class TestOutputHelperAccessor : ITestOutputHelperAccessor
-    {
-        public ITestOutputHelper OutputHelper { get; set; }
-    }
+public class TestOutputHelperAccessor : ITestOutputHelperAccessor
+{
+    public ITestOutputHelper OutputHelper { get; set; }
 }

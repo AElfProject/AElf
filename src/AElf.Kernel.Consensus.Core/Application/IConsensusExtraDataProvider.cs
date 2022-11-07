@@ -1,8 +1,7 @@
 using AElf.Kernel.Blockchain.Application;
 
-namespace AElf.Kernel.Consensus.Application
+namespace AElf.Kernel.Consensus.Application;
+
+public interface IConsensusExtraDataProvider : IBlockExtraDataProvider
 {
-    public interface IConsensusExtraDataProvider : IBlockExtraDataProvider
-    {
-    }
 }

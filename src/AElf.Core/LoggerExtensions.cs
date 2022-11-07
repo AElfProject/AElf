@@ -1,16 +1,14 @@
 using System;
-using System.Linq.Expressions;
 using Microsoft.Extensions.Logging;
 
-namespace AElf
+namespace AElf;
+
+public static class LoggerExtensions
 {
-    public static class LoggerExtensions
+    public static void LogTrace(this ILogger logger, Func<string> func)
     {
-        public static void LogTrace(this ILogger logger, Func<String> func)
-        {
 #if DEBUG
-            logger.LogTrace(func());
+        logger.LogTrace(func());
 #endif
-        }
     }
 }

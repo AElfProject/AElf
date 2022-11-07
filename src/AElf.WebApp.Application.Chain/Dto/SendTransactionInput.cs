@@ -1,10 +1,9 @@
-namespace AElf.WebApp.Application.Chain.Dto
+namespace AElf.WebApp.Application.Chain.Dto;
+
+public class SendTransactionInput
 {
-    public class SendTransactionInput
-    {
-        /// <summary>
-        /// raw transaction
-        /// </summary>
-        public string RawTransaction { get; set; }
-    }
+    /// <summary>
+    ///     raw transaction
+    /// </summary>
+    public string RawTransaction { get; set; }
 }

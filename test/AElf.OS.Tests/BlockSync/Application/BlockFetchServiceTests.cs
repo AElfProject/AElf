@@ -5,53 +5,52 @@ using AElf.Types;
 using Shouldly;
 using Xunit;
 
-namespace AElf.OS.BlockSync.Application
+namespace AElf.OS.BlockSync.Application;
+
+public class BlockFetchServiceTests : BlockSyncTestBase
 {
-    public class BlockFetchServiceTests : BlockSyncTestBase
+    private readonly IBlockchainService _blockchainService;
+    private readonly IBlockFetchService _blockFetchService;
+    private readonly INetworkService _networkService;
+
+    public BlockFetchServiceTests()
     {
-        private readonly IBlockFetchService _blockFetchService;
-        private readonly INetworkService _networkService;
-        private readonly IBlockchainService _blockchainService;
+        _blockFetchService = GetRequiredService<IBlockFetchService>();
+        _networkService = GetRequiredService<INetworkService>();
+        _blockchainService = GetRequiredService<IBlockchainService>();
+    }
 
-        public BlockFetchServiceTests()
-        {
-            _blockFetchService = GetRequiredService<IBlockFetchService>();
-            _networkService = GetRequiredService<INetworkService>();
-            _blockchainService = GetRequiredService<IBlockchainService>();
-        }
+    [Fact]
+    public async Task FetchBlock_Success()
+    {
+        var response = await _networkService.GetBlockByHashAsync(HashHelper.ComputeFrom("PeerBlock"));
+        var peerBlock = response.Payload;
 
-        [Fact]
-        public async Task FetchBlock_Success()
-        {
-            var response = await _networkService.GetBlockByHashAsync(HashHelper.ComputeFrom("PeerBlock"), null);
-            var peerBlock = response.Payload;
+        var block = await _blockchainService.GetBlockByHashAsync(peerBlock.GetHash());
+        block.ShouldBeNull();
 
-            var block = await _blockchainService.GetBlockByHashAsync(peerBlock.GetHash());
-            block.ShouldBeNull();
+        var fetchResult = await _blockFetchService.FetchBlockAsync(peerBlock.GetHash(), peerBlock.Height, null);
 
-            var fetchResult = await _blockFetchService.FetchBlockAsync(peerBlock.GetHash(), peerBlock.Height, null);
-            
-            fetchResult.ShouldBeTrue();
-            
-            block = await _blockchainService.GetBlockByHashAsync(peerBlock.GetHash());
-            block.GetHash().ShouldBe(peerBlock.GetHash());
-        }
+        fetchResult.ShouldBeTrue();
 
-        [Fact]
-        public async Task FetchBlock_AlreadyExist_Success()
-        {
-            var chain = await _blockchainService.GetChainAsync();
-            var fetchResult = await _blockFetchService.FetchBlockAsync(chain.BestChainHash, chain.BestChainHeight, null);
-            
-            fetchResult.ShouldBeTrue();
-        }
+        block = await _blockchainService.GetBlockByHashAsync(peerBlock.GetHash());
+        block.GetHash().ShouldBe(peerBlock.GetHash());
+    }
 
-        [Fact]
-        public async Task FetchBlock_ReturnNull_Failure()
-        {
-            var fetchResult = await _blockFetchService.FetchBlockAsync(Hash.Empty, 0, null);
-            
-            fetchResult.ShouldBeFalse();
-        }
+    [Fact]
+    public async Task FetchBlock_AlreadyExist_Success()
+    {
+        var chain = await _blockchainService.GetChainAsync();
+        var fetchResult = await _blockFetchService.FetchBlockAsync(chain.BestChainHash, chain.BestChainHeight, null);
+
+        fetchResult.ShouldBeTrue();
+    }
+
+    [Fact]
+    public async Task FetchBlock_ReturnNull_Failure()
+    {
+        var fetchResult = await _blockFetchService.FetchBlockAsync(Hash.Empty, 0, null);
+
+        fetchResult.ShouldBeFalse();
     }
 }

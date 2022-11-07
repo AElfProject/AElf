@@ -1,5 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
-    <Import Project="..\..\common.props" />
+    <Import Project="..\..\common.props"/>
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
         <RootNamespace>AElf</RootNamespace>
@@ -11,7 +11,7 @@
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="Google.Protobuf" Version="3.19.4" />
+        <PackageReference Include="Google.Protobuf" Version="3.19.4"/>
     </ItemGroup>
     <ItemGroup>
         <CommonMessage Include="..\..\protobuf\aelf\core.proto">
