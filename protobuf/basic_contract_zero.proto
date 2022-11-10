@@ -10,6 +10,7 @@ import "google/protobuf/empty.proto";
 import "aelf/core.proto";
 import "google/protobuf/timestamp.proto";
 import "authority_info.proto";
+import "google/protobuf/wrappers.proto";
 
 option csharp_namespace = "AElf.Contracts.Genesis";
 
@@ -34,6 +35,9 @@ service BasicContractZero {
     rpc ChangeCodeCheckController (AuthorityInfo) returns (google.protobuf.Empty) {
     }
     
+    rpc SetContractProposalExpirationTimePeriod(SetContractProposalExpirationTimePeriodInput) returns(google.protobuf.Empty){
+    }
+    
     // Query the ContractDeploymentController authority info.
     rpc GetContractDeploymentController (google.protobuf.Empty) returns (AuthorityInfo) {
         option (aelf.is_view) = true;
@@ -41,6 +45,10 @@ service BasicContractZero {
     
     // Query the CodeCheckController authority info.
     rpc GetCodeCheckController(google.protobuf.Empty) returns (AuthorityInfo){
+        option (aelf.is_view) = true;
+    }
+    
+    rpc GetContractProposalExpirationTimePeriod(google.protobuf.Empty) returns (google.protobuf.Int32Value){
         option (aelf.is_view) = true;
     }
 }
@@ -57,6 +65,10 @@ message ContractProposingInput{
     ContractProposingInputStatus status = 2;
     // The expiration time of proposal.
     google.protobuf.Timestamp expired_time = 3;
+}
+
+message SetContractProposalExpirationTimePeriodInput{
+    int32 expiration_time_period = 1;
 }
 
 enum ContractProposingInputStatus {

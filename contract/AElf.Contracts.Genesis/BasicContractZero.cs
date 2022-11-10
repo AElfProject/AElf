@@ -78,6 +78,12 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         return State.ContractCodeHashListMap[input.Value];
     }
 
+    public override Int32Value GetContractProposalExpirationTimePeriod(Empty input)
+    {
+        var expiredTime = GetContractProposalExpirationTime();
+        return new Int32Value{ Value = expiredTime };
+    }
+
     #endregion Views
 
     #region Actions
@@ -107,6 +113,8 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         // AssertDeploymentProposerAuthority(Context.Sender);
         var proposedContractInputHash = CalculateHashFromInput(input);
         RegisterContractProposingData(proposedContractInputHash);
+        
+        var expiredTime = GetContractProposalExpirationTime();
 
         // Create proposal for deployment
         var proposalCreationInput = new CreateProposalBySystemContractInput
@@ -125,7 +133,7 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
                     IsSystemContract = false
                 }.ToByteString(),
                 OrganizationAddress = State.ContractDeploymentController.Value.OwnerAddress,
-                ExpiredTime = Context.CurrentBlockTime.AddSeconds(ContractProposalExpirationTimePeriod)
+                ExpiredTime = Context.CurrentBlockTime.AddSeconds(expiredTime)
             },
             OriginProposer = Context.Sender
         };
@@ -151,6 +159,8 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         Assert(info != null, "Contract not found.");
         AssertAuthorityByContractInfo(info, Context.Sender);
 
+        var expiredTime = GetContractProposalExpirationTime();
+
         // Create proposal for contract update
         var proposalCreationInput = new CreateProposalBySystemContractInput
         {
@@ -168,7 +178,7 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
                     IsSystemContract = info.IsSystemContract
                 }.ToByteString(),
                 OrganizationAddress = State.ContractDeploymentController.Value.OwnerAddress,
-                ExpiredTime = Context.CurrentBlockTime.AddSeconds(ContractProposalExpirationTimePeriod)
+                ExpiredTime = Context.CurrentBlockTime.AddSeconds(expiredTime)
             },
             OriginProposer = Context.Sender
         };
@@ -373,6 +383,22 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
 
         CreateParliamentOrganizationForInitialControllerAddress(input.Value);
         return new Empty();
+    }
+
+    public override Empty SetContractProposalExpirationTimePeriod(SetContractProposalExpirationTimePeriodInput input)
+    {
+        AssertSenderAddressWith(GetParliamentDefaultAddress());
+        State.ContractProposalExpirationTime.Value = input.ExpirationTimePeriod;
+        return new Empty();
+    }
+    
+    private Address GetParliamentDefaultAddress()
+    {
+        if (State.ParliamentContract.Value == null)
+            State.ParliamentContract.Value =
+                Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
+
+        return State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());
     }
 
     #endregion Actions
