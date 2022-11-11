@@ -136,12 +136,12 @@ public partial class BasicContractZero
     {
         var registered = State.ContractProposingInputMap[proposedContractInputHash];
         Assert(registered == null || Context.CurrentBlockTime >= registered.ExpiredTime, "Already proposed.");
-        var expiredTime = GetContractProposalExpirationTime();
+        var expirationTimePeriod = GetCurrentContractProposalExpirationTimePeriod();
         State.ContractProposingInputMap[proposedContractInputHash] = new ContractProposingInput
         {
             Proposer = Context.Sender,
             Status = ContractProposingInputStatus.Proposed,
-            ExpiredTime = Context.CurrentBlockTime.AddSeconds(expiredTime)
+            ExpiredTime = Context.CurrentBlockTime.AddSeconds(expirationTimePeriod)
         };
     }
 
@@ -210,11 +210,11 @@ public partial class BasicContractZero
             input.CodeCheckReleaseMethod == nameof(UpdateSmartContract), "Invalid input.");
     }
     
-    private int GetContractProposalExpirationTime()
+    private int GetCurrentContractProposalExpirationTimePeriod()
     {
-        return State.ContractProposalExpirationTime.Value == 0
+        return State.ContractProposalExpirationTimePeriod.Value == 0
             ? ContractProposalExpirationTimePeriod
-            : State.ContractProposalExpirationTime.Value;
+            : State.ContractProposalExpirationTimePeriod.Value;
     }
 }
 
