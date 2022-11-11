@@ -299,9 +299,14 @@ public class GenesisContractAuthTest : BasicContractZeroTestBase
         var thirdProposingTxResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
             nameof(BasicContractZero.ProposeNewContract), contractDeploymentInput, utcNow.AddSeconds(86399));
         thirdProposingTxResult.Status.ShouldBe(TransactionResultStatus.Failed);
-
+        
+        var byteResult = await Tester.CallContractMethodAsync(BasicContractZeroAddress,
+            nameof(BasicContractZeroImplContainer.BasicContractZeroImplStub.GetContractProposalExpirationTimePeriod),
+            new Empty());
+        var expirationTimePeriod = Int32Value.Parser.ParseFrom(byteResult);
+        
         var forthProposingTxResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
-            nameof(BasicContractZero.ProposeNewContract), contractDeploymentInput, utcNow.AddSeconds(86400));
+            nameof(BasicContractZero.ProposeNewContract), contractDeploymentInput, utcNow.AddSeconds(expirationTimePeriod.Value));
         forthProposingTxResult.Status.ShouldBe(TransactionResultStatus.Mined);
     }
 
@@ -1367,10 +1372,10 @@ public class GenesisContractAuthTest : BasicContractZeroTestBase
         var contractProposalExpirationTime = Int32Value.Parser.ParseFrom(defaultTime);
         Assert.True(contractProposalExpirationTime.Value == 259200);
         
-        var byteResult = await Tester.CallContractMethodAsync(ParliamentAddress,
-            nameof(ParliamentContractImplContainer.ParliamentContractImplStub.GetDefaultOrganizationAddress),
+        var byteResult = await Tester.CallContractMethodAsync(BasicContractZeroAddress,
+            nameof(BasicContractZeroImplContainer.BasicContractZeroImplStub.GetContractDeploymentController),
             new Empty());
-        var defaultAddress = Address.Parser.ParseFrom(byteResult);
+        var contractDeploymentController = AuthorityInfo.Parser.ParseFrom(byteResult);
         
         const string methodName =
             nameof(BasicContractZeroImplContainer.BasicContractZeroImplStub.SetContractProposalExpirationTimePeriod);
@@ -1388,7 +1393,7 @@ public class GenesisContractAuthTest : BasicContractZeroTestBase
         }
         {
             var proposalId = await CreateProposalAsync(Tester, ParliamentAddress,
-                defaultAddress, methodName,
+                contractDeploymentController.OwnerAddress, methodName,
                 new SetContractProposalExpirationTimePeriodInput
                 {
                     ExpirationTimePeriod = 86400
