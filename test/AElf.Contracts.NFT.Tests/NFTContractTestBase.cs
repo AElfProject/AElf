@@ -2,8 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
-using AElf.Contracts.NFTMarket;
-using AElf.Contracts.NFTMinter;
 using AElf.Contracts.Parliament;
 using AElf.ContractTestBase.ContractTestKit;
 using AElf.Cryptography.ECDSA;
@@ -40,27 +38,9 @@ public class NFTContractTestBase : ContractTestBase<NFTContractTestAElfModule>
             GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, User3KeyPair);
 
         NFTContractAddress = SystemContractAddresses[NFTContractName];
-        NFTMarketContractAddress = SystemContractAddresses[NFTMarketContractName];
-        NFTMinterContractAddress = SystemContractAddresses[NFTMinterContractName];
 
         NFTContractStub = GetTester<NFTContractContainer.NFTContractStub>(NFTContractAddress, DefaultKeyPair);
         MinterNFTContractStub = GetTester<NFTContractContainer.NFTContractStub>(NFTContractAddress, MinterKeyPair);
-
-        CreatorNFTMinterContractStub =
-            GetTester<NFTMinterContractContainer.NFTMinterContractStub>(NFTMinterContractAddress, DefaultKeyPair);
-        UserNFTMinterContractStub =
-            GetTester<NFTMinterContractContainer.NFTMinterContractStub>(NFTMinterContractAddress, User1KeyPair);
-
-        SellerNFTMarketContractStub =
-            GetTester<NFTMarketContractContainer.NFTMarketContractStub>(NFTMarketContractAddress, DefaultKeyPair);
-        BuyerNFTMarketContractStub =
-            GetTester<NFTMarketContractContainer.NFTMarketContractStub>(NFTMarketContractAddress, User2KeyPair);
-        Buyer2NFTMarketContractStub =
-            GetTester<NFTMarketContractContainer.NFTMarketContractStub>(NFTMarketContractAddress, User3KeyPair);
-        CreatorNFTMarketContractStub =
-            GetTester<NFTMarketContractContainer.NFTMarketContractStub>(NFTMarketContractAddress, DefaultKeyPair);
-        AdminNFTMarketContractStub =
-            GetTester<NFTMarketContractContainer.NFTMarketContractStub>(NFTMarketContractAddress, DefaultKeyPair);
 
         ParliamentContractStub = GetTester<ParliamentContractImplContainer.ParliamentContractImplStub>(
             ParliamentContractAddress, DefaultKeyPair);
@@ -80,29 +60,14 @@ public class NFTContractTestBase : ContractTestBase<NFTContractTestAElfModule>
     protected Address User1Address => Accounts[10].Address;
     protected Address User2Address => Accounts[11].Address;
     protected Address User3Address => Accounts[14].Address;
-    protected ECKeyPair MarketServiceFeeReceiverKeyPair => Accounts[12].KeyPair;
-    protected Address MarketServiceFeeReceiverAddress => Accounts[12].Address;
 
     protected List<ECKeyPair> InitialCoreDataCenterKeyPairs =>
         Accounts.Take(InitialCoreDataCenterCount).Select(a => a.KeyPair).ToList();
 
     protected Hash NFTContractName => HashHelper.ComputeFrom("AElf.ContractNames.NFT");
-    protected Hash NFTMarketContractName => HashHelper.ComputeFrom("AElf.ContractNames.NFTMarket");
-    protected Hash NFTMinterContractName => HashHelper.ComputeFrom("AElf.ContractNames.NFTMinter");
     protected Address NFTContractAddress { get; set; }
-    protected Address NFTMarketContractAddress { get; set; }
-    protected Address NFTMinterContractAddress { get; set; }
     internal NFTContractContainer.NFTContractStub NFTContractStub { get; set; }
     internal NFTContractContainer.NFTContractStub MinterNFTContractStub { get; set; }
-
-    internal NFTMinterContractContainer.NFTMinterContractStub CreatorNFTMinterContractStub { get; set; }
-    internal NFTMinterContractContainer.NFTMinterContractStub UserNFTMinterContractStub { get; set; }
-
-    internal NFTMarketContractContainer.NFTMarketContractStub SellerNFTMarketContractStub { get; set; }
-    internal NFTMarketContractContainer.NFTMarketContractStub BuyerNFTMarketContractStub { get; set; }
-    internal NFTMarketContractContainer.NFTMarketContractStub Buyer2NFTMarketContractStub { get; set; }
-    internal NFTMarketContractContainer.NFTMarketContractStub CreatorNFTMarketContractStub { get; set; }
-    internal NFTMarketContractContainer.NFTMarketContractStub AdminNFTMarketContractStub { get; set; }
 
     private TokenInfo NativeTokenInfo => new()
     {

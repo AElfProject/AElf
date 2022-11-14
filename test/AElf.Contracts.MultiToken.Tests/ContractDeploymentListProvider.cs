@@ -26,8 +26,6 @@ public class ContractDeploymentListProvider : IContractDeploymentListProvider
             ConsensusSmartContractAddressNameProvider.Name,
             AssociationSmartContractAddressNameProvider.Name,
             HashHelper.ComputeFrom("AElf.ContractNames.NFT"),
-            HashHelper.ComputeFrom("AElf.ContractNames.NFTMarket"),
-            HashHelper.ComputeFrom("AElf.ContractNames.NFTMinter")
         };
     }
 }
