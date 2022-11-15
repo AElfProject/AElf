@@ -93,7 +93,7 @@ public partial class TokenContract
     private void SetOrRefreshMethodFeeFreeAllowances(Address address)
     {
         var config = State.MethodFeeFreeAllowancesConfig.Value;
-        if (State.Balances[address][Context.Variables.NativeSymbol] < config.Threshold)
+        if (config == null || State.Balances[address][Context.Variables.NativeSymbol] < config.Threshold)
         {
             // Won't refresh method fee free allowance if inputted address hasn't reach the threshold.
             return;
@@ -743,6 +743,11 @@ public partial class TokenContract
     {
         var freeAllowances = State.MethodFeeFreeAllowancesMap[input];
         var freeAllowancesConfig = State.MethodFeeFreeAllowancesConfig.Value;
+        if (freeAllowancesConfig == null)
+        {
+            return new MethodFeeFreeAllowances();
+        }
+
         var lastRefreshTime = State.MethodFeeFreeAllowancesLastRefreshTimeMap[input];
 
         if (freeAllowances == null)
