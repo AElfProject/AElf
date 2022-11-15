@@ -130,7 +130,7 @@ public partial class ElectionContract
         return new Empty();
     }
 
-    private void ExtendVoterWelfareProfits(Hash voteId, long startPeriod = 0, long endPeriod = 0)
+    private void ExtendVoterWelfareProfits(Hash voteId)
     {
         var treasury = State.ProfitContract.GetScheme.Call(State.TreasuryHash.Value);
         var electionVotingRecord = GetElectionVotingRecordByVoteId(voteId);
@@ -141,14 +141,7 @@ public partial class ElectionContract
             return;
         }
 
-        var maxEndPeriod = lockPeriod.Add(treasury.CurrentPeriod);
-        if (endPeriod == 0)
-        {
-            endPeriod = maxEndPeriod;
-        }
-
-        Assert(endPeriod <= maxEndPeriod, "Invalid end period.");
-
+        var endPeriod = lockPeriod.Add(treasury.CurrentPeriod);
         var extendingDetail = GetProfitDetailByElectionVotingRecord(electionVotingRecord);
         if (extendingDetail != null)
         {
@@ -166,26 +159,7 @@ public partial class ElectionContract
         }
         else
         {
-            var withdrawTimestamp = electionVotingRecord.WithdrawTimestamp;
-            // Maybe not accurate if voter didn't withdraw his votes immediately.
-            var minStartPeriod = (withdrawTimestamp - Context.CurrentBlockTime).Seconds
-                .Div(State.TimeEachTerm.Value)
-                .Add(treasury.CurrentPeriod).Add(1);
-            Assert(startPeriod >= minStartPeriod, "Invalid start period");
-
-            State.ProfitContract.AddBeneficiary.Send(new AddBeneficiaryInput
-            {
-                SchemeId = State.WelfareHash.Value,
-                BeneficiaryShare = new BeneficiaryShare
-                {
-                    Beneficiary = electionVotingRecord.Voter,
-                    Shares = electionVotingRecord.Weight
-                },
-                StartPeriod = startPeriod,
-                EndPeriod = endPeriod,
-                IsFixProfitDetail = true,
-                ProfitDetailId = voteId
-            });
+            throw new AssertionException($"Cannot find profit detail of given vote id {voteId}");
         }
     }
 
