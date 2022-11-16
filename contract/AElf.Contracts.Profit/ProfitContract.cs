@@ -275,12 +275,13 @@ public partial class ProfitContract : ProfitContractImplContainer.ProfitContract
         }
 
         var profitDetails = State.ProfitDetailsMap[input.SchemeId][input.BeneficiaryShare.Beneficiary];
-        ProfitDetail fixingDetail;
+        ProfitDetail fixingDetail = null;
         if (input.ProfitDetailId != null)
         {
-            fixingDetail = profitDetails.Details.Single(d => d.Id == input.ProfitDetailId);
+            fixingDetail = profitDetails.Details.SingleOrDefault(d => d.Id == input.ProfitDetailId);
         }
-        else
+
+        if (fixingDetail == null)
         {
             fixingDetail = profitDetails.Details.OrderBy(d => d.StartPeriod)
                 .FirstOrDefault(d => d.Shares == input.BeneficiaryShare.Shares);
