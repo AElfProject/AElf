@@ -50,7 +50,7 @@ public partial class TokenContract
         }
 
         SetOrRefreshMethodFeeFreeAllowances(fromAddress);
-        var freeAllowances = CalculateMethodFeeFreeAllowances(fromAddress);
+        var freeAllowances = CalculateMethodFeeFreeAllowances(fromAddress)?.Clone();
 
         // Update balances.
         foreach (var (symbol, amount) in bill.FeesMap)
@@ -748,13 +748,15 @@ public partial class TokenContract
             return new MethodFeeFreeAllowances();
         }
 
+        var config = freeAllowancesConfig.Clone();
+
         var lastRefreshTime = State.MethodFeeFreeAllowancesLastRefreshTimeMap[input];
 
         if (freeAllowances == null)
         {
-            if (State.Balances[input][Context.Variables.NativeSymbol] >= freeAllowancesConfig.Threshold)
+            if (State.Balances[input][Context.Variables.NativeSymbol] >= config.Threshold)
             {
-                return freeAllowancesConfig.FreeAllowances;
+                return new MethodFeeFreeAllowances { Value = { config.FreeAllowances.Value } };
             }
         }
 
@@ -763,8 +765,8 @@ public partial class TokenContract
             return freeAllowances;
         }
 
-        return (Context.CurrentBlockTime - lastRefreshTime).Seconds > freeAllowancesConfig.RefreshSeconds
-            ? freeAllowancesConfig.FreeAllowances
+        return (Context.CurrentBlockTime - lastRefreshTime).Seconds > config.RefreshSeconds
+            ? new MethodFeeFreeAllowances { Value = { config.FreeAllowances.Value } }
             : freeAllowances;
     }
 
