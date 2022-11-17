@@ -240,12 +240,10 @@ public partial class ProfitContract : ProfitContractImplContainer.ProfitContract
 
         var removedDetails = RemoveProfitDetails(scheme, input.Beneficiary, input.ProfitDetailId);
 
-        foreach (var removedDetail in removedDetails.Where(d => d.Key != 0))
+        foreach (var (removedMinPeriod, removedShares) in removedDetails.Where(d => d.Key != 0))
         {
             if (scheme.DelayDistributePeriodCount > 0)
             {
-                var removedMinPeriod = removedDetail.Key;
-                var removedShares = removedDetail.Value;
                 for (var removedPeriod = removedMinPeriod;
                      removedPeriod < removedMinPeriod.Add(scheme.DelayDistributePeriodCount);
                      removedPeriod++)
@@ -259,7 +257,7 @@ public partial class ProfitContract : ProfitContractImplContainer.ProfitContract
             }
         }
 
-        scheme.TotalShares = scheme.TotalShares.Sub(removedDetails.Values.Sum());
+        State.SchemeInfos[input.SchemeId].TotalShares = scheme.TotalShares.Sub(removedDetails.Values.Sum());
 
         return new Empty();
     }
@@ -301,8 +299,7 @@ public partial class ProfitContract : ProfitContractImplContainer.ProfitContract
         return new Empty();
     }
 
-    private RemovedDetails RemoveProfitDetails(Scheme scheme, Address beneficiary, Hash profitDetailId = null,
-        bool isSubScheme = false)
+    private RemovedDetails RemoveProfitDetails(Scheme scheme, Address beneficiary, Hash profitDetailId = null)
     {
         var removedDetails = new RemovedDetails();
 
@@ -312,23 +309,14 @@ public partial class ProfitContract : ProfitContractImplContainer.ProfitContract
             return removedDetails;
         }
 
-        List<ProfitDetail> detailsCanBeRemoved;
+        var detailsCanBeRemoved = scheme.CanRemoveBeneficiaryDirectly
+            ? profitDetails.Details.Where(d => !d.IsWeightRemoved).ToList()
+            : profitDetails.Details
+                .Where(d => d.EndPeriod < scheme.CurrentPeriod && !d.IsWeightRemoved).ToList();
 
-        if (isSubScheme)
+        if (profitDetailId != null && profitDetails.Details.Any(d => d.Id == profitDetailId) && detailsCanBeRemoved.All(d => d.Id != profitDetailId))
         {
-            detailsCanBeRemoved = profitDetails.Details.ToList();
-        }
-        else
-        {
-            detailsCanBeRemoved = scheme.CanRemoveBeneficiaryDirectly
-                ? profitDetails.Details.Where(d => !d.IsWeightRemoved).ToList()
-                : profitDetails.Details
-                    .Where(d => d.EndPeriod < scheme.CurrentPeriod && !d.IsWeightRemoved).ToList();
-        }
-
-        if (profitDetailId != null && profitDetails.Details.Any(d => d.Id == profitDetailId))
-        {
-            detailsCanBeRemoved.AddRange(profitDetails.Details.Where(d => d.Id == profitDetailId));
+            detailsCanBeRemoved.Add(profitDetails.Details.Single(d => d.Id == profitDetailId));
         }
 
         if (detailsCanBeRemoved.Any())
@@ -353,7 +341,7 @@ public partial class ProfitContract : ProfitContractImplContainer.ProfitContract
         else
         {
             var weightCanBeRemoved = profitDetails.Details
-                .Where(d => d.EndPeriod <= scheme.CurrentPeriod && !d.IsWeightRemoved).ToList();
+                .Where(d => d.EndPeriod == scheme.CurrentPeriod && !d.IsWeightRemoved).ToList();
             foreach (var profitDetail in weightCanBeRemoved)
             {
                 profitDetail.IsWeightRemoved = true;
@@ -418,7 +406,7 @@ public partial class ProfitContract : ProfitContractImplContainer.ProfitContract
             Context.GetContractAddressByName(SmartContractConstants.TokenHolderContractSystemName),
             "Only manager or token holder contract can distribute profits.");
 
-        var amountMap = input.AmountsMap.ToDictionary(p => p.Key, p => p.Value);
+        var amountMap = input.AmountsMap;
         var actualAmountMap = new Dictionary<string, long>();
 
         if (amountMap.Any())
@@ -461,15 +449,7 @@ public partial class ProfitContract : ProfitContractImplContainer.ProfitContract
             }
 
             var delayToPeriod = input.Period.Add(scheme.DelayDistributePeriodCount);
-            if (scheme.CachedDelayTotalShares.ContainsKey(delayToPeriod))
-            {
-                scheme.CachedDelayTotalShares[delayToPeriod] =
-                    scheme.CachedDelayTotalShares[delayToPeriod].Add(scheme.TotalShares);
-            }
-            else
-            {
-                scheme.CachedDelayTotalShares[delayToPeriod] = scheme.TotalShares;
-            }
+            scheme.CachedDelayTotalShares[delayToPeriod] = scheme.TotalShares;
         }
         else
         {
@@ -482,18 +462,16 @@ public partial class ProfitContract : ProfitContractImplContainer.ProfitContract
                 $"Invalid period. When release scheme {input.SchemeId.ToHex()} of period {input.Period}. Current period is {scheme.CurrentPeriod}");
         }
 
-        var periodVirtualAddress =
-            GetDistributedPeriodProfitsVirtualAddress(scheme.SchemeId, scheme.CurrentPeriod);
-
         if (input.Period < 0 || !isDistributable)
         {
             BurnProfits(scheme, scheme.CurrentPeriod, actualAmountMap);
             return new Empty();
         }
 
-        Context.LogDebug(() => $"Receiving virtual address: {periodVirtualAddress}");
+        var periodVirtualAddress =
+            GetDistributedPeriodProfitsVirtualAddress(scheme.SchemeId, scheme.CurrentPeriod);
 
-        State.CachedDistributedPeriodTotalShares[scheme.SchemeId][scheme.CurrentPeriod] = totalShares;
+        Context.LogDebug(() => $"Receiving virtual address: {periodVirtualAddress}");
 
         MarkAsDistributed(scheme.SchemeId, scheme.CurrentPeriod, totalShares, actualAmountMap);
 
@@ -845,6 +823,8 @@ public partial class ProfitContract : ProfitContractImplContainer.ProfitContract
             scheme.CachedDelayTotalShares[delayToPeriod] =
                 scheme.CachedDelayTotalShares[delayToPeriod].Sub(sharesToRemove);
         }
+
+        State.SchemeInfos[scheme.SchemeId] = scheme;
 
         foreach (var profitDetail in profitDetailsToRemove)
         {
