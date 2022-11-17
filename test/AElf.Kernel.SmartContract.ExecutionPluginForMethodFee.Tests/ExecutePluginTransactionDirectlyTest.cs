@@ -286,11 +286,14 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
     }
 
     [Theory]
-    [InlineData(10000, 10000, 100, 50, 50, 0, 10000)]
-    [InlineData(10000, 10000, 1000, 10, 10, 980, 10000)]
-    [InlineData(100000, 10000, 100, 100, 100, 0, 9800)]
+    [InlineData(10000, 10000, 200, 50, 50, 100, 0, 10000)]
+    [InlineData(10000, 10000, 1000, 10, 10, 100, 960, 10000)]
+    [InlineData(10000, 20000, 100, 100, 100, 100, 0, 19700)]
+    [InlineData(100000, 10000, 1000, 100, 100, 100, 0, 9600)]
+    [InlineData(0, 200, 0, 50, 50, 100, 0, 0)]
+    [InlineData(10000, 10000, 200, 100, 100, 0, 0, 10000)]
     public async Task FreeAllowancesTest(long threshold, long initialBalance, long freeAmount, long basicFee,
-        long sizeFee,
+        long sizeFee,long refreshSeconds,
         long newFreeAllowance, long afterBalance)
     {
         await SetPrimaryTokenSymbolAsync();
@@ -310,7 +313,7 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
                         }
                     }
                 },
-                RefreshSeconds = 100,
+                RefreshSeconds = refreshSeconds,
                 Threshold = threshold
             });
 
@@ -366,6 +369,10 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
         chargeTransactionFeesInput.SymbolsToPayTxSizeFee.AddRange(sizeFeeSymbolList.SymbolsToPayTxSizeFee);
 
         var chargeFeeRet = await TokenContractStub.ChargeTransactionFees.SendAsync(chargeTransactionFeesInput);
+        chargeFeeRet.Output.Success.ShouldBe(true);
+
+        await Task.Delay(1000);
+        chargeFeeRet = await TokenContractStub.ChargeTransactionFees.SendAsync(chargeTransactionFeesInput);
         chargeFeeRet.Output.Success.ShouldBe(true);
 
         {
