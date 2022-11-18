@@ -293,7 +293,7 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
     [InlineData(0, 200, 0, 50, 50, 100, 0, 0)]
     [InlineData(10000, 10000, 200, 100, 100, 0, 0, 10000)]
     public async Task FreeAllowancesTest(long threshold, long initialBalance, long freeAmount, long basicFee,
-        long sizeFee,long refreshSeconds,
+        long sizeFee, long refreshSeconds,
         long newFreeAllowance, long afterBalance)
     {
         await SetPrimaryTokenSymbolAsync();
@@ -371,7 +371,6 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
         var chargeFeeRet = await TokenContractStub.ChargeTransactionFees.SendAsync(chargeTransactionFeesInput);
         chargeFeeRet.Output.Success.ShouldBe(true);
 
-        await Task.Delay(1000);
         chargeFeeRet = await TokenContractStub.ChargeTransactionFees.SendAsync(chargeTransactionFeesInput);
         chargeFeeRet.Output.Success.ShouldBe(true);
 
@@ -397,6 +396,149 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
             balance.Balance.ShouldBe(afterBalance);
         }
     }
+
+    [Theory]
+    [InlineData(10000, 10000, 1000, 1000, 200, 200, 100, 100, 100, 100, 1000, 1000)]
+    [InlineData(10000, 10000, 1000, 1000, 100, 100, 200, 200, 0, 0, 900, 900)]
+    [InlineData(10000, 10000, 1000, 1000, 0, 100, 200, 100, 0, 0, 800, 1000)]
+    // [InlineData(10000, 10000, 0, 0, 100, 100, 100, 100, 0, 0, 0, 0)] 
+    public async Task FreeAllowances_MultToken_Test(
+        long threshold, long initialBalance,
+        long baseFeeBalance, long sizeFeeBalance,
+        long baseFeeFreeAmount, long sizeFeeFreeAmount, long basicFee, long sizeFee,
+        long newBaseFreeAllowance, long newSizeFreeAllowance, long afterBaseFeeBalance, long afterSizeFeeBalance)
+    {
+        var basicFeeSymbol = "BASIC";
+        var sizeFeeSymbol = "SIZE";
+
+        await SetPrimaryTokenSymbolAsync();
+        await CreateTokenAsync(DefaultSender, basicFeeSymbol);
+        await CreateTokenAsync(DefaultSender, sizeFeeSymbol);
+
+        await IssueTokenToDefaultSenderAsync(NativeTokenSymbol, initialBalance);
+
+        if (baseFeeBalance != 0 && sizeFeeBalance != 0)
+        {
+            await IssueTokenToDefaultSenderAsync(basicFeeSymbol, baseFeeBalance);
+            await IssueTokenToDefaultSenderAsync(sizeFeeSymbol, sizeFeeBalance);
+        }
+
+        await SubmitAndPassProposalOfDefaultParliamentAsync(TokenContractAddress,
+            nameof(TokenContractStub.ConfigMethodFeeFreeAllowances), new MethodFeeFreeAllowancesConfig
+            {
+                FreeAllowances = new MethodFeeFreeAllowances
+                {
+                    Value =
+                    {
+                        new MethodFeeFreeAllowance
+                        {
+                            Symbol = basicFeeSymbol,
+                            Amount = baseFeeFreeAmount
+                        },
+                        new MethodFeeFreeAllowance
+                        {
+                            Symbol = sizeFeeSymbol,
+                            Amount = sizeFeeFreeAmount
+                        }
+                    }
+                },
+                RefreshSeconds = 100,
+                Threshold = threshold
+            });
+
+
+        var methodFee = new MethodFees
+        {
+            MethodName = nameof(TokenContractContainer.TokenContractStub.Transfer),
+            Fees =
+            {
+                new MethodFee
+                {
+                    Symbol = basicFeeSymbol,
+                    BasicFee = basicFee
+                }
+            }
+        };
+        await SubmitAndPassProposalOfDefaultParliamentAsync(TokenContractAddress,
+            nameof(TokenContractImplContainer.TokenContractImplStub.SetMethodFee), methodFee);
+
+        var sizeFeeSymbolList = new SymbolListToPayTxSizeFee
+        {
+            SymbolsToPayTxSizeFee =
+            {
+                new SymbolToPayTxSizeFee
+                {
+                    TokenSymbol = sizeFeeSymbol,
+                    AddedTokenWeight = 1,
+                    BaseTokenWeight = 1
+                },
+                new SymbolToPayTxSizeFee
+                {
+                    TokenSymbol = NativeTokenSymbol,
+                    AddedTokenWeight = 1,
+                    BaseTokenWeight = 1
+                }
+            }
+        };
+        await SubmitAndPassProposalOfDefaultParliamentAsync(TokenContractAddress,
+            nameof(TokenContractImplContainer.TokenContractImplStub.SetSymbolsToPayTxSizeFee), sizeFeeSymbolList);
+
+        {
+            var freeAllowances = await TokenContractStub.GetMethodFeeFreeAllowances.CallAsync(DefaultSender);
+            if (threshold <= initialBalance)
+            {
+                freeAllowances.Value.First().Symbol.ShouldBe(basicFeeSymbol);
+                freeAllowances.Value.First().Amount.ShouldBe(baseFeeFreeAmount);
+                freeAllowances.Value.Last().Symbol.ShouldBe(sizeFeeSymbol);
+                freeAllowances.Value.Last().Amount.ShouldBe(sizeFeeFreeAmount);
+            }
+            else
+            {
+                freeAllowances.Value.ShouldBeEmpty();
+            }
+        }
+
+        var chargeTransactionFeesInput = new ChargeTransactionFeesInput
+        {
+            MethodName = nameof(TokenContractContainer.TokenContractStub.Transfer),
+            ContractAddress = TokenContractAddress,
+            TransactionSizeFee = sizeFee,
+        };
+        chargeTransactionFeesInput.SymbolsToPayTxSizeFee.AddRange(sizeFeeSymbolList.SymbolsToPayTxSizeFee);
+
+        var chargeFeeRet = await TokenContractStub.ChargeTransactionFees.SendAsync(chargeTransactionFeesInput);
+        chargeFeeRet.Output.Success.ShouldBe(true);
+
+        {
+            var freeAllowances = await TokenContractStub.GetMethodFeeFreeAllowances.CallAsync(DefaultSender);
+            if (threshold <= initialBalance)
+            {
+                freeAllowances.Value.First().Symbol.ShouldBe(basicFeeSymbol);
+                freeAllowances.Value.First().Amount.ShouldBe(newBaseFreeAllowance);
+                freeAllowances.Value.Last().Symbol.ShouldBe(sizeFeeSymbol);
+                freeAllowances.Value.Last().Amount.ShouldBe(newSizeFreeAllowance);
+            }
+            else
+            {
+                freeAllowances.Value.ShouldBeEmpty();
+            }
+        }
+
+        var baseFeeSymbolBalance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+        {
+            Symbol = basicFeeSymbol,
+            Owner = DefaultSender
+        });
+        baseFeeSymbolBalance.Balance.ShouldBe(afterBaseFeeBalance);
+
+        var sizeFeeSymbolBalance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+        {
+            Symbol = sizeFeeSymbol,
+            Owner = DefaultSender
+        });
+        sizeFeeSymbolBalance.Balance.ShouldBe(afterSizeFeeBalance);
+    }
+
 
     private async Task<long> GetTokenSupplyAmount(string tokenSymbol)
     {
