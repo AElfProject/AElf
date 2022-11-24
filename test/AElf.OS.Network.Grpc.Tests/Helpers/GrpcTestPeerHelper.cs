@@ -20,7 +20,9 @@ public static class GrpcTestPeerHelper
         return CreatePeerWithInfo(ip,
             new PeerConnectionInfo
             {
-                Pubkey = pubkey, SessionId = new byte[] {0, 1, 2}, ConnectionTime = TimestampHelper.GetUtcNow(),
+                Pubkey = pubkey,
+                SessionId = new byte[] {0, 1, 2},
+                ConnectionTime = TimestampHelper.GetUtcNow(),
                 NodeVersion = NodeVersion
             });
     }
