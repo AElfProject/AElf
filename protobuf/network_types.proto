@@ -59,6 +59,7 @@ message HandshakeData {
     aelf.Hash last_irreversible_block_hash = 7;
     int64 last_irreversible_block_height = 8;
     google.protobuf.Timestamp time = 9;
+    string node_version = 10;
 }
 
 message HandshakeRequest {

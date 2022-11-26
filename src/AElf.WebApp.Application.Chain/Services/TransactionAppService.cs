@@ -1,9 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.FeeCalculation.Extensions;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.TransactionPool;
 using AElf.Types;
@@ -33,6 +36,8 @@ public interface ITransactionAppService
     Task<SendTransactionOutput> SendTransactionAsync(SendTransactionInput input);
 
     Task<string[]> SendTransactionsAsync(SendTransactionsInput input);
+
+    Task<CalculateTransactionFeeOutput> CalculateTransactionFeeAsync(CalculateTransactionFeeInput input);
 }
 
 public class TransactionAppService : AElfAppService, ITransactionAppService
@@ -41,15 +46,18 @@ public class TransactionAppService : AElfAppService, ITransactionAppService
     private readonly IObjectMapper<ChainApplicationWebAppAElfModule> _objectMapper;
     private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
     private readonly ITransactionResultStatusCacheProvider _transactionResultStatusCacheProvider;
+    private readonly IPlainTransactionExecutingService _plainTransactionExecutingService;
 
     public TransactionAppService(ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService,
         IBlockchainService blockchainService, IObjectMapper<ChainApplicationWebAppAElfModule> objectMapper,
-        ITransactionResultStatusCacheProvider transactionResultStatusCacheProvider)
+        ITransactionResultStatusCacheProvider transactionResultStatusCacheProvider,
+        IPlainTransactionExecutingService plainTransactionExecutingService)
     {
         _transactionReadOnlyExecutionService = transactionReadOnlyExecutionService;
         _blockchainService = blockchainService;
         _objectMapper = objectMapper;
         _transactionResultStatusCacheProvider = transactionResultStatusCacheProvider;
+        _plainTransactionExecutingService = plainTransactionExecutingService;
 
         LocalEventBus = NullLocalEventBus.Instance;
         Logger = NullLogger<TransactionAppService>.Instance;
@@ -234,6 +242,66 @@ public class TransactionAppService : AElfAppService, ITransactionAppService
         var txIds = await PublishTransactionsAsync(input.RawTransactions.Split(","));
 
         return txIds;
+    }
+
+    public async Task<CalculateTransactionFeeOutput> CalculateTransactionFeeAsync(CalculateTransactionFeeInput input)
+    {
+        Transaction transaction;
+
+        try
+        {
+            var byteArray = ByteArrayHelper.HexStringToByteArray(input.RawTransaction);
+            transaction = Transaction.Parser.ParseFrom(byteArray);
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(e, "{ErrorMessage}", e.Message); //for debug
+            throw new UserFriendlyException(Error.Message[Error.InvalidParams],
+                Error.InvalidParams.ToString());
+        }
+
+        try
+        {
+            var result = await EstimateTransactionFee(transaction);
+            return result;
+        }
+        catch (Exception e)
+        {
+            using var detail = new StringReader(e.Message);
+            throw new UserFriendlyException(Error.Message[Error.InvalidTransaction],
+                Error.InvalidTransaction.ToString(), await detail.ReadLineAsync());
+        }
+    }
+
+    private async Task<CalculateTransactionFeeOutput> EstimateTransactionFee(Transaction transaction)
+    {
+        var chainContext = await GetChainContextAsync();
+        var executionReturnSets = await _plainTransactionExecutingService.ExecuteAsync(new TransactionExecutingDto
+        {
+            Transactions = new[] { transaction },
+            BlockHeader = new BlockHeader
+            {
+                PreviousBlockHash = chainContext.BlockHash,
+                Height = chainContext.BlockHeight,
+                Time = TimestampHelper.GetUtcNow()
+            }
+        }, CancellationToken.None);
+        var result = new CalculateTransactionFeeOutput();
+        if (executionReturnSets.FirstOrDefault()?.Status == TransactionResultStatus.Mined)
+        {
+            var transactionFees =
+                executionReturnSets.FirstOrDefault()?.TransactionResult.GetChargedTransactionFees();
+            var resourceFees = executionReturnSets.FirstOrDefault()?.TransactionResult.GetConsumedResourceTokens();
+            result.Success = true;
+            result.TransactionFee = transactionFees;
+            result.ResourceFee = resourceFees;
+        }
+        else
+        {
+            result.Success = false;
+        }
+
+        return result;
     }
 
     private async Task<string[]> PublishTransactionsAsync(string[] rawTransactions)
