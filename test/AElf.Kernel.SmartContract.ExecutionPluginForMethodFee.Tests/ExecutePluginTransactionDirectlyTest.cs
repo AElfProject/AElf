@@ -401,7 +401,7 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
     [InlineData(10000, 10000, 1000, 1000, 200, 200, 100, 100, 100, 100, 1000, 1000)]
     [InlineData(10000, 10000, 1000, 1000, 100, 100, 200, 200, 0, 0, 900, 900)]
     [InlineData(10000, 10000, 1000, 1000, 0, 100, 200, 100, 0, 0, 800, 1000)]
-    // [InlineData(10000, 10000, 0, 0, 100, 100, 100, 100, 0, 0, 0, 0)] 
+    [InlineData(10000, 10000, 0, 0, 100, 100, 100, 100, 0, 0, 0, 0)] 
     public async Task FreeAllowances_MultToken_Test(
         long threshold, long initialBalance,
         long baseFeeBalance, long sizeFeeBalance,
