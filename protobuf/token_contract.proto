@@ -376,6 +376,11 @@ message TransactionFeeBill {
     map<string, int64> fees_map = 1;
 }
 
+message TransactionFreeFeeAllowanceBill {
+    // The transaction free fee allowance dictionary, Symbol->fee.
+    map<string, int64> free_fee_allowances_map = 1;
+}
+
 message CheckThresholdInput {
     // The sender of the transaction.
     aelf.Address sender = 1;
