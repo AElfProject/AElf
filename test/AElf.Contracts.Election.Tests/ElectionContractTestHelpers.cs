@@ -89,7 +89,7 @@ public partial class ElectionContractTests : ElectionContractTestBase
     }
 
     private async Task<TransactionResult> VoteToCandidateAsync(ECKeyPair voterKeyPair, string candidatePublicKey,
-        int lockTime, long amount)
+        long lockTime, long amount)
     {
         var electionStub = GetElectionContractTester(voterKeyPair);
         var voteResult = (await electionStub.Vote.SendAsync(new VoteMinerInput
