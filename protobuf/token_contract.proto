@@ -137,6 +137,15 @@ service TokenContract {
     
     rpc ConfigMethodFeeFreeAllowances (MethodFeeFreeAllowancesConfig) returns (google.protobuf.Empty) {
     }
+    
+    rpc SetTransactionFeeDelegations (SetTransactionFeeDelegationsInput) returns (SetTransactionFeeDelegationsOutput){
+    }
+    
+    rpc RemoveTransactionFeeDelegator (RemoveTransactionFeeDelegatorInput) returns (google.protobuf.Empty){
+    }
+
+    rpc RemoveTransactionFeeDelegatee (RemoveTransactionFeeDelegateeInput) returns (google.protobuf.Empty){
+    }
 
     // Query token information.
     rpc GetTokenInfo (GetTokenInfoInput) returns (TokenInfo) {
@@ -657,6 +666,36 @@ message MethodFeeFreeAllowance {
     int64 amount = 2;
 }
 
+message TransactionFeeDelegations{
+    // delegation, symbols and its' amount
+    map<string, int64> delegations = 1;
+}
+
+message TransactionFeeDelegatees{
+    map<string,TransactionFeeDelegations> delegatees = 1;
+}
+
+message SetTransactionFeeDelegationsInput { 
+    // the delegator address
+    aelf.Address delegator_address = 1;
+    // delegation, symbols and its' amount
+    map<string, int64> delegations = 2;
+}
+
+message SetTransactionFeeDelegationsOutput {
+    bool success = 1;
+}
+
+message RemoveTransactionFeeDelegatorInput{
+    // the delegator address
+    aelf.Address delegator_address = 1;
+}
+
+message RemoveTransactionFeeDelegateeInput {
+    // the delegatee address
+    aelf.Address delegatee_address = 1;
+}
+
 // Events
 
 message Transferred {
@@ -810,4 +849,18 @@ message ExternalInfoChanged {
     option (aelf.is_event) = true;
     string symbol = 1;
     ExternalInfo external_info = 2;
+}
+
+message TransactionFeeDelegationAdded {
+    option (aelf.is_event) = true;
+    aelf.Address delegator = 1 [(aelf.is_indexed) = true];
+    aelf.Address delegatee = 2 [(aelf.is_indexed) = true];
+    aelf.Address caller = 3 [(aelf.is_indexed) = true];
+}
+
+message TransactionFeeDelegationCancelled {
+    option (aelf.is_event) = true;
+    aelf.Address delegator = 1 [(aelf.is_indexed) = true];
+    aelf.Address delegatee = 2 [(aelf.is_indexed) = true];
+    aelf.Address caller = 3 [(aelf.is_indexed) = true];
 }
