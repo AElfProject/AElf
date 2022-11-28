@@ -33,10 +33,13 @@ public partial class ElectionContract
 
         if (input.IsResetVotingTime)
         {
+            // true for extend EndPeroid of a Profit details, e.g. you vote for 12 months, and on the 6th month, you
+            // change the vote, then there will be another 12 months from that time.
             ExtendVoterWelfareProfits(input.VoteId);
         }
         else
         {
+            // false, no change for EndPeroid
             State.LockTimeMap[input.VoteId] = State.LockTimeMap[input.VoteId].Sub(actualLockedSeconds);
         }
 
@@ -134,6 +137,8 @@ public partial class ElectionContract
     {
         var treasury = State.ProfitContract.GetScheme.Call(State.TreasuryHash.Value);
         var electionVotingRecord = GetElectionVotingRecordByVoteId(voteId);
+        
+        // Extend endPeriod from now no, so the lockTime will *NOT* be changed.
         var lockTime = State.LockTimeMap[voteId];
         var lockPeriod = lockTime.Div(State.TimeEachTerm.Value);
         if (lockPeriod == 0)
@@ -145,6 +150,7 @@ public partial class ElectionContract
         var extendingDetail = GetProfitDetailByElectionVotingRecord(electionVotingRecord);
         if (extendingDetail != null)
         {
+            // The endPeriod is updated and startPeriod is 0, others stay still.
             State.ProfitContract.FixProfitDetail.Send(new FixProfitDetailInput
             {
                 SchemeId = State.WelfareHash.Value,
@@ -176,7 +182,16 @@ public partial class ElectionContract
             Beneficiary = electionVotingRecord.Voter,
             SchemeId = State.WelfareHash.Value
         });
-        return profitDetails.Details.LastOrDefault(d => d.Shares == electionVotingRecord.Weight);
+
+        // In new rules, profitDetail.Id equals to its vote id.
+        ProfitDetail profitDetail = profitDetails.Details.FirstOrDefault(d => d.Id == electionVotingRecord.VoteId);
+        // However, in the old world, profitDetail.Id is null, so use Shares.
+        if (profitDetail == null)
+        {
+            profitDetail = profitDetails.Details.LastOrDefault(d => d.Shares == electionVotingRecord.Weight);
+        }
+        
+        return profitDetail;
     }
 
     #endregion
@@ -372,6 +387,7 @@ public partial class ElectionContract
                 Shares = votesWeight
             },
             EndPeriod = GetEndPeriod(lockSeconds),
+            // one vote, one profit detail, so voteId equals to profitDetailId
             ProfitDetailId = voteId
         });
     }
