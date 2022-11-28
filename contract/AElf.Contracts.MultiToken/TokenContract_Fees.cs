@@ -91,7 +91,8 @@ public partial class TokenContract
         return chargingOutput;
     }
 
-    private bool ChargeTransactionFeesToBill(ChargeTransactionFeesInput input, Address fromAddress, ref TransactionFeeBill bill, ref TransactionFreeFeeAllowanceBill allowanceBill, TransactionFeeDelegations delegations = null)
+    private bool ChargeTransactionFeesToBill(ChargeTransactionFeesInput input, Address fromAddress, ref TransactionFeeBill bill,
+        ref TransactionFreeFeeAllowanceBill allowanceBill, TransactionFeeDelegations delegations = null)
     {
         var methodFees = Context.Call<MethodFees>(input.ContractAddress, nameof(GetMethodFee),
             new StringValue {Value = input.MethodName});
@@ -110,7 +111,7 @@ public partial class TokenContract
         if (methodFees != null && !methodFees.IsSizeFeeFree)
         {
             // If IsSizeFeeFree == true, do not charge size fee.
-            successToChargeSizeFee = ChargeSizeFee(input, ref bill, freeAllowances, ref allowanceBill);
+            successToChargeSizeFee = ChargeSizeFee(input, ref bill, freeAllowances, ref allowanceBill, delegations);
         }
 
         return successToChargeBaseFee && successToChargeSizeFee;
@@ -458,17 +459,14 @@ public partial class TokenContract
             }
             else
             {
-                if (delegations.Delegations.Keys.Contains(symbol))
+                if (delegations.Delegations.Keys.Contains(symbol) && delegations.Delegations[symbol] >= amount)
                 {
-                    if (delegations.Delegations[symbol] >= amount)
+                    if (existingBalance.Add(existingAllowance) > 0)
                     {
-                        if (existingBalance.Add(existingAllowance) > 0)
-                        {
-                            symbolOfValidBalance = symbol;
-                        }
-
-                        if (existingBalance.Add(existingAllowance) >= amount) break;
+                        symbolOfValidBalance = symbol;
                     }
+
+                    if (existingBalance.Add(existingAllowance) >= amount) break;
                 }
             }
         }
