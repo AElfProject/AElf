@@ -232,6 +232,10 @@ service TokenContract {
     rpc GetMethodFeeFreeAllowancesConfig (google.protobuf.Empty) returns (MethodFeeFreeAllowancesConfig) {
         option (aelf.is_view) = true;
     }
+    
+    rpc GetDelegatorAllowance(GetDelegatorAllowanceInput) returns(TransactionFeeDelegations){
+      option (aelf.is_view) = true;
+    }
 }
 
 message TokenInfo {
@@ -696,6 +700,10 @@ message RemoveTransactionFeeDelegateeInput {
     aelf.Address delegatee_address = 1;
 }
 
+message GetDelegatorAllowanceInput{
+    aelf.Address delegatee_address = 1;
+    aelf.Address delegator_address = 2;
+}
 // Events
 
 message Transferred {
