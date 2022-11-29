@@ -154,10 +154,8 @@ message AddBeneficiaryInput {
     aelf.Hash scheme_id = 1;
     // The beneficiary information.
     BeneficiaryShare beneficiary_share = 2;
-    int64 start_period = 3;
-    int64 end_period = 4;
-    bool is_fix_profit_detail = 5;
-    aelf.Hash profit_detail_id = 6;
+    int64 end_period = 3;
+    aelf.Hash profit_detail_id = 4;
 }
 
 message FixProfitDetailInput {
@@ -315,10 +313,6 @@ message ReceivedProfitsMap {
     map<string, int64> value = 1;
 }
 
-message ReceivedProfitsMapList {
-    repeated ReceivedProfitsMap value = 1;
-}
-
 message SchemeCreated {
     option (aelf.is_event) = true;
     // The virtual address of the created scheme.
@@ -347,23 +341,4 @@ message ProfitsClaimed {
     int64 claimer_shares = 5;
     // The total shares at the current period.
     int64 total_shares = 6;
-}
-
-message ProfitDetailAdded {
-    option (aelf.is_event) = true;
-    int64 start_period = 1;
-    int64 end_period = 2;
-    int64 shares = 3;
-    bool is_weight_removed = 4;
-    aelf.Address beneficiary = 5;
-}
-
-message DistributedPeriodInfoChanged {
-    option (aelf.is_event) = true;
-    aelf.Hash scheme_id = 1;
-    int64 period = 2;
-    int64 total_shares = 3;
-    ReceivedProfitsMapList profits_map_list = 4;
-    bool is_released = 5;
-    aelf.Address virtual_address = 6;
 }

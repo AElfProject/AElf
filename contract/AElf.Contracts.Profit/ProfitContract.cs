@@ -315,11 +315,15 @@ public partial class ProfitContract : ProfitContractImplContainer.ProfitContract
             return removedDetails;
         }
         
+        // remove all removalbe profitDetails.
+        // If a scheme can be cancelled, get all available profitDetail.
+        // else, get those available and out of date ones.
         var detailsCanBeRemoved = scheme.CanRemoveBeneficiaryDirectly
             ? profitDetails.Details.Where(d => !d.IsWeightRemoved).ToList()
             : profitDetails.Details
                 .Where(d => d.EndPeriod < scheme.CurrentPeriod && !d.IsWeightRemoved).ToList();
-
+        
+        // remove the profitDetail with the profitDetailId, and de-duplicate it before involving.
         if (profitDetailId != null && profitDetails.Details.Any(d => d.Id == profitDetailId) && detailsCanBeRemoved.All(d => d.Id != profitDetailId))
         {
             detailsCanBeRemoved.Add(profitDetails.Details.Single(d => d.Id == profitDetailId));
@@ -329,13 +333,17 @@ public partial class ProfitContract : ProfitContractImplContainer.ProfitContract
         {
             foreach (var profitDetail in detailsCanBeRemoved)
             {
+                // set remove sign
                 profitDetail.IsWeightRemoved = true;
                 if (profitDetail.LastProfitPeriod >= scheme.CurrentPeriod)
                 {
+                    // remove those profits claimed
                     profitDetails.Details.Remove(profitDetail);
                 }
                 else if (profitDetail.EndPeriod >= scheme.CurrentPeriod)
                 {
+                    // No profit can be here, except the scheme is cancellable.
+                    // shorten profit.
                     profitDetail.EndPeriod = scheme.CurrentPeriod.Sub(1);
                 }
 
@@ -744,6 +752,7 @@ public partial class ProfitContract : ProfitContractImplContainer.ProfitContract
             () => $"{Context.Sender} is trying to profit from {input.SchemeId.ToHex()} for {beneficiary}.");
 
         // LastProfitPeriod is set as 0 at the very beginning, and be updated as current period every time when it is claimed.
+        // What's more, LastProfitPeriod can also be +1 more than endPeroid, for it always points to the next period to claim.
         // So if LastProfitPeriod is 0, that means this profitDetail hasn't be claimed before, so just check whether it is a valid one;
         // And if a LastProfitPeriod is larger than EndPeriod, it should not be claimed, and should be removed later.
         var availableDetails = profitDetails.Details.Where(d =>
