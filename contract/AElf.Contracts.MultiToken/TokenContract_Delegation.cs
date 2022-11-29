@@ -32,7 +32,7 @@ public partial class TokenContract
             delegatees.Add(Context.Sender.ToBase58(), new TransactionFeeDelegations());
             foreach (var (key, value) in parsedData)
             {
-                if (value >= 0)
+                if (value > 0)
                 {
                     AssertValidToken(key, value);
                     delegatees[Context.Sender.ToBase58()].Delegations.Add(key,value);
