@@ -18,46 +18,68 @@ public partial class TokenContract
         SetTransactionFeeDelegationsInput input)
     {
         var parsedData = input.Delegations;
-        foreach (var d in parsedData)
-        {
-            if (d.Value < 0)
-                parsedData[d.Key] = 0;
-        }
         var feeDelegatees = State.DelegateesMap[input.DelegatorAddress] ?? new TransactionFeeDelegatees();
         var delegatees = feeDelegatees.Delegatees;
+        
+        
         if (!delegatees.ContainsKey(Context.Sender.ToBase58()))
         {
-            delegatees.Add(Context.Sender.ToBase58(), new TransactionFeeDelegations());
-        }
-        if(delegatees[Context.Sender.ToBase58()].Delegations.Count != 0)
-        {
-            if (input.Delegations.First(x => x.Value > 0).Key == null)
+            if (delegatees.Count() >= 128)
             {
-                State.DelegateesMap[input.DelegatorAddress].Delegatees.Remove(Context.Sender.ToBase58());
-                Context.Fire(new TransactionFeeDelegationCancelled()
+                return new SetTransactionFeeDelegationsOutput()
                 {
-                    Caller = Context.Sender,
-                    Delegatee = Context.Sender,
-                    Delegator = input.DelegatorAddress
-                });
+                    Success = false
+                };
             }
-            State.DelegateesMap[input.DelegatorAddress].Delegatees[Context.Sender.ToBase58()] = new TransactionFeeDelegations()
+            delegatees.Add(Context.Sender.ToBase58(), new TransactionFeeDelegations()); 
+            foreach (var pair in parsedData)
             {
-                Delegations = { input.Delegations}
-            };
-        }
-        else
-        {
-            Assert(input.Delegations.First(x => x.Value > 0).Key != null, "Invalid input");
-            Assert(delegatees.Count() < 128, "delegate count reach limit");
-            delegatees[Context.Sender.ToBase58()].Delegations.Add(input.Delegations);
+                if (pair.Value >= 0)
+                {
+                    delegatees[Context.Sender.ToBase58()].Delegations[pair.Key] = pair.Value;
+                }
+            }
             Context.Fire(new TransactionFeeDelegationAdded()
             {
                 Caller = Context.Sender,
                 Delegatee = Context.Sender,
                 Delegator = input.DelegatorAddress
             });
+           
+        }
+        else
+        {
+            //normally set
+            var delegations = delegatees[Context.Sender.ToBase58()].Delegations;
+            foreach (var pair in parsedData)
+            {
+                if (pair.Value <= 0 && delegations.ContainsKey(pair.Key))
+                {
+                    delegations.Remove(pair.Key);
+                }
+                else
+                {
+                    delegations[pair.Key] = pair.Value;
+                }
+            }
 
+            if (delegatees[Context.Sender.ToBase58()].Delegations.Count != 0) 
+                return new SetTransactionFeeDelegationsOutput()
+                {
+                    Success = true
+                };
+            State.DelegateesMap[input.DelegatorAddress].Delegatees.Remove(Context.Sender.ToBase58());
+            Context.Fire(new TransactionFeeDelegationCancelled()
+            {
+                Caller = Context.Sender,
+                Delegatee = Context.Sender,
+                Delegator = input.DelegatorAddress
+            });
+            
+            State.DelegateesMap[input.DelegatorAddress].Delegatees[Context.Sender.ToBase58()] = new TransactionFeeDelegations()
+            {
+                Delegations = { input.Delegations}
+            };
         }
 
         return new SetTransactionFeeDelegationsOutput()
@@ -101,11 +123,10 @@ public partial class TokenContract
 
     public override TransactionFeeDelegations GetDelegatorAllowance(GetDelegatorAllowanceInput input)
     {
-        var Delegatees = State.DelegateesMap[input.DelegateeAddress].Delegatees;
-        return new TransactionFeeDelegations()
-        {
-            Delegations = {Delegatees[input.DelegatorAddress.ToString()].Delegations}
-        };
+        
+        var feeDelegatees = State.DelegateesMap[input.DelegatorAddress] ?? new TransactionFeeDelegatees();
+        var delegatees = feeDelegatees.Delegatees;
+        return delegatees[input.DelegateeAddress.ToString()] ?? new TransactionFeeDelegations();
 
     }
 
