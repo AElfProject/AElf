@@ -36,7 +36,7 @@ public partial class MultiTokenContractTests
             }
         });
         
-        var delegateAllowance = await TokenContractStub.GetDelegatorAllowance.CallAsync(new GetDelegatorAllowanceInput()
+        var delegateAllowance = await TokenContractStub.GetTransactionFeeDelegationsOfADelegatee.CallAsync(new GetTransactionFeeDelegationsOfADelegateeInput()
         {
            DelegateeAddress = DefaultAddress,
            DelegatorAddress = User1Address
@@ -66,7 +66,7 @@ public partial class MultiTokenContractTests
             }
         });
         
-        var delegateAllowance = await TokenContractStub.GetDelegatorAllowance.CallAsync(new GetDelegatorAllowanceInput()
+        var delegateAllowance = await TokenContractStub.GetTransactionFeeDelegationsOfADelegatee.CallAsync(new GetTransactionFeeDelegationsOfADelegateeInput()
         {
             DelegateeAddress = DefaultAddress,
             DelegatorAddress = User1Address
@@ -92,7 +92,7 @@ public partial class MultiTokenContractTests
             }
         });
         
-        var delegateAllowance = await TokenContractStub.GetDelegatorAllowance.CallAsync(new GetDelegatorAllowanceInput()
+        var delegateAllowance = await TokenContractStub.GetTransactionFeeDelegationsOfADelegatee.CallAsync(new GetTransactionFeeDelegationsOfADelegateeInput()
         {
             DelegateeAddress = DefaultAddress,
             DelegatorAddress = User1Address
@@ -120,7 +120,7 @@ public partial class MultiTokenContractTests
             }
         });
         
-        var delegateAllowance = await TokenContractStub.GetDelegatorAllowance.CallAsync(new GetDelegatorAllowanceInput()
+        var delegateAllowance = await TokenContractStub.GetTransactionFeeDelegationsOfADelegatee.CallAsync(new GetTransactionFeeDelegationsOfADelegateeInput()
         {
             DelegateeAddress = DefaultAddress,
             DelegatorAddress = User1Address
@@ -186,7 +186,7 @@ public partial class MultiTokenContractTests
             Delegations = { delegations  }
         });
         
-        var delegation = await TokenContractStub.GetDelegatorAllowance.CallAsync(new GetDelegatorAllowanceInput
+        var delegation = await TokenContractStub.GetTransactionFeeDelegationsOfADelegatee.CallAsync(new GetTransactionFeeDelegationsOfADelegateeInput
         {
             DelegatorAddress = User1Address,
             DelegateeAddress = DefaultAddress
@@ -206,7 +206,7 @@ public partial class MultiTokenContractTests
             .Where(e => e.Name.Contains(nameof(TransactionFeeDelegationCancelled))).Select(e => e.Indexed[0]);
         var delegationCancelled = TransactionFeeDelegationCancelled.Parser.ParseFrom(log.First());
         delegationCancelled.Delegator.ShouldBe(User1Address);
-        var delegation = await TokenContractStub.GetDelegatorAllowance.CallAsync(new GetDelegatorAllowanceInput
+        var delegation = await TokenContractStub.GetTransactionFeeDelegationsOfADelegatee.CallAsync(new GetTransactionFeeDelegationsOfADelegateeInput
         {
             DelegatorAddress = User1Address,
             DelegateeAddress = DefaultAddress
@@ -238,7 +238,7 @@ public partial class MultiTokenContractTests
             .Where(e => e.Name.Contains(nameof(TransactionFeeDelegationCancelled))).Select(e => e.Indexed[0]);
         var delegationCancelled = TransactionFeeDelegationCancelled.Parser.ParseFrom(log.First());
         delegationCancelled.Delegator.ShouldBe(User1Address);
-        var delegation = await TokenContractStub.GetDelegatorAllowance.CallAsync(new GetDelegatorAllowanceInput
+        var delegation = await TokenContractStub.GetTransactionFeeDelegationsOfADelegatee.CallAsync(new GetTransactionFeeDelegationsOfADelegateeInput
         {
             DelegatorAddress = User1Address,
             DelegateeAddress = DefaultAddress

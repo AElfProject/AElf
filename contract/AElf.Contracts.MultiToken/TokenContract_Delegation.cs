@@ -13,32 +13,46 @@ namespace AElf.Contracts.MultiToken;
 
 public partial class TokenContract
 {
+    private const int DELEGATEE_MAX_COUNT = 128;
      
     public override SetTransactionFeeDelegationsOutput SetTransactionFeeDelegations(
         SetTransactionFeeDelegationsInput input)
     {
-        var parsedData = input.Delegations;
-        var feeDelegatees = State.DelegateesMap[input.DelegatorAddress] ?? new TransactionFeeDelegatees();
-        var delegatees = feeDelegatees.Delegatees;
-        if (!delegatees.ContainsKey(Context.Sender.ToBase58()))
+        Assert(input.Delegations != null, "Delegations cannot be null!");
+        
+        // get all delegatees, init it if null.
+        var allDelegatees = State.DelegateesMap[input.DelegatorAddress] ?? new TransactionFeeDelegatees();
+        var alldelegateesMap = allDelegatees.Delegatees;
+
+        var delegateeAddress = Context.Sender.ToBase58();
+        var delegationsToInput = input.Delegations;
+
+        // No this delegatee, init it, pour all available delegations in, and add it.
+        if (!alldelegateesMap.ContainsKey(delegateeAddress))
         {
-            if (delegatees.Count() >= 128)
+            // If there has been already DELEGATEE_MAX_COUNT delegatees, and still try to add，fail.
+            if (alldelegateesMap.Count() >= DELEGATEE_MAX_COUNT
+                && delegationsToInput.All(x => x.Value > 0))
             {
                 return new SetTransactionFeeDelegationsOutput()
                 {
                     Success = false
                 };
             }
-            delegatees.Add(Context.Sender.ToBase58(), new TransactionFeeDelegations());
-            foreach (var (key, value) in parsedData)
+            alldelegateesMap.Add(delegateeAddress, new TransactionFeeDelegations());
+
+            // pour all >0 delegations in
+            foreach (var (key, value) in delegationsToInput)
             {
                 if (value > 0)
                 {
                     AssertValidToken(key, value);
-                    delegatees[Context.Sender.ToBase58()].Delegations.Add(key,value);
+                    alldelegateesMap[delegateeAddress].Delegations.Add(key,value);
                 }
             }
-            State.DelegateesMap[input.DelegatorAddress] = feeDelegatees;
+            
+            // Set and Fire logEvent
+            State.DelegateesMap[input.DelegatorAddress] = allDelegatees;
             Context.Fire(new TransactionFeeDelegationAdded()
             {
                 Caller = Context.Sender,
@@ -46,29 +60,32 @@ public partial class TokenContract
                 Delegator = input.DelegatorAddress
             });
         }
-        else
+        else // This delegatee exists, so update
         {
-            //normally set
-            var delegations = delegatees[Context.Sender.ToBase58()].Delegations;
-            foreach (var (key, value) in parsedData)
+            var delegationsMap = alldelegateesMap[delegateeAddress].Delegations;
+            foreach (var (key, value) in delegationsToInput)
             {
-                if (value <= 0 && delegations.ContainsKey(key))
+                if (value <= 0 && delegationsMap.ContainsKey(key))
                 {
-                    delegations.Remove(key);
+                    delegationsMap.Remove(key);
                 }
                 else if(value > 0)
                 {
                     AssertValidToken(key, value);
-                    delegations[key] = value;
+                    delegationsMap[key] = value;
                 }
             }
-            State.DelegateesMap[input.DelegatorAddress] = feeDelegatees;
-            if (delegatees[Context.Sender.ToBase58()].Delegations.Count != 0)
+            
+            // Set and Fire logEvent
+            State.DelegateesMap[input.DelegatorAddress] = allDelegatees;
+            
+            // If a delegatee has no delegations, remove it!
+            if (alldelegateesMap[delegateeAddress].Delegations.Count != 0)
                 return new SetTransactionFeeDelegationsOutput()
                 {
                     Success = true
                 };
-            State.DelegateesMap[input.DelegatorAddress].Delegatees.Remove(Context.Sender.ToBase58());
+            State.DelegateesMap[input.DelegatorAddress].Delegatees.Remove(delegateeAddress);
             Context.Fire(new TransactionFeeDelegationCancelled()
             {
                 Caller = Context.Sender,
@@ -83,11 +100,11 @@ public partial class TokenContract
         };
     }
     
-    
-    
     public override Empty RemoveTransactionFeeDelegator(
         RemoveTransactionFeeDelegatorInput input)
     {
+        Assert(input.DelegatorAddress != null, "Delegator Address cannot be null!");
+        
         if (State.DelegateesMap[input.DelegatorAddress] == null)
         {
             return new Empty();
@@ -114,6 +131,8 @@ public partial class TokenContract
     public override Empty RemoveTransactionFeeDelegatee(
         RemoveTransactionFeeDelegateeInput input)
     {
+        Assert(input.DelegateeAddress != null, "Delegatee Address cannot be null!");
+        
         if (State.DelegateesMap[Context.Sender] == null)
         {
             return new Empty();
@@ -137,16 +156,19 @@ public partial class TokenContract
         return new Empty();
     }
 
-    public override TransactionFeeDelegations GetDelegatorAllowance(GetDelegatorAllowanceInput input)
+    public override TransactionFeeDelegations GetTransactionFeeDelegationsOfADelegatee(GetTransactionFeeDelegationsOfADelegateeInput input)
     {
-        if (State.DelegateesMap[input.DelegatorAddress] == null)
+        var allDelegatees = State.DelegateesMap[input.DelegatorAddress];
+        var delegateeAddress = input.DelegateeAddress.ToBase58();
+        // According to protoBuf, return an empty object, but null.
+        if (allDelegatees == null)
         {
             return new TransactionFeeDelegations();
         }
-        var feeDelegatees = State.DelegateesMap[input.DelegatorAddress];
-        var delegatees = feeDelegatees.Delegatees;
-        return delegatees.ContainsKey(input.DelegateeAddress.ToBase58())
-            ? delegatees[input.DelegateeAddress.ToBase58()]
+        
+        var allDelegateesMap = allDelegatees.Delegatees;
+        return allDelegateesMap.ContainsKey(delegateeAddress)
+            ? allDelegateesMap[delegateeAddress]
             : new TransactionFeeDelegations();
     }
 }

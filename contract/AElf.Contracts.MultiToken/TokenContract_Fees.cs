@@ -32,13 +32,13 @@ public partial class TokenContract
         // Record tx fee bill during current charging process.
         var bill = new TransactionFeeBill();
         var allowanceBill = new TransactionFreeFeeAllowanceBill();
-        
         var fromAddress = Context.Sender;
 
         var chargingResult = ChargeTransactionFeesToBill(input, fromAddress, ref bill, ref allowanceBill);
-
+        
         if (!chargingResult)
         {
+            // Try to charge delegatees
             if (State.DelegateesMap[fromAddress]?.Delegatees != null)
             {
                 foreach (var (delegatee, delegations) in State.DelegateesMap[fromAddress].Delegatees)
@@ -55,7 +55,7 @@ public partial class TokenContract
                     allowanceBill = delegateeAllowanceBill;
                     fromAddress = delegateeAddress;
                     chargingResult = true;
-                    ChangeDelegation(delegateeBill, delegateeAllowanceBill, fromAddress);
+                    ModifyDelegation(delegateeBill, delegateeAllowanceBill, fromAddress);
                     break;
                 }
             }
@@ -93,7 +93,7 @@ public partial class TokenContract
         return chargingOutput;
     }
 
-    private void ChangeDelegation(TransactionFeeBill bill, TransactionFreeFeeAllowanceBill allowanceBill,
+    private void ModifyDelegation(TransactionFeeBill bill, TransactionFreeFeeAllowanceBill allowanceBill,
         Address delegateeAddress)
     {
         foreach (var (symbol,amount) in bill.FeesMap)
@@ -223,11 +223,7 @@ public partial class TokenContract
         {
             symbolChargedForBaseFee = bill.FeesMap.First().Key;
             amountChargedForBaseFee = bill.FeesMap.First().Value;
-        }
-
-        if (allowanceBill.FreeFeeAllowancesMap.Any())
-        {
-            amountChargedForBaseAllowance = allowanceBill.FreeFeeAllowancesMap.First().Value;
+            amountChargedForBaseAllowance = allowanceBill.FreeFeeAllowancesMap[symbolChargedForBaseFee];
         }
 
         var availableBalance = symbolChargedForBaseFee == symbolToPayTxFee

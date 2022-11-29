@@ -233,7 +233,7 @@ service TokenContract {
         option (aelf.is_view) = true;
     }
     
-    rpc GetDelegatorAllowance(GetDelegatorAllowanceInput) returns(TransactionFeeDelegations){
+    rpc GetTransactionFeeDelegationsOfADelegatee(GetTransactionFeeDelegationsOfADelegateeInput) returns(TransactionFeeDelegations){
       option (aelf.is_view) = true;
     }
 }
@@ -700,7 +700,7 @@ message RemoveTransactionFeeDelegateeInput {
     aelf.Address delegatee_address = 1;
 }
 
-message GetDelegatorAllowanceInput{
+message GetTransactionFeeDelegationsOfADelegateeInput {
     aelf.Address delegatee_address = 1;
     aelf.Address delegator_address = 2;
 }

@@ -576,7 +576,7 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
             }
         });
         {
-            var result = await TokenContractStub.GetDelegatorAllowance.CallAsync(new GetDelegatorAllowanceInput
+            var result = await TokenContractStub.GetTransactionFeeDelegationsOfADelegatee.CallAsync(new GetTransactionFeeDelegationsOfADelegateeInput
             {
                 DelegateeAddress = delegateeAddress,
                 DelegatorAddress = DefaultSender
@@ -708,7 +708,7 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
                 Owner = delegateeAddress
             });
             afterDelegateeBalance.Balance.ShouldBe(afterBalanceDelegatee);
-            var delegation = await TokenContractStub.GetDelegatorAllowance.CallAsync(new GetDelegatorAllowanceInput
+            var delegation = await TokenContractStub.GetTransactionFeeDelegationsOfADelegatee.CallAsync(new GetTransactionFeeDelegationsOfADelegateeInput
             {
                 DelegateeAddress = delegateeAddress,
                 DelegatorAddress = DefaultSender
@@ -754,7 +754,7 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
             }
         });
         {
-            var result = await TokenContractStub.GetDelegatorAllowance.CallAsync(new GetDelegatorAllowanceInput
+            var result = await TokenContractStub.GetTransactionFeeDelegationsOfADelegatee.CallAsync(new GetTransactionFeeDelegationsOfADelegateeInput
             {
                 DelegateeAddress = delegateeAddress,
                 DelegatorAddress = DefaultSender
@@ -858,7 +858,7 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
                 Owner = delegateeAddress
             });
             afterDelegateeBalance.Balance.ShouldBe(afterBalanceDelegatee);
-            var delegation = await TokenContractStub.GetDelegatorAllowance.CallAsync(new GetDelegatorAllowanceInput
+            var delegation = await TokenContractStub.GetTransactionFeeDelegationsOfADelegatee.CallAsync(new GetTransactionFeeDelegationsOfADelegateeInput
             {
                 DelegateeAddress = delegateeAddress,
                 DelegatorAddress = DefaultSender
