@@ -37,23 +37,27 @@ public partial class TokenContract
 
         var chargingResult = ChargeTransactionFeesToBill(input, fromAddress, ref bill, ref allowanceBill);
 
-        if (!chargingResult && State.DelegateesMap[fromAddress]?.Delegatees != null)
+        if (!chargingResult)
         {
-            foreach (var (delegatee, delegations) in State.DelegateesMap[fromAddress].Delegatees)
+            if (State.DelegateesMap[fromAddress]?.Delegatees != null)
             {
-                var delegateeBill = new TransactionFeeBill();
-                var delegateeAllowanceBill = new TransactionFreeFeeAllowanceBill();
-                var delegateeAddress = Address.FromBase58(delegatee);
-                var delegateeChargingResult = ChargeTransactionFeesToBill(input, delegateeAddress,
-                    ref delegateeBill, ref delegateeAllowanceBill, delegations);
-
-                if (delegateeChargingResult)
+                foreach (var (delegatee, delegations) in State.DelegateesMap[fromAddress].Delegatees)
                 {
-                    bill = delegateeBill;
-                    allowanceBill = delegateeAllowanceBill;
-                    fromAddress = delegateeAddress;
-                    chargingResult = true;
-                    break;
+                    var delegateeBill = new TransactionFeeBill();
+                    var delegateeAllowanceBill = new TransactionFreeFeeAllowanceBill();
+                    var delegateeAddress = Address.FromBase58(delegatee);
+                    var delegateeChargingResult = ChargeTransactionFeesToBill(input, delegateeAddress,
+                        ref delegateeBill, ref delegateeAllowanceBill, delegations);
+
+                    if (delegateeChargingResult)
+                    {
+                        bill = delegateeBill;
+                        allowanceBill = delegateeAllowanceBill;
+                        fromAddress = delegateeAddress;
+                        chargingResult = true;
+                        ChangeDelegateeTransactionFee(delegateeBill, delegateeAllowanceBill, fromAddress);
+                        break;
+                    }
                 }
             }
         }
@@ -91,6 +95,27 @@ public partial class TokenContract
         return chargingOutput;
     }
 
+    private void ChangeDelegateeTransactionFee(TransactionFeeBill bill, TransactionFreeFeeAllowanceBill allowanceBill,
+        Address delegateeAddress)
+    {
+        foreach (var (symbol,amount) in bill.FeesMap)
+        {
+            if (amount > 0)
+            {
+                State.DelegateesMap[Context.Sender].Delegatees[delegateeAddress.ToBase58()].Delegations[symbol] -=
+                    amount;
+            }
+        }
+        foreach (var (symbol,amount) in allowanceBill.FreeFeeAllowancesMap)
+        {
+            if (amount > 0)
+            {
+                State.DelegateesMap[Context.Sender].Delegatees[delegateeAddress.ToBase58()].Delegations[symbol] -=
+                    amount;
+            }
+        }
+    }
+    
     private bool ChargeTransactionFeesToBill(ChargeTransactionFeesInput input, Address fromAddress, ref TransactionFeeBill bill,
         ref TransactionFreeFeeAllowanceBill allowanceBill, TransactionFeeDelegations delegations = null)
     {
@@ -476,6 +501,10 @@ public partial class TokenContract
                     }
 
                     if (existingBalance.Add(existingAllowance) >= amount) break;
+                }
+                else
+                {
+                    return false;
                 }
             }
         }
