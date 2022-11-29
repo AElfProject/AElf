@@ -88,11 +88,21 @@ public partial class TokenContract
     public override Empty RemoveTransactionFeeDelegator(
         RemoveTransactionFeeDelegatorInput input)
     {
+        if (State.DelegateesMap[input.DelegatorAddress] == null)
+        {
+            return new Empty();
+        }
 
-        var Delegatees = State.DelegateesMap[input.DelegatorAddress].Delegatees;
-        Assert(Delegatees[Context.Sender.ToString()] != null, "Invalid input");
-        State.DelegateesMap[input.DelegatorAddress].Delegatees.Remove(Context.Sender.ToString());
-        Context.Fire(new TransactionFeeDelegationCancelled()
+        if (!State.DelegateesMap[input.DelegatorAddress].Delegatees.ContainsKey(Context.Sender.ToBase58()))
+        {
+            return new Empty();
+        }
+
+        var delegatees = State.DelegateesMap[input.DelegatorAddress];
+        delegatees.Delegatees.Remove(Context.Sender.ToBase58());
+        State.DelegateesMap[input.DelegatorAddress] = delegatees;
+
+        Context.Fire(new TransactionFeeDelegationCancelled
         {
             Caller = Context.Sender,
             Delegatee = Context.Sender,
@@ -100,14 +110,25 @@ public partial class TokenContract
         });
         return new Empty();
     }
-    
+
     public override Empty RemoveTransactionFeeDelegatee(
         RemoveTransactionFeeDelegateeInput input)
     {
-        var Delegatees = State.DelegateesMap[Context.Sender].Delegatees;
-        Assert(Delegatees[input.DelegateeAddress.ToString()] != null, "Invalid input");
-        State.DelegateesMap[Context.Sender].Delegatees.Remove(input.DelegateeAddress.ToString());
-        Context.Fire(new TransactionFeeDelegationCancelled()
+        if (State.DelegateesMap[Context.Sender] == null)
+        {
+            return new Empty();
+        }
+
+        if (!State.DelegateesMap[Context.Sender].Delegatees.ContainsKey(input.DelegateeAddress.ToBase58()))
+        {
+            return new Empty();
+        }
+
+        var delegatees = State.DelegateesMap[Context.Sender];
+        delegatees.Delegatees.Remove(input.DelegateeAddress.ToBase58());
+        State.DelegateesMap[Context.Sender] = delegatees;
+
+        Context.Fire(new TransactionFeeDelegationCancelled
         {
             Caller = Context.Sender,
             Delegatee = input.DelegateeAddress,
@@ -118,11 +139,14 @@ public partial class TokenContract
 
     public override TransactionFeeDelegations GetDelegatorAllowance(GetDelegatorAllowanceInput input)
     {
-        
-        var feeDelegatees = State.DelegateesMap[input.DelegatorAddress] ?? new TransactionFeeDelegatees();
+        if (State.DelegateesMap[input.DelegatorAddress] == null)
+        {
+            return new TransactionFeeDelegations();
+        }
+        var feeDelegatees = State.DelegateesMap[input.DelegatorAddress];
         var delegatees = feeDelegatees.Delegatees;
-        return delegatees.ContainsKey(input.DelegateeAddress.ToBase58())?delegatees[input.DelegateeAddress.ToBase58()]: new TransactionFeeDelegations();
-
+        return delegatees.ContainsKey(input.DelegateeAddress.ToBase58())
+            ? delegatees[input.DelegateeAddress.ToBase58()]
+            : new TransactionFeeDelegations();
     }
-
 }
