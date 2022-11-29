@@ -49,20 +49,18 @@ public partial class TokenContract
                     var delegateeChargingResult = ChargeTransactionFeesToBill(input, delegateeAddress,
                         ref delegateeBill, ref delegateeAllowanceBill, delegations);
 
-                    if (delegateeChargingResult)
-                    {
-                        bill = delegateeBill;
-                        allowanceBill = delegateeAllowanceBill;
-                        fromAddress = delegateeAddress;
-                        chargingResult = true;
-                        ChangeDelegateeTransactionFee(delegateeBill, delegateeAllowanceBill, fromAddress);
-                        break;
-                    }
+                    if (!delegateeChargingResult) continue;
+                    
+                    bill = delegateeBill;
+                    allowanceBill = delegateeAllowanceBill;
+                    fromAddress = delegateeAddress;
+                    chargingResult = true;
+                    ChangeDelegation(delegateeBill, delegateeAllowanceBill, fromAddress);
+                    break;
                 }
             }
         }
         
-
         SetOrRefreshMethodFeeFreeAllowances(fromAddress);
         var freeAllowances = CalculateMethodFeeFreeAllowances(fromAddress)?.Clone();
         
@@ -95,7 +93,7 @@ public partial class TokenContract
         return chargingOutput;
     }
 
-    private void ChangeDelegateeTransactionFee(TransactionFeeBill bill, TransactionFreeFeeAllowanceBill allowanceBill,
+    private void ChangeDelegation(TransactionFeeBill bill, TransactionFreeFeeAllowanceBill allowanceBill,
         Address delegateeAddress)
     {
         foreach (var (symbol,amount) in bill.FeesMap)
@@ -493,7 +491,7 @@ public partial class TokenContract
             }
             else
             {
-                if (delegations.Delegations.Keys.Contains(symbol) && delegations.Delegations[symbol] >= amount)
+                if (delegations.Delegations.ContainsKey(symbol) && delegations.Delegations[symbol] >= amount)
                 {
                     if (existingBalance.Add(existingAllowance) > 0)
                     {
