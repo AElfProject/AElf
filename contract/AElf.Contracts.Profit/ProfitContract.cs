@@ -352,18 +352,17 @@ public partial class ProfitContract : ProfitContractImplContainer.ProfitContract
 
             Context.LogDebug(() => $"ProfitDetails after removing expired details: {profitDetails}");
         }
-        else
-        {
-            var weightCanBeRemoved = profitDetails.Details
+        
+        var weightCanBeRemoved = profitDetails.Details
                 .Where(d => d.EndPeriod == scheme.CurrentPeriod && !d.IsWeightRemoved).ToList();
-            foreach (var profitDetail in weightCanBeRemoved)
-            {
-                profitDetail.IsWeightRemoved = true;
-            }
-
-            var weights = weightCanBeRemoved.Sum(d => d.Shares);
-            removedDetails.Add(0, weights);
+        foreach (var profitDetail in weightCanBeRemoved)
+        {
+            profitDetail.IsWeightRemoved = true;
         }
+
+        var weights = weightCanBeRemoved.Sum(d => d.Shares);
+        removedDetails.Add(0, weights);
+        
 
         // Clear old profit details.
         if (profitDetails.Details.Count != 0)
