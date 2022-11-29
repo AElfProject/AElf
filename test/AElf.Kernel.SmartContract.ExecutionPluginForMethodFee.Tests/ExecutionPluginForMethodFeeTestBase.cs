@@ -138,6 +138,8 @@ public class ExecutePluginTransactionDirectlyForMethodFeeTestBase : ContractTest
     internal ECKeyPair DelegateeKeyPair => Accounts[1].KeyPair;
     internal ECKeyPair UserKeyPair => Accounts[2].KeyPair;
 
+    internal ECKeyPair UserTomSenderKeyPair => Accounts[10].KeyPair;
+    internal Address UserTomSender => Accounts[10].Address;
     protected List<ECKeyPair> InitialCoreDataCenterKeyPairs =>
         Accounts.Take(1).Select(a => a.KeyPair).ToList();
 
@@ -145,6 +147,7 @@ public class ExecutePluginTransactionDirectlyForMethodFeeTestBase : ContractTest
     internal Address delegateeAddress => Accounts[1].Address;
     internal Address userAddress => Accounts[2].Address;
 
+ 
     private async Task InitializeContracts()
     {
         await DeployContractsAsync();
