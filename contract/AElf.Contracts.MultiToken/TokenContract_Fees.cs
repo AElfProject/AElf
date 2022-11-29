@@ -100,16 +100,18 @@ public partial class TokenContract
         {
             if (amount > 0)
             {
-                State.DelegateesMap[Context.Sender].Delegatees[delegateeAddress.ToBase58()].Delegations[symbol] -=
-                    amount;
+                State.DelegateesMap[Context.Sender].Delegatees[delegateeAddress.ToBase58()].Delegations[symbol] =
+                    State.DelegateesMap[Context.Sender].Delegatees[delegateeAddress.ToBase58()].Delegations[symbol]
+                        .Sub(amount);
             }
         }
         foreach (var (symbol,amount) in allowanceBill.FreeFeeAllowancesMap)
         {
             if (amount > 0)
             {
-                State.DelegateesMap[Context.Sender].Delegatees[delegateeAddress.ToBase58()].Delegations[symbol] -=
-                    amount;
+                State.DelegateesMap[Context.Sender].Delegatees[delegateeAddress.ToBase58()].Delegations[symbol] =
+                    State.DelegateesMap[Context.Sender].Delegatees[delegateeAddress.ToBase58()].Delegations[symbol]
+                        .Sub(amount);
             }
         }
     }
@@ -476,7 +478,8 @@ public partial class TokenContract
             existingAllowance = GetFreeFeeAllowanceAmount(freeAllowances, symbol);
             
             // if delegations is null, that means no delegation is involved.
-            if (delegations == null)
+            if (delegations == null
+                || (delegations.Delegations.ContainsKey(symbol) && delegations.Delegations[symbol] >= amount))
             {
                 if (existingBalance.Add(existingAllowance) > 0)
                 {
@@ -485,25 +488,13 @@ public partial class TokenContract
 
                 if (existingBalance.Add(existingAllowance) >= amount) break;
             }
-            else
-            {
-                if (delegations.Delegations.ContainsKey(symbol) && delegations.Delegations[symbol] >= amount)
-                {
-                    if (existingBalance.Add(existingAllowance) > 0)
-                    {
-                        symbolOfValidBalance = symbol;
-                    }
-
-                    if (existingBalance.Add(existingAllowance) >= amount) break;
-                }
-                else
-                {
-                    return false;
-                }
-            }
         }
 
-        if (existingBalance.Add(existingAllowance) >= amount) return true;
+        if (delegations == null
+            || (symbolOfValidBalance != null && delegations.Delegations.ContainsKey(symbolOfValidBalance) && delegations.Delegations[symbolOfValidBalance] >= amount))
+        {
+            if (existingBalance.Add(existingAllowance) >= amount) return true;
+        }
 
         var primaryTokenSymbol = GetPrimaryTokenSymbol(new Empty()).Value;
         if (symbolToAmountMap.Keys.Contains(primaryTokenSymbol) && delegations == null)
@@ -918,7 +909,7 @@ public partial class TokenContract
     {
         var availableBalance = GetBalance(fromAddress, tokenInfo.TokenSymbol);
         if (tokenInfo.TokenSymbol == baseSymbol)
-            availableBalance -= cost;
+            availableBalance = availableBalance.Sub(cost);
         return availableBalance.Mul(tokenInfo.BaseTokenWeight)
             .Div(tokenInfo.AddedTokenWeight);
     }
@@ -936,7 +927,7 @@ public partial class TokenContract
     {
         var availableAllowance = GetFreeFeeAllowanceAmount(freeAllowances, tokenInfo.TokenSymbol);//GetBalance(Context.Sender, tokenInfo.TokenSymbol);
         if (tokenInfo.TokenSymbol == baseSymbol)
-            availableAllowance -= allowanceCost;
+            availableAllowance = availableAllowance.Sub(allowanceCost);
         return availableAllowance.Mul(tokenInfo.BaseTokenWeight)
             .Div(tokenInfo.AddedTokenWeight);
     }

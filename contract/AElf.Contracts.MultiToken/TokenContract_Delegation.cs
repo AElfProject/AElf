@@ -13,8 +13,6 @@ namespace AElf.Contracts.MultiToken;
 
 public partial class TokenContract
 {
-    private const int DELEGATEE_MAX_COUNT = 128;
-     
     public override SetTransactionFeeDelegationsOutput SetTransactionFeeDelegations(
         SetTransactionFeeDelegationsInput input)
     {
@@ -22,16 +20,16 @@ public partial class TokenContract
         
         // get all delegatees, init it if null.
         var allDelegatees = State.DelegateesMap[input.DelegatorAddress] ?? new TransactionFeeDelegatees();
-        var alldelegateesMap = allDelegatees.Delegatees;
+        var allDelegateesMap = allDelegatees.Delegatees;
 
         var delegateeAddress = Context.Sender.ToBase58();
         var delegationsToInput = input.Delegations;
 
         // No this delegatee, init it, pour all available delegations in, and add it.
-        if (!alldelegateesMap.ContainsKey(delegateeAddress))
+        if (!allDelegateesMap.ContainsKey(delegateeAddress))
         {
             // If there has been already DELEGATEE_MAX_COUNT delegatees, and still try to add，fail.
-            if (alldelegateesMap.Count() >= DELEGATEE_MAX_COUNT
+            if (allDelegateesMap.Count() >= TokenContractConstants.DELEGATEE_MAX_COUNT
                 && delegationsToInput.All(x => x.Value > 0))
             {
                 return new SetTransactionFeeDelegationsOutput()
@@ -39,7 +37,7 @@ public partial class TokenContract
                     Success = false
                 };
             }
-            alldelegateesMap.Add(delegateeAddress, new TransactionFeeDelegations());
+            allDelegateesMap.Add(delegateeAddress, new TransactionFeeDelegations());
 
             // pour all >0 delegations in
             foreach (var (key, value) in delegationsToInput)
@@ -47,7 +45,7 @@ public partial class TokenContract
                 if (value > 0)
                 {
                     AssertValidToken(key, value);
-                    alldelegateesMap[delegateeAddress].Delegations.Add(key,value);
+                    allDelegateesMap[delegateeAddress].Delegations.Add(key,value);
                 }
             }
             
@@ -62,7 +60,7 @@ public partial class TokenContract
         }
         else // This delegatee exists, so update
         {
-            var delegationsMap = alldelegateesMap[delegateeAddress].Delegations;
+            var delegationsMap = allDelegateesMap[delegateeAddress].Delegations;
             foreach (var (key, value) in delegationsToInput)
             {
                 if (value <= 0 && delegationsMap.ContainsKey(key))
@@ -80,7 +78,7 @@ public partial class TokenContract
             State.DelegateesMap[input.DelegatorAddress] = allDelegatees;
             
             // If a delegatee has no delegations, remove it!
-            if (alldelegateesMap[delegateeAddress].Delegations.Count != 0)
+            if (allDelegateesMap[delegateeAddress].Delegations.Count != 0)
                 return new SetTransactionFeeDelegationsOutput()
                 {
                     Success = true
