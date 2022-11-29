@@ -172,11 +172,13 @@ public partial class MultiTokenContractTests
     }
     private async Task SetTest()
     {
+        await Initialize();
+        
         var delegations = new Dictionary<string, long>
         {
-            ["ELF"] = 100,
-            ["Basic"] = 100,
-            ["Size"] = 100
+            [NativeToken] = 100,
+            [BasicFeeSymbol] = 100,
+            [SizeFeeSymbol] = 100
         };
         await TokenContractStub.SetTransactionFeeDelegations.SendAsync(new SetTransactionFeeDelegationsInput
         {
