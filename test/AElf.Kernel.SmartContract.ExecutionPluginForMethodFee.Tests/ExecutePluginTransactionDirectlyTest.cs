@@ -540,6 +540,33 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
     }
 
 
+    [Fact]
+    public async Task SetTransactionFeeDelegations_Test()
+    {
+        // var tokenSymbol = "JAN";
+        // var feeAmount = 10000;
+        // await CreateTokenAsync(DefaultSender, tokenSymbol);
+        // var beforeBurned = await GetTokenSupplyAmount(tokenSymbol);
+        //
+        var Testdata = 100;
+        await TokenContractStub.SetTransactionFeeDelegations.SendAsync(new SetTransactionFeeDelegationsInput()
+        {
+            DelegatorAddress = UserTomSender,
+            Delegations =
+            {
+                Keys = {"ELF"},
+                Values = {Testdata}
+            }
+        });
+        
+        var delegateAllowance = await TokenContractStub.GetDelegatorAllowance.CallAsync(new GetDelegatorAllowanceInput()
+        {
+            DelegateeAddress = UserTomSender,
+            DelegatorAddress = DefaultSender
+        });
+        delegateAllowance.Delegations["ELF"].ShouldBe(Testdata);
+      
+    }
     private async Task<long> GetTokenSupplyAmount(string tokenSymbol)
     {
         var tokenInfo = await TokenContractStub.GetTokenInfo.CallAsync(new GetTokenInfoInput

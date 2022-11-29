@@ -133,12 +133,13 @@ public class ExecutePluginTransactionDirectlyForMethodFeeTestBase : ContractTest
     internal ParliamentContractImplContainer.ParliamentContractImplStub ParliamentContractStub { get; set; }
     internal AEDPoSContractContainer.AEDPoSContractStub AEDPoSContractStub { get; set; }
     internal ECKeyPair DefaultSenderKeyPair => Accounts[0].KeyPair;
-
+    internal ECKeyPair UserTomSenderKeyPair => Accounts[10].KeyPair;
+    internal Address UserTomSender => Accounts[10].Address;
     protected List<ECKeyPair> InitialCoreDataCenterKeyPairs =>
         Accounts.Take(1).Select(a => a.KeyPair).ToList();
 
     internal Address DefaultSender => Accounts[0].Address;
-
+ 
     private async Task InitializeContracts()
     {
         await DeployContractsAsync();

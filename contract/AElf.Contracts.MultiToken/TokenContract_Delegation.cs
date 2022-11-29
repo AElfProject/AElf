@@ -17,12 +17,23 @@ public partial class TokenContract
     public override SetTransactionFeeDelegationsOutput SetTransactionFeeDelegations(
         SetTransactionFeeDelegationsInput input)
     {
-        var Delegatees = State.DelegateesMap[input.DelegatorAddress].Delegatees;
-        if(Delegatees[Context.Sender.ToString()] != null)
+        var parsedData = input.Delegations;
+        foreach (var d in parsedData)
+        {
+            if (d.Value < 0)
+                parsedData[d.Key] = 0;
+        }
+        var feeDelegatees = State.DelegateesMap[input.DelegatorAddress] ?? new TransactionFeeDelegatees();
+        var delegatees = feeDelegatees.Delegatees;
+        if (!delegatees.ContainsKey(Context.Sender.ToBase58()))
+        {
+            delegatees.Add(Context.Sender.ToBase58(), new TransactionFeeDelegations());
+        }
+        if(delegatees[Context.Sender.ToBase58()].Delegations.Count != 0)
         {
             if (input.Delegations.First(x => x.Value > 0).Key == null)
             {
-                State.DelegateesMap[input.DelegatorAddress].Delegatees.Remove(Context.Sender.ToString());
+                State.DelegateesMap[input.DelegatorAddress].Delegatees.Remove(Context.Sender.ToBase58());
                 Context.Fire(new TransactionFeeDelegationCancelled()
                 {
                     Caller = Context.Sender,
@@ -30,7 +41,7 @@ public partial class TokenContract
                     Delegator = input.DelegatorAddress
                 });
             }
-            State.DelegateesMap[input.DelegatorAddress].Delegatees[Context.Sender.ToString()] = new TransactionFeeDelegations()
+            State.DelegateesMap[input.DelegatorAddress].Delegatees[Context.Sender.ToBase58()] = new TransactionFeeDelegations()
             {
                 Delegations = { input.Delegations}
             };
@@ -38,20 +49,17 @@ public partial class TokenContract
         else
         {
             Assert(input.Delegations.First(x => x.Value > 0).Key != null, "Invalid input");
-            Assert(Delegatees.Count() < 128, "delegate count reach limit");
-            State.DelegateesMap[input.DelegatorAddress].Delegatees[Context.Sender.ToString()] = new TransactionFeeDelegations()
-            {
-                Delegations = { input.Delegations}
-            };
+            Assert(delegatees.Count() < 128, "delegate count reach limit");
+            delegatees[Context.Sender.ToBase58()].Delegations.Add(input.Delegations);
             Context.Fire(new TransactionFeeDelegationAdded()
             {
                 Caller = Context.Sender,
                 Delegatee = Context.Sender,
                 Delegator = input.DelegatorAddress
             });
-            
+
         }
-           
+
         return new SetTransactionFeeDelegationsOutput()
         {
             Success = true
