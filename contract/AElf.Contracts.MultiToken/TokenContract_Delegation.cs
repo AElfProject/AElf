@@ -20,8 +20,6 @@ public partial class TokenContract
         var parsedData = input.Delegations;
         var feeDelegatees = State.DelegateesMap[input.DelegatorAddress] ?? new TransactionFeeDelegatees();
         var delegatees = feeDelegatees.Delegatees;
-        
-        
         if (!delegatees.ContainsKey(Context.Sender.ToBase58()))
         {
             if (delegatees.Count() >= 128)
@@ -31,39 +29,41 @@ public partial class TokenContract
                     Success = false
                 };
             }
-            delegatees.Add(Context.Sender.ToBase58(), new TransactionFeeDelegations()); 
-            foreach (var pair in parsedData)
+            delegatees.Add(Context.Sender.ToBase58(), new TransactionFeeDelegations());
+            foreach (var (key, value) in parsedData)
             {
-                if (pair.Value >= 0)
+                if (value >= 0)
                 {
-                    delegatees[Context.Sender.ToBase58()].Delegations[pair.Key] = pair.Value;
+                    AssertValidToken(key, value);
+                    delegatees[Context.Sender.ToBase58()].Delegations.Add(key,value);
                 }
             }
+            State.DelegateesMap[input.DelegatorAddress] = feeDelegatees;
             Context.Fire(new TransactionFeeDelegationAdded()
             {
                 Caller = Context.Sender,
                 Delegatee = Context.Sender,
                 Delegator = input.DelegatorAddress
             });
-           
         }
         else
         {
             //normally set
             var delegations = delegatees[Context.Sender.ToBase58()].Delegations;
-            foreach (var pair in parsedData)
+            foreach (var (key, value) in parsedData)
             {
-                if (pair.Value <= 0 && delegations.ContainsKey(pair.Key))
+                if (value <= 0 && delegations.ContainsKey(key))
                 {
-                    delegations.Remove(pair.Key);
+                    delegations.Remove(key);
                 }
-                else
+                else if(value > 0)
                 {
-                    delegations[pair.Key] = pair.Value;
+                    AssertValidToken(key, value);
+                    delegations[key] = value;
                 }
             }
-
-            if (delegatees[Context.Sender.ToBase58()].Delegations.Count != 0) 
+            State.DelegateesMap[input.DelegatorAddress] = feeDelegatees;
+            if (delegatees[Context.Sender.ToBase58()].Delegations.Count != 0)
                 return new SetTransactionFeeDelegationsOutput()
                 {
                     Success = true
@@ -75,11 +75,6 @@ public partial class TokenContract
                 Delegatee = Context.Sender,
                 Delegator = input.DelegatorAddress
             });
-            
-            State.DelegateesMap[input.DelegatorAddress].Delegatees[Context.Sender.ToBase58()] = new TransactionFeeDelegations()
-            {
-                Delegations = { input.Delegations}
-            };
         }
 
         return new SetTransactionFeeDelegationsOutput()
@@ -126,7 +121,7 @@ public partial class TokenContract
         
         var feeDelegatees = State.DelegateesMap[input.DelegatorAddress] ?? new TransactionFeeDelegatees();
         var delegatees = feeDelegatees.Delegatees;
-        return delegatees[input.DelegateeAddress.ToString()] ?? new TransactionFeeDelegations();
+        return delegatees.ContainsKey(input.DelegateeAddress.ToBase58())?delegatees[input.DelegateeAddress.ToBase58()]: new TransactionFeeDelegations();
 
     }
 
