@@ -761,8 +761,8 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
         {
             var result = await TokenContractStub.GetDelegatorAllowance.CallAsync(new GetDelegatorAllowanceInput
             {
-                DelegateeAddress = DefaultSender,
-                DelegatorAddress = delegateeAddress
+                DelegateeAddress = delegateeAddress,
+                DelegatorAddress = DefaultSender
             });
             result.Delegations[NativeTokenSymbol].ShouldBe(delegateeAmountNativeToken);
         }
@@ -865,8 +865,8 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
             afterDelegateeBalance.Balance.ShouldBe(afterBalanceDelegatee);
             var delegation = await TokenContractStub.GetDelegatorAllowance.CallAsync(new GetDelegatorAllowanceInput
             {
-                DelegateeAddress = DefaultSender,
-                DelegatorAddress = delegateeAddress
+                DelegateeAddress = delegateeAddress,
+                DelegatorAddress = DefaultSender
             });
             delegation.Delegations[sizeFeeSymbol].ShouldBe(afterDelegateeAmount);
         }
