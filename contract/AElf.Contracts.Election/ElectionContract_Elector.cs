@@ -473,8 +473,7 @@ public partial class ElectionContract
                         Beneficiary =
                             Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(input.CandidatePubkey)),
                         Shares = 1
-                    },
-                    ProfitDetailId = voteId
+                    }
                 });
             }
             else
