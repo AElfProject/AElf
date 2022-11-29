@@ -12,89 +12,164 @@ namespace AElf.Contracts.MultiToken;
 
 public partial class MultiTokenContractTests
 {
-    [Fact(DisplayName = "set Delegation test")]
-    public async Task SetTokenDelegation_Test1()
+    private const string BasicFeeSymbol = "BASIC";
+    private const string SizeFeeSymbol = "SIZE";
+    private const string NativeToken = "ELF";
+
+    [Fact]
+    public async Task SetTokenDelegation_Test()
     {
-        CreateBaseNativeTokenAsync();
-        var Testdata = 100;
+        await Initialize();
+        
+        var delegations = new Dictionary<string, long>
+        {
+            [NativeToken] = 1000,
+            [BasicFeeSymbol] = 500,
+            [SizeFeeSymbol] = 100
+        };
         await TokenContractStub.SetTransactionFeeDelegations.SendAsync(new SetTransactionFeeDelegationsInput()
         {
             DelegatorAddress = User1Address,
             Delegations =
-            {
-                Keys = {"ELF"},
-                Values = {Testdata}
+            { 
+                delegations
             }
         });
         
         var delegateAllowance = await TokenContractStub.GetDelegatorAllowance.CallAsync(new GetDelegatorAllowanceInput()
         {
-           DelegateeAddress = User1Address,
-           DelegatorAddress = DefaultAddress
+           DelegateeAddress = DefaultAddress,
+           DelegatorAddress = User1Address
         });
-       delegateAllowance.Delegations["ELF"].ShouldBe(Testdata);
-       
-       //set Delegation normally
-       Testdata = 50;
-       await TokenContractStub.SetTransactionFeeDelegations.SendAsync(new SetTransactionFeeDelegationsInput()
-       {
-           DelegatorAddress = User1Address,
-           Delegations =
-           {
-               Keys = {"ELF"},
-               Values = {Testdata}
-           }
-       });
-       delegateAllowance = await TokenContractStub.GetDelegatorAllowance.CallAsync(new GetDelegatorAllowanceInput()
-       {
-           DelegateeAddress = User1Address,
-           DelegatorAddress = DefaultAddress
-       });
-       delegateAllowance.Delegations["ELF"].ShouldBe(Testdata);
-       
-       //remove the userdelegation
-       Testdata = 0;
-       await TokenContractStub.SetTransactionFeeDelegations.SendAsync(new SetTransactionFeeDelegationsInput()
-       {
-           DelegatorAddress = User1Address,
-           Delegations =
-           {
-               Keys = {"ELF"},
-               Values = {Testdata}
-           }
-       });
-        delegateAllowance = await TokenContractStub.GetDelegatorAllowance.CallAsync(new GetDelegatorAllowanceInput()
-       {
-           DelegateeAddress = User1Address,
-           DelegatorAddress = DefaultAddress
-       });
-       delegateAllowance.Delegations.ShouldBeNull();
-       
+       delegateAllowance.Delegations[NativeToken].ShouldBe(1000);
+       delegateAllowance.Delegations[BasicFeeSymbol].ShouldBe(500);
+       delegateAllowance.Delegations[SizeFeeSymbol].ShouldBe(100);
+       //
     }
 
-    
-    [Fact(DisplayName = "set Delegation test")]
-    public async Task SetTokenDelegation_Test2()
+    [Fact]
+    public async Task SetTokenDelegation_removeDelegatee_Test()
     {
-        CreateBaseNativeTokenAsync();
+        await SetTokenDelegation_Test();
+        var delegations = new Dictionary<string, long>
+        {
+            [NativeToken] = 0,
+            [BasicFeeSymbol] = 0,
+            [SizeFeeSymbol] = 0
+        };
         await TokenContractStub.SetTransactionFeeDelegations.SendAsync(new SetTransactionFeeDelegationsInput()
         {
             DelegatorAddress = User1Address,
             Delegations =
-            {
-                Keys = {"ELF"},
-                Values = {100}
+            { 
+                delegations
             }
         });
-
+        
         var delegateAllowance = await TokenContractStub.GetDelegatorAllowance.CallAsync(new GetDelegatorAllowanceInput()
         {
-            DelegateeAddress = User1Address,
-            DelegatorAddress = DefaultAddress
+            DelegateeAddress = DefaultAddress,
+            DelegatorAddress = User1Address
         });
-        delegateAllowance.Delegations["ELF"].ShouldBe(100);
+        delegateAllowance.Delegations.Count().ShouldBe(0);
     }
 
+    [Fact]
+    public async Task SetTokenDelegation_resetDelegatee_Test()
+    {
+        await SetTokenDelegation_Test();
+        var delegations = new Dictionary<string, long>
+        {
+            [NativeToken] = 100,
+            [BasicFeeSymbol] = 200
+        };
+        await TokenContractStub.SetTransactionFeeDelegations.SendAsync(new SetTransactionFeeDelegationsInput()
+        {
+            DelegatorAddress = User1Address,
+            Delegations =
+            { 
+                delegations
+            }
+        });
+        
+        var delegateAllowance = await TokenContractStub.GetDelegatorAllowance.CallAsync(new GetDelegatorAllowanceInput()
+        {
+            DelegateeAddress = DefaultAddress,
+            DelegatorAddress = User1Address
+        });
+        delegateAllowance.Delegations[NativeToken].ShouldBe(100);
+        delegateAllowance.Delegations[BasicFeeSymbol].ShouldBe(200);
+        delegateAllowance.Delegations[SizeFeeSymbol].ShouldBe(100);
+    }
+    
+    [Fact]
+    public async Task SetTokenDelegation_includeNegative_Test()
+    {
+        await SetTokenDelegation_Test();
+        var delegations = new Dictionary<string, long>
+        {
+            [NativeToken] = -1,
+            [BasicFeeSymbol] = 200
+        };
+        await TokenContractStub.SetTransactionFeeDelegations.SendAsync(new SetTransactionFeeDelegationsInput()
+        {
+            DelegatorAddress = User1Address,
+            Delegations =
+            { 
+                delegations
+            }
+        });
+        
+        var delegateAllowance = await TokenContractStub.GetDelegatorAllowance.CallAsync(new GetDelegatorAllowanceInput()
+        {
+            DelegateeAddress = DefaultAddress,
+            DelegatorAddress = User1Address
+        });
+        delegateAllowance.Delegations.Keys.ShouldNotContain(NativeToken);
+        delegateAllowance.Delegations[BasicFeeSymbol].ShouldBe(200);
+        delegateAllowance.Delegations[SizeFeeSymbol].ShouldBe(100);
+    }
+    
+    [Fact]
+    public async Task SetTokenDelegation_addNotExistToken_Test()
+    {
+        await SetTokenDelegation_Test();
+        var TestToken = "NOTEXIST";
+        var delegations = new Dictionary<string, long>
+        {
+            [TestToken] = 200,
+
+        };
+
+        var result = await TokenContractStub.SetTransactionFeeDelegations.SendWithExceptionAsync(new SetTransactionFeeDelegationsInput()
+       {
+           DelegatorAddress = User1Address,
+           Delegations =
+           { 
+               delegations
+           }
+       });
+       result.TransactionResult.Error.ShouldContain("Token is not found");
+    }
+
+
+    private async Task Initialize()
+    {
+        await CreateBaseNativeTokenAsync();
+        await CreateTokenAsync(DefaultAddress, BasicFeeSymbol);
+        await CreateTokenAsync(DefaultAddress, SizeFeeSymbol);
+    }
+    private async Task CreateTokenAsync(Address creator, string tokenSymbol, bool isBurned = true)
+    {
+        await TokenContractStub.Create.SendAsync(new CreateInput
+        {
+            Symbol = tokenSymbol,
+            TokenName = tokenSymbol + " name",
+            TotalSupply = 1000_00000000,
+            IsBurnable = isBurned,
+            Issuer = creator,
+        });
+    }
     private async Task SetTest()
     {
         var delegations = new Dictionary<string, long>
