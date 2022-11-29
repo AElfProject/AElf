@@ -898,38 +898,6 @@ public partial class ElectionContractTests : ElectionContractTestBase
         changeProfitAmount.Value.ShouldBe(profitAmountList[term.Value - 1].Div(2)
             .Add(citizenAmount.AmountsMap[EconomicContractsTestConstants.NativeTokenSymbol]));
     }
-    
-       [Fact]
-        public async Task ElectionContract_Vote_CheckProfitDetails_ValueOfBoundary()
-        {
-            const long amount = 500;
-            const long lockTime = 604800 * 2 - 2;
-    
-            // AnnounceElection 2 candidate
-            var candidatesKeyPairs = ValidationDataCenterKeyPairs.First();
-            await AnnounceElectionAsync(candidatesKeyPairs);
-            // 2 voter 
-            var voterKeyPairs = VoterKeyPairs.First();
-            var voteResult = await VoteToCandidateAsync(voterKeyPairs, candidatesKeyPairs.PublicKey.ToHex(),
-                lockTime, amount);
-            var voteId = Hash.Parser.ParseFrom(voteResult.ReturnValue);
-            var currentTerm = await AEDPoSContractStub.GetCurrentTermNumber.CallAsync(new Empty());
-            var profitDetail = await ProfitContractStub.GetProfitDetails.CallAsync(
-                new GetProfitDetailsInput
-                {
-                    Beneficiary = Address.FromPublicKey(voterKeyPairs.PublicKey),
-                    SchemeId = ProfitItemsIds[ProfitType.CitizenWelfare]
-                });
-            profitDetail.Details.Count.ShouldBe(1);
-            profitDetail.Details.First().StartPeriod.ShouldBe(currentTerm.Value.Add(1));
-            profitDetail.Details.First().EndPeriod.ShouldBe(2);
-    
-            var voteRecord =
-                await ElectionContractStub.GetElectorVoteWithRecords.CallAsync(
-                    new StringValue { Value = voterKeyPairs.PublicKey.ToHex() });
-            voteRecord.ActiveVotingRecords.First(a => a.VoteId.Equals(voteId)).Candidate
-                .ShouldBe(candidatesKeyPairs.PublicKey.ToHex());
-        }
 
     [Fact]
     public async Task ElectionContract_ChangeVote_CheckClaim()
