@@ -36,26 +36,31 @@ public partial class TokenContract
                     Success = false
                 };
             }
-            allDelegateesMap.Add(delegateeAddress, new TransactionFeeDelegations());
 
-            // pour all >0 delegations in
-            foreach (var (key, value) in delegationsToInput)
+            // At least one delegation to input, else, no need to add a new one.
+            if (delegationsToInput.Any(x => x.Value > 0))
             {
-                if (value > 0)
+                allDelegateesMap.Add(delegateeAddress, new TransactionFeeDelegations());
+
+                // pour all >0 delegations in
+                foreach (var (key, value) in delegationsToInput)
                 {
-                    AssertValidToken(key, value);
-                    allDelegateesMap[delegateeAddress].Delegations.Add(key,value);
+                    if (value > 0)
+                    {
+                        AssertValidToken(key, value);
+                        allDelegateesMap[delegateeAddress].Delegations.Add(key, value);
+                    }
                 }
+
+                // Set and Fire logEvent
+                State.TransactionFeeDelegateesMap[input.DelegatorAddress] = allDelegatees;
+                Context.Fire(new TransactionFeeDelegationAdded()
+                {
+                    Caller = Context.Sender,
+                    Delegatee = Context.Sender,
+                    Delegator = input.DelegatorAddress
+                });
             }
-            
-            // Set and Fire logEvent
-            State.TransactionFeeDelegateesMap[input.DelegatorAddress] = allDelegatees;
-            Context.Fire(new TransactionFeeDelegationAdded()
-            {
-                Caller = Context.Sender,
-                Delegatee = Context.Sender,
-                Delegator = input.DelegatorAddress
-            });
         }
         else // This delegatee exists, so update
         {
