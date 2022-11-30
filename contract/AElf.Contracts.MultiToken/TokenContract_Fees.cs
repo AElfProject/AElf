@@ -245,7 +245,7 @@ public partial class TokenContract
             var availableSymbol = allSymbolToTxFee.FirstOrDefault(x =>
                 GetBalancePlusAllowanceCalculatedBaseOnPrimaryToken(fromAddress, x, symbolChargedForBaseFee,
                     amountChargedForBaseFee, freeAllowances, amountChargedForBaseAllowance) >= txSizeFeeAmount &&
-                IsDelegationEnoughBaseOnPrimaryToken(x, txSizeFeeAmount, delegations));
+                IsDelegationEnoughBaseOnPrimaryToken(x, symbolChargedForBaseFee, amountChargedForBaseFee.Add(amountChargedForBaseAllowance), txSizeFeeAmount, delegations));
 
             if (delegations != null && availableSymbol == null)
             {
@@ -932,8 +932,8 @@ public partial class TokenContract
             .Div(tokenInfo.AddedTokenWeight);
     }
 
-    private bool IsDelegationEnoughBaseOnPrimaryToken(SymbolToPayTxSizeFee tokenInfo, long txSizeFeeAmount,
-        TransactionFeeDelegations delegations = null)
+    private bool IsDelegationEnoughBaseOnPrimaryToken(SymbolToPayTxSizeFee tokenInfo, string baseSymbol, long cost, 
+        long txSizeFeeAmount, TransactionFeeDelegations delegations = null)
     {
         if (delegations == null)
         {
@@ -944,7 +944,17 @@ public partial class TokenContract
 
         txSizeFeeAmount = txSizeFeeAmount.Mul(tokenInfo.AddedTokenWeight)
             .Div(tokenInfo.BaseTokenWeight);
-        return delegations.Delegations[tokenInfo.TokenSymbol] >= txSizeFeeAmount;
+        
+        // If current symbol is base fee symbol, it should be taken into account too.
+        if (tokenInfo.TokenSymbol != baseSymbol)
+        {
+            return delegations.Delegations[tokenInfo.TokenSymbol] >= txSizeFeeAmount;
+        }
+        else
+        {
+            return delegations.Delegations[tokenInfo.TokenSymbol].Sub(cost) >= txSizeFeeAmount;
+        }
+        
     }
     
     
