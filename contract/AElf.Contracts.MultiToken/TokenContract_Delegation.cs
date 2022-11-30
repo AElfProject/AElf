@@ -19,7 +19,7 @@ public partial class TokenContract
         Assert(input.Delegations != null, "Delegations cannot be null!");
         
         // get all delegatees, init it if null.
-        var allDelegatees = State.DelegateesMap[input.DelegatorAddress] ?? new TransactionFeeDelegatees();
+        var allDelegatees = State.TransactionFeeDelegateesMap[input.DelegatorAddress] ?? new TransactionFeeDelegatees();
         var allDelegateesMap = allDelegatees.Delegatees;
 
         var delegateeAddress = Context.Sender.ToBase58();
@@ -50,7 +50,7 @@ public partial class TokenContract
             }
             
             // Set and Fire logEvent
-            State.DelegateesMap[input.DelegatorAddress] = allDelegatees;
+            State.TransactionFeeDelegateesMap[input.DelegatorAddress] = allDelegatees;
             Context.Fire(new TransactionFeeDelegationAdded()
             {
                 Caller = Context.Sender,
@@ -75,7 +75,7 @@ public partial class TokenContract
             }
             
             // Set and Fire logEvent
-            State.DelegateesMap[input.DelegatorAddress] = allDelegatees;
+            State.TransactionFeeDelegateesMap[input.DelegatorAddress] = allDelegatees;
             
             // If a delegatee has no delegations, remove it!
             if (allDelegateesMap[delegateeAddress].Delegations.Count != 0)
@@ -83,7 +83,7 @@ public partial class TokenContract
                 {
                     Success = true
                 };
-            State.DelegateesMap[input.DelegatorAddress].Delegatees.Remove(delegateeAddress);
+            State.TransactionFeeDelegateesMap[input.DelegatorAddress].Delegatees.Remove(delegateeAddress);
             Context.Fire(new TransactionFeeDelegationCancelled()
             {
                 Caller = Context.Sender,
@@ -103,19 +103,19 @@ public partial class TokenContract
     {
         Assert(input.DelegatorAddress != null, "Delegator Address cannot be null!");
         
-        if (State.DelegateesMap[input.DelegatorAddress] == null)
+        if (State.TransactionFeeDelegateesMap[input.DelegatorAddress] == null)
         {
             return new Empty();
         }
 
-        if (!State.DelegateesMap[input.DelegatorAddress].Delegatees.ContainsKey(Context.Sender.ToBase58()))
+        if (!State.TransactionFeeDelegateesMap[input.DelegatorAddress].Delegatees.ContainsKey(Context.Sender.ToBase58()))
         {
             return new Empty();
         }
 
-        var delegatees = State.DelegateesMap[input.DelegatorAddress];
+        var delegatees = State.TransactionFeeDelegateesMap[input.DelegatorAddress];
         delegatees.Delegatees.Remove(Context.Sender.ToBase58());
-        State.DelegateesMap[input.DelegatorAddress] = delegatees;
+        State.TransactionFeeDelegateesMap[input.DelegatorAddress] = delegatees;
 
         Context.Fire(new TransactionFeeDelegationCancelled
         {
@@ -131,19 +131,19 @@ public partial class TokenContract
     {
         Assert(input.DelegateeAddress != null, "Delegatee Address cannot be null!");
         
-        if (State.DelegateesMap[Context.Sender] == null)
+        if (State.TransactionFeeDelegateesMap[Context.Sender] == null)
         {
             return new Empty();
         }
 
-        if (!State.DelegateesMap[Context.Sender].Delegatees.ContainsKey(input.DelegateeAddress.ToBase58()))
+        if (!State.TransactionFeeDelegateesMap[Context.Sender].Delegatees.ContainsKey(input.DelegateeAddress.ToBase58()))
         {
             return new Empty();
         }
 
-        var delegatees = State.DelegateesMap[Context.Sender];
+        var delegatees = State.TransactionFeeDelegateesMap[Context.Sender];
         delegatees.Delegatees.Remove(input.DelegateeAddress.ToBase58());
-        State.DelegateesMap[Context.Sender] = delegatees;
+        State.TransactionFeeDelegateesMap[Context.Sender] = delegatees;
 
         Context.Fire(new TransactionFeeDelegationCancelled
         {
@@ -156,7 +156,7 @@ public partial class TokenContract
 
     public override TransactionFeeDelegations GetTransactionFeeDelegationsOfADelegatee(GetTransactionFeeDelegationsOfADelegateeInput input)
     {
-        var allDelegatees = State.DelegateesMap[input.DelegatorAddress];
+        var allDelegatees = State.TransactionFeeDelegateesMap[input.DelegatorAddress];
         var delegateeAddress = input.DelegateeAddress.ToBase58();
         // According to protoBuf, return an empty object, but null.
         if (allDelegatees == null)

@@ -39,9 +39,9 @@ public partial class TokenContract
         if (!chargingResult)
         {
             // Try to charge delegatees
-            if (State.DelegateesMap[fromAddress]?.Delegatees != null)
+            if (State.TransactionFeeDelegateesMap[fromAddress]?.Delegatees != null)
             {
-                foreach (var (delegatee, delegations) in State.DelegateesMap[fromAddress].Delegatees)
+                foreach (var (delegatee, delegations) in State.TransactionFeeDelegateesMap[fromAddress].Delegatees)
                 {
                     var delegateeBill = new TransactionFeeBill();
                     var delegateeAllowanceBill = new TransactionFreeFeeAllowanceBill();
@@ -100,8 +100,8 @@ public partial class TokenContract
         {
             if (amount > 0)
             {
-                State.DelegateesMap[Context.Sender].Delegatees[delegateeAddress.ToBase58()].Delegations[symbol] =
-                    State.DelegateesMap[Context.Sender].Delegatees[delegateeAddress.ToBase58()].Delegations[symbol]
+                State.TransactionFeeDelegateesMap[Context.Sender].Delegatees[delegateeAddress.ToBase58()].Delegations[symbol] =
+                    State.TransactionFeeDelegateesMap[Context.Sender].Delegatees[delegateeAddress.ToBase58()].Delegations[symbol]
                         .Sub(amount);
             }
         }
@@ -109,8 +109,8 @@ public partial class TokenContract
         {
             if (amount > 0)
             {
-                State.DelegateesMap[Context.Sender].Delegatees[delegateeAddress.ToBase58()].Delegations[symbol] =
-                    State.DelegateesMap[Context.Sender].Delegatees[delegateeAddress.ToBase58()].Delegations[symbol]
+                State.TransactionFeeDelegateesMap[Context.Sender].Delegatees[delegateeAddress.ToBase58()].Delegations[symbol] =
+                    State.TransactionFeeDelegateesMap[Context.Sender].Delegatees[delegateeAddress.ToBase58()].Delegations[symbol]
                         .Sub(amount);
             }
         }
