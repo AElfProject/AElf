@@ -29,8 +29,7 @@ public partial class TokenContract
         if (!allDelegateesMap.ContainsKey(delegateeAddress))
         {
             // If there has been already DELEGATEE_MAX_COUNT delegatees, and still try to add，fail.
-            if (allDelegateesMap.Count() >= TokenContractConstants.DELEGATEE_MAX_COUNT
-                && delegationsToInput.All(x => x.Value > 0))
+            if (allDelegateesMap.Count() >= TokenContractConstants.DELEGATEE_MAX_COUNT)
             {
                 return new SetTransactionFeeDelegationsOutput()
                 {
