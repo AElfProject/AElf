@@ -1670,4 +1670,55 @@ public sealed class BlockChainAppServiceTest : WebAppTestBase
             result.ShouldBeNull();
         }
     }
+    
+    [Fact]
+    public async Task CalculateTransactionFee_Success_Test()
+    {
+        var transaction = await _osTestHelper.GenerateTransferTransaction();
+        var parameters = new Dictionary<string, string>
+        {
+            {"rawTransaction", transaction.ToByteArray().ToHex()}
+        };
+        var response = await PostResponseAsObjectAsync<CalculateTransactionFeeOutput>("/api/blockChain/CalculateTransactionFee", parameters);
+        response.Success.ShouldBe(true);
+    }
+
+    [Fact]
+    public async Task CalculateTransactionFee_TransactionFailed_Test()
+    {
+        // Generate a transaction
+        var transaction = await GenerateViewTransaction(
+            nameof(TokenContractContainer.TokenContractStub.GetTokenInfo),
+            new GetTokenInfoInput
+            {
+                Symbol = "ELF"
+            });
+
+        var parameters = new Dictionary<string, string>
+        {
+            {"rawTransaction", transaction.ToByteArray().ToHex()}
+        };
+        var response = await PostResponseAsObjectAsync<CalculateTransactionFeeOutput>("/api/blockChain/CalculateTransactionFee", parameters);
+        response.Success.ShouldBe(false);
+    }
+    
+    [Fact]
+    public async Task CalculateTransactionFee_Failed_InvalidParams_Test()
+    {
+        var parameters = new Dictionary<string, string>
+        {
+            {
+                "rawTransaction",
+                "0a200a1e4604ccbdaa377fd7022b56436b99309e8b71cc5d78e909d271dbd1aeee6412200a1eaaa58b6cf58d4ef337f6dc55b701fd57d622015a3548a91a4e40892aa355180b220436957f93320c476574546f6b656e496e666f3a060a04454c46324a416246d781d80759d8ae6bb895b17203a3c9d4e89f083d7d89d9b6cbbf1c67ded52e134108fc8b3646f6549313868ce3e68a7117815cc0c2107ef1a986430a12ba002"
+            }
+        };
+        var response =
+            await PostResponseAsObjectAsync<WebAppErrorResponse>("/api/blockChain/CalculateTransactionFee", parameters,
+                expectedStatusCode: HttpStatusCode.Forbidden);
+
+        response.Error.Code.ShouldBe(Error.InvalidParams.ToString());
+        response.Error.Message.ShouldBe(Error.Message[Error.InvalidParams]);
+    }
+    
+
 }
