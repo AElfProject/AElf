@@ -187,7 +187,8 @@ public partial class ProfitContract : ProfitContractImplContainer.ProfitContract
         {
             StartPeriod = scheme.CurrentPeriod.Add(scheme.DelayDistributePeriodCount),
             EndPeriod = input.EndPeriod,
-            Shares = input.BeneficiaryShare.Shares
+            Shares = input.BeneficiaryShare.Shares,
+            Id = input.ProfitDetailId
         };
 
         var currentProfitDetails = State.ProfitDetailsMap[schemeId][input.BeneficiaryShare.Beneficiary];
@@ -235,37 +236,145 @@ public partial class ProfitContract : ProfitContractImplContainer.ProfitContract
 
         Assert(Context.Sender == scheme.Manager || Context.Sender ==
             Context.GetContractAddressByName(SmartContractConstants.TokenHolderContractSystemName),
-            "Only manager can remove beneficiary.");
+            "Only manager or token holder contract can add beneficiary.");
 
-        var expiryDetails = scheme.CanRemoveBeneficiaryDirectly
-            ? currentDetail.Details.Where(d => !d.IsWeightRemoved).ToList()
-            : currentDetail.Details
-                .Where(d => d.EndPeriod < scheme.CurrentPeriod && !d.IsWeightRemoved).ToList();
+        var removedDetails = RemoveProfitDetails(scheme, input.Beneficiary, input.ProfitDetailId);
 
-        if (!expiryDetails.Any()) return new Empty();
-
-        var shares = expiryDetails.Sum(d => d.Shares);
-        foreach (var expiryDetail in expiryDetails)
+        foreach (var (removedMinPeriod, removedShares) in removedDetails.Where(d => d.Key != 0))
         {
-            expiryDetail.IsWeightRemoved = true;
-            if (expiryDetail.LastProfitPeriod >= scheme.CurrentPeriod)
-                currentDetail.Details.Remove(expiryDetail);
-            else if (expiryDetail.EndPeriod >= scheme.CurrentPeriod)
-                expiryDetail.EndPeriod = scheme.CurrentPeriod.Sub(1);
+            if (scheme.DelayDistributePeriodCount > 0)
+            {
+                for (var removedPeriod = removedMinPeriod;
+                     removedPeriod < removedMinPeriod.Add(scheme.DelayDistributePeriodCount);
+                     removedPeriod++)
+                {
+                    if (scheme.CachedDelayTotalShares.ContainsKey(removedPeriod))
+                    {
+                        scheme.CachedDelayTotalShares[removedPeriod] =
+                            scheme.CachedDelayTotalShares[removedPeriod].Sub(removedShares);
+                    }
+                }
+            }
         }
 
-        Context.LogDebug(() => $"ProfitDetails after removing expiry details: {currentDetail}");
-
-        // Clear old profit details.
-        if (currentDetail.Details.Count != 0)
-            State.ProfitDetailsMap[input.SchemeId][input.Beneficiary] = currentDetail;
-        else
-            State.ProfitDetailsMap[input.SchemeId].Remove(input.Beneficiary);
-
-        scheme.TotalShares = scheme.TotalShares.Sub(shares);
-        State.SchemeInfos[input.SchemeId] = scheme;
+        State.SchemeInfos[input.SchemeId].TotalShares = scheme.TotalShares.Sub(removedDetails.Values.Sum());
 
         return new Empty();
+    }
+
+    public override Empty FixProfitDetail(FixProfitDetailInput input)
+    {
+        Assert(input.SchemeId != null, "Invalid scheme id.");
+        var scheme = State.SchemeInfos[input.SchemeId];
+        if (Context.Sender != scheme.Manager && Context.Sender !=
+            Context.GetContractAddressByName(SmartContractConstants.TokenHolderContractSystemName))
+        {
+            throw new AssertionException("Only manager or token holder contract can add beneficiary.");
+        }
+
+        // Try to get profitDetails by Id
+        var profitDetails = State.ProfitDetailsMap[input.SchemeId][input.BeneficiaryShare.Beneficiary];
+        ProfitDetail fixingDetail = null;
+        if (input.ProfitDetailId != null)
+        {
+            // In new rules, rofitDetail.Id equals to its vote id.
+            fixingDetail = profitDetails.Details.SingleOrDefault(d => d.Id == input.ProfitDetailId);
+        }
+
+        if (fixingDetail == null)
+        {
+            // However, in the old time, profitDetail.Id is null, so use Shares.
+            fixingDetail = profitDetails.Details.OrderBy(d => d.StartPeriod)
+                .FirstOrDefault(d => d.Shares == input.BeneficiaryShare.Shares);
+        }
+
+        if (fixingDetail == null)
+        {
+            throw new AssertionException("Cannot find proper profit detail to fix.");
+        }
+
+        // Clone the old one to a new one, remove the old, and add the new.
+        var newDetail = fixingDetail.Clone();
+        // The startPeriod is 0, so use the original one.
+        newDetail.StartPeriod = input.StartPeriod == 0 ? fixingDetail.StartPeriod : input.StartPeriod;
+        // The endPeriod is set, so use the inputted one.
+        newDetail.EndPeriod = input.EndPeriod == 0 ? fixingDetail.EndPeriod : input.EndPeriod;
+        profitDetails.Details.Remove(fixingDetail);
+        profitDetails.Details.Add(newDetail);
+        State.ProfitDetailsMap[input.SchemeId][input.BeneficiaryShare.Beneficiary] = profitDetails;
+        return new Empty();
+    }
+
+    private RemovedDetails RemoveProfitDetails(Scheme scheme, Address beneficiary, Hash profitDetailId = null)
+    {
+        var removedDetails = new RemovedDetails();
+
+        var profitDetails = State.ProfitDetailsMap[scheme.SchemeId][beneficiary];
+        if (profitDetails == null)
+        {
+            return removedDetails;
+        }
+        
+        // remove all removalbe profitDetails.
+        // If a scheme can be cancelled, get all available profitDetail.
+        // else, get those available and out of date ones.
+        var detailsCanBeRemoved = scheme.CanRemoveBeneficiaryDirectly
+            ? profitDetails.Details.Where(d => !d.IsWeightRemoved).ToList()
+            : profitDetails.Details
+                .Where(d => d.EndPeriod < scheme.CurrentPeriod && !d.IsWeightRemoved).ToList();
+        
+        // remove the profitDetail with the profitDetailId, and de-duplicate it before involving.
+        if (profitDetailId != null && profitDetails.Details.Any(d => d.Id == profitDetailId) && detailsCanBeRemoved.All(d => d.Id != profitDetailId))
+        {
+            detailsCanBeRemoved.Add(profitDetails.Details.Single(d => d.Id == profitDetailId));
+        }
+
+        if (detailsCanBeRemoved.Any())
+        {
+            foreach (var profitDetail in detailsCanBeRemoved)
+            {
+                // set remove sign
+                profitDetail.IsWeightRemoved = true;
+                if (profitDetail.LastProfitPeriod >= scheme.CurrentPeriod)
+                {
+                    // remove those profits claimed
+                    profitDetails.Details.Remove(profitDetail);
+                }
+                else if (profitDetail.EndPeriod >= scheme.CurrentPeriod)
+                {
+                    // No profit can be here, except the scheme is cancellable.
+                    // shorten profit.
+                    profitDetail.EndPeriod = scheme.CurrentPeriod.Sub(1);
+                }
+
+                removedDetails.TryAdd(scheme.CurrentPeriod, profitDetail.Shares);
+            }
+
+            Context.LogDebug(() => $"ProfitDetails after removing expired details: {profitDetails}");
+        }
+        
+        var weightCanBeRemoved = profitDetails.Details
+                .Where(d => d.EndPeriod == scheme.CurrentPeriod && !d.IsWeightRemoved).ToList();
+        foreach (var profitDetail in weightCanBeRemoved)
+        {
+            profitDetail.IsWeightRemoved = true;
+        }
+
+        var weights = weightCanBeRemoved.Sum(d => d.Shares);
+        removedDetails.Add(0, weights);
+        
+
+        // Clear old profit details.
+        if (profitDetails.Details.Count != 0)
+        {
+            State.ProfitDetailsMap[scheme.SchemeId][beneficiary] = profitDetails;
+        }
+        else
+        {
+            State.ProfitDetailsMap[scheme.SchemeId].Remove(beneficiary);
+        }
+
+        return removedDetails;
     }
 
     public override Empty AddBeneficiaries(AddBeneficiariesInput input)
@@ -381,6 +490,14 @@ public partial class ProfitContract : ProfitContractImplContainer.ProfitContract
         return new Empty();
     }
 
+    private void AssertTokenExists(string symbol)
+    {
+        if (string.IsNullOrEmpty(State.TokenContract.GetTokenInfo.Call(new GetTokenInfoInput { Symbol = symbol })
+                .TokenName))
+        {
+            throw new AssertionException($"Token {symbol} not exists.");
+        }
+    }
     /// <summary>
     ///     Just burn balance in general ledger.
     /// </summary>
@@ -525,12 +642,17 @@ public partial class ProfitContract : ProfitContractImplContainer.ProfitContract
 
     public override Empty ContributeProfits(ContributeProfitsInput input)
     {
-        Assert(!string.IsNullOrEmpty(input.Symbol), "Invalid token symbol.");
-        Assert(input.Amount > 0, "Amount need to greater than 0.");
+        AssertTokenExists(input.Symbol);
+        if (input.Amount <= 0)
+        {
+            throw new AssertionException("Amount need to greater than 0.");
+        }
 
         var scheme = State.SchemeInfos[input.SchemeId];
-        Assert(scheme != null, "Scheme not found.");
-
+        if (scheme == null)
+        {
+            throw new AssertionException("Scheme not found.");
+        }
         // ReSharper disable once PossibleNullReferenceException
         var virtualAddress = scheme.VirtualAddress;
 
@@ -628,6 +750,10 @@ public partial class ProfitContract : ProfitContractImplContainer.ProfitContract
         Context.LogDebug(
             () => $"{Context.Sender} is trying to profit from {input.SchemeId.ToHex()} for {beneficiary}.");
 
+        // LastProfitPeriod is set as 0 at the very beginning, and be updated as current period every time when it is claimed.
+        // What's more, LastProfitPeriod can also be +1 more than endPeroid, for it always points to the next period to claim.
+        // So if LastProfitPeriod is 0, that means this profitDetail hasn't be claimed before, so just check whether it is a valid one;
+        // And if a LastProfitPeriod is larger than EndPeriod, it should not be claimed, and should be removed later.
         var availableDetails = profitDetails.Details.Where(d =>
             d.LastProfitPeriod == 0 ? d.EndPeriod >= d.StartPeriod : d.EndPeriod >= d.LastProfitPeriod).ToList();
         var profitableDetails = availableDetails.Where(d => d.LastProfitPeriod < scheme.CurrentPeriod).ToList();
@@ -647,6 +773,25 @@ public partial class ProfitContract : ProfitContractImplContainer.ProfitContract
                 profitDetail.LastProfitPeriod = profitDetail.StartPeriod;
 
             ProfitAllPeriods(scheme, profitDetail, beneficiary);
+        }
+
+        var profitDetailsToRemove = profitableDetails
+            .Where(profitDetail =>
+                profitDetail.LastProfitPeriod > profitDetail.EndPeriod && !profitDetail.IsWeightRemoved).ToList();
+        var sharesToRemove =
+            profitDetailsToRemove.Aggregate(0L, (current, profitDetail) => current.Add(profitDetail.Shares));
+        scheme.TotalShares = scheme.TotalShares.Sub(sharesToRemove);
+        foreach (var delayToPeriod in scheme.CachedDelayTotalShares.Keys)
+        {
+            scheme.CachedDelayTotalShares[delayToPeriod] =
+                scheme.CachedDelayTotalShares[delayToPeriod].Sub(sharesToRemove);
+        }
+
+        State.SchemeInfos[scheme.SchemeId] = scheme;
+
+        foreach (var profitDetail in profitDetailsToRemove)
+        {
+            availableDetails.Remove(profitDetail);
         }
 
         State.ProfitDetailsMap[input.SchemeId][beneficiary] = new ProfitDetails { Details = { availableDetails } };
