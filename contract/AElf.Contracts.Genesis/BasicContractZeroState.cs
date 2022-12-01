@@ -32,4 +32,6 @@ public partial class BasicContractZeroState : ContractState
     public SingletonState<AuthorityInfo> MethodFeeController { get; set; }
 
     public MappedState<long, ContractCodeHashList> ContractCodeHashListMap { get; set; }
+
+    public SingletonState<int> ContractProposalExpirationTimePeriod { get; set; }
 }

@@ -1,5 +1,9 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using AElf.Contracts.Economic.TestBase;
+using AElf.Contracts.Profit;
 using AElf.Cryptography.ECDSA;
 using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
@@ -54,8 +58,38 @@ public partial class ElectionContractTests : ElectionContractTestBase
             .TransactionResult;
     }
 
-    private async Task<TransactionResult> VoteToCandidate(ECKeyPair voterKeyPair, string candidatePublicKey,
-        int lockTime, long amount)
+    private async Task<TransactionResult> ChangeVotingOption(ECKeyPair voterKeyPair, string candidatePublicKey,
+        Hash voteId, bool isResetVotingTime)
+    {
+        var electionStub = GetElectionContractTester(voterKeyPair);
+        var changeVotingResult = (await electionStub.ChangeVotingOption.SendAsync(new ChangeVotingOptionInput
+        {
+            CandidatePubkey = candidatePublicKey,
+            VoteId = voteId,
+            IsResetVotingTime = isResetVotingTime
+        })).TransactionResult;
+        return changeVotingResult;
+    }
+
+    private async Task<List<ProfitsClaimed>> ClaimProfitsAsync(ECKeyPair voterKeyPair)
+    {
+        var profitStub = GetProfitContractTester(voterKeyPair);
+        var executionResult = await profitStub.ClaimProfits.SendAsync(new ClaimProfitsInput
+        {
+            SchemeId = ProfitItemsIds[ProfitType.CitizenWelfare],
+            Beneficiary = Address.FromPublicKey(voterKeyPair.PublicKey)
+        });
+        executionResult.TransactionResult.Error.ShouldBeNullOrEmpty();
+        return executionResult.TransactionResult.Logs.Where(l => l.Name == "ProfitsClaimed").Select(l =>
+        {
+            var logEvent = new ProfitsClaimed();
+            logEvent.MergeFrom(l);
+            return logEvent;
+        }).ToList();
+    }
+
+    private async Task<TransactionResult> VoteToCandidateAsync(ECKeyPair voterKeyPair, string candidatePublicKey,
+        long lockTime, long amount)
     {
         var electionStub = GetElectionContractTester(voterKeyPair);
         var voteResult = (await electionStub.Vote.SendAsync(new VoteMinerInput
@@ -68,18 +102,18 @@ public partial class ElectionContractTests : ElectionContractTestBase
         return voteResult;
     }
 
-    private async Task VoteToCandidate(List<ECKeyPair> votersKeyPairs, string candidatePublicKey,
+    private async Task VoteToCandidateAsync(List<ECKeyPair> votersKeyPairs, string candidatePublicKey,
         int lockTime, long amount)
     {
         foreach (var voterKeyPair in votersKeyPairs)
-            await VoteToCandidate(voterKeyPair, candidatePublicKey, lockTime, amount);
+            await VoteToCandidateAsync(voterKeyPair, candidatePublicKey, lockTime, amount);
     }
 
     private async Task VoteToCandidates(List<ECKeyPair> votersKeyPairs, List<string> candidatesPublicKeys,
         int lockTime, long amount)
     {
         foreach (var candidatePublicKey in candidatesPublicKeys)
-            await VoteToCandidate(votersKeyPairs, candidatePublicKey, lockTime, amount);
+            await VoteToCandidateAsync(votersKeyPairs, candidatePublicKey, lockTime, amount);
     }
 
     private async Task<TransactionResult> WithdrawVotes(ECKeyPair keyPair, Hash voteId)

@@ -74,9 +74,41 @@ public partial class TokenContract
         State.Balances[address][symbol] = target;
     }
 
+    private void ModifyFreeFeeAllowanceAmount(MethodFeeFreeAllowances freeAllowances, string symbol, long addAmount)
+    {
+        var freeAllowance = GetFreeFeeAllowance(freeAllowances, symbol);
+        if (freeAllowance != null)
+        {
+            var before = freeAllowance.Amount;
+            if (addAmount < 0 && before < -addAmount)
+                Assert(false,
+                    $"Insufficient amount of {symbol} for free fee allowance. Need amount: {-addAmount}; Current amount: {before}");
+
+            var target = before.Add(addAmount);
+            freeAllowance.Amount = target;
+        }
+    }
+
     private long GetBalance(Address address, string symbol)
     {
         return State.Balances[address][symbol];
+    }
+
+    private MethodFeeFreeAllowance GetFreeFeeAllowance(MethodFeeFreeAllowances freeAllowances, string symbol)
+    {
+        return freeAllowances?.Value.FirstOrDefault(a => a.Symbol == symbol);
+    }
+    
+    private long GetFreeFeeAllowanceAmount(MethodFeeFreeAllowances freeAllowances, string symbol)
+    {
+        var existingAllowance = 0L;
+        var freeAllowance = GetFreeFeeAllowance(freeAllowances, symbol);
+        if (freeAllowance != null)
+        {
+            existingAllowance = freeAllowance.Amount;
+        }
+
+        return existingAllowance;
     }
 
     private void AssertSystemContractOrLockWhiteListAddress(string symbol)

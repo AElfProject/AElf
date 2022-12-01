@@ -7,36 +7,13 @@ using AElf.Types;
 using Shouldly;
 using Xunit;
 
-namespace AElf.Contracts.Profit.BVT;
+namespace AElf.Contracts.Profit;
 
 public partial class ProfitContractTests : ProfitContractTestBase
 {
-    public ProfitContractTests()
-    {
-        InitializeContracts();
-    }
+    private Hash _schemeId;
 
-    protected Hash schemeId { get; set; }
-
-    [Fact]
-    public async Task ProfitContract_CreateScheme_With_Invalid_Input_Test()
-    {
-        var creator = Creators[0];
-
-        var createSchemeRet = await creator.CreateScheme.SendWithExceptionAsync(new CreateSchemeInput
-        {
-            ProfitReceivingDuePeriodCount = ProfitContractTestConstants.MaximumProfitReceivingDuePeriodCount + 1
-        });
-        createSchemeRet.TransactionResult.Error.ShouldContain("Invalid profit receiving due period count");
-
-        createSchemeRet = await creator.CreateScheme.SendWithExceptionAsync(new CreateSchemeInput
-        {
-            ProfitReceivingDuePeriodCount = -1
-        });
-        createSchemeRet.TransactionResult.Error.ShouldContain("Invalid profit receiving due period count");
-    }
-
-    [Fact]
+    [Fact(DisplayName = "[Profit Contract] Create a profit scheme.")]
     public async Task ProfitContract_CreateScheme_Test()
     {
         var creator = Creators[0];
@@ -44,7 +21,7 @@ public partial class ProfitContractTests : ProfitContractTestBase
 
         await creator.CreateScheme.SendAsync(new CreateSchemeInput
         {
-            ProfitReceivingDuePeriodCount = 100
+            ProfitReceivingDuePeriodCount = 100,
         });
 
         var createdSchemeIds = (await creator.GetManagingSchemeIds.CallAsync(new GetManagingSchemeIdsInput
@@ -54,25 +31,25 @@ public partial class ProfitContractTests : ProfitContractTestBase
 
         createdSchemeIds.Count.ShouldBe(1);
 
-        schemeId = createdSchemeIds.First();
+        _schemeId = createdSchemeIds.First();
 
         const long contributeAmount = (long)(ProfitContractTestConstants.NativeTokenTotalSupply * 0.1);
 
         await ProfitContractStub.ContributeProfits.SendAsync(new ContributeProfitsInput
         {
-            SchemeId = schemeId,
+            SchemeId = _schemeId,
             Symbol = ProfitContractTestConstants.NativeTokenSymbol,
             Amount = contributeAmount
         });
 
-        var scheme = await ProfitContractStub.GetScheme.CallAsync(schemeId);
+        var scheme = await ProfitContractStub.GetScheme.CallAsync(_schemeId);
 
         scheme.Manager.ShouldBe(Address.FromPublicKey(CreatorKeyPair[0].PublicKey));
 
         var schemeAddress = await ProfitContractStub.GetSchemeAddress.CallAsync(
             new SchemePeriod
             {
-                SchemeId = schemeId
+                SchemeId = _schemeId
             });
         var schemeBalance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
         {
@@ -103,18 +80,85 @@ public partial class ProfitContractTests : ProfitContractTestBase
             Manager = creatorAddress
         })).SchemeIds;
 
-        schemeId = createdSchemeIds.First();
+        _schemeId = createdSchemeIds.First();
         var period = 1;
-        var beforeBurnToken = (await TokenContractStub.GetTokenInfo.CallAsync(new GetTokenInfoInput
+        var supplyBeforeBurning = (await TokenContractStub.GetTokenInfo.CallAsync(new GetTokenInfoInput
         {
             Symbol = ProfitContractTestConstants.NativeTokenSymbol
         })).Supply;
         await ContributeAndDistribute(creator, contributeAmountEachTime, period);
-        var afterBurnToken = (await TokenContractStub.GetTokenInfo.CallAsync(new GetTokenInfoInput
+        var supplyAfterBurning = (await TokenContractStub.GetTokenInfo.CallAsync(new GetTokenInfoInput
         {
             Symbol = ProfitContractTestConstants.NativeTokenSymbol
         })).Supply;
-        beforeBurnToken.Sub(afterBurnToken).ShouldBe(contributeAmountEachTime);
+        supplyBeforeBurning.Sub(supplyAfterBurning).ShouldBe(contributeAmountEachTime);
+    }
+
+
+    [Fact]
+    public async Task ProfitContract_AddSubScheme_Success_Test()
+    {
+        const int shares1 = 80;
+        const int shares2 = 20;
+
+        var creator = Creators[0];
+
+        var schemeId = await CreateSchemeAsync();
+        var subSchemeId1 = await CreateSchemeAsync(1);
+        var subSchemeId2 = await CreateSchemeAsync(2);
+
+        var subProfitItem1 = await creator.GetScheme.CallAsync(subSchemeId1);
+        var subProfitItem2 = await creator.GetScheme.CallAsync(subSchemeId2);
+
+        await creator.AddSubScheme.SendAsync(new AddSubSchemeInput
+        {
+            SchemeId = schemeId,
+            SubSchemeId = subSchemeId1,
+            SubSchemeShares = shares1
+        });
+
+        var profitDetails1 = await creator.GetProfitDetails.CallAsync(new GetProfitDetailsInput
+        {
+            SchemeId = schemeId,
+            Beneficiary = subProfitItem1.VirtualAddress
+        });
+
+        // Check the total_weight of profit scheme.
+        {
+            var profitItem = await creator.GetScheme.CallAsync(schemeId);
+            profitItem.TotalShares.ShouldBe(shares1);
+        }
+
+        profitDetails1.Details.Count.ShouldBe(1);
+        profitDetails1.Details.First().StartPeriod.ShouldBe(1);
+        profitDetails1.Details.First().EndPeriod.ShouldBe(long.MaxValue);
+        profitDetails1.Details.First().LastProfitPeriod.ShouldBe(0);
+        profitDetails1.Details.First().Shares.ShouldBe(shares1);
+
+        await creator.AddSubScheme.SendAsync(new AddSubSchemeInput()
+        {
+            SchemeId = schemeId,
+            SubSchemeId = subSchemeId2,
+            SubSchemeShares = shares2
+        });
+
+        var profitDetails2 = await creator.GetProfitDetails.CallAsync(new GetProfitDetailsInput
+        {
+            SchemeId = schemeId,
+            Beneficiary = subProfitItem2.VirtualAddress
+        });
+
+        // Check the total_weight of profit scheme.
+        {
+            var profitItem = await creator.GetScheme.CallAsync(schemeId);
+            profitItem.TotalShares.ShouldBe(shares1 + shares2);
+        }
+
+        profitDetails2.Details.Count.ShouldBe(1);
+        profitDetails2.Details.First().StartPeriod.ShouldBe(1);
+        profitDetails2.Details.First().EndPeriod.ShouldBe(long.MaxValue);
+        profitDetails2.Details.First().LastProfitPeriod.ShouldBe(0);
+        profitDetails2.Details.First().Shares.ShouldBe(shares2);
     }
 
     [Fact]
@@ -129,7 +173,8 @@ public partial class ProfitContractTests : ProfitContractTestBase
         {
             IsReleaseAllBalanceEveryTimeByDefault = true,
             ProfitReceivingDuePeriodCount = 100,
-            DelayDistributePeriodCount = delayDistributePeriodCount
+            DelayDistributePeriodCount = delayDistributePeriodCount,
+            CanRemoveBeneficiaryDirectly = true
         });
 
         var createdSchemeIds = (await creator.GetManagingSchemeIds.CallAsync(new GetManagingSchemeIdsInput
@@ -137,7 +182,7 @@ public partial class ProfitContractTests : ProfitContractTestBase
             Manager = creatorAddress
         })).SchemeIds;
 
-        schemeId = createdSchemeIds.First();
+        _schemeId = createdSchemeIds.First();
 
         var periodToTotalShares = new Dictionary<long, long>();
         var currentShares = 0L;
@@ -145,7 +190,7 @@ public partial class ProfitContractTests : ProfitContractTestBase
         // Distribute 3 times.
         for (var period = 1; period <= 3; period++)
         {
-            currentShares += await AddBeneficiaries(creator);
+            currentShares += await AddBeneficiariesAsync(creator);
             periodToTotalShares.Add(period, currentShares);
 
             await ContributeAndDistribute(creator, contributeAmountEachTime, period);
@@ -154,7 +199,7 @@ public partial class ProfitContractTests : ProfitContractTestBase
             var distributedInformation = await creator.GetDistributedProfitsInfo.CallAsync(new SchemePeriod
             {
                 Period = period,
-                SchemeId = schemeId
+                SchemeId = _schemeId
             });
             distributedInformation.IsReleased.ShouldBeTrue();
             distributedInformation.TotalShares.ShouldBe(0);
@@ -169,7 +214,7 @@ public partial class ProfitContractTests : ProfitContractTestBase
             var distributedInformation = await creator.GetDistributedProfitsInfo.CallAsync(new SchemePeriod
             {
                 Period = 4,
-                SchemeId = schemeId
+                SchemeId = _schemeId
             });
             distributedInformation.IsReleased.ShouldBeTrue();
             distributedInformation.TotalShares.ShouldBe(periodToTotalShares[1]);
@@ -184,7 +229,7 @@ public partial class ProfitContractTests : ProfitContractTestBase
             var distributedInformation = await creator.GetDistributedProfitsInfo.CallAsync(new SchemePeriod
             {
                 Period = 5,
-                SchemeId = schemeId
+                SchemeId = _schemeId
             });
             distributedInformation.TotalShares.ShouldBe(periodToTotalShares[2]);
             distributedInformation.AmountsMap[ProfitContractTestConstants.NativeTokenSymbol]
@@ -198,7 +243,7 @@ public partial class ProfitContractTests : ProfitContractTestBase
             var distributedInformation = await creator.GetDistributedProfitsInfo.CallAsync(new SchemePeriod
             {
                 Period = 6,
-                SchemeId = schemeId
+                SchemeId = _schemeId
             });
             distributedInformation.TotalShares.ShouldBe(periodToTotalShares[3]);
             distributedInformation.AmountsMap[ProfitContractTestConstants.NativeTokenSymbol]
@@ -212,9 +257,30 @@ public partial class ProfitContractTests : ProfitContractTestBase
             var distributedInformation = await creator.GetDistributedProfitsInfo.CallAsync(new SchemePeriod
             {
                 Period = 7,
-                SchemeId = schemeId
+                SchemeId = _schemeId
             });
             distributedInformation.TotalShares.ShouldBe(periodToTotalShares[3]);
+            distributedInformation.AmountsMap[ProfitContractTestConstants.NativeTokenSymbol]
+                .ShouldBe(contributeAmountEachTime);
+        }
+
+        {
+            await ContributeAndDistribute(creator, contributeAmountEachTime, 8);
+            await RemoveBeneficiaryAsync(creator, Accounts[11].Address);
+            var scheme = await creator.GetScheme.CallAsync(_schemeId);
+            scheme.CachedDelayTotalShares.Values.ShouldAllBe(v => v == 12);
+            scheme.TotalShares.ShouldBe(12);
+        }
+        
+        {
+            await ContributeAndDistribute(creator, contributeAmountEachTime, 9);
+            // Check distributed information.
+            var distributedInformation = await creator.GetDistributedProfitsInfo.CallAsync(new SchemePeriod
+            {
+                Period = 9,
+                SchemeId = _schemeId
+            });
+            distributedInformation.TotalShares.ShouldBe(12);
             distributedInformation.AmountsMap[ProfitContractTestConstants.NativeTokenSymbol]
                 .ShouldBe(contributeAmountEachTime);
         }
@@ -227,21 +293,21 @@ public partial class ProfitContractTests : ProfitContractTestBase
         {
             Amount = contributeAmountEachTime,
             Symbol = ProfitContractTestConstants.NativeTokenSymbol,
-            SchemeId = schemeId
+            SchemeId = _schemeId
         });
 
         await creator.DistributeProfits.SendAsync(new DistributeProfitsInput
         {
-            SchemeId = schemeId,
-            Period = period
+            SchemeId = _schemeId,
+            Period = period,
         });
     }
 
-    private async Task<long> AddBeneficiaries(ProfitContractImplContainer.ProfitContractImplStub creator)
+    private async Task<long> AddBeneficiariesAsync(ProfitContractImplContainer.ProfitContractImplStub creator)
     {
         await creator.AddBeneficiaries.SendAsync(new AddBeneficiariesInput
         {
-            SchemeId = schemeId,
+            SchemeId = _schemeId,
             BeneficiaryShares =
             {
                 new BeneficiaryShare
@@ -268,10 +334,20 @@ public partial class ProfitContractTests : ProfitContractTestBase
                 {
                     Beneficiary = Accounts[15].Address,
                     Shares = 1
-                }
+                },
             }
         });
 
         return 5;
+    }
+
+    private async Task RemoveBeneficiaryAsync(ProfitContractImplContainer.ProfitContractImplStub creator,
+        Address beneficiary)
+    {
+        await creator.RemoveBeneficiary.SendAsync(new RemoveBeneficiaryInput
+        {
+            Beneficiary = beneficiary,
+            SchemeId = _schemeId
+        });
     }
 }
