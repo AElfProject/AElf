@@ -9,4 +9,5 @@ public class PeerConnectionInfo
     public Timestamp ConnectionTime { get; set; }
     public bool IsInbound { get; set; }
     public byte[] SessionId { get; set; }
+    public string NodeVersion { get; set; }
 }

@@ -164,6 +164,14 @@ public partial class MultiTokenContractTests
         afterInitializedDeveloperFeeController.ParliamentController.ShouldNotBeNull();
         afterInitializedDeveloperFeeController.RootController.ShouldNotBeNull();
     }
+    
+    [Fact(DisplayName = "[MultiToken] illegal controller try to set free allowances")]
+    public async Task ConfigMethodFeeFreeAllowances_Without_Authorization_Test()
+    {
+        var configMethodFeeFreeAllowancesRet =
+            await TokenContractStub.ConfigMethodFeeFreeAllowances.SendWithExceptionAsync(new MethodFeeFreeAllowancesConfig());
+        configMethodFeeFreeAllowancesRet.TransactionResult.Error.ShouldContain("Unauthorized behavior.");
+    }
 
     [Fact]
     public async Task DonateResourceToken_Without_Authorized_Test()

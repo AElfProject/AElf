@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using AElf.Standards.ACS0;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
@@ -12,7 +13,6 @@ using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Proposal;
 using AElf.Kernel.Token;
-using AElf.Standards.ACS0;
 using AElf.Types;
 using Google.Protobuf;
 using Volo.Abp.Threading;
@@ -25,9 +25,7 @@ public class ProfitContractTestBase : ContractTestBase<ProfitContractTestAElfMod
     protected ECKeyPair StarterKeyPair => Accounts[0].KeyPair;
     protected Address Starter => Accounts[0].Address;
 
-    protected List<ECKeyPair> InitialCoreDataCenterKeyPairs =>
-        Accounts.Take(5).Select(a => a.KeyPair).ToList();
-
+    protected List<ECKeyPair> InitialCoreDataCenterKeyPairs => Accounts.Take(5).Select(a => a.KeyPair).ToList();
     protected Address TokenContractAddress { get; set; }
     protected Address ProfitContractAddress { get; set; }
 
@@ -36,10 +34,12 @@ public class ProfitContractTestBase : ContractTestBase<ProfitContractTestAElfMod
     protected Address ConsensusContractAddress { get; set; }
 
     internal List<ProfitContractImplContainer.ProfitContractImplStub> Creators => CreatorKeyPair
-        .Select(p => GetTester<ProfitContractImplContainer.ProfitContractImplStub>(ProfitContractAddress, p)).ToList();
+        .Select(p => GetTester<ProfitContractImplContainer.ProfitContractImplStub>(ProfitContractAddress, p))
+        .ToList();
 
     internal List<ProfitContractImplContainer.ProfitContractImplStub> Normal => NormalKeyPair
-        .Select(p => GetTester<ProfitContractImplContainer.ProfitContractImplStub>(ProfitContractAddress, p)).ToList();
+        .Select(p => GetTester<ProfitContractImplContainer.ProfitContractImplStub>(ProfitContractAddress, p))
+        .ToList();
 
     protected List<ECKeyPair> CreatorKeyPair => Accounts.Skip(1).Take(4).Select(a => a.KeyPair).ToList();
 
@@ -54,6 +54,11 @@ public class ProfitContractTestBase : ContractTestBase<ProfitContractTestAElfMod
     internal ParliamentContractImplContainer.ParliamentContractImplStub ParliamentContractStub { get; set; }
 
     internal AEDPoSContractImplContainer.AEDPoSContractImplStub AEDPoSContractStub { get; set; }
+
+    public ProfitContractTestBase()
+    {
+        InitializeContracts();
+    }
 
     protected void InitializeContracts()
     {
@@ -122,7 +127,8 @@ public class ProfitContractTestBase : ContractTestBase<ProfitContractTestAElfMod
         return GetTester<ProfitContractImplContainer.ProfitContractImplStub>(ProfitContractAddress, keyPair);
     }
 
-    internal ParliamentContractImplContainer.ParliamentContractImplStub GetParliamentContractTester(ECKeyPair keyPair)
+    internal ParliamentContractImplContainer.ParliamentContractImplStub GetParliamentContractTester(
+        ECKeyPair keyPair)
     {
         return GetTester<ParliamentContractImplContainer.ParliamentContractImplStub>(ParliamentContractAddress,
             keyPair);
@@ -164,7 +170,7 @@ public class ProfitContractTestBase : ContractTestBase<ProfitContractTestAElfMod
             Symbol = symbol,
             Amount = (long)(ProfitContractTestConstants.NativeTokenTotalSupply * 0.12),
             To = Address.FromPublicKey(StarterKeyPair.PublicKey),
-            Memo = "Issue token to default user for vote."
+            Memo = "Issue token to default user for vote.",
         });
 
         CreatorKeyPair.ForEach(creatorKeyPair => tokenContractCallList.Add(nameof(TokenContract.Issue),

@@ -62,7 +62,7 @@ public partial class ElectionContractTests
         // candidateKeyPair not announced election yet.
         {
             var transactionResult =
-                await VoteToCandidate(voterKeyPair, candidateKeyPair.PublicKey.ToHex(), 120 * 86400, 100);
+                await VoteToCandidateAsync(voterKeyPair, candidateKeyPair.PublicKey.ToHex(), 120 * 86400, 100);
 
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.Error.ShouldContain("Candidate not found");
@@ -78,16 +78,16 @@ public partial class ElectionContractTests
                 Symbol = "ELF"
             })).Balance;
             var transactionResult =
-                await VoteToCandidate(voterKeyPair, candidateKeyPair.PublicKey.ToHex(), 120 * 86400, voterBalance + 10);
+                await VoteToCandidateAsync(voterKeyPair, candidateKeyPair.PublicKey.ToHex(), 120 * 86400, voterBalance + 10);
 
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.Error.ShouldContain("Insufficient balance");
         }
 
-        // Lock time is less than 90 days
+        // Lock time is less than 7 days
         {
             var transactionResult =
-                await VoteToCandidate(voterKeyPair, candidateKeyPair.PublicKey.ToHex(), 80 * 86400, 1000);
+                await VoteToCandidateAsync(voterKeyPair, candidateKeyPair.PublicKey.ToHex(), 5 * 86400, 1000);
 
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.Error.ShouldContain("lock time");
@@ -106,7 +106,7 @@ public partial class ElectionContractTests
         var lockTime = 120 * 60 * 60 * 24;
         var candidate = ValidationDataCenterKeyPairs.First();
         await AnnounceElectionAsync(candidate);
-        await VoteToCandidate(voter, candidate.PublicKey.ToHex(), lockTime, voteAmount);
+        await VoteToCandidateAsync(voter, candidate.PublicKey.ToHex(), lockTime, voteAmount);
         var electionVoteItemId = await ElectionContractStub.GetMinerElectionVotingItemId.CallAsync(new Empty());
         var voteIdOfVoter = await VoteContractStub.GetVotingIds.CallAsync(new GetVotingIdsInput
         {
@@ -256,7 +256,7 @@ public partial class ElectionContractTests
         var lockTime = 120 * 60 * 60 * 24;
         var candidate = ValidationDataCenterKeyPairs.First();
         await AnnounceElectionAsync(candidate);
-        await VoteToCandidate(voter, candidate.PublicKey.ToHex(), lockTime, voteAmount);
+        await VoteToCandidateAsync(voter, candidate.PublicKey.ToHex(), lockTime, voteAmount);
         var victories = await ElectionContractStub.GetVictories.CallAsync(new Empty());
         victories.Value.Contains(ByteStringHelper.FromHexString(candidate.PublicKey.ToHex())).ShouldBeTrue();
         await NextTerm(InitialCoreDataCenterKeyPairs[0]);
@@ -277,7 +277,7 @@ public partial class ElectionContractTests
         var lockTime = 120 * 60 * 60 * 24;
         var candidate = ValidationDataCenterKeyPairs.First();
         await AnnounceElectionAsync(candidate);
-        await VoteToCandidate(voter, candidate.PublicKey.ToHex(), lockTime, voteAmount);
+        await VoteToCandidateAsync(voter, candidate.PublicKey.ToHex(), lockTime, voteAmount);
         var electionVoteItemId = await ElectionContractStub.GetMinerElectionVotingItemId.CallAsync(new Empty());
         var voteIdOfVoter = await VoteContractStub.GetVotingIds.CallAsync(new GetVotingIdsInput
         {
@@ -302,7 +302,7 @@ public partial class ElectionContractTests
         var lockTime = 120 * 60 * 60 * 24;
         var candidate = ValidationDataCenterKeyPairs.First();
         await AnnounceElectionAsync(candidate);
-        await VoteToCandidate(voter, candidate.PublicKey.ToHex(), lockTime, voteAmount);
+        await VoteToCandidateAsync(voter, candidate.PublicKey.ToHex(), lockTime, voteAmount);
         var electionVoteItemId = await ElectionContractStub.GetMinerElectionVotingItemId.CallAsync(new Empty());
         var voteIdOfVoter = await VoteContractStub.GetVotingIds.CallAsync(new GetVotingIdsInput
         {
@@ -394,7 +394,7 @@ public partial class ElectionContractTests
 
         var voter = VoterKeyPairs.First();
         await
-            VoteToCandidate(voter, newCandidate.PublicKey.ToHex(), 100 * 86400, 200);
+            VoteToCandidateAsync(voter, newCandidate.PublicKey.ToHex(), 100 * 86400, 200);
 
         var victories = await ElectionContractStub.GetVictories.CallAsync(new Empty());
         victories.Value.Select(o => o.ToHex()).ShouldContain(newCandidate.PublicKey.ToHex());
@@ -416,7 +416,7 @@ public partial class ElectionContractTests
         var validCandidates = ValidationDataCenterKeyPairs
             .Take(EconomicContractsTestConstants.InitialCoreDataCenterCount - 1).ToList();
         foreach (var keyPair in validCandidates)
-            await VoteToCandidate(VoterKeyPairs[0], keyPair.PublicKey.ToHex(), 100 * 86400, amount);
+            await VoteToCandidateAsync(VoterKeyPairs[0], keyPair.PublicKey.ToHex(), 100 * 86400, amount);
 
         foreach (var votedFullNodeKeyPair in ValidationDataCenterKeyPairs.Take(EconomicContractsTestConstants
                      .InitialCoreDataCenterCount - 1))
@@ -453,7 +453,7 @@ public partial class ElectionContractTests
         var validCandidates = ValidationDataCenterKeyPairs
             .Take(EconomicContractsTestConstants.InitialCoreDataCenterCount).ToList();
         foreach (var keyPair in validCandidates)
-            await VoteToCandidate(VoterKeyPairs[0], keyPair.PublicKey.ToHex(), 100 * 86400, 100);
+            await VoteToCandidateAsync(VoterKeyPairs[0], keyPair.PublicKey.ToHex(), 100 * 86400, 100);
 
         var victories = (await ElectionContractStub.GetVictories.CallAsync(new Empty())).Value
             .Select(p => p.ToHex()).ToList();
@@ -472,13 +472,13 @@ public partial class ElectionContractTests
         var moreVotesCandidates = ValidationDataCenterKeyPairs
             .Take(EconomicContractsTestConstants.InitialCoreDataCenterCount).ToList();
         foreach (var keyPair in moreVotesCandidates)
-            await VoteToCandidate(VoterKeyPairs[0], keyPair.PublicKey.ToHex(), 100 * 86400, 2);
+            await VoteToCandidateAsync(VoterKeyPairs[0], keyPair.PublicKey.ToHex(), 100 * 86400, 2);
 
         var lessVotesCandidates = ValidationDataCenterKeyPairs
             .Skip(EconomicContractsTestConstants.InitialCoreDataCenterCount)
             .Take(EconomicContractsTestConstants.InitialCoreDataCenterCount).ToList();
         foreach (var candidate in lessVotesCandidates)
-            await VoteToCandidate(VoterKeyPairs[0], candidate.PublicKey.ToHex(), 100 * 86400, 1);
+            await VoteToCandidateAsync(VoterKeyPairs[0], candidate.PublicKey.ToHex(), 100 * 86400, 1);
 
         var victories = (await ElectionContractStub.GetVictories.CallAsync(new Empty())).Value
             .Select(p => p.ToHex()).ToList();
