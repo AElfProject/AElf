@@ -1,19 +1,17 @@
-using AElf.Kernel;
 using AElf.Types;
 
-namespace AElf.OS.Network.Events
-{
-    public class PeerConnectedEventData
-    {
-        public NodeInfo NodeInfo { get; }
-        public Hash BestChainHash { get; }
-        public long BestChainHeight { get; }
+namespace AElf.OS.Network.Events;
 
-        public PeerConnectedEventData(NodeInfo nodeInfo, Hash bestChainHash, long bestChainHeight)
-        {
-            NodeInfo = nodeInfo;
-            BestChainHash = bestChainHash;
-            BestChainHeight = bestChainHeight;
-        }
+public class PeerConnectedEventData
+{
+    public PeerConnectedEventData(NodeInfo nodeInfo, Hash bestChainHash, long bestChainHeight)
+    {
+        NodeInfo = nodeInfo;
+        BestChainHash = bestChainHash;
+        BestChainHeight = bestChainHeight;
     }
+
+    public NodeInfo NodeInfo { get; }
+    public Hash BestChainHash { get; }
+    public long BestChainHeight { get; }
 }

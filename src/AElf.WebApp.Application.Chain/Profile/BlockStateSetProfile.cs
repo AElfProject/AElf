@@ -1,13 +1,13 @@
 using AElf.Kernel;
 using AElf.WebApp.Application.Chain.Dto;
+using AutoMapper;
 
-namespace AElf.WebApp.Application.Chain
+namespace AElf.WebApp.Application.Chain;
+
+public class BlockStateSetProfile : Profile
 {
-    public class BlockStateSetProfile: AutoMapper.Profile
+    public BlockStateSetProfile()
     {
-        public BlockStateSetProfile()
-        {
-            CreateMap<BlockStateSet, BlockStateDto>();
-        }
+        CreateMap<BlockStateSet, BlockStateDto>();
     }
 }

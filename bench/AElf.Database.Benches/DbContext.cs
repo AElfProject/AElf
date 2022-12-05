@@ -1,6 +1,5 @@
-namespace AElf.Database.Benches
+namespace AElf.Database.Benches;
+
+internal class DbContext : KeyValueDbContext<DbContext>
 {
-    class DbContext : KeyValueDbContext<DbContext>
-    {
-    }
 }

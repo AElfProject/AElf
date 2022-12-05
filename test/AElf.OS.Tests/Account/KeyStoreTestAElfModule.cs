@@ -8,31 +8,30 @@ using Moq;
 using Volo.Abp;
 using Volo.Abp.Modularity;
 
-namespace AElf.OS.Account
+namespace AElf.OS.Account;
+
+[DependsOn(
+    typeof(OSTestAElfModule)
+)]
+public class KeyStoreTestAElfModule : AElfModule
 {
-    [DependsOn(
-        typeof(OSTestAElfModule)
-    )]
-    public class KeyStoreTestAElfModule : AElfModule
+    public override void ConfigureServices(ServiceConfigurationContext context)
     {
-        public override void ConfigureServices(ServiceConfigurationContext context)
+        context.Services.AddSingleton(o =>
         {
-            context.Services.AddSingleton(o =>
-            {
-                var service = new Mock<INodeEnvironmentService>();
+            var service = new Mock<INodeEnvironmentService>();
 
-                service.Setup(s => s.GetAppDataPath())
-                    .Returns(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                        "aelftest"));
+            service.Setup(s => s.GetAppDataPath())
+                .Returns(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                    "aelftest"));
 
-                return service.Object;
-            });
+            return service.Object;
+        });
 
-            context.Services.AddSingleton<AElfKeyStore>();
-        }
+        context.Services.AddSingleton<AElfKeyStore>();
+    }
 
-        public override void OnApplicationInitialization(ApplicationInitializationContext context)
-        {
-        }
+    public override void OnApplicationInitialization(ApplicationInitializationContext context)
+    {
     }
 }

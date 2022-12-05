@@ -1,8 +1,8 @@
 using AElf.Contracts.TestContract.BasicFunction;
 
-namespace AElf.Contracts.TestContract.BasicSecurity
+namespace AElf.Contracts.TestContract.BasicSecurity;
+
+public partial class BasicSecurityContractState
 {
-        public partial class BasicSecurityContractState        {
-            internal BasicFunctionContractContainer.BasicFunctionContractReferenceState BasicFunctionContract { get; set; }
-        }
+    internal BasicFunctionContractContainer.BasicFunctionContractReferenceState BasicFunctionContract { get; set; }
 }

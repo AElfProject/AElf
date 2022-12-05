@@ -1,70 +1,69 @@
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.Contracts.TestContract.BasicFunctionWithParallel
+namespace AElf.Contracts.TestContract.BasicFunctionWithParallel;
+
+/// <summary>
+///     View methods
+/// </summary>
+public partial class BasicFunctionWithParallelContract
 {
-    /// <summary>
-    /// View methods
-    /// </summary>
-    public partial class BasicFunctionWithParallelContract
+    public override StringValue GetContractName(Empty input)
     {
-        public override StringValue GetContractName(Empty input)
+        return new StringValue
         {
-            return new StringValue
-            {
-                Value = nameof(BasicFunctionWithParallelContract)
-            };
-        }
+            Value = nameof(BasicFunctionWithParallelContract)
+        };
+    }
 
-        public override MoneyOutput QueryWinMoney(Empty input)
+    public override MoneyOutput QueryWinMoney(Empty input)
+    {
+        return new MoneyOutput
         {
-            return new MoneyOutput
-            {
-                Int64Value = State.TotalBetBalance.Value
-            };
-        }
+            Int64Value = State.TotalBetBalance.Value
+        };
+    }
 
-        public override MoneyOutput QueryRewardMoney(Empty input)
+    public override MoneyOutput QueryRewardMoney(Empty input)
+    {
+        return new MoneyOutput
         {
-            return new MoneyOutput
-            {
-                Int64Value = State.RewardBalance.Value
-            };
-        }
+            Int64Value = State.RewardBalance.Value
+        };
+    }
 
-        public override MoneyOutput QueryUserWinMoney(Address address)
+    public override MoneyOutput QueryUserWinMoney(Address address)
+    {
+        return new MoneyOutput
         {
-            return new MoneyOutput
-            {
-                Int64Value = State.WinnerHistory[address]
-            };
-        }
+            Int64Value = State.WinnerHistory[address]
+        };
+    }
 
-        public override MoneyOutput QueryUserLoseMoney(Address address)
+    public override MoneyOutput QueryUserLoseMoney(Address address)
+    {
+        return new MoneyOutput
         {
-            return new MoneyOutput
-            {
-                Int64Value = State.LoserHistory[address]
-            };
-        }
+            Int64Value = State.LoserHistory[address]
+        };
+    }
 
-        public override TwoUserMoneyOut QueryTwoUserWinMoney(QueryTwoUserWinMoneyInput input)
+    public override TwoUserMoneyOut QueryTwoUserWinMoney(QueryTwoUserWinMoneyInput input)
+    {
+        return new TwoUserMoneyOut
         {
-            return new TwoUserMoneyOut
-            {
-                FirstInt64Value = State.WinnerHistory[input.First],
-                SecondInt64Value = State.WinnerHistory[input.Second]
-            };
-        }
+            FirstInt64Value = State.WinnerHistory[input.First],
+            SecondInt64Value = State.WinnerHistory[input.Second]
+        };
+    }
 
-        public override GetValueOutput GetValue(GetValueInput input)
+    public override GetValueOutput GetValue(GetValueInput input)
+    {
+        return new GetValueOutput
         {
-            return new GetValueOutput
-            {
-                StringValue = State.StringValueMap[input.Key] ?? string.Empty,
-                Int64Value = State.LongValueMap[input.Key],
-                MessageValue = State.MessageValueMap[input.Key]
-            };
-        }
+            StringValue = State.StringValueMap[input.Key] ?? string.Empty,
+            Int64Value = State.LongValueMap[input.Key],
+            MessageValue = State.MessageValueMap[input.Key]
+        };
     }
 }

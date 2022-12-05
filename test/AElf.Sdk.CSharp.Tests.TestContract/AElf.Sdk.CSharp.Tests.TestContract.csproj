@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <TargetFramework>netstandard2.0</TargetFramework>
+        <TargetFramework>net6.0</TargetFramework>
         <RootNamespace>AElf.Sdk.CSharp.Tests.TestContract2</RootNamespace>
         <IsPackable>false</IsPackable>
     </PropertyGroup>

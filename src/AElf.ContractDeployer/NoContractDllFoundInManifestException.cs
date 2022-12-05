@@ -1,8 +1,7 @@
 using System;
 
-namespace AElf.ContractDeployer
+namespace AElf.ContractDeployer;
+
+public class NoContractDllFoundInManifestException : Exception
 {
-    public class NoContractDllFoundInManifestException : Exception
-    {
-    }
 }

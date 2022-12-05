@@ -1,12 +1,11 @@
 using AElf.Kernel;
 
-namespace AElf.ContractTestKit
+namespace AElf.ContractTestKit;
+
+public static class SmartContractTestConstants
 {
-    public static class SmartContractTestConstants
-    {
-        /// <summary>
-        /// 30 means use default assembly loader context, for code coverage
-        /// </summary>
-        public const int TestRunnerCategory = KernelConstants.CodeCoverageRunnerCategory;
-    }
+    /// <summary>
+    ///     30 means use default assembly loader context, for code coverage
+    /// </summary>
+    public const int TestRunnerCategory = KernelConstants.CodeCoverageRunnerCategory;
 }

@@ -1,6 +1,7 @@
 # Vote Contract
 
-## Actions 
+## Actions
+
 <details>
 
   <summary><b>InitialVoteContract</b></summary>
@@ -41,25 +42,29 @@ For a `Sponsor` to register / create a voting event.
 
 - If `Delegated` is true, it means the sender address of `Vote` transaction must be the address of `Sponsor`.
 
-- If `StartTimestamp` of input value is smaller than current block time, will use current block time as `StartTimestamp`.
+- If `StartTimestamp` of input value is smaller than current block time, will use current block time as `StartTimestamp`
+  .
 
-- Cannot create a voting event with maximum active time but only 1 epoch. This means voter can never with their votes. Also, voters cannot vote to a voting event with maximum active time in its last epoch.
+- Cannot create a voting event with maximum active time but only 1 epoch. This means voter can never with their votes.
+  Also, voters cannot vote to a voting event with maximum active time in its last epoch.
 
-- Anyway, voters can withdraw their votes after a certain days according to the value of `VoteContractConsts.MaxActiveDays`.
+- Anyway, voters can withdraw their votes after a certain days according to the value
+  of `VoteContractConsts.MaxActiveDays`.
 
 </details>
 
 <details>
 
   <summary><b>Vote</b></summary>
-  
+
 ### Purpose
 
 For a `Voter` to vote for a voting going (a epoch of a voting event).
 
 ### Notes
 
-- Basically, a voting behaviour is to update related `VotingResult` and `VotingHistories`, also add a new `VotingRecord`.
+- Basically, a voting behaviour is to update related `VotingResult` and `VotingHistories`, also add a new `VotingRecord`
+  .
 
 - `VotingHistories` contains vote histories of all `VotingEvent`s - more precisely - `VotingGoing`s of a voter.
 
@@ -69,8 +74,8 @@ For a `Voter` to vote for a voting going (a epoch of a voting event).
 
 - We can get a certain `VotingRecord` by providing transaction id of `Vote` transaction, which actually called `VoteId`.
 
-- This method will only lock token if voting event isn't delegated. Delegated voting event should lock in higher level contract, like `Election Contract`.
-
+- This method will only lock token if voting event isn't delegated. Delegated voting event should lock in higher level
+  contract, like `Election Contract`.
 
 </details>
 
@@ -86,11 +91,13 @@ For a `Voter` to withdraw his previous votes.
 
 - Will update related `VotingResult` and `VotingRecord`.
 
-- Unlock token logic is same as `Vote` method, delegated voting event should unlock token on 
+- Unlock token logic is same as `Vote` method, delegated voting event should unlock token on
 
-- Cannot withdraw votes of on-going voting events, it means `EpochNumber` of `VotingRecord` must be less than `CurrentEpoch` of `VotingEvent`.
+- Cannot withdraw votes of on-going voting events, it means `EpochNumber` of `VotingRecord` must be less
+  than `CurrentEpoch` of `VotingEvent`.
 
-- Extra limitation of voters withdrawing their votes should be coded in higher level contract. Like in `Election Contract`, voters need to keep locking their tokens at least for several epoches (terms).
+- Extra limitation of voters withdrawing their votes should be coded in higher level contract. Like
+  in `Election Contract`, voters need to keep locking their tokens at least for several epoches (terms).
 
 </details>
 
@@ -110,7 +117,8 @@ For the `Sponsor` to update epoch number.
 
 - After updating, votes of previous epoch is possible withdrawable for voters.
 
-- When `TotalEpoch` of `VotingEvent` is `x`, if the `Sponsor` set `EpochNumber` to `x + 1`, the whole voting event will be regarded as terminated immediately.
+- When `TotalEpoch` of `VotingEvent` is `x`, if the `Sponsor` set `EpochNumber` to `x + 1`, the whole voting event will
+  be regarded as terminated immediately.
 
 </details>
 

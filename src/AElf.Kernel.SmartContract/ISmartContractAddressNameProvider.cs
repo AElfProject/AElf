@@ -1,11 +1,10 @@
 using AElf.Types;
 
-namespace AElf.Kernel.SmartContract
+namespace AElf.Kernel.SmartContract;
+
+public interface ISmartContractAddressNameProvider
 {
-    public interface ISmartContractAddressNameProvider 
-    {
-        Hash ContractName { get; }
-        
-        string ContractStringName { get; }
-    }
+    Hash ContractName { get; }
+
+    string ContractStringName { get; }
 }

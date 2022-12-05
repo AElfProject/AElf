@@ -1,12 +1,11 @@
 using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.Kernel.Consensus.Application
+namespace AElf.Kernel.Consensus.Application;
+
+// ReSharper disable UnusedParameter.Global
+public interface ITriggerInformationProvider
 {
-    // ReSharper disable UnusedParameter.Global
-    public interface ITriggerInformationProvider
-    {
-        BytesValue GetTriggerInformationForConsensusCommand(BytesValue consensusCommandBytes);
-        BytesValue GetTriggerInformationForBlockHeaderExtraData(BytesValue consensusCommandBytes);
-        BytesValue GetTriggerInformationForConsensusTransactions(BytesValue consensusCommandBytes);
-    }
+    BytesValue GetTriggerInformationForConsensusCommand(BytesValue consensusCommandBytes);
+    BytesValue GetTriggerInformationForBlockHeaderExtraData(BytesValue consensusCommandBytes);
+    BytesValue GetTriggerInformationForConsensusTransactions(BytesValue consensusCommandBytes);
 }

@@ -1,8 +1,7 @@
-namespace AElf.OS
+namespace AElf.OS;
+
+public class AccountOptions
 {
-    public class AccountOptions
-    {
-        public string NodeAccount { get; set; }
-        public string NodeAccountPassword { get; set; }
-    }
+    public string NodeAccount { get; set; }
+    public string NodeAccountPassword { get; set; }
 }

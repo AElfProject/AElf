@@ -4,29 +4,30 @@ using Google.Protobuf;
 using Shouldly;
 using Xunit;
 
-namespace AElf.CSharp.Core
+namespace AElf.CSharp.Core;
+
+public class MethodTests : TypesCSharpTestBase
 {
-    public class MethodTests : TypesCSharpTestBase
+    [Fact]
+    public void Method_Test()
     {
-        [Fact]
-        public void Method_Test()
-        {
-            var method = CreateMethod();
-            
-            method.ServiceName.ShouldBe(nameof(TestContract));
-            method.Type.ShouldBe(MethodType.Action);
-        }
-        
-        private Method<StringInput, StringOutput> CreateMethod()
-        {
-            Func<StringInput, byte[]> serializer = input => input.ToByteArray();
-            Func<byte[], StringInput> deserializer = input => StringInput.Parser.ParseFrom(input);
-            
-            Func<StringOutput, byte[]> serializer1 = input => input.ToByteArray();
-            Func<byte[], StringOutput> deserializer1 = input => StringOutput.Parser.ParseFrom(input);
-            
-            return new Method<StringInput, StringOutput>(MethodType.Action, nameof(TestContract), nameof(TestContract.TestStringState),
-                new Marshaller<StringInput>(serializer, deserializer), new Marshaller<StringOutput>(serializer1, deserializer1));
-        }
+        var method = CreateMethod();
+
+        method.ServiceName.ShouldBe(nameof(TestContract));
+        method.Type.ShouldBe(MethodType.Action);
+    }
+
+    private Method<StringInput, StringOutput> CreateMethod()
+    {
+        Func<StringInput, byte[]> serializer = input => input.ToByteArray();
+        Func<byte[], StringInput> deserializer = input => StringInput.Parser.ParseFrom(input);
+
+        Func<StringOutput, byte[]> serializer1 = input => input.ToByteArray();
+        Func<byte[], StringOutput> deserializer1 = input => StringOutput.Parser.ParseFrom(input);
+
+        return new Method<StringInput, StringOutput>(MethodType.Action, nameof(TestContract),
+            nameof(TestContract.TestStringState),
+            new Marshaller<StringInput>(serializer, deserializer),
+            new Marshaller<StringOutput>(serializer1, deserializer1));
     }
 }

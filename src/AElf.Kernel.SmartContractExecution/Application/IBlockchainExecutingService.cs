@@ -1,10 +1,9 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace AElf.Kernel.SmartContractExecution.Application
+namespace AElf.Kernel.SmartContractExecution.Application;
+
+public interface IBlockchainExecutingService
 {
-    public interface IBlockchainExecutingService
-    {
-        Task<BlockExecutionResult> ExecuteBlocksAsync(IEnumerable<Block> blocks);
-    }
+    Task<BlockExecutionResult> ExecuteBlocksAsync(IEnumerable<Block> blocks);
 }

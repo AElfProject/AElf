@@ -4,19 +4,18 @@ using AElf.Types;
 using Google.Protobuf.Reflection;
 using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.Kernel.SmartContract.Application
+namespace AElf.Kernel.SmartContract.Application;
+
+public interface ITransactionReadOnlyExecutionService
 {
-    public interface ITransactionReadOnlyExecutionService
-    {
-        Task<TransactionTrace> ExecuteAsync(IChainContext chainContext, Transaction transaction,
-            Timestamp currentBlockTime);
+    Task<TransactionTrace> ExecuteAsync(IChainContext chainContext, Transaction transaction,
+        Timestamp currentBlockTime);
 
-        Task<byte[]> GetFileDescriptorSetAsync(IChainContext chainContext, Address address);
+    Task<byte[]> GetFileDescriptorSetAsync(IChainContext chainContext, Address address);
 
-        Task<IEnumerable<FileDescriptor>> GetFileDescriptorsAsync(IChainContext chainContext, Address address);
+    Task<IEnumerable<FileDescriptor>> GetFileDescriptorsAsync(IChainContext chainContext, Address address);
 
-        Task<string> GetTransactionParametersAsync(IChainContext chainContext, Transaction transaction);
+    Task<string> GetTransactionParametersAsync(IChainContext chainContext, Transaction transaction);
 
-        Task<bool> IsViewTransactionAsync(IChainContext chainContext, Transaction transaction);
-    }
+    Task<bool> IsViewTransactionAsync(IChainContext chainContext, Transaction transaction);
 }

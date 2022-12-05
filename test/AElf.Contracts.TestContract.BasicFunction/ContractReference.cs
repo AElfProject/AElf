@@ -1,9 +1,8 @@
 using AElf.Contracts.MultiToken;
 
-namespace AElf.Contracts.TestContract.BasicFunction
+namespace AElf.Contracts.TestContract.BasicFunction;
+
+public partial class BasicFunctionContractState
 {
-    public partial class BasicFunctionContractState
-    {
-        internal TokenContractImplContainer.TokenContractImplReferenceState TokenContract { get; set; }
-    }
+    internal TokenContractImplContainer.TokenContractImplReferenceState TokenContract { get; set; }
 }

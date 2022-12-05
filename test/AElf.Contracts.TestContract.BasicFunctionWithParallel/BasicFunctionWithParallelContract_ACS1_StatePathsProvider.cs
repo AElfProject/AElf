@@ -1,19 +1,17 @@
 ﻿using AElf.Standards.ACS1;
 using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.Contracts.TestContract.BasicFunctionWithParallel
+namespace AElf.Contracts.TestContract.BasicFunctionWithParallel;
+
+public partial class BasicFunctionWithParallelContract
 {
-    public partial class BasicFunctionWithParallelContract
+    public override MethodFees GetMethodFee(StringValue input)
     {
-        public override MethodFees GetMethodFee(StringValue input)
-        {
-            return new MethodFees();
-        }
+        return new MethodFees();
+    }
 
-        public override Empty SetMethodFee(MethodFees input)
-        {
-            return new Empty();
-        }
-
+    public override Empty SetMethodFee(MethodFees input)
+    {
+        return new Empty();
     }
 }

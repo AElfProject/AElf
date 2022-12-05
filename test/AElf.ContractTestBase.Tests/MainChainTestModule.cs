@@ -3,17 +3,16 @@ using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp;
 using Volo.Abp.Modularity;
 
-namespace AElf.ContractTestBase.Tests
+namespace AElf.ContractTestBase.Tests;
+
+[DependsOn(
+    typeof(MainChainContractTestModule)
+)]
+public class MainChainTestModule : MainChainContractTestModule
 {
-    [DependsOn(
-        typeof(MainChainContractTestModule)
-    )]
-    public class MainChainTestModule : MainChainContractTestModule
+    public override void OnPreApplicationInitialization(ApplicationInitializationContext context)
     {
-        public override void OnPreApplicationInitialization(ApplicationInitializationContext context)
-        {
-            var contractCodeProvider = context.ServiceProvider.GetService<IContractCodeProvider>();
-            contractCodeProvider.Codes = ContractsDeployer.GetContractCodes<MainChainTestModule>();
-        }
+        var contractCodeProvider = context.ServiceProvider.GetService<IContractCodeProvider>();
+        contractCodeProvider.Codes = ContractsDeployer.GetContractCodes<MainChainTestModule>();
     }
 }

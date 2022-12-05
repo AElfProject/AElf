@@ -1,10 +1,9 @@
 using System.Threading.Tasks;
 
-namespace AElf.Kernel.Node.Infrastructure
+namespace AElf.Kernel.Node.Infrastructure;
+
+public interface INodePlugin
 {
-    public interface INodePlugin
-    {
-        Task StartAsync(int chainId);
-        Task ShutdownAsync();
-    }
+    Task StartAsync(int chainId);
+    Task ShutdownAsync();
 }

@@ -1,16 +1,18 @@
-namespace AElf.OS.Network.Application
+namespace AElf.OS.Network.Application;
+
+public class Response<T>
 {
-    public class Response<T>
+    public Response()
     {
-        public bool Success { get; }
-        public T Payload { get; }
-
-        public Response() { /* for unsuccessful responses */ }
-
-        public Response(T payload)
-        {
-            Success = true;
-            Payload = payload;
-        }
+        /* for unsuccessful responses */
     }
+
+    public Response(T payload)
+    {
+        Success = true;
+        Payload = payload;
+    }
+
+    public bool Success { get; }
+    public T Payload { get; }
 }

@@ -9,109 +9,108 @@ using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.CSharp.CodeOps.Instructions
+namespace AElf.CSharp.CodeOps.Instructions;
+
+public interface IStateWrittenInstructionInjector
 {
-    public interface IStateWrittenInstructionInjector
+    bool IdentifyInstruction(Instruction instruction);
+
+    void InjectInstruction(ILProcessor ilProcessor, Instruction originInstruction,
+        ModuleDefinition moduleDefinition);
+
+    bool ValidateInstruction(ModuleDefinition moduleDefinition, Instruction instruction);
+}
+
+public class StateWrittenInstructionInjector : IStateWrittenInstructionInjector, ITransientDependency
+{
+    private static readonly ReadOnlyDictionary<string, HashSet<string>> MethodCallsIdentifications =
+        new ReadOnlyDictionary<string, HashSet<string>>(
+            new Dictionary<string, HashSet<string>>
+            {
+                {typeof(SingletonState).FullName, new HashSet<string> {"set_Value"}},
+                {typeof(ReadonlyState).FullName, new HashSet<string> {"set_Value"}},
+                {typeof(MappedState).FullName, new HashSet<string> {"set_Item", "Set"}}
+            });
+
+    private static readonly HashSet<string> PrimitiveTypes = new HashSet<string>
     {
-        bool IdentifyInstruction(Instruction instruction);
+        typeof(int).FullName, typeof(uint).FullName,
+        typeof(long).FullName, typeof(ulong).FullName,
+        typeof(bool).FullName
+    };
 
-        void InjectInstruction(ILProcessor ilProcessor, Instruction originInstruction,
-            ModuleDefinition moduleDefinition);
+    public bool IdentifyInstruction(Instruction instruction)
+    {
+        if (instruction.OpCode != OpCodes.Callvirt)
+            return false;
+        var methodReference = (MethodReference) instruction.Operand;
+        var declaringType = methodReference.DeclaringType.Resolve();
+        if (declaringType == null || !declaringType.HasGenericParameters)
+            return false;
 
-        bool ValidateInstruction(ModuleDefinition moduleDefinition, Instruction instruction);
+        var baseTypeFullName = declaringType.BaseType?.FullName;
+        if (baseTypeFullName == null ||
+            !MethodCallsIdentifications.TryGetValue(baseTypeFullName, out var methodNames) || 
+            !(methodReference.DeclaringType is GenericInstanceType genericType))
+            return false;
+        var argumentType = genericType.GenericArguments.Last().Resolve();
+        if (argumentType.IsEnum)
+            return false;
+            
+        var contains = PrimitiveTypes.Contains(argumentType.FullName);
+        return !contains && methodNames.Contains(methodReference.Name);
     }
 
-    public class StateWrittenInstructionInjector : IStateWrittenInstructionInjector, ITransientDependency
+
+    public void InjectInstruction(ILProcessor ilProcessor, Instruction originInstruction,
+        ModuleDefinition moduleDefinition)
     {
-        private static readonly ReadOnlyDictionary<string, HashSet<string>> MethodCallsIdentifications =
-            new ReadOnlyDictionary<string, HashSet<string>>(
-                new Dictionary<string, HashSet<string>>
-                {
-                    {typeof(SingletonState).FullName, new HashSet<string> {"set_Value"}},
-                    {typeof(ReadonlyState).FullName, new HashSet<string> {"set_Value"}},
-                    {typeof(MappedState).FullName, new HashSet<string> {"set_Item", "Set"}}
-                });
+        ilProcessor.Body.SimplifyMacros();
 
-        private static readonly HashSet<string> PrimitiveTypes = new HashSet<string>
+        var localValCount = ilProcessor.Body.Variables.Count;
+        ilProcessor.Body.Variables.Add(new VariableDefinition(moduleDefinition.ImportReference(typeof(object))));
+
+        var stocInstruction =
+            ilProcessor.Create(OpCodes.Stloc_S, ilProcessor.Body.Variables[localValCount]); // pop to local val 
+        ilProcessor.InsertBefore(originInstruction, stocInstruction);
+
+        var ldThisInstruction = ilProcessor.Create(OpCodes.Ldarg_0); // this
+        ilProcessor.InsertAfter(stocInstruction, ldThisInstruction);
+
+        var getContextInstruction = ilProcessor.Create(OpCodes.Call,
+            moduleDefinition.ImportReference(typeof(CSharpSmartContractAbstract).GetProperty("Context")
+                .GetMethod)); // get_Context
+        ilProcessor.InsertAfter(ldThisInstruction, getContextInstruction);
+
+        var ldlocInstruction =
+            ilProcessor.Create(OpCodes.Ldloc_S, ilProcessor.Body.Variables[localValCount]); // load local val
+        ilProcessor.InsertAfter(getContextInstruction, ldlocInstruction);
+
+        var callInstruction = ilProcessor.Create(OpCodes.Callvirt, moduleDefinition.ImportReference(
+            typeof(CSharpSmartContractContext).GetMethod(nameof(CSharpSmartContractContext.ValidateStateSize))));
+        ilProcessor.InsertAfter(ldlocInstruction, callInstruction);
+
+        ilProcessor.Body.OptimizeMacros();
+    }
+
+    public bool ValidateInstruction(ModuleDefinition moduleDefinition, Instruction instruction)
+    {
+        var methodDefinition = moduleDefinition.ImportReference(
+            typeof(CSharpSmartContractContext).GetMethod(nameof(CSharpSmartContractContext.ValidateStateSize)));
+
+        MethodReference stateSizeLimitInstruction;
+        try
         {
-            typeof(int).FullName, typeof(uint).FullName,
-            typeof(long).FullName, typeof(ulong).FullName,
-            typeof(bool).FullName
-        };
-
-        public bool IdentifyInstruction(Instruction instruction)
+            stateSizeLimitInstruction = (MethodReference) instruction.Previous?.Operand;
+        }
+        catch (InvalidCastException)
         {
-            if (instruction.OpCode != OpCodes.Callvirt)
-                return false;
-            var methodReference = (MethodReference) instruction.Operand;
-            var declaringType = methodReference.DeclaringType.Resolve();
-            if (declaringType == null || !declaringType.HasGenericParameters)
-                return false;
-
-            var baseTypeFullName = declaringType.BaseType?.FullName;
-            if (baseTypeFullName == null ||
-                !MethodCallsIdentifications.TryGetValue(baseTypeFullName, out var methodNames) || 
-                !(methodReference.DeclaringType is GenericInstanceType genericType))
-                return false;
-            var argumentType = genericType.GenericArguments.Last().Resolve();
-            if (argumentType.IsEnum)
-                return false;
+            return false;
+        }
             
-            var contains = PrimitiveTypes.Contains(argumentType.FullName);
-            return !contains && methodNames.Contains(methodReference.Name);
-        }
+        var result = !string.IsNullOrEmpty(stateSizeLimitInstruction?.FullName) &&
+                     methodDefinition.FullName == stateSizeLimitInstruction.FullName;
 
-
-        public void InjectInstruction(ILProcessor ilProcessor, Instruction originInstruction,
-            ModuleDefinition moduleDefinition)
-        {
-            ilProcessor.Body.SimplifyMacros();
-
-            var localValCount = ilProcessor.Body.Variables.Count;
-            ilProcessor.Body.Variables.Add(new VariableDefinition(moduleDefinition.ImportReference(typeof(object))));
-
-            var stocInstruction =
-                ilProcessor.Create(OpCodes.Stloc_S, ilProcessor.Body.Variables[localValCount]); // pop to local val 
-            ilProcessor.InsertBefore(originInstruction, stocInstruction);
-
-            var ldThisInstruction = ilProcessor.Create(OpCodes.Ldarg_0); // this
-            ilProcessor.InsertAfter(stocInstruction, ldThisInstruction);
-
-            var getContextInstruction = ilProcessor.Create(OpCodes.Call,
-                moduleDefinition.ImportReference(typeof(CSharpSmartContractAbstract).GetProperty("Context")
-                    .GetMethod)); // get_Context
-            ilProcessor.InsertAfter(ldThisInstruction, getContextInstruction);
-
-            var ldlocInstruction =
-                ilProcessor.Create(OpCodes.Ldloc_S, ilProcessor.Body.Variables[localValCount]); // load local val
-            ilProcessor.InsertAfter(getContextInstruction, ldlocInstruction);
-
-            var callInstruction = ilProcessor.Create(OpCodes.Callvirt, moduleDefinition.ImportReference(
-                typeof(CSharpSmartContractContext).GetMethod(nameof(CSharpSmartContractContext.ValidateStateSize))));
-            ilProcessor.InsertAfter(ldlocInstruction, callInstruction);
-
-            ilProcessor.Body.OptimizeMacros();
-        }
-
-        public bool ValidateInstruction(ModuleDefinition moduleDefinition, Instruction instruction)
-        {
-            var methodDefinition = moduleDefinition.ImportReference(
-                typeof(CSharpSmartContractContext).GetMethod(nameof(CSharpSmartContractContext.ValidateStateSize)));
-
-            MethodReference stateSizeLimitInstruction;
-            try
-            {
-                stateSizeLimitInstruction = (MethodReference) instruction.Previous?.Operand;
-            }
-            catch (InvalidCastException)
-            {
-                return false;
-            }
-            
-            var result = !string.IsNullOrEmpty(stateSizeLimitInstruction?.FullName) &&
-                         methodDefinition.FullName == stateSizeLimitInstruction.FullName;
-
-            return result;
-        }
+        return result;
     }
 }

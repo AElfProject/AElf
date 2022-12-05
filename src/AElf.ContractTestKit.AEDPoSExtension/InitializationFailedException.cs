@@ -1,15 +1,14 @@
 using System;
 
-namespace AElf.ContractTestKit.AEDPoSExtension
-{
-    public class InitializationFailedException : Exception
-    {
-        public InitializationFailedException(string message) : base(message)
-        {
-        }
+namespace AElf.ContractTestKit.AEDPoSExtension;
 
-        public InitializationFailedException(string message, string error) : base($"{message} {error}")
-        {
-        }
+public class InitializationFailedException : Exception
+{
+    public InitializationFailedException(string message) : base(message)
+    {
+    }
+
+    public InitializationFailedException(string message, string error) : base($"{message} {error}")
+    {
     }
 }

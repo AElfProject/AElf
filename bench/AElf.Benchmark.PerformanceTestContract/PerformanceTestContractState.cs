@@ -1,9 +1,7 @@
 using AElf.Sdk.CSharp.State;
 
-namespace AElf.Benchmark.PerformanceTestContract
+namespace AElf.Benchmark.PerformanceTestContract;
+
+public class PerformanceTestContractState : ContractState
 {
-    public class PerformanceTestContractState: ContractState
-    {
-        
-    }
 }

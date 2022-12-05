@@ -1,48 +1,48 @@
-using AElf.Types;
 using AElf.Kernel.SmartContract;
-namespace AElf.Sdk.CSharp.State
+using AElf.Types;
+
+namespace AElf.Sdk.CSharp.State;
+
+public class StateBase
 {
-    public class StateBase
+    private CSharpSmartContractContext _context;
+    private StatePath _path;
+    internal IStateProvider Provider => _context.StateProvider;
+
+    internal StatePath Path
     {
-        private StatePath _path;
-        private CSharpSmartContractContext _context;
-        internal IStateProvider Provider => _context.StateProvider;
-
-        internal StatePath Path
+        get => _path;
+        set
         {
-            get => _path;
-            set
-            {
-                _path = value;
-                OnPathSet();
-            }
+            _path = value;
+            OnPathSet();
         }
+    }
 
-        internal CSharpSmartContractContext Context
+    internal CSharpSmartContractContext Context
+    {
+        get => _context;
+        set
         {
-            get => _context;
-            set
-            {
-                _context = value;
-                OnContextSet();
-            }
+            _context = value;
+            OnContextSet();
         }
+    }
 
-        internal virtual void OnPathSet()
-        {
-        }
+    internal virtual void OnPathSet()
+    {
+    }
 
-        internal virtual void OnContextSet()
-        {
-        }
+    internal virtual void OnContextSet()
+    {
+    }
 
-        internal virtual void Clear()
-        {
-        }
+    internal virtual void Clear()
+    {
+    }
 
-        internal virtual TransactionExecutingStateSet GetChanges()
-        {
-            return new TransactionExecutingStateSet();
-        }
+    internal virtual TransactionExecutingStateSet GetChanges()
+    {
+        return new TransactionExecutingStateSet();
     }
 }
