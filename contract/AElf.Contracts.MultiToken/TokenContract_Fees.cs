@@ -43,6 +43,9 @@ public partial class TokenContract
             {
                 foreach (var (delegatee, delegations) in State.TransactionFeeDelegateesMap[fromAddress].Delegatees)
                 {
+                    // compare current block height with the block height when the delegatee added
+                    if (Context.CurrentHeight < delegations.BlockHeight + 2) continue;
+
                     var delegateeBill = new TransactionFeeBill();
                     var delegateeAllowanceBill = new TransactionFreeFeeAllowanceBill();
                     var delegateeAddress = Address.FromBase58(delegatee);

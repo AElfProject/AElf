@@ -55,6 +55,33 @@ public partial class TokenContract
                 return resourceInfo;
             }
 
+            case nameof(ChargeTransactionFees):
+            {
+                var args = ChargeTransactionFeesInput.Parser.ParseFrom(txn.Params);
+                var resourceInfo = new ResourceInfo();
+
+                foreach (var (delegatee, delegations) in State.TransactionFeeDelegateesMap[txn.From].Delegatees)
+                {
+                    foreach (var (symbol, amonut) in delegations.Delegations)
+                    {
+                        resourceInfo.WritePaths.Add(GetPath(nameof(TokenContractState.Balances), delegatee, symbol));
+                    }
+                }
+                
+                foreach (var (delegatee, delegations) in State.TransactionFeeDelegateesMap[txn.From].Delegatees)
+                {
+                    foreach (var (symbol, amonut) in delegations.Delegations)
+                    {
+                        resourceInfo.ReadPaths.Add(GetPath(nameof(TokenContractState.TokenInfos), symbol));
+                    }
+                }
+                
+                resourceInfo.ReadPaths.Add(GetPath(nameof(TokenContractState.ChainPrimaryTokenSymbol)));
+
+                AddPathForTransactionFee(resourceInfo, txn.From);
+                return resourceInfo;
+            }
+
             default:
                 return new ResourceInfo { NonParallelizable = true };
         }

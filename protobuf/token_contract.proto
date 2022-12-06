@@ -673,6 +673,8 @@ message MethodFeeFreeAllowance {
 message TransactionFeeDelegations{
     // delegation, symbols and its' amount
     map<string, int64> delegations = 1;
+    // height when added
+    int64 block_height = 2;
 }
 
 message TransactionFeeDelegatees{
