@@ -19,8 +19,7 @@ public partial class TokenContract
                 {
                     WritePaths =
                     {
-                        GetPath(nameof(TokenContractState.Balances), txn.From.ToString(), args.Symbol),
-                        GetPath(nameof(TokenContractState.Balances), args.To.ToString(), args.Symbol)
+                        GetPath(nameof(TokenContractState.Balances), txn.From.ToString(), args.Symbol)
                     },
                     ReadPaths =
                     {
@@ -28,7 +27,7 @@ public partial class TokenContract
                         GetPath(nameof(TokenContractState.ChainPrimaryTokenSymbol))
                     }
                 };
-
+                AddPathForDelegatees(resourceInfo, args, null, txn.From);
                 AddPathForTransactionFee(resourceInfo, txn.From);
                 return resourceInfo;
             }
@@ -40,8 +39,9 @@ public partial class TokenContract
                 {
                     WritePaths =
                     {
+                        GetPath(nameof(TokenContractState.Allowances), args.From.ToString(), txn.From.ToString(),
+                            args.Symbol),
                         GetPath(nameof(TokenContractState.Balances), args.From.ToString(), args.Symbol),
-                        GetPath(nameof(TokenContractState.Balances), args.To.ToString(), args.Symbol),
                         GetPath(nameof(TokenContractState.LockWhiteLists), args.Symbol, txn.From.ToString())
                     },
                     ReadPaths =
@@ -50,7 +50,7 @@ public partial class TokenContract
                         GetPath(nameof(TokenContractState.ChainPrimaryTokenSymbol))
                     }
                 };
-                AddPathForDelegatees(resourceInfo, args, txn.From);
+                AddPathForDelegatees(resourceInfo, null, args, txn.From);
                 AddPathForTransactionFee(resourceInfo, txn.From);
                 return resourceInfo;
             }
@@ -87,28 +87,40 @@ public partial class TokenContract
                 }
             }
         };
-    }
-
-    private void AddPathForDelegatees(ResourceInfo resourceInfo, TransferFromInput args, Address txnFrom)
+    } 
+    
+    private void AddPathForDelegatees(ResourceInfo resourceInfo, TransferInput transferInput, TransferFromInput transferFromInput, Address txnFrom)
     {
+        var toAddress = new Address();
+        var argsSymbol = "";
+
+        if (transferInput == null)
+        {
+            toAddress = transferFromInput.To;
+            argsSymbol = transferFromInput.Symbol;
+        }
+        else
+        {
+            toAddress = transferInput.To;
+            argsSymbol = transferFromInput.Symbol;
+        }
+
         var allDelegatees = State.TransactionFeeDelegateesMap[txnFrom];
         if (allDelegatees != null)
         {
-            foreach (var (delegatee, delegations) in allDelegatees.Delegatees)
+            foreach (var delegations in allDelegatees.Delegatees.Values)
             {
                 if (delegations == null) return;
                 foreach (var symbol in delegations.Delegations.Keys)
                 {
-                    resourceInfo.WritePaths.Add(GetPath(nameof(TokenContractState.Allowances), args.From.ToString(),
-                        delegatee, symbol));
+                    resourceInfo.WritePaths.Add(GetPath(nameof(TokenContractState.Balances), toAddress.ToString(), symbol));
                 }
             }
         }
 
         if (resourceInfo.WritePaths.Count == 0)
         {
-            resourceInfo.WritePaths.Add(GetPath(nameof(TokenContractState.Allowances), args.From.ToString(), txnFrom.ToString(),
-                args.Symbol));
+            resourceInfo.WritePaths.Add(GetPath(nameof(TokenContractState.Balances), toAddress.ToString(), argsSymbol));
         }
     }
 }
