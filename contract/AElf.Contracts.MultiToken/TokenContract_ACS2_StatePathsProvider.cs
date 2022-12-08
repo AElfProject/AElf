@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using AElf.Standards.ACS2;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -49,7 +50,7 @@ public partial class TokenContract
                         GetPath(nameof(TokenContractState.ChainPrimaryTokenSymbol))
                     }
                 };
-                AddPathForDelegatees(resourceInfo, args.From, txn.From);
+                AddPathForDelegatees(resourceInfo, args, txn.From);
                 AddPathForTransactionFee(resourceInfo, txn.From);
                 return resourceInfo;
             }
@@ -88,14 +89,26 @@ public partial class TokenContract
         };
     }
 
-    private void AddPathForDelegatees(ResourceInfo resourceInfo, Address argsFrom, Address txnFrom)
+    private void AddPathForDelegatees(ResourceInfo resourceInfo, TransferFromInput args, Address txnFrom)
     {
-        foreach (var (delegatee, delegations) in State.TransactionFeeDelegateesMap[txnFrom].Delegatees)
+        var allDelegatees = State.TransactionFeeDelegateesMap[txnFrom];
+        if (allDelegatees != null)
         {
-            foreach (var (symbol, amonut) in delegations.Delegations)
+            foreach (var (delegatee, delegations) in allDelegatees.Delegatees)
             {
-                resourceInfo.WritePaths.Add(GetPath(nameof(TokenContractState.Allowances), argsFrom.ToString(), delegatee, symbol));
+                if (delegations == null) return;
+                foreach (var symbol in delegations.Delegations.Keys)
+                {
+                    resourceInfo.WritePaths.Add(GetPath(nameof(TokenContractState.Allowances), args.From.ToString(),
+                        delegatee, symbol));
+                }
             }
+        }
+
+        if (resourceInfo.WritePaths.Count == 0)
+        {
+            resourceInfo.WritePaths.Add(GetPath(nameof(TokenContractState.Allowances), args.From.ToString(), txnFrom.ToString(),
+                args.Symbol));
         }
     }
 }
