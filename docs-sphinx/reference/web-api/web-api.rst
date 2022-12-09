@@ -875,13 +875,13 @@ Type     Name                   Schema
 Responses
 ^^^^^^^^^
 
-========= =========== =======
-HTTP Code Description Schema
-========= =========== =======
-**200**   Success     boolean
-========= =========== =======
-**401**   Unauthorized     
-========= =========== =======
+========= ============ =======
+HTTP Code Description  Schema
+========= ============ =======
+**200**   Success      boolean
+========= ============ =======
+**401**   Unauthorized
+========= ============ =======
 
 .. _security-1:
 
@@ -941,15 +941,15 @@ Type      Name                     Description Schema
 Responses
 ^^^^^^^^^
 
-========= =========== =======
-HTTP Code Description Schema
-========= =========== =======
-**200**   Success     boolean
-========= =========== =======
-**401**   Unauthorized     
-========= =========== =======
+========= ============ =======
+HTTP Code Description  Schema
+========= ============ =======
+**200**   Success      boolean
+========= ============ =======
+**401**   Unauthorized
+========= ============ =======
 
-.. _security-1:
+.. _security-2:
 
 Security
 ^^^^^^^^
