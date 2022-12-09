@@ -941,13 +941,13 @@ Type      Name                     Description Schema
 Responses
 ^^^^^^^^^
 
-========= ============ =======
-HTTP Code Description  Schema
-========= ============ =======
-**200**   Success      boolean
-========= ============ =======
+========= ============= =======
+HTTP Code Description   Schema
+========= ============= =======
+**200**   Success       boolean
+========= ============= =======
 **401**   Unauthorized
-========= ============ =======
+========= ============= =======
 
 .. _security-2:
 
