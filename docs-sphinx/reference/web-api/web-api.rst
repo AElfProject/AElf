@@ -879,7 +879,6 @@ Responses
 HTTP Code Description  Schema
 ========= ============ =======
 **200**   Success      boolean
-========= ============ =======
 **401**   Unauthorized
 ========= ============ =======
 
@@ -945,7 +944,6 @@ Responses
 HTTP Code Description   Schema
 ========= ============= =======
 **200**   Success       boolean
-========= ============= =======
 **401**   Unauthorized
 ========= ============= =======
 
