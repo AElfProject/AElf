@@ -78,8 +78,6 @@ public partial class TokenContract
                 {
                     AssertValidToken(key, value);
                     delegationsMap[key] = value;
-                    
-                    allDelegateesMap[delegateeAddress].BlockHeight = currentHeight;
                 }
             }
             
