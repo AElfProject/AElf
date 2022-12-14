@@ -9,6 +9,7 @@ public class TransactionContext : ITransactionContext
     public Hash PreviousBlockHash { get; set; }
     public Hash OriginTransactionId { get; set; }
     public long BlockHeight { get; set; }
+    public long RefBlockNumber { get; set; }
     public Timestamp CurrentBlockTime { get; set; }
     public int CallDepth { get; set; }
     public int MaxCallDepth { get; set; }
