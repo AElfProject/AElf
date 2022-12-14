@@ -27,6 +27,8 @@ public interface ISmartContractBridgeContext
     Hash OriginTransactionId { get; }
 
     long CurrentHeight { get; }
+    
+    long RefBlockNumber { get; }
 
     Timestamp CurrentBlockTime { get; }
     Hash PreviousBlockHash { get; }

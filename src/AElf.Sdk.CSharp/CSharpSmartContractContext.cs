@@ -82,6 +82,11 @@ public class CSharpSmartContractContext : ISmartContractBridgeContext
     public long CurrentHeight => SmartContractBridgeContextImplementation.CurrentHeight;
 
     /// <summary>
+    ///     The height of the block that contains the transaction before charging.
+    /// </summary>
+    public long RefBlockHeight => SmartContractBridgeContextImplementation.RefBlockNumber;
+    
+    /// <summary>
     ///     The time included in the current blocks header.
     /// </summary>
     public Timestamp CurrentBlockTime => SmartContractBridgeContextImplementation.CurrentBlockTime;

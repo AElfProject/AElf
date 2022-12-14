@@ -173,6 +173,7 @@ public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, I
     public Address Origin => TransactionContext.Origin.Clone();
     public Hash OriginTransactionId => TransactionContext.OriginTransactionId;
     public long CurrentHeight => TransactionContext.BlockHeight;
+    public long RefBlockNumber => TransactionContext.RefBlockNumber;
     public Timestamp CurrentBlockTime => TransactionContext.CurrentBlockTime;
     public Hash PreviousBlockHash => TransactionContext.PreviousBlockHash.Clone();
 
