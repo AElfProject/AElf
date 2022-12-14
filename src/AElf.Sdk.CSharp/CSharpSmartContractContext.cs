@@ -84,7 +84,7 @@ public class CSharpSmartContractContext : ISmartContractBridgeContext
     /// <summary>
     ///     The height of the block that contains the transaction before charging.
     /// </summary>
-    public long RefBlockHeight => SmartContractBridgeContextImplementation.RefBlockNumber;
+    public long RefBlockNumber => SmartContractBridgeContextImplementation.RefBlockNumber;
     
     /// <summary>
     ///     The time included in the current blocks header.
