@@ -2,13 +2,9 @@
 
 Follow this doc to run aelf multi-nodes on a Windows device and this will take around 20 minutes to complete.
 
-
-
 ## Run Multi-Nodes
 
 This tutorial will guide you through how to run three nodes.
-
-
 
 ### Publish aelf's Code
 
@@ -34,8 +30,6 @@ Note: Be sure to replace `${username}` here with your user name.
 sudo dotnet publish AElf.All.sln /p:NoBuild=false --configuration Debug -o C:/Users/${username}/Desktop/Out
 ```
 
-
-
 ### Configure Three Nodes
 
 1. Execute this command three times to create three accounts: A, B, and C.
@@ -60,7 +54,7 @@ mkdir C:/Users/${username}/Desktop/Config
 cd C:/Users/${username}/Desktop/Config
 ```
 
-4. Execute this command to create three new directories: `bp1`, `bp2`, and `bp3`  in the "Config" directory and create their respective "keys" directories.
+4. Execute this command to create three new directories: `bp1`, `bp2`, and `bp3` in the "Config" directory and create their respective "keys" directories.
 
 ```Bash
 mkdir -p C:/Users/${username}/Desktop/Config/bp1/keys
@@ -177,26 +171,24 @@ For `appsettings.MainChain.MainNet.json`:
 
    3. Fill in all three `InitialMineList` under `Consensus` using account A, B, and C's `Public Key`, keys separated with`,`:
 
-1. ```JSON
-   "Consensus": {
-       "InitialMinerList" : [
-         "04884d9563b3b67a589e2b9b47794fcfb3e15fa494053088dd0dc8a909dd72bfd24c43b0e2303d631683acaed34acf87526dd489e3805211cba710d956718*****",
-         "045670526219d73154847b1e9367be9af293601793c9f7e34a96336650c9c1104a4aac9aaee960af00e775dcd88048698629891b0617ab605e646ae78961c*****",
-         "046a5913eae5fee3da9ee33604119f025a0ad45575dfed1257eff5da2c24e629845b1e1a131c5da8751971d545cc5c03826b3eb2b7109b5141679a1927338*****"
-       ],
-   ```
+      ```JSON
+      "Consensus": {
+          "InitialMinerList" : [
+            "04884d9563b3b67a589e2b9b47794fcfb3e15fa494053088dd0dc8a909dd72bfd24c43b0e2303d631683acaed34acf87526dd489e3805211cba710d956718*****",
+            "045670526219d73154847b1e9367be9af293601793c9f7e34a96336650c9c1104a4aac9aaee960af00e775dcd88048698629891b0617ab605e646ae78961c*****",
+            "046a5913eae5fee3da9ee33604119f025a0ad45575dfed1257eff5da2c24e629845b1e1a131c5da8751971d545cc5c03826b3eb2b7109b5141679a1927338*****"
+          ],
+      ```
 
-​		4. In `bp1`, `BootNodes` is blank and `ListeningPort` is 7001. In `bp2`, `BootNodes` is `127.0.0.1:7001` (make sure to bracket it), and `ListeningPort` is 7002. In `bp3`, `BootNodes` are `127.0.0.1:7001` and `127.0.0.1:7002` (make sure to bracket them and separate them with `,`) and `ListeningPort` is 7003.
+​ 4. In `bp1`, `BootNodes` is blank and `ListeningPort` is 7001. In `bp2`, `BootNodes` is `127.0.0.1:7001` (make sure to bracket it), and `ListeningPort` is 7002. In `bp3`, `BootNodes` are `127.0.0.1:7001` and `127.0.0.1:7002` (make sure to bracket them and separate them with `,`) and `ListeningPort` is 7003.
 
-​		5. Change the port numbers in `Kestrel-EndPoints-Http-Url` to 8001, 8002, and 8003 respectively (to ensure there is no conflict of ports).
+​ 5. Change the port numbers in `Kestrel-EndPoints-Http-Url` to 8001, 8002, and 8003 respectively (to ensure there is no conflict of ports).
 
 8. Execute this command to start a Redis instance:
 
-1. ```Bash
-   
+   ```bash
+   redis-server
    ```
-
-
 
 ### Run Three Nodes
 
@@ -224,7 +216,7 @@ Execute this command to launch node 3:
 cd ~/Desktop/Config/bp3;dotnet ~/Desktop/Out/AElf.Launcher.dll
 ```
 
-The three nodes run successfully if all Terminals show the following output: 
+The three nodes run successfully if all Terminals show the following output:
 
 ```Bash
 2022-11-30 20:51:04,163 [.NET ThreadPool Worker] INFO  AElf.Kernel.Miner.Application.MiningService - Generated block: { id: "12f519e1601dd9f755a186b1370fd12696a8c080ea04465dadc*********2463", height: 25 }, previous: 5308de83c3585dbb4a097a9187a3b2f9b8584db4889d428484ca3e4df09e2860, executed transactions: 2, not executed transactions 0
