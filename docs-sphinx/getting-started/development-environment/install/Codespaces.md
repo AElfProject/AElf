@@ -10,13 +10,11 @@ A codespace is an instant development environment that's hosted in the cloud. It
 
    ![image](codespaces1.png)
 
-
-
-3. Select ```Codespaces`` and click +.
+3. Select ``Codespaces` and click +.
 
    ![image2](codespaces2.png)
 
-Then a new tab will be opened that shows the ```Codespaces``` interface. After the page is loaded, you will see:
+Then a new tab will be opened that shows the `Codespaces` interface. After the page is loaded, you will see:
 
 - The left side displays all the content in this repo.
 
@@ -24,7 +22,7 @@ Then a new tab will be opened that shows the ```Codespaces``` interface. After t
 
 - The lower right side is a terminal where you can build and run code (If the terminal doesn't open by default, you can click the hamburger menu on the top left and select Terminal -> New Terminal, or press control + shift + ` on your keyboard).
 
-Currently, ```Codespaces``` have completed the configuration for part of the environments, yet there are some you need to manually configure.
+Currently, `Codespaces` have completed the configuration for part of the environments, yet there are some you need to manually configure.
 
 At the time of writing, ``Codespaces``` have done the configuration for git and nodejs. You can type the following commands to check their versions:
 
@@ -40,15 +38,16 @@ npm --version
 
 Execute this command to update your environment:
 
-  ```bash
-    sudo apt-get update
-  ```
-The following output suggests successful update:
 ```bash
-Fetched 25.0 MB in 3s (8,574 kB/s)                           
-Reading package lists... Done
+  sudo apt-get update
 ```
 
+The following output suggests successful update:
+
+```bash
+Fetched 25.0 MB in 3s (8,574 kB/s)
+Reading package lists... Done
+```
 
 ### Install .NET SDK
 
@@ -67,23 +66,19 @@ Reading package lists... Done
    sudo rm -rf /home/codespace/.dotnet/*
    ```
 
-
-
 2. Execute this command to reinstall v6.0:
 
-  ```bash
-  wget https://packages.microsoft.com/config/ubuntu/22.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
-  
-  sudo dpkg -i packages-microsoft-prod.deb
-  
-  rm packages-microsoft-prod.deb
-  
-  sudo apt-get update && \
-  
-  sudo apt-get install -y dotnet-sdk-6.0
-  ```
+```bash
+wget https://packages.microsoft.com/config/ubuntu/22.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
 
+sudo dpkg -i packages-microsoft-prod.deb
 
+rm packages-microsoft-prod.deb
+
+sudo apt-get update && \
+
+sudo apt-get install -y dotnet-sdk-6.0
+```
 
 3. Restart bash after the installation and execute this command to check if v6.0 is installed:
 
@@ -98,8 +93,6 @@ Reading package lists... Done
    6.0.403
    ```
 
-
-
 ### Install protoBuf
 
 1. Execute this command to install protoBuf:
@@ -107,62 +100,55 @@ Reading package lists... Done
    ```bash
    curl -OL https://github.com/google/protobuf/releases/download/v21.9/protoc-21.9-linux-x86_64.zip
    unzip protoc-21.9-linux-x86_64.zip -d protoc3
-   
+
    sudo mv protoc3/bin/* /usr/local/bin/
-   
+
    sudo mv protoc3/include/* /usr/local/include/
-   
+
    sudo chown ${USER} /usr/local/bin/protoc
-   
+
    sudo chown -R ${USER} /usr/local/include/google
    ```
 
-
-
 2. Execute this command to check if protoBuf is installed:
 
-  ```bash
-  protoc --version
-  ```
+```bash
+protoc --version
+```
 
-  The following output suggests successful installation:
+The following output suggests successful installation:
 
-  ```bash 
-  libprotoc 3.21.9
-  ```
-
-
+```bash
+libprotoc 3.21.9
+```
 
 ### Install Redis
 
 1. Execute this command to install Redis:
 
-  ```bash 
-  sudo apt-get install redis -y
-  ```
+```bash
+sudo apt-get install redis -y
+```
 
 2. Execute this command to start a Redis instance and check if Redis is installed:
 
-  ```bash
-  redis-server
-  ```
+```bash
+redis-server
+```
 
-  The following output suggests Redis is installed and a Redis instance is started:
+The following output suggests Redis is installed and a Redis instance is started:
 
-  ```bash
-  Server initialized
-  Ready to accept connections
-  ```
-
-
+```bash
+Server initialized
+Ready to accept connections
+```
 
 ## What's Next
 
 If you have installed the above tools and frameworks, you can proceed with what interests you here. Read the following to learn about contract deployment and node running:
 
-[Smart contract development](https://docs.aelf.io/en/latest/getting-started/smart-contract-development/index.html) 
+[Smart contract development](https://docs.aelf.io/en/latest/getting-started/smart-contract-development/index.html)
 
 [Smart contract deployment](https://docs.aelf.io/en/latest/getting-started/smart-contract-development/index.html)
 
-[Node](/Development Environment/node/node.md)
-
+[Node](/docs-sphinx/getting-started/development-environment/node/node.md)
