@@ -1,7 +1,10 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Numerics;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Cryptography;
@@ -12,7 +15,10 @@ using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
+using System.Text.Json;
+using System.Text.Json.Nodes;
+using System.Text.Json.Serialization;
+using Google.Protobuf.Collections;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.Threading;
 
@@ -174,7 +180,7 @@ public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, I
     public Address Origin => TransactionContext.Origin.Clone();
     public Hash OriginTransactionId => TransactionContext.OriginTransactionId;
     public long CurrentHeight => TransactionContext.BlockHeight;
-    public long RefBlockNumber => TransactionContext.RefBlockNumber;
+    public long TransactionRefBlockNumber => TransactionContext.Transaction.RefBlockNumber;
     public Timestamp CurrentBlockTime => TransactionContext.CurrentBlockTime;
     public Hash PreviousBlockHash => TransactionContext.PreviousBlockHash.Clone();
 
@@ -193,9 +199,41 @@ public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, I
         return RecoverPublicKey(signature, hash);
     }
 
-    public Dictionary<string, object> DeserializeJsonToDictionary(string json)
+    public Dictionary<string, object> ParseJsonToPlainDictionary(string jsonText)
     {
-        return JsonConvert.DeserializeObject<Dictionary<string, object>>(json);
+        var stream = new MemoryStream(Encoding.UTF8.GetBytes(jsonText));
+
+        var options = new JsonSerializerOptions 
+        { 
+            PropertyNameCaseInsensitive = true,
+            NumberHandling = JsonNumberHandling.WriteAsString 
+        };
+
+        var resultDict = JsonSerializer.Deserialize<Dictionary<string, object>>(stream, options);
+        // No System.Text.Json object can be returned, because this package is invalid in contract environment.
+        // So we need to transform all json object to basic ones, such as, number, string, boolean...
+        foreach (var (key, value) in resultDict)
+        {
+            if (value is JsonElement)
+            {
+                JsonElement element = (JsonElement)value;
+                if (element.ValueKind == JsonValueKind.Array)
+                {
+                    var array = new List<string>();
+                    foreach (var item in element.EnumerateArray())
+                    {
+                        array.Add(item.ToString());
+                    }
+
+                    resultDict[key] = array;
+                }
+                else if (element.ValueKind == JsonValueKind.Object)
+                {
+                    resultDict[key] = value.ToString();
+                }
+            }
+        }
+        return resultDict;
     }
 
     public T Call<T>(Address fromAddress, Address toAddress, string methodName, ByteString args)

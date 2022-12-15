@@ -51,9 +51,10 @@ public partial class TokenContract
                     {
                         AssertValidToken(key, value);
                         allDelegateesMap[delegateeAddress].Delegations.Add(key, value);
-                        allDelegateesMap[delegateeAddress].BlockHeight = currentHeight;
                     }
                 }
+                
+                allDelegateesMap[delegateeAddress].BlockHeight = currentHeight;
 
                 // Set and Fire logEvent
                 State.TransactionFeeDelegateesMap[input.DelegatorAddress] = allDelegatees;

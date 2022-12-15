@@ -9,7 +9,6 @@ public interface ITransactionContext
     Hash PreviousBlockHash { get; set; }
     Hash OriginTransactionId { get; set; }
     long BlockHeight { get; set; }
-    long RefBlockNumber { get; set; }
     Timestamp CurrentBlockTime { get; set; }
     int CallDepth { get; set; }
     int MaxCallDepth { get; set; }
