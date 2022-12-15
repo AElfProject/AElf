@@ -24,7 +24,7 @@ Then a new tab will be opened that shows the `Codespaces` interface. After the p
 
 Currently, `Codespaces` have completed the configuration for part of the environments, yet there are some you need to manually configure.
 
-At the time of writing, ``Codespaces``` have done the configuration for git and nodejs. You can type the following commands to check their versions:
+At the time of writing, `Codespaces` have done the configuration for git and nodejs. You can type the following commands to check their versions:
 
 ```bash
 # git version 2.25.1
