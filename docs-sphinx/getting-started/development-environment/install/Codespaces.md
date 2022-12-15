@@ -10,7 +10,7 @@ A codespace is an instant development environment that's hosted in the cloud. It
 
    ![image](codespaces1.png)
 
-3. Select ``Codespaces` and click +.
+3. Select `Codespaces` and click +.
 
    ![image2](codespaces2.png)
 
