@@ -11,6 +11,6 @@
     Single Node MacOS <node/single_MacOS>
     Single Node Linux and Codespaces <node/single_Linux_and_Codespaces>
     Single Node Windows <node/single_Windows>
-    Multi Nodes MacOS <node/smulti_MacOS>
+    Multi Nodes MacOS <node/multi_MacOS>
     Multi Nodes Linux and Codespaces <node/multi_Linux_and_Codespaces>
     Multi Nodes Windows <node/multi_Windows>
