@@ -581,8 +581,8 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
             var result = await TokenContractStubA.GetTransactionFeeDelegationsOfADelegatee.CallAsync(
                 new GetTransactionFeeDelegationsOfADelegateeInput
                 {
-                    DelegateeAddress = UserCAddress,
-                    DelegatorAddress = UserAAddress
+                    DelegateeAddress = delegateeAddress,
+                    DelegatorAddress = DefaultSender
                 });
             result.BlockHeight.ShouldBe(transactionResult.TransactionResult.BlockNumber);
         }
