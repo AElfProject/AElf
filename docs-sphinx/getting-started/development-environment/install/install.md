@@ -8,7 +8,7 @@ For most of these dependencies, we provide command line instructions for macOS, 
 
 [MacOS](MacOS.md)
 
-[Linux](linux.md)
+[Linux](Linux.md)
 
 [Windows](Windows.md)
 
@@ -20,4 +20,4 @@ If you have already installed the tools and frameworks above, you can skip this 
 
 [Smart contract deployment](https://docs.aelf.io/en/latest/getting-started/smart-contract-development/index.html)
 
-[Node](/docs-sphinx/getting-started/development-environment/node/node.md)
+[Node](../node/node.md)

@@ -186,4 +186,4 @@ If you have installed the above tools and frameworks, you can proceed with what 
 
 [Smart contract deployment](https://docs.aelf.io/en/latest/getting-started/smart-contract-development/index.html)
 
-[Node](/docs-sphinx/getting-started/development-environment/node/node.md)
+[Node](../node/node.md)

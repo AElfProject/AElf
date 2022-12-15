@@ -1,6 +1,9 @@
 .. toctree::
    :maxdepth: 4
 
+   Environment Setup <environment-setup>
+   Multi Node <docker-multi-node>
+
     Install <install/install>
     MacOS <install/MacOS>
     Linux <install/Linux>
