@@ -1,5 +1,5 @@
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 4
 
     Environment Setup <environment-setup>
     Single Node <docker>
