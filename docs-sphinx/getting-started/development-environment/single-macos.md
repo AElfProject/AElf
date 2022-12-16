@@ -221,4 +221,4 @@ If you don't want to save the data, you can execute this command to delete all:
 redis-cli flushall
 ```
 
-If you are interested in running multi-nodes, please click [here](multi-macos.md) to learn more.
+If you are interested in running multi-nodes, please click [here](../../getting-started/development-environment/multi-macos.md) to learn more.
