@@ -5,7 +5,7 @@
     Single Node <docker>
     Multi Node <docker-multi-node>
     Build and Run Sources <run-node>
-    Install <iinstall>
+    Install <install>
     MacOS <macos>
     Linux <linux>
     Windows <windows>
