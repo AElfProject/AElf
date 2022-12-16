@@ -14,16 +14,16 @@ If you are a beginner or you want to deploy contracts onto aelf, please click [h
 
 **Single Node**
 
-[MacOS](single-macos.md)
+[MacOS](../../getting-started/development-environment/single-macos.md)
 
-[Linux & Codespaces](single-linux-and-codespaces.md)
+[Linux & Codespaces](../../getting-started/development-environment/single-linux-and-codespaces.md)
 
-[Windows](single-windows.md)
+[Windows](../../getting-started/development-environment/single-windows.md)
 
 **Multi Nodes**
 
-[MacOS](multi-macos.md)
+[MacOS](../../getting-started/development-environment/multi-macos.md)
 
-[Linux & Codespaces](multi-linux-and-codespaces.md)
+[Linux & Codespaces](../../getting-started/development-environment/multi-linux-and-codespaces.md)
 
-[Windows](multi-windows.md)
+[Windows](../../getting-started/development-environment/multi-windows.md)
