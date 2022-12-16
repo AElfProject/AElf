@@ -6,13 +6,13 @@ For most of these dependencies, we provide command line instructions for macOS, 
 
 ## Directory of Child Pages
 
-[MacOS](../../getting-started/developement-environment/macos.md)
+[MacOS](../../getting-started/development-environment/macos.md)
 
-[Linux](../../getting-started/developement-environment/linux.md)
+[Linux](../../getting-started/development-environment/linux.md)
 
-[Windows](../../getting-started/developement-environment/windows.md)
+[Windows](../../getting-started/development-environment/windows.md)
 
-[Codespace](../../getting-started/developement-environment/codespaces.md)
+[Codespace](../../getting-started/development-environment/codespaces.md)
 
 If you have already installed the tools and frameworks above, you can skip this step. For info about contract deployment and nodes running, please read the following:
 
@@ -20,4 +20,4 @@ If you have already installed the tools and frameworks above, you can skip this 
 
 [Smart contract deployment](https://docs.aelf.io/en/latest/getting-started/smart-contract-development/index.html)
 
-[Node](../../getting-started/developement-environment/node.md)
+[Node](../../getting-started/development-environment/node.md)
