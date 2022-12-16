@@ -6,11 +6,11 @@ For most of these dependencies, we provide command line instructions for macOS, 
 
 ## Directory of Child Pages
 
-[MacOS](./install/macos.md)
+[MacOS](macos.md)
 
-[Linux](./linux.md)
+[Linux](linux.md)
 
-[Windows](install/windows.md)
+[Windows](windows.md)
 
 [Codespace](codespaces.md)
 
@@ -20,4 +20,4 @@ If you have already installed the tools and frameworks above, you can skip this 
 
 [Smart contract deployment](https://docs.aelf.io/en/latest/getting-started/smart-contract-development/index.html)
 
-[Node](./node/node.md)
+[Node](../node/node.md)
