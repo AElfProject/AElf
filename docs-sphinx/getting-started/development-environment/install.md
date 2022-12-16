@@ -6,9 +6,9 @@ For most of these dependencies, we provide command line instructions for macOS, 
 
 ## Directory of Child Pages
 
-[MacOS](macos.md)
+[**MacOS**](macos.md)
 
-[Linux](linux.md)
+[**Linux**](linux.md)
 
 [Windows](windows.md)
 
