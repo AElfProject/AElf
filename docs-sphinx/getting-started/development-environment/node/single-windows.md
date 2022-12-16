@@ -1,10 +1,10 @@
-# macOS
+# Windows
 
-Follow this doc to run an aelf single node on a macOS device and this will take around 20 minutes to complete.
+Follow this doc to run an aelf single node on a Windows device and this will take around 20 minutes to complete.
 
 ## Install aelf-command
 
-Execute this command to install aelf-command:
+Execute npm command to install aelf-command:
 
 ```Bash
 npm i aelf-command -g
@@ -17,28 +17,20 @@ The following output suggests successful installation:
 added 314 packages from 208 contributors in 25.958s
 ```
 
-If it shows error `Permission denied @ apply2files`, then there is a permission issue. You can solve it using the following command and then redo the installation with the above command:
-
-```Bash
-sudo chmod 755 /usr/local/lib/node_modules
-```
-
-
-
 ## Clone and Build aelf's Code
 
 Create a directory. This tutorial uses a directory on the desktop for reference.
 
-1. Execute this command to create a directory:
+1. Execute this command in cmd or PowerShell to create a directory:
 
 ```Bash
-mkdir ~/Desktop/Code
+mkdir C:/Users/${username}/Desktop/Code
 ```
 
 2. Execute this command to change the directory:
 
 ```Bash
-cd ~/Desktop/Code
+cd C:/Users/${username}/Desktop/Code
 ```
 
 3. Execute this command to clone aelf's code:
@@ -74,15 +66,6 @@ The following output suggests successful building:
 Time Elapsed 00:15:59.77
 ```
 
-If contract_csharp_plugin fails to be called, it may be because you don't have Rosetta 2 installed. Please execute this command and then retry:
-
-```Shell
-/usr/sbin/softwareupdate --install-rosetta --agree-to-license
-
-```
-
-
-
 ## Create an aelf Account
 
 Execute this command:
@@ -101,20 +84,18 @@ AElf [Info]: Public Key          : 04f9bb56a9eca921bd494e677307f0279c98f1d2ed6bd
 AElf [Info]: Address             : 21qciGwcaowwBttKMjMk86AW6WajhcodSHytY1vCyZb7p*****
 ```
 
-You will then be asked whether you want the account data stored as a json file. Enter `y` to confirm and the file will be stored in `/Users/{username}/.local/share/aelf/keys/`.
+You will then be asked whether you want the account data stored as a json file. Enter `y` to confirm and the file will be stored locally.
 
 Please make sure you remember the account data or the json file's location.
 
-You will be required to set a password (referred to as * here):
+You will be required to set a password (referred to as \* here):
 
 ```Bash
 Enter a password: ********
 Confirm password: ********
 ```
 
-For the sake of convenience, you are encouraged to keep this Terminal on the account info interface and open another Terminal to continue the following.
-
-
+For the sake of convenience, you are encouraged to keep this cmd or PowerShell on the account info interface and open another cmd or PowerShell to continue the following.
 
 ## Run a Single Node
 
@@ -126,10 +107,10 @@ A single node runs aelf blockchain on one node. It is usually used to test the e
 redis-server
 ```
 
-2. Open another Terminal and execute this command to change to aelf's directory:
+2. Open another cmd or PowerShell and execute this command to change to aelf's directory:
 
 ```Bash
-cd ~/Desktop/Code/AElf
+cd C:/Users/${username}/Desktop/Code
 ```
 
 3. Execute this command to change to the `AElf.Launcher` directory:
@@ -205,6 +186,15 @@ If the IP and port for Redis have been changed, you can modify them under `Conne
 }
 ```
 
+Save the changes and keep them in the `AElf.Launcher` directory.
+
+```Bash
+"ConnectionStrings": {
+    "BlockchainDb": "redis://localhost:6379?db=1",
+    "StateDb": "redis://localhost:6379?db=1"
+}
+```
+
 5. Execute `dotnet run`:
 
 ```Bash
@@ -227,6 +217,4 @@ If you don't want to save the data, you can execute this command to delete all:
 redis-cli flushall
 ```
 
-
-
-If you are interested in running multi-nodes, please click [here](multi_MacOS.md) to learn more.
+If you are interested in running multi-nodes, please click [here](multi-windows.md) to learn more.

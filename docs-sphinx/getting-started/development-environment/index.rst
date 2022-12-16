@@ -5,14 +5,14 @@
     Multi Node <docker-multi-node>
     Build and Run Sources <run-node>
     Install <install/install>
-    MacOS <install/MacOS>
-    Linux <install/Linux>
-    Windows <install/Windows>
-    Codespaces <install/Codespaces>
+    MacOS <install/macos>
+    Linux <install/linux>
+    Windows <install/windows>
+    Codespaces <install/codespaces>
     Node <node/node>
-    Single Node MacOS <node/single_MacOS>
-    Single Node Linux and Codespaces <node/single_Linux_and_Codespaces>
-    Single Node Windows <node/single_Windows>
-    Multi Nodes MacOS <node/multi_MacOS>
-    Multi Nodes Linux and Codespaces <node/multi_Linux_and_Codespaces>
-    Multi Nodes Windows <node/multi_Windows>
+    Single Node MacOS <node/single-macos>
+    Single Node Linux and Codespaces <node/single-linux-and-codespaces>
+    Single Node Windows <node/single-windows>
+    Multi Nodes MacOS <node/multi-macos>
+    Multi Nodes Linux and Codespaces <node/multi-linux-and-codespaces>
+    Multi Nodes Windows <node/multi-windows>

@@ -6,13 +6,13 @@ For most of these dependencies, we provide command line instructions for macOS, 
 
 ## Directory of Child Pages
 
-[MacOS](MacOS.md)
+[MacOS](macos.md)
 
-[Linux](Linux.md)
+[Linux](linux.md)
 
-[Windows](Windows.md)
+[Windows](windows.md)
 
-[Codespace](Codespaces.md)
+[Codespace](codespaces.md)
 
 If you have already installed the tools and frameworks above, you can skip this step. For info about contract deployment and nodes running, please read the following:
 

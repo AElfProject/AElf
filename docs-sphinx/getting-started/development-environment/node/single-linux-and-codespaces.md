@@ -17,8 +17,6 @@ The following output suggests successful installation:
 added 314 packages from 208 contributors in 25.958s
 ```
 
-
-
 ## Clone and Build aelf's Code
 
 Create a directory. This tutorial uses a directory on the desktop for reference.
@@ -68,8 +66,6 @@ The following output suggests successful building:
 Time Elapsed 00:15:59.77
 ```
 
-
-
 ## Create an aelf Account
 
 Execute this command:
@@ -92,7 +88,7 @@ You will then be asked whether you want the account data stored as a json file. 
 
 Please make sure you remember the account data or the json file's location.
 
-You will be required to set a password (referred to as * here):
+You will be required to set a password (referred to as \* here):
 
 ```Bash
 Enter a password: ********
@@ -100,8 +96,6 @@ Confirm password: ********
 ```
 
 For the sake of convenience, you are encouraged to keep this Terminal on the account info interface and open another Terminal to continue the following.
-
-
 
 ## Run a Single Node
 
@@ -216,6 +210,4 @@ If you don't want to save the data, you can execute this command to delete all:
 redis-cli flushall
 ```
 
-
-
-If you are interested in running multi-nodes, please click [here](multi_Linux_and_Codespaces.md) to learn more.
+If you are interested in running multi-nodes, please click [here](multi-linux-and-codespaces.md) to learn more.
