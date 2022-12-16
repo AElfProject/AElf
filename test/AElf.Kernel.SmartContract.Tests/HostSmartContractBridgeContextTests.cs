@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Blockchain.Application;
@@ -293,7 +294,25 @@ public class HostSmartContractBridgeContextTests : SmartContractRunnerTestBase
         output["bool"].ShouldBe("True");
         
     }
+
+    [Fact]
+    public void Recover_PublicKey_Success()
+    {
+        var data = HashHelper.ComputeFrom("test data");
+        var signature = CryptoHelper.SignWithPrivateKey(_keyPair.PrivateKey, data.ToByteArray());
+        var publicKey = _bridgeContext.RecoverPublicKeyWithArgs(signature, data.ToByteArray());
+        publicKey.ShouldBe(_keyPair.PublicKey);
+    }
     
+    [Fact]
+    public void Recover_PublicKey_Failed()
+    {
+        var data = HashHelper.ComputeFrom("test data");
+        var incorrectData = HashHelper.ComputeFrom("incorrect data");
+        var signature = CryptoHelper.SignWithPrivateKey(_keyPair.PrivateKey, data.ToByteArray());
+        var publicKey = _bridgeContext.RecoverPublicKeyWithArgs(signature, incorrectData.ToByteArray());
+        publicKey.ShouldNotBe(_keyPair.PublicKey);
+    }
 
     private IHostSmartContractBridgeContext CreateNewContext()
     {
