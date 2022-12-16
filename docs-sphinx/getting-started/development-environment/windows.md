@@ -171,4 +171,4 @@ If you have installed the above tools and frameworks, you can proceed with what 
 
 [Smart contract deployment](https://docs.aelf.io/en/latest/getting-started/smart-contract-development/index.html)
 
-[Node](../node/node.md)
+[Node](node.md)
