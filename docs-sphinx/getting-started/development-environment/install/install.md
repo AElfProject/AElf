@@ -10,7 +10,7 @@ For most of these dependencies, we provide command line instructions for macOS, 
 
 [Linux](linux.md)
 
-[Windows](../windows.md)
+[Windows](windows.md)
 
 [Codespace](codespaces.md)
 
@@ -20,4 +20,4 @@ If you have already installed the tools and frameworks above, you can skip this 
 
 [Smart contract deployment](https://docs.aelf.io/en/latest/getting-started/smart-contract-development/index.html)
 
-[Node](../../node/node.md)
+[Node](../node/node.md)
