@@ -219,15 +219,15 @@ public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, I
                 JsonElement element = (JsonElement)value;
                 if (element.ValueKind == JsonValueKind.Array)
                 {
-                    var array = new List<string>();
+                    var list = new List<string>();
                     foreach (var item in element.EnumerateArray())
                     {
-                        array.Add(item.ToString());
+                        list.Add(item.ToString());
                     }
 
-                    resultDict[key] = array;
+                    resultDict[key] = list;
                 }
-                else if (element.ValueKind == JsonValueKind.Object)
+                else
                 {
                     resultDict[key] = value.ToString();
                 }
