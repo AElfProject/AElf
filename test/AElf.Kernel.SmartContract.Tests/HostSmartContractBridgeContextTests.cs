@@ -300,7 +300,7 @@ public class HostSmartContractBridgeContextTests : SmartContractRunnerTestBase
     {
         var data = HashHelper.ComputeFrom("test data");
         var signature = CryptoHelper.SignWithPrivateKey(_keyPair.PrivateKey, data.ToByteArray());
-        var publicKey = _bridgeContext.RecoverPublicKeyWithArgs(signature, data.ToByteArray());
+        var publicKey = _bridgeContext.RecoverPublicKey(signature, data.ToByteArray());
         publicKey.ShouldBe(_keyPair.PublicKey);
     }
     
@@ -310,7 +310,7 @@ public class HostSmartContractBridgeContextTests : SmartContractRunnerTestBase
         var data = HashHelper.ComputeFrom("test data");
         var incorrectData = HashHelper.ComputeFrom("incorrect data");
         var signature = CryptoHelper.SignWithPrivateKey(_keyPair.PrivateKey, data.ToByteArray());
-        var publicKey = _bridgeContext.RecoverPublicKeyWithArgs(signature, incorrectData.ToByteArray());
+        var publicKey = _bridgeContext.RecoverPublicKey(signature, incorrectData.ToByteArray());
         publicKey.ShouldNotBe(_keyPair.PublicKey);
     }
 

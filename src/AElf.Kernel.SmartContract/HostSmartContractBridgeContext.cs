@@ -180,7 +180,6 @@ public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, I
     public Address Origin => TransactionContext.Origin.Clone();
     public Hash OriginTransactionId => TransactionContext.OriginTransactionId;
     public long CurrentHeight => TransactionContext.BlockHeight;
-    public long TransactionRefBlockNumber => TransactionContext.Transaction.RefBlockNumber;
     public Timestamp CurrentBlockTime => TransactionContext.CurrentBlockTime;
     public Hash PreviousBlockHash => TransactionContext.PreviousBlockHash.Clone();
 
@@ -192,11 +191,6 @@ public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, I
     {
         return RecoverPublicKey(TransactionContext.Transaction.Signature.ToByteArray(),
             TransactionContext.Transaction.GetHash().ToByteArray());
-    }
-
-    public byte[] RecoverPublicKeyWithArgs(byte[] signature, byte[] hash)
-    {
-        return RecoverPublicKey(signature, hash);
     }
 
     public Dictionary<string, object> ParseJsonToPlainDictionary(string jsonText)
@@ -366,7 +360,7 @@ public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, I
         AsyncHelper.RunSync(() => _smartContractBridgeService.UpdateContractAsync(contractDto));
     }
 
-    private byte[] RecoverPublicKey(byte[] signature, byte[] hash)
+    public byte[] RecoverPublicKey(byte[] signature, byte[] hash)
     {
         var cabBeRecovered = CryptoHelper.RecoverPublicKey(signature, hash, out var publicKey);
         return !cabBeRecovered ? null : publicKey;
