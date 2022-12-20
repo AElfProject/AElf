@@ -4,13 +4,13 @@ If you already know something about aelf blockchain and want to get deeply invol
 
 If you are a beginner or you want to deploy contracts onto aelf, please click [here](https://docs.aelf.io/en/latest/getting-started/smart-contract-development/index.html) to learn more.
 
-### Why Should I Run a Node
+**Why Should I Run a Node**
 
 - Full node: A full node stores the complete blockchain data and you can view all the info. It also enables you to deploy DApps and contracts on aelf or interact with its contracts.
 
 - BP: To run a full node that produces blocks, the node needs to participate in the election. If ranked among the top 2N+1 (N=8 in the first year and increases by 1 every year. Currently the threshold is 17), it can get involved in the governance of aelf.
 
-### How Can I Run a Node
+Next, we will show you how to deploy nodes.
 
 ## Single Node
 
@@ -82,8 +82,8 @@ dotnet build AElf.All.sln
 The following output suggests successful building:
 
 ```Bash
- xx Warning(s)
-    0 Error(s)
+xx Warning(s)
+     0 Error(s)
 
 Time Elapsed 00:15:59.77
 ```
@@ -167,7 +167,7 @@ AElf [Info]: Address             : 21qciGwcaowwBttKMjMk86AW6WajhcodSHytY1vCyZb7p
 Fill in the `NodeAccount` and `NodeAccountPassword` under `Account` using the `Address` and `password` you set in `appsettings.json`:
 
 ```Bash
- "Account": {
+"Account": {
     "NodeAccount": "",
     "NodeAccountPassword": ""
   }
@@ -176,7 +176,7 @@ Fill in the `NodeAccount` and `NodeAccountPassword` under `Account` using the `A
 It may look like this when you complete it:
 
 ```Bash
- "Account": {
+"Account": {
     "NodeAccount": "21qciGwcaowwBttKMjMk86AW6WajhcodSHytY1vCyZb7p*****",
     "NodeAccountPassword": "********"
   },
@@ -299,8 +299,8 @@ dotnet build AElf.All.sln
 The following output suggests successful building:
 
 ```Bash
- xx Warning(s)
-    0 Error(s)
+xx Warning(s)
+     0 Error(s)
 
 Time Elapsed 00:15:59.77
 ```
@@ -377,7 +377,7 @@ AElf [Info]: Address             : 21qciGwcaowwBttKMjMk86AW6WajhcodSHytY1vCyZb7p
 Fill in the `NodeAccount` and `NodeAccountPassword` under `Account` using the `Address` and `password` you set in `appsettings.json`:
 
 ```Bash
- "Account": {
+"Account": {
     "NodeAccount": "",
     "NodeAccountPassword": ""
   }
@@ -386,7 +386,7 @@ Fill in the `NodeAccount` and `NodeAccountPassword` under `Account` using the `A
 It may look like this when you complete it:
 
 ```Bash
- "Account": {
+"Account": {
     "NodeAccount": "21qciGwcaowwBttKMjMk86AW6WajhcodSHytY1vCyZb7p*****",
     "NodeAccountPassword": "********"
   },
@@ -511,8 +511,8 @@ dotnet build AElf.All.sln
 The following output suggests successful building:
 
 ```Bash
- xx Warning(s)
-    0 Error(s)
+xx Warning(s)
+     0 Error(s)
 
 Time Elapsed 00:15:59.77
 ```
@@ -589,7 +589,7 @@ AElf [Info]: Address             : 21qciGwcaowwBttKMjMk86AW6WajhcodSHytY1vCyZb7p
 Fill in the `NodeAccount` and `NodeAccountPassword` under `Account` using the `Address` and `password` you set in `appsettings.json`:
 
 ```Bash
- "Account": {
+"Account": {
     "NodeAccount": "",
     "NodeAccountPassword": ""
   }
@@ -598,7 +598,7 @@ Fill in the `NodeAccount` and `NodeAccountPassword` under `Account` using the `A
 It may look like this when you complete it:
 
 ```Bash
- "Account": {
+"Account": {
     "NodeAccount": "21qciGwcaowwBttKMjMk86AW6WajhcodSHytY1vCyZb7p*****",
     "NodeAccountPassword": "********"
   },

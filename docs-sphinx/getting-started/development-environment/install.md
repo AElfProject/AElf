@@ -43,23 +43,23 @@ To install Homebrew:
 2. Execute this command to install Homebrew:
 
    ```bash
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
    ```
 
 3. Execute this command to check if Homebrew is installed:
 
    ```bash
-brew --version
+   brew --version
    ```
 
    The following output suggests successful installation:
 
    ```bash
-Homebrew 3.3.1
+   Homebrew 3.3.1
 
-Homebrew/homebrew-core (git revision c6c488fbc0f; last commit 2021-10-30)
+   Homebrew/homebrew-core (git revision c6c488fbc0f; last commit 2021-10-30)
 
-Homebrew/homebrew-cask (git revision 66bab33b26; last commit 2021-10-30)
+   Homebrew/homebrew-cask (git revision 66bab33b26; last commit 2021-10-30)
    ```
 
 #### Environment Update
@@ -85,19 +85,19 @@ If you want to use our customized smart contract development environment or to r
 1. Execute this command in Terminal:
 
    ```bash
-brew install git
+   brew install git
    ```
 
 2. Execute this command to check if Git is installed:
 
    ```bash
-git --version
+   git --version
    ```
 
    The following output suggests successful installation:
 
    ```bash
-git version xx.xx.xx
+   git version xx.xx.xx
    ```
 
 #### Install .NET SDK
@@ -111,13 +111,13 @@ As aelf is mostly developed with .NET Core, you need to download and install .NE
 3. Execute this command to check if .NET is installed:
 
    ```bash
-dotnet --version
+   dotnet --version
    ```
 
    The following output suggests successful installation:
 
-   ```bash
-6.0.403
+   ```
+   6.0.403
    ```
 
 #### Install protoBuf
@@ -125,25 +125,25 @@ dotnet --version
 1.  Execute this command to install protoBuf:
 
     ```bash
-brew install protobuf
+    brew install protobuf
     ```
 
     If it shows error `Permission denied @ apply2files`, then there is a permission issue. You can solve it using the following command and then redo the installation with the above command:
 
     ```bash
-sudo chown -R $(whoami) $(brew --prefix)/*
+    sudo chown -R $(whoami) $(brew --prefix)/*
     ```
 
 2.  Execute this command to check if protoBuf is installed:
 
     ```bash
-protoc --version
+    protoc --version
     ```
 
     The following output suggests successful installation:
 
     ```bash
-libprotoc 3.21.9
+    libprotoc 3.21.9
     ```
 
 #### Install Redis
@@ -151,13 +151,13 @@ libprotoc 3.21.9
 1. Execute this command to install Redis:
 
    ```bash
-brew install redis
+   brew install redis
    ```
 
 2. Execute this command to start a Redis instance and check if Redis is installed:
 
    ```bash
-redis-server
+   redis-server
    ```
 
    The following output suggests Redis is installed and a Redis instance is started:
@@ -169,19 +169,19 @@ redis-server
 1. Execute this command to install Nodejs:
 
    ```bash
-brew install node
+   brew install node
    ```
 
 2. Execute this command to check if Nodejs is installed:
 
    ```bash
-npm --version
+   npm --version
    ```
 
    The following output suggests successful installation:
 
-   ```bash
-6.14.8
+   ```
+   6.14.8
    ```
 
 ## Linux
@@ -203,7 +203,7 @@ Before you install and set up the development environment on a Linux device, ple
 Execute this command to update your environment:
 
 ```bash
-sudo apt-get update
+ sudo apt-get update
 ```
 
 The following output suggests successful update:
@@ -245,36 +245,36 @@ As aelf is mostly developed with .NET Core, you need to download and install .NE
 1. Execute this command to download .NET packages:
 
    ```bash
-wget https://packages.microsoft.com/config/ubuntu/22.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
+   wget https://packages.microsoft.com/config/ubuntu/22.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
    ```
 
 1. Execute this command to unzip .NET packages:
 
    ```bash
-sudo dpkg -i packages-microsoft-prod.deb
+   sudo dpkg -i packages-microsoft-prod.deb
 
-rm packages-microsoft-prod.deb
+   rm packages-microsoft-prod.deb
    ```
 
 1. Execute this command to install .NET:
 
    ```bash
-sudo apt-get update && \
+   sudo apt-get update && \
 
- sudo apt-get install -y dotnet-sdk-6.0
+   sudo apt-get install -y dotnet-sdk-6.0
    ```
 
 1. Execute this command to check if .NET 6.0 is installed:
 
    ```bash
-dotnet --version
+   dotnet --version
    ```
 
 The following output suggests successful installation:
 
-    ```bash
-6.0.403
-    ```
+   ```
+   6.0.403
+   ```
 
 #### Install protoBuf
 
@@ -285,31 +285,31 @@ Before you start the installation, please check the directory you use and execut
 1. Execute this command to download protoBuf packages:
 
    ```bash
-curl -OL https://github.com/google/protobuf/releases/download/v21.9/protoc-21.9-linux-x86_64.zip
+   curl -OL https://github.com/google/protobuf/releases/download/v21.9/protoc-21.9-linux-x86_64.zip
    ```
 
 1. Execute this command to unzip protoBuf packages:
 
    ```
-unzip protoc-21.9-linux-x86_64.zip -d protoc3
+   unzip protoc-21.9-linux-x86_64.zip -d protoc3
    ```
 
 1. Execute these commands to install protoBuf:
 
    ```bash
-sudo mv protoc3/bin/* /usr/local/bin/
+   sudo mv protoc3/bin/* /usr/local/bin/
 
-sudo mv protoc3/include/* /usr/local/include/
+   sudo mv protoc3/include/* /usr/local/include/
 
-sudo chown ${USER} /usr/local/bin/protoc
+   sudo chown ${USER} /usr/local/bin/protoc
 
-sudo chown -R ${USER} /usr/local/include/google
+   sudo chown -R ${USER} /usr/local/include/google
    ```
 
    If it shows error `Permission denied @ apply2files`, then there is a permission issue. You can solve it using the following command and then redo the installation with the above commands:
 
    ```bash
-sudo chown -R $(whoami) $(brew --prefix)/*
+   sudo chown -R $(whoami) $(brew --prefix)/*
    ```
 
 1. Execute this command to check if protoBuf is installed:
@@ -320,7 +320,7 @@ protoc --version
 
 The following output suggests successful installation:
 
-```bash
+```
 libprotoc 3.21.9
 ```
 
@@ -334,20 +334,20 @@ sudo apt-get install redis -y
 
 2. Execute this command to start a Redis instance and check if Redis is installed:
 
-```bash
+```
 redis-server
 ```
 
 The following output suggests Redis is installed and a Redis instance is started:
 
-```bash
+```
 Server initialized
 Ready to accept connections
 ```
 
 You can open a new terminal and use redis-cli to start Redis command line. The command below can be used to clear Redis cache (be careful to use it):
 
-```bash
+```
 flushall
 ```
 
@@ -369,7 +369,7 @@ npm --version
 
 The following output suggests successful installation:
 
-```bash
+```
 6.14.8
 ```
 
@@ -396,25 +396,25 @@ Before you install and set up the development environment on a Windows device, p
 2. Execute the following commands in order and enter y to install Chocolatey:
 
    ```powershell
-Set-ExecutionPolicy AllSigned
+   Set-ExecutionPolicy AllSigned
 
-Set-ExecutionPolicy Bypass -Scope Process
+   Set-ExecutionPolicy Bypass -Scope Process
 
-Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+   Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
 
-Set-ExecutionPolicy RemoteSigned
+   Set-ExecutionPolicy RemoteSigned
    ```
 
 3. Execute this command to check if Chocolatey is installed:
 
    ```powershell
-choco
+   choco
    ```
 
    The following output suggests successful installation:
 
    ```
-Chocolatey vx.x.x
+   Chocolatey vx.x.x
    ```
 
    If it shows`The term 'choco' is not recognized as the name of a cmdlet, function, script file, or operable program`, then there is a permission issue with PowerShell. To solve it:
@@ -432,19 +432,19 @@ If you want to use our customized smart contract development environment or to r
 1. You can download Git through this link or execute this command in cmd or PowerShell:
 
    ```powershell
-choco install git -y
+   choco install git -y
    ```
 
 2. Execute this command to check if Git is installed:
 
    ```powershell
-git --version
+   git --version
    ```
 
    The following output suggests successful installation:
 
    ```powershell
-git version xx.xx.xx
+   git version xx.xx.xx
    ```
 
    If it shows `The term 'git' is not recognized as the name of a cmdlet, function, script file, or operable program`, you can:
@@ -463,11 +463,11 @@ As aelf is mostly developed with .NET Core, you need to download and install .NE
 
 3. Execute this command to check if .NET is installed:
    ```powershell
-dotnet --version
+   dotnet --version
    ```
    The following output suggests successful installation:
-   ```powershell
-6.0.403
+   ```
+   6.0.403
    ```
 
 #### Install protoBuf
@@ -475,21 +475,21 @@ dotnet --version
 1. You can download protoBuf through this link or execute this command in cmd or PowerShell:
 
    ```powershell
-choco install protoc --version=3.11.4 -y
+   choco install protoc --version=3.11.4 -y
 
-choco install unzip -y
+   choco install unzip -y
    ```
 
 2. Execute this command to check if protoBuf is installed:
 
-   ```powershell
-protoc --version
+   ```
+   protoc --version
    ```
 
    The following output suggests successful installation:
 
-   ```powershell
-libprotoc 3.21.9
+   ```
+   libprotoc 3.21.9
    ```
 
 #### Install Redis
@@ -502,7 +502,7 @@ choco install redis-64 -y
 
 2. Execute this command to start a Redis instance and check if Redis is installed:
 
-```powershell
+```
 memurai
 ```
 
@@ -515,19 +515,19 @@ The following output suggests Redis is installed and a Redis instance is started
 1. You can download Nodejs through Node.js or execute this command in cmd or PowerShell:
 
    ```powershell
-choco install nodejs -y
+   choco install nodejs -y
    ```
 
 2. Execute this command to check if Nodejs is installed:
 
    ```powershell
-npm --version
+   npm --version
    ```
 
    The following output suggests successful installation:
 
-   ```powershell
-6.14.8
+   ```
+   6.14.8
    ```
 
    If it shows The term 'npm' is not recognized as the name of a cmdlet, function, script file, or operable program, you can:
@@ -596,14 +596,14 @@ Reading package lists... Done
 1. Execute this command to check if v7.0 is used:
 
    ```bash
-# 7.0.100
-dotnet --version
+   # 7.0.100
+   dotnet --version
    ```
 
    If there is v7.0, execute this command to delete it:
 
    ```bash
-sudo rm -rf /home/codespace/.dotnet/*
+   sudo rm -rf /home/codespace/.dotnet/*
    ```
 
 2. Execute this command to reinstall v6.0:
@@ -623,14 +623,14 @@ sudo apt-get install -y dotnet-sdk-6.0
 3. Restart bash after the installation and execute this command to check if v6.0 is installed:
 
    ```bash
- # 6.0.403
+   # 6.0.403
    dotnet --version
    ```
 
    The following output suggests successful installation:
 
    ```bash
-6.0.403
+   6.0.403
    ```
 
 #### Install protoBuf
@@ -638,16 +638,16 @@ sudo apt-get install -y dotnet-sdk-6.0
 1. Execute this command to install protoBuf:
 
    ```bash
-curl -OL https://github.com/google/protobuf/releases/download/v21.9/protoc-21.9-linux-x86_64.zip
-unzip protoc-21.9-linux-x86_64.zip -d protoc3
+   curl -OL https://github.com/google/protobuf/releases/download/v21.9/protoc-21.9-linux-x86_64.zip
+   unzip protoc-21.9-linux-x86_64.zip -d protoc3
 
-sudo mv protoc3/bin/* /usr/local/bin/
+   sudo mv protoc3/bin/* /usr/local/bin/
 
-sudo mv protoc3/include/* /usr/local/include/
+   sudo mv protoc3/include/* /usr/local/include/
 
-sudo chown ${USER} /usr/local/bin/protoc
+   sudo chown ${USER} /usr/local/bin/protoc
 
-sudo chown -R ${USER} /usr/local/include/google
+   sudo chown -R ${USER} /usr/local/include/google
    ```
 
 2. Execute this command to check if protoBuf is installed:
