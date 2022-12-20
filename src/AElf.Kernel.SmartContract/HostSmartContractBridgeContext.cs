@@ -193,43 +193,6 @@ public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, I
             TransactionContext.Transaction.GetHash().ToByteArray());
     }
 
-    public Dictionary<string, object> ParseJsonToPlainDictionary(string jsonText)
-    {
-        var stream = new MemoryStream(Encoding.UTF8.GetBytes(jsonText));
-
-        var options = new JsonSerializerOptions 
-        { 
-            PropertyNameCaseInsensitive = true,
-            NumberHandling = JsonNumberHandling.WriteAsString 
-        };
-
-        var resultDict = JsonSerializer.Deserialize<Dictionary<string, object>>(stream, options);
-        // No System.Text.Json object can be returned, because this package is invalid in contract environment.
-        // So we need to transform all json object to basic ones, such as, number, string, boolean...
-        foreach (var (key, value) in resultDict)
-        {
-            if (value is JsonElement)
-            {
-                JsonElement element = (JsonElement)value;
-                if (element.ValueKind == JsonValueKind.Array)
-                {
-                    var list = new List<string>();
-                    foreach (var item in element.EnumerateArray())
-                    {
-                        list.Add(item.ToString());
-                    }
-
-                    resultDict[key] = list;
-                }
-                else
-                {
-                    resultDict[key] = value.ToString();
-                }
-            }
-        }
-        return resultDict;
-    }
-
     public T Call<T>(Address fromAddress, Address toAddress, string methodName, ByteString args)
         where T : IMessage<T>, new()
     {

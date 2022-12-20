@@ -43,8 +43,6 @@ public interface ISmartContractBridgeContext
 
     byte[] RecoverPublicKey(byte[] signature, byte[] hash);
 
-    Dictionary<string, object> ParseJsonToPlainDictionary(string json);
-
     List<Transaction> GetPreviousBlockTransactions();
 
     bool VerifySignature(Transaction tx);
