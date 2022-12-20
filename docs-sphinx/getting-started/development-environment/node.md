@@ -4,21 +4,21 @@ If you already know something about aelf blockchain and want to get deeply invol
 
 If you are a beginner or you want to deploy contracts onto aelf, please click [here](https://docs.aelf.io/en/latest/getting-started/smart-contract-development/index.html) to learn more.
 
-## Why Should I Run a Node
+### Why Should I Run a Node
 
 - Full node: A full node stores the complete blockchain data and you can view all the info. It also enables you to deploy DApps and contracts on aelf or interact with its contracts.
 
 - BP: To run a full node that produces blocks, the node needs to participate in the election. If ranked among the top 2N+1 (N=8 in the first year and increases by 1 every year. Currently the threshold is 17), it can get involved in the governance of aelf.
 
-## How Can I Run a Node
+### How Can I Run a Node
 
-### Single Node
+## Single Node
 
-#### macOS
+### macOS
 
 Follow this doc to run an aelf single node on a macOS device and this will take around 20 minutes to complete.
 
-##### Install aelf-command
+#### Install aelf-command
 
 Execute this command to install aelf-command:
 
@@ -39,7 +39,7 @@ If it shows error `Permission denied @ apply2files`, then there is a permission 
 sudo chmod 755 /usr/local/lib/node_modules
 ```
 
-##### Clone and Build aelf's Code
+#### Clone and Build aelf's Code
 
 Create a directory. This tutorial uses a directory on the desktop for reference.
 
@@ -95,7 +95,7 @@ If contract_csharp_plugin fails to be called, it may be because you don't have R
 
 ```
 
-##### Create an aelf Account
+#### Create an aelf Account
 
 Execute this command:
 
@@ -126,7 +126,7 @@ Confirm password: ********
 
 For the sake of convenience, you are encouraged to keep this Terminal on the account info interface and open another Terminal to continue the following.
 
-##### Run a Single Node
+#### Run a Single Node
 
 A single node runs aelf blockchain on one node. It is usually used to test the execution of contracts only.
 
@@ -237,11 +237,11 @@ If you don't want to save the data, you can execute this command to delete all:
 redis-cli flushall
 ```
 
-#### Linux and Codespaces
+### Linux and Codespaces
 
 Follow this doc to run an aelf single node in Linux and Codespaces and this will take around 20 minutes to complete.
 
-##### Install aelf-command
+#### Install aelf-command
 
 Execute this command to install aelf-command:
 
@@ -256,7 +256,7 @@ The following output suggests successful installation:
 added 314 packages from 208 contributors in 25.958s
 ```
 
-##### Clone and Build aelf's Code
+#### Clone and Build aelf's Code
 
 Create a directory. This tutorial uses a directory on the desktop for reference.
 
@@ -305,7 +305,7 @@ The following output suggests successful building:
 Time Elapsed 00:15:59.77
 ```
 
-##### Create an aelf Account
+#### Create an aelf Account
 
 Execute this command:
 
@@ -336,7 +336,7 @@ Confirm password: ********
 
 For the sake of convenience, you are encouraged to keep this Terminal on the account info interface and open another Terminal to continue the following.
 
-##### Run a Single Node
+#### Run a Single Node
 
 A single node runs aelf blockchain on one node. It is usually used to test the execution of contracts only.
 
@@ -449,11 +449,11 @@ If you don't want to save the data, you can execute this command to delete all:
 redis-cli flushall
 ```
 
-#### Windows
+### Windows
 
 Follow this doc to run an aelf single node on a Windows device and this will take around 20 minutes to complete.
 
-##### Install aelf-command
+#### Install aelf-command
 
 Execute npm command to install aelf-command:
 
@@ -468,7 +468,7 @@ The following output suggests successful installation:
 added 314 packages from 208 contributors in 25.958s
 ```
 
-##### Clone and Build aelf's Code
+#### Clone and Build aelf's Code
 
 Create a directory. This tutorial uses a directory on the desktop for reference.
 
@@ -517,7 +517,7 @@ The following output suggests successful building:
 Time Elapsed 00:15:59.77
 ```
 
-##### Create an aelf Account
+#### Create an aelf Account
 
 Execute this command:
 
@@ -548,7 +548,7 @@ Confirm password: ********
 
 For the sake of convenience, you are encouraged to keep this cmd or PowerShell on the account info interface and open another cmd or PowerShell to continue the following.
 
-##### Run a Single Node
+#### Run a Single Node
 
 A single node runs aelf blockchain on one node. It is usually used to test the execution of contracts only.
 
@@ -668,21 +668,21 @@ If you don't want to save the data, you can execute this command to delete all:
 redis-cli flushall
 ```
 
-### Multi Nodes
+## Multi Nodes
 
-#### macOS
+### macOS
 
 Follow this doc to run aelf multi-nodes on a macOS device and this will take around 20 minutes to complete.
 
 
 
-##### Run Multi-Nodes
+#### Run Multi-Nodes
 
 This tutorial will guide you through how to run three nodes.
 
 
 
-###### Publish aelf's Code
+##### Publish aelf's Code
 
 Create a directory. This tutorial uses a directory on the desktop for reference.
 
@@ -706,7 +706,7 @@ sudo dotnet publish AElf.All.sln /p:NoBuild=false --configuration Debug -o ~/Des
 
 
 
-###### Configure Three Nodes
+##### Configure Three Nodes
 
 1. Execute this command three times to create three accounts: A, B, and C.
 
@@ -865,7 +865,7 @@ redis-server
 
 
 
-###### Run Three Nodes
+##### Run Three Nodes
 
 In this tutorial, code is published in `~/Desktop/Out` and the three nodes are configured in `~/Desktop/Config`.
 
@@ -905,19 +905,19 @@ If you don't want to save the data, you can execute this command to delete all:
 redis-cli flushall
 ```
 
-#### Linux and Codespaces
+### Linux and Codespaces
 
 Follow this doc to run aelf multi-nodes in Linux and Codespaces and this will take around 20 minutes to complete.
 
 
 
-##### Run Multi-Nodes
+#### Run Multi-Nodes
 
 This tutorial will guide you through how to run three nodes.
 
 
 
-###### Publish aelf's Code
+##### Publish aelf's Code
 
 Create a directory. This tutorial uses a directory on the desktop for reference.
 
@@ -940,7 +940,7 @@ sudo dotnet publish AElf.All.sln /p:NoBuild=false --configuration Debug -o ~/Des
 ```
 
 
-###### Configure Three Nodes
+##### Configure Three Nodes
 
 1. Execute this command three times to create three accounts: A, B, and C.
 
@@ -1101,7 +1101,7 @@ For `appsettings.MainChain.MainNet.json`:
    ```
 
 
-###### Run Three Nodes
+##### Run Three Nodes
 
 In this tutorial, code is published in `~/Desktop/Out` and the three nodes are configured in `~/Desktop/Config`.
 
@@ -1141,17 +1141,17 @@ If you don't want to save the data, you can execute this command to delete all:
 redis-cli flushall
 ```
 
-#### Windows
+### Windows
 
 Follow this doc to run aelf multi-nodes on a Windows device and this will take around 20 minutes to complete.
 
 
-##### Run Multi-Nodes
+#### Run Multi-Nodes
 
 This tutorial will guide you through how to run three nodes.
 
 
-###### Publish aelf's Code
+##### Publish aelf's Code
 
 Create a directory. This tutorial uses a directory on the desktop for reference.
 
@@ -1176,7 +1176,7 @@ sudo dotnet publish AElf.All.sln /p:NoBuild=false --configuration Debug -o C:/Us
 ```
 
 
-###### Configure Three Nodes
+##### Configure Three Nodes
 
 1. Execute this command three times to create three accounts: A, B, and C.
 
@@ -1337,7 +1337,7 @@ For `appsettings.MainChain.MainNet.json`:
    ```
   
 
-###### Run Three Nodes
+##### Run Three Nodes
 
 In this tutorial, code is published in `C:/Users/${username}/Desktop/Out` and the three nodes are configured in `C:/Users/${username}/Desktop/Config`.
 
