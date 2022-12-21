@@ -69,15 +69,15 @@ To install Homebrew:
 
       brew --version
 
-   The following output suggests successful installation:
+The following output suggests successful installation:
 
-   .. code:: bash
+.. code:: bash
 
-      Homebrew 3.3.1
+   Homebrew 3.3.1
 
-      Homebrew/homebrew-core (git revision c6c488fbc0f; last commit 2021-10-30)
+   Homebrew/homebrew-core (git revision c6c488fbc0f; last commit 2021-10-30)
 
-      Homebrew/homebrew-cask (git revision 66bab33b26; last commit 2021-10-30)
+   Homebrew/homebrew-cask (git revision 66bab33b26; last commit 2021-10-30)
 
 Environment Update
 ^^^^^^^^^^^^^^^^^^
@@ -116,11 +116,11 @@ As aelf’s code is hosted on GitHub, you need to install **Git** first.
 
       git --version
 
-   The following output suggests successful installation:
+The following output suggests successful installation:
 
-   .. code:: bash
+.. code:: bash
 
-      git version xx.xx.xx
+   git version xx.xx.xx
 
 Install .NET SDK
 ^^^^^^^^^^^^^^^^
@@ -139,11 +139,11 @@ macOS if compatible).
 
       dotnet --version
 
-   The following output suggests successful installation:
+The following output suggests successful installation:
 
-   ::
+::
 
-      6.0.403
+   6.0.403
 
 Install protoBuf
 ^^^^^^^^^^^^^^^^
@@ -168,11 +168,11 @@ Install protoBuf
 
       protoc --version
 
-   The following output suggests successful installation:
+The following output suggests successful installation:
 
-   .. code:: bash
+.. code:: bash
 
-      libprotoc 3.21.9
+   libprotoc 3.21.9
 
 Install Redis
 ^^^^^^^^^^^^^
@@ -190,13 +190,13 @@ Install Redis
 
       redis-server
 
-   The following output suggests Redis is installed and a Redis instance
-   is started:
+The following output suggests Redis is installed and a Redis instance is
+started:
 
-   .. figure:: mac_install_redis.png
-      :alt: image
+.. figure:: mac_install_redis.png
+   :alt: image
 
-      image
+   image
 
 Install Nodejs
 ^^^^^^^^^^^^^^
@@ -213,11 +213,11 @@ Install Nodejs
 
       npm --version
 
-   The following output suggests successful installation:
+The following output suggests successful installation:
 
-   ::
+::
 
-      6.14.8
+   6.14.8
 
 Linux
 -----
@@ -250,7 +250,7 @@ Execute this command to update your environment:
 
 .. code:: bash
 
-    sudo apt-get update
+   sudo apt-get update
 
 The following output suggests successful update:
 
@@ -269,17 +269,18 @@ or to run a node, you need to clone aelf’s repo (download source code).
 As aelf’s code is hosted on GitHub, you need to install **Git** first.
 
 1. Open the terminal.
+
 2. Execute this command to install Git:
 
-.. code:: bash
+   .. code:: bash
 
-   sudo apt-get install git -y
+      sudo apt-get install git -y
 
 3. Execute this command to check if Git is installed:
 
-.. code:: bash
+   .. code:: bash
 
-   git --version
+      git --version
 
 The following output suggests successful installation:
 
@@ -375,9 +376,9 @@ and execute the following commands to install.
 
 5. Execute this command to check if protoBuf is installed:
 
-.. code:: bash
+   .. code:: bash
 
-   protoc --version
+      protoc --version
 
 The following output suggests successful installation:
 
@@ -392,16 +393,16 @@ Install Redis
 
 1. Execute this command to install Redis:
 
-.. code:: bash
+   .. code:: bash
 
-   sudo apt-get install redis -y
+      sudo apt-get install redis -y
 
 2. Execute this command to start a Redis instance and check if Redis is
    installed:
 
-::
+   ::
 
-   redis-server
+      redis-server
 
 The following output suggests Redis is installed and a Redis instance is
 started:
@@ -426,17 +427,17 @@ Install Nodejs
 
 1. Execute these commands to install Nodejs:
 
-.. code:: bash
+   .. code:: bash
 
-   curl -fsSL https://deb.nodesource.com/setup_14.x | sudo -E bash -
+      curl -fsSL https://deb.nodesource.com/setup_14.x | sudo -E bash -
 
-   sudo apt-get install -y nodejs
+      sudo apt-get install -y nodejs
 
 2. Execute this command to check if Nodejs is installed:
 
-.. code:: bash
+   .. code:: bash
 
-   npm --version
+      npm --version
 
 The following output suggests successful installation:
 
@@ -497,25 +498,25 @@ each software to complete their installation.
 
       choco
 
-   The following output suggests successful installation:
+The following output suggests successful installation:
 
-   ::
+::
 
-      Chocolatey vx.x.x
+   Chocolatey vx.x.x
 
-   If it
-   shows\ ``The term 'choco' is not recognized as the name of a cmdlet, function, script file, or operable program``,
-   then there is a permission issue with PowerShell. To solve it:
+If it
+shows\ ``The term 'choco' is not recognized as the name of a cmdlet, function, script file, or operable program``,
+then there is a permission issue with PowerShell. To solve it:
 
-   -  **Right-click** the computer icon and select **Properties**.
+-  **Right-click** the computer icon and select **Properties**.
 
-   -  Click **Advanced** in **System Properties** and select
-      **Environment Variables** on the bottom right.
+-  Click **Advanced** in **System Properties** and select **Environment
+   Variables** on the bottom right.
 
-   -  Check if the **ChocolateyInstall variable** is in **System
-      variables**, and its default value is the Chocolatey installation
-      path ``C:\Program Files\Chocolatey``. If you don’t find it, click
-      New System Variable to manually add it.
+-  Check if the **ChocolateyInstall variable** is in **System
+   variables**, and its default value is the Chocolatey installation
+   path ``C:\Program Files\Chocolatey``. If you don’t find it, click New
+   System Variable to manually add it.
 
 .. _install-git-2:
 
@@ -539,23 +540,23 @@ As aelf’s code is hosted on GitHub, you need to install **Git** first.
 
       git --version
 
-   The following output suggests successful installation:
+The following output suggests successful installation:
 
-   .. code:: powershell
+.. code:: powershell
 
-      git version xx.xx.xx
+   git version xx.xx.xx
 
-   If it shows
-   ``The term 'git' is not recognized as the name of a cmdlet, function, script file, or operable program``,
-   you can:
+If it shows
+``The term 'git' is not recognized as the name of a cmdlet, function, script file, or operable program``,
+you can:
 
-   -  **Right-click** the computer icon and select **Properties**.
-   -  Click **Advanced** in **System Properties** and select
-      **Environment Variables** on the bottom right.
-   -  Check if the Git variable is in **Path** in **System variables**,
-      and its default value is the Git installation path
-      ``C:\Program Files\git``. If you don’t find it, click **New System
-      Variable** to manually add it.
+-  **Right-click** the computer icon and select **Properties**.
+-  Click **Advanced** in **System Properties** and select **Environment
+   Variables** on the bottom right.
+-  Check if the Git variable is in **Path** in **System variables**, and
+   its default value is the Git installation path
+   ``C:\Program Files\git``. If you don’t find it, click **New System
+   Variable** to manually add it.
 
 .. _install-.net-sdk-2:
 
@@ -618,16 +619,16 @@ Install Redis
 1. You can download Redis through MicroSoftArchive-Redis or execute this
    command in cmd or PowerShell:
 
-.. code:: powershell
+   .. code:: powershell
 
-   choco install redis-64 -y
+      choco install redis-64 -y
 
 2. Execute this command to start a Redis instance and check if Redis is
    installed:
 
-::
+   ::
 
-   memurai
+      memurai
 
 The following output suggests Redis is installed and a Redis instance is
 started:
@@ -655,24 +656,24 @@ Install Nodejs
 
       npm --version
 
-   The following output suggests successful installation:
+The following output suggests successful installation:
 
-   ::
+::
 
-      6.14.8
+   6.14.8
 
-   If it shows The term ‘npm’ is not recognized as the name of a cmdlet,
-   function, script file, or operable program, you can:
+If it shows The term ‘npm’ is not recognized as the name of a cmdlet,
+function, script file, or operable program, you can:
 
-   -  **Right-click** the computer icon and select **Properties**.
+-  **Right-click** the computer icon and select **Properties**.
 
-   -  Click **Advanced** in **System Properties** and select
-      **Environment Variables** on the bottom right.
+-  Click **Advanced** in **System Properties** and select **Environment
+   Variables** on the bottom right.
 
-   -  Check if the Nodejs variable is in **Path** in **System
-      variables**, and its default value is the Nodejs installation path
-      ``C:\Program Files\nodejs``. If you don’t find it, click **New
-      System Variable** to manually add it.
+-  Check if the Nodejs variable is in **Path** in **System variables**,
+   and its default value is the Nodejs installation path
+   ``C:\Program Files\nodejs``. If you don’t find it, click **New System
+   Variable** to manually add it.
 
 Codespaces
 ----------
@@ -770,17 +771,17 @@ otherwise there will be building issues.
 
 2. Execute this command to reinstall v6.0:
 
-.. code:: bash
+   .. code:: bash
 
-   wget https://packages.microsoft.com/config/ubuntu/22.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
+      wget https://packages.microsoft.com/config/ubuntu/22.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
 
-   sudo dpkg -i packages-microsoft-prod.deb
+      sudo dpkg -i packages-microsoft-prod.deb
 
-   rm packages-microsoft-prod.deb
+      rm packages-microsoft-prod.deb
 
-   sudo apt-get update && \
+      sudo apt-get update && \
 
-   sudo apt-get install -y dotnet-sdk-6.0
+      sudo apt-get install -y dotnet-sdk-6.0
 
 3. Restart bash after the installation and execute this command to check
    if v6.0 is installed:
@@ -790,11 +791,11 @@ otherwise there will be building issues.
       # 6.0.403
       dotnet --version
 
-   The following output suggests successful installation:
+The following output suggests successful installation:
 
-   .. code:: bash
+.. code:: bash
 
-      6.0.403
+   6.0.403
 
 .. _install-protobuf-3:
 
@@ -818,9 +819,9 @@ Install protoBuf
 
 2. Execute this command to check if protoBuf is installed:
 
-.. code:: bash
+   .. code:: bash
 
-   protoc --version
+      protoc --version
 
 The following output suggests successful installation:
 
@@ -835,16 +836,16 @@ Install Redis
 
 1. Execute this command to install Redis:
 
-.. code:: bash
+   .. code:: bash
 
-   sudo apt-get install redis -y
+      sudo apt-get install redis -y
 
 2. Execute this command to start a Redis instance and check if Redis is
    installed:
 
-.. code:: bash
+   .. code:: bash
 
-   redis-server
+      redis-server
 
 The following output suggests Redis is installed and a Redis instance is
 started:
@@ -855,7 +856,7 @@ started:
    Ready to accept connections
 
 What’s Next
-~~~~~~~~~~~
+^^^^^^^^^^^
 
 If you have already installed the tools and frameworks above, you can
 skip this step. For info about contract deployment and nodes running,

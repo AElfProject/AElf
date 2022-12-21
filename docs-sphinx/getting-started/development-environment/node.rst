@@ -103,8 +103,8 @@ The following output suggests successful building:
 
 .. code:: bash
 
-   xx Warning(s)
-        0 Error(s)
+    xx Warning(s)
+       0 Error(s)
 
    Time Elapsed 00:15:59.77
 
@@ -204,7 +204,7 @@ Fill in the ``NodeAccount`` and ``NodeAccountPassword`` under
 
 .. code:: bash
 
-   "Account": {
+    "Account": {
        "NodeAccount": "",
        "NodeAccountPassword": ""
      }
@@ -213,7 +213,7 @@ It may look like this when you complete it:
 
 .. code:: bash
 
-   "Account": {
+    "Account": {
        "NodeAccount": "21qciGwcaowwBttKMjMk86AW6WajhcodSHytY1vCyZb7p*****",
        "NodeAccountPassword": "********"
      },
@@ -352,8 +352,8 @@ The following output suggests successful building:
 
 .. code:: bash
 
-   xx Warning(s)
-        0 Error(s)
+    xx Warning(s)
+       0 Error(s)
 
    Time Elapsed 00:15:59.77
 
@@ -449,7 +449,7 @@ Fill in the ``NodeAccount`` and ``NodeAccountPassword`` under
 
 .. code:: bash
 
-   "Account": {
+    "Account": {
        "NodeAccount": "",
        "NodeAccountPassword": ""
      }
@@ -458,7 +458,7 @@ It may look like this when you complete it:
 
 .. code:: bash
 
-   "Account": {
+    "Account": {
        "NodeAccount": "21qciGwcaowwBttKMjMk86AW6WajhcodSHytY1vCyZb7p*****",
        "NodeAccountPassword": "********"
      },
@@ -599,8 +599,8 @@ The following output suggests successful building:
 
 .. code:: bash
 
-   xx Warning(s)
-        0 Error(s)
+    xx Warning(s)
+       0 Error(s)
 
    Time Elapsed 00:15:59.77
 
@@ -695,7 +695,7 @@ Fill in the ``NodeAccount`` and ``NodeAccountPassword`` under
 
 .. code:: bash
 
-   "Account": {
+    "Account": {
        "NodeAccount": "",
        "NodeAccountPassword": ""
      }
@@ -704,7 +704,7 @@ It may look like this when you complete it:
 
 .. code:: bash
 
-   "Account": {
+    "Account": {
        "NodeAccount": "21qciGwcaowwBttKMjMk86AW6WajhcodSHytY1vCyZb7p*****",
        "NodeAccountPassword": "********"
      },
