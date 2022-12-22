@@ -1,11 +1,11 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
         <RootNamespace>AElf.Contracts.MultiTokenCrossSideChain</RootNamespace>
         <IsPackable>false</IsPackable>
     </PropertyGroup>
     <ItemGroup>
-        <ProjectReference Include="..\..\src\AElf.ContractTestBase\AElf.ContractTestBase.csproj"/>
+        <ProjectReference Include="..\..\src\AElf.ContractTestBase\AElf.ContractTestBase.csproj" />
         <ProjectReference Include="..\AElf.Contracts.TestContract.BasicFunction\AElf.Contracts.TestContract.BasicFunction.csproj">
             <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
             <OutputItemType>Contract</OutputItemType>
@@ -54,12 +54,12 @@
 
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="coverlet.collector" Version="1.3.0"/>
-        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.7.1"/>
-        <PackageReference Include="Shouldly" Version="4.0.3"/>
-        <PackageReference Include="xunit" Version="2.4.1"/>
-        <PackageReference Include="xunit.runner.console" Version="2.4.1"/>
-        <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3"/>
+        <PackageReference Include="coverlet.collector" Version="1.3.0" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.7.1" />
+        <PackageReference Include="Shouldly" Version="4.0.3" />
+        <PackageReference Include="xunit" Version="2.4.1" />
+        <PackageReference Include="xunit.runner.console" Version="2.4.1" />
+        <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3" />
     </ItemGroup>
 
     <ItemGroup>

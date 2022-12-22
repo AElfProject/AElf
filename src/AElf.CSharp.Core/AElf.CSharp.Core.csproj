@@ -1,5 +1,5 @@
-<Project Sdk="Microsoft.NET.Sdk">
-    <Import Project="..\..\common.props"/>
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="..\..\common.props" />
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
         <PackageId>AElf.CSharp.Core</PackageId>
@@ -7,9 +7,9 @@
         <Description>Base definitions for C# smart contracts.</Description>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="Microsoft.CSharp" Version="4.7.0"/>
+        <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
     </ItemGroup>
     <ItemGroup>
-        <ProjectReference Include="..\AElf.Types\AElf.Types.csproj"/>
+        <ProjectReference Include="..\AElf.Types\AElf.Types.csproj" />
     </ItemGroup>
 </Project>

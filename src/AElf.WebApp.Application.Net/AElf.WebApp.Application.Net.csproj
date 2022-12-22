@@ -1,5 +1,5 @@
-<Project Sdk="Microsoft.NET.Sdk">
-    <Import Project="..\..\common.props"/>
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="..\..\common.props" />
 
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
@@ -11,12 +11,12 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\AElf.OS.Core\AElf.OS.Core.csproj"/>
-        <ProjectReference Include="..\AElf.WebApp.Application.Core\AElf.WebApp.Application.Core.csproj"/>
+        <ProjectReference Include="..\AElf.OS.Core\AElf.OS.Core.csproj" />
+        <ProjectReference Include="..\AElf.WebApp.Application.Core\AElf.WebApp.Application.Core.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Volo.Abp.AspNetCore.Mvc" Version="5.2.2"/>
+        <PackageReference Include="Volo.Abp.AspNetCore.Mvc" Version="6.0.2" />
     </ItemGroup>
 
 </Project>

@@ -6,7 +6,7 @@
         <IsPackable>false</IsPackable>
     </PropertyGroup>
     <ItemGroup>
-        <ProjectReference Include="..\..\src\AElf.ContractTestBase\AElf.ContractTestBase.csproj"/>
+        <ProjectReference Include="..\..\src\AElf.ContractTestBase\AElf.ContractTestBase.csproj" />
         <ProjectReference Include="..\..\contract\AElf.Contracts.MultiToken\AElf.Contracts.MultiToken.csproj">
             <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
             <OutputItemType>Contract</OutputItemType>
@@ -59,12 +59,12 @@
         </ProjectReference>
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="coverlet.collector" Version="1.3.0"/>
-        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.7.1"/>
-        <PackageReference Include="Shouldly" Version="4.0.3"/>
-        <PackageReference Include="xunit" Version="2.4.1"/>
-        <PackageReference Include="xunit.runner.console" Version="2.4.1"/>
-        <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3"/>
+        <PackageReference Include="coverlet.collector" Version="1.3.0" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.7.1" />
+        <PackageReference Include="Shouldly" Version="4.0.3" />
+        <PackageReference Include="xunit" Version="2.4.1" />
+        <PackageReference Include="xunit.runner.console" Version="2.4.1" />
+        <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3" />
     </ItemGroup>
 
     <ItemGroup>
@@ -125,6 +125,6 @@
             <Link>Protobuf\Proto\base\acs11.proto</Link>
         </ContractBase>
     </ItemGroup>
-    <Import Project="..\..\test\AllProto.props"/>
-    <Import Project="..\..\test\AllContracts.props"/>
+    <Import Project="..\..\test\AllProto.props" />
+    <Import Project="..\..\test\AllContracts.props" />
 </Project>

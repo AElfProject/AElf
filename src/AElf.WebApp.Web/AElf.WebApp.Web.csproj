@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
     <Import Project="..\..\common.props" />
 
     <PropertyGroup>
@@ -16,11 +16,11 @@
     <ItemGroup>
         <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning.ApiExplorer" Version="5.0.0" />
         <PackageReference Include="Microsoft.Extensions.Primitives" Version="6.0.0" />
-        <PackageReference Include="Volo.Abp.Autofac" Version="5.2.2" />
-        <PackageReference Include="Volo.Abp.AspNetCore.Mvc" Version="5.2.2" />
-        <PackageReference Include="Volo.Abp.Authorization" Version="5.2.2" />
-        <PackageReference Include="Volo.Abp.Castle.Core" Version="5.2.2" />
-        <PackageReference Include="Volo.Abp.Swashbuckle" Version="5.2.2" />
+        <PackageReference Include="Volo.Abp.Autofac" Version="6.0.2" />
+        <PackageReference Include="Volo.Abp.AspNetCore.Mvc" Version="6.0.2" />
+        <PackageReference Include="Volo.Abp.Authorization" Version="6.0.2" />
+        <PackageReference Include="Volo.Abp.Castle.Core" Version="6.0.2" />
+        <PackageReference Include="Volo.Abp.Swashbuckle" Version="6.0.2" />
     </ItemGroup>
 
 </Project>

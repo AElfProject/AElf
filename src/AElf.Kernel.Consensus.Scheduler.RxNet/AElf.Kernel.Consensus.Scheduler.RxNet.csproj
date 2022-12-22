@@ -1,5 +1,5 @@
-<Project Sdk="Microsoft.NET.Sdk">
-    <Import Project="..\..\common.props"/>
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="..\..\common.props" />
 
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
@@ -9,11 +9,11 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="System.Reactive" Version="4.4.1"/>
+        <PackageReference Include="System.Reactive" Version="4.4.1" />
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\AElf.Kernel.Consensus.Core\AElf.Kernel.Consensus.Core.csproj"/>
+        <ProjectReference Include="..\AElf.Kernel.Consensus.Core\AElf.Kernel.Consensus.Core.csproj" />
     </ItemGroup>
 
 </Project>

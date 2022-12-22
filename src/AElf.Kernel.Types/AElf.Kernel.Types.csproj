@@ -1,5 +1,5 @@
-<Project Sdk="Microsoft.NET.Sdk">
-    <Import Project="..\..\common.props"/>
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="..\..\common.props" />
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
         <RootNamespace>AElf.Kernel</RootNamespace>
@@ -9,7 +9,7 @@
         </Description>
     </PropertyGroup>
     <ItemGroup>
-        <ProjectReference Include="..\AElf.Types\AElf.Types.csproj"/>
+        <ProjectReference Include="..\AElf.Types\AElf.Types.csproj" />
     </ItemGroup>
     <ItemGroup>
         <CommonMessage Include="..\..\protobuf\kernel.proto">

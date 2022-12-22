@@ -10,9 +10,9 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\AElf.ContractTestKit\AElf.ContractTestKit.csproj"/>
-        <ProjectReference Include="..\AElf.EconomicSystem\AElf.EconomicSystem.csproj"/>
-        <ProjectReference Include="..\AElf.GovernmentSystem\AElf.GovernmentSystem.csproj"/>
+        <ProjectReference Include="..\AElf.ContractTestKit\AElf.ContractTestKit.csproj" />
+        <ProjectReference Include="..\AElf.EconomicSystem\AElf.EconomicSystem.csproj" />
+        <ProjectReference Include="..\AElf.GovernmentSystem\AElf.GovernmentSystem.csproj" />
     </ItemGroup>
 
     <ItemGroup>
@@ -49,10 +49,10 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="xunit.extensibility.core" Version="2.4.1"/>
-        <PackageReference Include="xunit.extensibility.execution" Version="2.4.1"/>
+        <PackageReference Include="xunit.extensibility.core" Version="2.4.1" />
+        <PackageReference Include="xunit.extensibility.execution" Version="2.4.1" />
     </ItemGroup>
 
-    <Import Project="..\..\test\AllContracts.props"/>
+    <Import Project="..\..\test\AllContracts.props" />
 
 </Project>
