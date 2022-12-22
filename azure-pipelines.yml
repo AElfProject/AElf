@@ -1,6 +1,6 @@
 jobs:
 # All tasks on Windows....
-- job: build_all_windows
+- job: build_all_windows_1
   displayName: Build all tasks (Windows)
   timeoutInMinutes: 120
   pool:
@@ -20,7 +20,7 @@ jobs:
     displayName: 'Download AElf build tools'
     inputs:
       filename: 'scripts/download_binary.bat'
-  - script: PowerShell.exe -file build.ps1 -target=Test-with-Codecov-N --parts=3 --n=1
+  - script: PowerShell.exe -file build.ps1 -target=Test-with-Codecov-N --parts=9 --n=1
     displayName: 'Build and Test'
   - task: PublishTestResults@2
     condition: always()
@@ -37,8 +37,84 @@ jobs:
       assemblyfilters: '-xunit*'
   - script: PowerShell.exe -file build.ps1 -target=Upload-Coverage-Azure
     displayName: 'Upload data to Codecov'
+  # All tasks on Windows....
+- job: build_all_windows_2
+  displayName: Build all tasks (Windows)
+  timeoutInMinutes: 120
+  pool:
+    vmImage: windows-latest
+  variables:
+    CI_TEST: true
+  steps:
+    - task: UseDotNet@2
+      displayName: 'Install .NET Core SDK'
+      inputs:
+        version: 6.0.x
+    - script: choco install protoc --version=3.19.4 -y
+      displayName: 'Install protobuf'
+    - script: choco install unzip
+      displayName: 'Install unzip'
+    - task: BatchScript@1
+      displayName: 'Download AElf build tools'
+      inputs:
+        filename: 'scripts/download_binary.bat'
+    - script: PowerShell.exe -file build.ps1 -target=Test-with-Codecov-N --parts=9 --n=2
+      displayName: 'Build and Test'
+    - task: PublishTestResults@2
+      condition: always()
+      inputs:
+        testRunner: VSTest
+        testResultsFiles: '**/*.trx'
+
+    - task: Palmmedia.reportgenerator.reportgenerator-build-release-task.reportgenerator@4
+      displayName: ReportGenerator
+      inputs:
+        reports: '$(Build.SourcesDirectory)/test/*/TestResults/*/coverage.cobertura.xml'
+        targetdir: '$(Build.SourcesDirectory)/CodeCoverage'
+        reporttypes: 'Cobertura'
+        assemblyfilters: '-xunit*'
+    - script: PowerShell.exe -file build.ps1 -target=Upload-Coverage-Azure
+      displayName: 'Upload data to Codecov'
+# All tasks on Windows....
+- job: build_all_windows_3
+  displayName: Build all tasks (Windows)
+  timeoutInMinutes: 120
+  pool:
+    vmImage: windows-latest
+  variables:
+    CI_TEST: true
+  steps:
+    - task: UseDotNet@2
+      displayName: 'Install .NET Core SDK'
+      inputs:
+        version: 6.0.x
+    - script: choco install protoc --version=3.19.4 -y
+      displayName: 'Install protobuf'
+    - script: choco install unzip
+      displayName: 'Install unzip'
+    - task: BatchScript@1
+      displayName: 'Download AElf build tools'
+      inputs:
+        filename: 'scripts/download_binary.bat'
+    - script: PowerShell.exe -file build.ps1 -target=Test-with-Codecov-N --parts=9 --n=3
+      displayName: 'Build and Test'
+    - task: PublishTestResults@2
+      condition: always()
+      inputs:
+        testRunner: VSTest
+        testResultsFiles: '**/*.trx'
+
+    - task: Palmmedia.reportgenerator.reportgenerator-build-release-task.reportgenerator@4
+      displayName: ReportGenerator
+      inputs:
+        reports: '$(Build.SourcesDirectory)/test/*/TestResults/*/coverage.cobertura.xml'
+        targetdir: '$(Build.SourcesDirectory)/CodeCoverage'
+        reporttypes: 'Cobertura'
+        assemblyfilters: '-xunit*'
+    - script: PowerShell.exe -file build.ps1 -target=Upload-Coverage-Azure
+      displayName: 'Upload data to Codecov'
 # All tasks on Linux
-- job: build_all_linux
+- job: build_all_linux_1
   displayName: Build all tasks (Linux)
   timeoutInMinutes: 120
   pool:
@@ -50,7 +126,7 @@ jobs:
       version: 6.0.x
   - script: bash scripts/install_protobuf.sh
   - script: bash scripts/download_binary.sh
-  - script: bash build.sh -target=Test-with-Codecov-N --parts=3 --n=2
+  - script: bash build.sh -target=Test-with-Codecov-N --parts=9 --n=4
     displayName: 'Build and Test'
   - task: PublishTestResults@2
     condition: always()
@@ -67,9 +143,68 @@ jobs:
       assemblyfilters: '-xunit*'
   - script: bash build.sh -target=Upload-Coverage-Azure
     displayName: 'Upload data to Codecov'
+  # All tasks on Linux
+- job: build_all_linux_2
+  displayName: Build all tasks (Linux)
+  timeoutInMinutes: 120
+  pool:
+    vmImage: ubuntu-latest
+  steps:
+    - task: UseDotNet@2
+      displayName: 'Install .NET Core SDK'
+      inputs:
+        version: 6.0.x
+    - script: bash scripts/install_protobuf.sh
+    - script: bash scripts/download_binary.sh
+    - script: bash build.sh -target=Test-with-Codecov-N --parts=9 --n=5
+      displayName: 'Build and Test'
+    - task: PublishTestResults@2
+      condition: always()
+      inputs:
+        testRunner: VSTest
+        testResultsFiles: '**/*.trx'
 
+    - task: Palmmedia.reportgenerator.reportgenerator-build-release-task.reportgenerator@4
+      displayName: ReportGenerator
+      inputs:
+        reports: '$(Build.SourcesDirectory)/test/*/TestResults/*/coverage.cobertura.xml'
+        targetdir: '$(Build.SourcesDirectory)/CodeCoverage'
+        reporttypes: 'Cobertura'
+        assemblyfilters: '-xunit*'
+    - script: bash build.sh -target=Upload-Coverage-Azure
+      displayName: 'Upload data to Codecov'
+  # All tasks on Linux
+- job: build_all_linux_3
+  displayName: Build all tasks (Linux)
+  timeoutInMinutes: 120
+  pool:
+    vmImage: ubuntu-latest
+  steps:
+    - task: UseDotNet@2
+      displayName: 'Install .NET Core SDK'
+      inputs:
+        version: 6.0.x
+    - script: bash scripts/install_protobuf.sh
+    - script: bash scripts/download_binary.sh
+    - script: bash build.sh -target=Test-with-Codecov-N --parts=9 --n=6
+      displayName: 'Build and Test'
+    - task: PublishTestResults@2
+      condition: always()
+      inputs:
+        testRunner: VSTest
+        testResultsFiles: '**/*.trx'
+
+    - task: Palmmedia.reportgenerator.reportgenerator-build-release-task.reportgenerator@4
+      displayName: ReportGenerator
+      inputs:
+        reports: '$(Build.SourcesDirectory)/test/*/TestResults/*/coverage.cobertura.xml'
+        targetdir: '$(Build.SourcesDirectory)/CodeCoverage'
+        reporttypes: 'Cobertura'
+        assemblyfilters: '-xunit*'
+    - script: bash build.sh -target=Upload-Coverage-Azure
+      displayName: 'Upload data to Codecov'
 # All tasks on macOS
-- job: build_all_darwin
+- job: build_all_darwin_1
   displayName: Build all tasks (macOS)
   timeoutInMinutes: 120
   pool:
@@ -83,7 +218,7 @@ jobs:
       version: 6.0.x
   - script: bash scripts/install_protobuf.sh
   - script: bash scripts/download_binary.sh
-  - script: bash build.sh -target=Test-with-Codecov-N --parts=3 --n=3
+  - script: bash build.sh -target=Test-with-Codecov-N --parts=9 --n=7
     displayName: 'Build and Test'
   - task: PublishTestResults@2
     condition: always()
@@ -100,3 +235,67 @@ jobs:
       assemblyfilters: '-xunit*'
   - script: bash build.sh -target=Upload-Coverage-Azure
     displayName: 'Upload data to Codecov'
+  # All tasks on macOS
+- job: build_all_darwin_2
+  displayName: Build all tasks (macOS)
+  timeoutInMinutes: 120
+  pool:
+    vmImage: macos-latest
+  variables:
+    CI_TEST: true
+  steps:
+    - task: UseDotNet@2
+      displayName: 'Install .NET Core SDK'
+      inputs:
+        version: 6.0.x
+    - script: bash scripts/install_protobuf.sh
+    - script: bash scripts/download_binary.sh
+    - script: bash build.sh -target=Test-with-Codecov-N --parts=9 --n=8
+      displayName: 'Build and Test'
+    - task: PublishTestResults@2
+      condition: always()
+      inputs:
+        testRunner: VSTest
+        testResultsFiles: '**/*.trx'
+
+    - task: Palmmedia.reportgenerator.reportgenerator-build-release-task.reportgenerator@4
+      displayName: ReportGenerator
+      inputs:
+        reports: '$(Build.SourcesDirectory)/test/*/TestResults/*/coverage.cobertura.xml'
+        targetdir: '$(Build.SourcesDirectory)/CodeCoverage'
+        reporttypes: 'Cobertura'
+        assemblyfilters: '-xunit*'
+    - script: bash build.sh -target=Upload-Coverage-Azure
+      displayName: 'Upload data to Codecov'
+  # All tasks on macOS
+- job: build_all_darwin_3
+  displayName: Build all tasks (macOS)
+  timeoutInMinutes: 120
+  pool:
+    vmImage: macos-latest
+  variables:
+    CI_TEST: true
+  steps:
+    - task: UseDotNet@2
+      displayName: 'Install .NET Core SDK'
+      inputs:
+        version: 6.0.x
+    - script: bash scripts/install_protobuf.sh
+    - script: bash scripts/download_binary.sh
+    - script: bash build.sh -target=Test-with-Codecov-N --parts=9 --n=9
+      displayName: 'Build and Test'
+    - task: PublishTestResults@2
+      condition: always()
+      inputs:
+        testRunner: VSTest
+        testResultsFiles: '**/*.trx'
+
+    - task: Palmmedia.reportgenerator.reportgenerator-build-release-task.reportgenerator@4
+      displayName: ReportGenerator
+      inputs:
+        reports: '$(Build.SourcesDirectory)/test/*/TestResults/*/coverage.cobertura.xml'
+        targetdir: '$(Build.SourcesDirectory)/CodeCoverage'
+        reporttypes: 'Cobertura'
+        assemblyfilters: '-xunit*'
+    - script: bash build.sh -target=Upload-Coverage-Azure
+      displayName: 'Upload data to Codecov'
