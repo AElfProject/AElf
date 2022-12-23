@@ -64,7 +64,8 @@ internal class FeeChargePreExecutionPlugin : SmartContractExecutionPluginBase, I
             var tokenStub = _contractReaderFactory.Create(new ContractReaderContext
             {
                 Sender = transactionContext.Transaction.From,
-                ContractAddress = tokenContractAddress
+                ContractAddress = tokenContractAddress,
+                RefBlockNumber = transactionContext.Transaction.RefBlockNumber
             });
 
             if (transactionContext.Transaction.To == tokenContractAddress &&

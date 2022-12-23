@@ -25,6 +25,8 @@ public partial class TokenContract
         var delegateeAddress = Context.Sender.ToBase58();
         var delegationsToInput = input.Delegations;
 
+        var currentHeight = Context.CurrentHeight;
+
         // No this delegatee, init it, pour all available delegations in, and add it.
         if (!allDelegateesMap.ContainsKey(delegateeAddress))
         {
@@ -51,6 +53,8 @@ public partial class TokenContract
                         allDelegateesMap[delegateeAddress].Delegations.Add(key, value);
                     }
                 }
+                
+                allDelegateesMap[delegateeAddress].BlockHeight = currentHeight;
 
                 // Set and Fire logEvent
                 State.TransactionFeeDelegateesMap[input.DelegatorAddress] = allDelegatees;
