@@ -1,0 +1,46 @@
+# File: build-template-windows.yml
+parameters:
+  - name: parts
+    type: number
+  - name: n
+    type: number
+
+# Tasks on Windows....
+jobs:
+- job: build_all_windows_${{ parameters.n }}
+  displayName: Build tasks (Windows) [${{ parameters.n }} of ${{ parameters.parts }} parts]
+  timeoutInMinutes: 120
+  pool:
+    vmImage: windows-latest
+  variables:
+    CI_TEST: true
+  steps:
+  - task: UseDotNet@2
+    displayName: 'Install .NET Core SDK'
+    inputs:
+      version: 6.0.x
+  - script: choco install protoc --version=3.19.4 -y
+    displayName: 'Install protobuf'
+  - script: choco install unzip
+    displayName: 'Install unzip'
+  - task: BatchScript@1
+    displayName: 'Download AElf build tools'
+    inputs:
+      filename: 'scripts/download_binary.bat'
+  - script: PowerShell.exe -file build.ps1 -target=Test-with-Codecov-N --parts=${{ parameters.parts }} --n=${{ parameters.n }}
+    displayName: 'Build and Test'
+  - task: PublishTestResults@2
+    condition: always()
+    inputs:
+      testRunner: VSTest
+      testResultsFiles: '**/*.trx'
+  
+  - task: Palmmedia.reportgenerator.reportgenerator-build-release-task.reportgenerator@4
+    displayName: ReportGenerator
+    inputs:
+      reports: '$(Build.SourcesDirectory)/test/*/TestResults/*/coverage.cobertura.xml'
+      targetdir: '$(Build.SourcesDirectory)/CodeCoverage'
+      reporttypes: 'Cobertura'
+      assemblyfilters: '-xunit*'
+  - script: PowerShell.exe -file build.ps1 -target=Upload-Coverage-Azure
+    displayName: 'Upload data to Codecov'

@@ -137,6 +137,7 @@ public class ExecutePluginTransactionDirectlyForMethodFeeTestBase : ContractTest
     internal ECKeyPair DefaultSenderKeyPair => Accounts[0].KeyPair;
     internal ECKeyPair DelegateeKeyPair => Accounts[1].KeyPair;
     internal ECKeyPair UserKeyPair => Accounts[2].KeyPair;
+    internal ECKeyPair UserAKeyPair => Accounts[3].KeyPair;
 
     internal ECKeyPair UserTomSenderKeyPair => Accounts[10].KeyPair;
     internal Address UserTomSender => Accounts[10].Address;
@@ -146,6 +147,10 @@ public class ExecutePluginTransactionDirectlyForMethodFeeTestBase : ContractTest
     internal Address DefaultSender => Accounts[0].Address;
     internal Address delegateeAddress => Accounts[1].Address;
     internal Address userAddress => Accounts[2].Address;
+
+    internal TokenContractContainer.TokenContractStub TokenContractStubA { get; set; }
+    internal Address UserAAddress => Accounts[3].Address;
+    internal Address UserCAddress => Accounts[4].Address;
 
  
     private async Task InitializeContracts()
@@ -179,7 +184,8 @@ public class ExecutePluginTransactionDirectlyForMethodFeeTestBase : ContractTest
                 GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, DelegateeKeyPair);
             TokenContractStub3 = 
                 GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, UserKeyPair);
-
+            TokenContractStubA = 
+                GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, UserKeyPair);
         }
 
         // Parliament
