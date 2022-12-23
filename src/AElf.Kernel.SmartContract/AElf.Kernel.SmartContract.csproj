@@ -7,7 +7,6 @@
         <Description>High level smart contract definitions and core functionality implementation.</Description>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="System.Text.Json" Version="6.0.0"/>
         <PackageReference Include="Sandwych.QuickGraph.Core" Version="1.0.0"/>
     </ItemGroup>
     <ItemGroup>
