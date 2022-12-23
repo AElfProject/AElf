@@ -1,0 +1,38 @@
+# File: build-template-linux.yml
+parameters:
+  - name: parts
+    type: number
+  - name: n
+    type: number
+
+# All tasks on Linux
+jobs:
+- job: build_all_linux_${{ parameters.n }}
+  displayName: Build tasks (Linux) [${{ parameters.n }} of ${{ parameters.parts }} parts]
+  timeoutInMinutes: 120
+  pool:
+    vmImage: ubuntu-latest
+  steps:
+    - task: UseDotNet@2
+      displayName: 'Install .NET Core SDK'
+      inputs:
+        version: 6.0.x
+    - script: bash scripts/install_protobuf.sh
+    - script: bash scripts/download_binary.sh
+    - script: bash build.sh -target=Test-with-Codecov-N --parts=${{ parameters.parts }} --n=${{ parameters.n }}
+      displayName: 'Build and Test'
+    - task: PublishTestResults@2
+      condition: always()
+      inputs:
+        testRunner: VSTest
+        testResultsFiles: '**/*.trx'
+
+    - task: Palmmedia.reportgenerator.reportgenerator-build-release-task.reportgenerator@4
+      displayName: ReportGenerator
+      inputs:
+        reports: '$(Build.SourcesDirectory)/test/*/TestResults/*/coverage.cobertura.xml'
+        targetdir: '$(Build.SourcesDirectory)/CodeCoverage'
+        reporttypes: 'Cobertura'
+        assemblyfilters: '-xunit*'
+    - script: bash build.sh -target=Upload-Coverage-Azure
+      displayName: 'Upload data to Codecov'
