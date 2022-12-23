@@ -105,7 +105,10 @@ public partial class TokenContract
             foreach (var delegations in allDelegatees.Delegatees.Keys)
             {
                 if (delegations == null) return;
-                AddPathForTransactionFee(resourceInfo, delegations);
+                var add = Address.FromBase58(delegations).ToString();
+                AddPathForTransactionFee(resourceInfo, add);
+                resourceInfo.WritePaths.Add(GetPath(nameof(TokenContractState.MethodFeeFreeAllowancesMap), add));
+                resourceInfo.WritePaths.Add(GetPath(nameof(TokenContractState.MethodFeeFreeAllowancesLastRefreshTimeMap), add));
             }
         }
     }
