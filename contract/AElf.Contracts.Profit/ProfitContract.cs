@@ -642,6 +642,9 @@ public partial class ProfitContract : ProfitContractImplContainer.ProfitContract
 
     public override Empty ContributeProfits(ContributeProfitsInput input)
     {
+        if (State.TokenContract.Value == null)
+            State.TokenContract.Value =
+                Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
         AssertTokenExists(input.Symbol);
         if (input.Amount <= 0)
         {
@@ -658,9 +661,6 @@ public partial class ProfitContract : ProfitContractImplContainer.ProfitContract
 
         if (input.Period == 0)
         {
-            if (State.TokenContract.Value == null)
-                State.TokenContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
 
             State.TokenContract.TransferFrom.Send(new TransferFromInput
             {

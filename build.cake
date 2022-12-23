@@ -158,8 +158,6 @@ Task("Test-with-Codecov-N")
     {
         if(i++ % parts == n - 1){
             DotNetCoreTest(testProject.FullPath, testSetting);
-        }else{
-            DotNetCoreTest(testProject.FullPath, testSetting_nocoverage);
         }
     }
 });
