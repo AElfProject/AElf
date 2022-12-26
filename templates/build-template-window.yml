@@ -4,6 +4,9 @@ parameters:
     type: number
   - name: n
     type: number
+  - name: codecoverage
+    type: boolean
+    default: false
 
 # Tasks on Windows....
 jobs:
