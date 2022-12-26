@@ -137,7 +137,6 @@ Task("Test-with-Codecov-N")
                 .Append("--collect:\"XPlat Code Coverage\"");
         }                
     };
-    var testSetting_nocoverage = 
     var codecovToken = "$CODECOV_TOKEN";
     var actions = new List<Action>();
     var testProjects = GetFiles("./test/*.Tests/*.csproj");
