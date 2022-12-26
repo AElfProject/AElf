@@ -14,7 +14,7 @@ jobs:
     parameters:
       parts: 3
       n: 3
-      codecoverage: true
+      codecoverage: false
   - template: templates/build-template-linux.yml
     parameters:
       parts: 3
@@ -24,7 +24,7 @@ jobs:
     parameters:
       parts: 3
       n: 2
-      codecoverage: true
+      codecoverage: false
   - template: templates/build-template-linux.yml
     parameters:
       parts: 3
