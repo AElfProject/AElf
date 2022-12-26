@@ -144,7 +144,6 @@ Task("Test-with-Codecov-N")
     var n = Argument("number",1);
     var parts = Argument("parts",1);
     var codecoverage = Argument("codecoverage",true);
-    if(!codecoverage) return;
 
     Information($"n:{n}, parts:{parts}");
     int i=0;
@@ -152,6 +151,7 @@ Task("Test-with-Codecov-N")
     {
         if(i++ % parts == n - 1){
             DotNetCoreTest(testProject.FullPath, testSetting);
+            if(!codecoverage) return;
         }
     }
 });
