@@ -144,16 +144,7 @@ Task("Test-with-Codecov-N")
     var n = Argument("number",1);
     var parts = Argument("parts",1);
     var codecoverage = Argument("codecoverage",true);
-    if(!codecoverage){
-        testSetting = new DotNetCoreTestSettings{
-              NoRestore = true,
-              NoBuild = true,
-              ArgumentCustomization = args => {
-                  return args
-                      .Append("--logger trx");
-              }                
-        };
-    }
+    if(!codecoverage) return;
 
     Information($"n:{n}, parts:{parts}");
     int i=0;

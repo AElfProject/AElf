@@ -45,5 +45,5 @@ jobs:
       targetdir: '$(Build.SourcesDirectory)/CodeCoverage'
       reporttypes: 'Cobertura'
       assemblyfilters: '-xunit*'
-  - script: PowerShell.exe -file build.ps1 -target=Upload-Coverage-Azure
+  - script: PowerShell.exe -file build.ps1 --target=Upload-Coverage-Azure
     displayName: 'Upload data to Codecov'

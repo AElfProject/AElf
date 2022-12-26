@@ -39,5 +39,5 @@ jobs:
         targetdir: '$(Build.SourcesDirectory)/CodeCoverage'
         reporttypes: 'Cobertura'
         assemblyfilters: '-xunit*'
-    - script: bash build.sh -target=Upload-Coverage-Azure
+    - script: bash build.sh --target=Upload-Coverage-Azure
       displayName: 'Upload data to Codecov'
