@@ -2,38 +2,38 @@
 jobs:
   - template: templates/build-template-window.yml
     parameters:
-      parts: 9
+      parts: 3
       n: 1
   - template: templates/build-template-window.yml
     parameters:
-      parts: 9
+      parts: 3
       n: 2
   - template: templates/build-template-window.yml
     parameters:
-      parts: 9
+      parts: 3
       n: 3
   - template: templates/build-template-linux.yml
     parameters:
-      parts: 9
-      n: 4
+      parts: 3
+      n: 1
   - template: templates/build-template-linux.yml
     parameters:
-      parts: 9
-      n: 5
+      parts: 3
+      n: 2
   - template: templates/build-template-linux.yml
     parameters:
-      parts: 9
-      n: 6
+      parts: 3
+      n: 3
   - template: templates/build-template-macos.yml
     parameters:
-      parts: 9
-      n: 7
+      parts: 3
+      n: 1
   - template: templates/build-template-macos.yml
     parameters:
-      parts: 9
-      n: 8
+      parts: 3
+      n: 2
   - template: templates/build-template-macos.yml
     parameters:
-      parts: 9
-      n: 9
+      parts: 3
+      n: 3
     
