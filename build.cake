@@ -137,20 +137,13 @@ Task("Test-with-Codecov-N")
                 .Append("--collect:\"XPlat Code Coverage\"");
         }                
     };
-    var testSetting_nocoverage = new DotNetCoreTestSettings{
-        NoRestore = true,
-        NoBuild = true,
-        ArgumentCustomization = args => {
-            return args
-                .Append("--logger trx");
-        }                
-    };
     var codecovToken = "$CODECOV_TOKEN";
     var actions = new List<Action>();
     var testProjects = GetFiles("./test/*.Tests/*.csproj");
     var testProjectList = testProjects.OrderBy(p=>p.FullPath).ToList();
-    var n = Argument("n",1);
+    var n = Argument("number",1);
     var parts = Argument("parts",1);
+    var codecoverage = Argument("codecoverage",true);
 
     Information($"n:{n}, parts:{parts}");
     int i=0;
@@ -158,6 +151,7 @@ Task("Test-with-Codecov-N")
     {
         if(i++ % parts == n - 1){
             DotNetCoreTest(testProject.FullPath, testSetting);
+            if(!codecoverage) return;
         }
     }
 });
