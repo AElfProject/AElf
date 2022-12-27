@@ -4,6 +4,9 @@ parameters:
     type: number
   - name: n
     type: number
+  - name: codecoverage
+    type: boolean
+    default: false
 
 # Tasks on Windows....
 jobs:
@@ -27,7 +30,7 @@ jobs:
     displayName: 'Download AElf build tools'
     inputs:
       filename: 'scripts/download_binary.bat'
-  - script: PowerShell.exe -file build.ps1 -target=Test-with-Codecov-N --parts=${{ parameters.parts }} --n=${{ parameters.n }}
+  - script: PowerShell.exe -file build.ps1 --target=Test-with-Codecov-N --parts=${{ parameters.parts }} --number=${{ parameters.n }} --codecoverage=${{ parameters.codecoverage }}
     displayName: 'Build and Test'
   - task: PublishTestResults@2
     condition: always()
@@ -42,5 +45,5 @@ jobs:
       targetdir: '$(Build.SourcesDirectory)/CodeCoverage'
       reporttypes: 'Cobertura'
       assemblyfilters: '-xunit*'
-  - script: PowerShell.exe -file build.ps1 -target=Upload-Coverage-Azure
+  - script: PowerShell.exe -file build.ps1 --target=Upload-Coverage-Azure
     displayName: 'Upload data to Codecov'
