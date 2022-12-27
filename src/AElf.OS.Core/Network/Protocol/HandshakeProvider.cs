@@ -16,6 +16,7 @@ public class HandshakeProvider : IHandshakeProvider
     private readonly IAccountService _accountService;
     private readonly IBlockchainService _blockchainService;
     private readonly NetworkOptions _networkOptions;
+    private static readonly string NodeVersion = typeof(CoreOSAElfModule).Assembly.GetName().Version?.ToString();
 
     public HandshakeProvider(IAccountService accountService, IBlockchainService blockchainService,
         IOptionsSnapshot<NetworkOptions> networkOptions)
@@ -43,7 +44,8 @@ public class HandshakeProvider : IHandshakeProvider
             BestChainHeight = chain.BestChainHeight,
             LastIrreversibleBlockHash = chain.LastIrreversibleBlockHash,
             LastIrreversibleBlockHeight = chain.LastIrreversibleBlockHeight,
-            Time = TimestampHelper.GetUtcNow()
+            Time = TimestampHelper.GetUtcNow(),
+            NodeVersion = NodeVersion
         };
 
         var signature = await _accountService.SignAsync(HashHelper.ComputeFrom(handshakeData).ToByteArray());

@@ -134,6 +134,18 @@ service TokenContract {
     }
     rpc RemoveAddressFromCreateTokenWhiteList (aelf.Address) returns (google.protobuf.Empty) {
     }
+    
+    rpc ConfigMethodFeeFreeAllowances (MethodFeeFreeAllowancesConfig) returns (google.protobuf.Empty) {
+    }
+    
+    rpc SetTransactionFeeDelegations (SetTransactionFeeDelegationsInput) returns (SetTransactionFeeDelegationsOutput){
+    }
+    
+    rpc RemoveTransactionFeeDelegator (RemoveTransactionFeeDelegatorInput) returns (google.protobuf.Empty){
+    }
+
+    rpc RemoveTransactionFeeDelegatee (RemoveTransactionFeeDelegateeInput) returns (google.protobuf.Empty){
+    }
 
     // Query token information.
     rpc GetTokenInfo (GetTokenInfoInput) returns (TokenInfo) {
@@ -213,6 +225,16 @@ service TokenContract {
     }
     rpc GetReservedExternalInfoKeyList (google.protobuf.Empty) returns (StringList) {
         option (aelf.is_view) = true;
+    }
+    rpc GetMethodFeeFreeAllowances (aelf.Address) returns (MethodFeeFreeAllowances) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetMethodFeeFreeAllowancesConfig (google.protobuf.Empty) returns (MethodFeeFreeAllowancesConfig) {
+        option (aelf.is_view) = true;
+    }
+    
+    rpc GetTransactionFeeDelegationsOfADelegatee(GetTransactionFeeDelegationsOfADelegateeInput) returns(TransactionFeeDelegations){
+      option (aelf.is_view) = true;
     }
 }
 
@@ -365,6 +387,11 @@ message ChargeResourceTokenInput {
 message TransactionFeeBill {
     // The transaction fee dictionary, Symbol->fee.
     map<string, int64> fees_map = 1;
+}
+
+message TransactionFreeFeeAllowanceBill {
+    // The transaction free fee allowance dictionary, Symbol->fee.
+    map<string, int64> free_fee_allowances_map = 1;
 }
 
 message CheckThresholdInput {
@@ -628,6 +655,59 @@ message StringList {
     repeated string value = 1;
 }
 
+message MethodFeeFreeAllowancesConfig {
+    MethodFeeFreeAllowances free_allowances = 1;
+    int64 refresh_seconds = 2;
+    int64 threshold = 3;
+}
+
+message MethodFeeFreeAllowances {
+    repeated MethodFeeFreeAllowance value = 1;
+}
+
+message MethodFeeFreeAllowance {
+    string symbol = 1;
+    int64 amount = 2;
+}
+
+message TransactionFeeDelegations{
+    // delegation, symbols and its' amount
+    map<string, int64> delegations = 1;
+    // height when added
+    int64 block_height = 2;
+}
+
+message TransactionFeeDelegatees{
+    map<string,TransactionFeeDelegations> delegatees = 1;
+}
+
+message SetTransactionFeeDelegationsInput { 
+    // the delegator address
+    aelf.Address delegator_address = 1;
+    // delegation, symbols and its' amount
+    map<string, int64> delegations = 2;
+}
+
+message SetTransactionFeeDelegationsOutput {
+    bool success = 1;
+}
+
+message RemoveTransactionFeeDelegatorInput{
+    // the delegator address
+    aelf.Address delegator_address = 1;
+}
+
+message RemoveTransactionFeeDelegateeInput {
+    // the delegatee address
+    aelf.Address delegatee_address = 1;
+}
+
+message GetTransactionFeeDelegationsOfADelegateeInput {
+    aelf.Address delegatee_address = 1;
+    aelf.Address delegator_address = 2;
+}
+// Events
+
 message Transferred {
     option (aelf.is_event) = true;
     // The source address of the transferred token.
@@ -779,4 +859,18 @@ message ExternalInfoChanged {
     option (aelf.is_event) = true;
     string symbol = 1;
     ExternalInfo external_info = 2;
+}
+
+message TransactionFeeDelegationAdded {
+    option (aelf.is_event) = true;
+    aelf.Address delegator = 1 [(aelf.is_indexed) = true];
+    aelf.Address delegatee = 2 [(aelf.is_indexed) = true];
+    aelf.Address caller = 3 [(aelf.is_indexed) = true];
+}
+
+message TransactionFeeDelegationCancelled {
+    option (aelf.is_event) = true;
+    aelf.Address delegator = 1 [(aelf.is_indexed) = true];
+    aelf.Address delegatee = 2 [(aelf.is_indexed) = true];
+    aelf.Address caller = 3 [(aelf.is_indexed) = true];
 }

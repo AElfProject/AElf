@@ -34,7 +34,10 @@ service ProfitContract {
     // Batch remove beneficiary from scheme.
     rpc RemoveBeneficiaries (RemoveBeneficiariesInput) returns (google.protobuf.Empty) {
     }
-    
+
+    rpc FixProfitDetail (FixProfitDetailInput) returns (google.protobuf.Empty) {
+    }
+
     // Contribute profit to a scheme.
     rpc ContributeProfits (ContributeProfitsInput) returns (google.protobuf.Empty) {
     }
@@ -151,8 +154,16 @@ message AddBeneficiaryInput {
     aelf.Hash scheme_id = 1;
     // The beneficiary information.
     BeneficiaryShare beneficiary_share = 2;
-    // The end period which the beneficiary receives the profit.
     int64 end_period = 3;
+    aelf.Hash profit_detail_id = 4;
+}
+
+message FixProfitDetailInput {
+    aelf.Hash scheme_id = 1;
+    BeneficiaryShare beneficiary_share = 2;
+    int64 start_period = 3;
+    int64 end_period = 4;
+    aelf.Hash profit_detail_id = 5;
 }
 
 message RemoveBeneficiaryInput {
@@ -160,6 +171,7 @@ message RemoveBeneficiaryInput {
     aelf.Address beneficiary = 1;
     // The scheme id.
     aelf.Hash scheme_id = 2;
+    aelf.Hash profit_detail_id = 3;
 }
 
 message AddBeneficiariesInput {
@@ -217,6 +229,7 @@ message ProfitDetail {
     int64 last_profit_period = 4;
     // Whether the weight has been removed.
     bool is_weight_removed = 5;
+    aelf.Hash id = 6;
 }
 
 message ContributeProfitsInput {

@@ -1,7 +1,10 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Numerics;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Cryptography;
@@ -12,6 +15,7 @@ using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Options;
+using Google.Protobuf.Collections;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.Threading;
 
@@ -316,7 +320,7 @@ public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, I
         AsyncHelper.RunSync(() => _smartContractBridgeService.UpdateContractAsync(contractDto));
     }
 
-    private byte[] RecoverPublicKey(byte[] signature, byte[] hash)
+    public byte[] RecoverPublicKey(byte[] signature, byte[] hash)
     {
         var cabBeRecovered = CryptoHelper.RecoverPublicKey(signature, hash, out var publicKey);
         return !cabBeRecovered ? null : publicKey;

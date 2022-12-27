@@ -130,15 +130,29 @@ public class ExecutePluginTransactionDirectlyForMethodFeeTestBase : ContractTest
     internal Address TreasuryContractAddress { get; set; }
     internal Address ConsensusContractAddress { get; set; }
     internal TokenContractContainer.TokenContractStub TokenContractStub { get; set; }
+    internal TokenContractContainer.TokenContractStub TokenContractStub2 { get; set; }
+    internal TokenContractContainer.TokenContractStub TokenContractStub3 { get; set; }
     internal ParliamentContractImplContainer.ParliamentContractImplStub ParliamentContractStub { get; set; }
     internal AEDPoSContractContainer.AEDPoSContractStub AEDPoSContractStub { get; set; }
     internal ECKeyPair DefaultSenderKeyPair => Accounts[0].KeyPair;
+    internal ECKeyPair DelegateeKeyPair => Accounts[1].KeyPair;
+    internal ECKeyPair UserKeyPair => Accounts[2].KeyPair;
+    internal ECKeyPair UserAKeyPair => Accounts[3].KeyPair;
 
+    internal ECKeyPair UserTomSenderKeyPair => Accounts[10].KeyPair;
+    internal Address UserTomSender => Accounts[10].Address;
     protected List<ECKeyPair> InitialCoreDataCenterKeyPairs =>
         Accounts.Take(1).Select(a => a.KeyPair).ToList();
 
     internal Address DefaultSender => Accounts[0].Address;
+    internal Address delegateeAddress => Accounts[1].Address;
+    internal Address userAddress => Accounts[2].Address;
 
+    internal TokenContractContainer.TokenContractStub TokenContractStubA { get; set; }
+    internal Address UserAAddress => Accounts[3].Address;
+    internal Address UserCAddress => Accounts[4].Address;
+
+ 
     private async Task InitializeContracts()
     {
         await DeployContractsAsync();
@@ -166,6 +180,12 @@ public class ExecutePluginTransactionDirectlyForMethodFeeTestBase : ContractTest
                 TokenSmartContractAddressNameProvider.Name, DefaultSenderKeyPair);
             TokenContractStub =
                 GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, DefaultSenderKeyPair);
+            TokenContractStub2 =
+                GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, DelegateeKeyPair);
+            TokenContractStub3 = 
+                GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, UserKeyPair);
+            TokenContractStubA = 
+                GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, UserKeyPair);
         }
 
         // Parliament
