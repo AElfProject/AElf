@@ -4,36 +4,45 @@ jobs:
     parameters:
       parts: 3
       n: 1
+      codecoverage: true
   - template: templates/build-template-window.yml
     parameters:
       parts: 3
       n: 2
+      codecoverage: true
   - template: templates/build-template-window.yml
     parameters:
       parts: 3
       n: 3
+      codecoverage: false
   - template: templates/build-template-linux.yml
     parameters:
       parts: 3
       n: 1
+      codecoverage: true
   - template: templates/build-template-linux.yml
     parameters:
       parts: 3
       n: 2
+      codecoverage: false
   - template: templates/build-template-linux.yml
     parameters:
       parts: 3
       n: 3
+      codecoverage: false
   - template: templates/build-template-macos.yml
     parameters:
       parts: 3
       n: 1
+      codecoverage: true
   - template: templates/build-template-macos.yml
     parameters:
       parts: 3
       n: 2
+      codecoverage: true
   - template: templates/build-template-macos.yml
     parameters:
       parts: 3
       n: 3
+      codecoverage: true
     
