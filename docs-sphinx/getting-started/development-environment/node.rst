@@ -48,6 +48,12 @@ The following output suggests successful installation:
    + aelf-command@0.1.44
    added 314 packages from 208 contributors in 25.958s
 
+Besides, you might see warnings like this due to differences in system
+configuration. Please ignore it.
+
+.. figure:: node_aelf_command_warn.png
+   :alt: image
+
 If it shows error ``Permission denied @ apply2files``, then there is a
 permission issue. You can solve it using the following command and then
 redo the installation with the above command:
@@ -180,13 +186,12 @@ test the execution of contracts only.
 
    cd src/AElf.Launcher
 
-4. Execute this command to modify the ``appsettings.json`` file (or to
-   manually update it, go to desktop -> Code -> AElf -> src ->
-   AElf.Launcher):
-
-.. code:: bash
-
-   vim appsettings.json
+4. Modify the ``appsettings.json`` file: for novices, you can go to
+   desktop -> Code -> AElf -> src -> AElf.Launcher and open the
+   ``appsettings.json`` file in the editor to modify it (or, if you are
+   familiar with Linux commands, you can run the
+   ``vim appsettings.json`` command and modify the file in the
+   command-line interface).
 
 Find the account data you just created using ``aelf-command create``.
 
@@ -302,6 +307,12 @@ The following output suggests successful installation:
 
    + aelf-command@0.1.44
    added 314 packages from 208 contributors in 25.958s
+
+You might see warnings like this due to differences in system
+configuration. Please ignore it:
+
+.. figure:: node_aelf_command_warn.png
+   :alt: image
 
 .. _clone-and-build-aelfs-code-1:
 
@@ -425,13 +436,12 @@ test the execution of contracts only.
 
    cd src/AElf.Launcher
 
-4. Execute this command to modify the ``appsettings.json`` file (or to
-   manually update it, go to desktop -> Code -> AElf -> src ->
-   AElf.Launcher):
-
-.. code:: bash
-
-   vim appsettings.json
+4. Modify the ``appsettings.json`` file: for novices, you can go to
+   desktop -> Code -> AElf -> src -> AElf.Launcher and open the
+   ``appsettings.json`` file in the editor to modify it (or, if you are
+   familiar with Linux commands, you can run the
+   ``vim appsettings.json`` command and modify the file in the
+   command-line interface).
 
 Find the account data you just created using ``aelf-command create``.
 
@@ -549,6 +559,12 @@ The following output suggests successful installation:
 
    + aelf-command@0.1.44
    added 314 packages from 208 contributors in 25.958s
+
+You might see warnings like this due to differences in system
+configuration. Please ignore it:
+
+.. figure:: node_aelf_command_warn.png
+   :alt: image
 
 .. _clone-and-build-aelfs-code-2:
 
@@ -671,13 +687,11 @@ test the execution of contracts only.
 
    cd src/AElf.Launcher
 
-4. Execute this command to modify the ``appsettings.json`` file (or to
-   manually update it, go to desktop -> Code -> AElf -> src ->
-   AElf.Launcher):
-
-.. code:: bash
-
-   vim appsettings.json
+4. Modify the ``appsettings.json`` file: for novices, you can go to
+   desktop -> Code -> AElf -> src -> AElf.Launcher and open the
+   ``appsettings.json`` file in the editor to modify it (or you can run
+   the ``start appsettings.json`` command and open the appsettings.json
+   file in the editor).
 
 Find the account data you just created using ``aelf-command create``.
 

@@ -40,7 +40,7 @@ requirements:
 
 If you use a macOS computer with an Apple M1 chip, you need to install
 Apple Rosetta. Open the Terminal on your computer and execute this
-command:
+command,Please be patient while the command is executed.
 
 .. code:: powershell
 
@@ -88,14 +88,20 @@ Execute this command to update your environment:
 
    brew update
 
-You will see output like this and you can select the next command based
-on your needs.
+You will see output like this.
 
 .. code:: bash
 
    You have xx outdated formula installed.
    You can upgrade it with brew upgrade
    or list it with brew outdated.
+
+You can execute the following command to upgrade or skip to the
+installation of Git.
+
+.. code:: bash
+
+   brew upgrade
 
 Install Git
 ^^^^^^^^^^^
@@ -126,10 +132,13 @@ Install .NET SDK
 ^^^^^^^^^^^^^^^^
 
 As aelf is mostly developed with .NET Core, you need to download and
-install .NET Core SDK (**Installers - x64** recommended for Windows and
-macOS if compatible).
+install .NET Core SDK (Installers - x64 recommended for macOS devices
+with Intel processors; Installers - Arm64 recommended for macOS devices
+with M1 chips).
 
-1. Download and install .NET 6.0 which is currently used in aelf’s repo.
+1. Download and install `.NET
+   6.0 <https://dotnet.microsoft.com/en-us/download/dotnet/6.0>`__ which
+   is currently used in aelf’s repo.
 
 2. Please reopen Terminal after the installation is done.
 
@@ -245,7 +254,8 @@ requirements:
 Update Environment
 ^^^^^^^^^^^^^^^^^^
 
-Execute this command to update your environment:
+Execute this command to update your environment, Please be patient while
+the command is executed:
 
 .. code:: bash
 
@@ -297,29 +307,29 @@ install .NET Core SDK.
 
 1. Execute the following commands to install .NET 6.0.
 
-2. Execute this command to download .NET packages:
+   1. Execute this command to download .NET packages:
 
-   .. code:: bash
+      .. code:: bash
 
-      wget https://packages.microsoft.com/config/ubuntu/22.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
+         wget https://packages.microsoft.com/config/ubuntu/22.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
 
-3. Execute this command to unzip .NET packages:
+   2. Execute this command to unzip .NET packages:
 
-   .. code:: bash
+      .. code:: bash
 
-      sudo dpkg -i packages-microsoft-prod.deb
+         sudo dpkg -i packages-microsoft-prod.deb
 
-      rm packages-microsoft-prod.deb
+         rm packages-microsoft-prod.deb
 
-4. Execute this command to install .NET:
+   3. Execute this command to install .NET:
 
-   .. code:: bash
+      .. code:: bash
 
-      sudo apt-get update && \
+         sudo apt-get update && \
 
-      sudo apt-get install -y dotnet-sdk-6.0
+         sudo apt-get install -y dotnet-sdk-6.0
 
-5. Execute this command to check if .NET 6.0 is installed:
+2. Execute this command to check if .NET 6.0 is installed:
 
    .. code:: bash
 
@@ -341,39 +351,39 @@ and execute the following commands to install.
 
 1. Execute the following commands to install protoBuf.
 
-2. Execute this command to download protoBuf packages:
+   1. Execute this command to download protoBuf packages:
 
-   .. code:: bash
+      .. code:: bash
 
-      curl -OL https://github.com/google/protobuf/releases/download/v21.9/protoc-21.9-linux-x86_64.zip
+         curl -OL https://github.com/google/protobuf/releases/download/v21.9/protoc-21.9-linux-x86_64.zip
 
-3. Execute this command to unzip protoBuf packages:
+   2. Execute this command to unzip protoBuf packages:
 
-   ::
+      ::
 
-      unzip protoc-21.9-linux-x86_64.zip -d protoc3
+         unzip protoc-21.9-linux-x86_64.zip -d protoc3
 
-4. Execute these commands to install protoBuf:
+   3. Execute these commands to install protoBuf:
 
-   .. code:: bash
+      .. code:: bash
 
-      sudo mv protoc3/bin/* /usr/local/bin/
+         sudo mv protoc3/bin/* /usr/local/bin/
 
-      sudo mv protoc3/include/* /usr/local/include/
+         sudo mv protoc3/include/* /usr/local/include/
 
-      sudo chown ${USER} /usr/local/bin/protoc
+         sudo chown ${USER} /usr/local/bin/protoc
 
-      sudo chown -R ${USER} /usr/local/include/google
+         sudo chown -R ${USER} /usr/local/include/google
 
-   If it shows error ``Permission denied @ apply2files``, then there is
-   a permission issue. You can solve it using the following command and
-   then redo the installation with the above commands:
+      If it shows error ``Permission denied @ apply2files``, then there
+      is a permission issue. You can solve it using the following
+      command and then redo the installation with the above commands:
 
-   .. code:: bash
+      .. code:: bash
 
-      sudo chown -R $(whoami) $(brew --prefix)/*
+         sudo chown -R $(whoami) $(brew --prefix)/*
 
-5. Execute this command to check if protoBuf is installed:
+2. Execute this command to check if protoBuf is installed:
 
    .. code:: bash
 
@@ -479,7 +489,7 @@ each software to complete their installation.
 1. Open **cmd** or **PowerShell** as administrator (Press Win + x).
 
 2. Execute the following commands in order and enter y to install
-   Chocolatey:
+   Chocolatey, Please be patient while the command is executed:
 
    .. code:: powershell
 
@@ -563,8 +573,8 @@ Install .NET SDK
 ^^^^^^^^^^^^^^^^
 
 As aelf is mostly developed with .NET Core, you need to download and
-install .NET Core SDK (**Installers** - x64 recommended for Windows and
-macOS if compatible).
+install .NET Core SDK (Installers - x64 recommended for Windows
+devices).
 
 1. Download and install `.NET
    6.0 <https://dotnet.microsoft.com/en-us/download/dotnet/6.0>`__ which
@@ -604,11 +614,11 @@ Install protoBuf
 
       protoc --version
 
-   The following output suggests successful installation:
+The following output suggests successful installation:
 
-   ::
+::
 
-      libprotoc 3.21.9
+   libprotoc 3.21.9
 
 .. _install-redis-2:
 
@@ -678,7 +688,8 @@ Codespaces
 A codespace is an instant development environment that’s hosted in the
 cloud. It provides users with general-purpose programming languages and
 tooling through containers. You can install and set up the development
-environment in Codespaces. This will take 10-20 minutes.
+environment in Codespaces. This will take 10-20 minutes. Please be
+patient while the command is executed.
 
 Basic Environment Configurations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -690,7 +701,6 @@ Basic Environment Configurations
 
    .. figure:: codespaces1.png
       :alt: image
-
 
 3. Select ``Codespaces`` and click +.
 
