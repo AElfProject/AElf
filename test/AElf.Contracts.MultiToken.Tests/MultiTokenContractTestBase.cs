@@ -23,6 +23,7 @@ public class MultiTokenContractTestBase : ContractTestBase<MultiTokenContractTes
     internal ParliamentContractImplContainer.ParliamentContractImplStub ParliamentContractStub;
 
     internal TokenContractImplContainer.TokenContractImplStub TokenContractStub;
+    internal TokenContractImplContainer.TokenContractImplStub TokenContractStubUser;
     internal TokenConverterContractImplContainer.TokenConverterContractImplStub TokenConverterContractStub;
 
     internal TreasuryContractImplContainer.TreasuryContractImplStub TreasuryContractStub;
@@ -31,6 +32,8 @@ public class MultiTokenContractTestBase : ContractTestBase<MultiTokenContractTes
     {
         TokenContractStub =
             GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, DefaultKeyPair);
+        TokenContractStubUser = 
+            GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, User1KeyPair);
         Acs2BaseStub = GetTester<ACS2BaseContainer.ACS2BaseStub>(TokenContractAddress, DefaultKeyPair);
 
         TreasuryContractStub = GetTester<TreasuryContractImplContainer.TreasuryContractImplStub>(

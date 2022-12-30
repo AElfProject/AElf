@@ -27,6 +27,8 @@ public interface ISmartContractBridgeContext
     Hash OriginTransactionId { get; }
 
     long CurrentHeight { get; }
+    
+    Transaction Transaction { get; }
 
     Timestamp CurrentBlockTime { get; }
     Hash PreviousBlockHash { get; }
@@ -38,6 +40,8 @@ public interface ISmartContractBridgeContext
     void FireLogEvent(LogEvent logEvent);
 
     byte[] RecoverPublicKey();
+
+    byte[] RecoverPublicKey(byte[] signature, byte[] hash);
 
     List<Transaction> GetPreviousBlockTransactions();
 
