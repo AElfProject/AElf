@@ -28,6 +28,7 @@ public partial class EconomicContractsTestBase
             miners.GenerateFirstRoundOfNewTerm(EconomicContractsTestConstants.MiningInterval,
                 BlockTimeProvider.GetBlockTime(), round.RoundNumber, round.TermNumber);
         var executionResult = (await miner.NextTerm.SendAsync(firstRoundOfNextTerm)).TransactionResult;
+        executionResult.Error.ShouldBeNullOrEmpty();
         executionResult.Status.ShouldBe(TransactionResultStatus.Mined);
     }
 

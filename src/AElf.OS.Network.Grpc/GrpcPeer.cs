@@ -134,7 +134,7 @@ public class GrpcPeer : IPeer
     public int BufferedAnnouncementsCount => _sendAnnouncementJobs.InputCount;
 
     public PeerConnectionInfo Info { get; }
-
+    
     public Dictionary<string, List<RequestMetric>> GetRequestMetrics()
     {
         var metrics = new Dictionary<string, List<RequestMetric>>();
