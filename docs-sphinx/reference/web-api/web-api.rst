@@ -875,15 +875,15 @@ Type     Name                   Schema
 Responses
 ^^^^^^^^^
 
-========= =========== =======
-HTTP Code Description Schema
-========= =========== =======
-**200**   Success     boolean
-========= =========== =======
-**401**   Unauthorized     
-========= =========== =======
+========= ============== =======
+HTTP Code Description    Schema
+========= ============== =======
+**200**   Success        boolean
 
-.. _security-1:
+**401**   Unauthorized      
+========= ============== =======
+
+.. _security-2:
 
 Security
 ^^^^^^^^
@@ -941,13 +941,13 @@ Type      Name                     Description Schema
 Responses
 ^^^^^^^^^
 
-========= =========== =======
-HTTP Code Description Schema
-========= =========== =======
-**200**   Success     boolean
-========= =========== =======
-**401**   Unauthorized     
-========= =========== =======
+========= ============= =======
+HTTP Code Description   Schema
+========= ============= =======
+**200**   Success       boolean
+
+**401**   Unauthorized       
+========= ============= =======
 
 .. _security-1:
 
@@ -1026,7 +1026,7 @@ Estimate transaction fee
 
     POST /api/blockChain/calculateTransactionFee
 
-.. _parameters-15:
+.. _parameters-21:
 
 Parameters
 ^^^^^^^^^^
@@ -1037,7 +1037,7 @@ Type      Name                         Schema                                   
 **Body**  **Input** \ *optional*        < `CalculateTransactionFeeInput <#CalculateTransactionFeeInput>`__ >
 ========= ============================ ============================================================================= ===========
 
-.. _responses-20:
+.. _responses-21:
 
 Responses
 ^^^^^^^^^
@@ -1048,7 +1048,7 @@ HTTP Code Description Schema
 **200**   Success     < `CalculateTransactionFeeOutput <#CalculateTransactionFeeOutput>`__ >
 ========= =========== ========================================================================================
 
-.. _produces-20:
+.. _consumes-21:
 
 Consumes
 ^^^^^^^^
@@ -1058,7 +1058,7 @@ Consumes
 -  ``application/*+json; v=1.0``
 -  ``application/x-protobuf; v=1.0``
 
-.. _produces-20:
+.. _produces-21:
 
 Produces
 ^^^^^^^^
@@ -1067,7 +1067,7 @@ Produces
 -  ``text/json; v=1.0``
 -  ``application/x-protobuf; v=1.0``
 
-.. _tags-20:
+.. _tags-21:
 
 Tags
 ^^^^

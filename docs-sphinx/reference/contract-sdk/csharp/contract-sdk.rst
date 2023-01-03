@@ -19,6 +19,7 @@ Contents
    -  :ref:`StateProvider <AElf-Sdk-CSharp-CSharpSmartContractContext-StateProvider>`
    -  :ref:`TransactionId <AElf-Sdk-CSharp-CSharpSmartContractContext-TransactionId>`
    -  :ref:`Variables <AElf-Sdk-CSharp-CSharpSmartContractContext-Variables>`
+   -  :ref:`Transaction <AElf-Sdk-CSharp-CSharpSmartContractContext-Transaction>`
    -  :ref:`Call(fromAddress,toAddress,methodName,args) <AElf-Sdk-CSharp-CSharpSmartContractContext-Call-AElf-Types-Address-AElf-Types-Address-System-String-Google-Protobuf-ByteString>`
    -  :ref:`ConvertHashToInt64(hash,start,end) <AElf-Sdk-CSharp-CSharpSmartContractContext-ConvertHashToInt64-AElf-Types-Hash-System-Int64-System-Int64>`
    -  :ref:`ConvertVirtualAddressToContractAddress(virtualAddress) <AElf-Sdk-CSharp-CSharpSmartContractContext-ConvertVirtualAddressToContractAddress-AElf-Types-Hash>`
@@ -237,7 +238,7 @@ Provides access to variable of the bridge.
 .. _AElf-Sdk-CSharp-CSharpSmartContractContext-Transaction:
 
 Transaction ``property``
->>>>>>>>>>>>>>>>>>>>>>
+>>>>>>>>>>>>>>>>>>>>>>>>
 
 Summary
 '''''''
@@ -688,26 +689,6 @@ Parameters
 .. _AElf-Sdk-CSharp-CSharpSmartContractContext-RecoverPublicKey:
 
 RecoverPublicKey() ``method``
->>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-
-Summary
-'''''''
-
-Recovers the public key of the transaction Sender.
-
-Returns
-'''''''
-
-A byte array representing the public key.
-
-Parameters
-''''''''''
-
-This method has no parameters.
-
-.. _AElf-Sdk-CSharp-CSharpSmartContractContext-SendInline-AElf-Types-Address-System-String-Google-Protobuf-ByteString:
-
-Transaction() ``method``
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 Summary
