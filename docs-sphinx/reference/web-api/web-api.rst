@@ -875,12 +875,13 @@ Type     Name                   Schema
 Responses
 ^^^^^^^^^
 
-========= ============ =======
-HTTP Code Description  Schema
-========= ============ =======
-**200**   Success      boolean
-**401**   Unauthorized
-========= ============ =======
+========= =========== =======
+HTTP Code Description Schema
+========= =========== =======
+**200**   Success     boolean
+========= =========== =======
+**401**   Unauthorized     
+========= =========== =======
 
 .. _security-1:
 
@@ -940,14 +941,15 @@ Type      Name                     Description Schema
 Responses
 ^^^^^^^^^
 
-========= ============= =======
-HTTP Code Description   Schema
-========= ============= =======
-**200**   Success       boolean
-**401**   Unauthorized
-========= ============= =======
+========= =========== =======
+HTTP Code Description Schema
+========= =========== =======
+**200**   Success     boolean
+========= =========== =======
+**401**   Unauthorized     
+========= =========== =======
 
-.. _security-2:
+.. _security-1:
 
 Security
 ^^^^^^^^
@@ -1016,6 +1018,62 @@ Tags
 ^^^^
 
 -  Net
+
+Estimate transaction fee
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    POST /api/blockChain/calculateTransactionFee
+
+.. _parameters-15:
+
+Parameters
+^^^^^^^^^^
+
+========= ============================ ============================================================================= ===========
+Type      Name                         Schema                                                                        Default
+========= ============================ ============================================================================= ===========
+**Body**  **Input** \ *optional*        < `CalculateTransactionFeeInput <#CalculateTransactionFeeInput>`__ >
+========= ============================ ============================================================================= ===========
+
+.. _responses-20:
+
+Responses
+^^^^^^^^^
+
+========= =========== ========================================================================================
+HTTP Code Description Schema
+========= =========== ========================================================================================
+**200**   Success     < `CalculateTransactionFeeOutput <#CalculateTransactionFeeOutput>`__ >
+========= =========== ========================================================================================
+
+.. _produces-20:
+
+Consumes
+^^^^^^^^
+-  ``application/json-patch+json; v=1.0``
+-  ``application/json; v=1.0``
+-  ``text/json; v=1.0``
+-  ``application/*+json; v=1.0``
+-  ``application/x-protobuf; v=1.0``
+
+.. _produces-20:
+
+Produces
+^^^^^^^^
+-  ``text/plain; v=1.0``
+-  ``application/json; v=1.0``
+-  ``text/json; v=1.0``
+-  ``application/x-protobuf; v=1.0``
+
+.. _tags-20:
+
+Tags
+^^^^
+
+-  BlockChain
+
 
 Definitions
 ~~~~~~~~~~~
@@ -1278,6 +1336,8 @@ PeerDto
 +----------------------------------+-----------------------------------+
 | **ConnectionStatus** \ *optional*| string                            |
 +----------------------------------+-----------------------------------+
+| **NodeVersion** \ *optional*     | string                            |
++----------------------------------+-----------------------------------+
 
 RequestMetric
 ^^^^^^^^^^^^^
@@ -1426,4 +1486,24 @@ Name                             Schema
 **Transaction** \ *optional*     `TransactionDto <#transactiondto>`__
 **TransactionId** \ *optional*   string
 **TransactionSize** \ *optional* integer (int32)
+================================ ========================================
+
+CalculateTransactionFeeInput
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+================================ ========================================
+Name                             Schema
+================================ ========================================
+**RawTrasaction** \ *optional*   string
+================================ ========================================
+
+CalculateTransactionFeeOutput
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+================================ ========================================
+Name                             Schema
+================================ ========================================
+**Success** \ *optional*         bool
+**TransactionFee** \ *optional*  Dictionary<string, long>
+**ResourceFee** \ *optional*     Dictionary<string, long>
 ================================ ========================================

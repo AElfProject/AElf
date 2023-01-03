@@ -36,6 +36,7 @@ Contents
    -  :ref:`GetZeroSmartContractAddress(chainId) <AElf-Sdk-CSharp-CSharpSmartContractContext-GetZeroSmartContractAddress-System-Int32>`
    -  :ref:`LogDebug(func) <AElf-Sdk-CSharp-CSharpSmartContractContext-LogDebug-System-FuncSystem-String>`
    -  :ref:`RecoverPublicKey() <AElf-Sdk-CSharp-CSharpSmartContractContext-RecoverPublicKey>`
+   -  :ref:`Transaction() <AElf-Sdk-CSharp-CSharpSmartContractContext-Transaction>`
    -  :ref:`SendInline(toAddress,methodName,args) <AElf-Sdk-CSharp-CSharpSmartContractContext-SendInline-AElf-Types-Address-System-String-Google-Protobuf-ByteString>`
    -  :ref:`SendVirtualInline(fromVirtualAddress,toAddress,methodName,args) <AElf-Sdk-CSharp-CSharpSmartContractContext-SendVirtualInline-AElf-Types-Hash-AElf-Types-Address-System-String-Google-Protobuf-ByteString>`
    -  :ref:`SendVirtualInlineBySystemContract(fromVirtualAddress,toAddress,methodName,args) <AElf-Sdk-CSharp-CSharpSmartContractContext-SendVirtualInlineBySystemContract-AElf-Types-Hash-AElf-Types-Address-System-String-Google-Protobuf-ByteString>`
@@ -232,6 +233,16 @@ Summary
 '''''''
 
 Provides access to variable of the bridge.
+
+.. _AElf-Sdk-CSharp-CSharpSmartContractContext-Transaction:
+
+Transaction ``property``
+>>>>>>>>>>>>>>>>>>>>>>
+
+Summary
+'''''''
+
+Including some transaction info.
 
 .. _AElf-Sdk-CSharp-CSharpSmartContractContext-Call-AElf-Types-Address-AElf-Types-Address-System-String-Google-Protobuf-ByteString:
 
@@ -677,6 +688,26 @@ Parameters
 .. _AElf-Sdk-CSharp-CSharpSmartContractContext-RecoverPublicKey:
 
 RecoverPublicKey() ``method``
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+Summary
+'''''''
+
+Recovers the public key of the transaction Sender.
+
+Returns
+'''''''
+
+A byte array representing the public key.
+
+Parameters
+''''''''''
+
+This method has no parameters.
+
+.. _AElf-Sdk-CSharp-CSharpSmartContractContext-SendInline-AElf-Types-Address-System-String-Google-Protobuf-ByteString:
+
+Transaction() ``method``
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 Summary
