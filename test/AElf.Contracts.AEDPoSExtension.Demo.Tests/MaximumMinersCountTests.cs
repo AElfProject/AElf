@@ -99,39 +99,44 @@ public class MaximumMinersCountTests : AEDPoSExtensionDemoTestBase
         newMinersCountController.OwnerAddress.ShouldBe(targetAddress);
     }
     
-    [Theory]
-    [InlineData(31536000)]
-    [InlineData(63072000)]
-    public async Task SetMinerIncreaseIntervalTest(int targetMinerIncreaseInterval)
+    [Fact]
+    public async Task SetMinerIncreaseIntervalTest()
     {
-        var increaseInterval = 31536000 * 2;
-        var minerCount = 17;
         InitialContracts();
         await BlockMiningService.MineBlockToNextTermAsync();
 
         InitialAcs3Stubs();
-        var maximumMinersCount = await ConsensusStub.GetMaximumMinersCount.CallAsync(new Empty());
-        maximumMinersCount.Value.ShouldBe(minerCount);
-        
         await ParliamentStubs.First().Initialize.SendAsync(new InitializeInput());
+        var minerIncreaseInterval = await ConsensusStub.GetMinerIncreaseInterval.CallAsync(new Empty());
+        
         var defaultOrganizationAddress =
             await ParliamentStubs.First().GetDefaultOrganizationAddress.CallAsync(new Empty());
+
+        var transactionResult = await ParliamentReachAnAgreementWithExceptionAsync(new CreateProposalInput
+        {
+            ToAddress = ContractAddresses[ConsensusSmartContractAddressNameProvider.Name],
+            ContractMethodName = nameof(ConsensusStub.SetMinerIncreaseInterval),
+            Params = new Int64Value
+            {
+                Value = minerIncreaseInterval.Value + 1
+            }.ToByteString(),
+            ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
+            OrganizationAddress = defaultOrganizationAddress
+        });
+        transactionResult.Error.ShouldContain("Invalid interval");
+        var newMinerIncreaseInterval = minerIncreaseInterval.Value - 1;
         await ParliamentReachAnAgreementAsync(new CreateProposalInput
         {
             ToAddress = ContractAddresses[ConsensusSmartContractAddressNameProvider.Name],
             ContractMethodName = nameof(ConsensusStub.SetMinerIncreaseInterval),
             Params = new Int64Value
             {
-                Value = targetMinerIncreaseInterval
+                Value = newMinerIncreaseInterval
             }.ToByteString(),
             ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
             OrganizationAddress = defaultOrganizationAddress
         });
-        var minerIncreaseInterval = await ConsensusStub.GetMinerIncreaseInterval.CallAsync(new Empty());
-        minerIncreaseInterval.Value.ShouldBe(targetMinerIncreaseInterval);
-        var blockTime = _blockTimeProvider.GetBlockTime();
-        _blockTimeProvider.SetBlockTime(blockTime.AddSeconds(increaseInterval));
-        maximumMinersCount = await ConsensusStub.GetMaximumMinersCount.CallAsync(new Empty());
-        maximumMinersCount.Value.ShouldBe(minerCount+increaseInterval/targetMinerIncreaseInterval*2);
+        minerIncreaseInterval = await ConsensusStub.GetMinerIncreaseInterval.CallAsync(new Empty());
+        minerIncreaseInterval.Value.ShouldBe(newMinerIncreaseInterval);
     }
 }

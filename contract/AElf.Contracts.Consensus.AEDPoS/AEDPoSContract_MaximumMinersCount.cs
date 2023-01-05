@@ -58,6 +58,7 @@ public partial class AEDPoSContract
         RequiredMaximumMinersCountControllerSet();
         Assert(Context.Sender == State.MaximumMinersCountController.Value.OwnerAddress,
             "No permission to set miner increase interval.");
+        Assert(input.Value <= State.MinerIncreaseInterval.Value, "Invalid interval");
         State.MinerIncreaseInterval.Value = input.Value;
         return new Empty();
     }
