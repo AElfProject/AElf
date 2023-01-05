@@ -37,7 +37,7 @@ public partial class AEDPoSContractState : ContractState
 
     public BoolState IsMainChain { get; set; }
 
-    public ReadonlyState<long> MinerIncreaseInterval { get; set; }
+    public Int64State MinerIncreaseInterval { get; set; }
 
     public Int32State MaximumMinersCount { get; set; }
 
