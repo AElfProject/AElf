@@ -37,6 +37,7 @@ Contents
    -  :ref:`GetZeroSmartContractAddress(chainId) <AElf-Sdk-CSharp-CSharpSmartContractContext-GetZeroSmartContractAddress-System-Int32>`
    -  :ref:`LogDebug(func) <AElf-Sdk-CSharp-CSharpSmartContractContext-LogDebug-System-FuncSystem-String>`
    -  :ref:`RecoverPublicKey() <AElf-Sdk-CSharp-CSharpSmartContractContext-RecoverPublicKey>`
+   -  :ref:`RecoverPublicKey(signature, hash) <AElf-Sdk-CSharp-CSharpSmartContractContext-RecoverPublicKey-System-array-System-array>`
    -  :ref:`Transaction() <AElf-Sdk-CSharp-CSharpSmartContractContext-Transaction>`
    -  :ref:`SendInline(toAddress,methodName,args) <AElf-Sdk-CSharp-CSharpSmartContractContext-SendInline-AElf-Types-Address-System-String-Google-Protobuf-ByteString>`
    -  :ref:`SendVirtualInline(fromVirtualAddress,toAddress,methodName,args) <AElf-Sdk-CSharp-CSharpSmartContractContext-SendVirtualInline-AElf-Types-Hash-AElf-Types-Address-System-String-Google-Protobuf-ByteString>`
@@ -705,6 +706,35 @@ Parameters
 ''''''''''
 
 This method has no parameters.
+
+.. _AElf-Sdk-CSharp-CSharpSmartContractContext-RecoverPublicKey-System-array-System-array:
+
+RecoverPublicKey(signature, hash) ``method``
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+Summary
+'''''''
+
+Recovers the public key of the transaction Sender with custom args.
+
+Returns
+'''''''
+
+A byte array representing the public key.
+
+Parameters
+''''''''''
+
++--------------+------------------+----------------------------------------+
+| Name         | Type             | Description                            |
++==============+==================+========================================+
+| signature    |  System.array    | The address of the contract you’re     |
+|              |                  | seeking to interact with.              |
++--------------+------------------+----------------------------------------+
+| hash         |  System.array    | The name of method you want to invoke. |
+|              |                  |                                        |
++--------------+------------------+----------------------------------------+
+
 
 .. _AElf-Sdk-CSharp-CSharpSmartContractContext-SendInline-AElf-Types-Address-System-String-Google-Protobuf-ByteString:
 
