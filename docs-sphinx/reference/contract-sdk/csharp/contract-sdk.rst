@@ -710,7 +710,7 @@ This method has no parameters.
 .. _AElf-Sdk-CSharp-CSharpSmartContractContext-RecoverPublicKey-System-array-System-array:
 
 RecoverPublicKey(signature, hash) ``method``
->>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 Summary
 '''''''
