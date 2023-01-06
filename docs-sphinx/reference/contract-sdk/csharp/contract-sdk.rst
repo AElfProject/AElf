@@ -37,7 +37,7 @@ Contents
    -  :ref:`GetZeroSmartContractAddress(chainId) <AElf-Sdk-CSharp-CSharpSmartContractContext-GetZeroSmartContractAddress-System-Int32>`
    -  :ref:`LogDebug(func) <AElf-Sdk-CSharp-CSharpSmartContractContext-LogDebug-System-FuncSystem-String>`
    -  :ref:`RecoverPublicKey() <AElf-Sdk-CSharp-CSharpSmartContractContext-RecoverPublicKey>`
-   -  :ref:`RecoverPublicKey(signature, hash) <AElf-Sdk-CSharp-CSharpSmartContractContext-RecoverPublicKey-System-array-System-array>`
+   -  :ref:`RecoverPublicKey(signature,hash) <AElf-Sdk-CSharp-CSharpSmartContractContext-RecoverPublicKey-System-array-System-array>`
    -  :ref:`Transaction() <AElf-Sdk-CSharp-CSharpSmartContractContext-Transaction>`
    -  :ref:`SendInline(toAddress,methodName,args) <AElf-Sdk-CSharp-CSharpSmartContractContext-SendInline-AElf-Types-Address-System-String-Google-Protobuf-ByteString>`
    -  :ref:`SendVirtualInline(fromVirtualAddress,toAddress,methodName,args) <AElf-Sdk-CSharp-CSharpSmartContractContext-SendVirtualInline-AElf-Types-Hash-AElf-Types-Address-System-String-Google-Protobuf-ByteString>`
@@ -244,7 +244,7 @@ Transaction ``property``
 Summary
 '''''''
 
-Including some transaction info.
+Get the transaction information of the current transaction.
 
 .. _AElf-Sdk-CSharp-CSharpSmartContractContext-Call-AElf-Types-Address-AElf-Types-Address-System-String-Google-Protobuf-ByteString:
 
