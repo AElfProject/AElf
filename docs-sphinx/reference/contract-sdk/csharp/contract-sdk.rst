@@ -715,7 +715,7 @@ RecoverPublicKey(signature, hash) ``method``
 Summary
 '''''''
 
-Recovers the public key of the transaction Sender with custom args.
+Recover the public key with hash and signature.
 
 Returns
 '''''''
