@@ -51,6 +51,10 @@ service AEDPoSContract {
     rpc ChangeMaximumMinersCountController (AuthorityInfo) returns (google.protobuf.Empty) {
     }
     
+    // Set miner increase interval
+    rpc SetMinerIncreaseInterval (google.protobuf.Int64Value) returns (google.protobuf.Empty){
+    }
+    
     // Election Contract can notify AEDPoS Contract to aware candidate replacement happened.
     rpc RecordCandidateReplacement (RecordCandidateReplacementInput) returns (google.protobuf.Empty) {
     }
@@ -152,6 +156,11 @@ service AEDPoSContract {
     
     // Get the authority information for SetMaximumMinersCount.
     rpc GetMaximumMinersCountController (google.protobuf.Empty) returns (AuthorityInfo) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Get miner increase interval
+    rpc GetMinerIncreaseInterval (google.protobuf.Empty) returns (google.protobuf.Int64Value){
         option (aelf.is_view) = true;
     }
     
