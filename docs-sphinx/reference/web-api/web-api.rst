@@ -1034,7 +1034,7 @@ Parameters
 ========= ============================ ============================================================================= ===========
 Type      Name                         Schema                                                                        Default
 ========= ============================ ============================================================================= ===========
-**Body**  **Input** \ *optional*        `CalculateTransactionFeeInput <#CalculateTransactionFeeInput>`__
+**Body**  **Input** \ *optional*        < `CalculateTransactionFeeInput <#CalculateTransactionFeeInput>`__ >
 ========= ============================ ============================================================================= ===========
 
 .. _responses-21:
@@ -1045,7 +1045,7 @@ Responses
 ========= =========== ========================================================================================
 HTTP Code Description Schema
 ========= =========== ========================================================================================
-**200**   Success     `CalculateTransactionFeeOutput <#CalculateTransactionFeeOutput>`__
+**200**   Success     < `CalculateTransactionFeeOutput <#CalculateTransactionFeeOutput>`__ >
 ========= =========== ========================================================================================
 
 .. _consumes-21:
