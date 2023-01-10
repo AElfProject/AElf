@@ -648,6 +648,61 @@ Tags
 
 -  BlockChain
 
+Estimate transaction fee
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    POST /api/blockChain/calculateTransactionFee
+
+.. _parameters-21:
+
+Parameters
+^^^^^^^^^^
+
+========= ============================ ============================================================================= ===========
+Type      Name                         Schema                                                                        Default
+========= ============================ ============================================================================= ===========
+**Body**  **Input** \ *optional*       `CalculateTransactionFeeInput <#CalculateTransactionFeeInput>`__
+========= ============================ ============================================================================= ===========
+
+.. _responses-21:
+
+Responses
+^^^^^^^^^
+
+========= =========== ========================================================================================
+HTTP Code Description Schema
+========= =========== ========================================================================================
+**200**   Success     `CalculateTransactionFeeOutput <#CalculateTransactionFeeOutput>`__
+========= =========== ========================================================================================
+
+.. _consumes-21:
+
+Consumes
+^^^^^^^^
+-  ``application/json-patch+json; v=1.0``
+-  ``application/json; v=1.0``
+-  ``text/json; v=1.0``
+-  ``application/*+json; v=1.0``
+-  ``application/x-protobuf; v=1.0``
+
+.. _produces-21:
+
+Produces
+^^^^^^^^
+-  ``text/plain; v=1.0``
+-  ``application/json; v=1.0``
+-  ``text/json; v=1.0``
+-  ``application/x-protobuf; v=1.0``
+
+.. _tags-21:
+
+Tags
+^^^^
+
+-  BlockChain
+
 GET /api/blockChain/taskQueueStatus
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -1013,61 +1068,6 @@ Produces
 -  ``application/x-protobuf; v=1.0``
 
 .. _tags-20:
-
-Tags
-^^^^
-
--  Net
-
-Estimate transaction fee
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-::
-
-    POST /api/blockChain/calculateTransactionFee
-
-.. _parameters-21:
-
-Parameters
-^^^^^^^^^^
-
-========= ============================ ============================================================================= ===========
-Type      Name                         Schema                                                                        Default
-========= ============================ ============================================================================= ===========
-**Body**  **Input** \ *optional*        `CalculateTransactionFeeInput <#CalculateTransactionFeeInput>`__
-========= ============================ ============================================================================= ===========
-
-.. _responses-21:
-
-Responses
-^^^^^^^^^
-
-========= =========== ========================================================================================
-HTTP Code Description Schema
-========= =========== ========================================================================================
-**200**   Success     `CalculateTransactionFeeOutput <#CalculateTransactionFeeOutput>`__
-========= =========== ========================================================================================
-
-.. _consumes-21:
-
-Consumes
-^^^^^^^^
--  ``application/json-patch+json; v=1.0``
--  ``application/json; v=1.0``
--  ``text/json; v=1.0``
--  ``application/*+json; v=1.0``
--  ``application/x-protobuf; v=1.0``
-
-.. _produces-21:
-
-Produces
-^^^^^^^^
--  ``text/plain; v=1.0``
--  ``application/json; v=1.0``
--  ``text/json; v=1.0``
--  ``application/x-protobuf; v=1.0``
-
-.. _tags-21:
 
 Tags
 ^^^^
