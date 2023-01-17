@@ -156,8 +156,8 @@ public partial class TokenContract
         
         if (State.Balances[address][Context.Variables.NativeSymbol] < config.Threshold)
         {
-            State.MethodFeeFreeAllowancesLastRefreshTimeMap[address] = null;
-            State.MethodFeeFreeAllowancesMap[address] = null;
+            State.MethodFeeFreeAllowancesLastRefreshTimeMap.Remove(address);
+            State.MethodFeeFreeAllowancesMap.Remove(address);
             return;
         }
 
