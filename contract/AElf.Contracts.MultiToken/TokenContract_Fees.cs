@@ -149,9 +149,15 @@ public partial class TokenContract
     private void SetOrRefreshMethodFeeFreeAllowances(Address address)
     {
         var config = State.MethodFeeFreeAllowancesConfig.Value;
-        if (config == null || State.Balances[address][Context.Variables.NativeSymbol] < config.Threshold)
+        if (config == null)
         {
-            // Won't refresh method fee free allowance if inputted address hasn't reach the threshold.
+            return;
+        }
+        
+        if (State.Balances[address][Context.Variables.NativeSymbol] < config.Threshold)
+        {
+            State.MethodFeeFreeAllowancesLastRefreshTimeMap[address] = null;
+            State.MethodFeeFreeAllowancesMap[address] = null;
             return;
         }
 
