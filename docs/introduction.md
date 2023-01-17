@@ -39,6 +39,6 @@ This section provides links to API references for the Command Line Interface, th
 
 - [**contract APIs**](resources/smart-contract-apis/index.md) - API explanation for certain important smart contracts.
 
-You can find the original whitepaper [here](https://aelf.com/gridcn/aelf_whitepaper_v1.7_en.pdf). It will give you a more thorough explanation on the concepts that drive AElf and its development.
+You can find the original whitepaper [here](https://aelf.io/gridcn/aelf_whitepaper_EN.pdf?v=1.6). It will give you a more thorough explanation on the concepts that drive AElf and its development.
 
 Of course, there's the official GitHub [here](https://github.com/AElfProject/AElf) and the js-sdk repo [here](https://github.com/AElfProject/aelf-sdk.js).

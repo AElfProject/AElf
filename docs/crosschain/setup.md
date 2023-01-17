@@ -46,7 +46,7 @@ negotiation between the production node and the developer. An **exclusive** side
 
 A **shared** side-chain is a side-chain on which any developer can deploy a contract. Developer can choose one charging strategy from ACS1/ACS8/ACS9.
 
-See [Economic whitepaper - 4.3 Sidechain Developer Charging Model](https://aelf.com/gridcn/aelf_Economic_and_Governance_Whitepaper_v1.2_en.pdf) for more information.
+See [Economic whitepaper - 4.3 Sidechain Developer Charging Model](https://aelf.io/gridcn/aelf_economic_system_whitepaper_en_v1.0.pdf?time=1) for more information.
 
 #### Indexing fees
 
