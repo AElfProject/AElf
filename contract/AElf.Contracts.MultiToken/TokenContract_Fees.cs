@@ -925,11 +925,14 @@ public partial class TokenContract
 
         var config = freeAllowancesConfig.Clone();
 
+        var balance = State.Balances[input][Context.Variables.NativeSymbol];
+        if (balance < config.Threshold) return new MethodFeeFreeAllowances();
+        
         var lastRefreshTime = State.MethodFeeFreeAllowancesLastRefreshTimeMap[input];
 
         if (freeAllowances == null)
         {
-            if (State.Balances[input][Context.Variables.NativeSymbol] >= config.Threshold)
+            if (balance >= config.Threshold)
             {
                 return new MethodFeeFreeAllowances { Value = { config.FreeAllowances.Value } };
             }
