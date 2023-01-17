@@ -68,8 +68,8 @@ Welcome to AElf's official documentation!
    Wallet and Block Explorer <resources/wallet-and-explorer/index>
    Browser Extension <resources/browser-extension>
    DevOps <resources/devops/devops>
-   AElf White Paper <https://aelf.io/gridcn/aelf_whitepaper_EN.pdf>
-   AElf Economic System White Paper <https://aelf.io/gridcn/aelf_economic_system_whitepaper_en_v1.0.pdf>
+   AElf White Paper <https://aelf.com/gridcn/aelf_whitepaper_v1.7_en.pdf>
+   AElf Economic System White Paper <https://aelf.com/gridcn/aelf_Economic_and_Governance_Whitepaper_v1.2_en.pdf>
 
 
 .. toctree::
