@@ -132,4 +132,14 @@ public partial class AEDPoSTest
         transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
         transactionResult.Error.ShouldContain("No permission");
     }
+    
+    [Fact]
+    public async Task AEDPoSContract_SetMinerIncreaseInterval_NoPermission()
+    {
+        var transactionResult =
+            (await AEDPoSContractStub.SetMinerIncreaseInterval.SendAsync(new Int64Value { Value = 100 }))
+            .TransactionResult;
+        transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+        transactionResult.Error.ShouldContain("No permission to set miner increase interval.");
+    }
 }
