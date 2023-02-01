@@ -457,13 +457,58 @@ _Parameters_
 
 Get peer info about the connected network nodes
 
+_GET_
+
+_Parameters_
+
+`withMetrics - Boolean` :
+
+- `true` with metrics
+- `false` without metrics
+
 ### 13.addPeer
 
 Attempts to add a node to the connected network nodes
 
+_POST_
+
+_Parameters_
+
+`Object` - The object with the following structure :
+
+- `Address - String`
+
 ### 14.removePeer
 
 Attempts to remove a node from the connected network nodes
+
+_DELETE_
+
+_Parameters_
+
+`address - String`
+
+### 15.calculateTransactionFee
+
+Estimate transaction fee
+
+_POST_
+
+_Parameters_
+
+`Object` - The object with the following structure :
+
+- `RawTransaction - String`
+
+### 16.networkInfo
+
+Get information about the node’s connection to the network
+
+_GET_
+
+_Parameters_
+
+Empty
 
 ## AElf.wallet
 
