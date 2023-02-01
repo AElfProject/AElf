@@ -146,6 +146,11 @@ service TokenContract {
 
     rpc RemoveTransactionFeeDelegatee (RemoveTransactionFeeDelegateeInput) returns (google.protobuf.Empty){
     }
+    
+    // Get all delegatees' address of delegator from input
+    rpc GetTransactionFeeDelegatees (GetTransactionFeeDelegateesInput) returns (GetTransactionFeeDelegateesOutput) {
+        
+    }
 
     // Query token information.
     rpc GetTokenInfo (GetTokenInfoInput) returns (TokenInfo) {
@@ -706,6 +711,15 @@ message GetTransactionFeeDelegationsOfADelegateeInput {
     aelf.Address delegatee_address = 1;
     aelf.Address delegator_address = 2;
 }
+
+message GetTransactionFeeDelegateesInput {
+    aelf.Address delegator_address = 1;
+}
+
+message GetTransactionFeeDelegateesOutput {
+    repeated aelf.Address delegatee_addresses = 1;
+}
+
 // Events
 
 message Transferred {
