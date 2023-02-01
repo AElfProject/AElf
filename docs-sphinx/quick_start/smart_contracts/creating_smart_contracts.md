@@ -1,8 +1,8 @@
-# Smart contract implementation
+# Creating Smart Contracts
 
 This article will guide you through how to use **AElf Boilerplate** to implement a smart contract. It takes an example on the **Greeter** contract that's already included in Boilerplate. Based on the concepts this article presents, you'll be able to create your own basic contract.
 
-## Greeter contract
+**Steps of creating smart contracts**
 
 The following content will walk you through the basics of writing a smart contract; this process contains essentially four steps:
 - **create the project**: generate the contract template using **AElf Boilerplate**'s code generator.
@@ -170,6 +170,9 @@ The protobuf file also includes the definition of two custom types. The **GreetT
 - use **google.protobuf.Timestamp** to represent a point in time (import ```google/protobuf/timestamp.proto```).
 - use **repeated** to represent a collection of items of the same type.
 
+## Generate the code
+
+build the project to generate the base contract code from the proto definition.
 
 ## Extend the generated code
 

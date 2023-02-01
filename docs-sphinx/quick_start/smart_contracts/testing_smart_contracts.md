@@ -1,29 +1,35 @@
-# Unit testing a contract
+# Testing Smart Contracts
 
-The previous article exposed how to add the proto definition and implement the logic of your contract. This article expands on the previous and will show you how to test your contract.
+## Hello World Testing
 
-AElf Contract TestKit is a testing framework specifically used to test AElf smart contracts. With this framework, you can simulate the execution of a transaction by constructing a stub of a smart contract and using the methods provided by the Stub instance (corresponding to the contract's Action methods) and query (corresponding to the View methods of the contract), and then get the transaction execution results in the test case.
+Boilerplate greatly simplifies unit testing. This tutorial will test the Hello World contract for reference.
 
-## Test project
+1. Execute this command to locate AElf.Contracts.HelloWorldContract.Test ：
+   ```
+   cd ../../test/AElf.Contracts.HelloWorldContract.Tests/
+   ```
+2. Execute this command to test the Hello World contract:
+   ```
+   dotnet test
+   ```
+The following output suggests successful execution of the program:
+```
+Test Run Successful.
+Total tests: 1
+Passed: 1
+Total time: 2.8865 Seconds
+```
+## Customize Testing
+
+The above instructions explain how to test the built-in contracts in Boilerplate, using Hello World as an example. The following section will expand on this and show you how to test your contracts.
+
+AElf Contract TestKit is a testing framework specifically used to test AElf smart contracts. With this framework, you can simulate the execution of a transaction by constructing a stub of a smart contract and using the methods provided by the Stub instance (corresponding to the contract’s Actions methods) and query (corresponding to the Views methods of the contract), and then get the transaction execution results in the test case.
+
+### Test project
 
 **AElf Boilerplate**'s code generator has automatically generated test project for you, you just need to add your test cases.
 
 As you can see, tests are placed in the **test** folder. Each test folder usually contains a project file (.csproj) and at least four .cs files. The project file is a basic C# xUnit test project file, to which we've added some references.
-
-<!-- 
-# chain 
-## contract
-## protobuf
-## src
-## test
-### AElf.Contracts.GreeterContract.Tests
-#### AElf.Contracts.GreeterContract.Tests.csproj
-#### GreeterContractTestBase.cs
-#### GreeterContractTestModule.cs
-#### GreeterContractTests.cs
-#### GreeterContractInitializationProvider.cs
-### ...
--->
 
 ```
 .
@@ -41,7 +47,7 @@ As you can see, tests are placed in the **test** folder. Each test folder usuall
         └── ...
 ```
 
-### Test your contract
+#### Test your contract
 
 Now for the easy part, the test class only needs to inherit from the test base. After this you can go ahead and create the test cases you need.
 
