@@ -16,7 +16,7 @@ Welcome to AElf's official documentation!
 
    Overview <quick_start/overview>
    Smart Contracts <quick_start/smart_contracts/index>
-   Development Environement <quick_start/development-environement/index>
+   Development Environement <quick_start/development-environment/index>
 
 .. toctree::
    :caption: Tutorials
