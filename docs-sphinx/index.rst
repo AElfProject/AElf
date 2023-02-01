@@ -11,12 +11,12 @@ Welcome to AElf's official documentation!
    Introduction <introduction/introduction>
 
 .. toctree::
-   :caption: Getting Started
+   :caption: Quick Start
    :maxdepth: 2
 
-   Development Environment <getting-started/development-environment/index>
-   Smart Contract Development <getting-started/smart-contract-development/index>
-
+   Overview <quick_start/overview>
+   Smart Contracts <quick_start/smart_contracts/index>
+   Development Environement <quick_start/development-environement/index>
 
 .. toctree::
    :caption: Tutorials
