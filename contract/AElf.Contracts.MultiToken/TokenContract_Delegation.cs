@@ -187,13 +187,9 @@ public partial class TokenContract
             return new GetTransactionFeeDelegateesOutput();
         }
 
-        var addresses = new RepeatedField<Address>();
-
-        addresses.AddRange(allDelegatees.Delegatees.Keys.Select(Address.FromBase58));
-
         return new GetTransactionFeeDelegateesOutput
         {
-            DelegateeAddresses = { addresses }
+            DelegateeAddresses = { allDelegatees.Delegatees.Keys.Select(Address.FromBase58) }
         };
     }
 }
