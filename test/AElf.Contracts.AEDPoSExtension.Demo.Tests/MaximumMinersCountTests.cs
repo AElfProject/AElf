@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.Parliament;
+using AElf.ContractTestKit;
 using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
@@ -9,6 +10,7 @@ using AElf.Kernel.Proposal;
 using AElf.Standards.ACS3;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
 using Xunit;
 
@@ -16,6 +18,9 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests;
 
 public class MaximumMinersCountTests : AEDPoSExtensionDemoTestBase
 {
+    private IBlockTimeProvider _blockTimeProvider =>
+        Application.ServiceProvider.GetRequiredService<IBlockTimeProvider>();
+    
     [Theory]
     [InlineData(7)]
     [InlineData(3)]
@@ -92,5 +97,46 @@ public class MaximumMinersCountTests : AEDPoSExtensionDemoTestBase
 
         var newMinersCountController = await ConsensusStub.GetMaximumMinersCountController.CallAsync(new Empty());
         newMinersCountController.OwnerAddress.ShouldBe(targetAddress);
+    }
+    
+    [Fact]
+    public async Task SetMinerIncreaseIntervalTest()
+    {
+        InitialContracts();
+        await BlockMiningService.MineBlockToNextTermAsync();
+
+        InitialAcs3Stubs();
+        await ParliamentStubs.First().Initialize.SendAsync(new InitializeInput());
+        var minerIncreaseInterval = await ConsensusStub.GetMinerIncreaseInterval.CallAsync(new Empty());
+        
+        var defaultOrganizationAddress =
+            await ParliamentStubs.First().GetDefaultOrganizationAddress.CallAsync(new Empty());
+
+        var transactionResult = await ParliamentReachAnAgreementWithExceptionAsync(new CreateProposalInput
+        {
+            ToAddress = ContractAddresses[ConsensusSmartContractAddressNameProvider.Name],
+            ContractMethodName = nameof(ConsensusStub.SetMinerIncreaseInterval),
+            Params = new Int64Value
+            {
+                Value = minerIncreaseInterval.Value + 1
+            }.ToByteString(),
+            ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
+            OrganizationAddress = defaultOrganizationAddress
+        });
+        transactionResult.Error.ShouldContain("Invalid interval");
+        var newMinerIncreaseInterval = minerIncreaseInterval.Value - 1;
+        await ParliamentReachAnAgreementAsync(new CreateProposalInput
+        {
+            ToAddress = ContractAddresses[ConsensusSmartContractAddressNameProvider.Name],
+            ContractMethodName = nameof(ConsensusStub.SetMinerIncreaseInterval),
+            Params = new Int64Value
+            {
+                Value = newMinerIncreaseInterval
+            }.ToByteString(),
+            ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
+            OrganizationAddress = defaultOrganizationAddress
+        });
+        minerIncreaseInterval = await ConsensusStub.GetMinerIncreaseInterval.CallAsync(new Empty());
+        minerIncreaseInterval.Value.ShouldBe(newMinerIncreaseInterval);
     }
 }

@@ -53,6 +53,16 @@ public partial class AEDPoSContract
         return new Empty();
     }
 
+    public override Empty SetMinerIncreaseInterval(Int64Value input)
+    {
+        RequiredMaximumMinersCountControllerSet();
+        Assert(Context.Sender == State.MaximumMinersCountController.Value.OwnerAddress,
+            "No permission to set miner increase interval.");
+        Assert(input.Value <= State.MinerIncreaseInterval.Value, "Invalid interval");
+        State.MinerIncreaseInterval.Value = input.Value;
+        return new Empty();
+    }
+
     public override AuthorityInfo GetMaximumMinersCountController(Empty input)
     {
         RequiredMaximumMinersCountControllerSet();
@@ -64,6 +74,14 @@ public partial class AEDPoSContract
         return new Int32Value
         {
             Value = Math.Min(GetAutoIncreasedMinersCount(), State.MaximumMinersCount.Value)
+        };
+    }
+    
+    public override Int64Value GetMinerIncreaseInterval(Empty input)
+    {
+        return new Int64Value
+        {
+            Value = State.MinerIncreaseInterval.Value
         };
     }
 
