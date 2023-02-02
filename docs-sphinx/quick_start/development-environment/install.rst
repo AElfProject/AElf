@@ -873,4 +873,4 @@ development <https://docs.aelf.io/en/latest/getting-started/smart-contract-devel
 `Smart contract
 deployment <https://docs.aelf.io/en/latest/getting-started/smart-contract-development/index.html>`__
 
-`Node <../../getting-started/development-environment/node.html>`__
+`Node <../../quick_start/development-environment/node.html>`__

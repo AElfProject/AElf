@@ -1843,9 +1843,9 @@ skip this step. For info about contract deployment and nodes running,
 please read the following:
 
 `Smart contract
-development <https://docs.aelf.io/en/latest/getting-started/smart-contract-development/index.html>`__
+development <https://docs.aelf.io/en/latest/quick_start/smart-contract-development/index.html>`__
 
 `Smart contract
-deployment <https://docs.aelf.io/en/latest/getting-started/smart-contract-development/index.html>`__
+deployment <https://docs.aelf.io/en/latest/quick_start/smart-contract-development/index.html>`__
 
-`Node <../../getting-started/development-environment/node.md>`__
+`Node <../../quick_start/development-environment/node.md>`__
