@@ -103,7 +103,7 @@ Boilerplate’s internal node.
    dotnet build
 
    # run the node 
-   dotnet run --no-build bin/Debug/netcoreapp3.1/AElf.Boilerplate.Launcher
+   dotnet run --no-build bin/Debug/net6.0/AElf.Boilerplate.Launcher
 
 {% hint style=“warning” %} When running Boilerplate, you might see some
 errors related to an incorrect password, to solve this, you need to
