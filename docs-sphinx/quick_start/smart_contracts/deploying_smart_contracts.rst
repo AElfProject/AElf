@@ -57,10 +57,8 @@ through aelf-command. As ``DeploySmartContract`` and
 ``UpdateSmartContract`` are similar in operation, the following
 instructions will use the first one as an example.
 
-.. figure:: img/philly-magic-garden.jpg
+.. figure:: img/philly-magic-garden.svg
    :alt: 合约部署流程
-
-   流程图
 
 Developer: ProposeNewContract
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

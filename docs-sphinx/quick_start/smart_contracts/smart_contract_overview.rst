@@ -16,9 +16,3 @@ contract and can work as an identifier for status queries and updates.
 The contract code defines the details of these and updates, to be
 specific, how to check whether an account has permission to operate them
 and how the operation is completed.
-
-The doc contains the invocation of aelf’s API, SDK, etc, and you can
-learn more about this in the `Resource
-Center <这个先用REFERENCE中Web%20API的地址>`__ . If you are ready,
-please click `环境准备 <替换成Development%20Environment的线上地址>`__ to
-start!
