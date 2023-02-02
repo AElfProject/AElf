@@ -202,7 +202,7 @@ Install Redis
 The following output suggests Redis is installed and a Redis instance is
 started:
 
-.. figure:: /img/mac_install_redis.png
+.. figure:: img/mac_install_redis.png
    :alt: imageofmac
 
    imageofmac
@@ -1107,7 +1107,7 @@ Install Redis
 The following output suggests Redis is installed and a Redis instance is
 started:
 
-.. figure:: /img/windows_install_redis.png
+.. figure:: img/windows_install_redis.png
    :alt: redis
 
    redis
@@ -1402,14 +1402,14 @@ Basic Environment Configurations
 
 2. Click the green **Code** button on the top right.
 
-   .. figure:: /img/codespaces1.png
+   .. figure:: img/codespaces1.png
       :alt: codespaces1
 
       codespaces1
 
 3. Select ``Codespaces`` and click +.
 
-   .. figure:: /img/codespaces2.png
+   .. figure:: img/codespaces2.png
       :alt: codespaces2
 
       codespaces2
