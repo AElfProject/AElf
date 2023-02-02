@@ -26,16 +26,14 @@ the time of the greeting.
 
 This tutorial shows you how to develop a smart contract with the C#
 contract SDK; you can find you more
-`here <../../../reference/contract-sdk/csharp/contract-sdk.md>`__.
+`here <https://docs.aelf.io/en/latest/reference/contract-sdk/index.html>`__.
 Boilerplate will automatically add the reference to the SDK.
 
 Create the project
 ------------------
 
 With **AElf Boilerplate**\ ’s code generator, you can easily and quickly
-set up a contract project. See
-`here <https://aelf-boilerplate-docs.readthedocs.io/en/latest/usage/index.html>`__
-for details.
+set up a contract project.
 
 Defining the contract
 ---------------------
