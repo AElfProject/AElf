@@ -205,7 +205,6 @@ started:
 .. figure:: img/mac_install_redis.png
    :alt: imageofmac
 
-   imageofmac
 
 Install Nodejs
 ^^^^^^^^^^^^^^
@@ -1110,8 +1109,6 @@ started:
 .. figure:: img/windows_install_redis.png
    :alt: redis
 
-   redis
-
 .. _install-nodejs-2:
 
 Install Nodejs
@@ -1405,14 +1402,11 @@ Basic Environment Configurations
    .. figure:: img/codespaces1.png
       :alt: codespaces1
 
-      codespaces1
 
 3. Select ``Codespaces`` and click +.
 
    .. figure:: img/codespaces2.png
       :alt: codespaces2
-
-      codespaces2
 
 Then a new tab will be opened that shows the ``Codespaces`` interface.
 After the page is loaded, you will see:
