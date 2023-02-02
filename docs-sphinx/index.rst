@@ -78,4 +78,4 @@ Welcome to AElf's official documentation!
 
    tutorials/cross-chain/running-side-chain
    tutorials/__run-node
-   getting-started/smart-contract-development/developing-smart-contracts/index
+   quick_start/smart_contracts/index
