@@ -244,10 +244,10 @@ Install aelf-command
 
       sudo chmod 755 /usr/local/lib/node_modules
 
-   .. rubric:: Create an aelf Account
-      :name: create-an-aelf-account
+Create an aelf Account
+^^^^^^^^^^^^^^^^^^^^^^
 
-3. Execute this command:
+1. Execute this command:
 
    ::
 
@@ -264,7 +264,7 @@ Install aelf-command
       AElf [Info]: Public Key          : 04f9bb56a9eca921bd494e677307f0279c98f1d2ed6bdeaa6dd256878272eabd14e91ec61469d2a32ce5e63205930dabdc0b9f13fc80c1f4e31760618d182*****
       AElf [Info]: Address             : 21qciGwcaowwBttKMjMk86AW6WajhcodSHytY1vCyZb7p*****
 
-4. You will then be asked whether you want the account data stored as a
+2. You will then be asked whether you want the account data stored as a
    json file. Enter ``y`` to confirm and the file will be stored in
    ``/Users/{username}/.local/share/aelf/keys/``.
 
@@ -312,31 +312,31 @@ reference.
 
       git clone https://github.com/AElfProject/aelf-boilerplate
 
-   .. rubric:: Create Boilerplate
-      :name: create-boilerplate
+Create Boilerplate
+''''''''''''''''''
 
-4. Execute this command to change to the chain’s directory:
+1. Execute this command to change to the chain’s directory:
 
    ::
 
       # enter the folder
       cd aelf-boilerplate/chain
 
-5. Execute this command to restore the Boilerplate’s files:
+2. Execute this command to restore the Boilerplate’s files:
 
    ::
 
       # restore
       dotnet restore AElf.Boilerplate.sln
 
-6. Execute this command to change to the Launcher’s directory:
+3. Execute this command to change to the Launcher’s directory:
 
    ::
 
       # enter the Launcher folder
       cd src/AElf.Boilerplate.Launcher/
 
-7. Execute this command to build the Boilerplate’s code:
+4. Execute this command to build the Boilerplate’s code:
 
    ::
 
@@ -347,7 +347,7 @@ reference.
    ``access denied``, you can add ``sudo`` to the front of the command
    to grant permissions.
 
-8. Execute this command to modify the ``appsettings.json`` file, or you
+5. Execute this command to modify the ``appsettings.json`` file, or you
    can go to
    ``Desktop > BoilerplateTest > aelf-boilerplate > chain > src > AElf.Boilerplate.Launcher``
    and open the ``appsettings.json`` file in the editor to modify it:
@@ -701,10 +701,12 @@ Install aelf-command
 
       sudo chmod 755 /usr/local/lib/node_modules
 
-   .. rubric:: Create an aelf Account
-      :name: create-an-aelf-account-1
+.. _create-an-aelf-account-1:
 
-3. Execute this command:
+Create an aelf Account
+^^^^^^^^^^^^^^^^^^^^^^
+
+1. Execute this command:
 
    ::
 
@@ -721,7 +723,7 @@ Install aelf-command
       AElf [Info]: Public Key          : 04f9bb56a9eca921bd494e677307f0279c98f1d2ed6bdeaa6dd256878272eabd14e91ec61469d2a32ce5e63205930dabdc0b9f13fc80c1f4e31760618d182*****
       AElf [Info]: Address             : 21qciGwcaowwBttKMjMk86AW6WajhcodSHytY1vCyZb7p*****
 
-4. You will then be asked whether you want the account data stored as a
+2. You will then be asked whether you want the account data stored as a
    json file. Enter ``y`` to confirm and the file will be stored in
    ``/Users/{username}/.local/share/aelf/keys/``.
 
@@ -773,31 +775,33 @@ reference.
 
       git clone https://github.com/AElfProject/aelf-boilerplate
 
-   .. rubric:: Create Boilerplate
-      :name: create-boilerplate-1
+.. _create-boilerplate-1:
 
-4. Execute this command to change to the chain’s directory:
+Create Boilerplate
+''''''''''''''''''
+
+1. Execute this command to change to the chain’s directory:
 
    ::
 
       # enter the folder
       cd aelf-boilerplate/chain
 
-5. Execute this command to restore the Boilerplate’s files:
+2. Execute this command to restore the Boilerplate’s files:
 
    ::
 
       # restore
       dotnet restore AElf.Boilerplate.sln
 
-6. Execute this command to change to the Launcher’s directory:
+3. Execute this command to change to the Launcher’s directory:
 
    ::
 
       # enter the Launcher folder
       cd src/AElf.Boilerplate.Launcher/
 
-7. Execute this command to build the Boilerplate’s code:
+4. Execute this command to build the Boilerplate’s code:
 
    ::
 
@@ -808,7 +812,7 @@ reference.
    ``access denied``, you can add ``sudo`` to the front of the command
    to grant permissions.
 
-8. Execute this command to modify the ``appsettings.json`` file, or you
+5. Execute this command to modify the ``appsettings.json`` file, or you
    can go to
    ``Desktop > BoilerplateTest > aelf-boilerplate > chain > src > AElf.Boilerplate.Launcher``
    and open the ``appsettings.json`` file in the editor to modify it:
@@ -1165,10 +1169,12 @@ Install aelf-command
 
       sudo chmod 755 /usr/local/lib/node_modules
 
-   .. rubric:: Create an aelf Account
-      :name: create-an-aelf-account-2
+.. _create-an-aelf-account-2:
 
-3. Execute this command:
+Create an aelf Account
+^^^^^^^^^^^^^^^^^^^^^^
+
+1. Execute this command:
 
    ::
 
@@ -1185,7 +1191,7 @@ Install aelf-command
       AElf [Info]: Public Key          : 04f9bb56a9eca921bd494e677307f0279c98f1d2ed6bdeaa6dd256878272eabd14e91ec61469d2a32ce5e63205930dabdc0b9f13fc80c1f4e31760618d182*****
       AElf [Info]: Address             : 21qciGwcaowwBttKMjMk86AW6WajhcodSHytY1vCyZb7p*****
 
-4. You will then be asked whether you want the account data stored as a
+2. You will then be asked whether you want the account data stored as a
    json file. Enter ``y`` to confirm and the file will be stored in
    ``/Users/{username}/.local/share/aelf/keys/``.
 
@@ -1237,31 +1243,33 @@ reference.
 
       git clone https://github.com/AElfProject/aelf-boilerplate
 
-   .. rubric:: Create Boilerplate
-      :name: create-boilerplate-2
+.. _create-boilerplate-2:
 
-4. Execute this command to change to the chain’s directory:
+Create Boilerplate
+''''''''''''''''''
+
+1. Execute this command to change to the chain’s directory:
 
    ::
 
       # enter the folder
       cd aelf-boilerplate/chain
 
-5. Execute this command to restore the Boilerplate’s files:
+2. Execute this command to restore the Boilerplate’s files:
 
    ::
 
       # restore
       dotnet restore AElf.Boilerplate.sln
 
-6. Execute this command to change to the Launcher’s directory:
+3. Execute this command to change to the Launcher’s directory:
 
    ::
 
       # enter the Launcher folder
       cd src/AElf.Boilerplate.Launcher/
 
-7. Execute this command to build the Boilerplate’s code:
+4. Execute this command to build the Boilerplate’s code:
 
    ::
 
@@ -1272,7 +1280,7 @@ reference.
    ``access denied``, you can add ``sudo`` to the front of the command
    to grant permissions.
 
-8. Execute this command to modify the ``appsettings.json`` file, or you
+5. Execute this command to modify the ``appsettings.json`` file, or you
    can go to
    ``Desktop > BoilerplateTest > aelf-boilerplate > chain > src > AElf.Boilerplate.Launcher``
    and open the ``appsettings.json`` file in the editor to modify it:
@@ -1828,18 +1836,3 @@ delete all:
 So far, you have successfully downloaded, created, and run Boilerplate.
 In the following tutorial, you will learn how to add, test, and deploy a
 contract.
-
-What’s Next
-^^^^^^^^^^^
-
-If you have already installed the tools and frameworks above, you can
-skip this step. For info about contract deployment and nodes running,
-please read the following:
-
-`Smart contract
-development <https://docs.aelf.io/en/latest/quick_start/smart-contract-development/index.html>`__
-
-`Smart contract
-deployment <https://docs.aelf.io/en/latest/quick_start/smart-contract-development/index.html>`__
-
-`Node <../../quick_start/development-environment/node.md>`__

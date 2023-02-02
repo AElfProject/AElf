@@ -29,8 +29,8 @@ Hello World contract for reference.
       Passed: 1
       Total time: 2.8865 Seconds
 
-   .. rubric:: Customize Testing
-      :name: customize-testing
+Customize Testing
+-----------------
 
 The above instructions explain how to test the built-in contracts in
 Boilerplate, using Hello World as an example. The following section will
