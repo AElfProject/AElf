@@ -290,7 +290,7 @@ Linux and Codespaces
 Follow this doc to run an aelf single node in Linux and Codespaces and
 this will take around 20 minutes to complete.
 
-.. _install-aelf-command-1:
+.. _install-aelf-command-1-old:
 
 Install aelf-command
 ^^^^^^^^^^^^^^^^^^^^
@@ -368,7 +368,7 @@ The following output suggests successful building:
 
    Time Elapsed 00:15:59.77
 
-.. _create-an-aelf-account-1:
+.. _create-an-aelf-account-1-old:
 
 Create an aelf Account
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -542,7 +542,7 @@ Windows
 Follow this doc to run an aelf single node on a Windows device and this
 will take around 20 minutes to complete.
 
-.. _install-aelf-command-2:
+.. _install-aelf-command-2-old:
 
 Install aelf-command
 ^^^^^^^^^^^^^^^^^^^^
@@ -620,7 +620,7 @@ The following output suggests successful building:
 
    Time Elapsed 00:15:59.77
 
-.. _create-an-aelf-account-2:
+.. _create-an-aelf-account-2-old:
 
 Create an aelf Account
 ^^^^^^^^^^^^^^^^^^^^^^

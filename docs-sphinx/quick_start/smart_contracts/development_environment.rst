@@ -1705,7 +1705,7 @@ You need to edit ``Version=`` into:
 
 2. Execute this command to restore the Boilerplate’s files:
 
-   .. code:: angular2html
+   :: 
 
       # restore
       dotnet restore AElf.Boilerplate.sln
