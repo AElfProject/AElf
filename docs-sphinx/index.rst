@@ -11,12 +11,12 @@ Welcome to AElf's official documentation!
    Introduction <introduction/introduction>
 
 .. toctree::
-   :caption: Quick Start
+   :caption: Getting Started
    :maxdepth: 2
 
-   Overview <quick_start/overview>
-   Smart Contracts <quick_start/smart_contracts/index>
-   Development Environement <quick_start/development-environment/index>
+   Overview <getting_started/overview>
+   Development Environment <getting_started/development-environment/index>
+   Smart Contracts <getting_started/smart_contracts/index>
 
 .. toctree::
    :caption: Tutorials
@@ -78,4 +78,4 @@ Welcome to AElf's official documentation!
 
    tutorials/cross-chain/running-side-chain
    tutorials/__run-node
-   quick_start/smart_contracts/index
+   getting_started/smart_contracts/index
