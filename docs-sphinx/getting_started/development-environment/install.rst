@@ -867,10 +867,6 @@ If you have already installed the tools and frameworks above, you can
 skip this step. For info about contract deployment and nodes running,
 please read the following:
 
-`Smart contract
-development <https://docs.aelf.io/en/latest/getting-started/smart-contract-development/index.html>`__
-
-`Smart contract
-deployment <https://docs.aelf.io/en/latest/getting-started/smart-contract-development/index.html>`__
+`Smart contracts <../../getting_started/smart_contracts/index.html>`__
 
 `Node <../../getting_started/development-environment/node.html>`__

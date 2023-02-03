@@ -1,4 +1,4 @@
-Smart Contract Overview
+Smart contracts Overview
 =======================
 
 This section provides the knowledge you need to write smart contracts

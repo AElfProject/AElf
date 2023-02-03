@@ -9,14 +9,14 @@ this article presents, you’ll be able to create your own basic contract.
 **Steps of creating smart contracts**
 
 The following content will walk you through the basics of writing a
-smart contract; this process contains essentially four steps: - **create
-the project**: generate the contract template using **AElf
-Boilerplate**\ ’s code generator. - **define the contract and its
-types**: the methods and types needed in your contract should be defined
-in a protobuf file, following typical protobuf syntax. - **generate the
-code**: build the project to generate the base contract code from the
-proto definition. - **extend the generated code**: implement the logic
-of the contract methods.
+smart contract; this process contains essentially four steps: 
+- **create the project**: generate the contract template using **AElf
+Boilerplate**\ ’s code generator. 
+- **Defining the contract**: the methods and types needed in your contract should be defined
+in a protobuf file, following typical protobuf syntax. 
+- **generate the code**: build the project to generate the base contract code from the
+proto definition. 
+- **extend the generated code**: implement the logic of the contract methods.
 
 The ``Greeter`` contract is a very simple contract that exposes a
 ``Greet`` method that simply logs to the console and returns a “Hello

@@ -44,19 +44,4 @@ innovative hybrid of shared SideChain and exclusive SideChain greatly
 lowers the cost for developers and users and further enhances the
 overall network performance.
 
-**Where to start learning?**
 
-Developer documentation consists of docs, resource center, and
-community.
-
-Docs are used to learn how to quickly set up the development environment
-and operate the development, testing, deployment, and maintenance of
-smart contracts and DApps within that environment.
-
-Resource center provides developer resources like APIs and SDKs,
-knowledge about the aelf ecosystem, and the introduction of DApps on
-aelf.
-
-Community offers blockchain knowledge and relevant educational videos.
-You can leave your questions on GitHub and we will answer them as soon
-as possible.
