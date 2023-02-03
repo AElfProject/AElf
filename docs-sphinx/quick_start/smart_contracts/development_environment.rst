@@ -981,8 +981,8 @@ The following output suggests successful installation:
 
    Chocolatey vx.x.x
 
-If it shows
-``The term 'choco' is not recognized as the name of a cmdlet, function, script file, or operable program``,
+If it
+shows\ ``The term 'choco' is not recognized as the name of a cmdlet, function, script file, or operable program``,
 then there is a permission issue with PowerShell. To solve it:
 
 -  **Right-click** the computer icon and select **Properties**.
