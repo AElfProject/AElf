@@ -6,8 +6,8 @@ deeply involved, you can proceed with the following and run your own
 node.
 
 If you are a beginner or you want to deploy contracts onto aelf, please
-click
-`here <https://docs.aelf.io/en/latest/getting-started/smart-contract-development/index.html>`__
+click 
+`here <../../getting_started/smart_contracts/index.html>`__
 to learn more.
 
 **Why Should I Run a Node**
