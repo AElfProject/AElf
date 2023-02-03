@@ -1,5 +1,5 @@
 Smart contracts Overview
-=======================
+========================
 
 This section provides the knowledge you need to write smart contracts
 and it will take you around 40 minutes to go through the whole tutorial.
