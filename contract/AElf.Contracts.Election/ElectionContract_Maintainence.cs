@@ -385,6 +385,14 @@ public partial class ElectionContract : ElectionContractImplContainer.ElectionCo
         Assert(
             Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName) == Context.Sender,
             "No permission.");
+        if (input.PreviousReceiverAddress.Value.Any())
+        {
+            State.ProfitContract.RemoveBeneficiary.Send(new RemoveBeneficiaryInput
+            {
+                SchemeId = State.SubsidyHash.Value,
+                Beneficiary = input.PreviousReceiverAddress
+            });
+        }
         State.ProfitContract.RemoveBeneficiary.Send(new RemoveBeneficiaryInput
         {
             SchemeId = State.SubsidyHash.Value,

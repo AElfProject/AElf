@@ -605,12 +605,16 @@ public partial class TreasuryContract : TreasuryContractImplContainer.TreasuryCo
 
         var admin = State.ElectionContract.GetCandidateAdmin.Call(new StringValue { Value = input.Pubkey });
         Assert(Context.Origin == admin, "No permission.");
+        
+        Address address2 = State.ProfitsReceiverMap[input.Pubkey];
         State.ProfitsReceiverMap[input.Pubkey] = input.ProfitsReceiverAddress;
-        State.ElectionContract.SetProfitsReceiver.Send(new Election.SetProfitsReceiverInput
+        State.ElectionContract.SetProfitsReceiver.Send(new AElf.Contracts.Election.SetProfitsReceiverInput
         {
             CandidateAddress = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(input.Pubkey)),
-            ReceiverAddress = input.ProfitsReceiverAddress
+            ReceiverAddress = input.ProfitsReceiverAddress,
+            PreviousReceiverAddress = (address2 ?? new Address())
         });
+        
         return new Empty();
     }
 
