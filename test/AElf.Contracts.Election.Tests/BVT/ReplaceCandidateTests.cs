@@ -59,6 +59,17 @@ public partial class ElectionContractTests
                     { Value = newKeyPair.PublicKey.ToHex() });
             newPubkeyInformation.IsCurrentCandidate.ShouldBeTrue();
         }
+        
+        // Check Admin
+        {
+            var originCandidateAdmin = await ElectionContractStub.GetCandidateAdmin.CallAsync(new StringValue
+                { Value = announceElectionKeyPair.PublicKey.ToHex() });
+            originCandidateAdmin.ShouldBe(new Address());  
+            
+            var newCandidateAdmin = await ElectionContractStub.GetCandidateAdmin.CallAsync(new StringValue
+                { Value = newKeyPair.PublicKey.ToHex() });
+            newCandidateAdmin.ShouldBe(candidateAdminAddress);
+        }
 
         // Two pubkeys cannot quit election.
         {
