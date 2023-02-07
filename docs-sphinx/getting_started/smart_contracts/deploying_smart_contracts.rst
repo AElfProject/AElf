@@ -30,6 +30,7 @@ Contract deployment can be broken down into 5 steps:
 2. For BPs, they will have 2 tasks:
 
    1. Approve the application of contract deployment.
+
    2. Run aelf’s nodes and automatically check the code. The
       ``ApproveMultiProposals`` transaction will be automatically
       initiated.
@@ -57,16 +58,19 @@ through aelf-command. As ``DeploySmartContract`` and
 ``UpdateSmartContract`` are similar in operation, the following
 instructions will use the first one as an example.
 
-.. figure:: img/philly-magic-garden.svg
+.. figure:: /assets/img/philly-magic-garden.jpg
    :alt: 合约部署流程
+
 
 Developer: ProposeNewContract
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 -  Developers Initiate the ``ProposeNewContract`` transaction.
+
 -  A ``ProposeContractCodeCheck`` proposal will be created via the
    ``ProposeNewContract`` transaction and the BPs will be asked to check
    the code.
+
 -  Once ``ProposeContractCodeCheck`` is executed, another
    ``ProposeContractCodeCheck`` proposal will be created.
 
@@ -82,6 +86,7 @@ Developer: ReleaseApprovedContract
 -  Once the ``ProposeContractCodeCheck`` proposal is approved by
    parliament, it will be released via the ``ReleaseApprovedContract``
    transaction.
+
 -  A ``ProposeContractCodeCheck`` proposal will then be created, asking
    the BPs to automatically check the code (an event will be raised and
    handled on-chain, and code check will be executed). After the

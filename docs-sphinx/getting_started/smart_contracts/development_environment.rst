@@ -202,7 +202,7 @@ Install Redis
 The following output suggests Redis is installed and a Redis instance is
 started:
 
-.. figure:: img/mac_install_redis.png
+.. figure:: /img/mac_install_redis.png
    :alt: imageofmac
 
 
@@ -412,17 +412,6 @@ Create Boilerplate
    This is an example of a single node. If you are setting up
    multi-nodes, make sure to separate the public keys with ``,``.
 
-   If the IP and port for Redis have been changed, you can modify them
-   under ``ConnectionStrings`` in ``appsettings.json`` (skip this step
-   if they are not changed):
-
-   ::
-
-      "ConnectionStrings": {
-          "BlockchainDb": "redis://localhost:6379?db=1",
-          "StateDb": "redis://localhost:6379?db=1"
-      }
-
 Run Boilerplate
 '''''''''''''''
 
@@ -443,13 +432,6 @@ can visit `this page <http://localhost:8000/swagger/index.html>`__ where
 you can access the API docs and interact with this single node.
 
 To shut the node down, please use control + c on your keyboard.
-
-If you don’t want to save the data, you can execute this command to
-delete all:
-
-::
-
-   redis-cli flushall
 
 So far, you have successfully downloaded, created, and run Boilerplate.
 In the following tutorial, you will learn how to add, test, and deploy a
@@ -602,14 +584,6 @@ and execute the following commands to install.
          sudo chown ${USER} /usr/local/bin/protoc
 
          sudo chown -R ${USER} /usr/local/include/google
-
-      If it shows error ``Permission denied @ apply2files``, then there
-      is a permission issue. You can solve it using the following
-      command and then redo the installation with the above commands:
-
-      .. code:: bash
-
-         sudo chown -R $(whoami) $(brew --prefix)/*
 
 2. Execute this command to check if protoBuf is installed:
 
@@ -877,17 +851,6 @@ Create Boilerplate
    This is an example of a single node. If you are setting up
    multi-nodes, make sure to separate the public keys with ``,``.
 
-   If the IP and port for Redis have been changed, you can modify them
-   under ``ConnectionStrings`` in ``appsettings.json`` (skip this step
-   if they are not changed):
-
-   ::
-
-      "ConnectionStrings": {
-          "BlockchainDb": "redis://localhost:6379?db=1",
-          "StateDb": "redis://localhost:6379?db=1"
-      }
-
 .. _run-boilerplate-1:
 
 Run Boilerplate
@@ -910,13 +873,6 @@ can visit `this page <http://localhost:8000/swagger/index.html>`__ where
 you can access the API docs and interact with this single node.
 
 To shut the node down, please use control + c on your keyboard.
-
-If you don’t want to save the data, you can execute this command to
-delete all:
-
-::
-
-   redis-cli flushall
 
 So far, you have successfully downloaded, created, and run Boilerplate.
 In the following tutorial, you will learn how to add, test, and deploy a
@@ -981,8 +937,8 @@ The following output suggests successful installation:
 
    Chocolatey vx.x.x
 
-If it shows
-``The term 'choco' is not recognized as the name of a cmdlet, function, script file, or operable program``,
+If it
+shows\ ``The term 'choco' is not recognized as the name of a cmdlet, function, script file, or operable program``,
 then there is a permission issue with PowerShell. To solve it:
 
 -  **Right-click** the computer icon and select **Properties**.
@@ -1110,8 +1066,9 @@ Install Redis
 The following output suggests Redis is installed and a Redis instance is
 started:
 
-.. figure:: img/windows_install_redis.png
+.. figure:: /img/windows_install_redis.png
    :alt: redis
+
 
 .. _install-nodejs-2:
 
@@ -1345,17 +1302,6 @@ Create Boilerplate
    This is an example of a single node. If you are setting up
    multi-nodes, make sure to separate the public keys with ``,``.
 
-   If the IP and port for Redis have been changed, you can modify them
-   under ``ConnectionStrings`` in ``appsettings.json`` (skip this step
-   if they are not changed):
-
-   ::
-
-      "ConnectionStrings": {
-          "BlockchainDb": "redis://localhost:6379?db=1",
-          "StateDb": "redis://localhost:6379?db=1"
-      }
-
 .. _run-boilerplate-2:
 
 Run Boilerplate
@@ -1379,13 +1325,6 @@ you can access the API docs and interact with this single node.
 
 To shut the node down, please use control + c on your keyboard.
 
-If you don’t want to save the data, you can execute this command to
-delete all:
-
-::
-
-   memurai-cli flushall
-
 So far, you have successfully downloaded, created, and run Boilerplate.
 In the following tutorial, you will learn how to add, test, and deploy a
 contract.
@@ -1407,14 +1346,15 @@ Basic Environment Configurations
 
 2. Click the green **Code** button on the top right.
 
-   .. figure:: img/codespaces1.png
+   .. figure:: /img/codespaces1.png
       :alt: codespaces1
 
 
 3. Select ``Codespaces`` and click +.
 
-   .. figure:: img/codespaces2.png
+   .. figure:: /img/codespaces2.png
       :alt: codespaces2
+
 
 Then a new tab will be opened that shows the ``Codespaces`` interface.
 After the page is loaded, you will see:
@@ -1629,75 +1569,6 @@ Create and Run Boilerplate
 Create Boilerplate
 ''''''''''''''''''
 
-As the code in the repo is legacy and the dependency files in
-Boilerplate are older versions than the development environment’s, you
-need to manually modify the versions of these files. Dependency files
-locate in ``aelf-boilerplate\chain\src\AElf.Boilerplate.Launcher`` and
-is named ``AElf.Boilerplate.Launcher.csproj``.
-
-Part of the file content is as follows:
-
-::
-
-   ...
-   <PropertyGroup>
-       <OutputType>Exe</OutputType>
-       <TargetFramework>netcoreapp3.1</TargetFramework>
-       <ServerGarbageCollection>true</ServerGarbageCollection>
-   </PropertyGroup>
-
-   ...
-
-   <ItemGroup>
-       <PackageReference Include="AElf.ContractDeployer" Version="1.0.0" />
-       <PackageReference Include="Volo.Abp.AspNetCore.Mvc" Version="3.1.0" />
-       <PackageReference Include="Volo.Abp.Autofac" Version="1.1.2" />
-       <FrameworkReference Include="Microsoft.AspNetCore.App" />
-   </ItemGroup>
-
-   ...
-
-   <ItemGroup>
-       <PackageReference Include="AElf.WebApp.Application.Chain" Version="1.0.0">
-           <CopyToOutputDirectory>lib\netcoreapp3.1\*.xml</CopyToOutputDirectory>
-           <PackageName>aelf.webapp.application.chain</PackageName>
-       </PackageReference>
-       <PackageReference Include="AElf.WebApp.Application.Net" Version="1.0.0">
-           <CopyToOutputDirectory>lib\netcoreapp3.1\*.xml</CopyToOutputDirectory>
-           <PackageName>aelf.webapp.application.net</PackageName>
-       </PackageReference>
-   </ItemGroup>
-   ...
-
-You need to edit ``Version=`` into:
-
-::
-
-   ...
-   <PropertyGroup>
-       <OutputType>Exe</OutputType>
-       <TargetFramework>net6.0</TargetFramework>
-       <ServerGarbageCollection>true</ServerGarbageCollection>
-   </PropertyGroup>
-
-   ...
-
-   <ItemGroup>
-       <PackageReference Include="AElf.ContractDeployer" Version="1.2.1" />
-       <PackageReference Include="Volo.Abp.AspNetCore.Mvc" Version="5.2.2" />
-       <PackageReference Include="Volo.Abp.Autofac" Version="5.2.2" />
-       <FrameworkReference Include="Microsoft.AspNetCore.App" />
-   </ItemGroup>
-
-   ...
-
-   <ItemGroup>
-       <PackageReference Include="AElf.WebApp.Application.Chain" Version="1.2.1">
-       </PackageReference>
-       <PackageReference Include="AElf.WebApp.Application.Net" Version="1.2.1">
-       </PackageReference>
-   </ItemGroup> 
-
 1. Execute this command to change to the chain’s directory:
 
    ::
@@ -1707,7 +1578,7 @@ You need to edit ``Version=`` into:
 
 2. Execute this command to restore the Boilerplate’s files:
 
-   :: 
+   .. code:: angular2html
 
       # restore
       dotnet restore AElf.Boilerplate.sln
@@ -1792,17 +1663,6 @@ You need to edit ``Version=`` into:
    This is an example of a single node. If you are setting up
    multi-nodes, make sure to separate the public keys with ``,``.
 
-   If the IP and port for Redis have been changed, you can modify them
-   under ``ConnectionStrings`` in ``appsettings.json`` (skip this step
-   if they are not changed):
-
-   ::
-
-      "ConnectionStrings": {
-          "BlockchainDb": "redis://localhost:6379?db=1",
-          "StateDb": "redis://localhost:6379?db=1"
-      }
-
 .. _run-boilerplate-3:
 
 Run Boilerplate
@@ -1825,13 +1685,6 @@ can visit `this page <http://localhost:8000/swagger/index.html>`__ where
 you can access the API docs and interact with this single node.
 
 To shut the node down, please use control + c on your keyboard.
-
-If you don’t want to save the data, you can execute this command to
-delete all:
-
-::
-
-   redis-cli flushall
 
 So far, you have successfully downloaded, created, and run Boilerplate.
 In the following tutorial, you will learn how to add, test, and deploy a

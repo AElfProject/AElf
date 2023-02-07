@@ -9,12 +9,20 @@ this article presents, you’ll be able to create your own basic contract.
 **Steps of creating smart contracts**
 
 The following content will walk you through the basics of writing a
-smart contract; this process contains essentially four steps: 
+smart contract; this process contains essentially four steps:
 
--  **create the project**: generate the contract template using **AElf Boilerplate**’s code generator.
--  **Defining the contract**: the methods and types needed in your contract should be defined in a protobuf file, following typical protobuf syntax.
--  **generate the code**: build the project to generate the base contract code from the proto definition.
--  **extend the generated code**: implement the logic of the contract methods.
+-  **create the project**: generate the contract template using **AElf
+   Boilerplate**\ ’s code generator.
+
+-  **defining the contract**: the methods and types needed in your
+   contract should be defined in a protobuf file, following typical
+   protobuf syntax.
+
+-  **generate the code**: build the project to generate the base
+   contract code from the proto definition.
+
+-  **extend the generated code**: implement the logic of the contract
+   methods.
 
 The ``Greeter`` contract is a very simple contract that exposes a
 ``Greet`` method that simply logs to the console and returns a “Hello
@@ -31,7 +39,8 @@ Create the project
 ------------------
 
 With **AElf Boilerplate**\ ’s code generator, you can easily and quickly
-set up a contract project.
+set up a contract project. See
+`here <https://github.com/AElfProject/aelf-boilerplate>`__ for details.
 
 Defining the contract
 ---------------------
@@ -46,22 +55,6 @@ We recommend putting the contract’s definition in Boilerplate’s
 **protobuf** folder so that it can easily be included in the
 build/generation process and also that you name the contract with the
 following syntax **contract_name_contract.proto**:
-
-.. raw:: html
-
-   <!-- 
-   Boilerplate
-   ## chain 
-   ### protobuf
-   #### aelf
-   ##### options.proto // contract options
-   ##### core.proto    // core blockchain types
-   #### greeter_contract.proto
-   #### another_contract.proto
-   #### token_contract.proto // system contracts
-   #### acs0.proto // AElf contract standard
-   #### ...
-   -->
 
 ::
 
@@ -85,9 +78,11 @@ defined the same way as contracts. Lastly, it also contains
 **options.proto** and **core.proto** that contain fundamental types for
 developing smart contracts, more on this later.
 
-**Best practices:** - place your contract definition in Boilerplate’s
-**protobuf** folder. - name your contract with
-**contractname_contract.proto**, all lower case.
+**Best practices:**
+
+-  place your contract definition in Boilerplate’s **protobuf** folder.
+-  name your contract with **contractname_contract.proto**, all lower
+   case.
 
 Now let’s take a look a the Greeter contract’s definition:
 
@@ -128,9 +123,11 @@ Now let’s take a look a the Greeter contract’s definition:
    }
 
 Above is the full definition of the contract; it is mainly composed of
-three parts: - **imports**: the dependencies of your contract. - **the
-service definition**: the methods of your contract. - **types**: some
-custom defined types used by the contract.
+three parts:
+
+-  **imports**: the dependencies of your contract.
+-  **the service definition**: the methods of your contract.
+-  **types**: some custom defined types used by the contract.
 
 Let’s have a deeper look at the three different parts.
 
@@ -152,13 +149,15 @@ Syntax, imports and namespace
 The first line specifies the syntax that this protobuf file uses, we
 recommend you always use **proto3** for your contracts. Next, you’ll
 notice that this contract specifies some imports, let’s analyze them
-briefly: - **aelf/options.proto** : contracts can use AElf specific
-options; this file contains the definitions. One example is the
-**is_view** options that we will use later. - **empty.proto,
-timestamp.proto and wrappers.proto** : these are proto files imported
-directly from protobuf’s library. They are useful for defining things
-like an empty return value, time, and wrappers around some common types
-such as string.
+briefly:
+
+-  **aelf/options.proto** : contracts can use AElf specific options;
+   this file contains the definitions. One example is the **is_view**
+   options that we will use later.
+-  **empty.proto, timestamp.proto and wrappers.proto** : these are proto
+   files imported directly from protobuf’s library. They are useful for
+   defining things like an empty return value, time, and wrappers around
+   some common types such as string.
 
 The last line specifies an option that determines the target namespace
 of the generated code. Here the generated code will be in the
@@ -201,13 +200,16 @@ to query the contracts state, and that has no side effect on the state.
 For example, the definition of ``GetGreetedList`` uses the
 **aelf.is_view** option to make it a view method.
 
-**Best practice:** - use **google.protobuf.Empty** to specify that a
-method takes no arguments (import ``google/protobuf/empty.proto``). -
-use **google.protobuf.StringValue** to use a string (import
-``google/protobuf/wrappers.proto``). - use the **aelf.is_view** option
-to create a view method (import ``aelf/options.proto``). - use the
-**aelf.csharp_state** to specify the namespace of your contracts state
-(import ``aelf/options.proto``).
+**Best practice:**
+
+-  use **google.protobuf.Empty** to specify that a method takes no
+   arguments (import ``google/protobuf/empty.proto``).
+-  use **google.protobuf.StringValue** to use a string (import
+   ``google/protobuf/wrappers.proto``).
+-  use the **aelf.is_view** option to create a view method (import
+   ``aelf/options.proto``).
+-  use the **aelf.csharp_state** to specify the namespace of your
+   contracts state (import ``aelf/options.proto``).
 
 Custom types
 ~~~~~~~~~~~~
@@ -229,9 +231,11 @@ The protobuf file also includes the definition of two custom types. The
 method. You’ll notice the **repeated** keyword the ``GreetedList``
 message. This is protobuf syntax to represent a collection.
 
-**Best practice:** - use **google.protobuf.Timestamp** to represent a
-point in time (import ``google/protobuf/timestamp.proto``). - use
-**repeated** to represent a collection of items of the same type.
+**Best practice:**
+
+-  use **google.protobuf.Timestamp** to represent a point in time
+   (import ``google/protobuf/timestamp.proto``).
+-  use **repeated** to represent a collection of items of the same type.
 
 Generate the code
 -----------------
@@ -244,11 +248,13 @@ Extend the generated code
 
 After defining and generating the code from the definition, the contract
 author extends the generated code to implement the logic of his
-contract. Two files are presented here: - **GreeterContract**: the
-actual implementation of the logic, it inherits from the contract base
-generated by protobuf. - **GreeterContractState**: the state class that
-contains properties for reading and writing the state. This class
-inherits the ``ContractState`` class from the C# SDK.
+contract. Two files are presented here:
+
+-  **GreeterContract**: the actual implementation of the logic, it
+   inherits from the contract base generated by protobuf.
+-  **GreeterContractState**: the state class that contains properties
+   for reading and writing the state. This class inherits the
+   ``ContractState`` class from the C# SDK.
 
 .. code:: csharp
 
