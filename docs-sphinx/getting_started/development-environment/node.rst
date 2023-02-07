@@ -235,8 +235,7 @@ Fill in the ``InitialMineList`` under ``Consensus`` using Public Key:
        "MinerIncreaseInterval": 31536000
      }
 
-It may look like this when you complete it (make sure the key is
-bracketed):
+It may look like this when you complete it (make sure to add ""):
 
 .. code:: bash
 
@@ -485,8 +484,7 @@ Fill in the ``InitialMineList`` under ``Consensus`` using Public Key:
        "MinerIncreaseInterval": 31536000
      }
 
-It may look like this when you complete it (make sure the key is
-bracketed):
+It may look like this when you complete it (make sure to add ""):
 
 .. code:: bash
 
@@ -735,8 +733,7 @@ Fill in the ``InitialMineList`` under ``Consensus`` using Public Key:
        "MinerIncreaseInterval": 31536000
      }
 
-It may look like this when you complete it (make sure the key is
-bracketed):
+It may look like this when you complete it (make sure to add ""):
 
 .. code:: bash
 
@@ -1000,9 +997,9 @@ For ``appsettings.MainChain.MainNet.json``:
 
    4. In ``bp1``, ``BootNodes`` is blank and ``ListeningPort`` is 7001.
       In ``bp2``, ``BootNodes`` is ``127.0.0.1:7001`` (make sure to
-      bracket it), and ``ListeningPort`` is 7002. In ``bp3``,
+      add ""), and ``ListeningPort`` is 7002. In ``bp3``,
       ``BootNodes`` are ``127.0.0.1:7001`` and ``127.0.0.1:7002`` (make
-      sure to bracket them and separate them with ``,``) and
+      sure to add "" and separate them with ``,``) and
       ``ListeningPort`` is 7003.
 
    5. Change the port numbers in ``Kestrel-EndPoints-Http-Url`` to 8001,
@@ -1271,9 +1268,9 @@ For ``appsettings.MainChain.MainNet.json``:
 
    4. In ``bp1``, ``BootNodes`` is blank and ``ListeningPort`` is 7001.
       In ``bp2``, ``BootNodes`` is ``127.0.0.1:7001`` (make sure to
-      bracket it), and ``ListeningPort`` is 7002. In ``bp3``,
+      add ""), and ``ListeningPort`` is 7002. In ``bp3``,
       ``BootNodes`` are ``127.0.0.1:7001`` and ``127.0.0.1:7002`` (make
-      sure to bracket them and separate them with ``,``) and
+      sure to add "" and separate them with ``,``) and
       ``ListeningPort`` is 7003.
 
    5. Change the port numbers in ``Kestrel-EndPoints-Http-Url`` to 8001,
@@ -1543,10 +1540,10 @@ For ``appsettings.MainChain.MainNet.json``:
              ],
 
    4. In ``bp1``, ``BootNodes`` is blank and ``ListeningPort`` is 7001.
-      In ``bp2``, ``BootNodes`` is ``127.0.0.1:7001`` (make sure to
-      bracket it), and ``ListeningPort`` is 7002. In ``bp3``,
+      In ``bp2``, ``BootNodes`` is ``127.0.0.1:7001`` (make sure to add ""
+      ), and ``ListeningPort`` is 7002. In ``bp3``,
       ``BootNodes`` are ``127.0.0.1:7001`` and ``127.0.0.1:7002`` (make
-      sure to bracket them and separate them with ``,``) and
+      sure to add "" and separate them with ``,``) and
       ``ListeningPort`` is 7003.
 
    5. Change the port numbers in ``Kestrel-EndPoints-Http-Url`` to 8001,

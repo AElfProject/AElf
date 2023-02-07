@@ -5,7 +5,9 @@ Contracts deployment can be done by 2 means: one is via aelf explorer
 while the other is via aelf-command. Before you start deploying, please
 make sure that you have installed npm and aelf-command. If you haven’t
 completed it, please follow the `Deployment
-Environment <这里放环境准备的线上链接>`__ here. ## Overview
+Environment <../../getting_started/smart_contracts/development_environment.rst>`__ here. 
+
+## Overview
 
 Contract deployment can be broken down into 5 steps:
 
@@ -79,6 +81,17 @@ BP: Parliament.Approve
 
 -  BPs manually approve the ``ProposeContractCodeCheck`` proposal
    submitted by the developers, agreeing to check the contract code.
+
+-  A proposal will be approved only if all the following conditions are met:
+
+   -  No less than 2/3 (rounding down) + 1 of the total votes are in favour;
+   
+   -  No more than 10% of the total votes are against;
+   
+   -  No more than 10% of the total votes are abstention;
+   
+   -  At least 80% of the BPs participate in voting.
+   
 
 Developer: ReleaseApprovedContract
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
