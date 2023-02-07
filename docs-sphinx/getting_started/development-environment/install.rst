@@ -163,6 +163,14 @@ Install protoBuf
 
       brew install protobuf
 
+   If it shows error ``Permission denied @ apply2files``, then there is
+   a permission issue. You can solve it using the following command and
+   then redo the installation with the above command:
+
+   .. code:: bash
+
+      sudo chown -R $(whoami) $(brew --prefix)/*
+
 2. Execute this command to check if protoBuf is installed:
 
    .. code:: bash
@@ -366,14 +374,6 @@ and execute the following commands to install.
          sudo chown ${USER} /usr/local/bin/protoc
 
          sudo chown -R ${USER} /usr/local/include/google
-
-      If it shows error ``Permission denied @ apply2files``, then there
-      is a permission issue. You can solve it using the following
-      command and then redo the installation with the above commands:
-
-      .. code:: bash
-
-         sudo chown -R $(whoami) $(brew --prefix)/*
 
 2. Execute this command to check if protoBuf is installed:
 
