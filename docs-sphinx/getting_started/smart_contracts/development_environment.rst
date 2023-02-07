@@ -202,7 +202,7 @@ Install Redis
 The following output suggests Redis is installed and a Redis instance is
 started:
 
-.. figure:: /img/mac_install_redis.png
+.. figure:: img/mac_install_redis.png
    :alt: imageofmac
 
 
@@ -1066,7 +1066,7 @@ Install Redis
 The following output suggests Redis is installed and a Redis instance is
 started:
 
-.. figure:: /img/windows_install_redis.png
+.. figure:: img/windows_install_redis.png
    :alt: redis
 
 
@@ -1346,13 +1346,13 @@ Basic Environment Configurations
 
 2. Click the green **Code** button on the top right.
 
-   .. figure:: /img/codespaces1.png
+   .. figure:: img/codespaces1.png
       :alt: codespaces1
 
 
 3. Select ``Codespaces`` and click +.
 
-   .. figure:: /img/codespaces2.png
+   .. figure:: img/codespaces2.png
       :alt: codespaces2
 
 
@@ -1578,7 +1578,7 @@ Create Boilerplate
 
 2. Execute this command to restore the Boilerplate’s files:
 
-   .. code:: angular2html
+   .. code::
 
       # restore
       dotnet restore AElf.Boilerplate.sln
