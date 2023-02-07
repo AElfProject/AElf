@@ -5,9 +5,10 @@ Contracts deployment can be done by 2 means: one is via aelf explorer
 while the other is via aelf-command. Before you start deploying, please
 make sure that you have installed npm and aelf-command. If you haven’t
 completed it, please follow the `Deployment
-Environment <../../getting_started/smart_contracts/development_environment.rst>`__ here. 
+Environment <../../getting_started/smart_contracts/development_environment.html>`__ here. 
 
-## Overview
+Overview
+---------
 
 Contract deployment can be broken down into 5 steps:
 
