@@ -303,14 +303,4 @@ scripts/patcher/*
 
 tools
 .dotnet
-!.idea/
-.idea/.idea.AElf/.idea/contentModel.xml
-.idea/.idea.AElf/.idea/encodings.xml
-.idea/.idea.AElf/.idea/indexLayout.xml
-.idea/.idea.AElf/.idea/misc.xml
-.idea/.idea.AElf/.idea/modules.xml
-.idea/.idea.AElf/.idea/projectSettingsUpdater.xml
-.idea/.idea.AElf/.idea/vcs.xml
-.idea/.idea.AElf/.idea/workspace.xml
-.idea/.idea.AElf/riderModule.iml
 .idea/
