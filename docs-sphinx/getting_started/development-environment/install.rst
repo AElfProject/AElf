@@ -230,7 +230,7 @@ The following output suggests successful installation:
 Linux
 -----
 
-.. _configure-environment-1:
+.. _configure-environment-1-old:
 
 Configure Environment
 ~~~~~~~~~~~~~~~~~~~~~
@@ -238,7 +238,7 @@ Configure Environment
 You can install and set up the development environment on computers
 running 64-bit Linux. This will take 10-20 minutes.
 
-.. _before-you-start-1:
+.. _before-you-start-1-old:
 
 Before You Start
 ^^^^^^^^^^^^^^^^
@@ -268,7 +268,7 @@ The following output suggests successful update:
    Fetched 25.0 MB in 3s (8,574 kB/s)
    Reading package lists... Done
 
-.. _install-git-1:
+.. _install-git-1-old:
 
 Install Git
 ^^^^^^^^^^^
@@ -297,7 +297,7 @@ The following output suggests successful installation:
 
    git version 2.17.1
 
-.. _install-.net-sdk-1:
+.. _install-.net-sdk-1-old:
 
 Install .NET SDK
 ^^^^^^^^^^^^^^^^
@@ -341,7 +341,7 @@ The following output suggests successful installation:
 
    6.0.403
 
-.. _install-protobuf-1:
+.. _install-protobuf-1-old:
 
 Install protoBuf
 ^^^^^^^^^^^^^^^^
@@ -375,14 +375,6 @@ and execute the following commands to install.
 
          sudo chown -R ${USER} /usr/local/include/google
 
-      If it shows error ``Permission denied @ apply2files``, then there
-      is a permission issue. You can solve it using the following
-      command and then redo the installation with the above commands:
-
-      .. code:: bash
-
-         sudo chown -R $(whoami) $(brew --prefix)/*
-
 2. Execute this command to check if protoBuf is installed:
 
    .. code:: bash
@@ -395,7 +387,7 @@ The following output suggests successful installation:
 
    libprotoc 3.21.9
 
-.. _install-redis-1:
+.. _install-redis-1-old:
 
 Install Redis
 ^^^^^^^^^^^^^
@@ -429,7 +421,7 @@ use it):
 
    flushall
 
-.. _install-nodejs-1:
+.. _install-nodejs-1-old:
 
 Install Nodejs
 ^^^^^^^^^^^^^^
@@ -457,7 +449,7 @@ The following output suggests successful installation:
 Windows
 -------
 
-.. _configure-environment-2:
+.. _configure-environment-2-old:
 
 Configure Environment
 ~~~~~~~~~~~~~~~~~~~~~
@@ -465,7 +457,7 @@ Configure Environment
 You can install and set up the development environment on computers
 running Windows 10 or higher. This will take 10-20 minutes.
 
-.. _before-you-start-2:
+.. _before-you-start-2-old:
 
 Before You Start
 ^^^^^^^^^^^^^^^^
@@ -513,8 +505,8 @@ The following output suggests successful installation:
 
    Chocolatey vx.x.x
 
-If it
-shows\ ``The term 'choco' is not recognized as the name of a cmdlet, function, script file, or operable program``,
+If it shows
+``The term 'choco' is not recognized as the name of a cmdlet, function, script file, or operable program``,
 then there is a permission issue with PowerShell. To solve it:
 
 -  **Right-click** the computer icon and select **Properties**.
@@ -527,7 +519,7 @@ then there is a permission issue with PowerShell. To solve it:
    path ``C:\Program Files\Chocolatey``. If you don’t find it, click New
    System Variable to manually add it.
 
-.. _install-git-2:
+.. _install-git-2-old:
 
 Install Git
 ^^^^^^^^^^^
@@ -567,7 +559,7 @@ you can:
    ``C:\Program Files\git``. If you don’t find it, click **New System
    Variable** to manually add it.
 
-.. _install-.net-sdk-2:
+.. _install-.net-sdk-2-old:
 
 Install .NET SDK
 ^^^^^^^^^^^^^^^^
@@ -594,7 +586,7 @@ devices).
 
       6.0.403
 
-.. _install-protobuf-2:
+.. _install-protobuf-2-old:
 
 Install protoBuf
 ^^^^^^^^^^^^^^^^
@@ -620,7 +612,7 @@ The following output suggests successful installation:
 
    libprotoc 3.21.9
 
-.. _install-redis-2:
+.. _install-redis-2-old:
 
 Install Redis
 ^^^^^^^^^^^^^
@@ -645,7 +637,7 @@ started:
 .. figure:: windows_install_redis.png
    :alt: image
 
-.. _install-nodejs-2:
+.. _install-nodejs-2-old:
 
 Install Nodejs
 ^^^^^^^^^^^^^^
@@ -735,7 +727,7 @@ versions:
    # 8.19.2
    npm --version
 
-.. _update-environment-1:
+.. _update-environment-1-old:
 
 Update Environment
 ^^^^^^^^^^^^^^^^^^
@@ -753,7 +745,7 @@ The following output suggests successful update:
    Fetched 25.0 MB in 3s (8,574 kB/s)
    Reading package lists... Done
 
-.. _install-.net-sdk-3:
+.. _install-.net-sdk-3-old:
 
 Install .NET SDK
 ^^^^^^^^^^^^^^^^
@@ -802,7 +794,7 @@ The following output suggests successful installation:
 
    6.0.403
 
-.. _install-protobuf-3:
+.. _install-protobuf-3-old:
 
 Install protoBuf
 ^^^^^^^^^^^^^^^^
@@ -834,7 +826,7 @@ The following output suggests successful installation:
 
    libprotoc 3.21.9
 
-.. _install-redis-3:
+.. _install-redis-3-old:
 
 Install Redis
 ^^^^^^^^^^^^^
@@ -867,10 +859,6 @@ If you have already installed the tools and frameworks above, you can
 skip this step. For info about contract deployment and nodes running,
 please read the following:
 
-`Smart contract
-development <https://docs.aelf.io/en/latest/getting-started/smart-contract-development/index.html>`__
+`Smart contracts <../../getting_started/smart_contracts/index.html>`__
 
-`Smart contract
-deployment <https://docs.aelf.io/en/latest/getting-started/smart-contract-development/index.html>`__
-
-`Node <../../getting-started/development-environment/node.html>`__
+`Node <../../getting_started/development-environment/node.html>`__

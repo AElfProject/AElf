@@ -6,8 +6,8 @@ deeply involved, you can proceed with the following and run your own
 node.
 
 If you are a beginner or you want to deploy contracts onto aelf, please
-click
-`here <https://docs.aelf.io/en/latest/getting-started/smart-contract-development/index.html>`__
+click 
+`here <../../getting_started/smart_contracts/index.html>`__
 to learn more.
 
 **Why Should I Run a Node**
@@ -235,8 +235,7 @@ Fill in the ``InitialMineList`` under ``Consensus`` using Public Key:
        "MinerIncreaseInterval": 31536000
      }
 
-It may look like this when you complete it (make sure the key is
-bracketed):
+It may look like this when you complete it (make sure to add ""):
 
 .. code:: bash
 
@@ -290,7 +289,7 @@ Linux and Codespaces
 Follow this doc to run an aelf single node in Linux and Codespaces and
 this will take around 20 minutes to complete.
 
-.. _install-aelf-command-1:
+.. _install-aelf-command-1-old:
 
 Install aelf-command
 ^^^^^^^^^^^^^^^^^^^^
@@ -368,7 +367,7 @@ The following output suggests successful building:
 
    Time Elapsed 00:15:59.77
 
-.. _create-an-aelf-account-1:
+.. _create-an-aelf-account-1-old:
 
 Create an aelf Account
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -485,8 +484,7 @@ Fill in the ``InitialMineList`` under ``Consensus`` using Public Key:
        "MinerIncreaseInterval": 31536000
      }
 
-It may look like this when you complete it (make sure the key is
-bracketed):
+It may look like this when you complete it (make sure to add ""):
 
 .. code:: bash
 
@@ -542,7 +540,7 @@ Windows
 Follow this doc to run an aelf single node on a Windows device and this
 will take around 20 minutes to complete.
 
-.. _install-aelf-command-2:
+.. _install-aelf-command-2-old:
 
 Install aelf-command
 ^^^^^^^^^^^^^^^^^^^^
@@ -620,7 +618,7 @@ The following output suggests successful building:
 
    Time Elapsed 00:15:59.77
 
-.. _create-an-aelf-account-2:
+.. _create-an-aelf-account-2-old:
 
 Create an aelf Account
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -735,8 +733,7 @@ Fill in the ``InitialMineList`` under ``Consensus`` using Public Key:
        "MinerIncreaseInterval": 31536000
      }
 
-It may look like this when you complete it (make sure the key is
-bracketed):
+It may look like this when you complete it (make sure to add ""):
 
 .. code:: bash
 
@@ -1000,9 +997,9 @@ For ``appsettings.MainChain.MainNet.json``:
 
    4. In ``bp1``, ``BootNodes`` is blank and ``ListeningPort`` is 7001.
       In ``bp2``, ``BootNodes`` is ``127.0.0.1:7001`` (make sure to
-      bracket it), and ``ListeningPort`` is 7002. In ``bp3``,
+      add ""), and ``ListeningPort`` is 7002. In ``bp3``,
       ``BootNodes`` are ``127.0.0.1:7001`` and ``127.0.0.1:7002`` (make
-      sure to bracket them and separate them with ``,``) and
+      sure to add "" and separate them with ``,``) and
       ``ListeningPort`` is 7003.
 
    5. Change the port numbers in ``Kestrel-EndPoints-Http-Url`` to 8001,
@@ -1271,9 +1268,9 @@ For ``appsettings.MainChain.MainNet.json``:
 
    4. In ``bp1``, ``BootNodes`` is blank and ``ListeningPort`` is 7001.
       In ``bp2``, ``BootNodes`` is ``127.0.0.1:7001`` (make sure to
-      bracket it), and ``ListeningPort`` is 7002. In ``bp3``,
+      add ""), and ``ListeningPort`` is 7002. In ``bp3``,
       ``BootNodes`` are ``127.0.0.1:7001`` and ``127.0.0.1:7002`` (make
-      sure to bracket them and separate them with ``,``) and
+      sure to add "" and separate them with ``,``) and
       ``ListeningPort`` is 7003.
 
    5. Change the port numbers in ``Kestrel-EndPoints-Http-Url`` to 8001,
@@ -1543,10 +1540,10 @@ For ``appsettings.MainChain.MainNet.json``:
              ],
 
    4. In ``bp1``, ``BootNodes`` is blank and ``ListeningPort`` is 7001.
-      In ``bp2``, ``BootNodes`` is ``127.0.0.1:7001`` (make sure to
-      bracket it), and ``ListeningPort`` is 7002. In ``bp3``,
+      In ``bp2``, ``BootNodes`` is ``127.0.0.1:7001`` (make sure to add ""
+      ), and ``ListeningPort`` is 7002. In ``bp3``,
       ``BootNodes`` are ``127.0.0.1:7001`` and ``127.0.0.1:7002`` (make
-      sure to bracket them and separate them with ``,``) and
+      sure to add "" and separate them with ``,``) and
       ``ListeningPort`` is 7003.
 
    5. Change the port numbers in ``Kestrel-EndPoints-Http-Url`` to 8001,

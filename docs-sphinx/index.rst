@@ -14,9 +14,9 @@ Welcome to AElf's official documentation!
    :caption: Getting Started
    :maxdepth: 2
 
-   Development Environment <getting-started/development-environment/index>
-   Smart Contract Development <getting-started/smart-contract-development/index>
-
+   Overview <getting_started/overview>
+   Development Environment <getting_started/development-environment/index>
+   Smart Contracts <getting_started/smart_contracts/index>
 
 .. toctree::
    :caption: Tutorials
@@ -78,4 +78,4 @@ Welcome to AElf's official documentation!
 
    tutorials/cross-chain/running-side-chain
    tutorials/__run-node
-   getting-started/smart-contract-development/developing-smart-contracts/index
+   getting_started/smart_contracts/index
