@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using AElf.Contracts.Economic.TestBase;
 using AElf.Contracts.Profit;
 using AElf.Contracts.Treasury;
+using AElf.CSharp.Core;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
@@ -494,6 +495,103 @@ public partial class ElectionContractTests
             var profitReceiverBackShareB =
                 await GetBackupSubsidyProfitDetails(Address.FromPublicKey(profitReceiverB.PublicKey));
             profitReceiverBackShareB.Details.Count.ShouldBe(1);
+            profitReceiverBackShareB.Details.First().IsWeightRemoved.ShouldBeFalse();
+        }
+    }
+
+    [Fact]
+    public async Task DataCenterListContainsNode_AddBeneficiary_RemoveBeneficiary()
+    {
+        var minersCount = await ElectionContractStub.GetMinersCount.CallAsync(new Empty());
+        var validationDataCenterCount = minersCount.Value.Mul(5);
+        
+        var announceElectionKeyPairA = ValidationDataCenterKeyPairs.Skip(1).First();
+        var withoutDataCenterKeyPair = ValidationDataCenterKeyPairs.Skip(validationDataCenterCount + 2).First();
+        var profitReceiverA = ValidationDataCenterKeyPairs.Skip(validationDataCenterCount + 3).First();
+        var profitReceiverB = ValidationDataCenterKeyPairs.Skip(validationDataCenterCount + 4).First();
+
+        for (var i = 0; i < validationDataCenterCount; i++)
+        {
+            var announceElectionKeyPair = ValidationDataCenterKeyPairs.Skip(i + 1).First();
+            await AnnounceElectionAsync(announceElectionKeyPair);
+        }
+
+        await AnnounceElectionAsync(withoutDataCenterKeyPair);
+        
+        // Check profit details 
+        {
+            var candidateShareWithDataCenter =
+                await GetBackupSubsidyProfitDetails(Address.FromPublicKey(announceElectionKeyPairA.PublicKey));
+            candidateShareWithDataCenter.Details.Count.ShouldBe(1);
+            candidateShareWithDataCenter.Details.First().Shares.ShouldBe(1);
+            candidateShareWithDataCenter.Details.First().IsWeightRemoved.ShouldBeFalse();
+            
+            var candidateShareWithoutDataCenter =
+                await GetBackupSubsidyProfitDetails(Address.FromPublicKey(withoutDataCenterKeyPair.PublicKey));
+            candidateShareWithoutDataCenter.ShouldBe(new ProfitDetails());
+        }
+
+        // set  profit receiver
+        {
+            var candidateAdminStub =
+                GetTester<TreasuryContractImplContainer.TreasuryContractImplStub>(TreasuryContractAddress,
+                    announceElectionKeyPairA);
+            await candidateAdminStub.SetProfitsReceiver.SendAsync(
+                new Treasury.SetProfitsReceiverInput
+                {
+                    Pubkey = announceElectionKeyPairA.PublicKey.ToHex(),
+                    ProfitsReceiverAddress = Address.FromPublicKey(profitReceiverA.PublicKey)
+                });
+            var getProfitReceiverA = await GetProfitReceiver(announceElectionKeyPairA.PublicKey.ToHex());
+            getProfitReceiverA.ShouldBe(Address.FromPublicKey(profitReceiverA.PublicKey));
+            
+            candidateAdminStub =
+                GetTester<TreasuryContractImplContainer.TreasuryContractImplStub>(TreasuryContractAddress,
+                    withoutDataCenterKeyPair);
+            await candidateAdminStub.SetProfitsReceiver.SendAsync(
+                new Treasury.SetProfitsReceiverInput
+                {
+                    Pubkey = withoutDataCenterKeyPair.PublicKey.ToHex(),
+                    ProfitsReceiverAddress = Address.FromPublicKey(profitReceiverB.PublicKey)
+                });
+            var getProfitReceiverB = await GetProfitReceiver(withoutDataCenterKeyPair.PublicKey.ToHex());
+            getProfitReceiverB.ShouldBe(Address.FromPublicKey(profitReceiverB.PublicKey));
+        }
+
+        // Check profit details 
+        {
+            var oldCandidateShare =
+                await GetBackupSubsidyProfitDetails(Address.FromPublicKey(announceElectionKeyPairA.PublicKey));
+            oldCandidateShare.Details.Count.ShouldBe(1);
+            oldCandidateShare.Details.First().Shares.ShouldBe(1);
+            oldCandidateShare.Details.First().IsWeightRemoved.ShouldBeTrue();
+            
+            var profitReceiverBackShareA =
+                await GetBackupSubsidyProfitDetails(Address.FromPublicKey(profitReceiverA.PublicKey));
+            profitReceiverBackShareA.Details.Count.ShouldBe(1);
+            profitReceiverBackShareA.Details.First().Shares.ShouldBe(1);
+            profitReceiverBackShareA.Details.First().IsWeightRemoved.ShouldBeFalse();
+            
+            var profitReceiverBackShareB =
+                await GetBackupSubsidyProfitDetails(Address.FromPublicKey(profitReceiverB.PublicKey));
+            profitReceiverBackShareB.ShouldBe(new ProfitDetails());
+
+        }
+        
+        // Change DataCenter through QuitElection and check profit details
+        {
+            await QuitElectionAsync(announceElectionKeyPairA);
+            
+            var profitReceiverBackShareA =
+                await GetBackupSubsidyProfitDetails(Address.FromPublicKey(profitReceiverA.PublicKey));
+            profitReceiverBackShareA.Details.Count.ShouldBe(1);
+            profitReceiverBackShareA.Details.First().Shares.ShouldBe(1);
+            profitReceiverBackShareA.Details.First().IsWeightRemoved.ShouldBeTrue();
+            
+            var profitReceiverBackShareB =
+                await GetBackupSubsidyProfitDetails(Address.FromPublicKey(profitReceiverB.PublicKey));
+            profitReceiverBackShareB.Details.Count.ShouldBe(1);
+            profitReceiverBackShareB.Details.First().Shares.ShouldBe(1);
             profitReceiverBackShareB.Details.First().IsWeightRemoved.ShouldBeFalse();
         }
     }
