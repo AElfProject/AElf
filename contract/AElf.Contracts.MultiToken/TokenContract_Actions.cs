@@ -33,7 +33,7 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
     public override Empty Create(CreateInput input)
     {
         if (Context.Origin != Context.Sender)
-            Assert(IsAddressInCreateTokenWhiteList(Context.Sender), "No permission to create token via inline tx.");
+            Assert(IsAddressInCreateTokenWhitelist(Context.Sender), "No permission to create token via inline tx.");
 
         Assert(State.SideChainCreator.Value == null, "Failed to create token if side chain creator already set.");
         AssertValidCreateInput(input);
@@ -127,8 +127,9 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
     {
         AssertValidToken(input.Symbol, input.Amount);
         DoTransfer(Context.Sender, input.To, input.Symbol, input.Amount, input.Memo);
-        DealWithExternalInfoDuringTransfer(new TransferFromInput
+        DealWithExternalInfoDuringTransfer(new CallbackInput
         {
+            Origin = Context.Origin,
             From = Context.Sender,
             To = input.To,
             Amount = input.Amount,
@@ -151,8 +152,9 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
         var virtualAddress = Context.ConvertVirtualAddressToContractAddress(fromVirtualAddress);
         // Transfer token to virtual address.
         DoTransfer(input.Address, virtualAddress, input.Symbol, input.Amount, input.Usage);
-        DealWithExternalInfoDuringLocking(new TransferFromInput
+        DealWithExternalInfoDuringLocking(new CallbackInput
         {
+            Origin = Context.Origin,
             From = input.Address,
             To = virtualAddress,
             Symbol = input.Symbol,
@@ -176,8 +178,9 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
             Amount = input.Amount,
             Memo = input.Usage
         });
-        DealWithExternalInfoDuringUnlock(new TransferFromInput
+        DealWithExternalInfoDuringUnlock(new CallbackInput
         {
+            Origin = Context.Origin,
             From = Context.ConvertVirtualAddressToContractAddress(fromVirtualAddress),
             To = input.Address,
             Symbol = input.Symbol,
@@ -192,12 +195,21 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
         AssertValidToken(input.Symbol, input.Amount);
         // First check allowance.
         var allowance = State.Allowances[input.From][Context.Sender][input.Symbol];
+        var callbackInput = new CallbackInput
+        {
+            Origin = Context.Origin,
+            From = input.From,
+            To = input.To,
+            Symbol = input.Symbol,
+            Amount = input.Amount,
+            Memo = input.Memo
+        };
         if (allowance < input.Amount)
         {
             if (IsInWhiteList(new IsInWhiteListInput { Symbol = input.Symbol, Address = Context.Sender }).Value)
             {
                 DoTransfer(input.From, input.To, input.Symbol, input.Amount, input.Memo);
-                DealWithExternalInfoDuringTransfer(input);
+                DealWithExternalInfoDuringTransfer(callbackInput);
                 return new Empty();
             }
 
@@ -207,7 +219,7 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
         }
 
         DoTransfer(input.From, input.To, input.Symbol, input.Amount, input.Memo);
-        DealWithExternalInfoDuringTransfer(input);
+        DealWithExternalInfoDuringTransfer(callbackInput);
         State.Allowances[input.From][Context.Sender][input.Symbol] = allowance.Sub(input.Amount);
         return new Empty();
     }
@@ -298,8 +310,9 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
     {
         AssertValidToken(input.Symbol, input.Amount);
 
-        var transferFromInput = new TransferFromInput
+        var callbackInput = new CallbackInput
         {
+            Origin = Context.Origin,
             From = Context.Origin,
             To = Context.Sender,
             Amount = input.Amount,
@@ -313,7 +326,7 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
             if (IsInWhiteList(new IsInWhiteListInput { Symbol = input.Symbol, Address = Context.Sender }).Value)
             {
                 DoTransfer(Context.Origin, Context.Sender, input.Symbol, input.Amount, input.Memo);
-                DealWithExternalInfoDuringTransfer(transferFromInput);
+                DealWithExternalInfoDuringTransfer(callbackInput);
                 return new Empty();
             }
 
@@ -323,7 +336,7 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
         }
 
         DoTransfer(Context.Origin, Context.Sender, input.Symbol, input.Amount, input.Memo);
-        DealWithExternalInfoDuringTransfer(transferFromInput);
+        DealWithExternalInfoDuringTransfer(callbackInput);
         State.Allowances[Context.Origin][Context.Sender][input.Symbol] = allowance.Sub(input.Amount);
         return new Empty();
     }
@@ -362,7 +375,8 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
                                tokenInfo.Issuer == input.Issuer && tokenInfo.TotalSupply == input.TotalSupply &&
                                tokenInfo.IssueChainId == input.IssueChainId;
 
-        if (tokenInfo.ExternalInfo != null && tokenInfo.ExternalInfo.Value.Count > 0)
+        if (tokenInfo.ExternalInfo != null && tokenInfo.ExternalInfo.Value.Count > 0 ||
+            input.ExternalInfo is { Count: > 0 })
         {
             validationResult = validationResult && tokenInfo.ExternalInfo.Value.Count == input.ExternalInfo.Count;
             if (tokenInfo.ExternalInfo.Value.Any(keyPair =>
@@ -530,8 +544,7 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
         var tokenInfo = AssertValidToken(symbol, amount);
         var issueChainId = GetIssueChainId(symbol);
         Assert(issueChainId == crossChainTransferInput.IssueChainId, "Incorrect issue chain id.");
-        Assert(transferSender == Context.Sender && targetChainId == Context.ChainId,
-            "Unable to claim cross chain token.");
+        Assert(targetChainId == Context.ChainId, "Unable to claim cross chain token.");
         var registeredTokenContractAddress = State.CrossChainTransferWhiteList[input.FromChainId];
         AssertCrossChainTransaction(transferTransaction, registeredTokenContractAddress,
             nameof(CrossChainTransfer));
@@ -555,7 +568,8 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
             Memo = crossChainTransferInput.Memo,
             FromChainId = input.FromChainId,
             ParentChainHeight = input.ParentChainHeight,
-            IssueChainId = issueChainId
+            IssueChainId = issueChainId,
+            TransferTransactionId = transferTransactionId
         });
         return new Empty();
     }

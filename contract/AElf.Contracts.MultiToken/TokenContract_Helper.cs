@@ -15,15 +15,15 @@ public partial class TokenContract
 {
     private static bool IsValidSymbolChar(char character)
     {
-        return (character >= 'A' && character <= 'Z') || (character >= '0' && character <= '9');
+        return character is >= 'A' and <= 'Z' or >= '0' and <= '9';
     }
 
     private bool IsValidCreateSymbolChar(char character)
     {
         if (State.CreateTokenWhiteListMap[Context.Sender])
-            return (character >= 'A' && character <= 'Z') || (character >= '0' && character <= '9');
+            return character is >= 'A' and <= 'Z' or >= '0' and <= '9';
 
-        return character >= 'A' && character <= 'Z';
+        return character is >= 'A' and <= 'Z';
     }
 
     private TokenInfo AssertValidToken(string symbol, long amount)
@@ -208,7 +208,7 @@ public partial class TokenContract
             "No permission.");
     }
 
-    private void DealWithExternalInfoDuringLocking(TransferFromInput input)
+    private void DealWithExternalInfoDuringLocking(CallbackInput input)
     {
         var tokenInfo = State.TokenInfos[input.Symbol];
         if (tokenInfo.ExternalInfo == null) return;
@@ -223,7 +223,7 @@ public partial class TokenContract
         FireExternalLogEvent(tokenInfo, input);
     }
 
-    private void DealWithExternalInfoDuringTransfer(TransferFromInput input)
+    private void DealWithExternalInfoDuringTransfer(CallbackInput input)
     {
         var tokenInfo = State.TokenInfos[input.Symbol];
         if (tokenInfo.ExternalInfo == null) return;
@@ -238,7 +238,7 @@ public partial class TokenContract
         FireExternalLogEvent(tokenInfo, input);
     }
 
-    private void DealWithExternalInfoDuringUnlock(TransferFromInput input)
+    private void DealWithExternalInfoDuringUnlock(CallbackInput input)
     {
         var tokenInfo = State.TokenInfos[input.Symbol];
         if (tokenInfo.ExternalInfo == null) return;
@@ -253,7 +253,7 @@ public partial class TokenContract
         FireExternalLogEvent(tokenInfo, input);
     }
 
-    private void FireExternalLogEvent(TokenInfo tokenInfo, TransferFromInput input)
+    private void FireExternalLogEvent(TokenInfo tokenInfo, CallbackInput input)
     {
         if (tokenInfo.ExternalInfo.Value.ContainsKey(TokenContractConstants.LogEventExternalInfoKey))
             Context.FireLogEvent(new LogEvent

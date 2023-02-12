@@ -47,7 +47,7 @@ public partial class TokenContract
                 IsSizeFeeFree = true
             };
 
-        if (input.Value == nameof(Create))
+        if (input.Value == nameof(Create) && State.TransactionFees[nameof(Create)] == null)
             return new MethodFees
             {
                 MethodName = input.Value,

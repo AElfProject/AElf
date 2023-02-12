@@ -203,7 +203,7 @@ public partial class TokenContract
     {
         return new BoolValue
         {
-            Value = IsAddressInCreateTokenWhiteList(input)
+            Value = IsAddressInCreateTokenWhitelist(input)
         };
     }
 
@@ -228,7 +228,7 @@ public partial class TokenContract
         return tokenInfo.IsBurnable;
     }
 
-    private bool IsAddressInCreateTokenWhiteList(Address address)
+    private bool IsAddressInCreateTokenWhitelist(Address address)
     {
         if (address == Context.GetZeroSmartContractAddress() ||
             address == GetDefaultParliamentController().OwnerAddress || address ==
