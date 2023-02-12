@@ -8,220 +8,220 @@ using Shouldly;
 using Xunit;
 using Xunit.Sdk;
 
-namespace AElf.OS.Network.Grpc
+namespace AElf.OS.Network.Grpc;
+
+public class AuthInterceptorTests : GrpcNetworkWithPeerTestBase
 {
-    public class AuthInterceptorTests : GrpcNetworkWithPeerTestBase
+    private readonly AuthInterceptor _authInterceptor;
+    private readonly IPeerPool _peerPool;
+    private Channel _channel;
+
+    private Server _server;
+
+    public AuthInterceptorTests()
     {
-        private readonly IPeerPool _peerPool;
-        private readonly AuthInterceptor _authInterceptor;
+        _peerPool = GetRequiredService<IPeerPool>();
+        _authInterceptor = GetRequiredService<AuthInterceptor>();
+    }
 
-        private Server _server;
-        private Channel _channel;
+    [Theory]
+    [InlineData("Ping")]
+    [InlineData("DoHandshake")]
+    public async Task UnaryServerHandler_NoAuth_Test(string methodName)
+    {
+        var helper = new MockServiceBuilder();
+        var unaryHandler = new UnaryServerMethod<string, string>((request, context) => Task.FromResult("ok"));
+        var method = new Method<string, string>(
+            MethodType.Unary,
+            nameof(PeerService),
+            methodName,
+            Marshallers.StringMarshaller,
+            Marshallers.StringMarshaller);
+        var serverServiceDefinition = ServerServiceDefinition.CreateBuilder()
+            .AddMethod(method, (request, context) => unaryHandler(request, context)).Build()
+            .Intercept(_authInterceptor);
+        helper.ServiceDefinition = serverServiceDefinition;
+        _server = helper.GetServer();
+        _server.Start();
 
-        public AuthInterceptorTests()
+        _channel = helper.GetChannel();
+
+        var result = await Calls.AsyncUnaryCall(new CallInvocationDetails<string, string>(_channel, method, default),
+            "");
+        result.ShouldBe("ok");
+    }
+
+    [Fact]
+    public async Task UnaryServerHandler_Auth_Failed()
+    {
+        var helper = new MockServiceBuilder();
+        helper.UnaryHandler = (request, context) => Task.FromResult("ok");
+
+        helper.ServiceDefinition = helper.ServiceDefinition.Intercept(_authInterceptor);
+        _server = helper.GetServer();
+        _server.Start();
+        _channel = helper.GetChannel();
+
+        await ShouldBeCancelRpcExceptionAsync(async () =>
+            await Calls.AsyncUnaryCall(helper.CreateUnaryCall(), ""));
+
+        var method = new Method<string, string>(MethodType.Unary, MockServiceBuilder.ServiceName, "Unary",
+            Marshallers.StringMarshaller, Marshallers.StringMarshaller);
+
+        var peer = _peerPool.GetPeersByHost("127.0.0.1").First();
+        ((GrpcPeer)peer).InboundSessionId = new byte[] { 1, 2, 3 };
+        var callInvoker = helper.GetChannel().Intercept(metadata =>
         {
-            _peerPool = GetRequiredService<IPeerPool>();
-            _authInterceptor = GetRequiredService<AuthInterceptor>();
-        }
+            metadata = new Metadata
+            {
+                { GrpcConstants.PubkeyMetadataKey, peer.Info.Pubkey }
+            };
+            return metadata;
+        });
 
-        [Theory]
-        [InlineData("Ping")]
-        [InlineData("DoHandshake")]
-        public async Task UnaryServerHandler_NoAuth_Test(string methodName)
+        await ShouldBeCancelRpcExceptionAsync(async () =>
+            await callInvoker.AsyncUnaryCall(method, "localhost", new CallOptions(), ""));
+
+        callInvoker = helper.GetChannel().Intercept(metadata =>
         {
-            var helper = new MockServiceBuilder();
-            var unaryHandler = new UnaryServerMethod<string, string>((request, context) => Task.FromResult("ok"));
-            var method = new Method<string, string>(
-                MethodType.Unary,
-                nameof(PeerService),
-                methodName,
-                Marshallers.StringMarshaller,
-                Marshallers.StringMarshaller);
-            var serverServiceDefinition = ServerServiceDefinition.CreateBuilder()
-                .AddMethod(method, (request, context) => unaryHandler(request, context)).Build()
-                .Intercept(_authInterceptor);
-            helper.ServiceDefinition = serverServiceDefinition;
-            _server = helper.GetServer();
-            _server.Start();
+            metadata = new Metadata
+            {
+                { GrpcConstants.PubkeyMetadataKey, peer.Info.Pubkey },
+                { GrpcConstants.SessionIdMetadataKey, new byte[] { 4, 5, 6 } }
+            };
+            return metadata;
+        });
 
-            _channel = helper.GetChannel();
+        await ShouldBeCancelRpcExceptionAsync(async () =>
+            await callInvoker.AsyncUnaryCall(method, "localhost", new CallOptions(), ""));
 
-            var result = await Calls.AsyncUnaryCall(new CallInvocationDetails<string, string>(_channel, method, default),
-                "");
-            result.ShouldBe("ok");
-        }
+        ((GrpcPeer)peer).InboundSessionId = null;
+        await ShouldBeCancelRpcExceptionAsync(async () =>
+            await callInvoker.AsyncUnaryCall(method, "localhost", new CallOptions(), ""));
+    }
 
-        [Fact]
-        public async Task UnaryServerHandler_Auth_Failed()
+    [Fact]
+    public async Task UnaryServerHandler_Auth_Success()
+    {
+        var peer = _peerPool.GetPeersByHost("127.0.0.1").First();
+        ((GrpcPeer)peer).InboundSessionId = new byte[] { 1, 2, 3 };
+
+        var helper = new MockServiceBuilder();
+        helper.UnaryHandler = (request, context) =>
         {
-            var helper = new MockServiceBuilder();
-            helper.UnaryHandler = new UnaryServerMethod<string, string>((request, context) => Task.FromResult("ok"));
+            context.GetPeerInfo().ShouldBe(peer.ToString());
+            return Task.FromResult("ok");
+        };
 
-            helper.ServiceDefinition = helper.ServiceDefinition.Intercept(_authInterceptor);
-            _server = helper.GetServer();
-            _server.Start();
-            _channel = helper.GetChannel();
-            
-            await ShouldBeCancelRpcExceptionAsync(async () =>
-                await Calls.AsyncUnaryCall(helper.CreateUnaryCall(), ""));
+        helper.ServiceDefinition = helper.ServiceDefinition.Intercept(_authInterceptor);
+        _server = helper.GetServer();
+        _server.Start();
+        _channel = helper.GetChannel();
 
-            var method = new Method<string, string>(MethodType.Unary, MockServiceBuilder.ServiceName, "Unary",
-                Marshallers.StringMarshaller, Marshallers.StringMarshaller);
+        var method = new Method<string, string>(MethodType.Unary, MockServiceBuilder.ServiceName, "Unary",
+            Marshallers.StringMarshaller, Marshallers.StringMarshaller);
 
-            var peer = _peerPool.GetPeersByHost("127.0.0.1").First();
-            ((GrpcPeer) peer).InboundSessionId = new byte[] {1, 2, 3};
-            var callInvoker = helper.GetChannel().Intercept(metadata =>
-            {
-                metadata = new Metadata
-                {
-                    { GrpcConstants.PubkeyMetadataKey, peer.Info.Pubkey}
-                };
-                return metadata;
-            });
-
-            await ShouldBeCancelRpcExceptionAsync(async () =>
-                await callInvoker.AsyncUnaryCall(method, "localhost", new CallOptions(), ""));
-            
-            callInvoker = helper.GetChannel().Intercept(metadata =>
-            {
-                metadata =  new Metadata
-                {
-                    { GrpcConstants.PubkeyMetadataKey, peer.Info.Pubkey},
-                    { GrpcConstants.SessionIdMetadataKey, new byte[] {4, 5, 6 }}
-                };
-                return metadata;
-            });
-
-            await ShouldBeCancelRpcExceptionAsync(async () =>
-                await callInvoker.AsyncUnaryCall(method, "localhost", new CallOptions(), ""));
-
-            ((GrpcPeer) peer).InboundSessionId = null;
-            await ShouldBeCancelRpcExceptionAsync(async () =>
-                await callInvoker.AsyncUnaryCall(method, "localhost", new CallOptions(), ""));
-        }
-        
-        [Fact]
-        public async Task UnaryServerHandler_Auth_Success()
+        var callInvoker = helper.GetChannel().Intercept(metadata =>
         {
-            var peer = _peerPool.GetPeersByHost("127.0.0.1").First();
-            ((GrpcPeer) peer).InboundSessionId = new byte[] {1, 2, 3};
-            
-            var helper = new MockServiceBuilder();
-            helper.UnaryHandler = new UnaryServerMethod<string, string>((request, context) =>
+            metadata = new Metadata
             {
-                context.GetPeerInfo().ShouldBe(peer.ToString());
-                return Task.FromResult("ok");
-            });
+                { GrpcConstants.PubkeyMetadataKey, peer.Info.Pubkey },
+                { GrpcConstants.SessionIdMetadataKey, new byte[] { 1, 2, 3 } }
+            };
+            return metadata;
+        });
 
-            helper.ServiceDefinition = helper.ServiceDefinition.Intercept(_authInterceptor);
-            _server = helper.GetServer();
-            _server.Start();
-            _channel = helper.GetChannel();
+        var result = await callInvoker.AsyncUnaryCall(method, "localhost", new CallOptions(), "");
+        result.ShouldBe("ok");
+    }
 
-            var method = new Method<string, string>(MethodType.Unary, MockServiceBuilder.ServiceName, "Unary",
-                Marshallers.StringMarshaller, Marshallers.StringMarshaller);
+    [Fact]
+    public async Task ClientStreamingServerHandler_Auth_Failed()
+    {
+        var helper = new MockServiceBuilder();
+        helper.ClientStreamingHandler = (request, context) => Task.FromResult("ok");
 
-            var callInvoker = helper.GetChannel().Intercept(metadata =>
-            {
-                metadata =  new Metadata
-                {
-                    { GrpcConstants.PubkeyMetadataKey, peer.Info.Pubkey},
-                    { GrpcConstants.SessionIdMetadataKey, new byte[] {1, 2, 3}}
-                };
-                return metadata;
-            });
+        helper.ServiceDefinition = helper.ServiceDefinition.Intercept(_authInterceptor);
+        _server = helper.GetServer();
+        _server.Start();
+        _channel = helper.GetChannel();
 
-            var result = await callInvoker.AsyncUnaryCall(method, "localhost", new CallOptions(), "");
-            result.ShouldBe("ok");
-        }
-        
-        [Fact]
-        public async Task ClientStreamingServerHandler_Auth_Failed()
+        await ShouldBeCancelRpcExceptionAsync(async () =>
+            await Calls.AsyncClientStreamingCall(helper.CreateClientStreamingCall()).ResponseAsync);
+
+        var method = new Method<string, string>(MethodType.ClientStreaming, MockServiceBuilder.ServiceName,
+            "ClientStreaming",
+            Marshallers.StringMarshaller, Marshallers.StringMarshaller);
+
+        var peer = _peerPool.GetPeersByHost("127.0.0.1").First();
+        ((GrpcPeer)peer).InboundSessionId = new byte[] { 1, 2, 3 };
+        var callInvoker = helper.GetChannel().Intercept(metadata =>
         {
-            var helper = new MockServiceBuilder();
-            helper.ClientStreamingHandler = new ClientStreamingServerMethod<string, string>((request, context) => Task.FromResult("ok"));
-
-            helper.ServiceDefinition = helper.ServiceDefinition.Intercept(_authInterceptor);
-            _server = helper.GetServer();
-            _server.Start();
-            _channel = helper.GetChannel();
-            
-            await ShouldBeCancelRpcExceptionAsync(async () =>
-                await Calls.AsyncClientStreamingCall(helper.CreateClientStreamingCall()).ResponseAsync);
-
-            var method = new Method<string, string>(MethodType.ClientStreaming, MockServiceBuilder.ServiceName, "ClientStreaming",
-                Marshallers.StringMarshaller, Marshallers.StringMarshaller);
-
-            var peer = _peerPool.GetPeersByHost("127.0.0.1").First();
-            ((GrpcPeer) peer).InboundSessionId = new byte[] {1, 2, 3};
-            var callInvoker = helper.GetChannel().Intercept(metadata =>
+            metadata = new Metadata
             {
-                metadata = new Metadata
-                {
-                    { GrpcConstants.PubkeyMetadataKey, peer.Info.Pubkey},
-                    { GrpcConstants.SessionIdMetadataKey, new byte[] {4, 5, 6}}
-                };
-                return metadata;
-            });
+                { GrpcConstants.PubkeyMetadataKey, peer.Info.Pubkey },
+                { GrpcConstants.SessionIdMetadataKey, new byte[] { 4, 5, 6 } }
+            };
+            return metadata;
+        });
 
-            await ShouldBeCancelRpcExceptionAsync(async () =>
-                await callInvoker.AsyncClientStreamingCall(method, "localhost", new CallOptions()).ResponseAsync);
-        }
+        await ShouldBeCancelRpcExceptionAsync(async () =>
+            await callInvoker.AsyncClientStreamingCall(method, "localhost", new CallOptions()).ResponseAsync);
+    }
 
-        [Fact]
-        public async Task ClientStreamingServerHandler_Auth_Success()
+    [Fact]
+    public async Task ClientStreamingServerHandler_Auth_Success()
+    {
+        var peer = _peerPool.GetPeersByHost("127.0.0.1").First();
+        ((GrpcPeer)peer).InboundSessionId = new byte[] { 1, 2, 3 };
+
+        var helper = new MockServiceBuilder();
+        helper.ClientStreamingHandler = (request, context) =>
         {
-            var peer = _peerPool.GetPeersByHost("127.0.0.1").First();
-            ((GrpcPeer) peer).InboundSessionId = new byte[] {1, 2, 3};
+            context.GetPeerInfo().ShouldBe(peer.ToString());
+            return Task.FromResult("ok");
+        };
 
-            var helper = new MockServiceBuilder();
-            helper.ClientStreamingHandler = new ClientStreamingServerMethod<string, string>((request, context) =>
-            {
-                context.GetPeerInfo().ShouldBe(peer.ToString());
-                return Task.FromResult("ok");
-            });
+        helper.ServiceDefinition = helper.ServiceDefinition.Intercept(_authInterceptor);
+        _server = helper.GetServer();
+        _server.Start();
+        _channel = helper.GetChannel();
 
-            helper.ServiceDefinition = helper.ServiceDefinition.Intercept(_authInterceptor);
-            _server = helper.GetServer();
-            _server.Start();
-            _channel = helper.GetChannel();
+        var method = new Method<string, string>(MethodType.ClientStreaming, MockServiceBuilder.ServiceName,
+            "ClientStreaming",
+            Marshallers.StringMarshaller, Marshallers.StringMarshaller);
 
-            var method = new Method<string, string>(MethodType.ClientStreaming, MockServiceBuilder.ServiceName,
-                "ClientStreaming",
-                Marshallers.StringMarshaller, Marshallers.StringMarshaller);
-
-            var callInvoker = helper.GetChannel().Intercept(metadata =>
-            {
-                metadata = new Metadata
-                {
-                    {GrpcConstants.PubkeyMetadataKey, peer.Info.Pubkey},
-                    {GrpcConstants.SessionIdMetadataKey, new byte[] {1, 2, 3}}
-                };
-                return metadata;
-            });
-
-            var result = await callInvoker.AsyncClientStreamingCall(method, "localhost", new CallOptions()).ResponseAsync;
-            result.ShouldBe("ok");
-        }
-
-        private async Task ShouldBeCancelRpcExceptionAsync(Func<Task> func)
+        var callInvoker = helper.GetChannel().Intercept(metadata =>
         {
-            try
+            metadata = new Metadata
             {
-                await func();
-                throw new XunitException("Should throw RpcException, but execute successfully.");
-            }
-            catch (RpcException e)
-            {
-                e.Status.StatusCode.ShouldBe(StatusCode.Cancelled);
-            }
-        }
+                { GrpcConstants.PubkeyMetadataKey, peer.Info.Pubkey },
+                { GrpcConstants.SessionIdMetadataKey, new byte[] { 1, 2, 3 } }
+            };
+            return metadata;
+        });
 
-        public override void Dispose()
+        var result = await callInvoker.AsyncClientStreamingCall(method, "localhost", new CallOptions()).ResponseAsync;
+        result.ShouldBe("ok");
+    }
+
+    private async Task ShouldBeCancelRpcExceptionAsync(Func<Task> func)
+    {
+        try
         {
-            base.Dispose();
-            _channel.ShutdownAsync().Wait();
-            _server.ShutdownAsync().Wait();
+            await func();
+            throw new XunitException("Should throw RpcException, but execute successfully.");
         }
+        catch (RpcException e)
+        {
+            e.Status.StatusCode.ShouldBe(StatusCode.Cancelled);
+        }
+    }
+
+    public override void Dispose()
+    {
+        base.Dispose();
+        _channel.ShutdownAsync().Wait();
+        _server.ShutdownAsync().Wait();
     }
 }

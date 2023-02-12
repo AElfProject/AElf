@@ -1,10 +1,8 @@
 using System.Collections.Generic;
-using AElf.Types;
 
-namespace AElf.OS.Node.Application
+namespace AElf.OS.Node.Application;
+
+public interface IGenesisSmartContractDtoProvider
 {
-    public interface IGenesisSmartContractDtoProvider
-    {
-        IEnumerable<GenesisSmartContractDto> GetGenesisSmartContractDtos();
-    }
+    IEnumerable<GenesisSmartContractDto> GetGenesisSmartContractDtos();
 }

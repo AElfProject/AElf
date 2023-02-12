@@ -1,13 +1,12 @@
 using AElf.WebApp.Application.Chain.Dto;
 using AutoMapper;
 
-namespace AElf.WebApp.Application.Chain
+namespace AElf.WebApp.Application.Chain;
+
+public class TaskQueueInfoProfile : Profile
 {
-    public class TaskQueueInfoProfile : Profile
+    public TaskQueueInfoProfile()
     {
-        public TaskQueueInfoProfile()
-        {
-            CreateMap<TaskQueueInfo, TaskQueueInfoDto>();
-        }
+        CreateMap<TaskQueueInfo, TaskQueueInfoDto>();
     }
 }

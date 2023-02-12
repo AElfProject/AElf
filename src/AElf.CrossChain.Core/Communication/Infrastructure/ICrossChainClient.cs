@@ -2,19 +2,18 @@ using System;
 using System.Threading.Tasks;
 using AElf.Standards.ACS7;
 
-namespace AElf.CrossChain.Communication.Infrastructure
+namespace AElf.CrossChain.Communication.Infrastructure;
+
+public interface ICrossChainClient
 {
-    public interface ICrossChainClient
-    {
-        int RemoteChainId { get; }
-        string TargetUriString { get; }
-        bool IsConnected { get; }
+    int RemoteChainId { get; }
+    string TargetUriString { get; }
+    bool IsConnected { get; }
 
-        Task RequestCrossChainDataAsync(long targetHeight,
-            Func<ICrossChainBlockEntity, bool> crossChainBlockDataEntityHandler);
+    Task RequestCrossChainDataAsync(long targetHeight,
+        Func<ICrossChainBlockEntity, bool> crossChainBlockDataEntityHandler);
 
-        Task<ChainInitializationData> RequestChainInitializationDataAsync(int chainId);
-        Task ConnectAsync();
-        Task CloseAsync();
-    }
+    Task<ChainInitializationData> RequestChainInitializationDataAsync(int chainId);
+    Task ConnectAsync();
+    Task CloseAsync();
 }

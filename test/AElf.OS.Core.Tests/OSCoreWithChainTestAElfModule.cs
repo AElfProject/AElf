@@ -18,70 +18,71 @@ using Moq;
 using Volo.Abp;
 using Volo.Abp.Modularity;
 using Volo.Abp.Threading;
+using UnitTestContractZeroCodeProvider = AElf.Kernel.UnitTestContractZeroCodeProvider;
 
-namespace AElf.OS
+namespace AElf.OS;
+
+[DependsOn(
+    typeof(OSCoreTestAElfModule)
+)]
+public class OSCoreWithChainTestAElfModule : AElfModule
 {
-    [DependsOn(
-        typeof(OSCoreTestAElfModule)
-    )]
-    public class OSCoreWithChainTestAElfModule : AElfModule
+    private OSTestHelper _osTestHelper;
+
+    public override void ConfigureServices(ServiceConfigurationContext context)
     {
-        private OSTestHelper _osTestHelper;
-
-        public override void ConfigureServices(ServiceConfigurationContext context)
+        context.Services.AddTransient(o =>
         {
-            context.Services.AddTransient<ISystemTransactionGenerationService>(o =>
-            {
-                var mockService = new Mock<ISystemTransactionGenerationService>();
-                mockService.Setup(s =>
-                        s.GenerateSystemTransactionsAsync(It.IsAny<Address>(), It.IsAny<long>(), It.IsAny<Hash>()))
-                    .Returns(Task.FromResult(new List<Transaction>()));
-                return mockService.Object;
-            });
+            var mockService = new Mock<ISystemTransactionGenerationService>();
+            mockService.Setup(s =>
+                    s.GenerateSystemTransactionsAsync(It.IsAny<Address>(), It.IsAny<long>(), It.IsAny<Hash>()))
+                .Returns(Task.FromResult(new List<Transaction>()));
+            return mockService.Object;
+        });
 
-            context.Services.AddTransient<IBlockExtraDataService>(o =>
-            {
-                var mockService = new Mock<IBlockExtraDataService>();
-                mockService.Setup(s =>
-                    s.FillBlockExtraDataAsync(It.IsAny<BlockHeader>())).Returns(Task.CompletedTask);
-                return mockService.Object;
-            });
-
-            context.Services.AddTransient<IBlockValidationService>(o =>
-            {
-                var mockService = new Mock<IBlockValidationService>();
-                mockService.Setup(s =>
-                    s.ValidateBlockBeforeAttachAsync(It.IsAny<IBlock>())).Returns(Task.FromResult(true));
-                mockService.Setup(s =>
-                    s.ValidateBlockBeforeExecuteAsync(It.IsAny<IBlock>())).Returns(Task.FromResult(true));
-                mockService.Setup(s =>
-                    s.ValidateBlockAfterExecuteAsync(It.IsAny<IBlock>())).Returns(Task.FromResult(true));
-                return mockService.Object;
-            });
-
-            context.Services.AddSingleton<IAElfNetworkServer>(o => Mock.Of<IAElfNetworkServer>());
-            context.Services.AddSingleton<ITxHub, MockTxHub>();
-
-            context.Services.AddSingleton<ISmartContractRunner, UnitTestCSharpSmartContractRunner>(provider =>
-            {
-                var option = provider.GetService<IOptions<RunnerOptions>>();
-                return new UnitTestCSharpSmartContractRunner(
-                    option.Value.SdkDir);
-            });
-            context.Services.AddSingleton<IDefaultContractZeroCodeProvider, Kernel.UnitTestContractZeroCodeProvider>();
-            context.Services.AddSingleton<ISmartContractAddressService, UnitTestSmartContractAddressService>();
-            context.Services
-                .AddSingleton<ISmartContractAddressNameProvider, ParliamentSmartContractAddressNameProvider>();
-        }
-        public override void OnApplicationInitialization(ApplicationInitializationContext context)
+        context.Services.AddTransient(o =>
         {
-            _osTestHelper = context.ServiceProvider.GetService<OSTestHelper>();
-            AsyncHelper.RunSync(() => _osTestHelper.MockChainAsync());
-        }
+            var mockService = new Mock<IBlockExtraDataService>();
+            mockService.Setup(s =>
+                s.FillBlockExtraDataAsync(It.IsAny<BlockHeader>())).Returns(Task.CompletedTask);
+            return mockService.Object;
+        });
 
-        public override void OnApplicationShutdown(ApplicationShutdownContext context)
+        context.Services.AddTransient(o =>
         {
-            AsyncHelper.RunSync(() => _osTestHelper.DisposeMock());
-        }
+            var mockService = new Mock<IBlockValidationService>();
+            mockService.Setup(s =>
+                s.ValidateBlockBeforeAttachAsync(It.IsAny<IBlock>())).Returns(Task.FromResult(true));
+            mockService.Setup(s =>
+                s.ValidateBlockBeforeExecuteAsync(It.IsAny<IBlock>())).Returns(Task.FromResult(true));
+            mockService.Setup(s =>
+                s.ValidateBlockAfterExecuteAsync(It.IsAny<IBlock>())).Returns(Task.FromResult(true));
+            return mockService.Object;
+        });
+
+        context.Services.AddSingleton(o => Mock.Of<IAElfNetworkServer>());
+        context.Services.AddSingleton<ITxHub, MockTxHub>();
+
+        context.Services.AddSingleton<ISmartContractRunner, UnitTestCSharpSmartContractRunner>(provider =>
+        {
+            var option = provider.GetService<IOptions<RunnerOptions>>();
+            return new UnitTestCSharpSmartContractRunner(
+                option.Value.SdkDir);
+        });
+        context.Services.AddSingleton<IDefaultContractZeroCodeProvider, UnitTestContractZeroCodeProvider>();
+        context.Services.AddSingleton<ISmartContractAddressService, UnitTestSmartContractAddressService>();
+        context.Services
+            .AddSingleton<ISmartContractAddressNameProvider, ParliamentSmartContractAddressNameProvider>();
+    }
+
+    public override void OnApplicationInitialization(ApplicationInitializationContext context)
+    {
+        _osTestHelper = context.ServiceProvider.GetService<OSTestHelper>();
+        AsyncHelper.RunSync(() => _osTestHelper.MockChainAsync());
+    }
+
+    public override void OnApplicationShutdown(ApplicationShutdownContext context)
+    {
+        AsyncHelper.RunSync(() => _osTestHelper.DisposeMock());
     }
 }

@@ -1,9 +1,8 @@
 using AElf.Contracts.MultiToken;
 
-namespace AElf.Contracts.TestContract.TransactionFeeCharging
+namespace AElf.Contracts.TestContract.TransactionFeeCharging;
+
+public partial class TransactionFeeChargingContractState
 {
-    public partial class TransactionFeeChargingContractState
-    {
-        internal TokenContractContainer.TokenContractReferenceState TokenContract { get; set; }
-    }
+    internal TokenContractContainer.TokenContractReferenceState TokenContract { get; set; }
 }

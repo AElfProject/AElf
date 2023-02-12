@@ -4,68 +4,67 @@ using AElf.Kernel.SmartContract.Application;
 using Shouldly;
 using Xunit;
 
-namespace AElf.GovernmentSystem.Tests
+namespace AElf.GovernmentSystem.Tests;
+
+public class ProviderTest : GovernmentSystemTestBase
 {
-    public class ProviderTest : GovernmentSystemTestBase
+    #region ElectionContractInitializationProvider Test
+
+    [Fact]
+    public void ElectionContractInitializationProvider_Test()
     {
-        #region ElectionContractInitializationProvider Test
+        var contractInitializationProvider =
+            GetContractInitializationProvider<ElectionContractInitializationProvider>();
+        var initializeMethodList = contractInitializationProvider.GetInitializeMethodList(null);
+        initializeMethodList.Count.ShouldBe(1);
+    }
 
-        [Fact]
-        public void ElectionContractInitializationProvider_Test()
-        {
-            var contractInitializationProvider =
-                GetContractInitializationProvider<ElectionContractInitializationProvider>();
-            var initializeMethodList = contractInitializationProvider.GetInitializeMethodList(null);
-            initializeMethodList.Count.ShouldBe(1);
-        }
+    #endregion
 
-        #endregion
+    #region ElectionSmartContractAddressNameProvider Test
 
-        #region ElectionSmartContractAddressNameProvider Test
+    [Fact]
+    public void ElectionSmartContractAddressNameProvider_Test()
+    {
+        var targetName = HashHelper.ComputeFrom("AElf.ContractNames.Election");
+        var electionSmartContractAddressNameProvider = new ElectionSmartContractAddressNameProvider();
+        electionSmartContractAddressNameProvider.ContractName.ShouldBe(targetName);
+    }
 
-        [Fact]
-        public void ElectionSmartContractAddressNameProvider_Test()
-        {
-            var targetName = HashHelper.ComputeFrom("AElf.ContractNames.Election");
-            var electionSmartContractAddressNameProvider = new ElectionSmartContractAddressNameProvider();
-            electionSmartContractAddressNameProvider.ContractName.ShouldBe(targetName);
-        }
+    #endregion
 
-        #endregion
+    #region VoteContractInitializationProvider Test
 
-        #region VoteContractInitializationProvider Test
+    [Fact]
+    public void VoteContractInitializationProvider_Test()
+    {
+        var contractInitializationProvider =
+            GetContractInitializationProvider<VoteContractInitializationProvider>();
+        contractInitializationProvider.GetInitializeMethodList(null).Count.ShouldBe(0);
+    }
 
-        [Fact]
-        public void VoteContractInitializationProvider_Test()
-        {
-            var contractInitializationProvider =
-                GetContractInitializationProvider<VoteContractInitializationProvider>();
-            contractInitializationProvider.GetInitializeMethodList(null).Count.ShouldBe(0);
-        }
+    #endregion
 
-        #endregion
+    #region VoteSmartContractAddressNameProvider Test
 
-        #region VoteSmartContractAddressNameProvider Test
+    [Fact]
+    public void VoteSmartContractAddressNameProvider_Test()
+    {
+        var targetName = HashHelper.ComputeFrom("AElf.ContractNames.Vote");
+        var voteSmartContractAddressNameProvider = new VoteSmartContractAddressNameProvider();
+        voteSmartContractAddressNameProvider.ContractName.ShouldBe(targetName);
+    }
 
-        [Fact]
-        public void VoteSmartContractAddressNameProvider_Test()
-        {
-            var targetName = HashHelper.ComputeFrom("AElf.ContractNames.Vote");
-            var voteSmartContractAddressNameProvider = new VoteSmartContractAddressNameProvider();
-            voteSmartContractAddressNameProvider.ContractName.ShouldBe(targetName);
-        }
+    #endregion
 
-        #endregion
-
-        private IContractInitializationProvider GetContractInitializationProvider<T>()
-            where T : IContractInitializationProvider
-        {
-            var contractInitializationProviders = GetRequiredService<IEnumerable<IContractInitializationProvider>>();
-            var contractInitializationProvider =
-                contractInitializationProviders.SingleOrDefault(x =>
-                    x.GetType() == typeof(T));
-            contractInitializationProvider.ShouldNotBeNull();
-            return contractInitializationProvider;
-        }
+    private IContractInitializationProvider GetContractInitializationProvider<T>()
+        where T : IContractInitializationProvider
+    {
+        var contractInitializationProviders = GetRequiredService<IEnumerable<IContractInitializationProvider>>();
+        var contractInitializationProvider =
+            contractInitializationProviders.SingleOrDefault(x =>
+                x.GetType() == typeof(T));
+        contractInitializationProvider.ShouldNotBeNull();
+        return contractInitializationProvider;
     }
 }

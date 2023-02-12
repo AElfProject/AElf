@@ -1,26 +1,25 @@
 ﻿using System;
 
-namespace AElf.Runtime.CSharp.Core
-{
-    public class InvalidMethodNameException : Exception
-    {
-        public InvalidMethodNameException() : base()
-        {
-        }
+namespace AElf.Runtime.CSharp.Core;
 
-        public InvalidMethodNameException(string message) : base(message)
-        {
-        }
+public class InvalidMethodNameException : Exception
+{
+    public InvalidMethodNameException()
+    {
     }
 
-    public class RuntimeException : Exception
+    public InvalidMethodNameException(string message) : base(message)
     {
-        public RuntimeException() : base()
-        {
-        }
+    }
+}
 
-        public RuntimeException(string message) : base(message)
-        {
-        }
+public class RuntimeException : Exception
+{
+    public RuntimeException()
+    {
+    }
+
+    public RuntimeException(string message) : base(message)
+    {
     }
 }

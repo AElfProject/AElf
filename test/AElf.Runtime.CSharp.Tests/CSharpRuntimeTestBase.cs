@@ -1,8 +1,7 @@
 using AElf.TestBase;
 
-namespace AElf.Runtime.CSharp
+namespace AElf.Runtime.CSharp;
+
+public class CSharpRuntimeTestBase : AElfIntegratedTest<CSharpRuntimeTestAElfModule>
 {
-    public class CSharpRuntimeTestBase : AElfIntegratedTest<CSharpRuntimeTestAElfModule>
-    {
-    }
 }

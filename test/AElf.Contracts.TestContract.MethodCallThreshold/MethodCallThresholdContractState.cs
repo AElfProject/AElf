@@ -1,11 +1,9 @@
-﻿using AElf.Standards.ACS5;
-using AElf.Sdk.CSharp.State;
-using AElf.Types;
+﻿using AElf.Sdk.CSharp.State;
+using AElf.Standards.ACS5;
 
-namespace AElf.Contracts.TestContract.MethodCallThreshold
+namespace AElf.Contracts.TestContract.MethodCallThreshold;
+
+public partial class MethodCallThresholdContractState : ContractState
 {
-    public partial class MethodCallThresholdContractState : ContractState
-    {
-        public MappedState<string, MethodCallingThreshold> MethodCallingThresholds { get; set; }
-    }
+    public MappedState<string, MethodCallingThreshold> MethodCallingThresholds { get; set; }
 }

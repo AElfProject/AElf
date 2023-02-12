@@ -13,7 +13,7 @@ if [[ -d ${build_output} ]]; then
     rm -rf ${build_output}
 fi
 
-dotnet restore AElf.sln
+dotnet restore AElf.All.sln
 
 for path in ${src_path} ${contract_path} ;
 do

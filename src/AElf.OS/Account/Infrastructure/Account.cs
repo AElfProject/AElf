@@ -1,16 +1,14 @@
-﻿using System.Threading;
-using AElf.Cryptography.ECDSA;
+﻿using AElf.Cryptography.ECDSA;
 
-namespace AElf.OS.Account.Infrastructure
+namespace AElf.OS.Account.Infrastructure;
+
+public class Account
 {
-    public class Account
+    public Account(string address)
     {
-        public ECKeyPair KeyPair { get; set; }
-        public string AccountName { get; }
-
-        public Account(string address)
-        {
-            AccountName = address;
-        }
+        AccountName = address;
     }
+
+    public ECKeyPair KeyPair { get; set; }
+    public string AccountName { get; }
 }

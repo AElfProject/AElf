@@ -1,6 +1,5 @@
-namespace AElf.OS.Network.Events
+namespace AElf.OS.Network.Events;
+
+public class NetworkInitializedEvent
 {
-    public class NetworkInitializedEvent
-    {
-    }
 }

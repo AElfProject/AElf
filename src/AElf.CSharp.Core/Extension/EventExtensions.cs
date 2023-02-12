@@ -1,41 +1,34 @@
 ﻿using AElf.Types;
 using Google.Protobuf;
 
-namespace AElf.CSharp.Core.Extension
+namespace AElf.CSharp.Core.Extension;
+
+public static class EventExtensions
 {
-    public static class EventExtensions
+    public static LogEvent ToLogEvent<T>(this T eventData, Address self = null) where T : IEvent<T>
     {
-        public static LogEvent ToLogEvent<T>(this T eventData, Address self = null) where T : IEvent<T>
+        var logEvent = new LogEvent
         {
-            var logEvent = new LogEvent
-            {
-                Address = self,
-                Name = eventData.Descriptor.Name
-            };
+            Address = self,
+            Name = eventData.Descriptor.Name
+        };
 
-            foreach (var indexed in eventData.GetIndexed())
-            {
-                var byteString = indexed.ToByteString();
-                if (byteString.Length == 0)
-                {
-                    continue;
-                }
+        foreach (var indexed in eventData.GetIndexed())
+        {
+            var byteString = indexed.ToByteString();
+            if (byteString.Length == 0) continue;
 
-                logEvent.Indexed.Add(byteString);
-            }
-
-            logEvent.NonIndexed = eventData.GetNonIndexed().ToByteString();
-            return logEvent;
+            logEvent.Indexed.Add(byteString);
         }
 
-        public static void MergeFrom<T>(this T eventData, LogEvent log) where T : IEvent<T>
-        {
-            foreach (var bs in log.Indexed)
-            {
-                eventData.MergeFrom(bs);
-            }
+        logEvent.NonIndexed = eventData.GetNonIndexed().ToByteString();
+        return logEvent;
+    }
 
-            eventData.MergeFrom(log.NonIndexed);
-        }
+    public static void MergeFrom<T>(this T eventData, LogEvent log) where T : IEvent<T>
+    {
+        foreach (var bs in log.Indexed) eventData.MergeFrom(bs);
+
+        eventData.MergeFrom(log.NonIndexed);
     }
 }

@@ -1,10 +1,9 @@
-namespace AElf.OS.Network
+namespace AElf.OS.Network;
+
+public partial class NodeList
 {
-    public partial class NodeList
+    public string ToDiagnosticString()
     {
-        public string ToDiagnosticString()
-        {
-            return string.Join(", ", Nodes);
-        }
+        return string.Join(", ", Nodes);
     }
 }

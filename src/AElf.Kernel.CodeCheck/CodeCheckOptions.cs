@@ -1,7 +1,6 @@
-namespace AElf.Kernel.CodeCheck
+namespace AElf.Kernel.CodeCheck;
+
+public class CodeCheckOptions
 {
-    public class CodeCheckOptions
-    {
-        public bool CodeCheckEnabled { get; set; }
-    }
+    public bool CodeCheckEnabled { get; set; }
 }

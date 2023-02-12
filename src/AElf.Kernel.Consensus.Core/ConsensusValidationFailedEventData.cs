@@ -1,8 +1,7 @@
-namespace AElf.Kernel.Consensus
+namespace AElf.Kernel.Consensus;
+
+public class ConsensusValidationFailedEventData
 {
-    public class ConsensusValidationFailedEventData
-    {
-        public string ValidationResultMessage { get; set; }
-        public bool IsReTrigger { get; set; }
-    }
+    public string ValidationResultMessage { get; set; }
+    public bool IsReTrigger { get; set; }
 }

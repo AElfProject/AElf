@@ -1,11 +1,10 @@
 using System.Threading.Tasks;
 using AElf.Standards.ACS7;
 
-namespace AElf.CrossChain.Application
+namespace AElf.CrossChain.Application;
+
+public interface ISideChainInitializationDataProvider
 {
-    public interface ISideChainInitializationDataProvider
-    {
-        Task<ChainInitializationData> GetChainInitializationDataAsync();
-        int ParentChainId { get; }
-    }
+    int ParentChainId { get; }
+    Task<ChainInitializationData> GetChainInitializationDataAsync();
 }

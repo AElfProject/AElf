@@ -3,17 +3,16 @@ using AElf.Kernel.SmartContract;
 using AElf.Modularity;
 using Volo.Abp.Modularity;
 
-namespace AElf.Runtime.CSharp
+namespace AElf.Runtime.CSharp;
+
+[DependsOn(
+    typeof(CSharpRuntimeAElfModule),
+    typeof(SmartContractTestAElfModule),
+    typeof(CSharpCodeOpsAElfModule)
+)]
+public class CSharpRuntimeTestAElfModule : AElfModule
 {
-    [DependsOn(
-        typeof(CSharpRuntimeAElfModule),
-        typeof(SmartContractTestAElfModule),
-        typeof(CSharpCodeOpsAElfModule)
-    )]
-    public class CSharpRuntimeTestAElfModule : AElfModule
+    public override void ConfigureServices(ServiceConfigurationContext context)
     {
-        public override void ConfigureServices(ServiceConfigurationContext context)
-        {
-        }
     }
 }

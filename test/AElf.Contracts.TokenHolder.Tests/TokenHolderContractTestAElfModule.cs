@@ -6,18 +6,17 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Volo.Abp.Modularity;
 
-namespace AElf.Contracts.TokenHolder
+namespace AElf.Contracts.TokenHolder;
+
+[DependsOn(typeof(ContractTestModule))]
+public class TokenHolderContractTestAElfModule : ContractTestModule
 {
-    [DependsOn(typeof(ContractTestModule))]
-    public class TokenHolderContractTestAElfModule : ContractTestModule
+    public override void ConfigureServices(ServiceConfigurationContext context)
     {
-        public override void ConfigureServices(ServiceConfigurationContext context)
-        {
-            context.Services.RemoveAll<IPreExecutionPlugin>();
-            context.Services.RemoveAll<IPostExecutionPlugin>();
-            context.Services.RemoveAll<ISystemTransactionGenerator>();
-            Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false);
-            context.Services.AddSingleton<IResetBlockTimeProvider, ResetBlockTimeProvider>();
-        }
+        context.Services.RemoveAll<IPreExecutionPlugin>();
+        context.Services.RemoveAll<IPostExecutionPlugin>();
+        context.Services.RemoveAll<ISystemTransactionGenerator>();
+        Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false);
+        context.Services.AddSingleton<IResetBlockTimeProvider, ResetBlockTimeProvider>();
     }
 }

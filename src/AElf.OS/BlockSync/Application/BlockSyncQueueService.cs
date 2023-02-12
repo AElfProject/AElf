@@ -6,74 +6,73 @@ using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace AElf.OS.BlockSync.Application
+namespace AElf.OS.BlockSync.Application;
+
+public class BlockSyncQueueService : IBlockSyncQueueService
 {
-    public class BlockSyncQueueService : IBlockSyncQueueService
+    private readonly IBlockSyncStateProvider _blockSyncStateProvider;
+    private readonly ITaskQueueManager _taskQueueManager;
+
+    public BlockSyncQueueService(IBlockSyncStateProvider blockSyncStateProvider, ITaskQueueManager taskQueueManager)
     {
-        private readonly IBlockSyncStateProvider _blockSyncStateProvider;
-        private readonly ITaskQueueManager _taskQueueManager;
+        Logger = NullLogger<BlockSyncQueueService>.Instance;
 
-        public ILogger<BlockSyncQueueService> Logger { get; set; }
+        _blockSyncStateProvider = blockSyncStateProvider;
+        _taskQueueManager = taskQueueManager;
+    }
 
-        public BlockSyncQueueService(IBlockSyncStateProvider blockSyncStateProvider, ITaskQueueManager taskQueueManager)
+    public ILogger<BlockSyncQueueService> Logger { get; set; }
+
+    public bool ValidateQueueAvailability(string queueName)
+    {
+        bool isAvailable;
+        var enqueueTime = _blockSyncStateProvider.GetEnqueueTime(queueName);
+        switch (queueName)
         {
-            Logger = NullLogger<BlockSyncQueueService>.Instance;
-
-            _blockSyncStateProvider = blockSyncStateProvider;
-            _taskQueueManager = taskQueueManager;
+            case OSConstants.BlockFetchQueueName:
+                isAvailable = CheckAgeLimit(enqueueTime, BlockSyncConstants.BlockSyncFetchBlockAgeLimit);
+                break;
+            case OSConstants.BlockSyncAttachQueueName:
+                isAvailable = CheckAgeLimit(enqueueTime, BlockSyncConstants.BlockSyncAttachBlockAgeLimit);
+                break;
+            case KernelConstants.UpdateChainQueueName:
+                isAvailable = CheckAgeLimit(enqueueTime, BlockSyncConstants.BlockSyncAttachAndExecuteBlockAgeLimit);
+                break;
+            default:
+                throw new InvalidOperationException($"invalid queue name: {queueName}");
         }
 
-        public bool ValidateQueueAvailability(string queueName)
+        return isAvailable;
+    }
+
+    public void Enqueue(Func<Task> task, string queueName)
+    {
+        var enqueueTime = TimestampHelper.GetUtcNow();
+        _taskQueueManager.Enqueue(async () =>
         {
-            bool isAvailable;
-            var enqueueTime = _blockSyncStateProvider.GetEnqueueTime(queueName);
-            switch (queueName)
+            try
             {
-                case OSConstants.BlockFetchQueueName:
-                    isAvailable = CheckAgeLimit(enqueueTime, BlockSyncConstants.BlockSyncFetchBlockAgeLimit);
-                    break;
-                case OSConstants.BlockSyncAttachQueueName:
-                    isAvailable = CheckAgeLimit(enqueueTime, BlockSyncConstants.BlockSyncAttachBlockAgeLimit);
-                    break;
-                case KernelConstants.UpdateChainQueueName:
-                    isAvailable = CheckAgeLimit(enqueueTime, BlockSyncConstants.BlockSyncAttachAndExecuteBlockAgeLimit);
-                    break;
-                default:
-                    throw new InvalidOperationException($"invalid queue name: {queueName}");
+                Logger.LogDebug($"Execute block sync job: {queueName}, enqueue time: {enqueueTime}");
+
+                _blockSyncStateProvider.SetEnqueueTime(queueName, enqueueTime);
+                await task();
             }
-
-            return isAvailable;
-        }
-
-        public void Enqueue(Func<Task> task, string queueName)
-        {
-            var enqueueTime = TimestampHelper.GetUtcNow();
-            _taskQueueManager.Enqueue(async () =>
+            finally
             {
-                try
-                {
-                    Logger.LogDebug($"Execute block sync job: {queueName}, enqueue time: {enqueueTime}");
-
-                    _blockSyncStateProvider.SetEnqueueTime(queueName, enqueueTime);
-                    await task();
-                }
-                finally
-                {
-                    _blockSyncStateProvider.SetEnqueueTime(queueName, null);
-                }
-            }, queueName);
-        }
-
-        private bool CheckAgeLimit(Timestamp enqueueTime, long ageLimit)
-        {
-            if (enqueueTime != null && TimestampHelper.GetUtcNow() >
-                enqueueTime + TimestampHelper.DurationFromMilliseconds(ageLimit))
-            {
-                Logger.LogDebug($"Enqueue time is more than limit : {enqueueTime}");
-                return false;
+                _blockSyncStateProvider.SetEnqueueTime(queueName, null);
             }
+        }, queueName);
+    }
 
-            return true;
+    private bool CheckAgeLimit(Timestamp enqueueTime, long ageLimit)
+    {
+        if (enqueueTime != null && TimestampHelper.GetUtcNow() >
+            enqueueTime + TimestampHelper.DurationFromMilliseconds(ageLimit))
+        {
+            Logger.LogDebug($"Enqueue time is more than limit : {enqueueTime}");
+            return false;
         }
+
+        return true;
     }
 }

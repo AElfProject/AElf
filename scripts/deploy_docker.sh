@@ -7,7 +7,7 @@ DOCKER_PASSWORD=$3
 
 # publish docker
 # AElf node
-dotnet publish AElf.sln /clp:ErrorsOnly -c Release -o ~/aelf/
+dotnet publish AElf.All.sln /clp:ErrorsOnly -c Release -o ~/aelf/
 
 docker build -t aelf/node:${TAG} ~/aelf/.
 docker tag aelf/node:${TAG} aelf/node:latest
