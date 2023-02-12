@@ -21,7 +21,7 @@ public partial class ElectionContractTests
         var moreVotesCandidates = ValidationDataCenterKeyPairs
             .Take(EconomicContractsTestConstants.InitialCoreDataCenterCount).ToList();
         foreach (var kp in moreVotesCandidates)
-            await VoteToCandidate(VoterKeyPairs[0], kp.PublicKey.ToHex(), 100 * 86400, 2);
+            await VoteToCandidateAsync(VoterKeyPairs[0], kp.PublicKey.ToHex(), 100 * 86400, 2);
         {
             var votedCandidates = await ElectionContractStub.GetVotedCandidates.CallAsync(new Empty());
             votedCandidates.Value.Count.ShouldBe(EconomicContractsTestConstants.InitialCoreDataCenterCount);
@@ -30,7 +30,7 @@ public partial class ElectionContractTests
             .Skip(EconomicContractsTestConstants.InitialCoreDataCenterCount)
             .Take(EconomicContractsTestConstants.InitialCoreDataCenterCount).ToList();
         foreach (var kp in lessVotesCandidates)
-            await VoteToCandidate(VoterKeyPairs[0], kp.PublicKey.ToHex(), 100 * 86400, 1);
+            await VoteToCandidateAsync(VoterKeyPairs[0], kp.PublicKey.ToHex(), 100 * 86400, 1);
 
         {
             var votedCandidates = await ElectionContractStub.GetVotedCandidates.CallAsync(new Empty());

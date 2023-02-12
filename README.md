@@ -24,7 +24,7 @@ For more information you can follow these links:
     * [Smart contract development](https://docs.aelf.io/en/latest/getting-started/smart-contract-development/index.html)
     * [Web Api](https://docs.aelf.io/en/latest/reference/web-api/web-api.html)
     * [Testnet](https://docs.aelf.io/en/latest/tutorials/testnet.html)
-* [White Paper](https://aelf.io/gridcn/aelf_whitepaper_EN.pdf) 
+* [White Paper](https://aelf.com/gridcn/aelf_whitepaper_v1.7_en.pdf) 
 
 This repository contains the code that runs an AElf node, you'll find bellow other important repositories in the AElf 
 ecosystem:

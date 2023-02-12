@@ -21,7 +21,8 @@ public static class PeerInfoHelper
             BufferedAnnouncementsCount = peer.BufferedAnnouncementsCount,
             BufferedBlocksCount = peer.BufferedBlocksCount,
             BufferedTransactionsCount = peer.BufferedTransactionsCount,
-            RequestMetrics = peer.GetRequestMetrics()?.Values.SelectMany(kvp => kvp).ToList()
+            RequestMetrics = peer.GetRequestMetrics()?.Values.SelectMany(kvp => kvp).ToList(),
+            NodeVersion = peer.Info.NodeVersion
         };
     }
 }

@@ -42,7 +42,7 @@ public partial class ElectionContractTests
             var moreVotesCandidates = ValidationDataCenterKeyPairs
                 .Take(EconomicContractsTestConstants.InitialCoreDataCenterCount).ToList();
             foreach (var keyPair in moreVotesCandidates)
-                await VoteToCandidate(VoterKeyPairs[0], keyPair.PublicKey.ToHex(), 100 * 86400, 2);
+                await VoteToCandidateAsync(VoterKeyPairs[0], keyPair.PublicKey.ToHex(), 100 * 86400, 2);
 
             // SampleKeyPairs[18...30] get 1 votes.
             var lessVotesCandidates = ValidationDataCenterKeyPairs
@@ -50,7 +50,7 @@ public partial class ElectionContractTests
                 .Take(EconomicContractsTestConstants.SupposedMinersCount -
                       EconomicContractsTestConstants.InitialCoreDataCenterCount).ToList();
             foreach (var keyPair in lessVotesCandidates)
-                await VoteToCandidate(VoterKeyPairs[0], keyPair.PublicKey.ToHex(), 100 * 86400, 1);
+                await VoteToCandidateAsync(VoterKeyPairs[0], keyPair.PublicKey.ToHex(), 100 * 86400, 1);
 
             var votedCandidates = await ElectionContractStub.GetVotedCandidates.CallAsync(new Empty());
             votedCandidates.Value.Count.ShouldBe(EconomicContractsTestConstants.SupposedMinersCount);
@@ -81,11 +81,11 @@ public partial class ElectionContractTests
 
             // Backup subsidy.
             {
-                var releasedInformation =
+                var distributedProfitsInfo =
                     await GetDistributedProfitsInfo(ProfitType.BackupSubsidy, currentPeriod);
-                releasedInformation.TotalShares.ShouldBe(
+                distributedProfitsInfo.TotalShares.ShouldBe(
                     EconomicContractsTestConstants.InitialCoreDataCenterCount * 5);
-                releasedInformation.AmountsMap[EconomicContractsTestConstants.NativeTokenSymbol]
+                distributedProfitsInfo.AmountsMap[EconomicContractsTestConstants.NativeTokenSymbol]
                     .ShouldBe(rewardAmount / 20);
             }
 

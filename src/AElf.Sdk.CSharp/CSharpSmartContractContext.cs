@@ -82,6 +82,11 @@ public class CSharpSmartContractContext : ISmartContractBridgeContext
     public long CurrentHeight => SmartContractBridgeContextImplementation.CurrentHeight;
 
     /// <summary>
+    ///     The height of the block that contains the transaction before charging.
+    /// </summary>
+    public Transaction Transaction => SmartContractBridgeContextImplementation.Transaction;
+    
+    /// <summary>
     ///     The time included in the current blocks header.
     /// </summary>
     public Timestamp CurrentBlockTime => SmartContractBridgeContextImplementation.CurrentBlockTime;
@@ -103,6 +108,15 @@ public class CSharpSmartContractContext : ISmartContractBridgeContext
     public byte[] RecoverPublicKey()
     {
         return SmartContractBridgeContextImplementation.RecoverPublicKey();
+    }
+
+    /// <summary>
+    ///     Recovers the public key of the transaction Sender with custom args.
+    /// </summary>
+    /// <returns>A byte array representing the public key.</returns>
+    public byte[] RecoverPublicKey(byte[] signature, byte[] hash)
+    {
+        return SmartContractBridgeContextImplementation.RecoverPublicKey(signature, hash);
     }
 
     /// <summary>

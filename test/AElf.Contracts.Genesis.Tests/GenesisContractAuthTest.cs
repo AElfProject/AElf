@@ -299,9 +299,14 @@ public class GenesisContractAuthTest : BasicContractZeroTestBase
         var thirdProposingTxResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
             nameof(BasicContractZero.ProposeNewContract), contractDeploymentInput, utcNow.AddSeconds(86399));
         thirdProposingTxResult.Status.ShouldBe(TransactionResultStatus.Failed);
-
+        
+        var byteResult = await Tester.CallContractMethodAsync(BasicContractZeroAddress,
+            nameof(BasicContractZeroImplContainer.BasicContractZeroImplStub.GetContractProposalExpirationTimePeriod),
+            new Empty());
+        var expirationTimePeriod = Int32Value.Parser.ParseFrom(byteResult);
+        
         var forthProposingTxResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
-            nameof(BasicContractZero.ProposeNewContract), contractDeploymentInput, utcNow.AddSeconds(86400));
+            nameof(BasicContractZero.ProposeNewContract), contractDeploymentInput, utcNow.AddSeconds(expirationTimePeriod.Value));
         forthProposingTxResult.Status.ShouldBe(TransactionResultStatus.Mined);
     }
 
@@ -1343,6 +1348,65 @@ public class GenesisContractAuthTest : BasicContractZeroTestBase
                 new Empty());
             var newCodeCheckController = AuthorityInfo.Parser.ParseFrom(byteResult);
             Assert.True(newCodeCheckController.OwnerAddress == organizationAddress);
+        }
+    }
+    
+    [Fact]
+    public async Task SetContractProposalExpirationTime_Test()
+    {
+        var createOrganizationResult = await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
+            nameof(ParliamentContractImplContainer.ParliamentContractImplStub.CreateOrganization),
+            new CreateOrganizationInput
+            {
+                ProposalReleaseThreshold = new ProposalReleaseThreshold
+                {
+                    MinimalApprovalThreshold = 1000,
+                    MinimalVoteThreshold = 1000
+                }
+            });
+        var organizationAddress = Address.Parser.ParseFrom(createOrganizationResult.ReturnValue);
+        
+        var defaultTime = await Tester.CallContractMethodAsync(BasicContractZeroAddress,
+            nameof(BasicContractZeroImplContainer.BasicContractZeroImplStub.GetContractProposalExpirationTimePeriod),
+            new Empty());
+        var contractProposalExpirationTime = Int32Value.Parser.ParseFrom(defaultTime);
+        Assert.True(contractProposalExpirationTime.Value == 259200);
+        
+        var byteResult = await Tester.CallContractMethodAsync(BasicContractZeroAddress,
+            nameof(BasicContractZeroImplContainer.BasicContractZeroImplStub.GetContractDeploymentController),
+            new Empty());
+        var contractDeploymentController = AuthorityInfo.Parser.ParseFrom(byteResult);
+        
+        const string methodName =
+            nameof(BasicContractZeroImplContainer.BasicContractZeroImplStub.SetContractProposalExpirationTimePeriod);
+        {
+            var proposalId = await CreateProposalAsync(Tester, ParliamentAddress,
+                organizationAddress, methodName,
+                new SetContractProposalExpirationTimePeriodInput
+                {
+                    ExpirationTimePeriod = 86400
+                });
+            await ApproveWithMinersAsync(Tester, ParliamentAddress, proposalId);
+            var txResult = await ReleaseProposalAsync(Tester, ParliamentAddress, proposalId);
+            txResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            txResult.Error.ShouldContain("Unauthorized behavior.");
+        }
+        {
+            var proposalId = await CreateProposalAsync(Tester, ParliamentAddress,
+                contractDeploymentController.OwnerAddress, methodName,
+                new SetContractProposalExpirationTimePeriodInput
+                {
+                    ExpirationTimePeriod = 86400
+                });
+            await ApproveWithMinersAsync(Tester, ParliamentAddress, proposalId);
+            var txResult2 = await ReleaseProposalAsync(Tester, ParliamentAddress, proposalId);
+            txResult2.Status.ShouldBe(TransactionResultStatus.Mined);
+            
+            byteResult = await Tester.CallContractMethodAsync(BasicContractZeroAddress,
+                nameof(BasicContractZeroImplContainer.BasicContractZeroImplStub.GetContractProposalExpirationTimePeriod),
+                new Empty());
+            var newContractProposalExpirationTime = Int32Value.Parser.ParseFrom(byteResult);
+            Assert.True(newContractProposalExpirationTime.Value == 86400);
         }
     }
 

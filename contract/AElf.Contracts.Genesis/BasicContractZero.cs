@@ -78,6 +78,12 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         return State.ContractCodeHashListMap[input.Value];
     }
 
+    public override Int32Value GetContractProposalExpirationTimePeriod(Empty input)
+    {
+        var expirationTimePeriod = GetCurrentContractProposalExpirationTimePeriod();
+        return new Int32Value{ Value = expirationTimePeriod };
+    }
+
     #endregion Views
 
     #region Actions
@@ -107,6 +113,8 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         // AssertDeploymentProposerAuthority(Context.Sender);
         var proposedContractInputHash = CalculateHashFromInput(input);
         RegisterContractProposingData(proposedContractInputHash);
+        
+        var expirationTimePeriod = GetCurrentContractProposalExpirationTimePeriod();
 
         // Create proposal for deployment
         var proposalCreationInput = new CreateProposalBySystemContractInput
@@ -125,7 +133,7 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
                     IsSystemContract = false
                 }.ToByteString(),
                 OrganizationAddress = State.ContractDeploymentController.Value.OwnerAddress,
-                ExpiredTime = Context.CurrentBlockTime.AddSeconds(ContractProposalExpirationTimePeriod)
+                ExpiredTime = Context.CurrentBlockTime.AddSeconds(expirationTimePeriod)
             },
             OriginProposer = Context.Sender
         };
@@ -151,6 +159,8 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         Assert(info != null, "Contract not found.");
         AssertAuthorityByContractInfo(info, Context.Sender);
 
+        var expirationTimePeriod = GetCurrentContractProposalExpirationTimePeriod();
+
         // Create proposal for contract update
         var proposalCreationInput = new CreateProposalBySystemContractInput
         {
@@ -168,7 +178,7 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
                     IsSystemContract = info.IsSystemContract
                 }.ToByteString(),
                 OrganizationAddress = State.ContractDeploymentController.Value.OwnerAddress,
-                ExpiredTime = Context.CurrentBlockTime.AddSeconds(ContractProposalExpirationTimePeriod)
+                ExpiredTime = Context.CurrentBlockTime.AddSeconds(expirationTimePeriod)
             },
             OriginProposer = Context.Sender
         };
@@ -372,6 +382,13 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         Assert(Context.Sender == address, "Unauthorized to set genesis contract state.");
 
         CreateParliamentOrganizationForInitialControllerAddress(input.Value);
+        return new Empty();
+    }
+
+    public override Empty SetContractProposalExpirationTimePeriod(SetContractProposalExpirationTimePeriodInput input)
+    {
+        AssertSenderAddressWith(State.ContractDeploymentController.Value.OwnerAddress);
+        State.ContractProposalExpirationTimePeriod.Value = input.ExpirationTimePeriod;
         return new Empty();
     }
 

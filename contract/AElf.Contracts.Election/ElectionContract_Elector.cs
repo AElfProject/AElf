@@ -27,9 +27,21 @@ public partial class ElectionContract
         AssertValidCandidateInformation(targetInformation);
         var votingRecord = State.VoteContract.GetVotingRecord.Call(input.VoteId);
         Assert(Context.Sender == votingRecord.Voter, "No permission to change current vote's option.");
-        var actualLockedTime = Context.CurrentBlockTime.Seconds.Sub(votingRecord.VoteTimestamp.Seconds);
-        var claimedLockDays = State.LockTimeMap[input.VoteId];
-        Assert(actualLockedTime < claimedLockDays, "This vote already expired.");
+        var actualLockedSeconds = Context.CurrentBlockTime.Seconds.Sub(votingRecord.VoteTimestamp.Seconds);
+        var claimedLockingSeconds = State.LockTimeMap[input.VoteId];
+        Assert(actualLockedSeconds < claimedLockingSeconds, "This vote already expired.");
+
+        if (input.IsResetVotingTime)
+        {
+            // true for extend EndPeroid of a Profit details, e.g. you vote for 12 months, and on the 6th month, you
+            // change the vote, then there will be another 12 months from that time.
+            ExtendVoterWelfareProfits(input.VoteId);
+        }
+        else
+        {
+            // false, no change for EndPeroid
+            State.LockTimeMap[input.VoteId] = State.LockTimeMap[input.VoteId].Sub(actualLockedSeconds);
+        }
 
         // Withdraw old votes
         State.VoteContract.Withdraw.Send(new WithdrawInput
@@ -119,6 +131,67 @@ public partial class ElectionContract
 
         State.DataCentersRankingList.Value = dataCenterList;
         return new Empty();
+    }
+
+    private void ExtendVoterWelfareProfits(Hash voteId)
+    {
+        var treasury = State.ProfitContract.GetScheme.Call(State.TreasuryHash.Value);
+        var electionVotingRecord = GetElectionVotingRecordByVoteId(voteId);
+        
+        // Extend endPeriod from now no, so the lockTime will *NOT* be changed.
+        var lockTime = State.LockTimeMap[voteId];
+        var lockPeriod = lockTime.Div(State.TimeEachTerm.Value);
+        if (lockPeriod == 0)
+        {
+            return;
+        }
+
+        var endPeriod = lockPeriod.Add(treasury.CurrentPeriod);
+        var extendingDetail = GetProfitDetailByElectionVotingRecord(electionVotingRecord);
+        if (extendingDetail != null)
+        {
+            // The endPeriod is updated and startPeriod is 0, others stay still.
+            State.ProfitContract.FixProfitDetail.Send(new FixProfitDetailInput
+            {
+                SchemeId = State.WelfareHash.Value,
+                BeneficiaryShare = new BeneficiaryShare
+                {
+                    Beneficiary = electionVotingRecord.Voter,
+                    Shares = electionVotingRecord.Weight
+                },
+                EndPeriod = endPeriod,
+                ProfitDetailId = voteId
+            });
+        }
+        else
+        {
+            throw new AssertionException($"Cannot find profit detail of given vote id {voteId}");
+        }
+    }
+
+    private ElectionVotingRecord GetElectionVotingRecordByVoteId(Hash voteId)
+    {
+        var votingRecord = State.VoteContract.GetVotingRecord.Call(voteId);
+        return TransferVotingRecordToElectionVotingRecord(votingRecord, voteId);
+    }
+
+    private ProfitDetail GetProfitDetailByElectionVotingRecord(ElectionVotingRecord electionVotingRecord)
+    {
+        var profitDetails = State.ProfitContract.GetProfitDetails.Call(new GetProfitDetailsInput
+        {
+            Beneficiary = electionVotingRecord.Voter,
+            SchemeId = State.WelfareHash.Value
+        });
+
+        // In new rules, profitDetail.Id equals to its vote id.
+        ProfitDetail profitDetail = profitDetails.Details.FirstOrDefault(d => d.Id == electionVotingRecord.VoteId);
+        // However, in the old world, profitDetail.Id is null, so use Shares.
+        if (profitDetail == null)
+        {
+            profitDetail = profitDetails.Details.LastOrDefault(d => d.Shares == electionVotingRecord.Weight);
+        }
+        
+        return profitDetail;
     }
 
     #endregion
@@ -303,7 +376,7 @@ public partial class ElectionContract
         });
     }
 
-    private void AddBeneficiaryToVoter(long votesWeight, long lockSeconds)
+    private void AddBeneficiaryToVoter(long votesWeight, long lockSeconds, Hash voteId)
     {
         State.ProfitContract.AddBeneficiary.Send(new AddBeneficiaryInput
         {
@@ -313,7 +386,9 @@ public partial class ElectionContract
                 Beneficiary = Context.Sender,
                 Shares = votesWeight
             },
-            EndPeriod = GetEndPeriod(lockSeconds)
+            EndPeriod = GetEndPeriod(lockSeconds),
+            // one vote, one profit detail, so voteId equals to profitDetailId
+            ProfitDetailId = voteId
         });
     }
 
@@ -359,7 +434,7 @@ public partial class ElectionContract
         var targetInformation = State.CandidateInformationMap[input.CandidatePubkey];
         AssertValidCandidateInformation(targetInformation);
 
-        var recoveredPublicKey = Context.RecoverPublicKey();
+        var electorPubkey = Context.RecoverPublicKey();
 
         var lockSeconds = (input.EndTimestamp - Context.CurrentBlockTime).Seconds;
         AssertValidLockSeconds(lockSeconds);
@@ -368,71 +443,14 @@ public partial class ElectionContract
         Assert(State.LockTimeMap[voteId] == 0, "Vote already exists.");
         State.LockTimeMap[voteId] = lockSeconds;
 
-        UpdateElectorInformation(recoveredPublicKey, input.Amount, voteId);
+        UpdateElectorInformation(electorPubkey, input.Amount, voteId);
 
         var candidateVotesAmount = UpdateCandidateInformation(input.CandidatePubkey, input.Amount, voteId);
 
         LockTokensOfVoter(input.Amount, voteId);
         TransferTokensToVoter(input.Amount);
         CallVoteContractVote(input.Amount, input.CandidatePubkey, voteId);
-        AddBeneficiaryToVoter(GetVotesWeight(input.Amount, lockSeconds), lockSeconds);
-
-        var rankingList = State.DataCentersRankingList.Value;
-        if (rankingList.DataCenters.ContainsKey(input.CandidatePubkey))
-        {
-            rankingList.DataCenters[input.CandidatePubkey] =
-                rankingList.DataCenters[input.CandidatePubkey].Add(input.Amount);
-            State.DataCentersRankingList.Value = rankingList;
-        }
-        else
-        {
-            if (rankingList.DataCenters.Count < GetValidationDataCenterCount())
-            {
-                State.DataCentersRankingList.Value.DataCenters.Add(input.CandidatePubkey,
-                    candidateVotesAmount);
-                State.ProfitContract.AddBeneficiary.Send(new AddBeneficiaryInput
-                {
-                    SchemeId = State.SubsidyHash.Value,
-                    BeneficiaryShare = new BeneficiaryShare
-                    {
-                        Beneficiary =
-                            Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(input.CandidatePubkey)),
-                        Shares = 1
-                    }
-                });
-            }
-            else
-            {
-                TryToBecomeAValidationDataCenter(input, candidateVotesAmount, rankingList);
-            }
-        }
-
-        return voteId;
-    }
-
-    public override Hash VoteWithExpiredVotes(VoteMinerInput input)
-    {
-        // Check candidate information map instead of candidates. 
-        var targetInformation = State.CandidateInformationMap[input.CandidatePubkey];
-        AssertValidCandidateInformation(targetInformation);
-
-        var recoveredPublicKey = Context.RecoverPublicKey();
-
-        var lockSeconds = (input.EndTimestamp - Context.CurrentBlockTime).Seconds;
-        AssertValidLockSeconds(lockSeconds);
-
-        var voteId = GenerateVoteId(input);
-        Assert(State.LockTimeMap[voteId] == 0, "Vote already exists.");
-        State.LockTimeMap[voteId] = lockSeconds;
-
-        UpdateElectorInformation(recoveredPublicKey, input.Amount, voteId);
-
-        var candidateVotesAmount = UpdateCandidateInformation(input.CandidatePubkey, input.Amount, voteId);
-
-        // TODO: De-vote previous one then call VoteContract.Vote 
-        CallVoteContractVote(input.Amount, input.CandidatePubkey, voteId);
-        // TODO: Remove old beneficiary then add new.
-        AddBeneficiaryToVoter(GetVotesWeight(input.Amount, lockSeconds), lockSeconds);
+        AddBeneficiaryToVoter(GetVotesWeight(input.Amount, lockSeconds), lockSeconds, voteId);
 
         var rankingList = State.DataCentersRankingList.Value;
         if (rankingList.DataCenters.ContainsKey(input.CandidatePubkey))
@@ -657,74 +675,6 @@ public partial class ElectionContract
             rankingList.DataCenters[newestPubkey].Sub(votingRecord.Amount);
         UpdateDataCenterAfterMemberVoteAmountChanged(rankingList, newestPubkey);
         State.DataCentersRankingList.Value = rankingList;
-
-        return new Empty();
-    }
-
-    public override Empty AssistWithdraw(AssistWithdrawInput input)
-    {
-        var votingRecord = State.VoteContract.GetVotingRecord.Call(input.VoteId);
-
-        var actualLockedTime = Context.CurrentBlockTime.Seconds.Sub(votingRecord.VoteTimestamp.Seconds);
-        var claimedLockDays = State.LockTimeMap[input.VoteId];
-        Assert(actualLockedTime >= claimedLockDays,
-            $"Still need {claimedLockDays.Sub(actualLockedTime).Div(86400)} days to unlock {input.Pubkey}'s token.");
-
-        // Update Elector's Votes information.
-        var voterPublicKey = input.Pubkey;
-        var voterVotes = State.ElectorVotes[voterPublicKey];
-        if (voterVotes == null) throw new AssertionException($"Voter {voterPublicKey} never votes before.");
-
-        voterVotes.ActiveVotingRecordIds.Remove(input.VoteId);
-        voterVotes.WithdrawnVotingRecordIds.Add(input.VoteId);
-        voterVotes.ActiveVotedVotesAmount = voterVotes.ActiveVotedVotesAmount.Sub(votingRecord.Amount);
-        State.ElectorVotes[voterPublicKey] = voterVotes;
-
-        // Update Candidate's Votes information.
-        var newestPubkey = GetNewestPubkey(votingRecord.Option);
-        var candidateVotes = State.CandidateVotes[newestPubkey];
-        if (candidateVotes == null)
-            throw new AssertionException(
-                $"Newest pubkey {newestPubkey} is invalid. Old pubkey is {votingRecord.Option}");
-
-        candidateVotes.ObtainedActiveVotingRecordIds.Remove(input.VoteId);
-        candidateVotes.ObtainedWithdrawnVotingRecordIds.Add(input.VoteId);
-        candidateVotes.ObtainedActiveVotedVotesAmount =
-            candidateVotes.ObtainedActiveVotedVotesAmount.Sub(votingRecord.Amount);
-        State.CandidateVotes[newestPubkey] = candidateVotes;
-
-        var voterAddress = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(voterPublicKey));
-        UnlockTokensOfVoter(input.VoteId, votingRecord.Amount, voterAddress);
-        RetrieveTokensFromVoter(votingRecord.Amount, voterAddress);
-        WithdrawTokensOfVoter(input.VoteId);
-        if (!State.WeightsAlreadyFixedMap[input.VoteId])
-        {
-            RemoveBeneficiaryOfVoter(voterAddress);
-            State.WeightsAlreadyFixedMap.Remove(input.VoteId);
-        }
-
-        var rankingList = State.DataCentersRankingList.Value;
-        if (!rankingList.DataCenters.ContainsKey(newestPubkey)) return new Empty();
-        rankingList.DataCenters[newestPubkey] =
-            rankingList.DataCenters[newestPubkey].Sub(votingRecord.Amount);
-        UpdateDataCenterAfterMemberVoteAmountChanged(rankingList, newestPubkey);
-        State.DataCentersRankingList.Value = rankingList;
-
-        return new Empty();
-    }
-
-    public override Empty FixTotalWeights(FixTotalWeightsInput input)
-    {
-        foreach (var voteId in input.VoteIds)
-        {
-            var votingRecord = State.VoteContract.GetVotingRecord.Call(voteId);
-            var actualLockedTime = Context.CurrentBlockTime.Seconds.Sub(votingRecord.VoteTimestamp.Seconds);
-            var claimedLockDays = State.LockTimeMap[voteId];
-            if (actualLockedTime < claimedLockDays) continue;
-
-            State.WeightsAlreadyFixedMap[voteId] = true;
-            RemoveBeneficiaryOfVoter(votingRecord.Voter);
-        }
 
         return new Empty();
     }

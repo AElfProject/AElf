@@ -295,7 +295,7 @@ Parameters
 =========== ================================================================================================ ===================================
 Name                                                    Type                                                                     Description
 =========== ================================================================================================ ===================================
-serializer    `System.Func <https://docs.microsoft.com/en-us/dotnet/api/system.func-1?view=netcore-3.1>`__              Function that will be used to
+serializer    `System.Func <https://docs.microsoft.com/en-us/dotnet/api/system.func-1?view=netcore-6.0>`__              Function that will be used to
                                                                                                                         deserialize messages.
 =========== ================================================================================================ ===================================
 
