@@ -767,7 +767,7 @@ public class MultiTokenContractCrossChainTest : MultiTokenContractCrossChainTest
     }
 
     [Fact]
-    public async Task SideChain_CrossChainReceived_WrongReceiver_Test()
+    public async Task SideChain_CrossChainReceived_DifferentReceiver_Test()
     {
         var sideChainId = await GenerateSideChainAsync();
         await RegisterSideChainContractAddressOnMainChainAsync();
@@ -801,9 +801,8 @@ public class MultiTokenContractCrossChainTest : MultiTokenContractCrossChainTest
             SideTokenContractAddress,
             SampleAccount.Accounts[2].KeyPair);
         var executionResult =
-            await tokenContractImplStub.CrossChainReceiveToken.SendWithExceptionAsync(crossChainReceiveTokenInput);
-        Assert.True(executionResult.TransactionResult.Status == TransactionResultStatus.Failed);
-        Assert.Contains("Unable to claim cross chain token.", executionResult.TransactionResult.Error);
+            await tokenContractImplStub.CrossChainReceiveToken.SendAsync(crossChainReceiveTokenInput);
+        Assert.True(executionResult.TransactionResult.Status == TransactionResultStatus.Mined);
     }
 
     [Fact]
