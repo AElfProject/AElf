@@ -9,6 +9,7 @@ using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 using AElf.Standards.ACS10;
 using AElf.Types;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Treasury;
@@ -602,25 +603,53 @@ public partial class TreasuryContract : TreasuryContractImplContainer.TreasuryCo
         if (State.ElectionContract.Value == null)
             State.ElectionContract.Value =
                 Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName);
-
-        var admin = State.ElectionContract.GetCandidateAdmin.Call(new StringValue { Value = input.Pubkey });
-        Assert(Context.Origin == admin, "No permission.");
+        var pubkey = ByteString.CopyFrom(ByteArrayHelper.HexStringToByteArray(input.Pubkey));
         
-        Address address2 = State.ProfitsReceiverMap[input.Pubkey];
+        var admin = State.ElectionContract.GetCandidateAdmin.Call(new StringValue {Value = input.Pubkey});
+        var candidateList = State.ElectionContract.GetCandidates.Call(new Empty());
+        var candidateAddressList = candidateList.Value.Select(a => Address.FromPublicKey(a.ToByteArray()));
+
+        Assert(Context.Origin == admin , "No permission.");
+        Assert(candidateAddressList.Contains(Address.FromPublicKey(pubkey.ToByteArray())),"Pubkey is not a candidate.");
+
+        var previousProfitsReceiver = State.ProfitsReceiverMap[input.Pubkey];
         State.ProfitsReceiverMap[input.Pubkey] = input.ProfitsReceiverAddress;
         State.ElectionContract.SetProfitsReceiver.Send(new AElf.Contracts.Election.SetProfitsReceiverInput
         {
-            CandidateAddress = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(input.Pubkey)),
+            CandidatePubkey = input.Pubkey,
             ReceiverAddress = input.ProfitsReceiverAddress,
-            PreviousReceiverAddress = (address2 ?? new Address())
+            PreviousReceiverAddress = previousProfitsReceiver ?? new Address()
         });
-        
+
+        return new Empty();
+    }
+
+    public override Empty ReplaceProfitsReceiverCandidate(ReplaceProfitsReceiverCandidateInput input)
+    {
+        Assert(Context.Sender == Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName),
+            "No permission");
+        var profitReceiver = State.ProfitsReceiverMap[input.OldPubkey];
+        State.ProfitsReceiverMap.Remove(input.OldPubkey);
+        State.ProfitsReceiverMap[input.NewPubkey] = profitReceiver;
+        return new Empty();
+    }
+
+    public override Empty RemoveProfitsReceiver(RemoveProfitsReceiverInput input)
+    {
+        Assert(Context.Sender == Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName),
+            "No permission");
+        State.ProfitsReceiverMap.Remove(input.Pubkey);
         return new Empty();
     }
 
     public override Address GetProfitsReceiver(StringValue input)
     {
         return GetProfitsReceiver(input.Value);
+    }
+
+    public override Address GetProfitsReceiverOrDefault(StringValue input)
+    {
+        return State.ProfitsReceiverMap[input.Value];
     }
 
     private Address GetProfitsReceiver(string pubkey)

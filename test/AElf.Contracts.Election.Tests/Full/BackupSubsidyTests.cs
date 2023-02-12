@@ -185,7 +185,7 @@ public partial class ElectionContractTests
         }
         // Check profit receiver and profit details
         {
-            var getProfitReceiver = await GetProfitReceiver(announceElectionKeyPair.PublicKey.ToHex());
+            var getProfitReceiver = await GetProfitReceiver(newKeyPair.PublicKey.ToHex());
             getProfitReceiver.ShouldBe(Address.FromPublicKey(newKeyPair.PublicKey));
 
             var oldCandidateShare =
@@ -265,7 +265,7 @@ public partial class ElectionContractTests
                     Pubkey = announceElectionKeyPair.PublicKey.ToHex(),
                     ProfitsReceiverAddress = Address.FromPublicKey(profitReceiver.PublicKey)
                 });
-            result.TransactionResult.Error.ShouldContain("No permission.");
+            result.TransactionResult.Error.ShouldContain("Pubkey is not a candidate.");
         }
     }
 
@@ -318,7 +318,7 @@ public partial class ElectionContractTests
         }
         // Check profit receiver and profit details
         {
-            var getProfitReceiver = await GetProfitReceiver(announceElectionKeyPair.PublicKey.ToHex());
+            var getProfitReceiver = await GetProfitReceiver(newKeyPair.PublicKey.ToHex());
             getProfitReceiver.ShouldBe(Address.FromPublicKey(profitReceiver.PublicKey));
 
             var oldCandidateShare =
@@ -328,15 +328,14 @@ public partial class ElectionContractTests
             oldCandidateShare.Details.First().IsWeightRemoved.ShouldBeTrue();
 
             var newCandidateShare = await GetBackupSubsidyProfitDetails(Address.FromPublicKey(newKeyPair.PublicKey));
-            newCandidateShare.Details.Count.ShouldBe(1);
-            newCandidateShare.Details.First().Shares.ShouldBe(1);
-            newCandidateShare.Details.First().IsWeightRemoved.ShouldBeTrue();
-
+            newCandidateShare.ShouldBe(new ProfitDetails());
+            
             var profitReceiverBackShare =
                 await GetBackupSubsidyProfitDetails(Address.FromPublicKey(profitReceiver.PublicKey));
-            profitReceiverBackShare.Details.Count.ShouldBe(1);
-            profitReceiverBackShare.Details.First().Shares.ShouldBe(1);
-            profitReceiverBackShare.Details.First().IsWeightRemoved.ShouldBeFalse();
+            profitReceiverBackShare.Details.Count.ShouldBe(2);
+            profitReceiverBackShare.Details.First().IsWeightRemoved.ShouldBeTrue();
+            profitReceiverBackShare.Details.Last().IsWeightRemoved.ShouldBeFalse();
+            profitReceiverBackShare.Details.First().Id.ShouldNotBe(profitReceiverBackShare.Details.Last().Id);
         }
     }
 

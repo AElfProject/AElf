@@ -112,7 +112,7 @@ public partial class ElectionContract
         if (State.Candidates.Value.Value.Count <= GetValidationDataCenterCount())
         {
             State.DataCentersRankingList.Value.DataCenters.Add(pubkey, 0);
-            RegisterCandidateToSubsidyProfitScheme(address);
+            RegisterCandidateToSubsidyProfitScheme(pubkey);
         }
 
         return new Empty();
@@ -134,7 +134,7 @@ public partial class ElectionContract
         if (State.Candidates.Value.Value.Count <= GetValidationDataCenterCount())
         {
             State.DataCentersRankingList.Value.DataCenters.Add(pubkey, 0);
-            RegisterCandidateToSubsidyProfitScheme(address);
+            RegisterCandidateToSubsidyProfitScheme(pubkey);
         }
 
         State.CandidateSponsorMap[input.Pubkey] = Context.Sender;
@@ -208,18 +208,13 @@ public partial class ElectionContract
         });
     }
 
-    private void RegisterCandidateToSubsidyProfitScheme(Address candidateAddress)
+    private void RegisterCandidateToSubsidyProfitScheme(string candidatePubkey)
     {
         if (State.ProfitContract.Value == null)
             State.ProfitContract.Value =
                 Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName);
 
-        // Add 1 Shares for this candidate in subsidy profit scheme.
-        State.ProfitContract.AddBeneficiary.Send(new AddBeneficiaryInput
-        {
-            SchemeId = State.SubsidyHash.Value,
-            BeneficiaryShare = new BeneficiaryShare { Beneficiary = candidateAddress, Shares = 1 }
-        });
+        AddBeneficiary(candidatePubkey);
     }
 
     #endregion
