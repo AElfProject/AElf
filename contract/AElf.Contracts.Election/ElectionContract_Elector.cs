@@ -738,17 +738,6 @@ public partial class ElectionContract
             return;
 
         AddBeneficiary(newCandidateDataCenter);
-
-        if (State.TreasuryContract.Value == null)
-        {
-            State.TreasuryContract.Value =
-                Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
-        }
-
-        State.TreasuryContract.RemoveProfitsReceiver.Send(new RemoveProfitsReceiverInput
-        {
-            Pubkey = oldCandidateInDataCenter
-        });
     }
 
     #endregion
@@ -772,10 +761,10 @@ public partial class ElectionContract
         return address;
     }
 
-    private void AddBeneficiary(string candidatePubkey,Address profitsReceiver = null)
+    private void AddBeneficiary(string candidatePubkey, Address profitsReceiver = null)
     {
         profitsReceiver = profitsReceiver == null ? GetProfitsReceiverOrDefault(candidatePubkey) : profitsReceiver;
-        
+
         var beneficiaryAddress = profitsReceiver.Value.Any()
             ? profitsReceiver
             : Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(candidatePubkey));

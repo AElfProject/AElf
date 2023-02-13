@@ -53,9 +53,6 @@ service TreasuryContract {
 
     rpc ReplaceProfitsReceiverCandidate (ReplaceProfitsReceiverCandidateInput) returns (google.protobuf.Empty) {
     }
-
-    rpc RemoveProfitsReceiver (RemoveProfitsReceiverInput) returns (google.protobuf.Empty) {
-    }
     
     // Used to estimate the revenue weight of 10000 tokens voted by users.
     rpc GetWelfareRewardAmountSample (GetWelfareRewardAmountSampleInput) returns (GetWelfareRewardAmountSampleOutput) {
@@ -169,10 +166,6 @@ message SetProfitsReceiverInput {
 message ReplaceProfitsReceiverCandidateInput{
     string old_pubkey = 1;
     string new_pubkey = 2;
-}
-
-message RemoveProfitsReceiverInput{
-    string pubkey = 1;
 }
 
 message StringList {

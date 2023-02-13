@@ -634,14 +634,6 @@ public partial class TreasuryContract : TreasuryContractImplContainer.TreasuryCo
         return new Empty();
     }
 
-    public override Empty RemoveProfitsReceiver(RemoveProfitsReceiverInput input)
-    {
-        Assert(Context.Sender == Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName),
-            "No permission");
-        State.ProfitsReceiverMap.Remove(input.Pubkey);
-        return new Empty();
-    }
-
     public override Address GetProfitsReceiver(StringValue input)
     {
         return GetProfitsReceiver(input.Value);
