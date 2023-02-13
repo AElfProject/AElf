@@ -362,7 +362,8 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
                                tokenInfo.Issuer == input.Issuer && tokenInfo.TotalSupply == input.TotalSupply &&
                                tokenInfo.IssueChainId == input.IssueChainId;
 
-        if (tokenInfo.ExternalInfo != null && tokenInfo.ExternalInfo.Value.Count > 0)
+        if (tokenInfo.ExternalInfo != null && tokenInfo.ExternalInfo.Value.Count > 0 ||
+            input.ExternalInfo != null && input.ExternalInfo.Count > 0)
         {
             validationResult = validationResult && tokenInfo.ExternalInfo.Value.Count == input.ExternalInfo.Count;
             if (tokenInfo.ExternalInfo.Value.Any(keyPair =>
@@ -530,8 +531,7 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
         var tokenInfo = AssertValidToken(symbol, amount);
         var issueChainId = GetIssueChainId(symbol);
         Assert(issueChainId == crossChainTransferInput.IssueChainId, "Incorrect issue chain id.");
-        Assert(transferSender == Context.Sender && targetChainId == Context.ChainId,
-            "Unable to claim cross chain token.");
+        Assert(targetChainId == Context.ChainId, "Unable to claim cross chain token.");
         var registeredTokenContractAddress = State.CrossChainTransferWhiteList[input.FromChainId];
         AssertCrossChainTransaction(transferTransaction, registeredTokenContractAddress,
             nameof(CrossChainTransfer));
@@ -555,7 +555,8 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
             Memo = crossChainTransferInput.Memo,
             FromChainId = input.FromChainId,
             ParentChainHeight = input.ParentChainHeight,
-            IssueChainId = issueChainId
+            IssueChainId = issueChainId,
+            TransferTransactionId = transferTransactionId
         });
         return new Empty();
     }

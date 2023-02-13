@@ -1185,4 +1185,55 @@ public partial class MultiTokenContractTests
             To = to == null ? creator : to
         });
     }
+
+
+    [Fact]
+    public async Task ValidateTokenInfoExists_ExternalInfo_Test()
+    {
+        await CreateNativeTokenAsync();
+        await TokenContractStub.Create.SendAsync(new CreateInput
+        {
+            Symbol = AliceCoinTokenInfo.Symbol,
+            TokenName = AliceCoinTokenInfo.TokenName,
+            TotalSupply = AliceCoinTokenInfo.TotalSupply,
+            Decimals = AliceCoinTokenInfo.Decimals,
+            Issuer = AliceCoinTokenInfo.Issuer,
+            IsBurnable = AliceCoinTokenInfo.IsBurnable,
+            LockWhiteList =
+            {
+                BasicFunctionContractAddress,
+                OtherBasicFunctionContractAddress,
+                TokenConverterContractAddress,
+                TreasuryContractAddress
+            }
+        });
+
+        var result = await TokenContractStub.ValidateTokenInfoExists.SendAsync(
+            new ValidateTokenInfoExistsInput
+            {
+                Symbol = AliceCoinTokenInfo.Symbol,
+                TokenName = AliceCoinTokenInfo.TokenName,
+                TotalSupply = AliceCoinTokenInfo.TotalSupply,
+                Decimals = AliceCoinTokenInfo.Decimals,
+                Issuer = AliceCoinTokenInfo.Issuer,
+                IsBurnable = AliceCoinTokenInfo.IsBurnable,
+                IssueChainId = _chainId
+            });
+        
+        result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        
+        result = await TokenContractStub.ValidateTokenInfoExists.SendWithExceptionAsync(
+            new ValidateTokenInfoExistsInput
+            {
+                Symbol = AliceCoinTokenInfo.Symbol,
+                TokenName = AliceCoinTokenInfo.TokenName,
+                TotalSupply = AliceCoinTokenInfo.TotalSupply,
+                Decimals = AliceCoinTokenInfo.Decimals,
+                Issuer = AliceCoinTokenInfo.Issuer,
+                IsBurnable = AliceCoinTokenInfo.IsBurnable,
+                ExternalInfo = { {"key","value"} }
+            });
+        
+        result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+    }
 }
