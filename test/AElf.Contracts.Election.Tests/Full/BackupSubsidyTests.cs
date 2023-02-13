@@ -379,6 +379,29 @@ public partial class ElectionContractTests
             profitReceiverBackShare.Details.First().Shares.ShouldBe(1);
             profitReceiverBackShare.Details.First().IsWeightRemoved.ShouldBeTrue();
         }
+        
+        // Announce Election again
+        await AnnounceElectionAsync(announceElectionKeyPair, candidateAdminAddress);
+        
+        // Check profit receiver and profit details
+        {
+            var getProfitReceiver = await GetProfitReceiver(announceElectionKeyPair.PublicKey.ToHex());
+            getProfitReceiver.ShouldBe(Address.FromPublicKey(profitReceiver.PublicKey));
+            
+            var candidateShare =
+                await GetBackupSubsidyProfitDetails(Address.FromPublicKey(announceElectionKeyPair.PublicKey));
+            candidateShare.Details.Count.ShouldBe(1);
+            candidateShare.Details.First().Shares.ShouldBe(1);
+            candidateShare.Details.First().IsWeightRemoved.ShouldBeTrue();
+
+            var profitReceiverBackShare =
+                await GetBackupSubsidyProfitDetails(Address.FromPublicKey(profitReceiver.PublicKey));
+            profitReceiverBackShare.Details.Count.ShouldBe(2);
+            profitReceiverBackShare.Details.First().IsWeightRemoved.ShouldBeTrue();
+            profitReceiverBackShare.Details.Last().IsWeightRemoved.ShouldBeFalse();
+            profitReceiverBackShare.Details.First().Id.ShouldNotBe(profitReceiverBackShare.Details.Last().Id);
+        }
+
     }
 
     [Fact]
