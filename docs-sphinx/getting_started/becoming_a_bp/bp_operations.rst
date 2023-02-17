@@ -48,7 +48,7 @@ You can enter the Governance page `here <https://explorer.aelf.io/vote/election>
 
 1. Execute this command to check if you have enough balance in the node. All the ELF tokens generated in the local environment are stored in the first node address that you configured in ``InitialMinerList`` in step 1, i.e. "**Set up a full node**". 
    
-   Please note: In the following demonstration, we will be using the address ``Q3t34SAEsxAQrSQidTRzDonWNTPpSTgH8bqu8pQUGCSWRPdRC`` and its public key is ``04eed00eb009ccd283798e3862781cebd25ed6a4641e0e1b7d0e3b6b59025040679fc4dc0edc9de166bd630c7255188a9aeadfc832fdae0828270f77c6ef267905``. You need to replace it with your own address when you operate it.
+   Please note: In the following demonstration, we will be using the address ``Q3t34SAEsxAQrSQidTRzDonWNTPpSTgH8bqu8pQUGCSWRPdRC`` and its public key is ``04eed00eb009ccd283798e3...828270f77c6ef267905``. You need to replace it with your own address when you operate it.
 
    .. code:: bash
 
@@ -184,9 +184,9 @@ The top 2N+1 candidate nodes will automatically be elected as BPs in the next te
 
 Execute this command:
 
-   .. code:: bash
+.. code:: bash
 
-      aelf-command call AElf.ContractNames.Consensus GetCurrentMinerPubkeyList '{}'
+   aelf-command call AElf.ContractNames.Consensus GetCurrentMinerPubkeyList '{}'
 
 Info of the current BPs will be returned:
 
@@ -208,6 +208,3 @@ Add more BPs
 You can repeat steps 1-4 to add more BPs, but you don't need to edit the configuration file ``appsettings.json`` in step 1 again. When the number of genesis nodes and candidate nodes exceeds the maximum number of BPs, the candidate nodes will gradually replace the genesis nodes and the replaced genesis nodes can't participate in node election again. After all the genesis nodes are replaced, they will have fulfilled their duty of starting aelf Mainnet.
 
 If you have learned about how to become a BP, you can proceed with the following docs for contract deployment and DApp development guide.
-
-
-
