@@ -94,6 +94,8 @@ message SmartContractRegistration {
     bool is_system_contract = 4;
     // The version of the current contract.
     int32 version = 5;
+    // The address of the current contract.
+    Address address = 6;
 }
 
 message TransactionExecutingStateSet {

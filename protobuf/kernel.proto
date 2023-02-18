@@ -181,3 +181,8 @@ message SmartContractAddress{
     Hash block_hash = 2;
     int64 block_height = 3;
 }
+
+message SmartContractCode{
+    aelf.Hash origin_code_hash = 1;
+    bytes patched_code = 2;
+}

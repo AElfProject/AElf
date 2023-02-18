@@ -22,13 +22,14 @@ public class SmartContractExecutiveService : ISmartContractExecutiveService, ISi
     private readonly ISmartContractRegistrationProvider _smartContractRegistrationProvider;
     private readonly ISmartContractRunnerContainer _smartContractRunnerContainer;
     private readonly ITransactionContextFactory _transactionContextFactory;
+    private readonly ISmartContractService _smartContractService;
 
     public SmartContractExecutiveService(IDefaultContractZeroCodeProvider defaultContractZeroCodeProvider,
         ISmartContractRunnerContainer smartContractRunnerContainer,
         IHostSmartContractBridgeContextService hostSmartContractBridgeContextService,
         ISmartContractRegistrationProvider smartContractRegistrationProvider,
         ISmartContractExecutiveProvider smartContractExecutiveProvider,
-        ITransactionContextFactory transactionContextFactory)
+        ITransactionContextFactory transactionContextFactory, ISmartContractService smartContractService)
     {
         _defaultContractZeroCodeProvider = defaultContractZeroCodeProvider;
         _smartContractRunnerContainer = smartContractRunnerContainer;
@@ -36,6 +37,7 @@ public class SmartContractExecutiveService : ISmartContractExecutiveService, ISi
         _smartContractRegistrationProvider = smartContractRegistrationProvider;
         _smartContractExecutiveProvider = smartContractExecutiveProvider;
         _transactionContextFactory = transactionContextFactory;
+        _smartContractService = smartContractService;
 
         Logger = NullLogger<SmartContractExecutiveService>.Instance;
     }
@@ -122,6 +124,12 @@ public class SmartContractExecutiveService : ISmartContractExecutiveService, ISi
     {
         // get runner
         var runner = _smartContractRunnerContainer.GetRunner(reg.Category);
+
+        var patchCode = await _smartContractService.GetSmartContractCodeAsync(reg.CodeHash);
+        if (patchCode != null)
+        {
+            reg.Code = patchCode;
+        }
 
         // run smartContract executive info and return executive
         var executive = await runner.RunAsync(reg);

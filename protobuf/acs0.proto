@@ -46,6 +46,27 @@ service ACS0 {
     // Release the proposal which has passed the code check.
     rpc ReleaseCodeCheckedContract (ReleaseContractInput) returns (google.protobuf.Empty) {
     }
+
+    // Deploy a user smart contract on chain and return the address of the contract deployed.
+    rpc DeployUserSmartContract (ContractDeploymentInput) returns (aelf.Hash) {
+    }
+
+    // Update a user smart contract on chain.
+    rpc UpdateUserSmartContract (ContractUpdateInput) returns (google.protobuf.Empty) {
+    }
+    
+    rpc ReleaseApprovedUserSmartContract(ReleaseContractInput) returns (google.protobuf.Empty) {
+    }
+
+    rpc ReleaseDeployUserSmartContract(ContractDeploymentInput) returns (google.protobuf.Empty) {
+    }
+
+    rpc ReleaseUpdateUserSmartContract(ContractUpdateInput) returns (google.protobuf.Empty) {
+    }
+
+    // Set author of the specified contract.
+    rpc SetContractAuthor (SetContractAuthorInput) returns (google.protobuf.Empty) {
+    }
     
     // Validate whether the input system contract exists.
     rpc ValidateSystemContractAddress(ValidateSystemContractAddressInput) returns (google.protobuf.Empty){
@@ -92,6 +113,10 @@ service ACS0 {
     }
 
     rpc GetContractCodeHashListByDeployingBlockHeight (google.protobuf.Int64Value) returns (ContractCodeHashList) {
+        option (aelf.is_view) = true;
+    }
+
+    rpc GetContractInfoByCodeHash (aelf.Hash) returns (ContractInfo) {
         option (aelf.is_view) = true;
     }
 }
@@ -196,6 +221,8 @@ message CodeCheckRequired
     sint32 category = 3;
     // Indicates if the contract is the system contract.
     bool is_system_contract = 4;
+
+    bool is_user_contract = 5;
 }
 
 message CodeUpdated
@@ -209,6 +236,17 @@ message CodeUpdated
     aelf.Hash new_code_hash = 3;
     // The version of the current contract.
     int32 version = 4;
+}
+
+message AuthorUpdated
+{
+    option (aelf.is_event) = true;
+    // The address of the contract.
+    aelf.Address address = 1 [(aelf.is_indexed) = true];
+    // The old author of the contract.
+    aelf.Address old_author = 2;
+    // The new author of the contract.
+    aelf.Address new_author = 3;
 }
 
 message ValidateSystemContractAddressInput {
@@ -231,4 +269,9 @@ message ContractCodeHashList {
 
 message ContractCodeHashMap {
     map<int64, ContractCodeHashList> value = 1;
+}
+
+message SetContractAuthorInput{
+    aelf.Address contract_address = 1;
+    aelf.Address new_author = 2;
 }

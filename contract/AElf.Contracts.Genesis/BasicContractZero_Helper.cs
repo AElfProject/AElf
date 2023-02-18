@@ -44,7 +44,8 @@ public partial class BasicContractZero
             Code = ByteString.CopyFrom(code),
             CodeHash = codeHash,
             IsSystemContract = info.IsSystemContract,
-            Version = info.Version
+            Version = info.Version,
+            Address = contractAddress
         };
 
         State.SmartContractRegistrations[reg.CodeHash] = reg;
@@ -215,6 +216,53 @@ public partial class BasicContractZero
         return State.ContractProposalExpirationTimePeriod.Value == 0
             ? ContractProposalExpirationTimePeriod
             : State.ContractProposalExpirationTimePeriod.Value;
+    }
+    
+    private void AssertCurrentMiner()
+    {
+        RequireConsensusContractStateSet();
+        var isCurrentMiner = State.ConsensusContract.IsCurrentMiner.Call(Context.Sender).Value;
+        Context.LogDebug(() => $"Sender is currentMiner : {isCurrentMiner}.");
+        Assert(isCurrentMiner, "No permission.");
+    }
+    
+    private void RequireConsensusContractStateSet()
+    {
+        if (State.ConsensusContract.Value != null)
+            return;
+        State.ConsensusContract.Value =
+            Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
+    }
+
+    private void SendUserContractProposal(Hash proposingInputHash, string releaseMethodName, ByteString @params)
+    {
+        var registered = State.ContractProposingInputMap[proposingInputHash];
+        Assert(registered == null || Context.CurrentBlockTime >= registered.ExpiredTime, "Already proposed.");
+        var proposedInfo = new ContractProposingInput
+        {
+            Proposer = Context.Self,
+            Status = ContractProposingInputStatus.CodeCheckProposed,
+            ExpiredTime = Context.CurrentBlockTime.AddSeconds(CodeCheckProposalExpirationTimePeriod)
+        };
+        State.ContractProposingInputMap[proposingInputHash] = proposedInfo;
+
+        var codeCheckController = State.CodeCheckController.Value;
+        var proposalCreationInput = new CreateProposalBySystemContractInput
+        {
+            ProposalInput = new CreateProposalInput
+            {
+                ToAddress = Context.Self,
+                ContractMethodName = releaseMethodName,
+                Params = @params,
+                OrganizationAddress = codeCheckController.OwnerAddress,
+                ExpiredTime = proposedInfo.ExpiredTime
+            },
+            OriginProposer = Context.Self
+        };
+        
+        Context.SendInline(codeCheckController.ContractAddress,
+            nameof(AuthorizationContractContainer.AuthorizationContractReferenceState
+                .CreateProposalBySystemContract), proposalCreationInput);
     }
 }
 
