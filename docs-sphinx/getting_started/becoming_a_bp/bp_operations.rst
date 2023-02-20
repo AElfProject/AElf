@@ -4,7 +4,7 @@ Operations
 Set up a full node
 ------------------
 
-aelf doesn't have light nodes, and full nodes refer to the single nodes or multi-nodes users set up. You can click `here <https://docs.aelf.io/en/latest/getting_started/development-environment/node.html#multi-nodes>`_ to learn how to set up a full node. Please note: When you simulate it in the local environment, the BP election mechanism won't be triggered if you only set up a single node, which means the node can't become a BP. Hence, you need to set up **multi-nodes** in the local environment.
+aelf doesn't have light nodes, it means that all the nodes users set up are full nodes. You can click `here <https://docs.aelf.io/en/latest/getting_started/development-environment/node.html#multi-nodes>`_ to learn how to set up a full node. Please note: When you simulate it in the local environment, the BP election mechanism won't be triggered if you only set up a single node, which means the node can't become a BP. Hence, you need to set up **at least three nodes** in the local environment.
 
 Please note: The term that aelf's BPs are elected is every ``7`` days. To make this tutorial concise and easy to follow, it will change the configuration of the term to 120s. You will find and follow the instructions in the following guide.
  
