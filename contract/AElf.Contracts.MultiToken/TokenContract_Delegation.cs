@@ -1,13 +1,8 @@
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using AElf.Standards.ACS1;
-using AElf.Standards.ACS10;
-using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 using AElf.Types;
+using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
-using AElf.Contracts.MultiToken;
 
 namespace AElf.Contracts.MultiToken;
 
@@ -17,7 +12,7 @@ public partial class TokenContract
         SetTransactionFeeDelegationsInput input)
     {
         Assert(input.Delegations != null, "Delegations cannot be null!");
-        
+
         // get all delegatees, init it if null.
         var allDelegatees = State.TransactionFeeDelegateesMap[input.DelegatorAddress] ?? new TransactionFeeDelegatees();
         var allDelegateesMap = allDelegatees.Delegatees;
@@ -53,7 +48,7 @@ public partial class TokenContract
                         allDelegateesMap[delegateeAddress].Delegations.Add(key, value);
                     }
                 }
-                
+
                 allDelegateesMap[delegateeAddress].BlockHeight = currentHeight;
 
                 // Set and Fire logEvent
@@ -75,16 +70,16 @@ public partial class TokenContract
                 {
                     delegationsMap.Remove(key);
                 }
-                else if(value > 0)
+                else if (value > 0)
                 {
                     AssertValidToken(key, value);
                     delegationsMap[key] = value;
                 }
             }
-            
+
             // Set and Fire logEvent
             State.TransactionFeeDelegateesMap[input.DelegatorAddress] = allDelegatees;
-            
+
             // If a delegatee has no delegations, remove it!
             if (allDelegateesMap[delegateeAddress].Delegations.Count != 0)
                 return new SetTransactionFeeDelegationsOutput()
@@ -105,18 +100,19 @@ public partial class TokenContract
             Success = true
         };
     }
-    
+
     public override Empty RemoveTransactionFeeDelegator(
         RemoveTransactionFeeDelegatorInput input)
     {
         Assert(input.DelegatorAddress != null, "Delegator Address cannot be null!");
-        
+
         if (State.TransactionFeeDelegateesMap[input.DelegatorAddress] == null)
         {
             return new Empty();
         }
 
-        if (!State.TransactionFeeDelegateesMap[input.DelegatorAddress].Delegatees.ContainsKey(Context.Sender.ToBase58()))
+        if (!State.TransactionFeeDelegateesMap[input.DelegatorAddress].Delegatees
+                .ContainsKey(Context.Sender.ToBase58()))
         {
             return new Empty();
         }
@@ -138,13 +134,14 @@ public partial class TokenContract
         RemoveTransactionFeeDelegateeInput input)
     {
         Assert(input.DelegateeAddress != null, "Delegatee Address cannot be null!");
-        
+
         if (State.TransactionFeeDelegateesMap[Context.Sender] == null)
         {
             return new Empty();
         }
 
-        if (!State.TransactionFeeDelegateesMap[Context.Sender].Delegatees.ContainsKey(input.DelegateeAddress.ToBase58()))
+        if (!State.TransactionFeeDelegateesMap[Context.Sender].Delegatees
+                .ContainsKey(input.DelegateeAddress.ToBase58()))
         {
             return new Empty();
         }
@@ -162,7 +159,8 @@ public partial class TokenContract
         return new Empty();
     }
 
-    public override TransactionFeeDelegations GetTransactionFeeDelegationsOfADelegatee(GetTransactionFeeDelegationsOfADelegateeInput input)
+    public override TransactionFeeDelegations GetTransactionFeeDelegationsOfADelegatee(
+        GetTransactionFeeDelegationsOfADelegateeInput input)
     {
         var allDelegatees = State.TransactionFeeDelegateesMap[input.DelegatorAddress];
         var delegateeAddress = input.DelegateeAddress.ToBase58();
@@ -171,10 +169,27 @@ public partial class TokenContract
         {
             return new TransactionFeeDelegations();
         }
-        
+
         var allDelegateesMap = allDelegatees.Delegatees;
         return allDelegateesMap.ContainsKey(delegateeAddress)
             ? allDelegateesMap[delegateeAddress]
             : new TransactionFeeDelegations();
+    }
+
+    public override GetTransactionFeeDelegateesOutput GetTransactionFeeDelegatees(
+        GetTransactionFeeDelegateesInput input)
+    {
+        Assert(input != null && input!.DelegatorAddress != null, "invalid input");
+        var allDelegatees = State.TransactionFeeDelegateesMap[input.DelegatorAddress];
+
+        if (allDelegatees == null || allDelegatees.Delegatees == null || allDelegatees.Delegatees.Count == 0)
+        {
+            return new GetTransactionFeeDelegateesOutput();
+        }
+
+        return new GetTransactionFeeDelegateesOutput
+        {
+            DelegateeAddresses = { allDelegatees.Delegatees.Keys.Select(Address.FromBase58) }
+        };
     }
 }
