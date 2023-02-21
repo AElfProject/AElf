@@ -11,13 +11,15 @@ public class TestingSmartContractExecutiveService : SmartContractExecutiveServic
         IHostSmartContractBridgeContextService hostSmartContractBridgeContextService,
         ISmartContractRegistrationProvider smartContractRegistrationProvider,
         ISmartContractExecutiveProvider smartContractExecutiveProvider,
-        ITransactionContextFactory transactionContextFactory)
+        ITransactionContextFactory transactionContextFactory,
+        ISmartContractService smartContractService)
         : base(defaultContractZeroCodeProvider,
             smartContractRunnerContainer,
             hostSmartContractBridgeContextService,
             smartContractRegistrationProvider,
             smartContractExecutiveProvider,
-            transactionContextFactory
+            transactionContextFactory,
+            smartContractService
         )
     {
     }

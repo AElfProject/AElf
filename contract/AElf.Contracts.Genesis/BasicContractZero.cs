@@ -406,10 +406,10 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
     
     public override Hash DeployUserSmartContract(ContractDeploymentInput input)
     {
-        // check is not main chain || is private side chain && is owner || is public chain
-
+        AssertUserDeployContract();
+        
         var codeHash = HashHelper.ComputeFrom(input.Code.ToByteArray());
-        Assert(State.SmartContractRegistrations[codeHash] == null, "contract code has already been deployed before");
+        Assert(State.SmartContractRegistrations[codeHash] == null, "Contract code has already been deployed before.");
         
         var proposedContractInputHash = CalculateHashFromInput(input);
         SendUserContractProposal(proposedContractInputHash,
@@ -434,6 +434,9 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         var info = State.ContractInfos[input.Address];
         Assert(info != null, "Contract not found.");
         Assert(Context.Sender == info.Author, "No permission.");
+        var codeHash = HashHelper.ComputeFrom(input.Code.ToByteArray());
+        Assert(info.CodeHash != codeHash, "Code is not changed.");
+        Assert(State.SmartContractRegistrations[codeHash] == null, "Contract code has already been deployed before.");
         
         var proposedContractInputHash = CalculateHashFromInput(input);
         SendUserContractProposal(proposedContractInputHash,
@@ -474,19 +477,25 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
 
     public override Empty ReleaseDeployUserSmartContract(ContractDeploymentInput input)
     {
-        // Check Authority
-        
+        RequireSenderAuthority(State.CodeCheckController.Value.ContractAddress);
+
         var inputHash = CalculateHashFromInput(input);
         TryClearContractProposingData(inputHash, out var contractProposingInput);
-        
-        DeploySmartContract(null, input.Category, input.Code.ToByteArray(), false,
-            DecideNonSystemContractAuthor(contractProposingInput?.Proposer, Context.Sender));
-        
+
+        DeploySmartContract(null, input.Category, input.Code.ToByteArray(), false, contractProposingInput.Author);
+
         return new Empty();
     }
-    
+
     public override Empty ReleaseUpdateUserSmartContract(ContractUpdateInput input)
     {
+        RequireSenderAuthority(State.CodeCheckController.Value.ContractAddress);
+        
+        var inputHash = CalculateHashFromInput(input);
+        TryClearContractProposingData(inputHash, out var proposingInput);
+
+        UpdateSmartContract(input.Address, input.Code.ToByteArray(), proposingInput.Author);
+        
         return new Empty();
     }
 

@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using AElf.Contracts.Parliament;
 using AElf.CSharp.Core.Extension;
 using AElf.Sdk.CSharp;
@@ -73,6 +74,47 @@ public partial class BasicContractZero
         State.ContractCodeHashListMap[Context.CurrentHeight] = contractCodeHashList;
 
         return contractAddress;
+    }
+    
+    private void UpdateSmartContract(Address contractAddress, byte[] code, Address author)
+    {
+        var info = State.ContractInfos[contractAddress];
+        Assert(info != null, "Contract not found.");
+        Assert(author == info.Author, "No permission.");
+
+        var oldCodeHash = info.CodeHash;
+        var newCodeHash = HashHelper.ComputeFrom(code);
+        Assert(oldCodeHash != newCodeHash, "Code is not changed.");
+
+        Assert(State.SmartContractRegistrations[newCodeHash] == null, "Same code has been deployed before.");
+
+        info.CodeHash = newCodeHash;
+        info.Version++;
+        State.ContractInfos[contractAddress] = info;
+
+        var reg = new SmartContractRegistration
+        {
+            Category = info.Category,
+            Code = ByteString.CopyFrom(code),
+            CodeHash = newCodeHash,
+            IsSystemContract = info.IsSystemContract,
+            Version = info.Version,
+            Address = contractAddress
+        };
+
+        State.SmartContractRegistrations[reg.CodeHash] = reg;
+
+        Context.UpdateContract(contractAddress, reg, null);
+
+        Context.Fire(new CodeUpdated
+        {
+            Address = contractAddress,
+            OldCodeHash = oldCodeHash,
+            NewCodeHash = newCodeHash,
+            Version = info.Version
+        });
+
+        Context.LogDebug(() => "BasicContractZero - update success: " + contractAddress.ToBase58());
     }
 
     private void RequireSenderAuthority(Address address = null)
@@ -242,7 +284,8 @@ public partial class BasicContractZero
         {
             Proposer = Context.Self,
             Status = ContractProposingInputStatus.CodeCheckProposed,
-            ExpiredTime = Context.CurrentBlockTime.AddSeconds(CodeCheckProposalExpirationTimePeriod)
+            ExpiredTime = Context.CurrentBlockTime.AddSeconds(CodeCheckProposalExpirationTimePeriod),
+            Author = Context.Sender
         };
         State.ContractProposingInputMap[proposingInputHash] = proposedInfo;
 
@@ -263,6 +306,30 @@ public partial class BasicContractZero
         Context.SendInline(codeCheckController.ContractAddress,
             nameof(AuthorizationContractContainer.AuthorizationContractReferenceState
                 .CreateProposalBySystemContract), proposalCreationInput);
+    }
+
+    private void AssertUserDeployContract()
+    {
+        var treasuryContractAddress = GetContractAddressByName(SmartContractConstants.TreasuryContractSystemHashName);
+        Assert(treasuryContractAddress == null, "No permission.");
+        
+        RequireTokenContractContractAddressSet();
+        var primaryTokenSymbol = State.TokenContract.GetPrimaryTokenSymbol.Call(new Empty()).Value;
+        if (Context.Variables.NativeSymbol == primaryTokenSymbol)
+        {
+            return;
+        }
+        
+        RequireParliamentContractAddressSet();
+        var whitelist = State.ParliamentContract.GetProposerWhiteList.Call(new Empty());
+        Assert(whitelist.Proposers.Contains(Context.Sender), "No permission.");
+    }
+
+    private void RequireTokenContractContractAddressSet()
+    {
+        if (State.TokenContract.Value == null)
+            State.TokenContract.Value =
+                Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
     }
 }
 

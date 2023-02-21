@@ -8,10 +8,13 @@ public class NewIrreversibleBlockFoundEventHandler : ILocalEventHandler<NewIrrev
     //, ITransientDependency // Not remove code hash list for now, hash list won't be so much.
 {
     private readonly ICheckedCodeHashProvider _checkedCodeHashProvider;
+    private readonly ICodeCheckProposalService _codeCheckProposalService;
 
-    public NewIrreversibleBlockFoundEventHandler(ICheckedCodeHashProvider checkedCodeHashProvider)
+    public NewIrreversibleBlockFoundEventHandler(ICheckedCodeHashProvider checkedCodeHashProvider,
+        ICodeCheckProposalService codeCheckProposalService)
     {
         _checkedCodeHashProvider = checkedCodeHashProvider;
+        _codeCheckProposalService = codeCheckProposalService;
     }
 
     public async Task HandleEventAsync(NewIrreversibleBlockFoundEvent eventData)
@@ -21,5 +24,7 @@ public class NewIrreversibleBlockFoundEventHandler : ILocalEventHandler<NewIrrev
             BlockHash = eventData.BlockHash,
             BlockHeight = eventData.BlockHeight
         }, eventData.PreviousIrreversibleBlockHeight);
+
+        await _codeCheckProposalService.ClearProposalByLibAsync(eventData.BlockHash, eventData.BlockHeight);
     }
 }

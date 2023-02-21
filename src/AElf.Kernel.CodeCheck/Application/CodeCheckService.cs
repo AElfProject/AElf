@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using AElf.Kernel.CodeCheck.Infrastructure;
+using AElf.Kernel.SmartContract;
 
 namespace AElf.Kernel.CodeCheck.Application;
 
@@ -20,13 +22,22 @@ public class CodeCheckService : ICodeCheckService, ITransientDependency
     public ILogger<CodeCheckService> Logger { get; set; }
 
     public async Task<bool> PerformCodeCheckAsync(byte[] code, Hash blockHash, long blockHeight, int category,
-        bool isSystemContract)
+        bool isSystemContract, bool isUserContract)
     {
         if (!_codeCheckOptions.CodeCheckEnabled)
             return true;
 
-        var requiredAcs =
-            await _requiredAcsProvider.GetRequiredAcsInContractsAsync(blockHash, blockHeight);
+        var requiredAcs = new RequiredAcs
+        {
+            AcsList = new List<string>(),
+            RequireAll = false
+        };
+        
+        if (isUserContract)
+        {
+            requiredAcs = await _requiredAcsProvider.GetRequiredAcsInContractsAsync(blockHash, blockHeight);
+        }
+        
         try
         {
             // Check contract code

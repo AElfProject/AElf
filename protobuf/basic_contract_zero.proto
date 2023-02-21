@@ -65,6 +65,7 @@ message ContractProposingInput{
     ContractProposingInputStatus status = 2;
     // The expiration time of proposal.
     google.protobuf.Timestamp expired_time = 3;
+    aelf.Address author = 4;
 }
 
 message SetContractProposalExpirationTimePeriodInput{

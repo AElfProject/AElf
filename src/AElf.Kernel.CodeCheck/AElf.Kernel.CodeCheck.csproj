@@ -9,8 +9,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\AElf.Kernel.Configuration\AElf.Kernel.Configuration.csproj"/>
-        <ProjectReference Include="..\AElf.Kernel.Proposal\AElf.Kernel.Proposal.csproj"/>
+        <ProjectReference Include="..\AElf.Kernel.Configuration\AElf.Kernel.Configuration.csproj" />
+        <ProjectReference Include="..\AElf.Kernel.Proposal\AElf.Kernel.Proposal.csproj" />
     </ItemGroup>
 
     <ItemGroup>
@@ -20,6 +20,9 @@
         <ContractMessage Include="..\..\protobuf\acs3.proto">
             <Link>Protobuf\Proto\acs3.proto</Link>
         </ContractMessage>
+        <ContractStub Include="..\..\protobuf\parliament_contract.proto">
+            <Link>Protobuf\Proto\reference\parliament_contract.proto</Link>
+        </ContractStub>
     </ItemGroup>
 
     <ItemGroup>
