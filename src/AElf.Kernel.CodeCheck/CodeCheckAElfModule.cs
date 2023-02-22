@@ -2,6 +2,7 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.CodeCheck.Application;
 using AElf.Kernel.CodeCheck.Infrastructure;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.Txn.Application;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
@@ -17,5 +18,6 @@ public class CodeCheckAElfModule : AElfModule
         //context.Services.AddSingleton<IBlockAcceptedLogEventProcessor, ContractDeployedLogEventProcessor>();
         context.Services.AddSingleton<IContractAuditorContainer, ContractAuditorContainer>();
         context.Services.AddSingleton<IBlockValidationProvider, CodeCheckValidationProvider>();
+        context.Services.AddTransient<ITransactionValidationProvider, CodeCheckTransactionValidationProvider>();
     }
 }

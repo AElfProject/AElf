@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using AElf.Contracts.Parliament;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.Proposal;
@@ -10,19 +11,22 @@ using Google.Protobuf;
 
 namespace AElf.Kernel.CodeCheck.Application;
 
-public class CodeCheckProposalReleaseTransactionGenerator : ISystemTransactionGenerator
+internal class CodeCheckProposalReleaseTransactionGenerator : ISystemTransactionGenerator
 {
     private readonly ICodeCheckProposalService _codeCheckProposalService;
     private readonly ISmartContractAddressService _smartContractAddressService;
     private readonly ITransactionPackingOptionProvider _transactionPackingOptionProvider;
+    private readonly ICodeCheckReleasedProposalIdProvider _codeCheckReleasedProposalIdProvider;
 
     public CodeCheckProposalReleaseTransactionGenerator(ICodeCheckProposalService codeCheckProposalService,
         ISmartContractAddressService smartContractAddressService,
-        ITransactionPackingOptionProvider transactionPackingOptionProvider)
+        ITransactionPackingOptionProvider transactionPackingOptionProvider,
+        ICodeCheckReleasedProposalIdProvider codeCheckReleasedProposalIdProvider)
     {
         _codeCheckProposalService = codeCheckProposalService;
         _smartContractAddressService = smartContractAddressService;
         _transactionPackingOptionProvider = transactionPackingOptionProvider;
+        _codeCheckReleasedProposalIdProvider = codeCheckReleasedProposalIdProvider;
 
         Logger = NullLogger<ProposalApprovalTransactionGenerator>.Instance;
     }
@@ -49,6 +53,16 @@ public class CodeCheckProposalReleaseTransactionGenerator : ISystemTransactionGe
         if (proposalList == null || proposalList.Count == 0)
             return generatedTransactions;
 
+        var releasedProposalList = await _codeCheckReleasedProposalIdProvider.GetProposalIdsAsync(new BlockIndex
+        {
+            BlockHash = preBlockHash,
+            BlockHeight = preBlockHeight
+        });
+        if (releasedProposalList.ProposalIds.Count != 0)
+        {
+            proposalList = proposalList.Where(o => !releasedProposalList.ProposalIds.Contains(o.ProposalId)).ToList();
+        }
+
         foreach (var proposal in proposalList)
         {
             var generatedTransaction = new Transaction
@@ -65,10 +79,16 @@ public class CodeCheckProposalReleaseTransactionGenerator : ISystemTransactionGe
                 }.ToByteString()
             };
             generatedTransactions.Add(generatedTransaction);
+
+            await _codeCheckReleasedProposalIdProvider.AddProposalIdAsync(new BlockIndex
+            {
+                BlockHash = preBlockHash,
+                BlockHeight = preBlockHeight
+            }, proposal.ProposalId);
+            
+            Logger.LogTrace($"Code check proposal release transaction generated: {proposal.ProposalId.ToHex()}.");
         }
         
-        Logger.LogTrace("Code check proposal release transaction generated.");
-
         return generatedTransactions;
     }
 }

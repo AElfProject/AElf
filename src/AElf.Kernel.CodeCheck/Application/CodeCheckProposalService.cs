@@ -13,16 +13,19 @@ internal class CodeCheckProposalService:ICodeCheckProposalService,ITransientDepe
         _contractReaderFactory;
     private readonly ICodeCheckProposalProvider _codeCheckProposalProvider;
     private readonly ISmartContractAddressService _smartContractAddressService;
+    private readonly ICodeCheckReleasedProposalIdProvider _codeCheckReleasedProposalIdProvider;
     
     public ILogger<CodeCheckProposalService> Logger { get; set; }
 
     public CodeCheckProposalService(ICodeCheckProposalProvider codeCheckProposalProvider,
         ISmartContractAddressService smartContractAddressService,
-        IContractReaderFactory<ParliamentContractContainer.ParliamentContractStub> contractReaderFactory)
+        IContractReaderFactory<ParliamentContractContainer.ParliamentContractStub> contractReaderFactory,
+        ICodeCheckReleasedProposalIdProvider codeCheckReleasedProposalIdProvider)
     {
         _codeCheckProposalProvider = codeCheckProposalProvider;
         _smartContractAddressService = smartContractAddressService;
         _contractReaderFactory = contractReaderFactory;
+        _codeCheckReleasedProposalIdProvider = codeCheckReleasedProposalIdProvider;
     }
 
     public void AddToReleasedProposal(Hash proposalId, Hash proposedContractInputHash, long height)
@@ -80,6 +83,12 @@ internal class CodeCheckProposalService:ICodeCheckProposalService,ITransientDepe
                 continue;
             Logger.LogDebug($"Clear code check proposal {proposalId} by LIB hash {blockHash}, height {blockHeight}");
             _codeCheckProposalProvider.RemoveProposalById(proposalId);
+            
+            await _codeCheckReleasedProposalIdProvider.RemoveProposalIdAsync(new BlockIndex
+            {
+                BlockHash = blockHash,
+                BlockHeight = blockHeight
+            }, proposalId);
         }
     }
     
