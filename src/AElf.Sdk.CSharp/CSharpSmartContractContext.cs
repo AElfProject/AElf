@@ -144,9 +144,9 @@ public class CSharpSmartContractContext : ISmartContractBridgeContext
     /// <param name="address">The address of new smart contract.</param>
     /// <param name="registration">The registration of the new smart contract.</param>
     /// <param name="name">The hash value of the smart contract name.</param>
-    public void DeployContract(Address address, SmartContractRegistration registration, Hash name)
+    public ContractInfoDto DeployContract(Address address, SmartContractRegistration registration, Hash name)
     {
-        SmartContractBridgeContextImplementation.DeployContract(address, registration, name);
+        return SmartContractBridgeContextImplementation.DeployContract(address, registration, name);
     }
 
     /// <summary>
@@ -155,9 +155,9 @@ public class CSharpSmartContractContext : ISmartContractBridgeContext
     /// <param name="address">The address of smart contract to update.</param>
     /// <param name="registration">The registration of the smart contract to update.</param>
     /// <param name="name">The hash value of the smart contract name to update.</param>
-    public void UpdateContract(Address address, SmartContractRegistration registration, Hash name)
+    public ContractInfoDto UpdateContract(Address address, SmartContractRegistration registration, Hash name)
     {
-        SmartContractBridgeContextImplementation.UpdateContract(address, registration, name);
+        return SmartContractBridgeContextImplementation.UpdateContract(address, registration, name);
     }
 
     /// <summary>

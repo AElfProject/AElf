@@ -10,6 +10,8 @@ public class ContractDto
 
     public long BlockHeight { get; set; }
 
+    public Hash PreviousBlockHash { get; set; }
+
     public bool IsPrivileged { get; set; }
 
     public Hash ContractName { get; set; } = null;

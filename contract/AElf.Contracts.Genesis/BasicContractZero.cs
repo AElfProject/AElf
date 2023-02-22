@@ -303,7 +303,6 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
 
         info.CodeHash = newCodeHash;
         info.Version++;
-        State.ContractInfos[contractAddress] = info;
 
         var reg = new SmartContractRegistration
         {
@@ -316,7 +315,10 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
 
         State.SmartContractRegistrations[reg.CodeHash] = reg;
 
-        Context.UpdateContract(contractAddress, reg, null);
+        var contractInfo = Context.UpdateContract(contractAddress, reg, null);
+        
+        info.ContractVersion = contractInfo.ContractVersion;
+        State.ContractInfos[contractAddress] = info;
 
         Context.Fire(new CodeUpdated
         {

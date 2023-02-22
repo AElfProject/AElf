@@ -289,7 +289,7 @@ public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, I
         return tx.VerifySignature();
     }
 
-    public void DeployContract(Address address, SmartContractRegistration registration, Hash name)
+    public ContractInfoDto DeployContract(Address address, SmartContractRegistration registration, Hash name)
     {
         if (!Self.Equals(_smartContractBridgeService.GetZeroSmartContractAddress())) throw new NoPermissionException();
 
@@ -302,22 +302,23 @@ public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, I
             IsPrivileged = false
         };
 
-        AsyncHelper.RunSync(() => _smartContractBridgeService.DeployContractAsync(contractDto));
+        return AsyncHelper.RunSync(() => _smartContractBridgeService.DeployContractAsync(contractDto));
     }
 
-    public void UpdateContract(Address address, SmartContractRegistration registration, Hash name)
+    public ContractInfoDto UpdateContract(Address address, SmartContractRegistration registration, Hash name)
     {
         if (!Self.Equals(_smartContractBridgeService.GetZeroSmartContractAddress())) throw new NoPermissionException();
 
         var contractDto = new ContractDto
         {
             BlockHeight = CurrentHeight,
+            PreviousBlockHash = PreviousBlockHash,
             ContractAddress = address,
             SmartContractRegistration = registration,
             ContractName = null,
             IsPrivileged = false
-        };
-        AsyncHelper.RunSync(() => _smartContractBridgeService.UpdateContractAsync(contractDto));
+        }; 
+        return AsyncHelper.RunSync(() => _smartContractBridgeService.UpdateContractAsync(contractDto));
     }
 
     public byte[] RecoverPublicKey(byte[] signature, byte[] hash)

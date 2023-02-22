@@ -1,4 +1,5 @@
 using System;
+using System.Reflection;
 using AElf.Contracts.Parliament;
 using AElf.CSharp.Core.Extension;
 using AElf.Sdk.CSharp;
@@ -36,7 +37,6 @@ public partial class BasicContractZero
             IsSystemContract = isSystemContract,
             Version = 1
         };
-        State.ContractInfos[contractAddress] = info;
 
         var reg = new SmartContractRegistration
         {
@@ -49,7 +49,10 @@ public partial class BasicContractZero
 
         State.SmartContractRegistrations[reg.CodeHash] = reg;
 
-        Context.DeployContract(contractAddress, reg, name);
+        var contractInfo = Context.DeployContract(contractAddress, reg, name);
+        info.ContractVersion = contractInfo.ContractVersion;
+        
+        State.ContractInfos[contractAddress] = info;
 
         Context.Fire(new ContractDeployed
         {

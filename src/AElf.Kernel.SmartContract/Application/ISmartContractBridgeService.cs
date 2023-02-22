@@ -14,9 +14,9 @@ public interface ISmartContractBridgeService
 {
     void LogDebug(Func<string> func);
 
-    Task DeployContractAsync(ContractDto contractDto);
+    Task<ContractInfoDto> DeployContractAsync(ContractDto contractDto);
 
-    Task UpdateContractAsync(ContractDto contractDto);
+    Task<ContractInfoDto> UpdateContractAsync(ContractDto contractDto);
 
     Task<List<Transaction>> GetBlockTransactions(Hash blockHash);
     int GetChainId();
@@ -64,14 +64,14 @@ public class SmartContractBridgeService : ISmartContractBridgeService
 #endif
     }
 
-    public async Task DeployContractAsync(ContractDto contractDto)
+    public async Task<ContractInfoDto> DeployContractAsync(ContractDto contractDto)
     {
-        await _smartContractService.DeployContractAsync(contractDto);
+        return await _smartContractService.DeployContractAsync(contractDto);
     }
 
-    public async Task UpdateContractAsync(ContractDto contractDto)
+    public async Task<ContractInfoDto> UpdateContractAsync(ContractDto contractDto)
     {
-        await _smartContractService.UpdateContractAsync(contractDto);
+        return await _smartContractService.UpdateContractAsync(contractDto);
     }
 
     public async Task<List<Transaction>> GetBlockTransactions(Hash blockHash)
