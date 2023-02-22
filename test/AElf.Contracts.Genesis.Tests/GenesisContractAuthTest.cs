@@ -255,6 +255,7 @@ public class GenesisContractAuthTest : BasicContractZeroTestBase
             nameof(BasicContractZeroImplContainer.BasicContractZeroImplStub.GetContractInfo), deployAddress));
         contractInfo.Version.ShouldBe(1);
         contractInfo.Author.ShouldBe(BasicContractZeroAddress);
+        contractInfo.ContractVersion.ShouldBe("1.0.0.0");
 
         {
             var releaseContractAlreadyFinished = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
@@ -477,7 +478,7 @@ public class GenesisContractAuthTest : BasicContractZeroTestBase
         var contractInfo = ContractInfo.Parser.ParseFrom(await Tester.CallContractMethodAsync(BasicContractZeroAddress,
             nameof(BasicContractZeroImplContainer.BasicContractZeroImplStub.GetContractInfo), newAddress));
         contractInfo.Version.ShouldBe(1);
-        var code = Codes.Single(kv => kv.Key.Contains("Treasury")).Value;
+        var code = Codes.Single(kv => kv.Key.Contains("TestContract.BasicFunction")).Value;
         var contractUpdateInput = new ContractUpdateInput
         {
             Address = newAddress,
@@ -545,11 +546,82 @@ public class GenesisContractAuthTest : BasicContractZeroTestBase
             BasicContractZeroAddress,
             nameof(BasicContractZeroImplContainer.BasicContractZeroImplStub.GetContractInfo), newAddress));
         updateContractInfo.Version.ShouldBe(contractInfo.Version + 1);
+        updateContractInfo.ContractVersion.ShouldBe("1.2.0.0");
 
         var thirdTxProposingResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
             nameof(BasicContractZero.ProposeUpdateContract), contractUpdateInput,
             TimestampHelper.GetUtcNow().AddSeconds(86400));
         thirdTxProposingResult.Status.ShouldBe(TransactionResultStatus.Mined);
+    }
+
+    [Fact]
+    public async Task UpdateSmartContractTest_Failed_InvalidContractVersion()
+    {
+        var contractDeploymentInput = new ContractDeploymentInput
+        {
+            Category = KernelConstants.DefaultRunnerCategory, // test the default runner
+            Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("TokenConverter")).Value)
+        };
+
+        var newAddress = await DeployAsync(Tester, ParliamentAddress, contractDeploymentInput);
+        var contractInfo = ContractInfo.Parser.ParseFrom(await Tester.CallContractMethodAsync(BasicContractZeroAddress,
+            nameof(BasicContractZeroImplContainer.BasicContractZeroImplStub.GetContractInfo), newAddress));
+        contractInfo.Version.ShouldBe(1);
+        var code = Codes.Single(kv => kv.Key.Contains("Treasury")).Value;
+        var contractUpdateInput = new ContractUpdateInput
+        {
+            Address = newAddress,
+            Code = ByteString.CopyFrom(code)
+        };
+
+        {
+            var addressNotExistProposingTxResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
+                nameof(BasicContractZero.ProposeUpdateContract), new ContractUpdateInput
+                {
+                    Address = AnotherMinerAddress,
+                    Code = ByteString.CopyFrom(code)
+                });
+            addressNotExistProposingTxResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            addressNotExistProposingTxResult.Error.ShouldContain("Contract not found.");
+        }
+
+        var proposingTxResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
+            nameof(BasicContractZero.ProposeUpdateContract), contractUpdateInput);
+        proposingTxResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+        var secondTxProposingResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
+            nameof(BasicContractZero.ProposeUpdateContract), contractUpdateInput);
+        secondTxProposingResult.Status.ShouldBe(TransactionResultStatus.Failed);
+
+        var proposalId = ProposalCreated.Parser
+            .ParseFrom(proposingTxResult.Logs.First(l => l.Name.Contains(nameof(ProposalCreated))).NonIndexed)
+            .ProposalId;
+        proposalId.ShouldNotBeNull();
+        var proposedContractInputHash = ContractProposed.Parser
+            .ParseFrom(proposingTxResult.Logs.First(l => l.Name.Contains(nameof(ContractProposed))).NonIndexed)
+            .ProposedContractInputHash;
+        await ApproveWithMinersAsync(Tester, ParliamentAddress, proposalId);
+
+        var releaseApprovedContractTxResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
+            nameof(BasicContractZero.ReleaseApprovedContract), new ReleaseContractInput
+            {
+                ProposalId = proposalId,
+                ProposedContractInputHash = proposedContractInputHash
+            });
+        releaseApprovedContractTxResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        var codeCheckProposalId = ProposalCreated.Parser
+            .ParseFrom(releaseApprovedContractTxResult.Logs.First(l => l.Name.Contains(nameof(ProposalCreated)))
+                .NonIndexed).ProposalId;
+        codeCheckProposalId.ShouldNotBeNull();
+
+        await ApproveWithMinersAsync(Tester, ParliamentAddress, codeCheckProposalId);
+
+        var updateResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
+            nameof(BasicContractZeroImplContainer.BasicContractZeroImplStub.ReleaseCodeCheckedContract),
+            new ReleaseContractInput
+                { ProposedContractInputHash = proposedContractInputHash, ProposalId = codeCheckProposalId });
+        updateResult.Status.ShouldBe(TransactionResultStatus.Failed);
+        updateResult.Error.ShouldContain("The version to be deployed is lower than the effective version");
     }
 
     [Fact(Skip = "Skip due to need very long task delay.")]

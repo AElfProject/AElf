@@ -110,6 +110,7 @@ message ContractInfo
     bool is_system_contract = 5;
     // The version of the current contract.
     int32 version = 6;
+    string contract_version = 7;
 }
 
 message ContractDeploymentInput {

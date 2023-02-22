@@ -9,7 +9,7 @@ public interface ISmartContractService
     /// </summary>
     /// <param name="contractDto"></param>
     /// <returns></returns>
-    Task DeployContractAsync(ContractDto contractDto);
+    Task<ContractInfoDto> DeployContractAsync(ContractDto contractDto);
 
-    Task UpdateContractAsync(ContractDto contractDto);
+    Task<ContractInfoDto> UpdateContractAsync(ContractDto contractDto);
 }
