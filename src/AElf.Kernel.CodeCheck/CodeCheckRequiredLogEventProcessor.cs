@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using AElf.CSharp.Core.Extension;
+using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.CodeCheck.Application;
 using AElf.Kernel.CodeCheck.Infrastructure;
 using AElf.Kernel.Proposal.Application;
@@ -18,20 +19,20 @@ public class CodeCheckRequiredLogEventProcessor : LogEventProcessorBase, IBlocks
     private readonly IProposalService _proposalService;
     private readonly ISmartContractAddressService _smartContractAddressService;
     private readonly IContractPatcher _contractPatcher;
-    private readonly ISmartContractService _smartContractService;
+    private readonly ISmartContractCodeService _smartContractCodeService;
     private readonly ICodeCheckProposalService _codeCheckProposalService;
 
     public CodeCheckRequiredLogEventProcessor(ISmartContractAddressService smartContractAddressService,
         ICodeCheckService codeCheckService, IProposalService proposalService,
         ICheckedCodeHashProvider checkedCodeHashProvider, IContractPatcher contractPatcher,
-        ISmartContractService smartContractService, ICodeCheckProposalService codeCheckProposalService)
+        ISmartContractCodeService smartContractCodeService, ICodeCheckProposalService codeCheckProposalService)
     {
         _smartContractAddressService = smartContractAddressService;
         _codeCheckService = codeCheckService;
         _proposalService = proposalService;
         _checkedCodeHashProvider = checkedCodeHashProvider;
         _contractPatcher = contractPatcher;
-        _smartContractService = smartContractService;
+        _smartContractCodeService = smartContractCodeService;
         _codeCheckProposalService = codeCheckProposalService;
 
         Logger = NullLogger<CodeCheckRequiredLogEventProcessor>.Instance;
@@ -86,7 +87,7 @@ public class CodeCheckRequiredLogEventProcessor : LogEventProcessorBase, IBlocks
 
                     if (eventData.IsUserContract)
                     {
-                        await _smartContractService.AddSmartContractCodeAsync(codeHash, ByteString.CopyFrom(code));
+                        await _smartContractCodeService.AddSmartContractCodeAsync(codeHash, ByteString.CopyFrom(code));
                         _codeCheckProposalService.AddToReleasedProposal(proposalId, eventData.ProposedContractInputHash,
                             transactionResult.BlockNumber);
                     }

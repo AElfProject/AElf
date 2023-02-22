@@ -6,7 +6,7 @@ namespace AElf.Kernel.Blockchain.Domain;
 public interface ISmartContractCodeManager
 {
     Task<Hash> AddSmartContractCodeAsync(SmartContractCode smartContractCode);
-    Task<SmartContractCode> GetSmartContractCodeAsync(Hash originCodeHash);
+    Task<SmartContractCode> GetSmartContractCodeAsync(Hash codeHash);
 }
 
 public class SmartContractCodeManager : ISmartContractCodeManager
@@ -20,18 +20,18 @@ public class SmartContractCodeManager : ISmartContractCodeManager
     
     public async Task<Hash> AddSmartContractCodeAsync(SmartContractCode smartContractCode)
     {
-        var originCodeHash = smartContractCode.OriginCodeHash;
+        var originCodeHash = smartContractCode.CodeHash;
         await _smartContractCodeStore.SetAsync(GetStringKey(originCodeHash), smartContractCode);
         return originCodeHash;
     }
 
-    public async Task<SmartContractCode> GetSmartContractCodeAsync(Hash originCodeHash)
+    public async Task<SmartContractCode> GetSmartContractCodeAsync(Hash codeHash)
     {
-        return await _smartContractCodeStore.GetAsync(GetStringKey(originCodeHash));
+        return await _smartContractCodeStore.GetAsync(GetStringKey(codeHash));
     }
 
-    private string GetStringKey(Hash originCodeHash)
+    private string GetStringKey(Hash codeHash)
     {
-        return originCodeHash.ToStorageKey();
+        return codeHash.ToStorageKey();
     }
 }

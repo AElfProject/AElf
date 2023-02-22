@@ -1,3 +1,4 @@
+using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
 
@@ -12,14 +13,14 @@ public class TestingSmartContractExecutiveService : SmartContractExecutiveServic
         ISmartContractRegistrationProvider smartContractRegistrationProvider,
         ISmartContractExecutiveProvider smartContractExecutiveProvider,
         ITransactionContextFactory transactionContextFactory,
-        ISmartContractService smartContractService)
+        ISmartContractCodeService smartContractCodeService)
         : base(defaultContractZeroCodeProvider,
             smartContractRunnerContainer,
             hostSmartContractBridgeContextService,
             smartContractRegistrationProvider,
             smartContractExecutiveProvider,
             transactionContextFactory,
-            smartContractService
+            smartContractCodeService
         )
     {
     }

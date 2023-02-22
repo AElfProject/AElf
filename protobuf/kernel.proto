@@ -183,6 +183,6 @@ message SmartContractAddress{
 }
 
 message SmartContractCode{
-    aelf.Hash origin_code_hash = 1;
+    aelf.Hash code_hash = 1;
     bytes patched_code = 2;
 }
