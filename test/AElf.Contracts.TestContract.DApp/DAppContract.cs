@@ -22,7 +22,8 @@ public partial class DAppContract : DAppContainer.DAppBase
             Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
         State.Symbol.Value = input.Symbol == string.Empty ? "APP" : input.Symbol;
         State.ProfitReceiver.Value = input.ProfitReceiver;
-
+        
+        ApproveTokenForCreateToken();
         CreateToken(input.ProfitReceiver, true);
         // To test TokenHolder Contract.
         CreateTokenHolderProfitScheme();
@@ -42,7 +43,8 @@ public partial class DAppContract : DAppContainer.DAppBase
             Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
         State.Symbol.Value = input.Symbol == string.Empty ? "APP" : input.Symbol;
         State.ProfitReceiver.Value = input.ProfitReceiver;
-
+        
+        ApproveTokenForCreateToken();
         CreateToken(input.ProfitReceiver);
         CreateTokenHolderProfitScheme();
         SetProfitConfig();
@@ -228,5 +230,34 @@ public partial class DAppContract : DAppContainer.DAppBase
             StakingTokenSymbol = "APP",
             ProfitsTokenSymbolList = { "ELF" }
         };
+    }
+
+    private void ApproveTokenForCreateToken()
+    {
+        var fee = State.TokenContract.GetMethodFee.Call(new StringValue{Value = "Create"});
+        var approveFee = new Dictionary<string, long>();
+        if (fee == null || fee.Fees.Count == 0)
+        {
+            var symbol = Context.Variables.NativeSymbol;
+            var feeAmount = 10000_00000000;
+            approveFee[symbol] = feeAmount;
+        }
+        else
+        {
+            foreach (var f in fee.Fees)
+            {
+                approveFee[f.Symbol] = f.BasicFee;
+            }
+        }
+
+        foreach (var (key, value) in approveFee)
+        {
+            State.TokenContract.Approve.Send(new ApproveInput
+            {
+                Spender = State.TokenContract.Value,
+                Amount = value,
+                Symbol = key
+            });
+        }
     }
 }

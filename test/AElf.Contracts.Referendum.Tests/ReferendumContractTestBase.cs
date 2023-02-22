@@ -132,12 +132,12 @@ public class ReferendumContractTestBase : ContractTestBase<ReferendumContractTes
         GenerateTokenInitializationCallList()
     {
         const string symbol = "ELF";
-        const long totalSupply = 100_000_000;
+        const long totalSupply = 100000000_00000000;
         var tokenContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
         tokenContractCallList.Add(nameof(TokenContract.Create), new CreateInput
         {
             Symbol = symbol,
-            Decimals = 2,
+            Decimals = 8,
             IsBurnable = true,
             TokenName = "elf token",
             TotalSupply = totalSupply,
@@ -148,7 +148,7 @@ public class ReferendumContractTestBase : ContractTestBase<ReferendumContractTes
         tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
         {
             Symbol = symbol,
-            Amount = totalSupply - 20 * 100_000L,
+            Amount = 10000000_00000000,
             To = DefaultSender,
             Memo = "Issue token to default user."
         });
@@ -158,7 +158,7 @@ public class ReferendumContractTestBase : ContractTestBase<ReferendumContractTes
             tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
             {
                 Symbol = symbol,
-                Amount = 100_000,
+                Amount = 100_00000000,
                 To = Accounts[i].Address,
                 Memo = "Issue token to users"
             });

@@ -297,7 +297,7 @@ public partial class MultiTokenContractTests
             {
                 Value = methodName
             })).Fees.SingleOrDefault(x => x.Symbol == tokenSymbol);
-            updatedFee.BasicFee.ShouldBe(beforeFee.BasicFee);
+            updatedFee.BasicFee.ShouldBe(basicFee);
         }
     }
 }
