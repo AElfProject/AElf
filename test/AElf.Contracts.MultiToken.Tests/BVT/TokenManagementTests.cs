@@ -516,11 +516,11 @@ public partial class MultiTokenContractTests : MultiTokenContractTestBase
         };
         var createTokenRet = await TokenContractStub.Create.SendWithExceptionAsync(createTokenInfo);
         createTokenRet.TransactionResult.Error.ShouldContain("Invalid native token input");
-        // var createTokenInfoWithInvalidTokenName = new CreateInput();
-        // createTokenInfoWithInvalidTokenName.MergeFrom(createTokenInfo);
-        // createTokenInfoWithInvalidTokenName.Symbol = "ITISAVERYLONGSYMBOLNAME"; 
-        // createTokenRet = await TokenContractStub.Create.SendWithExceptionAsync(createTokenInfoWithInvalidTokenName);
-        // createTokenRet.TransactionResult.Error.ShouldContain("Invalid input");
+        var createTokenInfoWithInvalidTokenName = new CreateInput();
+        createTokenInfoWithInvalidTokenName.MergeFrom(createTokenInfo);
+        createTokenInfoWithInvalidTokenName.Symbol = "ITISAVERYLONGSYMBOLNAME";
+        createTokenRet = await TokenContractStub.Create.SendWithExceptionAsync(createTokenInfoWithInvalidTokenName);
+        createTokenRet.TransactionResult.Error.ShouldContain("Invalid input");
         var createTokenInfoWithInvalidDecimal = new CreateInput();
         createTokenInfoWithInvalidDecimal.MergeFrom(createTokenInfo);
         createTokenInfoWithInvalidDecimal.Decimals = 100;
