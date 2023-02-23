@@ -1,10 +1,4 @@
-.. first doc documentation master file, created by
-   sphinx-quickstart on Mon Apr 27 14:47:32 2020.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
 Welcome to AElf's official documentation!
-=========================================   
 
 .. toctree::
 
@@ -17,6 +11,7 @@ Welcome to AElf's official documentation!
    Overview <getting_started/overview>
    Development Environment <getting_started/development-environment/index>
    Smart Contracts <getting_started/smart_contracts/index>
+   Becoming a BP <getting_started/becoming_a_bp/index>
 
 .. toctree::
    :caption: Tutorials
