@@ -77,14 +77,14 @@ public class CodeCheckRequiredLogEventProcessor : LogEventProcessorBase, IBlocks
                         code,
                         transactionResult.BlockHash, transactionResult.BlockNumber, eventData.Category,
                         eventData.IsSystemContract, eventData.IsUserContract);
-                    Logger.LogInformation($"Code check result: {codeCheckResult}");
+                    Logger.LogInformation($"Code check result: {codeCheckResult}, code hash: {codeHash.ToHex()}");
                     if (!codeCheckResult)
                         return;
                     
                     var proposalId = ProposalCreated.Parser
                         .ParseFrom(transactionResult.Logs.First(l => l.Name == nameof(ProposalCreated)).NonIndexed)
                         .ProposalId;
-
+                    
                     if (eventData.IsUserContract)
                     {
                         await _smartContractCodeService.AddSmartContractCodeAsync(codeHash, ByteString.CopyFrom(code));

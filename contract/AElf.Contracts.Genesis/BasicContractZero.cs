@@ -84,15 +84,10 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         return new Int32Value{ Value = expirationTimePeriod };
     }
     
-    public override ContractInfo GetContractInfoByCodeHash(Hash input)
+    public override Address GetContractAddressByCodeHash(Hash input)
     {
         var registration = State.SmartContractRegistrations[input];
-        if (registration == null) return new ContractInfo();
-        
-        var info = State.ContractInfos[registration.Address];
-        if (info == null) return new ContractInfo();
-
-        return info;
+        return registration?.Address;
     }
 
     #endregion Views
@@ -409,6 +404,8 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         AssertUserDeployContract();
         
         var codeHash = HashHelper.ComputeFrom(input.Code.ToByteArray());
+        Context.LogDebug(() => "BasicContractZero - Deployment user contract hash: " + codeHash.ToHex());
+        
         Assert(State.SmartContractRegistrations[codeHash] == null, "Contract code has already been deployed before.");
         
         var proposedContractInputHash = CalculateHashFromInput(input);
@@ -477,7 +474,7 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
 
     public override Empty ReleaseDeployUserSmartContract(ContractDeploymentInput input)
     {
-        RequireSenderAuthority(State.CodeCheckController.Value.ContractAddress);
+        RequireSenderAuthority(State.CodeCheckController.Value.OwnerAddress);
 
         var inputHash = CalculateHashFromInput(input);
         TryClearContractProposingData(inputHash, out var contractProposingInput);
@@ -489,7 +486,7 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
 
     public override Empty ReleaseUpdateUserSmartContract(ContractUpdateInput input)
     {
-        RequireSenderAuthority(State.CodeCheckController.Value.ContractAddress);
+        RequireSenderAuthority(State.CodeCheckController.Value.OwnerAddress);
         
         var inputHash = CalculateHashFromInput(input);
         TryClearContractProposingData(inputHash, out var proposingInput);

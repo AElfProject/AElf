@@ -116,7 +116,7 @@ service ACS0 {
         option (aelf.is_view) = true;
     }
 
-    rpc GetContractInfoByCodeHash (aelf.Hash) returns (ContractInfo) {
+    rpc GetContractAddressByCodeHash (aelf.Hash) returns (aelf.Address) {
         option (aelf.is_view) = true;
     }
 }
