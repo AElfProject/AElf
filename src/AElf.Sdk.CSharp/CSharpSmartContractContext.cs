@@ -144,20 +144,34 @@ public class CSharpSmartContractContext : ISmartContractBridgeContext
     /// <param name="address">The address of new smart contract.</param>
     /// <param name="registration">The registration of the new smart contract.</param>
     /// <param name="name">The hash value of the smart contract name.</param>
-    public ContractInfoDto DeployContract(Address address, SmartContractRegistration registration, Hash name)
+    public void DeployContract(Address address, SmartContractRegistration registration, Hash name)
     {
-        return SmartContractBridgeContextImplementation.DeployContract(address, registration, name);
+        SmartContractBridgeContextImplementation.DeployContract(address, registration, name);
     }
-
+    
     /// <summary>
     ///     Update a smart contract (only the genesis contract can call it).
     /// </summary>
     /// <param name="address">The address of smart contract to update.</param>
     /// <param name="registration">The registration of the smart contract to update.</param>
     /// <param name="name">The hash value of the smart contract name to update.</param>
-    public ContractInfoDto UpdateContract(Address address, SmartContractRegistration registration, Hash name)
+    public void UpdateContract(Address address, SmartContractRegistration registration, Hash name)
     {
-        return SmartContractBridgeContextImplementation.UpdateContract(address, registration, name);
+        SmartContractBridgeContextImplementation.UpdateContract(address, registration, name);
+    }
+    
+    public ContractInfoDto DeployContract(Address address, SmartContractRegistration registration)
+    {
+        return SmartContractBridgeContextImplementation.DeployContract(address,registration);
+    }
+    public ContractInfoDto UpdateContract(Address address, SmartContractRegistration registration)
+    {
+        return SmartContractBridgeContextImplementation.UpdateContract(address,registration);
+    }
+
+    public void CheckContractVersion(Address address, byte[] code)
+    {
+        SmartContractBridgeContextImplementation.CheckContractVersion(address, code);
     }
 
     /// <summary>

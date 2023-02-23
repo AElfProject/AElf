@@ -49,7 +49,7 @@ public partial class BasicContractZero
 
         State.SmartContractRegistrations[reg.CodeHash] = reg;
 
-        var contractInfo = Context.DeployContract(contractAddress, reg, name);
+        var contractInfo = Context.DeployContract(contractAddress,reg);
         info.ContractVersion = contractInfo.ContractVersion;
         
         State.ContractInfos[contractAddress] = info;
