@@ -12,7 +12,7 @@ public partial class TokenContract
     private Empty CreateNFTCollection(CreateInput input)
     {
         AssertNFTCreateInput(input);
-        return CreateToken(input, SymbolType.NFTCollection);
+        return CreateToken(input, SymbolType.NftCollection);
     }
 
     private Empty CreateNFTInfo(CreateInput input)
@@ -22,7 +22,7 @@ public partial class TokenContract
         input.IssueChainId = input.IssueChainId == 0 ? nftCollectionInfo.IssueChainId : input.IssueChainId;
         Assert(input.IssueChainId == nftCollectionInfo.IssueChainId, "NFT create ChainId must be collection's issue chainId");
         Assert(Context.Sender == nftCollectionInfo.Issuer && nftCollectionInfo.Issuer == input.Issuer, "NFT issuer must be collection's issuer");
-        return CreateToken(input, SymbolType.NFT);
+        return CreateToken(input, SymbolType.Nft);
     }
 
     private void ChargeCreateFees()

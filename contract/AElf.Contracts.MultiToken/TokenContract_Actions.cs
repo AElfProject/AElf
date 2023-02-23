@@ -38,13 +38,13 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
         ChargeCreateFees();
         return inputSymbolType switch
         {
-            SymbolType.NFTCollection => CreateNFTCollection(input),
-            SymbolType.NFT => CreateNFTInfo(input),
+            SymbolType.NftCollection => CreateNFTCollection(input),
+            SymbolType.Nft => CreateNFTInfo(input),
             _ => CreateToken(input)
         };
     }
 
-    private Empty CreateToken(CreateInput input, SymbolType symbolType = SymbolType.TOKEN)
+    private Empty CreateToken(CreateInput input, SymbolType symbolType = SymbolType.Token)
     {
         AssertValidCreateInput(input, symbolType);
         var tokenInfo = new TokenInfo
