@@ -2,6 +2,7 @@
 using System.Reflection;
 using System.Threading.Tasks;
 using AElf.Kernel.SmartContract.Infrastructure;
+using AElf.Types;
 using Org.BouncyCastle.Security;
 using Volo.Abp.DependencyInjection;
 
@@ -22,25 +23,44 @@ public class SmartContractService : ISmartContractService, ITransientDependency
         _smartContractExecutiveService = smartContractExecutiveService;
     }
 
-    /// <inheritdoc />
-    public Task<ContractInfoDto> DeployContractAsync(ContractDto contractDto)
+    public Task DeployContractAsync(ContractDto contractDto)
     {
         CheckRunner(contractDto.SmartContractRegistration.Category);
-        var assembly = Assembly.Load(contractDto.SmartContractRegistration.Code.ToByteArray());
-        var contractVersion = assembly.GetName().Version?.ToString();
+        return Task.CompletedTask;
+    }
+
+    public Task UpdateContractAsync(ContractDto contractDto)
+    {
+        return Task.CompletedTask;
+    }
+    
+    /// <inheritdoc />
+    public Task<ContractInfoDto> DeployContractAsync(int category,byte[] code)
+    {
+        CheckRunner(category);
+        var contractVersion = GetVersion(code);
         return Task.FromResult(new ContractInfoDto
         {
             ContractVersion = contractVersion
         });
     }
 
-    public async Task<ContractInfoDto> UpdateContractAsync(ContractDto contractDto)
+    public async Task<ContractInfoDto> UpdateContractAsync(Address address,byte[] code,long blockHeight,Hash blockHash)
     {
-        var contractVersion = await CheckContractVersion(contractDto);
+        var contractVersion = GetVersion(code);
+        var oldVersion = await GetVersion(address,blockHeight,blockHash);
+        CheckVersion(oldVersion,contractVersion);
         return new ContractInfoDto
         {
             ContractVersion = contractVersion
         };
+    }
+
+    public async Task CheckContractVersion(Address address,byte[] code,long blockHeight,Hash blockHash)
+    {
+        var version = GetVersion(code);
+        var oldVersion = await GetVersion(address,blockHeight,blockHash);
+        CheckVersion(oldVersion,version);
     }
 
     private void CheckRunner(int category)
@@ -48,24 +68,30 @@ public class SmartContractService : ISmartContractService, ITransientDependency
         _smartContractRunnerContainer.GetRunner(category);
     }
 
-    private async Task<string> CheckContractVersion(ContractDto contractDto)
+    private string GetVersion(byte[] code)
     {
-        //get new version.
-        var assembly = Assembly.Load(contractDto.SmartContractRegistration.Code.ToByteArray());
+        var assembly = Assembly.Load(code);
         var version = assembly.GetName().Version?.ToString();
-        //get old version from executive.
+        return version;
+    }
+
+    private async Task<string> GetVersion(Address contractAddress, long blockHeight, Hash blockHash)
+    {
         var executive = await _smartContractExecutiveService.GetExecutiveAsync(new ChainContext
         {
-            BlockHeight = contractDto.BlockHeight,
-            BlockHash = contractDto.PreviousBlockHash
-        }, contractDto.ContractAddress);
+            BlockHeight = blockHeight,
+            BlockHash = blockHash
+        }, contractAddress);
         var oldVersion = executive.ContractVersion;
-        //check version.
-        if (version != null && new Version(oldVersion) >= new Version(version))
+        return oldVersion;
+    }
+    
+    private void CheckVersion(string oldVersion,string version)
+    {
+        if (!version.IsNullOrEmpty() && new Version(oldVersion) >= new Version(version))
         {
             throw new InvalidParameterException(
                 $"The version to be deployed is lower than the effective version({oldVersion}), please correct the version number.");
         }
-        return version;
     }
 }

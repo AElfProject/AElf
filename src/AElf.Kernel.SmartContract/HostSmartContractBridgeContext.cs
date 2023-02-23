@@ -289,7 +289,7 @@ public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, I
         return tx.VerifySignature();
     }
 
-    public ContractInfoDto DeployContract(Address address, SmartContractRegistration registration, Hash name)
+    public void DeployContract(Address address, SmartContractRegistration registration, Hash name)
     {
         if (!Self.Equals(_smartContractBridgeService.GetZeroSmartContractAddress())) throw new NoPermissionException();
 
@@ -302,10 +302,10 @@ public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, I
             IsPrivileged = false
         };
 
-        return AsyncHelper.RunSync(() => _smartContractBridgeService.DeployContractAsync(contractDto));
+        AsyncHelper.RunSync(() => _smartContractBridgeService.DeployContractAsync(contractDto));
     }
 
-    public ContractInfoDto UpdateContract(Address address, SmartContractRegistration registration, Hash name)
+    public void UpdateContract(Address address, SmartContractRegistration registration, Hash name)
     {
         if (!Self.Equals(_smartContractBridgeService.GetZeroSmartContractAddress())) throw new NoPermissionException();
 
@@ -317,8 +317,33 @@ public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, I
             SmartContractRegistration = registration,
             ContractName = null,
             IsPrivileged = false
-        }; 
-        return AsyncHelper.RunSync(() => _smartContractBridgeService.UpdateContractAsync(contractDto));
+        };
+        AsyncHelper.RunSync(() => _smartContractBridgeService.UpdateContractAsync(contractDto));
+    }
+
+    public ContractInfoDto DeployContract(Address address, SmartContractRegistration registration)
+    {
+        if (!Self.Equals(_smartContractBridgeService.GetZeroSmartContractAddress())) throw new NoPermissionException();
+
+        return AsyncHelper.RunSync(() =>
+            _smartContractBridgeService.DeployContractAsync(registration.Category, registration.Code.ToByteArray()));
+    }
+
+    public ContractInfoDto UpdateContract(Address address, SmartContractRegistration registration)
+    {
+        if (!Self.Equals(_smartContractBridgeService.GetZeroSmartContractAddress())) throw new NoPermissionException();
+
+        return AsyncHelper.RunSync(() =>
+            _smartContractBridgeService.UpdateContractAsync(address, registration.Code.ToByteArray(), CurrentHeight,
+                PreviousBlockHash));
+    }
+
+    public void CheckContractVersion(Address address, byte[] code)
+    {
+        if (!Self.Equals(_smartContractBridgeService.GetZeroSmartContractAddress())) throw new NoPermissionException();
+
+        AsyncHelper.RunSync(() =>
+            _smartContractBridgeService.CheckContractVersion(address, code, CurrentHeight, PreviousBlockHash));
     }
 
     public byte[] RecoverPublicKey(byte[] signature, byte[] hash)

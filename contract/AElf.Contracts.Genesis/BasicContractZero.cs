@@ -185,6 +185,7 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         Context.SendInline(State.ContractDeploymentController.Value.ContractAddress,
             nameof(AuthorizationContractContainer.AuthorizationContractReferenceState
                 .CreateProposalBySystemContract), proposalCreationInput);
+        Context.CheckContractVersion(contractAddress, input.Code.ToByteArray());
 
         Context.Fire(new ContractProposed
         {
@@ -315,7 +316,7 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
 
         State.SmartContractRegistrations[reg.CodeHash] = reg;
 
-        var contractInfo = Context.UpdateContract(contractAddress, reg, null);
+        var contractInfo = Context.UpdateContract(contractAddress, reg);
         
         info.ContractVersion = contractInfo.ContractVersion;
         State.ContractInfos[contractAddress] = info;

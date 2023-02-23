@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using AElf.Types;
 
 namespace AElf.Kernel.SmartContract.Application;
 
@@ -9,7 +10,13 @@ public interface ISmartContractService
     /// </summary>
     /// <param name="contractDto"></param>
     /// <returns></returns>
-    Task<ContractInfoDto> DeployContractAsync(ContractDto contractDto);
+    Task DeployContractAsync(ContractDto contractDto);
 
-    Task<ContractInfoDto> UpdateContractAsync(ContractDto contractDto);
+    Task UpdateContractAsync(ContractDto contractDto);
+    
+    Task<ContractInfoDto> DeployContractAsync(int category,byte[] code);
+
+    Task<ContractInfoDto> UpdateContractAsync(Address address,byte[] code,long blockHeight,Hash blockHash);
+
+    Task CheckContractVersion(Address address,byte[] code,long blockHeight,Hash blockHash);
 }

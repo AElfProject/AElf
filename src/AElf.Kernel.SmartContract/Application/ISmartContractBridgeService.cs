@@ -14,9 +14,15 @@ public interface ISmartContractBridgeService
 {
     void LogDebug(Func<string> func);
 
-    Task<ContractInfoDto> DeployContractAsync(ContractDto contractDto);
+    Task DeployContractAsync(ContractDto contractDto);
 
-    Task<ContractInfoDto> UpdateContractAsync(ContractDto contractDto);
+    Task UpdateContractAsync(ContractDto contractDto);
+    
+    Task<ContractInfoDto> DeployContractAsync(int category,byte[] code);
+
+    Task<ContractInfoDto> UpdateContractAsync(Address address,byte[] code,long blockHeight,Hash blockHash);
+
+    Task CheckContractVersion(Address address,byte[] code,long blockHeight,Hash blockHash);
 
     Task<List<Transaction>> GetBlockTransactions(Hash blockHash);
     int GetChainId();
@@ -64,14 +70,29 @@ public class SmartContractBridgeService : ISmartContractBridgeService
 #endif
     }
 
-    public async Task<ContractInfoDto> DeployContractAsync(ContractDto contractDto)
+    public async Task DeployContractAsync(ContractDto contractDto)
     {
-        return await _smartContractService.DeployContractAsync(contractDto);
+        await _smartContractService.DeployContractAsync(contractDto);
     }
 
-    public async Task<ContractInfoDto> UpdateContractAsync(ContractDto contractDto)
+    public async Task UpdateContractAsync(ContractDto contractDto)
     {
-        return await _smartContractService.UpdateContractAsync(contractDto);
+        await _smartContractService.UpdateContractAsync(contractDto);
+    }
+    
+    public async Task<ContractInfoDto> DeployContractAsync(int category, byte[] code)
+    {
+        return await _smartContractService.DeployContractAsync(category,code);
+    }
+
+    public async Task<ContractInfoDto> UpdateContractAsync(Address address, byte[] code, long blockHeight,Hash blockHash)
+    {
+        return await _smartContractService.UpdateContractAsync(address,code,blockHeight,blockHash);
+    }
+
+    public async Task CheckContractVersion(Address address,byte[] code,long blockHeight,Hash blockHash)
+    {
+         await _smartContractService.CheckContractVersion(address,code,blockHeight,blockHash);
     }
 
     public async Task<List<Transaction>> GetBlockTransactions(Hash blockHash)
