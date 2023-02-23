@@ -587,41 +587,8 @@ public class GenesisContractAuthTest : BasicContractZeroTestBase
 
         var proposingTxResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
             nameof(BasicContractZero.ProposeUpdateContract), contractUpdateInput);
-        proposingTxResult.Status.ShouldBe(TransactionResultStatus.Mined);
-
-        var secondTxProposingResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
-            nameof(BasicContractZero.ProposeUpdateContract), contractUpdateInput);
-        secondTxProposingResult.Status.ShouldBe(TransactionResultStatus.Failed);
-
-        var proposalId = ProposalCreated.Parser
-            .ParseFrom(proposingTxResult.Logs.First(l => l.Name.Contains(nameof(ProposalCreated))).NonIndexed)
-            .ProposalId;
-        proposalId.ShouldNotBeNull();
-        var proposedContractInputHash = ContractProposed.Parser
-            .ParseFrom(proposingTxResult.Logs.First(l => l.Name.Contains(nameof(ContractProposed))).NonIndexed)
-            .ProposedContractInputHash;
-        await ApproveWithMinersAsync(Tester, ParliamentAddress, proposalId);
-
-        var releaseApprovedContractTxResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
-            nameof(BasicContractZero.ReleaseApprovedContract), new ReleaseContractInput
-            {
-                ProposalId = proposalId,
-                ProposedContractInputHash = proposedContractInputHash
-            });
-        releaseApprovedContractTxResult.Status.ShouldBe(TransactionResultStatus.Mined);
-        var codeCheckProposalId = ProposalCreated.Parser
-            .ParseFrom(releaseApprovedContractTxResult.Logs.First(l => l.Name.Contains(nameof(ProposalCreated)))
-                .NonIndexed).ProposalId;
-        codeCheckProposalId.ShouldNotBeNull();
-
-        await ApproveWithMinersAsync(Tester, ParliamentAddress, codeCheckProposalId);
-
-        var updateResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
-            nameof(BasicContractZeroImplContainer.BasicContractZeroImplStub.ReleaseCodeCheckedContract),
-            new ReleaseContractInput
-                { ProposedContractInputHash = proposedContractInputHash, ProposalId = codeCheckProposalId });
-        updateResult.Status.ShouldBe(TransactionResultStatus.Failed);
-        updateResult.Error.ShouldContain("The version to be deployed is lower than the effective version");
+        proposingTxResult.Status.ShouldBe(TransactionResultStatus.Failed);
+        proposingTxResult.Error.ShouldContain("The version to be deployed is lower than the effective version");
     }
 
     [Fact(Skip = "Skip due to need very long task delay.")]
