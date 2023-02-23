@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using AElf.Kernel.CodeCheck.Infrastructure;
 using AElf.Kernel.SmartContract;
@@ -9,13 +10,15 @@ public class CodeCheckService : ICodeCheckService, ITransientDependency
     private readonly CodeCheckOptions _codeCheckOptions;
     private readonly IContractAuditorContainer _contractAuditorContainer;
     private readonly IRequiredAcsProvider _requiredAcsProvider;
+    private readonly IContractPatcherContainer _contractPatcherContainer;
 
     public CodeCheckService(IRequiredAcsProvider requiredAcsProvider,
         IContractAuditorContainer contractAuditorContainer,
-        IOptionsMonitor<CodeCheckOptions> codeCheckOptionsMonitor)
+        IOptionsMonitor<CodeCheckOptions> codeCheckOptionsMonitor, IContractPatcherContainer contractPatcherContainer)
     {
         _requiredAcsProvider = requiredAcsProvider;
         _contractAuditorContainer = contractAuditorContainer;
+        _contractPatcherContainer = contractPatcherContainer;
         _codeCheckOptions = codeCheckOptionsMonitor.CurrentValue;
     }
 
@@ -59,5 +62,26 @@ public class CodeCheckService : ICodeCheckService, ITransientDependency
         }
 
         return false;
+    }
+
+    public async Task<byte[]> PerformCodePatchAsync(byte[] code, int category, bool isSystemContract)
+    {
+        try
+        {
+            Logger.LogTrace("Start code patch");
+            if (!_contractPatcherContainer.TryGetContractPatcher(category, out var contractPatcher))
+            {
+                throw new Exception($"Unrecognized contract category: {category}");
+            }
+
+            var patchedCode = contractPatcher.Patch(code, isSystemContract);
+            Logger.LogTrace("Finish code patch");
+            return patchedCode;
+        }
+        catch (Exception e)
+        {
+            Logger.LogWarning(e,$"Perform code patch failed. {e.Message}");
+            throw;
+        }
     }
 }

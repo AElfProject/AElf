@@ -47,7 +47,7 @@ service ACS0 {
     rpc ReleaseCodeCheckedContract (ReleaseContractInput) returns (google.protobuf.Empty) {
     }
 
-    // Deploy a user smart contract on chain and return the address of the contract deployed.
+    // Deploy a user smart contract on chain and return the hash of the contract code.
     rpc DeployUserSmartContract (ContractDeploymentInput) returns (aelf.Hash) {
     }
 

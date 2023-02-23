@@ -28,9 +28,9 @@ internal class CodeCheckProposalService:ICodeCheckProposalService,ITransientDepe
         _codeCheckReleasedProposalIdProvider = codeCheckReleasedProposalIdProvider;
     }
 
-    public void AddToReleasedProposal(Hash proposalId, Hash proposedContractInputHash, long height)
+    public void AddToReleasedProposal(Hash proposalId, Hash proposalInputHash, long height)
     {
-        _codeCheckProposalProvider.AddProposal(proposalId, proposedContractInputHash, height);
+        _codeCheckProposalProvider.AddProposal(proposalId, proposalInputHash, height);
     }
 
     public async Task<List<CodeCheckProposal>> GetToReleasedProposalListAsync(Address @from, Hash blockHash, long blockHeight)

@@ -15,16 +15,14 @@ internal class CodeCheckTransactionValidationProvider : ITransactionValidationPr
     private readonly ICodeCheckService _codeCheckService;
     private readonly IContractReaderFactory<ACS0Container.ACS0Stub> _contractReaderFactory;
     private readonly ISmartContractAddressService _smartContractAddressService;
-    private readonly IContractPatcher _contractPatcher;
 
     public CodeCheckTransactionValidationProvider(
         ICodeCheckService codeCheckService, IContractReaderFactory<ACS0Container.ACS0Stub> contractReaderFactory,
-        ISmartContractAddressService smartContractAddressService, IContractPatcher contractPatcher)
+        ISmartContractAddressService smartContractAddressService)
     {
         _codeCheckService = codeCheckService;
         _contractReaderFactory = contractReaderFactory;
         _smartContractAddressService = smartContractAddressService;
-        _contractPatcher = contractPatcher;
         LocalEventBus = NullLocalEventBus.Instance;
     }
 
@@ -39,9 +37,8 @@ internal class CodeCheckTransactionValidationProvider : ITransactionValidationPr
         {
             case nameof(ACS0Container.ACS0Stub.DeployUserSmartContract):
                 var deployInput = ContractDeploymentInput.Parser.ParseFrom(transaction.Params);
-                var patchedCode = _contractPatcher.Patch(deployInput.Code.ToByteArray(), false);
-                executionValidationResult = await _codeCheckService.PerformCodeCheckAsync(patchedCode, chainContext.BlockHash,
-                    chainContext.BlockHeight, deployInput.Category, false, true);
+                executionValidationResult = await CodeCheckWithPatchAsync(deployInput.Code.ToByteArray(),
+                    chainContext.BlockHash, chainContext.BlockHeight, deployInput.Category);
                 break;
             case nameof(ACS0Container.ACS0Stub.UpdateUserSmartContract):
                 var updateInput = ContractUpdateInput.Parser.ParseFrom(transaction.Params);
@@ -52,17 +49,17 @@ internal class CodeCheckTransactionValidationProvider : ITransactionValidationPr
                     BlockHeight = chainContext.BlockHeight,
                     ContractAddress = genesisContractAddress
                 }).GetContractInfo.CallAsync(updateInput.Address);
-                
+
                 if (contractInfo == null || contractInfo.Author == null)
                 {
                     executionValidationResult = false;
                 }
                 else
                 {
-                    var patchedUpdateCode = _contractPatcher.Patch(updateInput.Code.ToByteArray(), false);
-                    executionValidationResult = await _codeCheckService.PerformCodeCheckAsync(patchedUpdateCode, chainContext.BlockHash,
-                        chainContext.BlockHeight, contractInfo.Category, false, true);
+                    executionValidationResult = await CodeCheckWithPatchAsync(updateInput.Code.ToByteArray(),
+                        chainContext.BlockHash, chainContext.BlockHeight, contractInfo.Category);
                 }
+
                 break;
         }
 
@@ -78,5 +75,12 @@ internal class CodeCheckTransactionValidationProvider : ITransactionValidationPr
         }
 
         return executionValidationResult;
+    }
+
+    private async Task<bool> CodeCheckWithPatchAsync(byte[] code, Hash blockHash, long blockHeight, int category)
+    {
+        var patchedCode = await _codeCheckService.PerformCodePatchAsync(code, category, false);
+        return await _codeCheckService.PerformCodeCheckAsync(patchedCode, blockHash, blockHeight, category, false,
+            true);
     }
 }

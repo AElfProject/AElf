@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using AElf.Kernel.CodeCheck.Application;
 using AElf.Kernel.CodeCheck.Infrastructure;
@@ -51,5 +52,20 @@ public partial class CodeCheckTest : CodeCheckTestBase
         var result =
             await _codeCheckService.PerformCodeCheckAsync(null, null, 0, CodeCheckConstant.SuccessAudit, false,false);
         result.ShouldBeTrue();
+    }
+
+    [Fact]
+    public async Task PerformCodePatchAsync_Success_Test()
+    {
+        var code = new byte[10];
+        var patchedCode = await _codeCheckService.PerformCodePatchAsync(code, 0, false);
+        patchedCode.ShouldBe(code);
+    }
+
+    [Fact]
+    public async Task PerformCodePatchAsync_UnknownCategory_Test()
+    {
+        var code = new byte[10];
+        await Assert.ThrowsAsync<Exception>(async () => await _codeCheckService.PerformCodePatchAsync(code, 1, false));
     }
 }

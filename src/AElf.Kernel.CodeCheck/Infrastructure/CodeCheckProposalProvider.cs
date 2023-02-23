@@ -9,13 +9,13 @@ public class CodeCheckProposalProvider : ICodeCheckProposalProvider, ISingletonD
 {
     private readonly ConcurrentDictionary<Hash, CodeCheckProposal> _proposalsToRelease = new();
 
-    public void AddProposal(Hash proposalId, Hash proposedContractInputHash, long height)
+    public void AddProposal(Hash proposalId, Hash proposalInputHash, long height)
     {
         // keep the higher block index 
         _proposalsToRelease.AddOrUpdate(proposalId, new CodeCheckProposal
         {
             ProposalId = proposalId,
-            ProposedContractInputHash = proposedContractInputHash,
+            ProposedContractInputHash = proposalInputHash,
             BlockHeight = height
         }, (hash, proposal) => proposal.BlockHeight >= height
             ? proposal
@@ -23,7 +23,7 @@ public class CodeCheckProposalProvider : ICodeCheckProposalProvider, ISingletonD
             {
                 ProposalId = proposalId,
                 BlockHeight = height,
-                ProposedContractInputHash = proposedContractInputHash
+                ProposedContractInputHash = proposalInputHash
             });
     }
 

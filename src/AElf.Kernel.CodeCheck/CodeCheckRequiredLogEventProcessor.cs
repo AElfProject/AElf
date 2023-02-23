@@ -70,7 +70,7 @@ public class CodeCheckRequiredLogEventProcessor : LogEventProcessorBase, IBlocks
                     var codeHash = HashHelper.ComputeFrom(code);
                     if (eventData.IsUserContract)
                     {
-                        code = _contractPatcher.Patch(code, false);
+                        code = await _codeCheckService.PerformCodePatchAsync(code, eventData.Category, false);
                     }
                     
                     var codeCheckResult = await _codeCheckService.PerformCodeCheckAsync(
