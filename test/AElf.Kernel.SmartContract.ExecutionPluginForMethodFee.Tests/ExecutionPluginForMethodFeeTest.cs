@@ -124,6 +124,12 @@ public sealed class ExecutionPluginForMethodFeeTest : ExecutionPluginForMethodFe
         transactions[0].To.ShouldBe(await GetTokenContractAddressAsync());
     }
 
+    [Fact]
+    public async Task GetPreTransactionFeeTest()
+    {
+        await DeployTestContractAsync();
+    }
+
     private I GetCreateInstance<I, T>() where T : I
     {
         var implements = Application.ServiceProvider.GetRequiredService<IEnumerable<I>>()

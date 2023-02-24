@@ -1,11 +1,12 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using AElf.Standards.ACS1;
-using AElf.Standards.ACS10;
 using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
+using AElf.Standards.ACS1;
+using AElf.Standards.ACS10;
+using AElf.Standards.ACS12;
 using AElf.Types;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.MultiToken;
@@ -20,11 +21,7 @@ public partial class TokenContract
     /// <returns></returns>
     public override ChargeTransactionFeesOutput ChargeTransactionFees(ChargeTransactionFeesInput input)
     {
-        AssertTransactionGeneratedByPlugin();
-        Assert(input.MethodName != null && input.ContractAddress != null, "Invalid charge transaction fees input.");
-
-        // Primary token not created yet.
-        if (State.ChainPrimaryTokenSymbol.Value == null)
+        if (AssertInput(input))
         {
             return new ChargeTransactionFeesOutput {Success = true};
         }
@@ -34,36 +31,33 @@ public partial class TokenContract
         var allowanceBill = new TransactionFreeFeeAllowanceBill();
         var fromAddress = Context.Sender;
 
-        var chargingResult = ChargeTransactionFeesToBill(input, fromAddress, ref bill, ref allowanceBill);
+        var methodFees = Context.Call<MethodFees>(input.ContractAddress, nameof(GetMethodFee),
+            new StringValue {Value = input.MethodName});
+        var fee = new Dictionary<string, long>();
+        var isSizeFeeFree = false;
+        if (methodFees != null && methodFees.Fees.Any())
+        {
+            fee = GetBaseFeeDictionary(methodFees);
+            isSizeFeeFree = methodFees.IsSizeFeeFree;
+        }
+        
+        var chargingResult = ChargeTransactionFeesToBill(input, fromAddress, ref bill, ref allowanceBill,fee,isSizeFeeFree);
         
         if (!chargingResult)
         {
-            // Try to charge delegatees
-            if (State.TransactionFeeDelegateesMap[fromAddress]?.Delegatees != null)
-            {
-                foreach (var (delegatee, delegations) in State.TransactionFeeDelegateesMap[fromAddress].Delegatees)
-                {
-                    // compare current block height with the block height when the delegatee added
-                    if (Context.Transaction.RefBlockNumber < delegations.BlockHeight) continue;
-
-                    var delegateeBill = new TransactionFeeBill();
-                    var delegateeAllowanceBill = new TransactionFreeFeeAllowanceBill();
-                    var delegateeAddress = Address.FromBase58(delegatee);
-                    var delegateeChargingResult = ChargeTransactionFeesToBill(input, delegateeAddress,
-                        ref delegateeBill, ref delegateeAllowanceBill, delegations);
-
-                    if (!delegateeChargingResult) continue;
-                    
-                    bill = delegateeBill;
-                    allowanceBill = delegateeAllowanceBill;
-                    fromAddress = delegateeAddress;
-                    chargingResult = true;
-                    ModifyDelegation(delegateeBill, delegateeAllowanceBill, fromAddress);
-                    break;
-                }
-            }
+            Delegate(input,fromAddress,ref bill,ref allowanceBill,ref chargingResult,fee,isSizeFeeFree);
         }
+
+        ModifyBalance(fromAddress, ref bill, ref allowanceBill);
         
+        var chargingOutput = new ChargeTransactionFeesOutput {Success = chargingResult};
+        if (!chargingResult)
+            chargingOutput.ChargingInformation = "Transaction fee not enough.";
+        return chargingOutput;
+    }
+
+    private void ModifyBalance(Address fromAddress,ref TransactionFeeBill bill,ref TransactionFreeFeeAllowanceBill allowanceBill)
+    {
         SetOrRefreshMethodFeeFreeAllowances(fromAddress);
         var freeAllowances = CalculateMethodFeeFreeAllowances(fromAddress)?.Clone();
         
@@ -90,10 +84,89 @@ public partial class TokenContract
         }
 
         State.MethodFeeFreeAllowancesMap[fromAddress] = freeAllowances;
+    }
+
+    public override ChargeTransactionFeesOutput ChargeFees(ChargeTransactionFeesInput input)
+    {
+        if (AssertInput(input))
+        {
+            return new ChargeTransactionFeesOutput {Success = true};
+        }
+
+        // Record tx fee bill during current charging process.
+        var bill = new TransactionFeeBill();
+        var allowanceBill = new TransactionFreeFeeAllowanceBill();
+        var fromAddress = Context.Sender;
+        var (fee,isSizeFeeFree) = GetActualFee(input.ContractAddress, input.MethodName);
+        var chargingResult = ChargeTransactionFeesToBill(input, fromAddress, ref bill, ref allowanceBill,fee,isSizeFeeFree);
+        if (!chargingResult)
+        {
+            Delegate(input,fromAddress,ref bill,ref allowanceBill,ref chargingResult,fee,isSizeFeeFree);
+        }
+        ModifyBalance(fromAddress, ref bill, ref allowanceBill);
         var chargingOutput = new ChargeTransactionFeesOutput {Success = chargingResult};
         if (!chargingResult)
             chargingOutput.ChargingInformation = "Transaction fee not enough.";
         return chargingOutput;
+    }
+
+    private bool AssertInput(ChargeTransactionFeesInput input)
+    {
+        AssertTransactionGeneratedByPlugin();
+        Assert(input.MethodName != null && input.ContractAddress != null, "Invalid charge transaction fees input.");
+
+        // Primary token not created yet.
+        return State.ChainPrimaryTokenSymbol.Value == null;
+    }
+
+    private (Dictionary<string, long>,bool) GetActualFee(Address contractAddress,string methodName)
+    {
+        if (State.ConfigurationContract.Value == null)
+            State.ConfigurationContract.Value =
+                Context.GetContractAddressByName(SmartContractConstants.ConfigurationContractSystemName);
+        var spec = State.ConfigurationContract.GetConfiguration.Call(new StringValue
+        {
+            Value = $"{contractAddress}-{methodName}"
+        });
+        var fee = new Fees();
+        if (spec != null)
+        {
+            fee.MergeFrom(spec.Value);
+            return (GetFeeDictionary(fee),fee.IsSizeFeeFree);
+        }
+        var value = State.ConfigurationContract.GetConfiguration.Call(new StringValue
+        {
+            Value = TokenContractConstants.TransactionFeeKey
+        });
+        fee.MergeFrom(value.Value);
+        return (GetFeeDictionary(fee),fee.IsSizeFeeFree);
+    }
+
+
+    private void Delegate(ChargeTransactionFeesInput input,Address address,ref TransactionFeeBill bill,ref TransactionFreeFeeAllowanceBill allowanceBill,ref bool chargingResult,Dictionary<string,long> fee,bool isSizeFeeFree)
+    {
+        // Try to charge delegatees
+        if (State.TransactionFeeDelegateesMap[address]?.Delegatees == null) return;
+        foreach (var (delegatee, delegations) in State.TransactionFeeDelegateesMap[address].Delegatees)
+        {
+            // compare current block height with the block height when the delegatee added
+            if (Context.Transaction.RefBlockNumber < delegations.BlockHeight) continue;
+
+            var delegateeBill = new TransactionFeeBill();
+            var delegateeAllowanceBill = new TransactionFreeFeeAllowanceBill();
+            var delegateeAddress = Address.FromBase58(delegatee);
+            var delegateeChargingResult = ChargeTransactionFeesToBill(input, delegateeAddress,
+                ref delegateeBill, ref delegateeAllowanceBill,fee,isSizeFeeFree,delegations);
+
+            if (!delegateeChargingResult) continue;
+                    
+            bill = delegateeBill;
+            allowanceBill = delegateeAllowanceBill;
+            address = delegateeAddress;
+            chargingResult = true;
+            ModifyDelegation(delegateeBill, delegateeAllowanceBill, address);
+            break;
+        }
     }
 
     private void ModifyDelegation(TransactionFeeBill bill, TransactionFreeFeeAllowanceBill allowanceBill,
@@ -118,25 +191,26 @@ public partial class TokenContract
             }
         }
     }
-    
-    private bool ChargeTransactionFeesToBill(ChargeTransactionFeesInput input, Address fromAddress, ref TransactionFeeBill bill,
-        ref TransactionFreeFeeAllowanceBill allowanceBill, TransactionFeeDelegations delegations = null)
+
+    private bool ChargeTransactionFeesToBill(ChargeTransactionFeesInput input, Address fromAddress,
+        ref TransactionFeeBill bill,
+        ref TransactionFreeFeeAllowanceBill allowanceBill,Dictionary<string,long> fee,bool isSizeFeeFree = false,TransactionFeeDelegations delegations = null)
     {
-        var methodFees = Context.Call<MethodFees>(input.ContractAddress, nameof(GetMethodFee),
-            new StringValue {Value = input.MethodName});
+        
         var successToChargeBaseFee = true;
         
         SetOrRefreshMethodFeeFreeAllowances(fromAddress);
         var freeAllowances = CalculateMethodFeeFreeAllowances(fromAddress)?.Clone();
+        //var fee = methodFees == null ? fees : methodFees;
 
-        if (methodFees != null && methodFees.Fees.Any())
+        if (fee.Count != 0)
         {
             // If base fee is set before, charge base fee.
-            successToChargeBaseFee = ChargeBaseFee(GetBaseFeeDictionary(methodFees), fromAddress, ref bill, freeAllowances, ref allowanceBill, delegations);
+            successToChargeBaseFee = ChargeBaseFee(fee, fromAddress, ref bill, freeAllowances, ref allowanceBill, delegations);
         }
 
         var successToChargeSizeFee = true;
-        if (methodFees != null && !methodFees.IsSizeFeeFree)
+        if (fee.Count != 0 && !isSizeFeeFree)
         {
             // If IsSizeFeeFree == true, do not charge size fee.
             successToChargeSizeFee = ChargeSizeFee(input, fromAddress, ref bill, freeAllowances, ref allowanceBill, delegations);
@@ -169,6 +243,23 @@ public partial class TokenContract
     {
         var dict = new Dictionary<string, long>();
         foreach (var methodFee in methodFees.Fees)
+        {
+            if (dict.ContainsKey(methodFee.Symbol))
+            {
+                dict[methodFee.Symbol] = dict[methodFee.Symbol].Add(methodFee.BasicFee);
+            }
+            else
+            {
+                dict[methodFee.Symbol] = methodFee.BasicFee;
+            }
+        }
+
+        return dict;
+    }
+    private Dictionary<string, long> GetFeeDictionary(Fees fees)
+    {
+        var dict = new Dictionary<string, long>();
+        foreach (var methodFee in fees.Fees_)
         {
             if (dict.ContainsKey(methodFee.Symbol))
             {

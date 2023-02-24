@@ -25,6 +25,9 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ContractReference Include="..\..\protobuf\configuration_contract.proto">
+            <Link>Protobuf\Proto\reference\configuration_contract.proto</Link>
+        </ContractReference>
         <ContractReference Include="..\..\protobuf\acs0.proto">
             <Link>Protobuf\Proto\reference\acs0.proto</Link>
         </ContractReference>
@@ -54,6 +57,9 @@
     <ItemGroup>
         <ContractBase Include="..\..\protobuf\acs1.proto">
             <Link>Protobuf\Proto\acs1.proto</Link>
+        </ContractBase>
+        <ContractBase Include="..\..\protobuf\acs12.proto">
+            <Link>Protobuf\Proto\acs12.proto</Link>
         </ContractBase>
         <ContractBase Include="..\..\protobuf\acs2.proto">
             <Link>Protobuf\Proto\acs2.proto</Link>
