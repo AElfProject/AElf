@@ -12,18 +12,20 @@ public static class TransactionResultExtensions
     {
         var relatedLogs = transactionResult.Logs.Where(l => l.Name == nameof(TransactionFeeCharged)).ToList();
         if (!relatedLogs.Any()) return new Dictionary<string, long>();
-        var list = relatedLogs.Select(l => TransactionFeeCharged.Parser.ParseFrom(l.NonIndexed));
+        var transactionFeeChargedList = relatedLogs.Select(l => TransactionFeeCharged.Parser.ParseFrom(l.NonIndexed));
         var result = new Dictionary<string, long>();
-        foreach (var fee in list)
+        foreach (var fee in transactionFeeChargedList)
         {
-            if (result.ContainsKey(fee.Symbol))
+            if (result.TryGetValue(fee.Symbol, out var value))
             {
-                result[fee.Symbol] = result[fee.Symbol].Add(fee.Amount);
-            }else
+                result[fee.Symbol] = value.Add(fee.Amount);
+            }
+            else
             {
                 result[fee.Symbol] = fee.Amount;
             }
         }
+
         return result;
     }
 
