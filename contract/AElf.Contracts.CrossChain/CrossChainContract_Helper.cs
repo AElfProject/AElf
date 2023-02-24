@@ -795,6 +795,12 @@ public partial class CrossChainContract
         }
 
         State.CurrentParentChainHeight.Value = currentHeight;
+        
+        Context.Fire(new ParentChainIndexed
+        {
+            ChainId = parentChainId,
+            IndexedHeight = currentHeight
+        });
 
         return indexedParentChainBlockData;
     }
@@ -870,6 +876,12 @@ public partial class CrossChainContract
 
             State.SideChainInfo[chainId] = sideChainInfo;
             State.CurrentSideChainHeight[chainId] = currentSideChainHeight;
+            
+            Context.Fire(new SideChainIndexed
+            {
+                ChainId = chainId,
+                IndexedHeight = currentSideChainHeight
+            });
         }
 
         if (indexedSideChainBlockData.Count > 0)

@@ -1,4 +1,4 @@
-How to join the testnet
+How to join the mainnet
 =======================
 
 There's two ways to run a AElf node: you can either use Docker
@@ -17,8 +17,8 @@ Summary of the steps to set up a node:
 3.  Modify the appsettings according to your needs.
 4.  Run and check the node.
 
-Hardware suggestion: for the AElf testnet we use the following Amazon
-configuration: c5.large instance with 2 vCPUs, 4GiB RAM and a 200GiB
+Hardware suggestion: for the AElf mainnet we use the following Amazon
+configuration: c5.xlarge instance with 4 vCPUs, 8GiB RAM and a 500GiB
 hard drive for each node we run. We recommend using something similar
 per node that you want to run (one for the mainchain node and one per
 side chain node).
@@ -30,7 +30,7 @@ Setup the database
 ------------------
 
 We currently support two key-value databases to store our nodes data:
-Redis and SSDB, but for the testnet we only provide snapshots for SSDB.
+Redis and SSDB, but for the mainnet we only provide snapshots for SSDB.
 We will configure two SSDB instances, one for chain database and one for
 the state database (run these on different machines for better
 performances).
@@ -48,22 +48,22 @@ Restore the chain database from snapshot:
 >> cd snapshot
 
 ## fetch the snapshot download script
->> curl -O -s https://aelf-node.s3-ap-southeast-1.amazonaws.com/snapshot/testnet/download-mainchain-db.sh
+>> curl -O -s https://aelf-backup.s3.ap-northeast-2.amazonaws.com/snapshot/mainnet/download-mainchain-db.sh
 
 ## execute the script, you can optionally specify a date by appending “yyyymmdd” as parameter
 >> sh download-mainchain-db.sh
 
 ## chain database: decompress and load the chain database snapshot
->> tar xvzf aelf-testnet-mainchain-chaindb-*.tar.gz
+>> tar xvzf aelf-mainnet-mainchain-chaindb-*.tar.gz
 >> stop your chain database instance (ssdb server)
->> cp -r aelf-testnet-mainchain-chaindb-*/* /path/to/install/chaindb/ssdb/var/
+>> cp -r aelf-mainnet-mainchain-chaindb-*/* /path/to/install/chaindb/ssdb/var/
 >> start your chain database instance
 >> enter ssdb console (ssdb-cli) use the "info" command to confirm that the data has been imported)
 
 ## state database : decompress and load the state database
->> tar xvzf aelf-testnet-mainchain-statedb-*.tar.gz
+>> tar xvzf aelf-mainnet-mainchain-statedb-*.tar.gz
 >> stop your state database instance (ssdb server)
->> cp -r aelf-testnet-mainchain-statedb-*/* /path/to/install/statedb/ssdb/var/
+>> cp -r aelf-mainnet-mainchain-statedb-*/* /path/to/install/statedb/ssdb/var/
 >> start your state database instance
 >> enter ssdb console (ssdb-cli) use the "info" command to confirm that the data has been imported)
 ```
@@ -113,9 +113,9 @@ Note that a more detailed section about the cli can be found [command line inter
 
 ``` bash
 ## download the settings template and docker script
->> cd /tmp/ && wget https://github.com/AElfProject/AElf/releases/download/v1.0.0-rc1/aelf-testnet-mainchain.zip
->> unzip aelf-testnet-mainchain.zip
->> mv aelf-testnet-mainchain /opt/aelf-node
+>> cd /tmp/ && wget https://github.com/AElfProject/AElf/releases/download/v1.0.0/aelf-mainnet-mainchain.zip
+>> unzip aelf-mainnet-mainchain.zip
+>> mv aelf-mainnet-mainchain /opt/aelf-node
 ```
 
 Update the appsetting.json file with your account. This will require the
@@ -149,7 +149,7 @@ If you use docker to run the node and it is on
 the same server as the database, please do not use 127.0.0.1 as the
 database monitoring ip. 
 
-Next add the testnet mainchain nodes as peer (bootnode peers):
+Next add the mainnet mainchain nodes as peer (bootnode peers):
 
 ``` json
 {
@@ -165,7 +165,7 @@ Next add the testnet mainchain nodes as peer (bootnode peers):
 
 Note: if your infrastructure is behind a firewall you need to open the
 P2P listening port of the node. You also need to configure your
-listening ip and port for the side chain connections in `appsettings.MainChain.TestNet.json`:
+listening ip and port for the side chain connections in `appsettings.MainChain.MainNet.json`:
 
 ``` json
 {
@@ -184,9 +184,9 @@ To run the node with Docker, enter the following commands:
 
 ``` bash
 ## pull AElf’s image and navigate to the template folder to execute the start script
->> docker pull aelf/node:testnet-v1.0.0
+>> docker pull aelf/node:mainnet-v1.0.0
 >> cd /opt/aelf-node
->> sh aelf-node.sh start aelf/node:testnet-v1.0.0
+>> sh aelf-node.sh start aelf/node:mainnet-v1.0.0
 ```
 
 to stop the node you can run:
@@ -208,7 +208,7 @@ download for your platform, and install it.
 Get the latest release with the following commands:
 
 ``` bash
->> cd /tmp/ && wget https://github.com/AElfProject/AElf/releases/download/v1.0.0-rc1/aelf.zip
+>> cd /tmp/ && wget https://github.com/AElfProject/AElf/releases/download/v1.0.0/aelf.zip
 >> unzip aelf.zip
 >> mv aelf /opt/aelf-node/
 ```
@@ -249,7 +249,7 @@ repeat these steps for all side chains (currently only one is running):
 
 1.  Fetch the appsettings and the docker run script.
 2.  Download and restore the snapshot data with the URLs provided below
-    (steps are the same as in A - Setup the database).
+    (steps are the same as in Setup the database).
 3.  Run the side-chain node.
 
 Running a side chain is very much like running a mainchain node, only
@@ -257,24 +257,28 @@ configuration will change. Here you can find the instructions for
 sidechain1:
 
 ``` bash
->> cd /tmp/ && wget https://github.com/AElfProject/AElf/releases/download/v1.0.0-rc1/aelf-testnet-sidechain1.zip
->> unzip aelf-testnet-sidechain1.zip
->> mv aelf-testnet-sidechain1 /opt/aelf-node
+>> cd /tmp/ && wget https://github.com/AElfProject/AElf/releases/download/v1.0.0/aelf-mainnet-sidechain1.zip
+>> unzip aelf-mainnet-sidechain1.zip
+>> mv aelf-mainnet-sidechain1 /opt/aelf-node
 ```
 
 In order for a sidechain to connect to a mainchain node you need to
-modify the `appsettings.SideChain.TestNet.json` with your node information.
+modify the `appsettings.SideChain.MainNet.json` with your node information.
 
 ``` json
 {
     "CrossChain": {
         "Grpc": {
-            "ParentChainServerPort": 5000,
+            "ParentChainServerPort": 5001,
             "ParentChainServerIp": "your mainchain ip address",
-            "ListeningPort": 5001,
+            "ListeningPort": 5011,
         },
-        "ParentChainId": "AELF"
+        "ParentChainId": "AELF",
+        "Economic": {
+            "SymbolListToPayTxFee": "WRITE,READ,STORAGE,TRAFFIC",
+            "SymbolListToPayRental": "CPU,RAM,DISK,NET"
     }
+  }
 }
 ```
 
@@ -282,14 +286,14 @@ Here you can find the snapshot data for the only current side-chain
 running, optionally you can specify the date, but we recommend you get
 the latest:
 
-    >> curl -O -s https://aelf-node.s3-ap-southeast-1.amazonaws.com/snapshot/testnet/download-sidechain1-db.sh 
+    >> curl -O -s https://aelf-backup.s3.ap-northeast-2.amazonaws.com/snapshot/mainnet/download-sidechain-db.sh 
 
 Here you can find the list of templates folders (appsettings and docker
 run script) for the side-chain:
 
-    wget https://github.com/AElfProject/AElf/releases/download/v1.0.0-rc1/aelf-testnet-sidechain1.zip
+    wget https://github.com/AElfProject/AElf/releases/download/v1.0.0/aelf-mainnet-sidechain1.zip
 
-Each side chain has its own P2P network, add the testnet sidechain nodes as peer:
+Each side chain has its own P2P network, add the mainnet sidechain nodes as peer:
 
     bootnode → ["xxx.xxxx.xxx.xxx:6800", "..."]
 

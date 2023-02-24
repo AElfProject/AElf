@@ -76,7 +76,8 @@ public partial class TokenContract
                 Context.Fire(new TransactionFeeCharged
                 {
                     Symbol = symbol,
-                    Amount = amount
+                    Amount = amount,
+                    ChargingAddress = fromAddress
                 });
             }
         }

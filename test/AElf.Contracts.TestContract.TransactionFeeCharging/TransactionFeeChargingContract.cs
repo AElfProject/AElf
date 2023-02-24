@@ -13,6 +13,12 @@ public class
     {
         State.TokenContract.Value =
             Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
+        State.TokenContract.Approve.Send(new ApproveInput
+        {
+            Spender = State.TokenContract.Value,
+            Amount = 10000_00000000,    
+            Symbol = "ELF"
+        });
         State.TokenContract.Create.Send(new CreateInput
         {
             Symbol = input.Symbol,
