@@ -54,13 +54,16 @@ service ACS0 {
     // Update a user smart contract on chain.
     rpc UpdateUserSmartContract (ContractUpdateInput) returns (google.protobuf.Empty) {
     }
-    
+
+    // Release the proposal which has passed the code check.
     rpc ReleaseApprovedUserSmartContract(ReleaseContractInput) returns (google.protobuf.Empty) {
     }
 
-    rpc ReleaseDeployUserSmartContract(ContractDeploymentInput) returns (google.protobuf.Empty) {
+    // Deploy a smart contract on chain when proposal released.
+    rpc ReleaseDeployUserSmartContract(ContractDeploymentInput) returns (aelf.Address) {
     }
 
+    // Update a smart contract on chain when proposal released.
     rpc ReleaseUpdateUserSmartContract(ContractUpdateInput) returns (google.protobuf.Empty) {
     }
 
@@ -116,6 +119,7 @@ service ACS0 {
         option (aelf.is_view) = true;
     }
 
+    // Get contract address by code hash.
     rpc GetContractAddressByCodeHash (aelf.Hash) returns (aelf.Address) {
         option (aelf.is_view) = true;
     }

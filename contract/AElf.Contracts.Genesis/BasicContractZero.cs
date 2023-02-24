@@ -472,16 +472,16 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         return new Empty();
     }
 
-    public override Empty ReleaseDeployUserSmartContract(ContractDeploymentInput input)
+    public override Address ReleaseDeployUserSmartContract(ContractDeploymentInput input)
     {
         RequireSenderAuthority(State.CodeCheckController.Value.OwnerAddress);
 
         var inputHash = CalculateHashFromInput(input);
         TryClearContractProposingData(inputHash, out var contractProposingInput);
 
-        DeploySmartContract(null, input.Category, input.Code.ToByteArray(), false, contractProposingInput.Author);
-
-        return new Empty();
+        var address = DeploySmartContract(null, input.Category, input.Code.ToByteArray(), false,
+            contractProposingInput.Author);
+        return address;
     }
 
     public override Empty ReleaseUpdateUserSmartContract(ContractUpdateInput input)
