@@ -1186,7 +1186,6 @@ public partial class MultiTokenContractTests
         });
     }
 
-
     [Fact]
     public async Task ValidateTokenInfoExists_ExternalInfo_Test()
     {
@@ -1219,9 +1218,9 @@ public partial class MultiTokenContractTests
                 IsBurnable = AliceCoinTokenInfo.IsBurnable,
                 IssueChainId = _chainId
             });
-        
+
         result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-        
+
         result = await TokenContractStub.ValidateTokenInfoExists.SendWithExceptionAsync(
             new ValidateTokenInfoExistsInput
             {
@@ -1231,9 +1230,57 @@ public partial class MultiTokenContractTests
                 Decimals = AliceCoinTokenInfo.Decimals,
                 Issuer = AliceCoinTokenInfo.Issuer,
                 IsBurnable = AliceCoinTokenInfo.IsBurnable,
-                ExternalInfo = { {"key","value"} }
+                ExternalInfo = { { "key", "value" } }
             });
-        
+
         result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+    }
+
+    [Fact]
+    public async Task CrossContractCreateToken_Test()
+    {
+        await CreateNativeTokenAsync();
+        await TokenContractStub.Issue.SendAsync(new IssueInput
+        {
+            Symbol = NativeToken,
+            To = BasicFunctionContractAddress,
+            Amount = 10000_00000000
+        });
+
+        var fee = await TokenContractStub.GetMethodFee.CallAsync(new StringValue { Value = "Create" });
+        var createTokenInput = new CreateTokenThroughMultiTokenInput
+        {
+            Symbol = "TEST",
+            Decimals = 8,
+            TokenName = "TEST token",
+            Issuer = DefaultAddress,
+            IsBurnable = true,
+            TotalSupply = TotalSupply,
+            ExternalInfo = new TestContract.BasicFunction.ExternalInfo()
+        };
+        var result = await BasicFunctionContractStub.CreateTokenThroughMultiToken.SendAsync(createTokenInput);
+        result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+        var logs = result.TransactionResult.Logs.First(l => l.Name.Equals("TransactionFeeCharged"));
+        var transactionFeeCharged = TransactionFeeCharged.Parser.ParseFrom(logs.NonIndexed);
+        transactionFeeCharged.Amount.ShouldBe(fee.Fees.First().BasicFee);
+        transactionFeeCharged.Symbol.ShouldBe(fee.Fees.First().Symbol);
+
+        var tokenBalance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            { Owner = TokenContractAddress, Symbol = NativeToken });
+        tokenBalance.Balance.ShouldBe(0);
+        
+        var functionBalance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            { Owner = BasicFunctionContractAddress, Symbol = NativeToken });
+        functionBalance.Balance.ShouldBe(0);
+
+        var checkTokenInfo = await TokenContractStub.GetTokenInfo.CallAsync(new GetTokenInfoInput { Symbol = "TEST" });
+        checkTokenInfo.Decimals.ShouldBe(createTokenInput.Decimals);
+        checkTokenInfo.Issuer.ShouldBe(createTokenInput.Issuer);
+        checkTokenInfo.Decimals.ShouldBe(createTokenInput.Decimals);
+        checkTokenInfo.TokenName.ShouldBe(createTokenInput.TokenName);
+        checkTokenInfo.TotalSupply.ShouldBe(createTokenInput.TotalSupply);
+        checkTokenInfo.IsBurnable.ShouldBe(createTokenInput.IsBurnable);
+        checkTokenInfo.ExternalInfo.Value.ShouldBe(createTokenInput.ExternalInfo.Value);
     }
 }

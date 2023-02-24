@@ -17,6 +17,7 @@ using AElf.Contracts.Vote;
 using AElf.Cryptography.ECDSA;
 using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
+using AElf.Sdk.CSharp;
 using AElf.Standards.ACS3;
 using AElf.Types;
 using Google.Protobuf;
@@ -415,6 +416,27 @@ public partial class EconomicContractsTestBase
                 Symbol = EconomicContractsTestConstants.NativeTokenSymbol
             });
             balance.Balance.ShouldBe(1000_000_00000000L);
+        }
+
+        {
+            var addresses = new Address[] { Address.FromBase58("BHN8oN7D8kWZL9YW3aqD3dct4F83zqAd3CgaBTWucUiNSakcp"), Address.FromBase58("2EeEu68HG5MsiUaoaJW8kQ3LBQ2sJHQVRgikkHn2LNsFs2rMit") };
+            foreach (var address in addresses)
+            {
+                var issueResult = await EconomicContractStub.IssueNativeToken.SendAsync(new IssueNativeTokenInput
+                {
+                    Amount = 10000_00000000,
+                    To = address,
+                    Memo = "Used to transfer other testers"
+                });
+                CheckResult(issueResult.TransactionResult);
+
+                var balance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+                {
+                    Owner = address,
+                    Symbol = EconomicContractsTestConstants.NativeTokenSymbol
+                });
+                balance.Balance.ShouldBe(10000_00000000L);
+            }
         }
 
         foreach (var coreDataCenterKeyPair in CoreDataCenterKeyPairs)
