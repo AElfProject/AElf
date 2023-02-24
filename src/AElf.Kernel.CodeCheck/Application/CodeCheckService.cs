@@ -64,7 +64,7 @@ public class CodeCheckService : ICodeCheckService, ITransientDependency
         return false;
     }
 
-    public async Task<byte[]> PerformCodePatchAsync(byte[] code, int category, bool isSystemContract)
+    public bool PerformCodePatch(byte[] code, int category, bool isSystemContract, out byte[] patchedCode)
     {
         try
         {
@@ -74,14 +74,15 @@ public class CodeCheckService : ICodeCheckService, ITransientDependency
                 throw new Exception($"Unrecognized contract category: {category}");
             }
 
-            var patchedCode = contractPatcher.Patch(code, isSystemContract);
+            patchedCode = contractPatcher.Patch(code, isSystemContract);
             Logger.LogTrace("Finish code patch");
-            return patchedCode;
+            return true;
         }
         catch (Exception e)
         {
             Logger.LogWarning(e,$"Perform code patch failed. {e.Message}");
-            throw;
+            patchedCode = Array.Empty<byte>();
+            return false;
         }
     }
 }

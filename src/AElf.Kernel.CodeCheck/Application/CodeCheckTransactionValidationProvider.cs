@@ -79,8 +79,12 @@ internal class CodeCheckTransactionValidationProvider : ITransactionValidationPr
 
     private async Task<bool> CodeCheckWithPatchAsync(byte[] code, Hash blockHash, long blockHeight, int category)
     {
-        var patchedCode = await _codeCheckService.PerformCodePatchAsync(code, category, false);
-        return await _codeCheckService.PerformCodeCheckAsync(patchedCode, blockHash, blockHeight, category, false,
-            true);
+        if (_codeCheckService.PerformCodePatch(code, category, false, out var patchedCode))
+        {
+            return await _codeCheckService.PerformCodeCheckAsync(patchedCode, blockHash, blockHeight, category, false,
+                true);
+        }
+
+        return false;
     }
 }

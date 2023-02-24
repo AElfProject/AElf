@@ -58,14 +58,15 @@ public partial class CodeCheckTest : CodeCheckTestBase
     public async Task PerformCodePatchAsync_Success_Test()
     {
         var code = new byte[10];
-        var patchedCode = await _codeCheckService.PerformCodePatchAsync(code, 0, false);
-        patchedCode.ShouldBe(code);
+        var result = _codeCheckService.PerformCodePatch(code, 0, false, out var patchedCode);
+        result.ShouldBeTrue();
     }
 
     [Fact]
     public async Task PerformCodePatchAsync_UnknownCategory_Test()
     {
         var code = new byte[10];
-        await Assert.ThrowsAsync<Exception>(async () => await _codeCheckService.PerformCodePatchAsync(code, 1, false));
+        var result = _codeCheckService.PerformCodePatch(code, 1, false, out var patchedCode);
+        result.ShouldBeFalse();
     }
 }
