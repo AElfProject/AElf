@@ -225,7 +225,7 @@ message CodeCheckRequired
     sint32 category = 3;
     // Indicates if the contract is the system contract.
     bool is_system_contract = 4;
-
+    // Indicates if the contract is the user contract.
     bool is_user_contract = 5;
 }
 
