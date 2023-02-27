@@ -326,7 +326,8 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
             Address = contractAddress,
             OldCodeHash = oldCodeHash,
             NewCodeHash = newCodeHash,
-            Version = info.Version
+            Version = info.Version,
+            ContractVersion = info.ContractVersion
         });
 
         Context.LogDebug(() => "BasicContractZero - update success: " + contractAddress.ToBase58());

@@ -184,6 +184,7 @@ message ContractDeployed
     int32 version = 4;
     // The name of the contract. It has to be unique.
     aelf.Hash Name = 5;
+    string contract_version = 6;
 }
 
 message CodeCheckRequired
@@ -210,6 +211,7 @@ message CodeUpdated
     aelf.Hash new_code_hash = 3;
     // The version of the current contract.
     int32 version = 4;
+    string contract_version = 5;
 }
 
 message ValidateSystemContractAddressInput {
