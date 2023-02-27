@@ -262,6 +262,8 @@ public sealed class ExecutionPluginForMethodFeeTest : ExecutionPluginForMethodFe
 
         var dummy = await _testContractStub.DummyMethod.SendAsync(new Empty()); // This will deduct the fee
         dummy.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        var chargingAddress = GetChargingAddress(dummy.TransactionResult);
+        chargingAddress.ShouldContain(dummy.Transaction.From);
 
         var transactionFeeDic = dummy.TransactionResult.GetChargedTransactionFees();
         await CheckTransactionFeesMapAsync(transactionFeeDic);
@@ -272,6 +274,12 @@ public sealed class ExecutionPluginForMethodFeeTest : ExecutionPluginForMethodFe
             Symbol = "ELF"
         });
         after.Balance.ShouldBe(before.Balance - transactionFeeDic[before.Symbol]);
+    }
+    
+    private static List<Address> GetChargingAddress(TransactionResult transactionResult)
+    {
+        var relatedLogs = transactionResult.Logs.Where(l => l.Name == nameof(TransactionFeeCharged)).ToList();
+        return relatedLogs.Select(l => TransactionFeeCharged.Parser.ParseFrom(l.Indexed[0]).ChargingAddress).ToList();
     }
 
     private async Task CheckTransactionFeesMapAsync(Dictionary<string, long> transactionFeeDic)
