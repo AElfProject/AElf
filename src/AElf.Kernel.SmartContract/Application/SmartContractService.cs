@@ -11,14 +11,11 @@ namespace AElf.Kernel.SmartContract.Application;
 public class SmartContractService : ISmartContractService, ITransientDependency
 {
     private readonly ISmartContractRunnerContainer _smartContractRunnerContainer;
-    private readonly ISmartContractRunner _smartContractRunner;
 
     public SmartContractService(
-        ISmartContractRunnerContainer smartContractRunnerContainer,
-        ISmartContractRunner smartContractRunner)
+        ISmartContractRunnerContainer smartContractRunnerContainer)
     {
         _smartContractRunnerContainer = smartContractRunnerContainer;
-        _smartContractRunner = smartContractRunner;
     }
 
     /// <inheritdoc />
@@ -48,12 +45,12 @@ public class SmartContractService : ISmartContractService, ITransientDependency
         var isSubsequentVersion = CheckVersion(contractVersion,newContractVersion);
         return new ContractInfoDto
         {
-            ContractVersion = contractVersion,
+            ContractVersion = newContractVersion,
             IsSubsequentVersion = isSubsequentVersion
         };
     }
 
-    public async Task<ContractVersionCheckDto> CheckContractVersion(string contractVersion,SmartContractRegistration registration)
+    public async Task<ContractVersionCheckDto> CheckContractVersionAsync(string contractVersion,SmartContractRegistration registration)
     {
         var newContractVersion = await GetVersion(registration);
         var isSubsequentVersion = CheckVersion(contractVersion,newContractVersion);

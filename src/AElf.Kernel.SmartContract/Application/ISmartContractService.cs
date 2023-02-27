@@ -19,5 +19,5 @@ public interface ISmartContractService
 
     Task<ContractInfoDto> UpdateContractAsync(string contractVersion, SmartContractRegistration registration);
 
-    Task<ContractVersionCheckDto> CheckContractVersion(string contractVersion, SmartContractRegistration registration);
+    Task<ContractVersionCheckDto> CheckContractVersionAsync(string contractVersion, SmartContractRegistration registration);
 }

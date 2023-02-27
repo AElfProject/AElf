@@ -341,7 +341,7 @@ public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, I
         if (!Self.Equals(_smartContractBridgeService.GetZeroSmartContractAddress())) throw new NoPermissionException();
 
         return AsyncHelper.RunSync(() =>
-            _smartContractBridgeService.CheckContractVersion(contractVersion, registration));
+            _smartContractBridgeService.CheckContractVersionAsync(contractVersion, registration));
     }
 
     public byte[] RecoverPublicKey(byte[] signature, byte[] hash)
