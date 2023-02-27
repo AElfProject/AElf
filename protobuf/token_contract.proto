@@ -89,7 +89,7 @@ service TokenContract {
     rpc ChargeTransactionFees (ChargeTransactionFeesInput) returns (ChargeTransactionFeesOutput) {
     }
     
-    rpc ChargeFees(ChargeTransactionFeesInput) returns(ChargeTransactionFeesOutput){
+    rpc ChargeUserTransactionFees(ChargeTransactionFeesInput) returns(ChargeTransactionFeesOutput){
         
     }
 

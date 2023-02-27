@@ -56,8 +56,9 @@ internal class SystemFeeChargePreExecutionPlugin : SmartContractExecutionPluginB
                 return new List<Transaction>();
             }
 
-            if (!IsTargetAcsSymbol(descriptors) && transactionContext.Transaction.To != tokenContractAddress)
+            if (!IsTargetAcsSymbol(descriptors))
                 return new List<Transaction>();
+            
             var tokenStub = _contractReaderFactory.Create(new ContractReaderContext
             {
                 Sender = transactionContext.Transaction.From,

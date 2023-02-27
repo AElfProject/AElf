@@ -15,5 +15,5 @@ public static class TokenContractConstants
     public const string UnlockCallbackExternalInfoKey = "aelf_unlock_callback";
     public const string LogEventExternalInfoKey = "aelf_log_event";
     public const int DELEGATEE_MAX_COUNT = 128;
-    public const string TransactionFeeKey = "transaction fee";
+    public const string UserMethodFeeKey = "User MethodFee";
 }
