@@ -34,4 +34,6 @@ public partial class BasicContractZeroState : ContractState
     public MappedState<long, ContractCodeHashList> ContractCodeHashListMap { get; set; }
 
     public SingletonState<int> ContractProposalExpirationTimePeriod { get; set; }
+
+    public SingletonState<bool> IsPrivilegePreserved { get; set; }
 }

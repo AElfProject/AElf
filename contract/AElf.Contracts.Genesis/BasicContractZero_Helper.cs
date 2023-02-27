@@ -210,6 +210,8 @@ public partial class BasicContractZero
             },
             OrganizationAddressFeedbackMethod = nameof(SetInitialControllerAddress)
         });
+
+        State.IsPrivilegePreserved.Value = proposerAuthorityRequired;
     }
 
     private void AssertAuthorityByContractInfo(ContractInfo contractInfo, Address address)
@@ -310,12 +312,7 @@ public partial class BasicContractZero
 
     private void AssertUserDeployContract()
     {
-        var treasuryContractAddress = GetContractAddressByName(SmartContractConstants.TreasuryContractSystemHashName);
-        Assert(treasuryContractAddress == null, "No permission.");
-        
-        RequireTokenContractContractAddressSet();
-        var primaryTokenSymbol = State.TokenContract.GetPrimaryTokenSymbol.Call(new Empty()).Value;
-        if (Context.Variables.NativeSymbol == primaryTokenSymbol)
+        if (!State.IsPrivilegePreserved.Value )
         {
             return;
         }
