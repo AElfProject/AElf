@@ -35,7 +35,6 @@ public class SmartContractService : ISmartContractService, ITransientDependency
     
     public async Task<ContractInfoDto> DeployContractAsync(SmartContractRegistration registration)
     {
-        CheckRunner(registration.Category);
         var contractVersion = await GetVersion(registration);
         return new ContractInfoDto
         {
@@ -46,21 +45,21 @@ public class SmartContractService : ISmartContractService, ITransientDependency
     public async Task<ContractInfoDto> UpdateContractAsync(string contractVersion,SmartContractRegistration registration)
     {
         var newContractVersion = await GetVersion(registration);
-        var isContractVersionCorrect = CheckVersion(contractVersion,newContractVersion);
+        var isSubsequentVersion = CheckVersion(contractVersion,newContractVersion);
         return new ContractInfoDto
         {
             ContractVersion = contractVersion,
-            IsContractVersionCorrect = isContractVersionCorrect
+            IsSubsequentVersion = isSubsequentVersion
         };
     }
 
     public async Task<ContractVersionCheckDto> CheckContractVersion(string contractVersion,SmartContractRegistration registration)
     {
         var newContractVersion = await GetVersion(registration);
-        var isContractVersionCorrect = CheckVersion(contractVersion,newContractVersion);
+        var isSubsequentVersion = CheckVersion(contractVersion,newContractVersion);
         return new ContractVersionCheckDto
         {
-            IsContractVersionCorrect = isContractVersionCorrect
+            IsSubsequentVersion = isSubsequentVersion
         };
     }
 
@@ -71,7 +70,8 @@ public class SmartContractService : ISmartContractService, ITransientDependency
 
     private async Task<string> GetVersion(SmartContractRegistration registration)
     {
-        var executive = await _smartContractRunner.RunAsync(registration);
+        var runner = _smartContractRunnerContainer.GetRunner(registration.Category);
+        var executive = await runner.RunAsync(registration);
         var contractVersion = executive.ContractVersion;
         return contractVersion;
     }
