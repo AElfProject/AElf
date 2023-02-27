@@ -59,12 +59,12 @@ service ACS0 {
     rpc ReleaseApprovedUserSmartContract(ReleaseContractInput) returns (google.protobuf.Empty) {
     }
 
-    // Deploy a smart contract on chain when proposal released.
-    rpc ReleaseDeployUserSmartContract(ContractDeploymentInput) returns (aelf.Address) {
+    // Perform user contract deployment.
+    rpc PerformDeployUserSmartContract(ContractDeploymentInput) returns (aelf.Address) {
     }
 
-    // Update a smart contract on chain when proposal released.
-    rpc ReleaseUpdateUserSmartContract(ContractUpdateInput) returns (google.protobuf.Empty) {
+    // Perform user contract update.
+    rpc PerformUpdateUserSmartContract(ContractUpdateInput) returns (google.protobuf.Empty) {
     }
 
     // Set author of the specified contract.

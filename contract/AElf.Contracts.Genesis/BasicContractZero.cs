@@ -410,7 +410,7 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         
         var proposedContractInputHash = CalculateHashFromInput(input);
         SendUserContractProposal(proposedContractInputHash,
-            nameof(BasicContractZeroImplContainer.BasicContractZeroImplBase.ReleaseDeployUserSmartContract),
+            nameof(BasicContractZeroImplContainer.BasicContractZeroImplBase.PerformDeployUserSmartContract),
             input.ToByteString());
 
         // Fire event to trigger BPs checking contract code
@@ -437,7 +437,7 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         
         var proposedContractInputHash = CalculateHashFromInput(input);
         SendUserContractProposal(proposedContractInputHash,
-            nameof(BasicContractZeroImplContainer.BasicContractZeroImplBase.ReleaseUpdateUserSmartContract),
+            nameof(BasicContractZeroImplContainer.BasicContractZeroImplBase.PerformUpdateUserSmartContract),
             input.ToByteString());
         
         // Fire event to trigger BPs checking contract code
@@ -472,7 +472,7 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         return new Empty();
     }
 
-    public override Address ReleaseDeployUserSmartContract(ContractDeploymentInput input)
+    public override Address PerformDeployUserSmartContract(ContractDeploymentInput input)
     {
         RequireSenderAuthority(State.CodeCheckController.Value.OwnerAddress);
 
@@ -484,7 +484,7 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         return address;
     }
 
-    public override Empty ReleaseUpdateUserSmartContract(ContractUpdateInput input)
+    public override Empty PerformUpdateUserSmartContract(ContractUpdateInput input)
     {
         RequireSenderAuthority(State.CodeCheckController.Value.OwnerAddress);
         

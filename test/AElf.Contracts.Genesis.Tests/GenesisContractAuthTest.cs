@@ -1564,7 +1564,39 @@ public class GenesisContractAuthTest : BasicContractZeroTestBase
         releaseResult.Error.ShouldContain("No permission.");
     }
 
-    [Fact]//(Skip = "The current miner cannot be accurately obtained.")]
+    [Fact]
+    public async Task PerformDeployUserSmartContract_WrongSender_Test()
+    {
+        StartSideChain("ELF");
+        await AddZeroContractToProposerWhiteListAsync();
+        
+        var releaseResult = await SideChainTester.ExecuteContractWithMiningAsync(SideBasicContractZeroAddress,
+            nameof(ACS0Container.ACS0Stub.PerformDeployUserSmartContract), new ContractDeploymentInput
+            {
+                Category = KernelConstants.DefaultRunnerCategory,
+                Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("TokenConverter")).Value)
+            });
+        releaseResult.Status.ShouldBe(TransactionResultStatus.Failed);
+        releaseResult.Error.ShouldContain("Unauthorized behavior.");
+    }
+    
+    [Fact]
+    public async Task PerformUpdateUserSmartContract_WrongSender_Test()
+    {
+        StartSideChain("ELF");
+        await AddZeroContractToProposerWhiteListAsync();
+        
+        var releaseResult = await SideChainTester.ExecuteContractWithMiningAsync(SideBasicContractZeroAddress,
+            nameof(ACS0Container.ACS0Stub.PerformUpdateUserSmartContract), new ContractUpdateInput
+            {
+                Address = SampleAddress.AddressList[0],
+                Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("TokenConverter")).Value)
+            });
+        releaseResult.Status.ShouldBe(TransactionResultStatus.Failed);
+        releaseResult.Error.ShouldContain("Unauthorized behavior.");
+    }
+
+    [Fact(Skip = "The current miner cannot be accurately obtained.")]
     public async Task DeployAndUpdateUserSmartContracts_Success_Test()
     {
         StartSideChain("ELF");
@@ -1680,8 +1712,56 @@ public class GenesisContractAuthTest : BasicContractZeroTestBase
         
         codeUpdated.Address.ShouldBe(contractDeployed.Address);
         codeUpdated.Version.ShouldBe(contractDeployed.Version + 1);
+
+        // Set author
+        var newAuthor = SampleAddress.AddressList[5];
+        var setResult = await SideChainTester.ExecuteContractWithMiningAsync(SideBasicContractZeroAddress,
+            nameof(ACS0Container.ACS0Stub.SetContractAuthor), new SetContractAuthorInput
+            {
+                ContractAddress = contractDeployed.Address,
+                NewAuthor = newAuthor
+            });
+        setResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        
+        var author = await SideChainTester.CallContractMethodAsync(SideBasicContractZeroAddress,
+            nameof(ACS0Container.ACS0Stub.GetContractAuthor), contractDeployed.Address);
+        Address.Parser.ParseFrom(author).ShouldBe(newAuthor);
+    }
+
+    [Fact]
+    public async Task SetContractAuthor_WrongAuthor_Test()
+    {
+        StartSideChain("ELF");
+        await AddZeroContractToProposerWhiteListAsync();
+        
+        var newAuthor = SampleAddress.AddressList[5];
+        var setResult = await SideChainTester.ExecuteContractWithMiningAsync(SideBasicContractZeroAddress,
+            nameof(ACS0Container.ACS0Stub.SetContractAuthor), new SetContractAuthorInput
+            {
+                ContractAddress = SideBasicContractZeroAddress,
+                NewAuthor = newAuthor
+            });
+         setResult.Status.ShouldBe(TransactionResultStatus.Failed);
+         setResult.Error.ShouldContain("No permission.");
     }
     
+    [Fact]
+    public async Task SetContractAuthor_ContractNotExist_Test()
+    {
+        StartSideChain("ELF");
+        await AddZeroContractToProposerWhiteListAsync();
+        
+        var newAuthor = SampleAddress.AddressList[5];
+        var setResult = await SideChainTester.ExecuteContractWithMiningAsync(SideBasicContractZeroAddress,
+            nameof(ACS0Container.ACS0Stub.SetContractAuthor), new SetContractAuthorInput
+            {
+                ContractAddress = SampleAddress.AddressList[5],
+                NewAuthor = newAuthor
+            });
+        setResult.Status.ShouldBe(TransactionResultStatus.Failed);
+        setResult.Error.ShouldContain("Contract not found.");
+    }
+
     private async Task AddZeroContractToProposerWhiteListAsync()
     {
         var result = await SideChainTester.CallContractMethodAsync(
