@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using AElf.Types;
+using Volo.Abp;
 
 namespace AElf.Kernel.SmartContract.Application;
 
@@ -14,9 +15,9 @@ public interface ISmartContractService
 
     Task UpdateContractAsync(ContractDto contractDto);
     
-    Task<ContractInfoDto> DeployContractAsync(int category,byte[] code);
+    Task<ContractInfoDto> DeployContractAsync(SmartContractRegistration registration);
 
-    Task<ContractInfoDto> UpdateContractAsync(Address address,byte[] code,long blockHeight,Hash blockHash);
+    Task<ContractInfoDto> UpdateContractAsync(string contractVersion,SmartContractRegistration registration);
 
-    Task CheckContractVersion(Address address,byte[] code,long blockHeight,Hash blockHash);
+    Task<ContractVersionCheckDto> CheckContractVersion(string contractVersion,SmartContractRegistration registration);
 }

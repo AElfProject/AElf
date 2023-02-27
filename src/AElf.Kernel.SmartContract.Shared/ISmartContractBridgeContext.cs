@@ -51,11 +51,11 @@ public interface ISmartContractBridgeContext
     
     void UpdateContract(Address address, SmartContractRegistration registration, Hash name);
     
-    ContractInfoDto DeployContract(Address address, SmartContractRegistration registration);
+    ContractInfoDto DeploySmartContract(Address address, SmartContractRegistration registration,Hash name);
 
-    ContractInfoDto UpdateContract(Address address, SmartContractRegistration registration);
+    ContractInfoDto UpdateSmartContract(Address address, SmartContractRegistration registration, Hash name, string contractVersion);
 
-    void CheckContractVersion(Address address, byte[] code);
+    ContractVersionCheckDto CheckContractVersion(string contractVersion, SmartContractRegistration registration);
 
     T Call<T>(Address fromAddress, Address toAddress, string methodName, ByteString args)
         where T : IMessage<T>, new();

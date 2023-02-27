@@ -321,29 +321,28 @@ public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, I
         AsyncHelper.RunSync(() => _smartContractBridgeService.UpdateContractAsync(contractDto));
     }
 
-    public ContractInfoDto DeployContract(Address address, SmartContractRegistration registration)
+    public ContractInfoDto DeploySmartContract(Address address, SmartContractRegistration registration, Hash name)
     {
         if (!Self.Equals(_smartContractBridgeService.GetZeroSmartContractAddress())) throw new NoPermissionException();
 
         return AsyncHelper.RunSync(() =>
-            _smartContractBridgeService.DeployContractAsync(registration.Category, registration.Code.ToByteArray()));
+            _smartContractBridgeService.DeployContractAsync(registration));
     }
 
-    public ContractInfoDto UpdateContract(Address address, SmartContractRegistration registration)
+    public ContractInfoDto UpdateSmartContract(Address address, SmartContractRegistration registration, Hash name, string contractVersion)
     {
         if (!Self.Equals(_smartContractBridgeService.GetZeroSmartContractAddress())) throw new NoPermissionException();
 
         return AsyncHelper.RunSync(() =>
-            _smartContractBridgeService.UpdateContractAsync(address, registration.Code.ToByteArray(), CurrentHeight,
-                PreviousBlockHash));
+            _smartContractBridgeService.UpdateContractAsync(contractVersion, registration));
     }
 
-    public void CheckContractVersion(Address address, byte[] code)
+    public ContractVersionCheckDto CheckContractVersion(string contractVersion, SmartContractRegistration registration)
     {
         if (!Self.Equals(_smartContractBridgeService.GetZeroSmartContractAddress())) throw new NoPermissionException();
 
-        AsyncHelper.RunSync(() =>
-            _smartContractBridgeService.CheckContractVersion(address, code, CurrentHeight, PreviousBlockHash));
+        return AsyncHelper.RunSync(() =>
+            _smartContractBridgeService.CheckContractVersion(contractVersion, registration));
     }
 
     public byte[] RecoverPublicKey(byte[] signature, byte[] hash)

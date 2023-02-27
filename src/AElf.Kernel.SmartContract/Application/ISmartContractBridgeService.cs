@@ -18,11 +18,11 @@ public interface ISmartContractBridgeService
 
     Task UpdateContractAsync(ContractDto contractDto);
     
-    Task<ContractInfoDto> DeployContractAsync(int category,byte[] code);
+    Task<ContractInfoDto> DeployContractAsync(SmartContractRegistration registration);
 
-    Task<ContractInfoDto> UpdateContractAsync(Address address,byte[] code,long blockHeight,Hash blockHash);
+    Task<ContractInfoDto> UpdateContractAsync(string contractVersion, SmartContractRegistration registration);
 
-    Task CheckContractVersion(Address address,byte[] code,long blockHeight,Hash blockHash);
+    Task<ContractVersionCheckDto> CheckContractVersion(string contractVersion, SmartContractRegistration registration);
 
     Task<List<Transaction>> GetBlockTransactions(Hash blockHash);
     int GetChainId();
@@ -80,19 +80,19 @@ public class SmartContractBridgeService : ISmartContractBridgeService
         await _smartContractService.UpdateContractAsync(contractDto);
     }
     
-    public async Task<ContractInfoDto> DeployContractAsync(int category, byte[] code)
+    public async Task<ContractInfoDto> DeployContractAsync(SmartContractRegistration registration)
     {
-        return await _smartContractService.DeployContractAsync(category,code);
+        return await _smartContractService.DeployContractAsync(registration);
     }
 
-    public async Task<ContractInfoDto> UpdateContractAsync(Address address, byte[] code, long blockHeight,Hash blockHash)
+    public async Task<ContractInfoDto> UpdateContractAsync(string contractVersion,SmartContractRegistration registration)
     {
-        return await _smartContractService.UpdateContractAsync(address,code,blockHeight,blockHash);
+        return await _smartContractService.UpdateContractAsync(contractVersion,registration);
     }
 
-    public async Task CheckContractVersion(Address address,byte[] code,long blockHeight,Hash blockHash)
+    public async Task<ContractVersionCheckDto> CheckContractVersion(string contractVersion,SmartContractRegistration registration)
     {
-         await _smartContractService.CheckContractVersion(address,code,blockHeight,blockHash);
+        return await _smartContractService.CheckContractVersion(contractVersion,registration);
     }
 
     public async Task<List<Transaction>> GetBlockTransactions(Hash blockHash)
