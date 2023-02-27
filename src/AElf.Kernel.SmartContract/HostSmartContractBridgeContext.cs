@@ -312,7 +312,6 @@ public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, I
         var contractDto = new ContractDto
         {
             BlockHeight = CurrentHeight,
-            PreviousBlockHash = PreviousBlockHash,
             ContractAddress = address,
             SmartContractRegistration = registration,
             ContractName = null,

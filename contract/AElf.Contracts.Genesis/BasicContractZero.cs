@@ -193,7 +193,7 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
                 Category = State.SmartContractRegistrations[info.CodeHash].Category,
                 CodeHash = HashHelper.ComputeFrom(input.Code.ToByteArray())
             });
-        Assert(contractVersionCheckResult.IsContractVersionCorrect,
+        Assert(contractVersionCheckResult.IsSubsequentVersion,
             $"The version to be deployed is lower than the effective version({info.ContractVersion}), please correct the version number.");
 
         Context.Fire(new ContractProposed
@@ -324,7 +324,7 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         };
 
         var contractInfo = Context.UpdateSmartContract(contractAddress, reg, null, info.ContractVersion);
-        Assert(contractInfo.IsContractVersionCorrect,
+        Assert(contractInfo.IsSubsequentVersion,
             $"The version to be deployed is lower than the effective version({info.ContractVersion}), please correct the version number.");
 
         info.ContractVersion = contractInfo.ContractVersion;

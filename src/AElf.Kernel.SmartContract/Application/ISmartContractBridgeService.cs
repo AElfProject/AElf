@@ -92,7 +92,7 @@ public class SmartContractBridgeService : ISmartContractBridgeService
 
     public async Task<ContractVersionCheckDto> CheckContractVersion(string contractVersion,SmartContractRegistration registration)
     {
-        return await _smartContractService.CheckContractVersion(contractVersion,registration);
+        return await _smartContractService.CheckContractVersion(contractVersion, registration);
     }
 
     public async Task<List<Transaction>> GetBlockTransactions(Hash blockHash)
