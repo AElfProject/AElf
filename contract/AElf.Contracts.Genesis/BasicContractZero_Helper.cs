@@ -310,9 +310,6 @@ public partial class BasicContractZero
 
     private void AssertUserDeployContract()
     {
-        var treasuryContractAddress = GetContractAddressByName(SmartContractConstants.TreasuryContractSystemHashName);
-        Assert(treasuryContractAddress == null, "No permission.");
-        
         RequireTokenContractContractAddressSet();
         var primaryTokenSymbol = State.TokenContract.GetPrimaryTokenSymbol.Call(new Empty()).Value;
         if (Context.Variables.NativeSymbol == primaryTokenSymbol)
