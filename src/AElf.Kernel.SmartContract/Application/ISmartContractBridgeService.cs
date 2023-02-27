@@ -22,7 +22,7 @@ public interface ISmartContractBridgeService
 
     Task<ContractInfoDto> UpdateContractAsync(string contractVersion, SmartContractRegistration registration);
 
-    Task<ContractVersionCheckDto> CheckContractVersion(string contractVersion, SmartContractRegistration registration);
+    Task<ContractVersionCheckDto> CheckContractVersionAsync(string contractVersion, SmartContractRegistration registration);
 
     Task<List<Transaction>> GetBlockTransactions(Hash blockHash);
     int GetChainId();
@@ -90,9 +90,9 @@ public class SmartContractBridgeService : ISmartContractBridgeService
         return await _smartContractService.UpdateContractAsync(contractVersion,registration);
     }
 
-    public async Task<ContractVersionCheckDto> CheckContractVersion(string contractVersion,SmartContractRegistration registration)
+    public async Task<ContractVersionCheckDto> CheckContractVersionAsync(string contractVersion,SmartContractRegistration registration)
     {
-        return await _smartContractService.CheckContractVersion(contractVersion, registration);
+        return await _smartContractService.CheckContractVersionAsync(contractVersion, registration);
     }
 
     public async Task<List<Transaction>> GetBlockTransactions(Hash blockHash)
