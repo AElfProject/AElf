@@ -60,7 +60,8 @@ public partial class BasicContractZero
             Address = contractAddress,
             Author = author,
             Version = info.Version,
-            Name = name
+            Name = name,
+            ContractVersion = info.ContractVersion
         });
 
         Context.LogDebug(() => "BasicContractZero - Deployment ContractHash: " + codeHash.ToHex());
