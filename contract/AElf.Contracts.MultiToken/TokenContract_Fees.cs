@@ -97,11 +97,13 @@ public partial class TokenContract
         var bill = new TransactionFeeBill();
         var allowanceBill = new TransactionFreeFeeAllowanceBill();
         var fromAddress = Context.Sender;
-        var (fee,isSizeFeeFree) = GetActualFee(input.ContractAddress, input.MethodName);
-        var chargingResult = ChargeTransactionFeesToBill(input, fromAddress, ref bill, ref allowanceBill,fee,isSizeFeeFree);
+        var fee = GetActualFee(input.ContractAddress, input.MethodName);
+        var isSizeFeeFree = fee.IsSizeFeeFree;
+        var feeMap = GetFeeDictionary(fee);
+        var chargingResult = ChargeTransactionFeesToBill(input, fromAddress, ref bill, ref allowanceBill,feeMap,isSizeFeeFree);
         if (!chargingResult)
         {
-            Delegate(input,fromAddress,ref bill,ref allowanceBill,ref chargingResult,fee,isSizeFeeFree);
+            Delegate(input,fromAddress,ref bill,ref allowanceBill,ref chargingResult,feeMap,isSizeFeeFree);
         }
         ModifyBalance(fromAddress, ref bill, ref allowanceBill);
         var chargingOutput = new ChargeTransactionFeesOutput {Success = chargingResult};
@@ -119,7 +121,7 @@ public partial class TokenContract
         return State.ChainPrimaryTokenSymbol.Value == null;
     }
 
-    private (Dictionary<string, long>,bool) GetActualFee(Address contractAddress,string methodName)
+    private Fees GetActualFee(Address contractAddress,string methodName)
     {
         if (State.ConfigurationContract.Value == null)
             State.ConfigurationContract.Value =
@@ -132,14 +134,14 @@ public partial class TokenContract
         if (spec != null)
         {
             fee.MergeFrom(spec.Value);
-            return (GetFeeDictionary(fee),fee.IsSizeFeeFree);
+            return fee;
         }
         var value = State.ConfigurationContract.GetConfiguration.Call(new StringValue
         {
             Value = TokenContractConstants.TransactionFeeKey
         });
         fee.MergeFrom(value.Value);
-        return (GetFeeDictionary(fee),fee.IsSizeFeeFree);
+        return fee;
     }
 
 

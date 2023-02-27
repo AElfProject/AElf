@@ -28,7 +28,7 @@ internal class SystemFeeChargePreExecutionPlugin : SmartContractExecutionPluginB
 
     public SystemFeeChargePreExecutionPlugin(ISmartContractAddressService smartContractAddressService,
         IContractReaderFactory<TokenContractImplContainer.TokenContractImplStub> contractReaderFactory,
-        IPrimaryTokenFeeService txFeeService, 
+        IPrimaryTokenFeeService txFeeService,
         ITransactionSizeFeeSymbolsProvider transactionSizeFeeSymbolsProvider) : base("acs12")
     {
         _smartContractAddressService = smartContractAddressService;
@@ -65,7 +65,8 @@ internal class SystemFeeChargePreExecutionPlugin : SmartContractExecutionPluginB
                 RefBlockNumber = transactionContext.Transaction.RefBlockNumber
             });
             if (transactionContext.Transaction.To == tokenContractAddress
-                && transactionContext.Transaction.MethodName == nameof(tokenStub.ChargeFees))
+                && transactionContext.Transaction.MethodName == nameof(tokenStub.ChargeFees) ||
+                transactionContext.Transaction.MethodName == nameof(tokenStub.ChargeTransactionFees))
             {
                 // Skip ChargeFees itself 
                 return new List<Transaction>();
