@@ -1,4 +1,4 @@
-﻿
+﻿using AElf.Kernel.SmartContract.ExecutionPluginForUserFee.Tests.TestContract;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForSystemFee.Tests.TestContract;

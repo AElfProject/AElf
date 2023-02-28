@@ -66,7 +66,7 @@ internal class SystemFeeChargePreExecutionPlugin : SmartContractExecutionPluginB
                 RefBlockNumber = transactionContext.Transaction.RefBlockNumber
             });
             if (transactionContext.Transaction.To == tokenContractAddress
-                && transactionContext.Transaction.MethodName == nameof(tokenStub.ChargeFees) ||
+                && transactionContext.Transaction.MethodName == nameof(tokenStub.ChargeUserTransactionFees) ||
                 transactionContext.Transaction.MethodName == nameof(tokenStub.ChargeTransactionFees))
             {
                 // Skip ChargeFees itself 
@@ -95,7 +95,7 @@ internal class SystemFeeChargePreExecutionPlugin : SmartContractExecutionPluginB
                 }
             }
 
-            var chargeFeeTransaction = tokenStub.ChargeFees.GetTransaction(chargeTransactionFeesInput);
+            var chargeFeeTransaction = tokenStub.ChargeUserTransactionFees.GetTransaction(chargeTransactionFeesInput);
             return new List<Transaction>
             {
                 chargeFeeTransaction
