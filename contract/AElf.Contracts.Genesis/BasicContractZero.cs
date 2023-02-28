@@ -87,7 +87,7 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
     public override Address GetContractAddressByCodeHash(Hash input)
     {
         var registration = State.SmartContractRegistrations[input];
-        return registration?.Address;
+        return registration?.ContractAddress;
     }
 
     #endregion Views
@@ -318,7 +318,7 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
             CodeHash = newCodeHash,
             IsSystemContract = info.IsSystemContract,
             Version = info.Version,
-            Address = contractAddress
+            ContractAddress = contractAddress
         };
 
         State.SmartContractRegistrations[reg.CodeHash] = reg;

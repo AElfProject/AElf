@@ -46,7 +46,7 @@ public partial class BasicContractZero
             CodeHash = codeHash,
             IsSystemContract = info.IsSystemContract,
             Version = info.Version,
-            Address = contractAddress
+            ContractAddress = contractAddress
         };
 
         State.SmartContractRegistrations[reg.CodeHash] = reg;
@@ -99,7 +99,7 @@ public partial class BasicContractZero
             CodeHash = newCodeHash,
             IsSystemContract = info.IsSystemContract,
             Version = info.Version,
-            Address = contractAddress
+            ContractAddress = contractAddress
         };
 
         State.SmartContractRegistrations[reg.CodeHash] = reg;
@@ -310,6 +310,7 @@ public partial class BasicContractZero
 
     private void AssertUserDeployContract()
     {
+        // Only the symbol of main chain or public side chain is native symbol.
         RequireTokenContractContractAddressSet();
         var primaryTokenSymbol = State.TokenContract.GetPrimaryTokenSymbol.Call(new Empty()).Value;
         if (Context.Variables.NativeSymbol == primaryTokenSymbol)
