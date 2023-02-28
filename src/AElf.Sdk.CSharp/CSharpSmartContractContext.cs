@@ -164,14 +164,14 @@ public class CSharpSmartContractContext : ISmartContractBridgeContext
     {
         return SmartContractBridgeContextImplementation.DeploySmartContract(address,registration,name);
     }
-    public ContractInfoDto UpdateSmartContract(Address address, SmartContractRegistration registration, Hash name,string contractVersion)
+    public ContractInfoDto UpdateSmartContract(Address address, SmartContractRegistration registration, Hash name,string previousContractVersion)
     {
-        return SmartContractBridgeContextImplementation.UpdateSmartContract(address,registration,name,contractVersion);
+        return SmartContractBridgeContextImplementation.UpdateSmartContract(address,registration,name,previousContractVersion);
     }
 
-    public ContractVersionCheckDto CheckContractVersion(string contractVersion, SmartContractRegistration registration)
+    public ContractVersionCheckDto CheckContractVersion(string previousContractVersion, SmartContractRegistration registration)
     {
-        return SmartContractBridgeContextImplementation.CheckContractVersion(contractVersion, registration);
+        return SmartContractBridgeContextImplementation.CheckContractVersion(previousContractVersion, registration);
     }
 
     /// <summary>

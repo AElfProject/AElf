@@ -53,9 +53,9 @@ public interface ISmartContractBridgeContext
     
     ContractInfoDto DeploySmartContract(Address address, SmartContractRegistration registration,Hash name);
 
-    ContractInfoDto UpdateSmartContract(Address address, SmartContractRegistration registration, Hash name, string contractVersion);
+    ContractInfoDto UpdateSmartContract(Address address, SmartContractRegistration registration, Hash name, string previousContractVersion);
 
-    ContractVersionCheckDto CheckContractVersion(string contractVersion, SmartContractRegistration registration);
+    ContractVersionCheckDto CheckContractVersion(string previousContractVersion, SmartContractRegistration registration);
 
     T Call<T>(Address fromAddress, Address toAddress, string methodName, ByteString args)
         where T : IMessage<T>, new();
