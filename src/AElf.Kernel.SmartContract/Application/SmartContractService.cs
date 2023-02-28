@@ -39,10 +39,10 @@ public class SmartContractService : ISmartContractService, ITransientDependency
         };
     }
 
-    public async Task<ContractInfoDto> UpdateContractAsync(string contractVersion,SmartContractRegistration registration)
+    public async Task<ContractInfoDto> UpdateContractAsync(string previousContractVersion,SmartContractRegistration registration)
     {
         var newContractVersion = await GetVersion(registration);
-        var isSubsequentVersion = CheckVersion(contractVersion,newContractVersion);
+        var isSubsequentVersion = CheckVersion(previousContractVersion,newContractVersion);
         return new ContractInfoDto
         {
             ContractVersion = newContractVersion,
@@ -50,10 +50,10 @@ public class SmartContractService : ISmartContractService, ITransientDependency
         };
     }
 
-    public async Task<ContractVersionCheckDto> CheckContractVersionAsync(string contractVersion,SmartContractRegistration registration)
+    public async Task<ContractVersionCheckDto> CheckContractVersionAsync(string previousContractVersion,SmartContractRegistration registration)
     {
         var newContractVersion = await GetVersion(registration);
-        var isSubsequentVersion = CheckVersion(contractVersion,newContractVersion);
+        var isSubsequentVersion = CheckVersion(previousContractVersion,newContractVersion);
         return new ContractVersionCheckDto
         {
             IsSubsequentVersion = isSubsequentVersion
@@ -73,8 +73,19 @@ public class SmartContractService : ISmartContractService, ITransientDependency
         return contractVersion;
     }
     
-    private bool CheckVersion(string oldVersion,string version)
+    
+    private bool CheckVersion(string previousContractVersion,string newContractVersion)
     {
-        return version.IsNullOrEmpty() || new Version(oldVersion) < new Version(version);
+        if (newContractVersion.IsNullOrEmpty())
+        {
+            return false;
+        }
+
+        if (previousContractVersion.IsNullOrEmpty())
+        {
+            return true;
+        }
+
+        return  new Version(previousContractVersion) < new Version(newContractVersion);
     }
 }

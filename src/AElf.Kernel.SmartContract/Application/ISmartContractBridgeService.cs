@@ -20,9 +20,9 @@ public interface ISmartContractBridgeService
     
     Task<ContractInfoDto> DeployContractAsync(SmartContractRegistration registration);
 
-    Task<ContractInfoDto> UpdateContractAsync(string contractVersion, SmartContractRegistration registration);
+    Task<ContractInfoDto> UpdateContractAsync(string previousContractVersion, SmartContractRegistration registration);
 
-    Task<ContractVersionCheckDto> CheckContractVersionAsync(string contractVersion, SmartContractRegistration registration);
+    Task<ContractVersionCheckDto> CheckContractVersionAsync(string previousContractVersion, SmartContractRegistration registration);
 
     Task<List<Transaction>> GetBlockTransactions(Hash blockHash);
     int GetChainId();
@@ -85,14 +85,14 @@ public class SmartContractBridgeService : ISmartContractBridgeService
         return await _smartContractService.DeployContractAsync(registration);
     }
 
-    public async Task<ContractInfoDto> UpdateContractAsync(string contractVersion,SmartContractRegistration registration)
+    public async Task<ContractInfoDto> UpdateContractAsync(string previousContractVersion,SmartContractRegistration registration)
     {
-        return await _smartContractService.UpdateContractAsync(contractVersion,registration);
+        return await _smartContractService.UpdateContractAsync(previousContractVersion,registration);
     }
 
-    public async Task<ContractVersionCheckDto> CheckContractVersionAsync(string contractVersion,SmartContractRegistration registration)
+    public async Task<ContractVersionCheckDto> CheckContractVersionAsync(string previousContractVersion,SmartContractRegistration registration)
     {
-        return await _smartContractService.CheckContractVersionAsync(contractVersion, registration);
+        return await _smartContractService.CheckContractVersionAsync(previousContractVersion, registration);
     }
 
     public async Task<List<Transaction>> GetBlockTransactions(Hash blockHash)

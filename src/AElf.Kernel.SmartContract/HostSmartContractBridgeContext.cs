@@ -328,20 +328,20 @@ public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, I
             _smartContractBridgeService.DeployContractAsync(registration));
     }
 
-    public ContractInfoDto UpdateSmartContract(Address address, SmartContractRegistration registration, Hash name, string contractVersion)
+    public ContractInfoDto UpdateSmartContract(Address address, SmartContractRegistration registration, Hash name, string previousContractVersion)
     {
         if (!Self.Equals(_smartContractBridgeService.GetZeroSmartContractAddress())) throw new NoPermissionException();
 
         return AsyncHelper.RunSync(() =>
-            _smartContractBridgeService.UpdateContractAsync(contractVersion, registration));
+            _smartContractBridgeService.UpdateContractAsync(previousContractVersion, registration));
     }
 
-    public ContractVersionCheckDto CheckContractVersion(string contractVersion, SmartContractRegistration registration)
+    public ContractVersionCheckDto CheckContractVersion(string previousContractVersion, SmartContractRegistration registration)
     {
         if (!Self.Equals(_smartContractBridgeService.GetZeroSmartContractAddress())) throw new NoPermissionException();
 
         return AsyncHelper.RunSync(() =>
-            _smartContractBridgeService.CheckContractVersionAsync(contractVersion, registration));
+            _smartContractBridgeService.CheckContractVersionAsync(previousContractVersion, registration));
     }
 
     public byte[] RecoverPublicKey(byte[] signature, byte[] hash)
