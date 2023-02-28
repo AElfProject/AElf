@@ -6,6 +6,7 @@ using AElf.Kernel;
 using AElf.Kernel.Account.Infrastructure;
 using AElf.Kernel.ChainController;
 using AElf.Kernel.ChainController.Application;
+using AElf.Kernel.CodeCheck.Application;
 using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.Infrastructure;
 using AElf.Kernel.Node;
@@ -119,6 +120,8 @@ public class ContractTestModule : AbpModule
                 .Returns(new List<GenesisSmartContractDto>());
             return mockService.Object;
         });
+        
+        context.Services.AddTransient(o => Mock.Of<ICodeCheckService>());
 
         #endregion
 
