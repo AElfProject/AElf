@@ -31,7 +31,6 @@
         <ProjectReference Include="..\..\src\AElf.ContractTestBase\AElf.ContractTestBase.csproj" />
         <ProjectReference Include="..\..\src\AElf.ContractTestKit\AElf.ContractTestKit.csproj" />
         <ProjectReference Include="..\..\src\AElf.Kernel.SmartContract.ExecutionPluginForMethodFee\AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.csproj" />
-        <ProjectReference Include="..\..\src\AElf.Kernel.SmartContract.ExecutionPluginForUserFee\AElf.Kernel.SmartContract.ExecutionPluginForUserFee.csproj" />
         <ProjectReference Include="..\AElf.Kernel.TestBase\AElf.Kernel.TestBase.csproj" />
     </ItemGroup>
     <ItemGroup>
