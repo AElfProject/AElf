@@ -1,7 +1,6 @@
-﻿using AElf.Kernel.SmartContract.ExecutionPluginForUserFee.Tests.TestContract;
-using Google.Protobuf.WellKnownTypes;
+﻿using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.Kernel.SmartContract.ExecutionPluginForSystemFee.Tests.TestContract;
+namespace AElf.Kernel.SmartContract.ExecutionPluginForUserFee.Tests.TestContract;
 
 public class TestContract : TestContractContainer.TestContractBase
 {

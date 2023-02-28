@@ -70,6 +70,10 @@ public partial class TokenContract
         var allowanceBill = new TransactionFreeFeeAllowanceBill();
         var fromAddress = Context.Sender;
         var fee = GetActualFee(input.ContractAddress, input.MethodName);
+        if (fee.MethodName.Equals(TokenContractConstants.UserMethodFeeIsFree))
+        {
+            return new ChargeTransactionFeesOutput {Success = true}; 
+        }
         var isSizeFeeFree = fee.IsSizeFeeFree;
         var feeMap = GetFeeDictionary(fee);
         var chargingResult =
@@ -116,8 +120,14 @@ public partial class TokenContract
         {
             Value = TokenContractConstants.UserMethodFeeKey
         });
+        if (value.Value.IsNullOrEmpty()) return new UserMethodFees
+        {
+            MethodName = TokenContractConstants.UserMethodFeeIsFree,
+            IsSizeFeeFree = true
+        };
         fee.MergeFrom(value.Value);
         return fee;
+
     }
 
     private void TryToBeChargedByDelegatee(ChargeTransactionFeesInput input, ref Address fromAddress,

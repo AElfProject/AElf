@@ -14,19 +14,19 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee;
 
-internal class SystemFeeChargePreExecutionPlugin : SmartContractExecutionPluginBase, IPreExecutionPlugin,
+internal class UserFeeChargePreExecutionPlugin : SmartContractExecutionPluginBase, IPreExecutionPlugin,
     ISingletonDependency
 {
     private readonly IContractReaderFactory<TokenContractImplContainer.TokenContractImplStub>
         _contractReaderFactory;
 
-    public ILogger<SystemFeeChargePreExecutionPlugin> Logger { get; set; }
+    public ILogger<UserFeeChargePreExecutionPlugin> Logger { get; set; }
     private readonly ISmartContractAddressService _smartContractAddressService;
     private readonly IPrimaryTokenFeeService _txFeeService;
     private readonly ITransactionSizeFeeSymbolsProvider _transactionSizeFeeSymbolsProvider;
 
 
-    public SystemFeeChargePreExecutionPlugin(ISmartContractAddressService smartContractAddressService,
+    public UserFeeChargePreExecutionPlugin(ISmartContractAddressService smartContractAddressService,
         IContractReaderFactory<TokenContractImplContainer.TokenContractImplStub> contractReaderFactory,
         IPrimaryTokenFeeService txFeeService,
         ITransactionSizeFeeSymbolsProvider transactionSizeFeeSymbolsProvider) : base("acs12")
@@ -35,7 +35,7 @@ internal class SystemFeeChargePreExecutionPlugin : SmartContractExecutionPluginB
         _contractReaderFactory = contractReaderFactory;
         _txFeeService = txFeeService;
         _transactionSizeFeeSymbolsProvider = transactionSizeFeeSymbolsProvider;
-        Logger = NullLogger<SystemFeeChargePreExecutionPlugin>.Instance;
+        Logger = NullLogger<UserFeeChargePreExecutionPlugin>.Instance;
     }
 
     public async Task<IEnumerable<Transaction>> GetPreTransactionsAsync(IReadOnlyList<ServiceDescriptor> descriptors,
@@ -66,10 +66,10 @@ internal class SystemFeeChargePreExecutionPlugin : SmartContractExecutionPluginB
                 RefBlockNumber = transactionContext.Transaction.RefBlockNumber
             });
             if (transactionContext.Transaction.To == tokenContractAddress
-                && transactionContext.Transaction.MethodName == nameof(tokenStub.ChargeUserTransactionFees) ||
-                transactionContext.Transaction.MethodName == nameof(tokenStub.ChargeTransactionFees))
+                && (transactionContext.Transaction.MethodName == nameof(tokenStub.ChargeUserTransactionFees) ||
+                transactionContext.Transaction.MethodName == nameof(tokenStub.ChargeTransactionFees)))
             {
-                // Skip ChargeFees itself 
+                // Skip ChargeUserTransactionFees itself and ChargeTransactionFees
                 return new List<Transaction>();
             }
 
@@ -103,7 +103,7 @@ internal class SystemFeeChargePreExecutionPlugin : SmartContractExecutionPluginB
         }
         catch (Exception e)
         {
-            Logger.LogError($"Failed to generate ChargeFees tx. {e.Message}");
+            Logger.LogError($"Failed to generate ChargeUserTransactionFees tx. {e.Message}");
             throw;
         }
     }

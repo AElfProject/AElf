@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.Configuration;
+using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.MultiToken;
 using AElf.CSharp.Core.Extension;
 using AElf.Kernel.Blockchain.Application;
@@ -34,64 +35,12 @@ public class ExecutionPluginForUserMethodFeeTest : ExecutionPluginForUserMethodF
         _totalTransactionFeesMapProvider = GetRequiredService<ITotalTransactionFeesMapProvider>();
     }
 
-    private async Task DeployTestContractAsync()
-    {
-        var category = KernelConstants.CodeCoverageRunnerCategory;
-        var code = Codes.Single(kv => kv.Key.Contains("ExecutionPluginForSystemFee.Tests.TestContract")).Value;
-        _testContractAddress = await DeploySystemSmartContract(category, code,
-            HashHelper.ComputeFrom("ExecutionPluginForSystemFee.Tests.TestContract"),
-            DefaultSenderKeyPair);
-        _testContractStub =
-            GetTester<TestContractContainer.TestContractStub>(_testContractAddress, DefaultSenderKeyPair);
-    }
-    private async Task<Address> GetTokenContractAddressAsync()
-    {
-        var preBlockHeader = await _blockchainService.GetBestChainLastBlockHeaderAsync();
-        var chainContext = new ChainContext
-        {
-            BlockHash = preBlockHeader.GetHash(),
-            BlockHeight = preBlockHeader.Height
-        };
-        var contractMapping =
-            await ContractAddressService.GetSystemContractNameToAddressMappingAsync(chainContext);
-
-        return contractMapping[TokenSmartContractAddressNameProvider.Name];
-    }
-    private async Task<TokenContractContainer.TokenContractStub> GetTokenContractStubAsync()
-    {
-        var tokenContractAddress = await GetTokenContractAddressAsync();
-        var tokenStub = GetTester<TokenContractContainer.TokenContractStub>(
-            tokenContractAddress, DefaultSenderKeyPair);
-
-        return tokenStub;
-    }
-
-    private async Task Initialize()
-    {
-        await DeployTestContractAsync();
-        
-        {
-            var proposalId = await SetSystemFeeAsync(1_00000000);
-            await ParliamentContractStub.Approve.SendAsync(proposalId);
-            var releaseRet = await ParliamentContractStub.Release.SendAsync(proposalId);
-            releaseRet.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            var configuration = await ConfigurationStub.GetConfiguration.CallAsync(new StringValue
-            {
-                Value = ConfigurationKey
-            });
-            var fee = new UserMethodFees();
-            fee.MergeFrom(configuration.Value);
-            fee.Fees.First().Symbol.ShouldBe("ELF");
-            fee.Fees.First().BasicFee.ShouldBe(1_00000000);
-        }
-    }
-
     [Fact]
     public async Task GetPreTransactionFeeTest()
     {
         await Initialize();
         {
-            var plugin = GetCreateInstance<IPreExecutionPlugin, SystemFeeChargePreExecutionPlugin>();
+            var plugin = GetCreateInstance<IPreExecutionPlugin, UserFeeChargePreExecutionPlugin>();
             plugin.ShouldNotBeNull();
 
             var bcs = Application.ServiceProvider.GetRequiredService<IBlockchainService>();
@@ -111,16 +60,14 @@ public class ExecutionPluginForUserMethodFeeTest : ExecutionPluginForUserMethodF
     
             transactions.ShouldNotBeEmpty();
             transactions[0].From.ShouldBe(DefaultAddress);
-            transactions[0].To.ShouldBe(await GetTokenContractAddressAsync());
+            transactions[0].To.ShouldBe(TokenContractAddress);
         }
     }
 
     [Fact]
-    public async Task ChargeSystemFeeTest_Success()
+    public async Task ChargeUserFeeTest_Success()
     {
         await Initialize();
-        TokenContractStub = await GetTokenContractStubAsync();
-        await SetPrimaryTokenSymbolAsync(TokenContractStub);
         var beforeBalance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
         {
             Owner = DefaultAddress,
@@ -138,6 +85,118 @@ public class ExecutionPluginForUserMethodFeeTest : ExecutionPluginForUserMethodF
         });
         after.Balance.ShouldBe(beforeBalance.Balance - transactionFeeDic[beforeBalance.Symbol]);
     }
+
+    [Fact]
+    public async Task ChargeUserFeeTest_Success_IsFree()
+    {
+        await DeployTestContractAsync();
+        var beforeBalance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+        {
+            Owner = DefaultAddress,
+            Symbol = "ELF"
+        });
+        var result = await _testContractStub.TestMethod.SendAsync(new Empty());
+        result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        var transactionFeeDic = result.TransactionResult.GetChargedTransactionFees();
+        await CheckTransactionFeesMapAsync(transactionFeeDic);
+
+        var after = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+        {
+            Owner = DefaultAddress,
+            Symbol = "ELF"
+        });
+        after.Balance.ShouldBe(beforeBalance.Balance);
+    }
+    
+    [Fact]
+    public async Task GetPreTransactions_None_PreTransaction_Test()
+    {
+        await Initialize();
+        var plugin = GetCreateInstance<IPreExecutionPlugin, UserFeeChargePreExecutionPlugin>();
+        plugin.ShouldNotBeNull();
+        var bcs = Application.ServiceProvider.GetRequiredService<IBlockchainService>();
+        var chain = await bcs.GetChainAsync();
+
+        //height == 1
+        var transactions = (await plugin.GetPreTransactionsAsync(TestContractContainer.Descriptors,
+            new TransactionContext
+            {
+                Transaction = new Transaction
+                {
+                    From = DefaultAddress,
+                    To = _testContractAddress,
+                    MethodName = nameof(_testContractStub.TestMethod)
+                },
+                BlockHeight = 1,
+                PreviousBlockHash = chain.BestChainHash
+            })).ToList();
+
+        transactions.Count.ShouldBe(0);
+
+        // invalid contract descriptor
+        transactions = (await plugin.GetPreTransactionsAsync(AEDPoSContractContainer.Descriptors,
+            new TransactionContext
+            {
+                Transaction = new Transaction
+                {
+                    From = DefaultAddress,
+                    To = DefaultAddress,
+                    MethodName = nameof(_testContractStub.TestMethod)
+                },
+                BlockHeight = chain.BestChainHeight + 1,
+                PreviousBlockHash = chain.BestChainHash
+            })).ToList();
+
+        transactions.Count.ShouldBe(0);
+
+        // method name == ChargeTransactionFees, to == token contract address
+        transactions = (await plugin.GetPreTransactionsAsync(AEDPoSContractContainer.Descriptors,
+            new TransactionContext
+            {
+                Transaction = new Transaction
+                {
+                    From = DefaultAddress,
+                    To = TokenContractAddress,
+                    MethodName = nameof(TokenContractContainer.TokenContractStub.ChargeTransactionFees)
+                },
+                BlockHeight = chain.BestChainHeight + 1,
+                PreviousBlockHash = chain.BestChainHash
+            })).ToList();
+
+        transactions.Count.ShouldBe(0);
+    }
+    
+    private async Task DeployTestContractAsync()
+    {
+        var category = KernelConstants.CodeCoverageRunnerCategory;
+        var code = Codes.Single(kv => kv.Key.Contains("ExecutionPluginForUserFee.Tests.TestContract")).Value;
+        _testContractAddress = await DeploySystemSmartContract(category, code,
+            HashHelper.ComputeFrom("ExecutionPluginForUserFee.Tests.TestContract"),
+            DefaultSenderKeyPair);
+        _testContractStub =
+            GetTester<TestContractContainer.TestContractStub>(_testContractAddress, DefaultSenderKeyPair);
+    }
+
+    private async Task Initialize()
+    {
+        await DeployTestContractAsync();
+        
+        {
+            var proposalId = await SetUserFeeAsync(1_00000000);
+            await ParliamentContractStub.Approve.SendAsync(proposalId);
+            var releaseRet = await ParliamentContractStub.Release.SendAsync(proposalId);
+            releaseRet.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            var configuration = await ConfigurationStub.GetConfiguration.CallAsync(new StringValue
+            {
+                Value = ConfigurationKey
+            });
+            var fee = new UserMethodFees();
+            fee.MergeFrom(configuration.Value);
+            fee.Fees.First().Symbol.ShouldBe("ELF");
+            fee.Fees.First().BasicFee.ShouldBe(1_00000000);
+        }
+    }
+    
     private async Task CheckTransactionFeesMapAsync(Dictionary<string, long> transactionFeeDic)
     {
         var chain = await _blockchainService.GetChainAsync();
@@ -149,25 +208,20 @@ public class ExecutionPluginForUserMethodFeeTest : ExecutionPluginForUserMethodF
         foreach (var transactionFee in transactionFeeDic)
             transactionFeesMap.Value[transactionFee.Key].ShouldBe(transactionFee.Value);
     }
-    private async Task SetPrimaryTokenSymbolAsync(TokenContractContainer.TokenContractStub tokenContractStub)
+    private async Task<Hash> SetUserFeeAsync(int amount)
     {
-        await tokenContractStub.SetPrimaryTokenSymbol.SendAsync(new SetPrimaryTokenSymbolInput
-            { Symbol = "ELF" });
-    }
-    internal async Task<Hash> SetSystemFeeAsync(int amount)
-    {
-        var createProposalInput = SetSystemFee(amount);
+        var createProposalInput = SetUserFee(amount);
         var organizationAddress = await GetParliamentDefaultOrganizationAddressAsync();
         var proposalId =
             await CreateProposalAsync(organizationAddress, createProposalInput, "SetConfiguration");
         return proposalId;
     }
-    internal async Task<Address> GetParliamentDefaultOrganizationAddressAsync()
+    private async Task<Address> GetParliamentDefaultOrganizationAddressAsync()
     {
         var organizationAddress = await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
         return organizationAddress;
     }
-    internal async Task<Hash> CreateProposalAsync(Address organizationAddress, IMessage input, string methodName)
+    private async Task<Hash> CreateProposalAsync(Address organizationAddress, IMessage input, string methodName)
     {
         var result = await AuthorizationContractStub.CreateProposal.SendAsync(new CreateProposalInput
         {
@@ -180,7 +234,7 @@ public class ExecutionPluginForUserMethodFeeTest : ExecutionPluginForUserMethodF
         var proposalId = Hash.Parser.ParseFrom(result.TransactionResult.ReturnValue);
         return proposalId;
     }
-    internal SetConfigurationInput SetSystemFee(int amount)
+    private SetConfigurationInput SetUserFee(int amount)
     {
         var transactionFee = new UserMethodFees()
         {

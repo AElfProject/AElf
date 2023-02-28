@@ -69,8 +69,8 @@ internal class FeeChargePreExecutionPlugin : SmartContractExecutionPluginBase, I
             });
 
             if (transactionContext.Transaction.To == tokenContractAddress &&
-                transactionContext.Transaction.MethodName == nameof(tokenStub.ChargeTransactionFees) ||
-                transactionContext.Transaction.MethodName == nameof(tokenStub.ChargeUserTransactionFees))
+                (transactionContext.Transaction.MethodName == nameof(tokenStub.ChargeTransactionFees) ||
+                transactionContext.Transaction.MethodName == nameof(tokenStub.ChargeUserTransactionFees)))
                 // Skip ChargeTransactionFees itself 
                 return new List<Transaction>();
 

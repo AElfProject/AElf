@@ -55,7 +55,7 @@ public class ExecutionPluginForUserMethodFeeTestModule : ContractTestModule
     public override void ConfigureServices(ServiceConfigurationContext context)
     {
         Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false);
-        context.Services.AddSingleton<IPreExecutionPlugin, SystemFeeChargePreExecutionPlugin>();
+        context.Services.AddSingleton<IPreExecutionPlugin, UserFeeChargePreExecutionPlugin>();
         context.Services.AddSingleton<ICalculateFunctionProvider, MockCalculateFunctionProvider>();
         context.Services.RemoveAll<IContractInitializationProvider>();
         context.Services

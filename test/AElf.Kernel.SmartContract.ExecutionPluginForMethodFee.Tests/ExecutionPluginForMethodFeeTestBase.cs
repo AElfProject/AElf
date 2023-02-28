@@ -13,6 +13,7 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Configuration;
 using AElf.Kernel.Proposal;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Token;
 using AElf.Standards.ACS1;
 using AElf.Standards.ACS3;
@@ -43,6 +44,10 @@ public class ExecutionPluginForUserMethodFeeTestBase : ContractTestBase<Executio
     internal ConfigurationContainer.ConfigurationStub ConfigurationStub;
     internal TokenContractContainer.TokenContractStub TokenContractStub { get; set; }
     internal AEDPoSContractContainer.AEDPoSContractStub AEDPoSContractStub { get; set; }
+    protected new ISmartContractAddressService ContractAddressService =>
+        Application.ServiceProvider.GetRequiredService<ISmartContractAddressService>();
+    protected IBlockchainService BlockChainService =>
+        Application.ServiceProvider.GetRequiredService<IBlockchainService>();
     
     protected ECKeyPair DefaultSenderKeyPair => Accounts[0].KeyPair;
     protected Address DefaultAddress => Accounts[0].Address;
@@ -60,10 +65,33 @@ public class ExecutionPluginForUserMethodFeeTestBase : ContractTestBase<Executio
         AuthorizationContractStub=
             GetTester<AuthorizationContractContainer.AuthorizationContractStub>(ParliamentAddress,
                 DefaultSenderKeyPair);
-
         await InitializeAElfConsensus();
         await InitializedParliament(); 
+        TokenContractStub = await GetTokenContractStubAsync();
+        await SetPrimaryTokenSymbolAsync();
     }
+    private async Task<Address> GetTokenContractAddressAsync()
+    {
+        var preBlockHeader = await BlockChainService.GetBestChainLastBlockHeaderAsync();
+        var chainContext = new ChainContext
+        {
+            BlockHash = preBlockHeader.GetHash(),
+            BlockHeight = preBlockHeader.Height
+        };
+        var contractMapping =
+            await ContractAddressService.GetSystemContractNameToAddressMappingAsync(chainContext);
+
+        return contractMapping[TokenSmartContractAddressNameProvider.Name];
+    }
+    private async Task<TokenContractContainer.TokenContractStub> GetTokenContractStubAsync()
+    {
+        TokenContractAddress = await GetTokenContractAddressAsync();
+        var tokenStub = GetTester<TokenContractContainer.TokenContractStub>(
+            TokenContractAddress, DefaultSenderKeyPair);
+
+        return tokenStub;
+    }
+
     private async Task InitializedParliament()
     {
         await ParliamentContractStub.Initialize.SendAsync(new InitializeInput
@@ -151,6 +179,11 @@ public class ExecutionPluginForUserMethodFeeTestBase : ContractTestBase<Executio
         round.ExtraBlockProducerOfPreviousRound = sortedMiners[0];
 
         return round;
+    }
+    private async Task SetPrimaryTokenSymbolAsync()
+    {
+        await TokenContractStub.SetPrimaryTokenSymbol.SendAsync(new SetPrimaryTokenSymbolInput
+            { Symbol = "ELF" });
     }
 }
 
