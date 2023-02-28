@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.CodeCheck.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Types;
 using Google.Protobuf;
@@ -23,14 +24,14 @@ public class SmartContractExecutiveService : ISmartContractExecutiveService, ISi
     private readonly ISmartContractRegistrationProvider _smartContractRegistrationProvider;
     private readonly ISmartContractRunnerContainer _smartContractRunnerContainer;
     private readonly ITransactionContextFactory _transactionContextFactory;
-    private readonly ISmartContractCodeService _smartContractCodeService;
+    private readonly ICodeCheckService _codeCheckService;
 
     public SmartContractExecutiveService(IDefaultContractZeroCodeProvider defaultContractZeroCodeProvider,
         ISmartContractRunnerContainer smartContractRunnerContainer,
         IHostSmartContractBridgeContextService hostSmartContractBridgeContextService,
         ISmartContractRegistrationProvider smartContractRegistrationProvider,
         ISmartContractExecutiveProvider smartContractExecutiveProvider,
-        ITransactionContextFactory transactionContextFactory, ISmartContractCodeService smartContractCodeService)
+        ITransactionContextFactory transactionContextFactory, ICodeCheckService codeCheckService)
     {
         _defaultContractZeroCodeProvider = defaultContractZeroCodeProvider;
         _smartContractRunnerContainer = smartContractRunnerContainer;
@@ -38,7 +39,7 @@ public class SmartContractExecutiveService : ISmartContractExecutiveService, ISi
         _smartContractRegistrationProvider = smartContractRegistrationProvider;
         _smartContractExecutiveProvider = smartContractExecutiveProvider;
         _transactionContextFactory = transactionContextFactory;
-        _smartContractCodeService = smartContractCodeService;
+        _codeCheckService = codeCheckService;
 
         Logger = NullLogger<SmartContractExecutiveService>.Instance;
     }
@@ -126,10 +127,10 @@ public class SmartContractExecutiveService : ISmartContractExecutiveService, ISi
         // get runner
         var runner = _smartContractRunnerContainer.GetRunner(reg.Category);
 
-        var patchCode = await _smartContractCodeService.GetSmartContractCodeAsync(reg.CodeHash);
-        if (patchCode != null)
+        if (reg.IsUserContract)
         {
-            reg.Code = patchCode;
+            reg.Code = ByteString.CopyFrom(await _codeCheckService.GetPatchedCodeAsync(reg.CodeHash,
+                reg.Code.ToByteArray(), reg.Category, reg.IsSystemContract));
         }
 
         // run smartContract executive info and return executive

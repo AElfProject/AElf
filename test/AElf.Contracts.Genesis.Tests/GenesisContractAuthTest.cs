@@ -256,6 +256,7 @@ public class GenesisContractAuthTest : BasicContractZeroTestBase
             nameof(BasicContractZeroImplContainer.BasicContractZeroImplStub.GetContractInfo), deployAddress));
         contractInfo.Version.ShouldBe(1);
         contractInfo.Author.ShouldBe(BasicContractZeroAddress);
+        contractInfo.IsUserContract.ShouldBeFalse();
 
         {
             var releaseContractAlreadyFinished = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
@@ -546,6 +547,7 @@ public class GenesisContractAuthTest : BasicContractZeroTestBase
             BasicContractZeroAddress,
             nameof(BasicContractZeroImplContainer.BasicContractZeroImplStub.GetContractInfo), newAddress));
         updateContractInfo.Version.ShouldBe(contractInfo.Version + 1);
+        updateContractInfo.IsUserContract.ShouldBeFalse();
 
         var thirdTxProposingResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
             nameof(BasicContractZero.ProposeUpdateContract), contractUpdateInput,
@@ -1657,9 +1659,21 @@ public class GenesisContractAuthTest : BasicContractZeroTestBase
         contractDeployed.CodeHash.ShouldBe(codeHash);
         contractDeployed.Author.ShouldBe(Address.FromPublicKey(CreatorKeyPair.PublicKey));
 
-        var contractAddress = await SideChainTester.CallContractMethodAsync(SideBasicContractZeroAddress,
-            nameof(ACS0Container.ACS0Stub.GetContractAddressByCodeHash), codeHash);
-        Address.Parser.ParseFrom(contractAddress).ShouldBe(contractDeployed.Address);
+        var registration = await SideChainTester.CallContractMethodAsync(SideBasicContractZeroAddress,
+            nameof(ACS0Container.ACS0Stub.GetSmartContractRegistrationByCodeHash), codeHash);
+        var smartContractRegistration = SmartContractRegistration.Parser.ParseFrom(registration);
+        smartContractRegistration.IsUserContract.ShouldBeTrue();
+        smartContractRegistration.IsSystemContract.ShouldBeFalse();
+        smartContractRegistration.ContractAddress.ShouldBe(contractDeployed.Address);
+        smartContractRegistration.CodeHash.ShouldBe(codeHash);
+        
+        var info = await SideChainTester.CallContractMethodAsync(SideBasicContractZeroAddress,
+            nameof(ACS0Container.ACS0Stub.GetContractInfo), contractDeployed.Address);
+        var contractInfo = ContractInfo.Parser.ParseFrom(info);
+        contractInfo.IsUserContract.ShouldBeTrue();
+        contractInfo.IsSystemContract.ShouldBeFalse();
+        contractInfo.CodeHash.ShouldBe(codeHash);
+        contractInfo.Author.ShouldBe(Address.FromPublicKey(CreatorKeyPair.PublicKey));
         
         // update contract
         var contractUpdateInput = new ContractUpdateInput
@@ -1712,7 +1726,23 @@ public class GenesisContractAuthTest : BasicContractZeroTestBase
         
         codeUpdated.Address.ShouldBe(contractDeployed.Address);
         codeUpdated.Version.ShouldBe(contractDeployed.Version + 1);
-
+        
+        info = await SideChainTester.CallContractMethodAsync(SideBasicContractZeroAddress,
+            nameof(ACS0Container.ACS0Stub.GetContractInfo), contractDeployed.Address);
+        contractInfo = ContractInfo.Parser.ParseFrom(info);
+        contractInfo.IsUserContract.ShouldBeTrue();
+        contractInfo.IsSystemContract.ShouldBeFalse();
+        contractInfo.Author.ShouldBe(Address.FromPublicKey(CreatorKeyPair.PublicKey));
+        
+        registration = await SideChainTester.CallContractMethodAsync(SideBasicContractZeroAddress,
+            nameof(ACS0Container.ACS0Stub.GetSmartContractRegistrationByCodeHash), contractInfo.CodeHash);
+        smartContractRegistration = SmartContractRegistration.Parser.ParseFrom(registration);
+        smartContractRegistration.IsUserContract.ShouldBeTrue();
+        smartContractRegistration.IsSystemContract.ShouldBeFalse();
+        smartContractRegistration.ContractAddress.ShouldBe(contractDeployed.Address);
+        smartContractRegistration.CodeHash.ShouldBe(contractInfo.CodeHash);
+        smartContractRegistration.Version.ShouldBe(contractDeployed.Version + 1);
+        
         // Set author
         var newAuthor = SampleAddress.AddressList[5];
         var setResult = await SideChainTester.ExecuteContractWithMiningAsync(SideBasicContractZeroAddress,

@@ -83,12 +83,6 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         var expirationTimePeriod = GetCurrentContractProposalExpirationTimePeriod();
         return new Int32Value{ Value = expirationTimePeriod };
     }
-    
-    public override Address GetContractAddressByCodeHash(Hash input)
-    {
-        var registration = State.SmartContractRegistrations[input];
-        return registration?.ContractAddress;
-    }
 
     #endregion Views
 
@@ -105,7 +99,7 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         var transactionMethodCallList = input.TransactionMethodCallList;
 
         // Context.Sender should be identical to Genesis contract address before initialization in production
-        var address = DeploySmartContract(name, category, code, true, Context.Sender);
+        var address = DeploySmartContract(name, category, code, true, false, Context.Sender);
 
         if (transactionMethodCallList != null)
             foreach (var methodCall in transactionMethodCallList.Value)
@@ -284,7 +278,7 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         TryClearContractProposingData(inputHash, out var contractProposingInput);
 
         var address =
-            DeploySmartContract(null, input.Category, input.Code.ToByteArray(), false,
+            DeploySmartContract(null, input.Category, input.Code.ToByteArray(), false,false,
                 DecideNonSystemContractAuthor(contractProposingInput?.Proposer, Context.Sender));
         return address;
     }
@@ -479,7 +473,7 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         var inputHash = CalculateHashFromInput(input);
         TryClearContractProposingData(inputHash, out var contractProposingInput);
 
-        var address = DeploySmartContract(null, input.Category, input.Code.ToByteArray(), false,
+        var address = DeploySmartContract(null, input.Category, input.Code.ToByteArray(), false, true,
             contractProposingInput.Author);
         return address;
     }
@@ -491,7 +485,7 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         var inputHash = CalculateHashFromInput(input);
         TryClearContractProposingData(inputHash, out var proposingInput);
 
-        UpdateSmartContract(input.Address, input.Code.ToByteArray(), proposingInput.Author);
+        UpdateSmartContract(input.Address, input.Code.ToByteArray(), proposingInput.Author, true);
         
         return new Empty();
     }

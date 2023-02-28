@@ -118,11 +118,6 @@ service ACS0 {
     rpc GetContractCodeHashListByDeployingBlockHeight (google.protobuf.Int64Value) returns (ContractCodeHashList) {
         option (aelf.is_view) = true;
     }
-
-    // Get contract address by code hash.
-    rpc GetContractAddressByCodeHash (aelf.Hash) returns (aelf.Address) {
-        option (aelf.is_view) = true;
-    }
 }
 
 message ContractInfo
@@ -139,6 +134,8 @@ message ContractInfo
     bool is_system_contract = 5;
     // The version of the current contract.
     int32 version = 6;
+    // Whether it is a user contract.
+    bool is_user_contract = 7;
 }
 
 message ContractDeploymentInput {

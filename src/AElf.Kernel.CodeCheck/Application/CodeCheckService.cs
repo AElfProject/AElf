@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.CodeCheck.Infrastructure;
 using AElf.Kernel.SmartContract;
+using Google.Protobuf;
 
 namespace AElf.Kernel.CodeCheck.Application;
 
@@ -11,14 +13,17 @@ public class CodeCheckService : ICodeCheckService, ITransientDependency
     private readonly IContractAuditorContainer _contractAuditorContainer;
     private readonly IRequiredAcsProvider _requiredAcsProvider;
     private readonly IContractPatcherContainer _contractPatcherContainer;
+    private readonly ISmartContractCodeService _smartContractCodeService;
 
     public CodeCheckService(IRequiredAcsProvider requiredAcsProvider,
         IContractAuditorContainer contractAuditorContainer,
-        IOptionsMonitor<CodeCheckOptions> codeCheckOptionsMonitor, IContractPatcherContainer contractPatcherContainer)
+        IOptionsMonitor<CodeCheckOptions> codeCheckOptionsMonitor, IContractPatcherContainer contractPatcherContainer,
+        ISmartContractCodeService smartContractCodeService)
     {
         _requiredAcsProvider = requiredAcsProvider;
         _contractAuditorContainer = contractAuditorContainer;
         _contractPatcherContainer = contractPatcherContainer;
+        _smartContractCodeService = smartContractCodeService;
         _codeCheckOptions = codeCheckOptionsMonitor.CurrentValue;
     }
 
@@ -84,5 +89,23 @@ public class CodeCheckService : ICodeCheckService, ITransientDependency
             patchedCode = Array.Empty<byte>();
             return false;
         }
+    }
+
+    public async Task<byte[]> GetPatchedCodeAsync(Hash codeHash, byte[] code, int category, bool isSystemContract)
+    {
+        
+        var patchedCode = await _smartContractCodeService.GetSmartContractCodeAsync(codeHash);
+        if (patchedCode != null)
+        {
+            return patchedCode.ToByteArray();
+        }
+
+        if (PerformCodePatch(code, category, isSystemContract, out var performPatchedCode))
+        {
+            await _smartContractCodeService.AddSmartContractCodeAsync(codeHash, ByteString.CopyFrom(performPatchedCode));
+            return performPatchedCode;
+        }
+
+        throw new ApplicationException($"Cannot get patched code: {codeHash.ToHex()}");
     }
 }

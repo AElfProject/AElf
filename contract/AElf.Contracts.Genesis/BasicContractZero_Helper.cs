@@ -13,7 +13,7 @@ namespace AElf.Contracts.Genesis;
 
 public partial class BasicContractZero
 {
-    private Address DeploySmartContract(Hash name, int category, byte[] code, bool isSystemContract,
+    private Address DeploySmartContract(Hash name, int category, byte[] code, bool isSystemContract,bool isUserContract,
         Address author)
     {
         if (name != null)
@@ -35,7 +35,8 @@ public partial class BasicContractZero
             Category = category,
             CodeHash = codeHash,
             IsSystemContract = isSystemContract,
-            Version = 1
+            Version = 1,
+            IsUserContract = isUserContract
         };
         State.ContractInfos[contractAddress] = info;
 
@@ -46,7 +47,8 @@ public partial class BasicContractZero
             CodeHash = codeHash,
             IsSystemContract = info.IsSystemContract,
             Version = info.Version,
-            ContractAddress = contractAddress
+            ContractAddress = contractAddress,
+            IsUserContract = isUserContract
         };
 
         State.SmartContractRegistrations[reg.CodeHash] = reg;
@@ -76,7 +78,7 @@ public partial class BasicContractZero
         return contractAddress;
     }
     
-    private void UpdateSmartContract(Address contractAddress, byte[] code, Address author)
+    private void UpdateSmartContract(Address contractAddress, byte[] code, Address author,bool isUserContract)
     {
         var info = State.ContractInfos[contractAddress];
         Assert(info != null, "Contract not found.");
@@ -90,6 +92,7 @@ public partial class BasicContractZero
 
         info.CodeHash = newCodeHash;
         info.Version++;
+        info.IsUserContract = isUserContract;
         State.ContractInfos[contractAddress] = info;
 
         var reg = new SmartContractRegistration
@@ -99,7 +102,8 @@ public partial class BasicContractZero
             CodeHash = newCodeHash,
             IsSystemContract = info.IsSystemContract,
             Version = info.Version,
-            ContractAddress = contractAddress
+            ContractAddress = contractAddress,
+            IsUserContract = info.IsUserContract
         };
 
         State.SmartContractRegistrations[reg.CodeHash] = reg;
