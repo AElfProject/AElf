@@ -47,13 +47,14 @@ public partial class BasicContractZero
             Version = info.Version
         };
 
-        State.SmartContractRegistrations[reg.CodeHash] = reg;
-
-        var contractInfo = Context.DeployContract(contractAddress,reg);
+        var contractInfo = Context.DeploySmartContract(contractAddress, reg, name);
+        
         info.ContractVersion = contractInfo.ContractVersion;
+        reg.ContractVersion = info.ContractVersion;
         
         State.ContractInfos[contractAddress] = info;
-
+        State.SmartContractRegistrations[reg.CodeHash] = reg;
+        
         Context.Fire(new ContractDeployed
         {
             CodeHash = codeHash,

@@ -185,7 +185,16 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         Context.SendInline(State.ContractDeploymentController.Value.ContractAddress,
             nameof(AuthorizationContractContainer.AuthorizationContractReferenceState
                 .CreateProposalBySystemContract), proposalCreationInput);
-        Context.CheckContractVersion(contractAddress, input.Code.ToByteArray());
+        
+        var contractVersionCheckResult =
+            Context.CheckContractVersion(info.ContractVersion, new SmartContractRegistration
+            {
+                Code = input.Code,
+                Category = State.SmartContractRegistrations[info.CodeHash].Category,
+                CodeHash = HashHelper.ComputeFrom(input.Code.ToByteArray())
+            });
+        Assert(contractVersionCheckResult.IsContractVersionCorrect,
+            $"The version to be deployed is lower than the effective version({info.ContractVersion}), please correct the version number.");
 
         Context.Fire(new ContractProposed
         {
@@ -314,13 +323,16 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
             Version = info.Version
         };
 
-        State.SmartContractRegistrations[reg.CodeHash] = reg;
+        var contractInfo = Context.UpdateSmartContract(contractAddress, reg, null, info.ContractVersion);
+        Assert(contractInfo.IsContractVersionCorrect,
+            $"The version to be deployed is lower than the effective version({info.ContractVersion}), please correct the version number.");
 
-        var contractInfo = Context.UpdateContract(contractAddress, reg);
-        
         info.ContractVersion = contractInfo.ContractVersion;
-        State.ContractInfos[contractAddress] = info;
+        reg.ContractVersion = info.ContractVersion;
 
+        State.ContractInfos[contractAddress] = info;
+        State.SmartContractRegistrations[reg.CodeHash] = reg;
+        
         Context.Fire(new CodeUpdated
         {
             Address = contractAddress,

@@ -1,7 +1,6 @@
 namespace AElf.Kernel.SmartContract;
 
-public class ContractInfoDto
+public class ContractVersionCheckDto
 {
-    public string ContractVersion { get; set; }
     public bool IsContractVersionCorrect { get; set; }
 }
