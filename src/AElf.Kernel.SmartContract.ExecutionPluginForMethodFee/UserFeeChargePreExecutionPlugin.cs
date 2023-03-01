@@ -65,13 +65,6 @@ internal class UserFeeChargePreExecutionPlugin : SmartContractExecutionPluginBas
                 ContractAddress = tokenContractAddress,
                 RefBlockNumber = transactionContext.Transaction.RefBlockNumber
             });
-            if (transactionContext.Transaction.To == tokenContractAddress
-                && (transactionContext.Transaction.MethodName == nameof(tokenStub.ChargeUserTransactionFees) ||
-                transactionContext.Transaction.MethodName == nameof(tokenStub.ChargeTransactionFees)))
-            {
-                // Skip ChargeUserTransactionFees itself and ChargeTransactionFees
-                return new List<Transaction>();
-            }
 
             var txCost = await _txFeeService.CalculateFeeAsync(transactionContext, chainContext);
             var chargeTransactionFeesInput = new ChargeTransactionFeesInput

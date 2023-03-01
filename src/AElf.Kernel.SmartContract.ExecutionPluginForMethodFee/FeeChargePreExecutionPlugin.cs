@@ -71,7 +71,7 @@ internal class FeeChargePreExecutionPlugin : SmartContractExecutionPluginBase, I
             if (transactionContext.Transaction.To == tokenContractAddress &&
                 (transactionContext.Transaction.MethodName == nameof(tokenStub.ChargeTransactionFees) ||
                 transactionContext.Transaction.MethodName == nameof(tokenStub.ChargeUserTransactionFees)))
-                // Skip ChargeTransactionFees itself 
+                // Skip ChargeTransactionFees itself and ChargeUserTransactionFees
                 return new List<Transaction>();
 
             var txCost = await _txFeeService.CalculateFeeAsync(transactionContext, chainContext);

@@ -27,7 +27,7 @@ public class ExecutionPluginForUserMethodFeeTest : ExecutionPluginForUserMethodF
     private TestContractContainer.TestContractStub _testContractStub;
     private readonly IBlockchainService _blockchainService;
     private readonly ITotalTransactionFeesMapProvider _totalTransactionFeesMapProvider;
-    private const string ConfigurationKey = "User MethodFee";
+    private const string ConfigurationKey = "UserMethodFee";
 
     public ExecutionPluginForUserMethodFeeTest()
     {
@@ -143,22 +143,6 @@ public class ExecutionPluginForUserMethodFeeTest : ExecutionPluginForUserMethodF
                     From = DefaultAddress,
                     To = DefaultAddress,
                     MethodName = nameof(_testContractStub.TestMethod)
-                },
-                BlockHeight = chain.BestChainHeight + 1,
-                PreviousBlockHash = chain.BestChainHash
-            })).ToList();
-
-        transactions.Count.ShouldBe(0);
-
-        // method name == ChargeTransactionFees, to == token contract address
-        transactions = (await plugin.GetPreTransactionsAsync(AEDPoSContractContainer.Descriptors,
-            new TransactionContext
-            {
-                Transaction = new Transaction
-                {
-                    From = DefaultAddress,
-                    To = TokenContractAddress,
-                    MethodName = nameof(TokenContractContainer.TokenContractStub.ChargeTransactionFees)
                 },
                 BlockHeight = chain.BestChainHeight + 1,
                 PreviousBlockHash = chain.BestChainHash
