@@ -21,8 +21,6 @@ service UserContractMethodFeeProviderContract {
 
 
 message UserMethodFees {
-  // The name of the method to be charged.
-  string method_name = 1;
   // List of fees to be charged.
   repeated UserMethodFee fees = 2;
   bool is_size_fee_free = 3;// Optional based on the implementation of SetMethodFee method.
