@@ -82,9 +82,8 @@ public partial class TokenContract
 
         if (userMethodFees != null && userMethodFees.Fees.Any())
         {
-            fee = GetFeeDictionary(userMethodFees);
+            fee = GetUserFeeDictionary(userMethodFees);
         }
-        
         
         var chargingResult =
             ChargeTransactionFeesToBill(input, fromAddress, ref bill, ref allowanceBill, fee, isSizeFeeFree);
@@ -117,7 +116,7 @@ public partial class TokenContract
                 Context.GetContractAddressByName(SmartContractConstants.ConfigurationContractSystemName);
         var spec = State.ConfigurationContract.GetConfiguration.Call(new StringValue
         {
-            Value = $"{contractAddress}-{methodName}"
+            Value = $"{TokenContractConstants.UserMethodFeeKey}_{contractAddress}_{methodName}"
         });
         var fee = new UserMethodFees();
         if (!spec.Value.IsNullOrEmpty())
@@ -291,12 +290,8 @@ public partial class TokenContract
         return dict;
     }
 
-    private Dictionary<string, long> GetFeeDictionary(UserMethodFees fees)
+    private Dictionary<string, long> GetUserFeeDictionary(UserMethodFees fees)
     {
-        if (fees == null)
-        {
-            return null;
-        }
         var dict = new Dictionary<string, long>();
         foreach (var methodFee in fees.Fees)
         {
