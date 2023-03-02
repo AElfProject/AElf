@@ -296,7 +296,7 @@ public class ExecutionPluginForUserMethodFeeTest : ExecutionPluginForUserMethodF
         };
         var createProposalInput = new SetConfigurationInput
         {
-            Key = $"{_testContractAddress}-{nameof(TestContractContainer.TestContractStub.TestMethod)}",
+            Key = $"{ConfigurationKey}_{_testContractAddress}_{nameof(TestContractContainer.TestContractStub.TestMethod)}",
             Value = transactionFee.ToByteString()
         };
         {
