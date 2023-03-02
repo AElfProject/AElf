@@ -121,7 +121,7 @@ public class ContractTestModule : AbpModule
             return mockService.Object;
         });
         
-        context.Services.AddTransient(o => Mock.Of<ICodeCheckService>());
+        context.Services.AddTransient(o => Mock.Of<ICodePatchService>());
 
         #endregion
 

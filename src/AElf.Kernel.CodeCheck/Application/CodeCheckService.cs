@@ -1,9 +1,6 @@
-using System;
 using System.Collections.Generic;
-using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.CodeCheck.Infrastructure;
 using AElf.Kernel.SmartContract;
-using Google.Protobuf;
 
 namespace AElf.Kernel.CodeCheck.Application;
 
@@ -12,18 +9,13 @@ public class CodeCheckService : ICodeCheckService, ITransientDependency
     private readonly CodeCheckOptions _codeCheckOptions;
     private readonly IContractAuditorContainer _contractAuditorContainer;
     private readonly IRequiredAcsProvider _requiredAcsProvider;
-    private readonly IContractPatcherContainer _contractPatcherContainer;
-    private readonly ISmartContractCodeService _smartContractCodeService;
 
     public CodeCheckService(IRequiredAcsProvider requiredAcsProvider,
         IContractAuditorContainer contractAuditorContainer,
-        IOptionsMonitor<CodeCheckOptions> codeCheckOptionsMonitor, IContractPatcherContainer contractPatcherContainer,
-        ISmartContractCodeService smartContractCodeService)
+        IOptionsMonitor<CodeCheckOptions> codeCheckOptionsMonitor)
     {
         _requiredAcsProvider = requiredAcsProvider;
         _contractAuditorContainer = contractAuditorContainer;
-        _contractPatcherContainer = contractPatcherContainer;
-        _smartContractCodeService = smartContractCodeService;
         _codeCheckOptions = codeCheckOptionsMonitor.CurrentValue;
     }
 
@@ -67,45 +59,5 @@ public class CodeCheckService : ICodeCheckService, ITransientDependency
         }
 
         return false;
-    }
-
-    public bool PerformCodePatch(byte[] code, int category, bool isSystemContract, out byte[] patchedCode)
-    {
-        try
-        {
-            Logger.LogTrace("Start code patch");
-            if (!_contractPatcherContainer.TryGetContractPatcher(category, out var contractPatcher))
-            {
-                throw new Exception($"Unrecognized contract category: {category}");
-            }
-
-            patchedCode = contractPatcher.Patch(code, isSystemContract);
-            Logger.LogTrace("Finish code patch");
-            return true;
-        }
-        catch (Exception e)
-        {
-            Logger.LogWarning(e,$"Perform code patch failed. {e.Message}");
-            patchedCode = Array.Empty<byte>();
-            return false;
-        }
-    }
-
-    public async Task<byte[]> GetPatchedCodeAsync(Hash codeHash, byte[] code, int category, bool isSystemContract)
-    {
-        
-        var patchedCode = await _smartContractCodeService.GetSmartContractCodeAsync(codeHash);
-        if (patchedCode != null)
-        {
-            return patchedCode.ToByteArray();
-        }
-
-        if (PerformCodePatch(code, category, isSystemContract, out var performPatchedCode))
-        {
-            await _smartContractCodeService.AddSmartContractCodeAsync(codeHash, ByteString.CopyFrom(performPatchedCode));
-            return performPatchedCode;
-        }
-
-        throw new ApplicationException($"Cannot get patched code: {codeHash.ToHex()}");
     }
 }

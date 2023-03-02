@@ -13,16 +13,18 @@ namespace AElf.Kernel.CodeCheck.Application;
 internal class CodeCheckTransactionValidationProvider : ITransactionValidationProvider
 {
     private readonly ICodeCheckService _codeCheckService;
+    private readonly ICodePatchService _codePatchService;
     private readonly IContractReaderFactory<ACS0Container.ACS0Stub> _contractReaderFactory;
     private readonly ISmartContractAddressService _smartContractAddressService;
 
     public CodeCheckTransactionValidationProvider(
         ICodeCheckService codeCheckService, IContractReaderFactory<ACS0Container.ACS0Stub> contractReaderFactory,
-        ISmartContractAddressService smartContractAddressService)
+        ISmartContractAddressService smartContractAddressService, ICodePatchService codePatchService)
     {
         _codeCheckService = codeCheckService;
         _contractReaderFactory = contractReaderFactory;
         _smartContractAddressService = smartContractAddressService;
+        _codePatchService = codePatchService;
         LocalEventBus = NullLocalEventBus.Instance;
     }
 
@@ -79,7 +81,7 @@ internal class CodeCheckTransactionValidationProvider : ITransactionValidationPr
 
     private async Task<bool> CodeCheckWithPatchAsync(byte[] code, Hash blockHash, long blockHeight, int category)
     {
-        if (_codeCheckService.PerformCodePatch(code, category, false, out var patchedCode))
+        if (_codePatchService.PerformCodePatch(code, category, false, out var patchedCode))
         {
             return await _codeCheckService.PerformCodeCheckAsync(patchedCode, blockHash, blockHeight, category, false,
                 true);

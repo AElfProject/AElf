@@ -18,22 +18,23 @@ public class CodeCheckRequiredLogEventProcessor : LogEventProcessorBase, IBlocks
     private readonly ICodeCheckService _codeCheckService;
     private readonly IProposalService _proposalService;
     private readonly ISmartContractAddressService _smartContractAddressService;
-    private readonly IContractPatcher _contractPatcher;
     private readonly ISmartContractCodeService _smartContractCodeService;
     private readonly ICodeCheckProposalService _codeCheckProposalService;
+    private readonly ICodePatchService _codePatchService;
 
     public CodeCheckRequiredLogEventProcessor(ISmartContractAddressService smartContractAddressService,
         ICodeCheckService codeCheckService, IProposalService proposalService,
-        ICheckedCodeHashProvider checkedCodeHashProvider, IContractPatcher contractPatcher,
-        ISmartContractCodeService smartContractCodeService, ICodeCheckProposalService codeCheckProposalService)
+        ICheckedCodeHashProvider checkedCodeHashProvider,
+        ISmartContractCodeService smartContractCodeService, ICodeCheckProposalService codeCheckProposalService,
+        ICodePatchService codePatchService)
     {
         _smartContractAddressService = smartContractAddressService;
         _codeCheckService = codeCheckService;
         _proposalService = proposalService;
         _checkedCodeHashProvider = checkedCodeHashProvider;
-        _contractPatcher = contractPatcher;
         _smartContractCodeService = smartContractCodeService;
         _codeCheckProposalService = codeCheckProposalService;
+        _codePatchService = codePatchService;
 
         Logger = NullLogger<CodeCheckRequiredLogEventProcessor>.Instance;
     }
@@ -69,7 +70,7 @@ public class CodeCheckRequiredLogEventProcessor : LogEventProcessorBase, IBlocks
                     var code = eventData.Code.ToByteArray();
                     var codeHash = HashHelper.ComputeFrom(code);
                     if (eventData.IsUserContract &&
-                        !_codeCheckService.PerformCodePatch(code, eventData.Category, false, out code))
+                        !_codePatchService.PerformCodePatch(code, eventData.Category, false, out code))
                     {
                         return;
                     }

@@ -106,7 +106,7 @@ public class ContractTestModule : AbpModule
         services.AddSingleton(o => Mock.Of<INetworkService>());
 
         context.Services.AddTransient(o => Mock.Of<IConsensusService>());
-        context.Services.AddTransient(o => Mock.Of<ICodeCheckService>());
+        context.Services.AddTransient(o => Mock.Of<ICodePatchService>());
 
         #endregion
 

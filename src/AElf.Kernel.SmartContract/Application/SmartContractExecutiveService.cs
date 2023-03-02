@@ -25,13 +25,15 @@ public class SmartContractExecutiveService : ISmartContractExecutiveService, ISi
     private readonly ISmartContractRunnerContainer _smartContractRunnerContainer;
     private readonly ITransactionContextFactory _transactionContextFactory;
     private readonly ISmartContractCodeService _smartContractCodeService;
+    private readonly ICodePatchService _codePatchService;
 
     public SmartContractExecutiveService(IDefaultContractZeroCodeProvider defaultContractZeroCodeProvider,
         ISmartContractRunnerContainer smartContractRunnerContainer,
         IHostSmartContractBridgeContextService hostSmartContractBridgeContextService,
         ISmartContractRegistrationProvider smartContractRegistrationProvider,
         ISmartContractExecutiveProvider smartContractExecutiveProvider,
-        ITransactionContextFactory transactionContextFactory, ISmartContractCodeService smartContractCodeService)
+        ITransactionContextFactory transactionContextFactory, ISmartContractCodeService smartContractCodeService,
+        ICodePatchService codePatchService)
     {
         _defaultContractZeroCodeProvider = defaultContractZeroCodeProvider;
         _smartContractRunnerContainer = smartContractRunnerContainer;
@@ -40,6 +42,7 @@ public class SmartContractExecutiveService : ISmartContractExecutiveService, ISi
         _smartContractExecutiveProvider = smartContractExecutiveProvider;
         _transactionContextFactory = transactionContextFactory;
         _smartContractCodeService = smartContractCodeService;
+        _codePatchService = codePatchService;
 
         Logger = NullLogger<SmartContractExecutiveService>.Instance;
     }
@@ -129,7 +132,7 @@ public class SmartContractExecutiveService : ISmartContractExecutiveService, ISi
 
         if (reg.IsUserContract)
         {
-            reg.Code = await _smartContractCodeService.GetSmartContractCodeAsync(reg.CodeHash);
+            reg.Code = await GetPatchedCodeAsync(reg.CodeHash, reg.Code, reg.Category, reg.IsSystemContract);
         }
 
         // run smartContract executive info and return executive
@@ -138,6 +141,26 @@ public class SmartContractExecutiveService : ISmartContractExecutiveService, ISi
         var context = _hostSmartContractBridgeContextService.Create();
         executive.SetHostSmartContractBridgeContext(context);
         return executive;
+    }
+
+    private async Task<ByteString> GetPatchedCodeAsync(Hash codeHash, ByteString code, int category,
+        bool isSystemContract)
+    {
+        var patchedCode = await _smartContractCodeService.GetSmartContractCodeAsync(codeHash);
+        if (patchedCode != null)
+        {
+            return patchedCode;
+        }
+
+        if (_codePatchService.PerformCodePatch(code.ToByteArray(), category, isSystemContract,
+                out var performPatchedCode))
+        {
+            await _smartContractCodeService.AddSmartContractCodeAsync(codeHash,
+                ByteString.CopyFrom(performPatchedCode));
+            return ByteString.CopyFrom(performPatchedCode);
+        }
+
+        throw new ApplicationException($"Cannot get patched code: {codeHash.ToHex()}");
     }
 
     private async Task<SmartContractRegistration> GetSmartContractRegistrationAsync(

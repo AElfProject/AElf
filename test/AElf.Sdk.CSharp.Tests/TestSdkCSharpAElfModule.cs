@@ -33,6 +33,6 @@ public class TestSdkCSharpAElfModule : AElfModule
         });
 
         services.AddSingleton(p => Mock.Of<IAccountService>());
-        services.AddTransient(p => Mock.Of<ICodeCheckService>());
+        services.AddTransient(p => Mock.Of<ICodePatchService>());
     }
 }

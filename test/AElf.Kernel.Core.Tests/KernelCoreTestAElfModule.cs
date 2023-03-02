@@ -23,7 +23,7 @@ public class KernelCoreTestAElfModule : AElfModule
         services.AddTransient<BlockValidationProvider>();
         services.AddTransient<SystemTransactionValidationProvider>();
         services.AddSingleton(p => Mock.Of<IAccountService>());
-        services.AddTransient(o => Mock.Of<ICodeCheckService>());
+        services.AddTransient(o => Mock.Of<ICodePatchService>());
     }
 }
 

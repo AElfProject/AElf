@@ -53,20 +53,4 @@ public partial class CodeCheckTest : CodeCheckTestBase
             await _codeCheckService.PerformCodeCheckAsync(null, null, 0, CodeCheckConstant.SuccessAudit, false,false);
         result.ShouldBeTrue();
     }
-
-    [Fact]
-    public async Task PerformCodePatchAsync_Success_Test()
-    {
-        var code = new byte[10];
-        var result = _codeCheckService.PerformCodePatch(code, 0, false, out var patchedCode);
-        result.ShouldBeTrue();
-    }
-
-    [Fact]
-    public async Task PerformCodePatchAsync_UnknownCategory_Test()
-    {
-        var code = new byte[10];
-        var result = _codeCheckService.PerformCodePatch(code, 1, false, out var patchedCode);
-        result.ShouldBeFalse();
-    }
 }

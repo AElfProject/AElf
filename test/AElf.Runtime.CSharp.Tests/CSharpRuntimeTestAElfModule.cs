@@ -17,6 +17,6 @@ public class CSharpRuntimeTestAElfModule : AElfModule
 {
     public override void ConfigureServices(ServiceConfigurationContext context)
     {
-        context.Services.AddTransient(p => Mock.Of<ICodeCheckService>());
+        context.Services.AddTransient(p => Mock.Of<ICodePatchService>());
     }
 }
