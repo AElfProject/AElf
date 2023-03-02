@@ -117,7 +117,7 @@ public sealed class LogEventProcessorTests : SmartContractExecutionTestBase
             Params = new ContractUpdateInput
             {
                 Code = ByteString.CopyFrom(
-                    _smartContractExecutionHelper.ContractCodes["AElf.Contracts.MultiToken"]),
+                    _smartContractExecutionHelper.ContractCodes["AElf.Contracts.TestContract.BasicFunction"]),
                 Address = address
             }.ToByteString()
         };
@@ -148,7 +148,7 @@ public sealed class LogEventProcessorTests : SmartContractExecutionTestBase
                     codeUpdated.Address);
             updatedSmartContractRegistration.ShouldNotBe(smartContractRegistration);
             updatedSmartContractRegistration.Code.ShouldBe(ByteString.CopyFrom(
-                _smartContractExecutionHelper.ContractCodes["AElf.Contracts.MultiToken"]));
+                _smartContractExecutionHelper.ContractCodes["AElf.Contracts.TestContract.BasicFunction"]));
         }
     }
 

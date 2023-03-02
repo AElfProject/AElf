@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Reflection;
 using AElf.Contracts.Parliament;
 using AElf.CSharp.Core.Extension;
 using AElf.Sdk.CSharp;
@@ -38,7 +39,6 @@ public partial class BasicContractZero
             Version = 1,
             IsUserContract = isUserContract
         };
-        State.ContractInfos[contractAddress] = info;
 
         var reg = new SmartContractRegistration
         {
@@ -51,17 +51,22 @@ public partial class BasicContractZero
             IsUserContract = isUserContract
         };
 
+        var contractInfo = Context.DeploySmartContract(contractAddress, reg, name);
+        
+        info.ContractVersion = contractInfo.ContractVersion;
+        reg.ContractVersion = info.ContractVersion;
+        
+        State.ContractInfos[contractAddress] = info;
         State.SmartContractRegistrations[reg.CodeHash] = reg;
-
-        Context.DeployContract(contractAddress, reg, name);
-
+        
         Context.Fire(new ContractDeployed
         {
             CodeHash = codeHash,
             Address = contractAddress,
             Author = author,
             Version = info.Version,
-            Name = name
+            Name = name,
+            ContractVersion = info.ContractVersion
         });
 
         Context.LogDebug(() => "BasicContractZero - Deployment ContractHash: " + codeHash.ToHex());
@@ -93,7 +98,6 @@ public partial class BasicContractZero
         info.CodeHash = newCodeHash;
         info.Version++;
         info.IsUserContract = isUserContract;
-        State.ContractInfos[contractAddress] = info;
 
         var reg = new SmartContractRegistration
         {
@@ -105,17 +109,24 @@ public partial class BasicContractZero
             ContractAddress = contractAddress,
             IsUserContract = info.IsUserContract
         };
+        
+        var contractInfo = Context.UpdateSmartContract(contractAddress, reg, null, info.ContractVersion);
+        Assert(contractInfo.IsSubsequentVersion,
+            $"The version to be deployed is lower than the effective version({info.ContractVersion}), please correct the version number.");
 
+        info.ContractVersion = contractInfo.ContractVersion;
+        reg.ContractVersion = info.ContractVersion;
+        
+        State.ContractInfos[contractAddress] = info;
         State.SmartContractRegistrations[reg.CodeHash] = reg;
-
-        Context.UpdateContract(contractAddress, reg, null);
 
         Context.Fire(new CodeUpdated
         {
             Address = contractAddress,
             OldCodeHash = oldCodeHash,
             NewCodeHash = newCodeHash,
-            Version = info.Version
+            Version = info.Version,
+            ContractVersion = info.ContractVersion
         });
 
         Context.LogDebug(() => "BasicContractZero - update success: " + contractAddress.ToBase58());

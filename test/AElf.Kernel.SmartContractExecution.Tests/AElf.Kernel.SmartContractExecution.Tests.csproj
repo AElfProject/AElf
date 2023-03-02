@@ -42,6 +42,11 @@
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </ProjectReference>
+        <ProjectReference Include="..\AElf.Contracts.TestContract.BasicFunction\AElf.Contracts.TestContract.BasicFunction.csproj">
+            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+            <OutputItemType>Contract</OutputItemType>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </ProjectReference>
     </ItemGroup>
     <ItemGroup>
         <ContractStub Include="..\..\protobuf\acs0.proto">

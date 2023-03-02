@@ -185,6 +185,16 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         Context.SendInline(State.ContractDeploymentController.Value.ContractAddress,
             nameof(AuthorizationContractContainer.AuthorizationContractReferenceState
                 .CreateProposalBySystemContract), proposalCreationInput);
+        
+        var contractVersionCheckResult =
+            Context.CheckContractVersion(info.ContractVersion, new SmartContractRegistration
+            {
+                Code = input.Code,
+                Category = State.SmartContractRegistrations[info.CodeHash].Category,
+                CodeHash = HashHelper.ComputeFrom(input.Code.ToByteArray())
+            });
+        Assert(contractVersionCheckResult.IsSubsequentVersion,
+            $"The version to be deployed is lower than the effective version({info.ContractVersion}), please correct the version number.");
 
         Context.Fire(new ContractProposed
         {
@@ -286,48 +296,15 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
     public override Address UpdateSmartContract(ContractUpdateInput input)
     {
         var contractAddress = input.Address;
-        var code = input.Code.ToByteArray();
         var info = State.ContractInfos[contractAddress];
-        Assert(info != null, "Contract not found.");
         RequireSenderAuthority(State.CodeCheckController.Value?.OwnerAddress);
         var inputHash = CalculateHashFromInput(input);
 
         if (!TryClearContractProposingData(inputHash, out _))
             Assert(Context.Sender == info.Author, "No permission.");
 
-        var oldCodeHash = info.CodeHash;
-        var newCodeHash = HashHelper.ComputeFrom(code);
-        Assert(oldCodeHash != newCodeHash, "Code is not changed.");
-
-        Assert(State.SmartContractRegistrations[newCodeHash] == null, "Same code has been deployed before.");
-
-        info.CodeHash = newCodeHash;
-        info.Version++;
-        State.ContractInfos[contractAddress] = info;
-
-        var reg = new SmartContractRegistration
-        {
-            Category = info.Category,
-            Code = ByteString.CopyFrom(code),
-            CodeHash = newCodeHash,
-            IsSystemContract = info.IsSystemContract,
-            Version = info.Version,
-            ContractAddress = contractAddress
-        };
-
-        State.SmartContractRegistrations[reg.CodeHash] = reg;
-
-        Context.UpdateContract(contractAddress, reg, null);
-
-        Context.Fire(new CodeUpdated
-        {
-            Address = contractAddress,
-            OldCodeHash = oldCodeHash,
-            NewCodeHash = newCodeHash,
-            Version = info.Version
-        });
-
-        Context.LogDebug(() => "BasicContractZero - update success: " + contractAddress.ToBase58());
+        UpdateSmartContract(contractAddress, input.Code.ToByteArray(), info.Author, false);
+        
         return contractAddress;
     }
 

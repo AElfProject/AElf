@@ -320,6 +320,30 @@ public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, I
         AsyncHelper.RunSync(() => _smartContractBridgeService.UpdateContractAsync(contractDto));
     }
 
+    public ContractInfoDto DeploySmartContract(Address address, SmartContractRegistration registration, Hash name)
+    {
+        if (!Self.Equals(_smartContractBridgeService.GetZeroSmartContractAddress())) throw new NoPermissionException();
+
+        return AsyncHelper.RunSync(() =>
+            _smartContractBridgeService.DeployContractAsync(registration));
+    }
+
+    public ContractInfoDto UpdateSmartContract(Address address, SmartContractRegistration registration, Hash name, string previousContractVersion)
+    {
+        if (!Self.Equals(_smartContractBridgeService.GetZeroSmartContractAddress())) throw new NoPermissionException();
+
+        return AsyncHelper.RunSync(() =>
+            _smartContractBridgeService.UpdateContractAsync(previousContractVersion, registration));
+    }
+
+    public ContractVersionCheckDto CheckContractVersion(string previousContractVersion, SmartContractRegistration registration)
+    {
+        if (!Self.Equals(_smartContractBridgeService.GetZeroSmartContractAddress())) throw new NoPermissionException();
+
+        return AsyncHelper.RunSync(() =>
+            _smartContractBridgeService.CheckContractVersionAsync(previousContractVersion, registration));
+    }
+
     public byte[] RecoverPublicKey(byte[] signature, byte[] hash)
     {
         var cabBeRecovered = CryptoHelper.RecoverPublicKey(signature, hash, out var publicKey);

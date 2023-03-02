@@ -23,6 +23,11 @@
     <Import Project="..\AllContracts.props"/>
     <ItemGroup>
         <ProjectReference Include="..\AElf.WebApp.Application.TestBase\AElf.WebApp.Application.TestBase.csproj"/>
+        <ProjectReference Include="..\AElf.Contracts.TestContract.BasicFunction\AElf.Contracts.TestContract.BasicFunction.csproj">
+            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+            <OutputItemType>Contract</OutputItemType>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </ProjectReference>
     </ItemGroup>
     <ItemGroup>
         <CommonMessage Include="..\..\protobuf\authority_info.proto">

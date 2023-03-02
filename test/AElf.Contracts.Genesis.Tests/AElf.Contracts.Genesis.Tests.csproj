@@ -16,7 +16,18 @@
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </ProjectReference>
-        <ProjectReference Include="..\AElf.Contracts.TestBase\AElf.Contracts.TestBase.csproj" />
+        
+        <ProjectReference Include="..\AElf.Contracts.TestContract.BasicFunction\AElf.Contracts.TestContract.BasicFunction.csproj">
+            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+            <OutputItemType>Contract</OutputItemType>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </ProjectReference>
+        <ProjectReference Include="..\AElf.Contracts.TestContract.BasicSecurity\AElf.Contracts.TestContract.BasicSecurity.csproj">
+            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+            <OutputItemType>Contract</OutputItemType>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </ProjectReference>
+        <ProjectReference Include="..\AElf.Contracts.TestBase\AElf.Contracts.TestBase.csproj"/>
         <ProjectReference Include="..\..\contract\AElf.Contracts.Configuration\AElf.Contracts.Configuration.csproj">
             <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
             <OutputItemType>Contract</OutputItemType>

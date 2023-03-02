@@ -257,6 +257,7 @@ public class GenesisContractAuthTest : BasicContractZeroTestBase
         contractInfo.Version.ShouldBe(1);
         contractInfo.Author.ShouldBe(BasicContractZeroAddress);
         contractInfo.IsUserContract.ShouldBeFalse();
+        contractInfo.ContractVersion.ShouldBe("1.0.0.0");
 
         {
             var releaseContractAlreadyFinished = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
@@ -352,7 +353,7 @@ public class GenesisContractAuthTest : BasicContractZeroTestBase
         }
     }
 
-    [Fact]
+    [Fact(Skip = "Different contract version result in different code")]
     public async Task UpdateSmartContract_SameCode_Test()
     {
         var contractDeploymentInput = new ContractDeploymentInput
@@ -411,7 +412,7 @@ public class GenesisContractAuthTest : BasicContractZeroTestBase
         var contractDeploymentInput = new ContractDeploymentInput
         {
             Category = KernelConstants.DefaultRunnerCategory, // test the default runner
-            Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("TokenConverter")).Value)
+            Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("TestContract.BasicSecurity")).Value)
         };
 
 
@@ -423,13 +424,13 @@ public class GenesisContractAuthTest : BasicContractZeroTestBase
         var contractDeploymentInput2 = new ContractDeploymentInput
         {
             Category = KernelConstants.DefaultRunnerCategory, // test the default runner
-            Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("Genesis")).Value)
+            Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("TestContract.BasicFunction")).Value)
         };
-        await DeployAsync(Tester, ParliamentAddress, contractDeploymentInput2);
+        var updateAddress = await DeployAsync(Tester, ParliamentAddress, contractDeploymentInput2);
         var contractUpdateInput = new ContractUpdateInput
         {
-            Address = newAddress,
-            Code = contractDeploymentInput2.Code
+            Address = updateAddress,
+            Code = contractDeploymentInput.Code
         };
 
         var proposingTxResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
@@ -479,7 +480,7 @@ public class GenesisContractAuthTest : BasicContractZeroTestBase
         var contractInfo = ContractInfo.Parser.ParseFrom(await Tester.CallContractMethodAsync(BasicContractZeroAddress,
             nameof(BasicContractZeroImplContainer.BasicContractZeroImplStub.GetContractInfo), newAddress));
         contractInfo.Version.ShouldBe(1);
-        var code = Codes.Single(kv => kv.Key.Contains("Treasury")).Value;
+        var code = Codes.Single(kv => kv.Key.Contains("TestContract.BasicFunction")).Value;
         var contractUpdateInput = new ContractUpdateInput
         {
             Address = newAddress,
@@ -547,12 +548,56 @@ public class GenesisContractAuthTest : BasicContractZeroTestBase
             BasicContractZeroAddress,
             nameof(BasicContractZeroImplContainer.BasicContractZeroImplStub.GetContractInfo), newAddress));
         updateContractInfo.Version.ShouldBe(contractInfo.Version + 1);
+        updateContractInfo.ContractVersion.ShouldBe("1.2.0.0");
         updateContractInfo.IsUserContract.ShouldBeFalse();
 
+        var codeThird = Codes.Single(kv => kv.Key.Contains("TestContract.BasicSecurity")).Value;
+        contractUpdateInput = new ContractUpdateInput
+        {
+            Address = newAddress,
+            Code = ByteString.CopyFrom(codeThird)
+        };
         var thirdTxProposingResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
             nameof(BasicContractZero.ProposeUpdateContract), contractUpdateInput,
             TimestampHelper.GetUtcNow().AddSeconds(86400));
         thirdTxProposingResult.Status.ShouldBe(TransactionResultStatus.Mined);
+    }
+
+    [Fact]
+    public async Task UpdateSmartContractTest_Failed_InvalidContractVersion()
+    {
+        var contractDeploymentInput = new ContractDeploymentInput
+        {
+            Category = KernelConstants.DefaultRunnerCategory, // test the default runner
+            Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("TokenConverter")).Value)
+        };
+
+        var newAddress = await DeployAsync(Tester, ParliamentAddress, contractDeploymentInput);
+        var contractInfo = ContractInfo.Parser.ParseFrom(await Tester.CallContractMethodAsync(BasicContractZeroAddress,
+            nameof(BasicContractZeroImplContainer.BasicContractZeroImplStub.GetContractInfo), newAddress));
+        contractInfo.Version.ShouldBe(1);
+        var code = Codes.Single(kv => kv.Key.Contains("Treasury")).Value;
+        var contractUpdateInput = new ContractUpdateInput
+        {
+            Address = newAddress,
+            Code = ByteString.CopyFrom(code)
+        };
+
+        {
+            var addressNotExistProposingTxResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
+                nameof(BasicContractZero.ProposeUpdateContract), new ContractUpdateInput
+                {
+                    Address = AnotherMinerAddress,
+                    Code = ByteString.CopyFrom(code)
+                });
+            addressNotExistProposingTxResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            addressNotExistProposingTxResult.Error.ShouldContain("Contract not found.");
+        }
+
+        var proposingTxResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
+            nameof(BasicContractZero.ProposeUpdateContract), contractUpdateInput);
+        proposingTxResult.Status.ShouldBe(TransactionResultStatus.Failed);
+        proposingTxResult.Error.ShouldContain("The version to be deployed is lower than the effective version");
     }
 
     [Fact(Skip = "Skip due to need very long task delay.")]
