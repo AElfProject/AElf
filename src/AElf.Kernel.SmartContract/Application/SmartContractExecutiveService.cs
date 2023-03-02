@@ -24,14 +24,14 @@ public class SmartContractExecutiveService : ISmartContractExecutiveService, ISi
     private readonly ISmartContractRegistrationProvider _smartContractRegistrationProvider;
     private readonly ISmartContractRunnerContainer _smartContractRunnerContainer;
     private readonly ITransactionContextFactory _transactionContextFactory;
-    private readonly ICodeCheckService _codeCheckService;
+    private readonly ISmartContractCodeService _smartContractCodeService;
 
     public SmartContractExecutiveService(IDefaultContractZeroCodeProvider defaultContractZeroCodeProvider,
         ISmartContractRunnerContainer smartContractRunnerContainer,
         IHostSmartContractBridgeContextService hostSmartContractBridgeContextService,
         ISmartContractRegistrationProvider smartContractRegistrationProvider,
         ISmartContractExecutiveProvider smartContractExecutiveProvider,
-        ITransactionContextFactory transactionContextFactory, ICodeCheckService codeCheckService)
+        ITransactionContextFactory transactionContextFactory, ISmartContractCodeService smartContractCodeService)
     {
         _defaultContractZeroCodeProvider = defaultContractZeroCodeProvider;
         _smartContractRunnerContainer = smartContractRunnerContainer;
@@ -39,7 +39,7 @@ public class SmartContractExecutiveService : ISmartContractExecutiveService, ISi
         _smartContractRegistrationProvider = smartContractRegistrationProvider;
         _smartContractExecutiveProvider = smartContractExecutiveProvider;
         _transactionContextFactory = transactionContextFactory;
-        _codeCheckService = codeCheckService;
+        _smartContractCodeService = smartContractCodeService;
 
         Logger = NullLogger<SmartContractExecutiveService>.Instance;
     }
@@ -129,8 +129,7 @@ public class SmartContractExecutiveService : ISmartContractExecutiveService, ISi
 
         if (reg.IsUserContract)
         {
-            reg.Code = ByteString.CopyFrom(await _codeCheckService.GetPatchedCodeAsync(reg.CodeHash,
-                reg.Code.ToByteArray(), reg.Category, reg.IsSystemContract));
+            reg.Code = await _smartContractCodeService.GetSmartContractCodeAsync(reg.CodeHash);
         }
 
         // run smartContract executive info and return executive

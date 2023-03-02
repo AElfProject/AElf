@@ -14,14 +14,14 @@ public class TestingSmartContractExecutiveService : SmartContractExecutiveServic
         ISmartContractRegistrationProvider smartContractRegistrationProvider,
         ISmartContractExecutiveProvider smartContractExecutiveProvider,
         ITransactionContextFactory transactionContextFactory,
-        ICodeCheckService codeCheckService)
+        ISmartContractCodeService smartContractCodeService)
         : base(defaultContractZeroCodeProvider,
             smartContractRunnerContainer,
             hostSmartContractBridgeContextService,
             smartContractRegistrationProvider,
             smartContractExecutiveProvider,
             transactionContextFactory,
-            codeCheckService
+            smartContractCodeService
         )
     {
     }
