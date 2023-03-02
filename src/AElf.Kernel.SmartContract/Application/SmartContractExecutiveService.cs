@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.CodeCheck.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Types;
 using Google.Protobuf;
@@ -126,10 +127,9 @@ public class SmartContractExecutiveService : ISmartContractExecutiveService, ISi
         // get runner
         var runner = _smartContractRunnerContainer.GetRunner(reg.Category);
 
-        var patchCode = await _smartContractCodeService.GetSmartContractCodeAsync(reg.CodeHash);
-        if (patchCode != null)
+        if (reg.IsUserContract)
         {
-            reg.Code = patchCode;
+            reg.Code = await _smartContractCodeService.GetSmartContractCodeAsync(reg.CodeHash);
         }
 
         // run smartContract executive info and return executive

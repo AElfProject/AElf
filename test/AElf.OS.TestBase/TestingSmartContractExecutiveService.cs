@@ -1,4 +1,5 @@
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.CodeCheck.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
 

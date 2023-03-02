@@ -83,12 +83,6 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         var expirationTimePeriod = GetCurrentContractProposalExpirationTimePeriod();
         return new Int32Value{ Value = expirationTimePeriod };
     }
-    
-    public override Address GetContractAddressByCodeHash(Hash input)
-    {
-        var registration = State.SmartContractRegistrations[input];
-        return registration?.Address;
-    }
 
     #endregion Views
 
@@ -105,7 +99,7 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         var transactionMethodCallList = input.TransactionMethodCallList;
 
         // Context.Sender should be identical to Genesis contract address before initialization in production
-        var address = DeploySmartContract(name, category, code, true, Context.Sender);
+        var address = DeploySmartContract(name, category, code, true, false, Context.Sender);
 
         if (transactionMethodCallList != null)
             foreach (var methodCall in transactionMethodCallList.Value)
@@ -284,7 +278,7 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         TryClearContractProposingData(inputHash, out var contractProposingInput);
 
         var address =
-            DeploySmartContract(null, input.Category, input.Code.ToByteArray(), false,
+            DeploySmartContract(null, input.Category, input.Code.ToByteArray(), false,false,
                 DecideNonSystemContractAuthor(contractProposingInput?.Proposer, Context.Sender));
         return address;
     }
@@ -318,7 +312,7 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
             CodeHash = newCodeHash,
             IsSystemContract = info.IsSystemContract,
             Version = info.Version,
-            Address = contractAddress
+            ContractAddress = contractAddress
         };
 
         State.SmartContractRegistrations[reg.CodeHash] = reg;
@@ -410,7 +404,7 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         
         var proposedContractInputHash = CalculateHashFromInput(input);
         SendUserContractProposal(proposedContractInputHash,
-            nameof(BasicContractZeroImplContainer.BasicContractZeroImplBase.ReleaseDeployUserSmartContract),
+            nameof(BasicContractZeroImplContainer.BasicContractZeroImplBase.PerformDeployUserSmartContract),
             input.ToByteString());
 
         // Fire event to trigger BPs checking contract code
@@ -437,7 +431,7 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         
         var proposedContractInputHash = CalculateHashFromInput(input);
         SendUserContractProposal(proposedContractInputHash,
-            nameof(BasicContractZeroImplContainer.BasicContractZeroImplBase.ReleaseUpdateUserSmartContract),
+            nameof(BasicContractZeroImplContainer.BasicContractZeroImplBase.PerformUpdateUserSmartContract),
             input.ToByteString());
         
         // Fire event to trigger BPs checking contract code
@@ -472,26 +466,26 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         return new Empty();
     }
 
-    public override Empty ReleaseDeployUserSmartContract(ContractDeploymentInput input)
+    public override Address PerformDeployUserSmartContract(ContractDeploymentInput input)
     {
         RequireSenderAuthority(State.CodeCheckController.Value.OwnerAddress);
 
         var inputHash = CalculateHashFromInput(input);
         TryClearContractProposingData(inputHash, out var contractProposingInput);
 
-        DeploySmartContract(null, input.Category, input.Code.ToByteArray(), false, contractProposingInput.Author);
-
-        return new Empty();
+        var address = DeploySmartContract(null, input.Category, input.Code.ToByteArray(), false, true,
+            contractProposingInput.Author);
+        return address;
     }
 
-    public override Empty ReleaseUpdateUserSmartContract(ContractUpdateInput input)
+    public override Empty PerformUpdateUserSmartContract(ContractUpdateInput input)
     {
         RequireSenderAuthority(State.CodeCheckController.Value.OwnerAddress);
         
         var inputHash = CalculateHashFromInput(input);
         TryClearContractProposingData(inputHash, out var proposingInput);
 
-        UpdateSmartContract(input.Address, input.Code.ToByteArray(), proposingInput.Author);
+        UpdateSmartContract(input.Address, input.Code.ToByteArray(), proposingInput.Author, true);
         
         return new Empty();
     }

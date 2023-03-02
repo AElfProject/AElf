@@ -7,10 +7,10 @@
 [![Twitter Follow](https://img.shields.io/twitter/follow/aelfblockchain.svg?label=%40aelfblockchain&style=social)](https://twitter.com/aelfblockchain)
 [![Telegram](https://badgen.net/badge/telegram/join/blue?icon=telegram)](https://t.me/aelfdeveloper)
 
-BRANCH | TRAVIS CI | AZURE PIPELINES | TESTS | CODE COVERAGE
--------|-----------|-----------------|-------|--------------
-MASTER |[![Build Status](https://travis-ci.org/AElfProject/AElf.svg?branch=master)](https://travis-ci.org/AElfProject/AElf) | [![Build Status](https://dev.azure.com/AElfProject/AElf/_apis/build/status/AElfProject.AElf?branchName=master)](https://dev.azure.com/AElfProject/AElf/_build/latest?definitionId=1&branchName=master) | [![Test Status](https://img.shields.io/azure-devops/tests/AElfProject/AElf/1/master)](https://dev.azure.com/AElfProject/AElf/_build/latest?definitionId=1&branchName=master) | [![codecov](https://codecov.io/gh/AElfProject/AElf/branch/master/graph/badge.svg)](https://codecov.io/gh/AElfProject/AElf)
-DEV    |[![Build Status](https://travis-ci.org/AElfProject/AElf.svg?branch=dev)](https://travis-ci.org/AElfProject/AElf) | [![Build Status](https://dev.azure.com/AElfProject/AElf/_apis/build/status/AElfProject.AElf?branchName=dev)](https://dev.azure.com/AElfProject/AElf/_build/latest?definitionId=1&branchName=dev) | [![Test Status](https://img.shields.io/azure-devops/tests/AElfProject/AElf/1/dev)](https://dev.azure.com/AElfProject/AElf/_build/latest?definitionId=1&branchName=dev) | [![codecov](https://codecov.io/gh/AElfProject/AElf/branch/dev/graph/badge.svg)](https://codecov.io/gh/AElfProject/AElf)
+ BRANCH | AZURE PIPELINES                                              | TESTS                                                        | CODE COVERAGE                                                
+ ------ | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ 
+ MASTER | [![Build Status](https://dev.azure.com/AElfProject/AElf/_apis/build/status/AElfProject.AElf?branchName=master)](https://dev.azure.com/AElfProject/AElf/_build/latest?definitionId=1&branchName=master) | [![Test Status](https://img.shields.io/azure-devops/tests/AElfProject/AElf/1/master)](https://dev.azure.com/AElfProject/AElf/_build/latest?definitionId=1&branchName=master) | [![codecov](https://codecov.io/gh/AElfProject/AElf/branch/master/graph/badge.svg)](https://codecov.io/gh/AElfProject/AElf) 
+ DEV    | [![Build Status](https://dev.azure.com/AElfProject/AElf/_apis/build/status/AElfProject.AElf?branchName=dev)](https://dev.azure.com/AElfProject/AElf/_build/latest?definitionId=1&branchName=dev) | [![Test Status](https://img.shields.io/azure-devops/tests/AElfProject/AElf/1/dev)](https://dev.azure.com/AElfProject/AElf/_build/latest?definitionId=1&branchName=dev) | [![codecov](https://codecov.io/gh/AElfProject/AElf/branch/dev/graph/badge.svg)](https://codecov.io/gh/AElfProject/AElf) 
 
 Welcome to AElf's official GitHub repo ! 
 
@@ -79,7 +79,7 @@ For any non trivial modification of the code, the pull requests should be associ
 - add the tests corresponding to your modifications.
 - pull requests should be made against the **dev** branch.
 
-When you are ready for a review by the core team, just remove ```[WIP]``` from your PR's title and others will review. This will either lead to a discussion or to a refactor of the code. The Travis CI system makes sure that every pull request is built for Windows, Linux, and macOS, and that unit tests are run automatically. The CI passing is a pre-condition for the PR to be merged as well as the approval from the core team.
+When you are ready for a review by the core team, just remove ```[WIP]``` from your PR's title and others will review. This will either lead to a discussion or to a refactor of the code. The Azure Pipelines CI system makes sure that every pull request is built for Windows, Linux, and macOS, and that unit tests are run automatically. The CI passing is a pre-condition for the PR to be merged as well as the approval from the core team.
 
 ## Versioning
 

@@ -14,16 +14,22 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\src\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj"/>
+        <ProjectReference Include="..\..\src\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj" />
     </ItemGroup>
 
     <ItemGroup>
         <CommonMessage Include="..\..\protobuf\authority_info.proto">
             <Link>Protobuf\Proto\authority_info.proto</Link>
         </CommonMessage>
+        <ContractMessage Include="..\..\protobuf\transaction_fee.proto">
+            <Link>Protobuf\Proto\transaction_fee.proto</Link>
+        </ContractMessage>
     </ItemGroup>
 
     <ItemGroup>
+        <ContractReference Include="..\..\protobuf\token_contract.proto">
+            <Link>Protobuf\Proto\reference\token_contract.proto</Link>
+        </ContractReference>
         <ContractReference Include="..\..\protobuf\test_basic_function_contract.proto">
             <Link>Protobuf\Proto\reference\test_basic_function_contract.proto</Link>
         </ContractReference>

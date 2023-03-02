@@ -47,21 +47,24 @@ service ACS0 {
     rpc ReleaseCodeCheckedContract (ReleaseContractInput) returns (google.protobuf.Empty) {
     }
 
-    // Deploy a user smart contract on chain and return the address of the contract deployed.
+    // Deploy a user smart contract on chain and return the hash of the contract code.
     rpc DeployUserSmartContract (ContractDeploymentInput) returns (aelf.Hash) {
     }
 
     // Update a user smart contract on chain.
     rpc UpdateUserSmartContract (ContractUpdateInput) returns (google.protobuf.Empty) {
     }
-    
+
+    // Release the proposal which has passed the code check.
     rpc ReleaseApprovedUserSmartContract(ReleaseContractInput) returns (google.protobuf.Empty) {
     }
 
-    rpc ReleaseDeployUserSmartContract(ContractDeploymentInput) returns (google.protobuf.Empty) {
+    // Perform user contract deployment.
+    rpc PerformDeployUserSmartContract(ContractDeploymentInput) returns (aelf.Address) {
     }
 
-    rpc ReleaseUpdateUserSmartContract(ContractUpdateInput) returns (google.protobuf.Empty) {
+    // Perform user contract update.
+    rpc PerformUpdateUserSmartContract(ContractUpdateInput) returns (google.protobuf.Empty) {
     }
 
     // Set author of the specified contract.
@@ -115,10 +118,6 @@ service ACS0 {
     rpc GetContractCodeHashListByDeployingBlockHeight (google.protobuf.Int64Value) returns (ContractCodeHashList) {
         option (aelf.is_view) = true;
     }
-
-    rpc GetContractAddressByCodeHash (aelf.Hash) returns (aelf.Address) {
-        option (aelf.is_view) = true;
-    }
 }
 
 message ContractInfo
@@ -135,6 +134,8 @@ message ContractInfo
     bool is_system_contract = 5;
     // The version of the current contract.
     int32 version = 6;
+    // Whether it is a user contract.
+    bool is_user_contract = 7;
 }
 
 message ContractDeploymentInput {
@@ -221,7 +222,7 @@ message CodeCheckRequired
     sint32 category = 3;
     // Indicates if the contract is the system contract.
     bool is_system_contract = 4;
-
+    // Indicates if the contract is the user contract.
     bool is_user_contract = 5;
 }
 

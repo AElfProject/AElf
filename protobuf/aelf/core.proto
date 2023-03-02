@@ -95,7 +95,9 @@ message SmartContractRegistration {
     // The version of the current contract.
     int32 version = 5;
     // The address of the current contract.
-    Address address = 6;
+    Address contract_address = 6;
+    // Whether it is a user contract.
+    bool is_user_contract = 7;
 }
 
 message TransactionExecutingStateSet {

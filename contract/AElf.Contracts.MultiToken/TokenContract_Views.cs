@@ -199,13 +199,6 @@ public partial class TokenContract
         };
     }
 
-    public override BoolValue IsInCreateTokenWhiteList(Address input)
-    {
-        return new BoolValue
-        {
-            Value = IsAddressInCreateTokenWhiteList(input)
-        };
-    }
 
     public override StringList GetReservedExternalInfoKeyList(Empty input)
     {
@@ -228,14 +221,11 @@ public partial class TokenContract
         return tokenInfo.IsBurnable;
     }
 
-    private bool IsAddressInCreateTokenWhiteList(Address address)
+    private bool IsAddressInCreateWhiteList(Address address)
     {
-        if (address == Context.GetZeroSmartContractAddress() ||
-            address == GetDefaultParliamentController().OwnerAddress || address ==
-            Context.GetContractAddressByName(SmartContractConstants.EconomicContractSystemName) ||
-            address == Context.GetContractAddressByName(SmartContractConstants.CrossChainContractSystemName))
-            return true;
-
-        return State.CreateTokenWhiteListMap[address];
+        return address == Context.GetZeroSmartContractAddress() ||
+               address == GetDefaultParliamentController().OwnerAddress ||
+               address == Context.GetContractAddressByName(SmartContractConstants.EconomicContractSystemName) ||
+               address == Context.GetContractAddressByName(SmartContractConstants.CrossChainContractSystemName);
     }
 }
