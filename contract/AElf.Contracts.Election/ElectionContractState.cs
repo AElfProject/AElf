@@ -96,9 +96,5 @@ public partial class ElectionContractState : ContractState
     public BoolState ElectionEnabled { get; set; }
 
     public MappedState<Hash, bool> WeightsAlreadyFixedMap { get; set; }
-
-    /// <summary>
-    ///  Candidate pubkey -> profits receiver -> subsidy id
-    /// </summary>
-    public MappedState<string, Address, Hash> CandidateSubsidyId { get; set; }
+    
 }

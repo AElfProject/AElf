@@ -51,7 +51,7 @@ service TreasuryContract {
     rpc SetProfitsReceiver (SetProfitsReceiverInput) returns (google.protobuf.Empty) {
     }
 
-    rpc ReplaceProfitsReceiverCandidate (ReplaceProfitsReceiverCandidateInput) returns (google.protobuf.Empty) {
+    rpc ReplaceCandidateProfitsReceiver (ReplaceCandidateProfitsReceiverInput) returns (google.protobuf.Empty) {
     }
     
     // Used to estimate the revenue weight of 10000 tokens voted by users.
@@ -163,7 +163,7 @@ message SetProfitsReceiverInput {
     aelf.Address profits_receiver_address = 2;
 }
 
-message ReplaceProfitsReceiverCandidateInput{
+message ReplaceCandidateProfitsReceiverInput{
     string old_pubkey = 1;
     string new_pubkey = 2;
 }

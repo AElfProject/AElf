@@ -207,8 +207,10 @@ public partial class ElectionContract : ElectionContractImplContainer.ElectionCo
             if (State.ProfitContract.Value == null)
                 State.ProfitContract.Value =
                     Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName);
-            var profitReceiver = GetProfitsReceiverOrDefault(input.OldPubkey).Value.Any()
-                ? GetProfitsReceiverOrDefault(input.OldPubkey)
+            
+            var oldProfitReceiver = GetProfitsReceiverOrDefault(input.OldPubkey);
+            var profitReceiver = oldProfitReceiver.Value.Any()
+                ? oldProfitReceiver
                 : null;
             RemoveBeneficiary(input.OldPubkey);
             AddBeneficiary(input.NewPubkey, profitReceiver);
@@ -242,7 +244,7 @@ public partial class ElectionContract : ElectionContractImplContainer.ElectionCo
         //     Ban old pubkey.
         State.BannedPubkeyMap[input.OldPubkey] = true;
 
-        ReplaceProfitsReceiverCandidate(input.OldPubkey, input.NewPubkey);
+        ReplaceCandidateProfitsReceiver(input.OldPubkey, input.NewPubkey);
         
         Context.Fire(new CandidatePubkeyReplaced
         {
@@ -252,8 +254,8 @@ public partial class ElectionContract : ElectionContractImplContainer.ElectionCo
 
         return new Empty();
     }
-
-    private void ReplaceProfitsReceiverCandidate(string oldPubkey, string newPubkey)
+    
+    private void ReplaceCandidateProfitsReceiver(string oldPubkey, string newPubkey)
     {
         //Check profit receiver
         var beneficiary = GetProfitsReceiverOrDefault(oldPubkey);
@@ -266,7 +268,7 @@ public partial class ElectionContract : ElectionContractImplContainer.ElectionCo
         if (beneficiary.Value.Any())
         {
             //remove profits receiver
-            State.TreasuryContract.ReplaceProfitsReceiverCandidate.Send(new ReplaceProfitsReceiverCandidateInput
+            State.TreasuryContract.ReplaceCandidateProfitsReceiver.Send(new ReplaceCandidateProfitsReceiverInput
             {
                 OldPubkey = oldPubkey,
                 NewPubkey = newPubkey

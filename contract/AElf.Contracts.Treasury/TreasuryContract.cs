@@ -613,6 +613,11 @@ public partial class TreasuryContract : TreasuryContractImplContainer.TreasuryCo
         Assert(candidateAddressList.Contains(Address.FromPublicKey(pubkey.ToByteArray())),"Pubkey is not a candidate.");
 
         var previousProfitsReceiver = State.ProfitsReceiverMap[input.Pubkey];
+        //Set same profits receiver address.
+        if (input.ProfitsReceiverAddress == previousProfitsReceiver)
+        {
+            return new Empty();
+        }
         State.ProfitsReceiverMap[input.Pubkey] = input.ProfitsReceiverAddress;
         State.ElectionContract.SetProfitsReceiver.Send(new AElf.Contracts.Election.SetProfitsReceiverInput
         {
@@ -624,7 +629,7 @@ public partial class TreasuryContract : TreasuryContractImplContainer.TreasuryCo
         return new Empty();
     }
 
-    public override Empty ReplaceProfitsReceiverCandidate(ReplaceProfitsReceiverCandidateInput input)
+    public override Empty ReplaceCandidateProfitsReceiver(ReplaceCandidateProfitsReceiverInput input)
     {
         Assert(Context.Sender == Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName),
             "No permission");
