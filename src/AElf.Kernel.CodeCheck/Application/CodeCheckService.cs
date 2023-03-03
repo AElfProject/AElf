@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using AElf.Kernel.CodeCheck.Infrastructure;
 using AElf.Kernel.SmartContract;
@@ -52,10 +53,10 @@ public class CodeCheckService : ICodeCheckService, ITransientDependency
             Logger.LogTrace("Finish code check");
             return true;
         }
-        catch (InvalidCodeException e)
+        catch (Exception e)
         {
             // May do something else to indicate that the contract has an issue
-            Logger.LogWarning("{ExceptionMessage}", e.Message);
+            Logger.LogWarning("Perform code check failed. {ExceptionMessage}", e.Message);
         }
 
         return false;
