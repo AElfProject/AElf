@@ -158,6 +158,7 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         var info = State.ContractInfos[contractAddress];
         Assert(info != null, "Contract not found.");
         AssertAuthorityByContractInfo(info, Context.Sender);
+        AssertContractVersion(info.ContractVersion, input.Code, info.Category);
 
         var expirationTimePeriod = GetCurrentContractProposalExpirationTimePeriod();
 
@@ -185,16 +186,6 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         Context.SendInline(State.ContractDeploymentController.Value.ContractAddress,
             nameof(AuthorizationContractContainer.AuthorizationContractReferenceState
                 .CreateProposalBySystemContract), proposalCreationInput);
-        
-        var contractVersionCheckResult =
-            Context.CheckContractVersion(info.ContractVersion, new SmartContractRegistration
-            {
-                Code = input.Code,
-                Category = State.SmartContractRegistrations[info.CodeHash].Category,
-                CodeHash = HashHelper.ComputeFrom(input.Code.ToByteArray())
-            });
-        Assert(contractVersionCheckResult.IsSubsequentVersion,
-            $"The version to be deployed is lower than the effective version({info.ContractVersion}), please correct the version number.");
 
         Context.Fire(new ContractProposed
         {
@@ -405,6 +396,7 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         var codeHash = HashHelper.ComputeFrom(input.Code.ToByteArray());
         Assert(info.CodeHash != codeHash, "Code is not changed.");
         Assert(State.SmartContractRegistrations[codeHash] == null, "Contract code has already been deployed before.");
+        AssertContractVersion(info.ContractVersion, input.Code, info.Category);
         
         var proposedContractInputHash = CalculateHashFromInput(input);
         SendUserContractProposal(proposedContractInputHash,

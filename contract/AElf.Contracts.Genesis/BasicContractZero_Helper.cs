@@ -344,6 +344,20 @@ public partial class BasicContractZero
             State.TokenContract.Value =
                 Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
     }
+
+    private void AssertContractVersion(string currentVersion, ByteString code, int category)
+    {
+        var contractVersionCheckResult =
+            Context.CheckContractVersion(currentVersion, new SmartContractRegistration
+            {
+                Code = code,
+                Category = category,
+                CodeHash = HashHelper.ComputeFrom(code.ToByteArray())
+            });
+        Assert(contractVersionCheckResult.IsSubsequentVersion,
+            $"The version to be deployed is lower than the effective version({currentVersion}), please correct the version number.");
+
+    }
 }
 
 public static class AddressHelper
