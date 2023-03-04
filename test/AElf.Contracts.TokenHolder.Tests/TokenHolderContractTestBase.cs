@@ -20,7 +20,6 @@ using AElf.Standards.ACS0;
 using AElf.Standards.ACS3;
 using AElf.Types;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Volo.Abp.Threading;
 using InitializeInput = AElf.Contracts.TestContract.DApp.InitializeInput;
@@ -126,9 +125,7 @@ public class TokenHolderContractTestBase : ContractTestBase<TokenHolderContractT
                     TransactionMethodCallList = GenerateConsensusInitializationCallList()
                 })).Output;
         AEDPoSContractStub = GetConsensusContractTester(StarterKeyPair);
-
-        AsyncHelper.RunSync(AddDAppContractAddressToCreateTokenWhiteListAsync);
-
+        
         //deploy DApp contract
         DAppContractAddress = AsyncHelper.RunSync(() => GetContractZeroTester(StarterKeyPair)
             .DeploySystemSmartContract.SendAsync(
@@ -136,35 +133,17 @@ public class TokenHolderContractTestBase : ContractTestBase<TokenHolderContractT
                 {
                     Category = KernelConstants.CodeCoverageRunnerCategory,
                     Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(DAppContract).Assembly.Location)),
-                    Name = DappSmartContractAddressNameProvider.Name,
-                    TransactionMethodCallList =
-                        new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList
-                        {
-                            Value =
-                            {
-                                new SystemContractDeploymentInput.Types.SystemTransactionMethodCall
-                                {
-                                    MethodName = nameof(DAppContractStub.InitializeForUnitTest),
-                                    Params = new InitializeInput
-                                    {
-                                        ProfitReceiver = Address.FromPublicKey(UserKeyPairs[1].PublicKey)
-                                    }.ToByteString()
-                                }
-                            }
-                        }
+                    Name = DappSmartContractAddressNameProvider.Name
                 })).Output;
-        DAppContractStub = GetTester<DAppContainer.DAppStub>(DAppContractAddress,
-            UserKeyPairs.First());
-    }
-
-    private async Task AddDAppContractAddressToCreateTokenWhiteListAsync()
-    {
-        var defaultOrganization = await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
-        var proposalId = await CreateProposalAsync(TokenContractAddress,
-            defaultOrganization, nameof(TokenContractStub.AddAddressToCreateTokenWhiteList),
-            Address.FromBase58("BHN8oN7D8kWZL9YW3aqD3dct4F83zqAd3CgaBTWucUiNSakcp"));
-        await ApproveWithMinersAsync(proposalId);
-        await ParliamentContractStub.Release.SendAsync(proposalId);
+        DAppContractStub = GetTester<DAppContainer.DAppStub>(DAppContractAddress, UserKeyPairs.First());
+        AsyncHelper.RunSync(TransferToContract);
+        AsyncHelper.RunSync(async () =>
+        {
+            await DAppContractStub.InitializeForUnitTest.SendAsync(new InitializeInput
+            {
+                ProfitReceiver = Address.FromPublicKey(UserKeyPairs[1].PublicKey)
+            });
+        });
     }
 
     internal BasicContractZeroImplContainer.BasicContractZeroImplStub GetContractZeroTester(ECKeyPair keyPair)
@@ -306,5 +285,15 @@ public class TokenHolderContractTestBase : ContractTestBase<TokenHolderContractT
             var approveResult = await tester.Approve.SendAsync(proposalId);
             approveResult.TransactionResult.Error.ShouldBeNullOrEmpty();
         }
+    }
+    
+    private async Task TransferToContract()
+    {
+        await TokenContractStub.Transfer.SendAsync(new TransferInput
+        {
+            To = DAppContractAddress,
+            Amount = 10000_0000000000,
+            Symbol = TokenHolderContractTestConstants.NativeTokenSymbol,
+        });
     }
 }

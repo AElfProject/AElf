@@ -391,7 +391,7 @@ public sealed class ReferendumContractTest : ReferendumContractTestBase
         var maximalAbstentionThreshold = 10000;
         var organizationAddress = await CreateOrganizationAsync(minimalApproveThreshold, minimalVoteThreshold,
             maximalAbstentionThreshold, maximalRejectionThreshold, new[] { DefaultSender });
-        await AddAddressToCreateTokenWhiteListAsync(organizationAddress);
+        await ApproveAndTransferCreateTokenFee(DefaultSenderKeyPair, minimalApproveThreshold, organizationAddress);
         var proposalId = await CreateProposalAsync(DefaultSenderKeyPair, organizationAddress);
         var amount = 5000;
         var accountApprove = Accounts[3];
@@ -609,7 +609,8 @@ public sealed class ReferendumContractTest : ReferendumContractTestBase
         var maximalAbstentionThreshold = 10000;
         var organizationAddress = await CreateOrganizationAsync(minimalApproveThreshold, minimalVoteThreshold,
             maximalAbstentionThreshold, maximalRejectionThreshold, new[] { DefaultSender });
-        await AddAddressToCreateTokenWhiteListAsync(organizationAddress);
+        
+        await ApproveAndTransferCreateTokenFee(DefaultSenderKeyPair, minimalApproveThreshold, organizationAddress);
         var proposalId = await CreateProposalAsync(DefaultSenderKeyPair, organizationAddress);
         await ApproveAllowanceAsync(Accounts[3].KeyPair, minimalApproveThreshold, proposalId);
 
@@ -624,22 +625,6 @@ public sealed class ReferendumContractTest : ReferendumContractTestBase
         newToken.Issuer.ShouldBe(organizationAddress);
     }
 
-    private async Task AddAddressToCreateTokenWhiteListAsync(Address address)
-    {
-        var defaultOrganization = await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
-        var result = await ParliamentContractStub.CreateProposal.SendAsync(new CreateProposalInput
-        {
-            ToAddress = TokenContractAddress,
-            Params = address.ToByteString(),
-            ContractMethodName = nameof(TokenContractStub.AddAddressToCreateTokenWhiteList),
-            ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1),
-            OrganizationAddress = defaultOrganization
-        });
-        var proposalId = result.Output;
-        await ApproveWithMinersAsync(proposalId);
-        await ParliamentContractStub.Release.SendAsync(proposalId);
-    }
-
     [Fact]
     public async Task Release_Proposal_AlreadyReleased_Test()
     {
@@ -649,7 +634,8 @@ public sealed class ReferendumContractTest : ReferendumContractTestBase
         var maximalAbstentionThreshold = 10000;
         var organizationAddress = await CreateOrganizationAsync(minimalApproveThreshold, minimalVoteThreshold,
             maximalAbstentionThreshold, maximalRejectionThreshold, new[] { DefaultSender });
-        await AddAddressToCreateTokenWhiteListAsync(organizationAddress);
+        
+        await ApproveAndTransferCreateTokenFee(DefaultSenderKeyPair, minimalApproveThreshold, organizationAddress);
         var proposalId = await CreateProposalAsync(DefaultSenderKeyPair, organizationAddress);
 
         // do not reach minimal approve amount
@@ -727,7 +713,8 @@ public sealed class ReferendumContractTest : ReferendumContractTestBase
 
             var changeProposalId = await CreateReferendumProposalAsync(DefaultSenderKeyPair,
                 proposalReleaseThresholdInput,
-                nameof(ReferendumContractStub.ChangeOrganizationThreshold), organizationAddress);
+                nameof(ReferendumContractStub.ChangeOrganizationThreshold), organizationAddress,
+                ReferendumContractAddress);
             await ApproveAllowanceAsync(keyPair, minimalApproveThreshold, changeProposalId);
             await ApproveAsync(Accounts[3].KeyPair, changeProposalId);
             var referendumContractStub = GetReferendumContractTester(DefaultSenderKeyPair);
@@ -745,7 +732,8 @@ public sealed class ReferendumContractTest : ReferendumContractTestBase
             ReferendumContractStub = GetReferendumContractTester(DefaultSenderKeyPair);
             var changeProposalId = await CreateReferendumProposalAsync(DefaultSenderKeyPair,
                 proposalReleaseThresholdInput,
-                nameof(ReferendumContractStub.ChangeOrganizationThreshold), organizationAddress);
+                nameof(ReferendumContractStub.ChangeOrganizationThreshold), organizationAddress,
+                ReferendumContractAddress);
             await ApproveAllowanceAsync(keyPair, minimalApproveThreshold, changeProposalId);
             await ApproveAsync(Accounts[3].KeyPair, changeProposalId);
             var referendumContractStub = GetReferendumContractTester(DefaultSenderKeyPair);
@@ -774,7 +762,8 @@ public sealed class ReferendumContractTest : ReferendumContractTestBase
             var newProposalWhitelist = new ProposerWhiteList();
             var changeProposerWhitelistProposalId = await CreateReferendumProposalAsync(DefaultSenderKeyPair,
                 newProposalWhitelist,
-                nameof(ReferendumContractStub.ChangeOrganizationProposerWhiteList), organizationAddress);
+                nameof(ReferendumContractStub.ChangeOrganizationProposerWhiteList), organizationAddress,
+                ReferendumContractAddress);
             var keyPair = Accounts[3].KeyPair;
             await ApproveAllowanceAsync(keyPair, 5000, changeProposerWhitelistProposalId);
             await ApproveAsync(keyPair, changeProposerWhitelistProposalId);
@@ -802,7 +791,8 @@ public sealed class ReferendumContractTest : ReferendumContractTestBase
 
         ReferendumContractStub = GetReferendumContractTester(DefaultSenderKeyPair);
         var changeProposalId = await CreateReferendumProposalAsync(DefaultSenderKeyPair, proposerWhiteList,
-            nameof(ReferendumContractStub.ChangeOrganizationProposerWhiteList), organizationAddress);
+            nameof(ReferendumContractStub.ChangeOrganizationProposerWhiteList), organizationAddress,
+            ReferendumContractAddress);
         await ApproveAllowanceAsync(Accounts[3].KeyPair, minimalApproveThreshold, changeProposalId);
         await ApproveAsync(Accounts[3].KeyPair, changeProposalId);
         ReferendumContractStub = GetReferendumContractTester(DefaultSenderKeyPair);
@@ -1250,7 +1240,8 @@ public sealed class ReferendumContractTest : ReferendumContractTestBase
             var newProposalWhitelist = new ProposerWhiteList();
             var changeProposerWhitelistProposalId = await CreateReferendumProposalAsync(DefaultSenderKeyPair,
                 newProposalWhitelist,
-                nameof(ReferendumContractStub.ChangeOrganizationProposerWhiteList), organizationAddress);
+                nameof(ReferendumContractStub.ChangeOrganizationProposerWhiteList), organizationAddress,
+                ReferendumContractAddress);
             var ret = await ReferendumContractStub.ClearProposal.SendWithExceptionAsync(
                 changeProposerWhitelistProposalId);
             ret.TransactionResult.Error.ShouldContain("Proposal clear failed");
@@ -1323,13 +1314,13 @@ public sealed class ReferendumContractTest : ReferendumContractTestBase
     }
 
     private async Task<Hash> CreateReferendumProposalAsync(ECKeyPair proposalKeyPair, IMessage input,
-        string method, Address organizationAddress)
+        string method, Address organizationAddress, Address toAddress)
     {
         var referendumContractStub = GetReferendumContractTester(proposalKeyPair);
         var createProposalInput = new CreateProposalInput
         {
             ContractMethodName = method,
-            ToAddress = ReferendumContractAddress,
+            ToAddress = toAddress,
             Params = input.ToByteString(),
             ExpiredTime = BlockTimeProvider.GetBlockTime().AddDays(2),
             OrganizationAddress = organizationAddress
@@ -1462,6 +1453,33 @@ public sealed class ReferendumContractTest : ReferendumContractTestBase
             var approveResult = await tester.Approve.SendAsync(proposalId);
             approveResult.TransactionResult.Error.ShouldBeNullOrEmpty();
         }
+    }
+    private async Task ApproveAndTransferCreateTokenFee(ECKeyPair proposalKeyPair, long minimalApproveThreshold,
+        Address organizationAddress)
+    {
+        var approveInput = new ApproveInput
+        {
+            Spender = TokenContractAddress,
+            Symbol = "ELF",
+            Amount = 10000_00000000
+        };
+        var proposalId =
+            await CreateReferendumProposalAsync(proposalKeyPair, approveInput, "Approve", organizationAddress,
+                TokenContractAddress);
+        await ApproveAllowanceAsync(Accounts[3].KeyPair, minimalApproveThreshold, proposalId);
+        await ApproveAsync(Accounts[3].KeyPair, proposalId);
+        var getProposal = await ReferendumContractStub.GetProposal.CallAsync(proposalId);
+        getProposal.ToBeReleased.ShouldBeTrue();
+
+        var result = await ReferendumContractStub.Release.SendAsync(proposalId);
+        result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+        await TokenContractStub.Transfer.SendAsync(new TransferInput
+        {
+            Amount = 10000_00000000,
+            Symbol = "ELF",
+            To = organizationAddress
+        });
     }
 
     private MethodFees GetValidMethodFees()
