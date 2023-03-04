@@ -9,6 +9,7 @@ public class ContractReaderContext
     public Address ContractAddress { get; set; }
     public Hash BlockHash { get; set; }
     public long BlockHeight { get; set; }
+    public long RefBlockNumber { get; set; }
     public Timestamp Timestamp { get; set; }
     public IStateCache StateCache { get; set; }
 }

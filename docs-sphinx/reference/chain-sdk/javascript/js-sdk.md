@@ -152,6 +152,8 @@ Change the node endpoint by using `aelf.setProvider`
 *You can see how the Web Api of the node works in `{chainAddress}/swagger/index.html`*
 _tip: for an example, my local address: 'http://127.0.0.1:1235/swagger/index.html'_
 
+parameters and returns based on the URL: `https://aelf-public-node.aelf.io/swagger/index.html`
+
 The usage of these methods is based on the AElf instance, so if you don't have one please create it:
 
 ```javascript
@@ -457,13 +459,58 @@ _Parameters_
 
 Get peer info about the connected network nodes
 
+_GET_
+
+_Parameters_
+
+1. `withMetrics - Boolean` :
+
+- `true` with metrics
+- `false` without metrics
+
 ### 13.addPeer
 
 Attempts to add a node to the connected network nodes
 
+_POST_
+
+_Parameters_
+
+`Object` - The object with the following structure :
+
+- `Address - String`
+
 ### 14.removePeer
 
 Attempts to remove a node from the connected network nodes
+
+_DELETE_
+
+_Parameters_
+
+1. `address - String`
+
+### 15.calculateTransactionFee
+
+Estimate transaction fee
+
+_POST_
+
+_Parameters_
+
+`Object` - The object with the following structure :
+
+- `RawTransaction - String`
+
+### 16.networkInfo
+
+Get information about the node’s connection to the network
+
+_GET_
+
+_Parameters_
+
+Empty
 
 ## AElf.wallet
 

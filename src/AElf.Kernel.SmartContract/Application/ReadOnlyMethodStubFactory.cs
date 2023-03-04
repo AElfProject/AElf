@@ -58,6 +58,7 @@ public class ReadOnlyMethodStubFactory : IMethodStubFactory
             {
                 From = _contractReaderContext.Sender,
                 To = _contractReaderContext.ContractAddress,
+                RefBlockNumber = _contractReaderContext.RefBlockNumber,
                 MethodName = method.Name,
                 Params = ByteString.CopyFrom(method.RequestMarshaller.Serializer(input))
             };
