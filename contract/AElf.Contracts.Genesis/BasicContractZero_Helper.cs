@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Reflection;
 using AElf.Contracts.Parliament;
 using AElf.CSharp.Core.Extension;
@@ -13,7 +14,7 @@ namespace AElf.Contracts.Genesis;
 
 public partial class BasicContractZero
 {
-    private Address DeploySmartContract(Hash name, int category, byte[] code, bool isSystemContract,
+    private Address DeploySmartContract(Hash name, int category, byte[] code, bool isSystemContract,bool isUserContract,
         Address author)
     {
         if (name != null)
@@ -35,7 +36,8 @@ public partial class BasicContractZero
             Category = category,
             CodeHash = codeHash,
             IsSystemContract = isSystemContract,
-            Version = 1
+            Version = 1,
+            IsUserContract = isUserContract
         };
 
         var reg = new SmartContractRegistration
@@ -44,7 +46,9 @@ public partial class BasicContractZero
             Code = ByteString.CopyFrom(code),
             CodeHash = codeHash,
             IsSystemContract = info.IsSystemContract,
-            Version = info.Version
+            Version = info.Version,
+            ContractAddress = contractAddress,
+            IsUserContract = isUserContract
         };
 
         var contractInfo = Context.DeploySmartContract(contractAddress, reg, name);
@@ -77,6 +81,55 @@ public partial class BasicContractZero
         State.ContractCodeHashListMap[Context.CurrentHeight] = contractCodeHashList;
 
         return contractAddress;
+    }
+    
+    private void UpdateSmartContract(Address contractAddress, byte[] code, Address author,bool isUserContract)
+    {
+        var info = State.ContractInfos[contractAddress];
+        Assert(info != null, "Contract not found.");
+        Assert(author == info.Author, "No permission.");
+
+        var oldCodeHash = info.CodeHash;
+        var newCodeHash = HashHelper.ComputeFrom(code);
+        Assert(oldCodeHash != newCodeHash, "Code is not changed.");
+
+        Assert(State.SmartContractRegistrations[newCodeHash] == null, "Same code has been deployed before.");
+
+        info.CodeHash = newCodeHash;
+        info.Version++;
+        info.IsUserContract = isUserContract;
+
+        var reg = new SmartContractRegistration
+        {
+            Category = info.Category,
+            Code = ByteString.CopyFrom(code),
+            CodeHash = newCodeHash,
+            IsSystemContract = info.IsSystemContract,
+            Version = info.Version,
+            ContractAddress = contractAddress,
+            IsUserContract = info.IsUserContract
+        };
+        
+        var contractInfo = Context.UpdateSmartContract(contractAddress, reg, null, info.ContractVersion);
+        Assert(contractInfo.IsSubsequentVersion,
+            $"The version to be deployed is lower than the effective version({info.ContractVersion}), please correct the version number.");
+
+        info.ContractVersion = contractInfo.ContractVersion;
+        reg.ContractVersion = info.ContractVersion;
+        
+        State.ContractInfos[contractAddress] = info;
+        State.SmartContractRegistrations[reg.CodeHash] = reg;
+
+        Context.Fire(new CodeUpdated
+        {
+            Address = contractAddress,
+            OldCodeHash = oldCodeHash,
+            NewCodeHash = newCodeHash,
+            Version = info.Version,
+            ContractVersion = info.ContractVersion
+        });
+
+        Context.LogDebug(() => "BasicContractZero - update success: " + contractAddress.ToBase58());
     }
 
     private void RequireSenderAuthority(Address address = null)
@@ -220,6 +273,90 @@ public partial class BasicContractZero
         return State.ContractProposalExpirationTimePeriod.Value == 0
             ? ContractProposalExpirationTimePeriod
             : State.ContractProposalExpirationTimePeriod.Value;
+    }
+    
+    private void AssertCurrentMiner()
+    {
+        RequireConsensusContractStateSet();
+        var isCurrentMiner = State.ConsensusContract.IsCurrentMiner.Call(Context.Sender).Value;
+        Context.LogDebug(() => $"Sender is currentMiner : {isCurrentMiner}.");
+        Assert(isCurrentMiner, "No permission.");
+    }
+    
+    private void RequireConsensusContractStateSet()
+    {
+        if (State.ConsensusContract.Value != null)
+            return;
+        State.ConsensusContract.Value =
+            Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
+    }
+
+    private void SendUserContractProposal(Hash proposingInputHash, string releaseMethodName, ByteString @params)
+    {
+        var registered = State.ContractProposingInputMap[proposingInputHash];
+        Assert(registered == null || Context.CurrentBlockTime >= registered.ExpiredTime, "Already proposed.");
+        var proposedInfo = new ContractProposingInput
+        {
+            Proposer = Context.Self,
+            Status = ContractProposingInputStatus.CodeCheckProposed,
+            ExpiredTime = Context.CurrentBlockTime.AddSeconds(CodeCheckProposalExpirationTimePeriod),
+            Author = Context.Sender
+        };
+        State.ContractProposingInputMap[proposingInputHash] = proposedInfo;
+
+        var codeCheckController = State.CodeCheckController.Value;
+        var proposalCreationInput = new CreateProposalBySystemContractInput
+        {
+            ProposalInput = new CreateProposalInput
+            {
+                ToAddress = Context.Self,
+                ContractMethodName = releaseMethodName,
+                Params = @params,
+                OrganizationAddress = codeCheckController.OwnerAddress,
+                ExpiredTime = proposedInfo.ExpiredTime
+            },
+            OriginProposer = Context.Self
+        };
+        
+        Context.SendInline(codeCheckController.ContractAddress,
+            nameof(AuthorizationContractContainer.AuthorizationContractReferenceState
+                .CreateProposalBySystemContract), proposalCreationInput);
+    }
+
+    private void AssertUserDeployContract()
+    {
+        // Only the symbol of main chain or public side chain is native symbol.
+        RequireTokenContractContractAddressSet();
+        var primaryTokenSymbol = State.TokenContract.GetPrimaryTokenSymbol.Call(new Empty()).Value;
+        if (Context.Variables.NativeSymbol == primaryTokenSymbol)
+        {
+            return;
+        }
+        
+        RequireParliamentContractAddressSet();
+        var whitelist = State.ParliamentContract.GetProposerWhiteList.Call(new Empty());
+        Assert(whitelist.Proposers.Contains(Context.Sender), "No permission.");
+    }
+
+    private void RequireTokenContractContractAddressSet()
+    {
+        if (State.TokenContract.Value == null)
+            State.TokenContract.Value =
+                Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
+    }
+
+    private void AssertContractVersion(string currentVersion, ByteString code, int category)
+    {
+        var contractVersionCheckResult =
+            Context.CheckContractVersion(currentVersion, new SmartContractRegistration
+            {
+                Code = code,
+                Category = category,
+                CodeHash = HashHelper.ComputeFrom(code.ToByteArray())
+            });
+        Assert(contractVersionCheckResult.IsSubsequentVersion,
+            $"The version to be deployed is lower than the effective version({currentVersion}), please correct the version number.");
+
     }
 }
 

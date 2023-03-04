@@ -5,6 +5,7 @@ using AElf.Database;
 using AElf.Kernel;
 using AElf.Kernel.Account.Infrastructure;
 using AElf.Kernel.ChainController;
+using AElf.Kernel.CodeCheck.Application;
 using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.Infrastructure;
 using AElf.Kernel.Node;
@@ -105,6 +106,7 @@ public class ContractTestModule : AbpModule
         services.AddSingleton(o => Mock.Of<INetworkService>());
 
         context.Services.AddTransient(o => Mock.Of<IConsensusService>());
+        context.Services.AddTransient(o => Mock.Of<ICodePatchService>());
 
         #endregion
 

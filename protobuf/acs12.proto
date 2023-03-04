@@ -1,0 +1,20 @@
+/**
+ * AElf Standards ACS12(User Contract Transaction Fee Standard)
+ *
+ * Used to manage the transaction fee of user contract.
+ */
+syntax = "proto3";
+
+package acs12;
+
+import public "aelf/options.proto";
+import public "google/protobuf/empty.proto";
+import public "google/protobuf/wrappers.proto";
+import "aelf/core.proto";
+
+option (aelf.identity) = "acs12";
+option csharp_namespace = "AElf.Standards.ACS12";
+
+service UserContractMethodFeeProviderContract {
+    
+}
