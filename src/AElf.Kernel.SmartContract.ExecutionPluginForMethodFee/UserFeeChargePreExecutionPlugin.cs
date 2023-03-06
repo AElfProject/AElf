@@ -14,33 +14,32 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee;
 
-internal class FeeChargePreExecutionPlugin : SmartContractExecutionPluginBase, IPreExecutionPlugin,
+internal class UserFeeChargePreExecutionPlugin : SmartContractExecutionPluginBase, IPreExecutionPlugin,
     ISingletonDependency
 {
     private readonly IContractReaderFactory<TokenContractImplContainer.TokenContractImplStub>
         _contractReaderFactory;
 
+    public ILogger<UserFeeChargePreExecutionPlugin> Logger { get; set; }
     private readonly ISmartContractAddressService _smartContractAddressService;
-    private readonly ITransactionSizeFeeSymbolsProvider _transactionSizeFeeSymbolsProvider;
     private readonly IPrimaryTokenFeeService _txFeeService;
+    private readonly ITransactionSizeFeeSymbolsProvider _transactionSizeFeeSymbolsProvider;
 
-    public FeeChargePreExecutionPlugin(ISmartContractAddressService smartContractAddressService,
+
+    public UserFeeChargePreExecutionPlugin(ISmartContractAddressService smartContractAddressService,
+        IContractReaderFactory<TokenContractImplContainer.TokenContractImplStub> contractReaderFactory,
         IPrimaryTokenFeeService txFeeService,
-        ITransactionSizeFeeSymbolsProvider transactionSizeFeeSymbolsProvider,
-        IContractReaderFactory<TokenContractImplContainer.TokenContractImplStub> contractReaderFactory) :
-        base("acs1")
+        ITransactionSizeFeeSymbolsProvider transactionSizeFeeSymbolsProvider) : base("acs12")
     {
         _smartContractAddressService = smartContractAddressService;
+        _contractReaderFactory = contractReaderFactory;
         _txFeeService = txFeeService;
         _transactionSizeFeeSymbolsProvider = transactionSizeFeeSymbolsProvider;
-        _contractReaderFactory = contractReaderFactory;
-        Logger = NullLogger<FeeChargePreExecutionPlugin>.Instance;
+        Logger = NullLogger<UserFeeChargePreExecutionPlugin>.Instance;
     }
 
-    public ILogger<FeeChargePreExecutionPlugin> Logger { get; set; }
-
-    public async Task<IEnumerable<Transaction>> GetPreTransactionsAsync(
-        IReadOnlyList<ServiceDescriptor> descriptors, ITransactionContext transactionContext)
+    public async Task<IEnumerable<Transaction>> GetPreTransactionsAsync(IReadOnlyList<ServiceDescriptor> descriptors,
+        ITransactionContext transactionContext)
     {
         try
         {
@@ -49,30 +48,23 @@ internal class FeeChargePreExecutionPlugin : SmartContractExecutionPluginBase, I
                 BlockHash = transactionContext.PreviousBlockHash,
                 BlockHeight = transactionContext.BlockHeight - 1
             };
-
-            var tokenContractAddress = await _smartContractAddressService.GetAddressByContractNameAsync(
-                chainContext,
-                TokenSmartContractAddressNameProvider.StringName);
-
-            if (transactionContext.BlockHeight < AElfConstants.GenesisBlockHeight + 1 ||
-                tokenContractAddress == null)
+            var tokenContractAddress =
+                await _smartContractAddressService.GetAddressByContractNameAsync(chainContext,
+                    TokenSmartContractAddressNameProvider.StringName);
+            if (transactionContext.BlockHeight < AElfConstants.GenesisBlockHeight + 1 || tokenContractAddress == null)
+            {
                 return new List<Transaction>();
+            }
 
-            if (!IsTargetAcsSymbol(descriptors) && transactionContext.Transaction.To != tokenContractAddress)
+            if (!IsTargetAcsSymbol(descriptors))
                 return new List<Transaction>();
-
+            
             var tokenStub = _contractReaderFactory.Create(new ContractReaderContext
             {
                 Sender = transactionContext.Transaction.From,
                 ContractAddress = tokenContractAddress,
                 RefBlockNumber = transactionContext.Transaction.RefBlockNumber
             });
-
-            if (transactionContext.Transaction.To == tokenContractAddress &&
-                (transactionContext.Transaction.MethodName == nameof(tokenStub.ChargeTransactionFees) ||
-                transactionContext.Transaction.MethodName == nameof(tokenStub.ChargeUserTransactionFees)))
-                // Skip ChargeTransactionFees itself and ChargeUserTransactionFees
-                return new List<Transaction>();
 
             var txCost = await _txFeeService.CalculateFeeAsync(transactionContext, chainContext);
             var chargeTransactionFeesInput = new ChargeTransactionFeesInput
@@ -81,19 +73,22 @@ internal class FeeChargePreExecutionPlugin : SmartContractExecutionPluginBase, I
                 ContractAddress = transactionContext.Transaction.To,
                 TransactionSizeFee = txCost
             };
-
             var transactionSizeFeeSymbols =
                 await _transactionSizeFeeSymbolsProvider.GetTransactionSizeFeeSymbolsAsync(chainContext);
             if (transactionSizeFeeSymbols != null)
+            {
                 foreach (var transactionSizeFeeSymbol in transactionSizeFeeSymbols.TransactionSizeFeeSymbolList)
+                {
                     chargeTransactionFeesInput.SymbolsToPayTxSizeFee.Add(new SymbolToPayTxSizeFee
                     {
                         TokenSymbol = transactionSizeFeeSymbol.TokenSymbol,
                         BaseTokenWeight = transactionSizeFeeSymbol.BaseTokenWeight,
                         AddedTokenWeight = transactionSizeFeeSymbol.AddedTokenWeight
                     });
+                }
+            }
 
-            var chargeFeeTransaction = tokenStub.ChargeTransactionFees.GetTransaction(chargeTransactionFeesInput);
+            var chargeFeeTransaction = tokenStub.ChargeUserTransactionFees.GetTransaction(chargeTransactionFeesInput);
             return new List<Transaction>
             {
                 chargeFeeTransaction
@@ -101,7 +96,7 @@ internal class FeeChargePreExecutionPlugin : SmartContractExecutionPluginBase, I
         }
         catch (Exception e)
         {
-            Logger.LogError($"Failed to generate ChargeTransactionFees tx. {e.Message}");
+            Logger.LogError($"Failed to generate ChargeUserTransactionFees tx. {e.Message}");
             throw;
         }
     }

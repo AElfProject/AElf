@@ -18,3 +18,17 @@ option csharp_namespace = "AElf.Standards.ACS12";
 service UserContractMethodFeeProviderContract {
     
 }
+
+
+message UserMethodFees {
+  // List of fees to be charged.
+  repeated UserMethodFee fees = 2;
+  bool is_size_fee_free = 3;// Optional based on the implementation of SetMethodFee method.
+}
+
+message UserMethodFee {
+  // The token symbol of the method fee.
+  string symbol = 1;
+  // The amount of fees to be charged.
+  int64 basic_fee = 2;
+}

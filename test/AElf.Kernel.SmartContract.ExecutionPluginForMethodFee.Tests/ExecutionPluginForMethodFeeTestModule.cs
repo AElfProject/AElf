@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Blockchains.MainChain;
 using AElf.Contracts.TestBase;
 using AElf.ContractTestKit;
 using AElf.Cryptography;
@@ -10,6 +11,7 @@ using AElf.Kernel.FeeCalculation.Infrastructure;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests.Service;
+using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -41,6 +43,23 @@ public class ExecutionPluginForMethodFeeTestModule : ContractTestModule
             .AddTransient<IAEDPoSContractInitializationDataProvider, AEDPoSContractInitializationDataProvider>();
         context.Services
             .AddTransient<IGenesisSmartContractDtoProvider, MethodFeeTestGenesisSmartContractDtoProvider>();
+    }
+}
+
+[DependsOn(
+    typeof(ContractTestModule),
+typeof(ExecutionPluginForMethodFeeModule),
+typeof(FeeCalculationModule))]
+public class ExecutionPluginForUserMethodFeeTestModule : ContractTestModule
+{
+    public override void ConfigureServices(ServiceConfigurationContext context)
+    {
+        Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false);
+        context.Services.AddSingleton<IPreExecutionPlugin, UserFeeChargePreExecutionPlugin>();
+        context.Services.AddSingleton<ICalculateFunctionProvider, MockCalculateFunctionProvider>();
+        context.Services.RemoveAll<IContractInitializationProvider>();
+        context.Services
+            .AddTransient<IContractInitializationProvider, MethodFeeTestTokenContractInitializationProvider>();
     }
 }
 
