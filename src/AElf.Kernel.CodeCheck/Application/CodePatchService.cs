@@ -34,7 +34,7 @@ public class CodePatchService : ICodePatchService, ITransientDependency
         }
         catch (Exception e)
         {
-            Logger.LogWarning(e,$"Perform code patch failed. {e.Message}");
+            Logger.LogWarning(e, "Perform code patch failed. {message}", e.Message);
             patchedCode = Array.Empty<byte>();
             return false;
         }

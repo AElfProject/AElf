@@ -86,7 +86,7 @@ internal class CodeCheckProposalReleaseTransactionGenerator : ISystemTransaction
                 BlockHeight = preBlockHeight
             }, proposal.ProposalId);
             
-            Logger.LogTrace($"Code check proposal release transaction generated: {proposal.ProposalId.ToHex()}.");
+            Logger.LogTrace("Code check proposal release transaction generated: {proposalId}.",proposal.ProposalId.ToHex());
         }
         
         return generatedTransactions;

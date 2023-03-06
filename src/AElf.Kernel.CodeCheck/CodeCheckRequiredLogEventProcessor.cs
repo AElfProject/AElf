@@ -79,7 +79,8 @@ public class CodeCheckRequiredLogEventProcessor : LogEventProcessorBase, IBlocks
                         code,
                         transactionResult.BlockHash, transactionResult.BlockNumber, eventData.Category,
                         eventData.IsSystemContract, eventData.IsUserContract);
-                    Logger.LogInformation($"Code check result: {codeCheckResult}, code hash: {codeHash.ToHex()}");
+                    Logger.LogInformation("Code check result: {codeCheckResult}, code hash: {codeHash}",
+                        codeCheckResult, codeHash.ToHex());
                     if (!codeCheckResult)
                         return;
                     
