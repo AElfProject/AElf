@@ -335,7 +335,7 @@ public partial class ElectionContractTests
             profitReceiverBackShare.Details.Count.ShouldBe(2);
             profitReceiverBackShare.Details.First().IsWeightRemoved.ShouldBeTrue();
             profitReceiverBackShare.Details.Last().IsWeightRemoved.ShouldBeFalse();
-            profitReceiverBackShare.Details.First().Id.ShouldBe(profitReceiverBackShare.Details.Last().Id);
+            profitReceiverBackShare.Details.First().Id.ShouldNotBe(profitReceiverBackShare.Details.Last().Id);
         }
     }
 
