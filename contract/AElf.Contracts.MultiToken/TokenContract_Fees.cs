@@ -30,7 +30,6 @@ public partial class TokenContract
         var bill = new TransactionFeeBill();
         var allowanceBill = new TransactionFreeFeeAllowanceBill();
         var fromAddress = Context.Sender;
-
         var methodFees = Context.Call<MethodFees>(input.ContractAddress, nameof(GetMethodFee),
             new StringValue {Value = input.MethodName});
         var fee = new Dictionary<string, long>();
@@ -39,29 +38,16 @@ public partial class TokenContract
         {
             isSizeFeeFree = methodFees.IsSizeFeeFree;
         }
+
         if (methodFees != null && methodFees.Fees.Any())
         {
             fee = GetBaseFeeDictionary(methodFees);
-
-        }
-        var chargingResult =
-            ChargeTransactionFeesToBill(input, fromAddress, ref bill, ref allowanceBill, fee, isSizeFeeFree);
-
-        if (!chargingResult)
-        {
-            TryToBeChargedByDelegatee(input, ref fromAddress, ref bill, ref allowanceBill, ref chargingResult, fee,
-                isSizeFeeFree);
         }
 
-        ModifyBalance(fromAddress, ref bill, ref allowanceBill);
-
-        var chargingOutput = new ChargeTransactionFeesOutput {Success = chargingResult};
-        if (!chargingResult)
-            chargingOutput.ChargingInformation = "Transaction fee not enough.";
-        return chargingOutput;
+        return TryToChargeTransactionFee(input, ref fromAddress, ref bill, ref allowanceBill, fee, isSizeFeeFree);
     }
 
-    public override ChargeTransactionFeesOutput ChargeUserTransactionFees(ChargeTransactionFeesInput input)
+    public override ChargeTransactionFeesOutput ChargeUserContractTransactionFees(ChargeTransactionFeesInput input)
     {
         if (AssertPermissionAndInput(input))
         {
@@ -73,23 +59,30 @@ public partial class TokenContract
         var allowanceBill = new TransactionFreeFeeAllowanceBill();
         var fromAddress = Context.Sender;
         var fee = new Dictionary<string, long>();
-        var userMethodFees = GetActualFee(input.ContractAddress, input.MethodName);
+        var userContractMethodFees = GetActualFee(input.ContractAddress, input.MethodName);
         var isSizeFeeFree = false;
-        if (userMethodFees != null)
+        if (userContractMethodFees != null)
         {
-            isSizeFeeFree = userMethodFees.IsSizeFeeFree;
+            isSizeFeeFree = userContractMethodFees.IsSizeFeeFree;
         }
 
-        if (userMethodFees != null && userMethodFees.Fees.Any())
+        if (userContractMethodFees != null && userContractMethodFees.Fees.Any())
         {
-            fee = GetUserFeeDictionary(userMethodFees);
+            fee = GetUserContractFeeDictionary(userContractMethodFees);
         }
-        
+
+        return TryToChargeTransactionFee(input, ref fromAddress, ref bill, ref allowanceBill, fee, isSizeFeeFree);
+    }
+
+    private ChargeTransactionFeesOutput TryToChargeTransactionFee(ChargeTransactionFeesInput input, ref Address fromAddress,
+        ref TransactionFeeBill bill, ref TransactionFreeFeeAllowanceBill allowanceBill, Dictionary<string, long> fee,
+        bool isSizeFeeFree)
+    {
         var chargingResult =
             ChargeTransactionFeesToBill(input, fromAddress, ref bill, ref allowanceBill, fee, isSizeFeeFree);
         if (!chargingResult)
         {
-            TryToBeChargedByDelegatee(input, ref fromAddress, ref bill, ref allowanceBill, ref chargingResult, fee,
+            ChargeFromDelegations(input, ref fromAddress, ref bill, ref allowanceBill, ref chargingResult, fee,
                 isSizeFeeFree);
         }
 
@@ -109,16 +102,16 @@ public partial class TokenContract
         return State.ChainPrimaryTokenSymbol.Value == null;
     }
 
-    private UserMethodFees GetActualFee(Address contractAddress, string methodName)
+    private UserContractMethodFees GetActualFee(Address contractAddress, string methodName)
     {
         if (State.ConfigurationContract.Value == null)
             State.ConfigurationContract.Value =
                 Context.GetContractAddressByName(SmartContractConstants.ConfigurationContractSystemName);
         var spec = State.ConfigurationContract.GetConfiguration.Call(new StringValue
         {
-            Value = $"{TokenContractConstants.UserMethodFeeKey}_{contractAddress}_{methodName}"
+            Value = $"{TokenContractConstants.UserContractMethodFeeKey}_{contractAddress}_{methodName}"
         });
-        var fee = new UserMethodFees();
+        var fee = new UserContractMethodFees();
         if (!spec.Value.IsNullOrEmpty())
         {
             fee.MergeFrom(spec.Value);
@@ -127,17 +120,19 @@ public partial class TokenContract
 
         var value = State.ConfigurationContract.GetConfiguration.Call(new StringValue
         {
-            Value = TokenContractConstants.UserMethodFeeKey
+            Value = TokenContractConstants.UserContractMethodFeeKey
         });
         if (value.Value.IsNullOrEmpty())
         {
-            return new UserMethodFees();
-        };
+            return new UserContractMethodFees();
+        }
+
+        ;
         fee.MergeFrom(value.Value);
         return fee;
     }
 
-    private void TryToBeChargedByDelegatee(ChargeTransactionFeesInput input, ref Address fromAddress,
+    private void ChargeFromDelegations(ChargeTransactionFeesInput input, ref Address fromAddress,
         ref TransactionFeeBill bill, ref TransactionFreeFeeAllowanceBill allowanceBill, ref bool chargingResult,
         Dictionary<string, long> fee, bool isSizeFeeFree)
     {
@@ -202,16 +197,14 @@ public partial class TokenContract
         // Update balances and allowances
         foreach (var (symbol, amount) in bill.FeesMap)
         {
-            if (amount > 0)
+            if (amount <= 0) continue;
+            ModifyBalance(fromAddress, symbol, -amount);
+            Context.Fire(new TransactionFeeCharged
             {
-                ModifyBalance(fromAddress, symbol, -amount);
-                Context.Fire(new TransactionFeeCharged
-                {
-                    Symbol = symbol,
-                    Amount = amount,
-                    ChargingAddress = fromAddress
-                });
-            }
+                Symbol = symbol,
+                Amount = amount,
+                ChargingAddress = fromAddress
+            });
         }
 
         foreach (var (symbol, amount) in allowanceBill.FreeFeeAllowancesMap)
@@ -234,7 +227,6 @@ public partial class TokenContract
 
         SetOrRefreshMethodFeeFreeAllowances(fromAddress);
         var freeAllowances = CalculateMethodFeeFreeAllowances(fromAddress)?.Clone();
-        //var fee = methodFees == null ? fees : methodFees;
 
         if (fee.Count != 0)
         {
@@ -290,7 +282,7 @@ public partial class TokenContract
         return dict;
     }
 
-    private Dictionary<string, long> GetUserFeeDictionary(UserMethodFees fees)
+    private Dictionary<string, long> GetUserContractFeeDictionary(UserContractMethodFees fees)
     {
         var dict = new Dictionary<string, long>();
         foreach (var methodFee in fees.Fees)
@@ -1055,7 +1047,7 @@ public partial class TokenContract
 
         var balance = State.Balances[input][Context.Variables.NativeSymbol];
         if (balance < config.Threshold) return new MethodFeeFreeAllowances();
-        
+
         var lastRefreshTime = State.MethodFeeFreeAllowancesLastRefreshTimeMap[input];
 
         if (freeAllowances == null)

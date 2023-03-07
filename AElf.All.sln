@@ -365,7 +365,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.FeatureManager"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.FeatureManager.Tests", "test\AElf.Kernel.FeatureManager.Tests\AElf.Kernel.FeatureManager.Tests.csproj", "{1B44277E-74EB-49B2-B8FD-05C29EE51985}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContract.ExecutionPluginForUserFee.Tests.TestContract", "test\AElf.Kernel.SmartContract.ExecutionPluginForUserFee.Tests.TestContract\AElf.Kernel.SmartContract.ExecutionPluginForUserFee.Tests.TestContract.csproj", "{AB27298B-E6BE-4ACB-ADF1-64239E2A7A1C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContract.ExecutionPluginForUserContractFee.Tests.TestContract", "test\AElf.Kernel.SmartContract.ExecutionPluginForUserContractFee.Tests.TestContract\AElf.Kernel.SmartContract.ExecutionPluginForUserContractFee.Tests.TestContract.csproj", "{AB27298B-E6BE-4ACB-ADF1-64239E2A7A1C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -31,7 +31,7 @@ public class ExecutionPluginForMethodFeeTestBase : ContractTestBase<ExecutionPlu
 {
 }
 
-public class ExecutionPluginForUserMethodFeeTestBase : ContractTestBase<ExecutionPluginForUserMethodFeeTestModule>
+public class ExecutionPluginForUserContractMethodFeeTestBase : ContractTestBase<ExecutionPluginForUserContractMethodFeeTestModule>
 {
     protected const string NativeTokenSymbol = "ELF";
     
@@ -55,7 +55,7 @@ public class ExecutionPluginForUserMethodFeeTestBase : ContractTestBase<Executio
     protected List<ECKeyPair> InitialCoreDataCenterKeyPairs =>
         Accounts.Take(1).Select(a => a.KeyPair).ToList();
 
-    protected ExecutionPluginForUserMethodFeeTestBase()
+    protected ExecutionPluginForUserContractMethodFeeTestBase()
     {
         AsyncHelper.RunSync(InitializeContracts);
     }
