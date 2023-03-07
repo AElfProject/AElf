@@ -40,7 +40,7 @@
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </ProjectReference>
-        <ProjectReference Include="..\AElf.Kernel.SmartContract.ExecutionPluginForUserFee.Tests.TestContract\AElf.Kernel.SmartContract.ExecutionPluginForUserFee.Tests.TestContract.csproj">
+        <ProjectReference Include="..\AElf.Kernel.SmartContract.ExecutionPluginForUserContractFee.Tests.TestContract\AElf.Kernel.SmartContract.ExecutionPluginForUserContractFee.Tests.TestContract.csproj">
             <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

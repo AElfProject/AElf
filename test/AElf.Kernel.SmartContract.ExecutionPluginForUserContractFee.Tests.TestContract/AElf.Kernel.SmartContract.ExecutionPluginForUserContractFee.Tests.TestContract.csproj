@@ -2,8 +2,8 @@
 
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
-        <PackageId>AElf.Kernel.SmartContract.ExecutionPluginForUserFee.Tests.TestContract</PackageId>
-        <RootNamespace>AElf.Kernel.SmartContract.ExecutionPluginForUserFee.Tests.TestContract</RootNamespace>
+        <PackageId>AElf.Kernel.SmartContract.ExecutionPluginForUserContractFee.Tests.TestContract</PackageId>
+        <RootNamespace>AElf.Kernel.SmartContract.ExecutionPluginForUserContractFee.Tests.TestContract</RootNamespace>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
         <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
