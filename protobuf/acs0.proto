@@ -48,7 +48,7 @@ service ACS0 {
     }
 
     // Deploy a user smart contract on chain and return the hash of the contract code.
-    rpc DeployUserSmartContract (ContractDeploymentInput) returns (aelf.Hash) {
+    rpc DeployUserSmartContract (ContractDeploymentInput) returns (DeployUserSmartContractOutput) {
     }
 
     // Update a user smart contract on chain.
@@ -135,8 +135,6 @@ message ContractInfo
     // The version of the current contract.
     int32 version = 6;
     string contract_version = 7;
-    // Whether it is a user contract.
-    bool is_user_contract = 8;
 }
 
 message ContractDeploymentInput {
@@ -278,4 +276,8 @@ message ContractCodeHashMap {
 message SetContractAuthorInput{
     aelf.Address contract_address = 1;
     aelf.Address new_author = 2;
+}
+
+message DeployUserSmartContractOutput{
+    aelf.Hash code_hash = 1;
 }

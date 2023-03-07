@@ -99,7 +99,7 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         var transactionMethodCallList = input.TransactionMethodCallList;
 
         // Context.Sender should be identical to Genesis contract address before initialization in production
-        var address = DeploySmartContract(name, category, code, true, false, Context.Sender);
+        var address = DeploySmartContract(name, category, code, true, Context.Sender);
 
         if (transactionMethodCallList != null)
             foreach (var methodCall in transactionMethodCallList.Value)
@@ -279,7 +279,7 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         TryClearContractProposingData(inputHash, out var contractProposingInput);
 
         var address =
-            DeploySmartContract(null, input.Category, input.Code.ToByteArray(), false,false,
+            DeploySmartContract(null, input.Category, input.Code.ToByteArray(), false,
                 DecideNonSystemContractAuthor(contractProposingInput?.Proposer, Context.Sender));
         return address;
     }
@@ -294,7 +294,7 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         if (!TryClearContractProposingData(inputHash, out _))
             Assert(Context.Sender == info.Author, "No permission.");
 
-        UpdateSmartContract(contractAddress, input.Code.ToByteArray(), info.Author, false);
+        UpdateSmartContract(contractAddress, input.Code.ToByteArray(), info.Author);
         
         return contractAddress;
     }
@@ -361,7 +361,7 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         return new Empty();
     }
     
-    public override Hash DeployUserSmartContract(ContractDeploymentInput input)
+    public override DeployUserSmartContractOutput DeployUserSmartContract(ContractDeploymentInput input)
     {
         AssertUserDeployContract();
         
@@ -385,7 +385,10 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
             IsUserContract = true
         });
 
-        return codeHash;
+        return new DeployUserSmartContractOutput
+        {
+            CodeHash = codeHash
+        };
     }
 
     public override Empty UpdateUserSmartContract(ContractUpdateInput input)
@@ -442,7 +445,7 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         var inputHash = CalculateHashFromInput(input);
         TryClearContractProposingData(inputHash, out var contractProposingInput);
 
-        var address = DeploySmartContract(null, input.Category, input.Code.ToByteArray(), false, true,
+        var address = DeploySmartContract(null, input.Category, input.Code.ToByteArray(), false,
             contractProposingInput.Author);
         return address;
     }
@@ -454,7 +457,7 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         var inputHash = CalculateHashFromInput(input);
         TryClearContractProposingData(inputHash, out var proposingInput);
 
-        UpdateSmartContract(input.Address, input.Code.ToByteArray(), proposingInput.Author, true);
+        UpdateSmartContract(input.Address, input.Code.ToByteArray(), proposingInput.Author);
         
         return new Empty();
     }

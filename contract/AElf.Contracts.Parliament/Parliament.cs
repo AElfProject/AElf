@@ -69,7 +69,7 @@ public partial class ParliamentContract : ParliamentContractImplContainer.Parlia
     {
         Assert(Context.GetSystemContractNameToAddressMapping().Values.Contains(Context.Sender),
             "Unauthorized to propose.");
-        //AssertIsAuthorizedProposer(input.ProposalInput.OrganizationAddress, input.OriginProposer);
+        AssertIsAuthorizedProposer(input.ProposalInput.OrganizationAddress, input.OriginProposer);
 
         var proposalId = CreateNewProposal(input.ProposalInput);
         return proposalId;

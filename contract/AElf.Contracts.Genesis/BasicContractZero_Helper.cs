@@ -1,6 +1,4 @@
 using System;
-using System.Linq;
-using System.Reflection;
 using AElf.Contracts.Parliament;
 using AElf.CSharp.Core.Extension;
 using AElf.Sdk.CSharp;
@@ -14,7 +12,7 @@ namespace AElf.Contracts.Genesis;
 
 public partial class BasicContractZero
 {
-    private Address DeploySmartContract(Hash name, int category, byte[] code, bool isSystemContract,bool isUserContract,
+    private Address DeploySmartContract(Hash name, int category, byte[] code, bool isSystemContract,
         Address author)
     {
         if (name != null)
@@ -36,8 +34,7 @@ public partial class BasicContractZero
             Category = category,
             CodeHash = codeHash,
             IsSystemContract = isSystemContract,
-            Version = 1,
-            IsUserContract = isUserContract
+            Version = 1
         };
 
         var reg = new SmartContractRegistration
@@ -47,8 +44,7 @@ public partial class BasicContractZero
             CodeHash = codeHash,
             IsSystemContract = info.IsSystemContract,
             Version = info.Version,
-            ContractAddress = contractAddress,
-            IsUserContract = isUserContract
+            ContractAddress = contractAddress
         };
 
         var contractInfo = Context.DeploySmartContract(contractAddress, reg, name);
@@ -83,7 +79,7 @@ public partial class BasicContractZero
         return contractAddress;
     }
     
-    private void UpdateSmartContract(Address contractAddress, byte[] code, Address author,bool isUserContract)
+    private void UpdateSmartContract(Address contractAddress, byte[] code, Address author)
     {
         var info = State.ContractInfos[contractAddress];
         Assert(info != null, "Contract not found.");
@@ -97,7 +93,6 @@ public partial class BasicContractZero
 
         info.CodeHash = newCodeHash;
         info.Version++;
-        info.IsUserContract = isUserContract;
 
         var reg = new SmartContractRegistration
         {
@@ -106,8 +101,7 @@ public partial class BasicContractZero
             CodeHash = newCodeHash,
             IsSystemContract = info.IsSystemContract,
             Version = info.Version,
-            ContractAddress = contractAddress,
-            IsUserContract = info.IsUserContract
+            ContractAddress = contractAddress
         };
         
         var contractInfo = Context.UpdateSmartContract(contractAddress, reg, null, info.ContractVersion);
