@@ -81,7 +81,7 @@ internal class CodeCheckProposalService:ICodeCheckProposalService,ITransientDepe
                 h > blockHeight)
                 continue;
             Logger.LogDebug("Clear code check proposal {proposalId} by LIB hash {blockHash}, height {blockHeight}",
-                proposalId.ToString(), blockHash.ToHex(), blockHeight);
+                proposalId.ToHex(), blockHash.ToHex(), blockHeight);
             _codeCheckProposalProvider.RemoveProposalById(proposalId);
             
             await _codeCheckReleasedProposalIdProvider.RemoveProposalIdAsync(new BlockIndex
