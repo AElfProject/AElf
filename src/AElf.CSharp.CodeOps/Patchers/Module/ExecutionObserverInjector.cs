@@ -26,6 +26,11 @@ public class ExecutionObserverInjector : IPatcher<ModuleDefinition>
         var proxyCallCountMethod = counterProxy.Methods.Single(m => m.Name == nameof(ExecutionObserverProxy.CallCount));
 
         // Patch the types
+        if (module.Types.Count == 0)
+        {
+            ;
+        }
+
         foreach (var typ in module.Types)
         {
             PatchType(typ, proxyBranchCountMethod, proxyCallCountMethod);

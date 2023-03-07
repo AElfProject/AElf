@@ -20,7 +20,6 @@ public class CodeCheckAElfModule : AElfModule
             .AddSingleton<IBlocksExecutionSucceededLogEventProcessor, CodeCheckRequiredLogEventProcessor>();
         //context.Services.AddSingleton<IBlockAcceptedLogEventProcessor, ContractDeployedLogEventProcessor>();
         context.Services.AddSingleton<IContractAuditorContainer, ContractAuditorContainer>();
-        context.Services.AddSingleton<IContractPatcherContainer, ContractPatcherContainer>();
         context.Services.AddSingleton<IBlockValidationProvider, CodeCheckValidationProvider>();
         context.Services.AddTransient<ITransactionValidationProvider, CodeCheckTransactionValidationProvider>();
         context.Services.AddTransient<ISystemTransactionGenerator, CodeCheckProposalReleaseTransactionGenerator>();

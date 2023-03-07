@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.CodeCheck.Application;
 using AElf.Kernel.Miner.Application;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,7 +22,6 @@ public class KernelCoreTestAElfModule : AElfModule
         services.AddTransient<BlockValidationProvider>();
         services.AddTransient<SystemTransactionValidationProvider>();
         services.AddSingleton(p => Mock.Of<IAccountService>());
-        services.AddTransient(o => Mock.Of<ICodePatchService>());
     }
 }
 

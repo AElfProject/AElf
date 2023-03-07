@@ -18,23 +18,18 @@ public class CodeCheckRequiredLogEventProcessor : LogEventProcessorBase, IBlocks
     private readonly ICodeCheckService _codeCheckService;
     private readonly IProposalService _proposalService;
     private readonly ISmartContractAddressService _smartContractAddressService;
-    private readonly ISmartContractCodeService _smartContractCodeService;
     private readonly ICodeCheckProposalService _codeCheckProposalService;
-    private readonly ICodePatchService _codePatchService;
 
     public CodeCheckRequiredLogEventProcessor(ISmartContractAddressService smartContractAddressService,
         ICodeCheckService codeCheckService, IProposalService proposalService,
         ICheckedCodeHashProvider checkedCodeHashProvider,
-        ISmartContractCodeService smartContractCodeService, ICodeCheckProposalService codeCheckProposalService,
-        ICodePatchService codePatchService)
+        ICodeCheckProposalService codeCheckProposalService)
     {
         _smartContractAddressService = smartContractAddressService;
         _codeCheckService = codeCheckService;
         _proposalService = proposalService;
         _checkedCodeHashProvider = checkedCodeHashProvider;
-        _smartContractCodeService = smartContractCodeService;
         _codeCheckProposalService = codeCheckProposalService;
-        _codePatchService = codePatchService;
 
         Logger = NullLogger<CodeCheckRequiredLogEventProcessor>.Instance;
     }
@@ -69,12 +64,6 @@ public class CodeCheckRequiredLogEventProcessor : LogEventProcessorBase, IBlocks
 
                     var code = eventData.Code.ToByteArray();
                     var codeHash = HashHelper.ComputeFrom(code);
-                    if (eventData.IsUserContract &&
-                        !_codePatchService.PerformCodePatch(code, eventData.Category, false, out code))
-                    {
-                        return;
-                    }
-
                     var codeCheckResult = await _codeCheckService.PerformCodeCheckAsync(
                         code,
                         transactionResult.BlockHash, transactionResult.BlockNumber, eventData.Category,
@@ -90,7 +79,6 @@ public class CodeCheckRequiredLogEventProcessor : LogEventProcessorBase, IBlocks
                     
                     if (eventData.IsUserContract)
                     {
-                        await _smartContractCodeService.AddSmartContractCodeAsync(codeHash, ByteString.CopyFrom(code));
                         _codeCheckProposalService.AddToReleasedProposal(proposalId, eventData.ProposedContractInputHash,
                             transactionResult.BlockNumber);
                     }

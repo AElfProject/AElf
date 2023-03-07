@@ -1,7 +1,6 @@
 ﻿using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
-using AElf.Kernel.CodeCheck.Application;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Modularity;
@@ -33,6 +32,5 @@ public class TestSdkCSharpAElfModule : AElfModule
         });
 
         services.AddSingleton(p => Mock.Of<IAccountService>());
-        services.AddTransient(p => Mock.Of<ICodePatchService>());
     }
 }

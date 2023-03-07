@@ -7,14 +7,15 @@ using AElf.Kernel.SmartContract.Application;
 
 namespace AElf.Kernel.CodeCheck.Application;
 
-internal class CodeCheckProposalService:ICodeCheckProposalService,ITransientDependency
+internal class CodeCheckProposalService : ICodeCheckProposalService, ITransientDependency
 {
     private readonly IContractReaderFactory<ParliamentContractContainer.ParliamentContractStub>
         _contractReaderFactory;
+
     private readonly ICodeCheckProposalProvider _codeCheckProposalProvider;
     private readonly ISmartContractAddressService _smartContractAddressService;
     private readonly ICodeCheckReleasedProposalIdProvider _codeCheckReleasedProposalIdProvider;
-    
+
     public ILogger<CodeCheckProposalService> Logger { get; set; }
 
     public CodeCheckProposalService(ICodeCheckProposalProvider codeCheckProposalProvider,
@@ -33,7 +34,8 @@ internal class CodeCheckProposalService:ICodeCheckProposalService,ITransientDepe
         _codeCheckProposalProvider.AddProposal(proposalId, proposalInputHash, height);
     }
 
-    public async Task<List<CodeCheckProposal>> GetToReleasedProposalListAsync(Address from, Hash blockHash, long blockHeight)
+    public async Task<List<CodeCheckProposal>> GetToReleasedProposalListAsync(Address from, Hash blockHash,
+        long blockHeight)
     {
         var proposalList = _codeCheckProposalProvider.GetAllProposals();
         var result = await _contractReaderFactory.Create(new ContractReaderContext
@@ -83,7 +85,7 @@ internal class CodeCheckProposalService:ICodeCheckProposalService,ITransientDepe
             Logger.LogDebug("Clear code check proposal {proposalId} by LIB hash {blockHash}, height {blockHeight}",
                 proposalId.ToHex(), blockHash.ToHex(), blockHeight);
             _codeCheckProposalProvider.RemoveProposalById(proposalId);
-            
+
             await _codeCheckReleasedProposalIdProvider.RemoveProposalIdAsync(new BlockIndex
             {
                 BlockHash = blockHash,
@@ -91,7 +93,7 @@ internal class CodeCheckProposalService:ICodeCheckProposalService,ITransientDepe
             }, proposalId);
         }
     }
-    
+
     private Task<Address> GetParliamentContractAddressAsync(IChainContext chainContext)
     {
         return _smartContractAddressService.GetAddressByContractNameAsync(chainContext,
