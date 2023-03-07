@@ -50,12 +50,12 @@ public class ExecutionPluginForMethodFeeTestModule : ContractTestModule
     typeof(ContractTestModule),
 typeof(ExecutionPluginForMethodFeeModule),
 typeof(FeeCalculationModule))]
-public class ExecutionPluginForUserMethodFeeTestModule : ContractTestModule
+public class ExecutionPluginForUserContractMethodFeeTestModule : ContractTestModule
 {
     public override void ConfigureServices(ServiceConfigurationContext context)
     {
         Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false);
-        context.Services.AddSingleton<IPreExecutionPlugin, UserFeeChargePreExecutionPlugin>();
+        context.Services.AddSingleton<IPreExecutionPlugin, UserContractFeeChargePreExecutionPlugin>();
         context.Services.AddSingleton<ICalculateFunctionProvider, MockCalculateFunctionProvider>();
         context.Services.RemoveAll<IContractInitializationProvider>();
         context.Services

@@ -8,8 +8,7 @@ using AElf.CSharp.Core.Extension;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.FeeCalculation.Extensions;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContract.ExecutionPluginForUserFee.Tests.TestContract;
-using AElf.Kernel.Token;
+using AElf.Kernel.SmartContract.ExecutionPluginForUserContractFee.Tests.TestContract;
 using AElf.Standards.ACS12;
 using AElf.Standards.ACS3;
 using AElf.Types;
@@ -21,15 +20,15 @@ using Xunit;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests;
 
-public class ExecutionPluginForUserMethodFeeTest : ExecutionPluginForUserMethodFeeTestBase
+public class ExecutionPluginForUserContractContractMethodFeeTest : ExecutionPluginForUserContractMethodFeeTestBase
 {
     private Address _testContractAddress;
     private TestContractContainer.TestContractStub _testContractStub;
     private readonly IBlockchainService _blockchainService;
     private readonly ITotalTransactionFeesMapProvider _totalTransactionFeesMapProvider;
-    private const string ConfigurationKey = "UserMethodFee";
+    private const string ConfigurationKey = "UserContractMethodFee";
 
-    public ExecutionPluginForUserMethodFeeTest()
+    public ExecutionPluginForUserContractContractMethodFeeTest()
     {
         _blockchainService = GetRequiredService<IBlockchainService>();
         _totalTransactionFeesMapProvider = GetRequiredService<ITotalTransactionFeesMapProvider>();
@@ -40,7 +39,7 @@ public class ExecutionPluginForUserMethodFeeTest : ExecutionPluginForUserMethodF
     {
         await Initialize();
         {
-            var plugin = GetCreateInstance<IPreExecutionPlugin, UserFeeChargePreExecutionPlugin>();
+            var plugin = GetCreateInstance<IPreExecutionPlugin, UserContractFeeChargePreExecutionPlugin>();
             plugin.ShouldNotBeNull();
 
             var bcs = Application.ServiceProvider.GetRequiredService<IBlockchainService>();
@@ -65,7 +64,7 @@ public class ExecutionPluginForUserMethodFeeTest : ExecutionPluginForUserMethodF
     }
 
     [Fact]
-    public async Task ChargeUserFeeTest_Success()
+    public async Task ChargeUserContractFeeTest_Success()
     {
         await Initialize();
         var beforeBalance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
@@ -87,7 +86,7 @@ public class ExecutionPluginForUserMethodFeeTest : ExecutionPluginForUserMethodF
     }
 
     [Fact]
-    public async Task ChargeUserFeeTest_Success_BaseFeeIsFree()
+    public async Task ChargeUserContractFeeTest_Success_BaseFeeIsFree()
     {
         await DeployTestContractAsync();
         var beforeBalance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
@@ -113,7 +112,7 @@ public class ExecutionPluginForUserMethodFeeTest : ExecutionPluginForUserMethodF
     public async Task GetPreTransactions_None_PreTransaction_Test()
     {
         await Initialize();
-        var plugin = GetCreateInstance<IPreExecutionPlugin, UserFeeChargePreExecutionPlugin>();
+        var plugin = GetCreateInstance<IPreExecutionPlugin, UserContractFeeChargePreExecutionPlugin>();
         plugin.ShouldNotBeNull();
         var bcs = Application.ServiceProvider.GetRequiredService<IBlockchainService>();
         var chain = await bcs.GetChainAsync();
@@ -173,13 +172,13 @@ public class ExecutionPluginForUserMethodFeeTest : ExecutionPluginForUserMethodF
         await CreateAndIssueTokenAsync("TSA", balance2, Accounts[1].Address);
         await CreateAndIssueTokenAsync("TSB", balance3, Accounts[1].Address);
 
-        var transactionFee = new UserMethodFees();
+        var transactionFee = new UserContractMethodFees();
         if (fee1 > 0)
-            transactionFee.Fees.Add(new UserMethodFee {Symbol = "ELF", BasicFee = fee1});
+            transactionFee.Fees.Add(new UserContractMethodFee {Symbol = "ELF", BasicFee = fee1});
         if (fee2 > 0)
-            transactionFee.Fees.Add(new UserMethodFee {Symbol = "TSA", BasicFee = fee2});
+            transactionFee.Fees.Add(new UserContractMethodFee {Symbol = "TSA", BasicFee = fee2});
         if (fee3 > 0)
-            transactionFee.Fees.Add(new UserMethodFee {Symbol = "TSB", BasicFee = fee3});
+            transactionFee.Fees.Add(new UserContractMethodFee {Symbol = "TSB", BasicFee = fee3});
         var createProposalInput = new SetConfigurationInput
         {
             Key = ConfigurationKey,
@@ -242,7 +241,7 @@ public class ExecutionPluginForUserMethodFeeTest : ExecutionPluginForUserMethodF
     public async Task ChargeFee_SizeFeeIsFree()
     {
         await DeployTestContractAsync();
-        var transactionFee = new UserMethodFees
+        var transactionFee = new UserContractMethodFees
         {
             IsSizeFeeFree = true
         };
@@ -282,11 +281,11 @@ public class ExecutionPluginForUserMethodFeeTest : ExecutionPluginForUserMethodF
     public async Task ChargeFee_SpecConfigurationFee()
     {
         await DeployTestContractAsync();
-        var transactionFee = new UserMethodFees
+        var transactionFee = new UserContractMethodFees
         {
             Fees =
             {
-                new UserMethodFee
+                new UserContractMethodFee
                 {
                     Symbol = "ELF",
                     BasicFee = 20_00000000
@@ -351,9 +350,9 @@ public class ExecutionPluginForUserMethodFeeTest : ExecutionPluginForUserMethodF
     private async Task DeployTestContractAsync()
     {
         var category = KernelConstants.CodeCoverageRunnerCategory;
-        var code = Codes.Single(kv => kv.Key.Contains("ExecutionPluginForUserFee.Tests.TestContract")).Value;
+        var code = Codes.Single(kv => kv.Key.Contains("ExecutionPluginForUserContractFee.Tests.TestContract")).Value;
         _testContractAddress = await DeploySystemSmartContract(category, code,
-            HashHelper.ComputeFrom("ExecutionPluginForUserFee.Tests.TestContract"),
+            HashHelper.ComputeFrom("ExecutionPluginForUserContractFee.Tests.TestContract"),
             DefaultSenderKeyPair);
         _testContractStub =
             GetTester<TestContractContainer.TestContractStub>(_testContractAddress, DefaultSenderKeyPair);
@@ -364,7 +363,7 @@ public class ExecutionPluginForUserMethodFeeTest : ExecutionPluginForUserMethodF
         await DeployTestContractAsync();
 
         {
-            var proposalId = await SetUserFeeAsync(1_00000000);
+            var proposalId = await SetUserContractFeeAsync(1_00000000);
             await ParliamentContractStub.Approve.SendAsync(proposalId);
             var releaseRet = await ParliamentContractStub.Release.SendAsync(proposalId);
             releaseRet.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
@@ -372,7 +371,7 @@ public class ExecutionPluginForUserMethodFeeTest : ExecutionPluginForUserMethodF
             {
                 Value = ConfigurationKey
             });
-            var fee = new UserMethodFees();
+            var fee = new UserContractMethodFees();
             fee.MergeFrom(configuration.Value);
             fee.Fees.First().Symbol.ShouldBe("ELF");
             fee.Fees.First().BasicFee.ShouldBe(1_00000000);
@@ -391,9 +390,9 @@ public class ExecutionPluginForUserMethodFeeTest : ExecutionPluginForUserMethodF
             transactionFeesMap.Value[transactionFee.Key].ShouldBe(transactionFee.Value);
     }
 
-    private async Task<Hash> SetUserFeeAsync(int amount)
+    private async Task<Hash> SetUserContractFeeAsync(int amount)
     {
-        var createProposalInput = SetUserFee(amount);
+        var createProposalInput = SetUserContractFee(amount);
         var organizationAddress = await GetParliamentDefaultOrganizationAddressAsync();
         var proposalId =
             await CreateProposalAsync(organizationAddress, createProposalInput, "SetConfiguration");
@@ -420,13 +419,13 @@ public class ExecutionPluginForUserMethodFeeTest : ExecutionPluginForUserMethodF
         return proposalId;
     }
 
-    private SetConfigurationInput SetUserFee(int amount)
+    private SetConfigurationInput SetUserContractFee(int amount)
     {
-        var transactionFee = new UserMethodFees()
+        var transactionFee = new UserContractMethodFees()
         {
             Fees =
             {
-                new UserMethodFee
+                new UserContractMethodFee
                 {
                     Symbol = "ELF",
                     BasicFee = amount
