@@ -32,6 +32,12 @@ internal class CodeCheckTransactionValidationProvider : ITransactionValidationPr
 
     public async Task<bool> ValidateTransactionAsync(Transaction transaction, IChainContext chainContext)
     {
+        var genesisContractAddress = _smartContractAddressService.GetZeroSmartContractAddress();
+        if (transaction.To != genesisContractAddress)
+        {
+            return true;
+        }
+
         var executionValidationResult = true;
         switch (transaction.MethodName)
         {
@@ -45,7 +51,6 @@ internal class CodeCheckTransactionValidationProvider : ITransactionValidationPr
             case nameof(ACS0Container.ACS0Stub.ProposeUpdateContract):
             case nameof(ACS0Container.ACS0Stub.UpdateUserSmartContract):
                 var updateInput = ContractUpdateInput.Parser.ParseFrom(transaction.Params);
-                var genesisContractAddress = _smartContractAddressService.GetZeroSmartContractAddress();
                 var contractInfo = await _contractReaderFactory.Create(new ContractReaderContext
                 {
                     BlockHash = chainContext.BlockHash,
@@ -53,7 +58,7 @@ internal class CodeCheckTransactionValidationProvider : ITransactionValidationPr
                     ContractAddress = genesisContractAddress
                 }).GetContractInfo.CallAsync(updateInput.Address);
 
-                if (contractInfo == null)
+                if (contractInfo == null || contractInfo.Author == null)
                 {
                     executionValidationResult = false;
                 }
