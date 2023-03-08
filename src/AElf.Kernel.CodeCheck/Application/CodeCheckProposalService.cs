@@ -29,12 +29,12 @@ internal class CodeCheckProposalService : ICodeCheckProposalService, ITransientD
         _codeCheckReleasedProposalIdProvider = codeCheckReleasedProposalIdProvider;
     }
 
-    public void AddToReleasedProposal(Hash proposalId, Hash proposalInputHash, long height)
+    public void AddReleasableProposal(Hash proposalId, Hash proposalInputHash, long height)
     {
         _codeCheckProposalProvider.AddProposal(proposalId, proposalInputHash, height);
     }
 
-    public async Task<List<CodeCheckProposal>> GetToReleasedProposalListAsync(Address from, Hash blockHash,
+    public async Task<List<CodeCheckProposal>> GetReleasableProposalListAsync(Address from, Hash blockHash,
         long blockHeight)
     {
         var proposalList = _codeCheckProposalProvider.GetAllProposals();

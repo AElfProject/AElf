@@ -49,7 +49,7 @@ internal class CodeCheckProposalReleaseTransactionGenerator : ISystemTransaction
         if (zeroContractAddress == null) return generatedTransactions;
 
         var proposalList =
-            await _codeCheckProposalService.GetToReleasedProposalListAsync(from, preBlockHash, preBlockHeight);
+            await _codeCheckProposalService.GetReleasableProposalListAsync(from, preBlockHash, preBlockHeight);
         if (proposalList == null || proposalList.Count == 0)
             return generatedTransactions;
 

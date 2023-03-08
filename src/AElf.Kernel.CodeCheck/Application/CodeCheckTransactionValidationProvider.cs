@@ -35,11 +35,14 @@ internal class CodeCheckTransactionValidationProvider : ITransactionValidationPr
         var executionValidationResult = true;
         switch (transaction.MethodName)
         {
+            case nameof(ACS0Container.ACS0Stub.ProposeNewContract):
             case nameof(ACS0Container.ACS0Stub.DeployUserSmartContract):
                 var deployInput = ContractDeploymentInput.Parser.ParseFrom(transaction.Params);
-                executionValidationResult = await PerformCodeCheckAsync(deployInput.Code.ToByteArray(),
-                    chainContext.BlockHash, chainContext.BlockHeight, deployInput.Category);
+                executionValidationResult = await _codeCheckService.PerformCodeCheckAsync(
+                    deployInput.Code.ToByteArray(), chainContext.BlockHash, chainContext.BlockHeight,
+                    deployInput.Category, false, IsUserContract(transaction.MethodName));
                 break;
+            case nameof(ACS0Container.ACS0Stub.ProposeUpdateContract):
             case nameof(ACS0Container.ACS0Stub.UpdateUserSmartContract):
                 var updateInput = ContractUpdateInput.Parser.ParseFrom(transaction.Params);
                 var genesisContractAddress = _smartContractAddressService.GetZeroSmartContractAddress();
@@ -50,16 +53,16 @@ internal class CodeCheckTransactionValidationProvider : ITransactionValidationPr
                     ContractAddress = genesisContractAddress
                 }).GetContractInfo.CallAsync(updateInput.Address);
 
-                if (contractInfo == null || contractInfo.Author == null)
+                if (contractInfo == null)
                 {
                     executionValidationResult = false;
                 }
                 else
                 {
-                    executionValidationResult = await PerformCodeCheckAsync(updateInput.Code.ToByteArray(),
-                        chainContext.BlockHash, chainContext.BlockHeight, contractInfo.Category);
+                    executionValidationResult = await _codeCheckService.PerformCodeCheckAsync(
+                        updateInput.Code.ToByteArray(), chainContext.BlockHash, chainContext.BlockHeight,
+                        contractInfo.Category, contractInfo.IsSystemContract, IsUserContract(transaction.MethodName));
                 }
-
                 break;
         }
 
@@ -77,9 +80,9 @@ internal class CodeCheckTransactionValidationProvider : ITransactionValidationPr
         return executionValidationResult;
     }
 
-    private async Task<bool> PerformCodeCheckAsync(byte[] code, Hash blockHash, long blockHeight, int category)
+    private bool IsUserContract(string methodName)
     {
-        return await _codeCheckService.PerformCodeCheckAsync(code, blockHash, blockHeight, category, false,
-            true);
+        return methodName == nameof(ACS0Container.ACS0Stub.DeployUserSmartContract) ||
+               methodName == nameof(ACS0Container.ACS0Stub.UpdateUserSmartContract);
     }
 }

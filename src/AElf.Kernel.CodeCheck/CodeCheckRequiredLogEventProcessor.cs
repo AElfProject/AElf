@@ -79,7 +79,7 @@ public class CodeCheckRequiredLogEventProcessor : LogEventProcessorBase, IBlocks
                     
                     if (eventData.IsUserContract)
                     {
-                        _codeCheckProposalService.AddToReleasedProposal(proposalId, eventData.ProposedContractInputHash,
+                        _codeCheckProposalService.AddReleasableProposal(proposalId, eventData.ProposedContractInputHash,
                             transactionResult.BlockNumber);
                     }
 

@@ -40,6 +40,7 @@ public class CoreKernelAElfModule : AElfModule
         services.AddStoreKeyPrefixProvide<TransactionResult>("tr");
         services.AddStoreKeyPrefixProvide<VersionedState>("vs");
 
+
         services.AddTransient(typeof(IStateStore<>), typeof(StateStore<>));
         services.AddSingleton(typeof(INotModifiedCachedStateStore<>), typeof(NotModifiedCachedStateStore<>));
         services.AddTransient(typeof(IBlockchainStore<>), typeof(BlockchainStore<>));
