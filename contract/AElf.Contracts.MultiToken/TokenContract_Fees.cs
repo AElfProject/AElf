@@ -82,11 +82,11 @@ public partial class TokenContract
             ChargeTransactionFeesToBill(input, fromAddress, ref bill, ref allowanceBill, fee, isSizeFeeFree);
         if (!chargingResult)
         {
-            ChargeFromDelegations(input, ref fromAddress, ref bill, ref allowanceBill, ref chargingResult, fee,
+            chargingResult = ChargeFromDelegations(input, ref fromAddress, ref bill, ref allowanceBill, fee,
                 isSizeFeeFree);
         }
 
-        ModifyBalance(fromAddress, ref bill, ref allowanceBill);
+        ModifyBalance(fromAddress, bill, allowanceBill);
         var chargingOutput = new ChargeTransactionFeesOutput {Success = chargingResult};
         if (!chargingResult)
             chargingOutput.ChargingInformation = "Transaction fee not enough.";
@@ -132,12 +132,13 @@ public partial class TokenContract
         return fee;
     }
 
-    private void ChargeFromDelegations(ChargeTransactionFeesInput input, ref Address fromAddress,
-        ref TransactionFeeBill bill, ref TransactionFreeFeeAllowanceBill allowanceBill, ref bool chargingResult,
+    private bool ChargeFromDelegations(ChargeTransactionFeesInput input, ref Address fromAddress,
+        ref TransactionFeeBill bill, ref TransactionFreeFeeAllowanceBill allowanceBill,
         Dictionary<string, long> fee, bool isSizeFeeFree)
     {
+        var chargingResult = false;
         // Try to charge delegatees
-        if (State.TransactionFeeDelegateesMap[fromAddress]?.Delegatees == null) return;
+        if (State.TransactionFeeDelegateesMap[fromAddress]?.Delegatees == null) return false;
         foreach (var (delegatee, delegations) in State.TransactionFeeDelegateesMap[fromAddress].Delegatees)
         {
             // compare current block height with the block height when the delegatee added
@@ -158,6 +159,7 @@ public partial class TokenContract
             ModifyDelegation(delegateeBill, delegateeAllowanceBill, fromAddress);
             break;
         }
+        return chargingResult;
     }
 
     private void ModifyDelegation(TransactionFeeBill bill, TransactionFreeFeeAllowanceBill allowanceBill,
@@ -188,8 +190,8 @@ public partial class TokenContract
         }
     }
 
-    private void ModifyBalance(Address fromAddress, ref TransactionFeeBill bill,
-        ref TransactionFreeFeeAllowanceBill allowanceBill)
+    private void ModifyBalance(Address fromAddress, TransactionFeeBill bill,
+        TransactionFreeFeeAllowanceBill allowanceBill)
     {
         SetOrRefreshMethodFeeFreeAllowances(fromAddress);
         var freeAllowances = CalculateMethodFeeFreeAllowances(fromAddress)?.Clone();
