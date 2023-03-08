@@ -58,7 +58,7 @@ internal class CodeCheckTransactionValidationProvider : ITransactionValidationPr
                     ContractAddress = genesisContractAddress
                 }).GetContractInfo.CallAsync(updateInput.Address);
 
-                if (contractInfo == null)
+                if (contractInfo == null || contractInfo.Author == null)
                 {
                     executionValidationResult = false;
                 }

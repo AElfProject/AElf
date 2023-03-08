@@ -99,6 +99,7 @@ public class CodeCheckTransactionValidationProviderTests : CodeCheckTestBase
         
         var transaction = _kernelTestHelper.GenerateTransaction();
 
+        transaction.To = ZeroContractFakeAddress;
         transaction.MethodName = nameof(ACS0Container.ACS0Stub.UpdateUserSmartContract);
         transaction.Params = (new ContractUpdateInput
         {
@@ -110,6 +111,37 @@ public class CodeCheckTransactionValidationProviderTests : CodeCheckTestBase
         result.ShouldBeFalse();
         transactionValidationStatusChangedEventData.ShouldNotBeNull();
         transactionValidationStatusChangedEventData.TransactionId.ShouldBe(transaction.GetHash());
+    }
+
+    [Fact]
+    public async Task ValidateTransaction_Update_NotZeroContract_Test()
+    {
+        TransactionValidationStatusChangedEvent transactionValidationStatusChangedEventData = null;
+        _eventBus.Subscribe<TransactionValidationStatusChangedEvent>(d =>
+        {
+            transactionValidationStatusChangedEventData = d;
+            return Task.CompletedTask;
+        });
+        
+        var chainContext = new ChainContext
+        {
+            BlockHash = HashHelper.ComputeFrom("BlockHash"),
+            BlockHeight = 100
+        };
+        
+        var transaction = _kernelTestHelper.GenerateTransaction();
+
+        transaction.To = NormalAddress;
+        transaction.MethodName = nameof(ACS0Container.ACS0Stub.UpdateUserSmartContract);
+        transaction.Params = (new ContractUpdateInput
+        {
+            Code = ByteString.Empty,
+            Address = SampleAddress.AddressList[1]
+        }).ToByteString();
+        
+        var result = await _transactionValidationProvider.ValidateTransactionAsync(transaction, chainContext);
+        result.ShouldBeTrue();
+        transactionValidationStatusChangedEventData.ShouldBeNull();
     }
 
     [Fact]
