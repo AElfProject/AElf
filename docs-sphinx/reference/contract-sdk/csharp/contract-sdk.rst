@@ -44,6 +44,9 @@ Contents
    -  :ref:`UpdateContract(address,registration,name) <AElf-Sdk-CSharp-CSharpSmartContractContext-UpdateContract-AElf-Types-Address-AElf-Types-SmartContractRegistration-AElf-Types-Hash>`
    -  :ref:`ValidateStateSize(obj) <AElf-Sdk-CSharp-CSharpSmartContractContext-ValidateStateSize-System-Object>`
    -  :ref:`VerifySignature(tx) <AElf-Sdk-CSharp-CSharpSmartContractContext-VerifySignature-AElf-Types-Transaction>`
+   -  :ref:`CheckContractVersion(previousContractVersion,registration) <AElf-Sdk-CSharp-CSharpCheckContractVersion>`
+   -  :ref:`DeploySmartContract(address,registration,name) <AElf-Sdk-CSharp-CSharpDeploySmartContract>`
+   -  :ref:`UpdateSmartContract(address,registration,name,previousContractVersion) <AElf-Sdk-CSharp-CSharpUpdateSmartContract>`
 
 -  :ref:`CSharpSmartContract <AElf-Sdk-CSharp-CSharpSmartContract>`
 
@@ -901,6 +904,107 @@ Parameters
 +======+========================+============================+
 | tx   | AElf.Types.Transaction | The transaction to verify. |
 +------+------------------------+----------------------------+
+
+.. _AElf-Sdk-CSharp-CSharpCheckContractVersion:
+
+CheckContractVersion(previousContractVersion,registration) ``method``
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+Summary
+'''''''
+
+Check the contract version when updating the contract. (only the genesis contract can call it).
+
+Returns
+'''''''
+
++-----------------------+------------------------+-------------------------------------------------------+
+| Name                  | Type                   | Description                                           |
++=======================+========================+=======================================================+
+| IsSubsequentVersion   | System.Boolean         | Whether the contract version is a subsequent version. |
++-----------------------+------------------------+-------------------------------------------------------+
+
+Parameters
+''''''''''
+
++---------------------------+--------------------------------------+----------------------------------------------------+
+| Name                      | Type                                 | Description                                        |
++===========================+======================================+====================================================+
+| previousContractVersion   | System.String                        | The previous contract version.                     |
++---------------------------+--------------------------------------+----------------------------------------------------+
+| registration              | AElf.Types.SmartContractRegistration | The registration of the smart contract to update.  |
++---------------------------+--------------------------------------+----------------------------------------------------+
+
+.. _AElf-Sdk-CSharp-CSharpDeploySmartContract:
+
+DeploySmartContract(address,registration,name) ``method``
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+Summary
+'''''''
+
+Deploy a new smart contract with contract version(only the genesis contract can call it).
+
+Returns
+'''''''
+
++-----------------------+------------------------+-------------------------------------------------------+
+| Name                  | Type                   | Description                                           |
++=======================+========================+=======================================================+
+| ContractVersion       | System.String          | The verison of smart contract to update.              |
++-----------------------+------------------------+-------------------------------------------------------+
+| IsSubsequentVersion   | System.boolean         | Whether the contract version is a subsequent version  |
++-----------------------+------------------------+-------------------------------------------------------+
+
+Parameters
+''''''''''
+
++----------------+---------------------------------------+----------------------------------------------------+
+| Name           | Type                                  | Description                                        |
++================+=======================================+====================================================+
+| address        | AElf.Types.Address                    | The address of new smart contract.                 |
++----------------+---------------------------------------+----------------------------------------------------+
+| name           | AElf.Types.Hash                       | The hash value of the smart contract name.         |
++----------------+---------------------------------------+----------------------------------------------------+
+| registration   | AElf.Types.SmartContractRegistration  | The registration of the smart contract to update.  |
++----------------+---------------------------------------+----------------------------------------------------+
+
+.. _AElf-Sdk-CSharp-CSharpUpdateSmartContract:
+
+UpdateSmartContract(address,registration,name,previousContractVersion) ``method``
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+Summary
+'''''''
+
+Update a smart contract with contract version (only the genesis contract can call it).
+
+Returns
+'''''''
+
++-----------------------+------------------------+-------------------------------------------------------+
+| Name                  | Type                   | Description                                           |
++=======================+========================+=======================================================+
+| ContractVersion       | System.String          | The verison of smart contract to update.              |
++-----------------------+------------------------+-------------------------------------------------------+
+| IsSubsequentVersion   | System.Boolean         | Whether the contract version is a subsequent version. |
++-----------------------+------------------------+-------------------------------------------------------+
+
+Parameters
+''''''''''
+
++----------------------------+---------------------------------------+----------------------------------------------------------+
+| Name                       | Type                                  | Description                                              |
++============================+=======================================+==========================================================+
+| address                    | AElf.Types.Address                    | The address of smart contract to update.                 |
++----------------------------+---------------------------------------+----------------------------------------------------------+
+| name                       | AElf.Types.Hash                       | The hash value of the smart contract name to update.     |
++----------------------------+---------------------------------------+----------------------------------------------------------+
+| registration               | AElf.Types.SmartContractRegistration  | The registration of the smart contract to update.        |
++----------------------------+---------------------------------------+----------------------------------------------------------+
+| previousContractVersion    | System.String                         | The previous contract version.                           |
++----------------------------+---------------------------------------+----------------------------------------------------------+
+
 
 .. _AElf-Sdk-CSharp-CSharpSmartContract:
 
