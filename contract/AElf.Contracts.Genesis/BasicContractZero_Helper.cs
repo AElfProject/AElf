@@ -87,8 +87,7 @@ public partial class BasicContractZero
         var oldCodeHash = info.CodeHash;
         var newCodeHash = HashHelper.ComputeFrom(code);
         Assert(oldCodeHash != newCodeHash, "Code is not changed.");
-
-        Assert(State.SmartContractRegistrations[newCodeHash] == null, "Same code has been deployed before.");
+        AssertContractExists(newCodeHash);
 
         info.CodeHash = newCodeHash;
         info.Version++;

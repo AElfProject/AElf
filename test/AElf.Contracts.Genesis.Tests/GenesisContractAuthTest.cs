@@ -348,7 +348,7 @@ public class GenesisContractAuthTest : BasicContractZeroTestBase
             var proposingTxResult = await otherTester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
                 nameof(BasicContractZero.ProposeNewContract), newContractDeploymentInput);
             proposingTxResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            proposingTxResult.Error.ShouldContain("Unauthorized to propose.");
+            proposingTxResult.Error.ShouldContain("contract code has already been deployed before");
         }
     }
 
@@ -434,36 +434,8 @@ public class GenesisContractAuthTest : BasicContractZeroTestBase
 
         var proposingTxResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
             nameof(BasicContractZero.ProposeUpdateContract), contractUpdateInput);
-        proposingTxResult.Status.ShouldBe(TransactionResultStatus.Mined);
-
-        var proposalId = ProposalCreated.Parser
-            .ParseFrom(proposingTxResult.Logs.First(l => l.Name.Contains(nameof(ProposalCreated))).NonIndexed)
-            .ProposalId;
-        proposalId.ShouldNotBeNull();
-        var proposedContractInputHash = ContractProposed.Parser
-            .ParseFrom(proposingTxResult.Logs.First(l => l.Name.Contains(nameof(ContractProposed))).NonIndexed)
-            .ProposedContractInputHash;
-        await ApproveWithMinersAsync(Tester, ParliamentAddress, proposalId);
-
-        var releaseApprovedContractTxResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
-            nameof(BasicContractZero.ReleaseApprovedContract), new ReleaseContractInput
-            {
-                ProposalId = proposalId,
-                ProposedContractInputHash = proposedContractInputHash
-            });
-        releaseApprovedContractTxResult.Status.ShouldBe(TransactionResultStatus.Mined);
-        var codeCheckProposalId = ProposalCreated.Parser
-            .ParseFrom(releaseApprovedContractTxResult.Logs.First(l => l.Name.Contains(nameof(ProposalCreated)))
-                .NonIndexed).ProposalId;
-        codeCheckProposalId.ShouldNotBeNull();
-
-        await ApproveWithMinersAsync(Tester, ParliamentAddress, codeCheckProposalId);
-        var updateResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
-            nameof(BasicContractZeroImplContainer.BasicContractZeroImplStub.ReleaseCodeCheckedContract),
-            new ReleaseContractInput
-                { ProposedContractInputHash = proposedContractInputHash, ProposalId = codeCheckProposalId });
-        updateResult.Status.ShouldBe(TransactionResultStatus.Failed);
-        updateResult.Error.ShouldContain("Same code has been deployed before.");
+        proposingTxResult.Status.ShouldBe(TransactionResultStatus.Failed);
+        proposingTxResult.Error.ShouldContain("contract code has already been deployed before");
     }
 
     [Fact]
@@ -1067,7 +1039,8 @@ public class GenesisContractAuthTest : BasicContractZeroTestBase
             // propose contract code
             var repeatedProposingTxResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
                 nameof(BasicContractZero.ProposeNewContract), contractDeploymentInput);
-            repeatedProposingTxResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            repeatedProposingTxResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            repeatedProposingTxResult.Error.ShouldContain("contract code has already been deployed before");
         }
     }
 
