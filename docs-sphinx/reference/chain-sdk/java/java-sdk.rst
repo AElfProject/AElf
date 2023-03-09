@@ -693,7 +693,7 @@ Estimate transaction fee.
 
 *Returns*
 
--  ``TransactionFeeResultOutput`` - The object with the following
+-  ``CalculateTransactionFeeOutput`` - The object with the following
    structure :
 
    -  ``Success - boolean``
@@ -704,7 +704,7 @@ Estimate transaction fee.
 
 .. code:: java
 
-   TransactionFeeResultOutput output = client.calculateTransactionFee(input);
+   CalculateTransactionFeeOutput output = client.calculateTransactionFee(input);
 
 GetNetworkInfo
 ~~~~~~~~~~~~~~
