@@ -44,7 +44,7 @@ public partial class TokenContract
             fee = GetBaseFeeDictionary(methodFees);
         }
 
-        return TryToChargeTransactionFee(input, ref fromAddress, ref bill, ref allowanceBill, fee, isSizeFeeFree);
+        return TryToChargeTransactionFee(input, fromAddress, bill, allowanceBill, fee, isSizeFeeFree);
     }
 
     public override ChargeTransactionFeesOutput ChargeUserContractTransactionFees(ChargeTransactionFeesInput input)
@@ -71,11 +71,11 @@ public partial class TokenContract
             fee = GetUserContractFeeDictionary(userContractMethodFees);
         }
 
-        return TryToChargeTransactionFee(input, ref fromAddress, ref bill, ref allowanceBill, fee, isSizeFeeFree);
+        return TryToChargeTransactionFee(input, fromAddress, bill, allowanceBill, fee, isSizeFeeFree);
     }
 
-    private ChargeTransactionFeesOutput TryToChargeTransactionFee(ChargeTransactionFeesInput input, ref Address fromAddress,
-        ref TransactionFeeBill bill, ref TransactionFreeFeeAllowanceBill allowanceBill, Dictionary<string, long> fee,
+    private ChargeTransactionFeesOutput TryToChargeTransactionFee(ChargeTransactionFeesInput input, Address fromAddress,
+        TransactionFeeBill bill, TransactionFreeFeeAllowanceBill allowanceBill, Dictionary<string, long> fee,
         bool isSizeFeeFree)
     {
         var chargingResult =
