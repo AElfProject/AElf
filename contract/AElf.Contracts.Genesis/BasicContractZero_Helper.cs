@@ -19,8 +19,7 @@ public partial class BasicContractZero
             Assert(State.NameAddressMapping[name] == null, "contract name has already been registered before");
 
         var codeHash = HashHelper.ComputeFrom(code);
-
-        Assert(State.SmartContractRegistrations[codeHash] == null, "contract code has already been deployed before");
+        AssertContractExists(codeHash);
 
         var serialNumber = State.ContractSerialNumber.Value;
         // Increment
@@ -351,6 +350,11 @@ public partial class BasicContractZero
         Assert(contractVersionCheckResult.IsSubsequentVersion,
             $"The version to be deployed is lower than the effective version({currentVersion}), please correct the version number.");
 
+    }
+
+    private void AssertContractExists(Hash codeHash)
+    {
+        Assert(State.SmartContractRegistrations[codeHash] == null, "contract code has already been deployed before.");
     }
 }
 
