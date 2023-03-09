@@ -111,6 +111,7 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
     public override Hash ProposeNewContract(ContractDeploymentInput input)
     {
         // AssertDeploymentProposerAuthority(Context.Sender);
+        AssertContractExists(HashHelper.ComputeFrom(input.Code.ToByteArray()));
         var proposedContractInputHash = CalculateHashFromInput(input);
         RegisterContractProposingData(proposedContractInputHash);
         
@@ -159,6 +160,7 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         Assert(info != null, "Contract not found.");
         AssertAuthorityByContractInfo(info, Context.Sender);
         AssertContractVersion(info.ContractVersion, input.Code, info.Category);
+        AssertContractExists(HashHelper.ComputeFrom(input.Code.ToByteArray()));
 
         var expirationTimePeriod = GetCurrentContractProposalExpirationTimePeriod();
 
@@ -368,7 +370,7 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         var codeHash = HashHelper.ComputeFrom(input.Code.ToByteArray());
         Context.LogDebug(() => "BasicContractZero - Deployment user contract hash: " + codeHash.ToHex());
         
-        Assert(State.SmartContractRegistrations[codeHash] == null, "Contract code has already been deployed before.");
+        AssertContractExists(codeHash);
         
         var proposedContractInputHash = CalculateHashFromInput(input);
         SendUserContractProposal(proposedContractInputHash,
@@ -398,7 +400,7 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         Assert(Context.Sender == info.Author, "No permission.");
         var codeHash = HashHelper.ComputeFrom(input.Code.ToByteArray());
         Assert(info.CodeHash != codeHash, "Code is not changed.");
-        Assert(State.SmartContractRegistrations[codeHash] == null, "Contract code has already been deployed before.");
+        AssertContractExists(codeHash);
         AssertContractVersion(info.ContractVersion, input.Code, info.Category);
         
         var proposedContractInputHash = CalculateHashFromInput(input);
