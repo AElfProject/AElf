@@ -607,6 +607,7 @@ Get peer info about the connected network nodes.
    -  ``BufferedTransactionsCount - int``
    -  ``BufferedBlocksCount - int``
    -  ``BufferedAnnouncementsCount - int``
+   -  ``NodeVersion - string``
    -  ``RequestMetrics - List<RequestMetric>``
 
       -  ``RoundTripTime - long``
