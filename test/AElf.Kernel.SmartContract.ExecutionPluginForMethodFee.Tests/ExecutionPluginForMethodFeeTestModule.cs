@@ -29,7 +29,6 @@ public class ExecutionPluginForMethodFeeTestModule : ContractTestModule
     public override void ConfigureServices(ServiceConfigurationContext context)
     {
         Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false);
-        context.Services.AddSingleton<IPreExecutionPlugin, FeeChargePreExecutionPlugin>();
         context.Services.AddSingleton<ICalculateFunctionProvider, MockCalculateFunctionProvider>();
         context.Services.AddTransient(typeof(ILogEventProcessingService<>), typeof(LogEventProcessingService<>));
         context.Services.RemoveAll(s => s.ImplementationType == typeof(TransactionFeeChargedLogEventProcessor));
@@ -55,7 +54,6 @@ public class ExecutionPluginForUserContractMethodFeeTestModule : ContractTestMod
     public override void ConfigureServices(ServiceConfigurationContext context)
     {
         Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false);
-        context.Services.AddSingleton<IPreExecutionPlugin, UserContractFeeChargePreExecutionPlugin>();
         context.Services.AddSingleton<ICalculateFunctionProvider, MockCalculateFunctionProvider>();
         context.Services.RemoveAll<IContractInitializationProvider>();
         context.Services
@@ -71,7 +69,6 @@ public class ExecutionPluginForMethodFeeWithForkTestModule : ContractTestAElfMod
     public override void ConfigureServices(ServiceConfigurationContext context)
     {
         Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false);
-        context.Services.AddSingleton<IPreExecutionPlugin, FeeChargePreExecutionPlugin>();
         context.Services.AddSingleton<ICalculateFunctionProvider, MockCalculateFunctionProvider>();
         context.Services.AddSingleton<ISystemTransactionGenerator, MockTransactionGenerator>();
         context.Services.RemoveAll<IAccountService>();

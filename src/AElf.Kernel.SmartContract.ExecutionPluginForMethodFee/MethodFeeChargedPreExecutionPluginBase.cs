@@ -9,13 +9,12 @@ using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.Reflection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee;
 
 internal class MethodFeeChargedPreExecutionPluginBase : SmartContractExecutionPluginBase, IPreExecutionPlugin,
-ISingletonDependency
+    ISingletonDependency
 {
     private readonly IContractReaderFactory<TokenContractImplContainer.TokenContractImplStub>
         _contractReaderFactory;
@@ -23,37 +22,41 @@ ISingletonDependency
     private readonly ISmartContractAddressService _smartContractAddressService;
     private readonly ITransactionSizeFeeSymbolsProvider _transactionSizeFeeSymbolsProvider;
     private readonly IPrimaryTokenFeeService _txFeeService;
-    
+
     public MethodFeeChargedPreExecutionPluginBase(ISmartContractAddressService smartContractAddressService,
         IPrimaryTokenFeeService txFeeService,
         ITransactionSizeFeeSymbolsProvider transactionSizeFeeSymbolsProvider,
-        IContractReaderFactory<TokenContractImplContainer.TokenContractImplStub> contractReaderFactory,string acsSymbol) : base(acsSymbol)
+        IContractReaderFactory<TokenContractImplContainer.TokenContractImplStub> contractReaderFactory,
+        string acsSymbol) : base(acsSymbol)
     {
         _smartContractAddressService = smartContractAddressService;
         _txFeeService = txFeeService;
         _transactionSizeFeeSymbolsProvider = transactionSizeFeeSymbolsProvider;
         _contractReaderFactory = contractReaderFactory;
-        Logger = NullLogger<MethodFeeChargedPreExecutionPluginBase>.Instance;
     }
-    
+
     public ILogger<MethodFeeChargedPreExecutionPluginBase> Logger { get; set; }
 
-    public virtual bool IsTargetTransaction(IReadOnlyList<ServiceDescriptor> descriptors, Transaction transaction, Address tokenContractAddress)
+    protected virtual bool IsTargetTransaction(IReadOnlyList<ServiceDescriptor> descriptors, Transaction transaction,
+        Address tokenContractAddress)
     {
         return false;
     }
 
-    public virtual bool IsTransactionShouldSkip(Transaction transaction, Address tokenContractAddress, TokenContractImplContainer.TokenContractImplStub tokenStub)
+    protected virtual bool IsChargeTransactionFee(Transaction transaction, Address tokenContractAddress,
+        TokenContractImplContainer.TokenContractImplStub tokenStub)
     {
-        return false;
+        return true;
     }
 
-    public virtual Transaction GetPreTransaction(TokenContractImplContainer.TokenContractImplStub tokenStub, ChargeTransactionFeesInput chargeTransactionFeesInput)
+    protected virtual Transaction GetTransaction(TokenContractImplContainer.TokenContractImplStub tokenStub,
+        ChargeTransactionFeesInput chargeTransactionFeesInput)
     {
         return new Transaction();
     }
 
-    public async Task<IEnumerable<Transaction>> GetPreTransactionsAsync(IReadOnlyList<ServiceDescriptor> descriptors, ITransactionContext transactionContext)
+    public async Task<IEnumerable<Transaction>> GetPreTransactionsAsync(IReadOnlyList<ServiceDescriptor> descriptors,
+        ITransactionContext transactionContext)
     {
         try
         {
@@ -71,7 +74,7 @@ ISingletonDependency
                 tokenContractAddress == null)
                 return new List<Transaction>();
 
-            if (!IsTargetTransaction(descriptors,transactionContext.Transaction,tokenContractAddress))
+            if (!IsTargetTransaction(descriptors, transactionContext.Transaction, tokenContractAddress))
                 return new List<Transaction>();
 
             var tokenStub = _contractReaderFactory.Create(new ContractReaderContext
@@ -81,11 +84,9 @@ ISingletonDependency
                 RefBlockNumber = transactionContext.Transaction.RefBlockNumber
             });
 
-            if (IsTransactionShouldSkip(transactionContext.Transaction,tokenContractAddress,tokenStub))
-            {
+            if (!IsChargeTransactionFee(transactionContext.Transaction, tokenContractAddress, tokenStub))
                 return new List<Transaction>();
-            }
-            
+
             var txCost = await _txFeeService.CalculateFeeAsync(transactionContext, chainContext);
             var chargeTransactionFeesInput = new ChargeTransactionFeesInput
             {
@@ -105,7 +106,7 @@ ISingletonDependency
                         AddedTokenWeight = transactionSizeFeeSymbol.AddedTokenWeight
                     });
 
-            var chargeFeeTransaction = GetPreTransaction(tokenStub,chargeTransactionFeesInput);
+            var chargeFeeTransaction = GetTransaction(tokenStub, chargeTransactionFeesInput);
             return new List<Transaction>
             {
                 chargeFeeTransaction

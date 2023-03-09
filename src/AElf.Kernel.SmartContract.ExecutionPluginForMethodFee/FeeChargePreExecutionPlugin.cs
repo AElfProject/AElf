@@ -4,7 +4,7 @@ using AElf.Kernel.FeeCalculation.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
 using Google.Protobuf.Reflection;
-
+using Microsoft.Extensions.Logging.Abstractions;
 namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee;
 
 internal class FeeChargePreExecutionPlugin : MethodFeeChargedPreExecutionPluginBase
@@ -15,26 +15,26 @@ internal class FeeChargePreExecutionPlugin : MethodFeeChargedPreExecutionPluginB
         smartContractAddressService, txFeeService, transactionSizeFeeSymbolsProvider,
         contractReaderFactory, "acs1")
     {
+        Logger = NullLogger<FeeChargePreExecutionPlugin>.Instance;
     }
-    
-    public override bool IsTargetTransaction(IReadOnlyList<ServiceDescriptor> descriptors, Transaction transaction,
+
+    protected override bool IsTargetTransaction(IReadOnlyList<ServiceDescriptor> descriptors, Transaction transaction,
         Address tokenContractAddress)
     {
         return IsTargetAcsSymbol(descriptors) || transaction.To == tokenContractAddress;
     }
 
-    public override bool IsTransactionShouldSkip(Transaction transaction, Address tokenContractAddress,
+    protected override bool IsChargeTransactionFee(Transaction transaction, Address tokenContractAddress,
         TokenContractImplContainer.TokenContractImplStub tokenStub)
     {
-        return transaction.To == tokenContractAddress &&
-               transaction.MethodName is nameof(tokenStub.ChargeTransactionFees)
-                   or nameof(tokenStub.ChargeUserContractTransactionFees);
+        return transaction.To != tokenContractAddress ||
+               (transaction.MethodName != nameof(tokenStub.ChargeTransactionFees) && transaction.MethodName !=
+                   nameof(tokenStub.ChargeUserContractTransactionFees));
     }
 
-    public override Transaction GetPreTransaction(TokenContractImplContainer.TokenContractImplStub tokenStub,
+    protected override Transaction GetTransaction(TokenContractImplContainer.TokenContractImplStub tokenStub,
         ChargeTransactionFeesInput chargeTransactionFeesInput)
     {
         return tokenStub.ChargeTransactionFees.GetTransaction(chargeTransactionFeesInput);
     }
-    
 }

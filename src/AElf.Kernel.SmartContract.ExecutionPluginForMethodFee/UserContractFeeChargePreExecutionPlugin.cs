@@ -4,6 +4,7 @@ using AElf.Kernel.FeeCalculation.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
 using Google.Protobuf.Reflection;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee;
 
@@ -15,14 +16,15 @@ internal class UserContractFeeChargePreExecutionPlugin : MethodFeeChargedPreExec
         smartContractAddressService, txFeeService, transactionSizeFeeSymbolsProvider,
         contractReaderFactory, "acs12")
     {
+        Logger = NullLogger<UserContractFeeChargePreExecutionPlugin>.Instance;
     }
     
-    public override bool IsTargetTransaction(IReadOnlyList<ServiceDescriptor> descriptors, Transaction transaction, Address tokenContractAddress)
+    protected override bool IsTargetTransaction(IReadOnlyList<ServiceDescriptor> descriptors, Transaction transaction, Address tokenContractAddress)
     {
         return IsTargetAcsSymbol(descriptors);
     }
 
-    public override Transaction GetPreTransaction(TokenContractImplContainer.TokenContractImplStub tokenStub,
+    protected override Transaction GetTransaction(TokenContractImplContainer.TokenContractImplStub tokenStub,
         ChargeTransactionFeesInput chargeTransactionFeesInput)
     {
         return tokenStub.ChargeUserContractTransactionFees.GetTransaction(chargeTransactionFeesInput);
