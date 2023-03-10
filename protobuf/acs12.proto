@@ -1,7 +1,7 @@
 /**
- * AElf Standards ACS12(User Contract Transaction Fee Standard)
+ * AElf Standards ACS12(User Contract Standard)
  *
- * Used to manage the transaction fee of user contract.
+ * Used to manage user contract.
  */
 syntax = "proto3";
 
