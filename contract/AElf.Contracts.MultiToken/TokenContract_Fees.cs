@@ -286,20 +286,9 @@ public partial class TokenContract
 
     private Dictionary<string, long> GetUserContractFeeDictionary(UserContractMethodFees fees)
     {
-        var dict = new Dictionary<string, long>();
-        foreach (var methodFee in fees.Fees)
-        {
-            if (dict.ContainsKey(methodFee.Symbol))
-            {
-                dict[methodFee.Symbol] = dict[methodFee.Symbol].Add(methodFee.BasicFee);
-            }
-            else
-            {
-                dict[methodFee.Symbol] = methodFee.BasicFee;
-            }
-        }
-
-        return dict;
+        return fees.Fees
+            .GroupBy(f => f.Symbol, f => f.BasicFee)
+            .ToDictionary(g => g.Key, g => g.Sum());
     }
 
     private bool ChargeBaseFee(Dictionary<string, long> methodFeeMap, Address fromAddress, ref TransactionFeeBill bill,

@@ -19,9 +19,9 @@ internal class UserContractFeeChargePreExecutionPlugin : MethodFeeChargedPreExec
         Logger = NullLogger<UserContractFeeChargePreExecutionPlugin>.Instance;
     }
     
-    protected override bool IsTargetTransaction(IReadOnlyList<ServiceDescriptor> descriptors, Transaction transaction, Address tokenContractAddress)
+    protected override bool IsApplicableToTransaction(IReadOnlyList<ServiceDescriptor> descriptors, Transaction transaction, Address tokenContractAddress)
     {
-        return IsTargetAcsSymbol(descriptors);
+        return HasApplicableAcs(descriptors);
     }
 
     protected override Transaction GetTransaction(TokenContractImplContainer.TokenContractImplStub tokenStub,

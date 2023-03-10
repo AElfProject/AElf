@@ -18,17 +18,17 @@ internal class FeeChargePreExecutionPlugin : MethodFeeChargedPreExecutionPluginB
         Logger = NullLogger<FeeChargePreExecutionPlugin>.Instance;
     }
 
-    protected override bool IsTargetTransaction(IReadOnlyList<ServiceDescriptor> descriptors, Transaction transaction,
+    protected override bool IsApplicableToTransaction(IReadOnlyList<ServiceDescriptor> descriptors, Transaction transaction,
         Address tokenContractAddress)
     {
-        return IsTargetAcsSymbol(descriptors) || transaction.To == tokenContractAddress;
+        return HasApplicableAcs(descriptors) || transaction.To == tokenContractAddress;
     }
 
-    protected override bool IsChargeTransactionFee(Transaction transaction, Address tokenContractAddress,
+    protected override bool IsExemptedTransaction(Transaction transaction, Address tokenContractAddress,
         TokenContractImplContainer.TokenContractImplStub tokenStub)
     {
-        return transaction.To != tokenContractAddress ||
-               (transaction.MethodName != nameof(tokenStub.ChargeTransactionFees) && transaction.MethodName !=
+        return transaction.To == tokenContractAddress &&
+               (transaction.MethodName == nameof(tokenStub.ChargeTransactionFees) || transaction.MethodName ==
                    nameof(tokenStub.ChargeUserContractTransactionFees));
     }
 

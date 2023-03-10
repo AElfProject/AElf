@@ -37,16 +37,16 @@ internal class MethodFeeChargedPreExecutionPluginBase : SmartContractExecutionPl
 
     public ILogger<MethodFeeChargedPreExecutionPluginBase> Logger { get; set; }
 
-    protected virtual bool IsTargetTransaction(IReadOnlyList<ServiceDescriptor> descriptors, Transaction transaction,
+    protected virtual bool IsApplicableToTransaction(IReadOnlyList<ServiceDescriptor> descriptors, Transaction transaction,
         Address tokenContractAddress)
     {
         return false;
     }
 
-    protected virtual bool IsChargeTransactionFee(Transaction transaction, Address tokenContractAddress,
+    protected virtual bool IsExemptedTransaction(Transaction transaction, Address tokenContractAddress,
         TokenContractImplContainer.TokenContractImplStub tokenStub)
     {
-        return true;
+        return false;
     }
 
     protected virtual Transaction GetTransaction(TokenContractImplContainer.TokenContractImplStub tokenStub,
@@ -74,7 +74,7 @@ internal class MethodFeeChargedPreExecutionPluginBase : SmartContractExecutionPl
                 tokenContractAddress == null)
                 return new List<Transaction>();
 
-            if (!IsTargetTransaction(descriptors, transactionContext.Transaction, tokenContractAddress))
+            if (!IsApplicableToTransaction(descriptors, transactionContext.Transaction, tokenContractAddress))
                 return new List<Transaction>();
 
             var tokenStub = _contractReaderFactory.Create(new ContractReaderContext
@@ -84,7 +84,7 @@ internal class MethodFeeChargedPreExecutionPluginBase : SmartContractExecutionPl
                 RefBlockNumber = transactionContext.Transaction.RefBlockNumber
             });
 
-            if (!IsChargeTransactionFee(transactionContext.Transaction, tokenContractAddress, tokenStub))
+            if (IsExemptedTransaction(transactionContext.Transaction, tokenContractAddress, tokenStub))
                 return new List<Transaction>();
 
             var txCost = await _txFeeService.CalculateFeeAsync(transactionContext, chainContext);
