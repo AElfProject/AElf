@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using AElf.Contracts.Parliament;
 using AElf.Kernel.SmartContract.Application;
 
@@ -5,7 +6,7 @@ namespace AElf.Kernel.CodeCheck.Application;
 
 internal interface ICodeCheckReleasedProposalIdProvider
 {
-    Task AddProposalIdAsync(BlockIndex blockIndex, Hash proposalId);
+    Task AddProposalIdsAsync(BlockIndex blockIndex, List<Hash> proposalIds);
     Task<ProposalIdList> GetProposalIdsAsync(BlockIndex blockIndex);
     Task RemoveProposalIdAsync(BlockIndex blockIndex, Hash proposalId);
 }
@@ -22,10 +23,10 @@ internal class CodeCheckReleasedProposalIdProvider : BlockExecutedDataBaseProvid
 
     public ILogger<CodeCheckReleasedProposalIdProvider> Logger { get; set; }
 
-    public async Task AddProposalIdAsync(BlockIndex blockIndex, Hash proposalId)
+    public async Task AddProposalIdsAsync(BlockIndex blockIndex, List<Hash> proposalIds)
     {
         var proposalIdList = GetBlockExecutedData(blockIndex) ?? new ProposalIdList();
-        proposalIdList.ProposalIds.Add(proposalId);
+        proposalIdList.ProposalIds.AddRange(proposalIds);
         await AddBlockExecutedDataAsync(blockIndex, proposalIdList);
     }
 

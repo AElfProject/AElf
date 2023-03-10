@@ -30,9 +30,6 @@ public class MethodCallReplacer : IPatcher<ModuleDefinition>
 
     public void Patch(ModuleDefinition module)
     {
-        // Get the specific version of the SDK referenced by the contract
-        //var nameRefSdk = module.AssemblyReferences.Single(r => r.Name == Sdk);
-            
         // May cache all versions not to keep reloading for every contract deployment
         var refSdk = AssemblyDefinition.ReadAssembly(Assembly.GetAssembly(typeof(AElfString)).Location);
 

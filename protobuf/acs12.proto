@@ -15,10 +15,9 @@ import "aelf/core.proto";
 option (aelf.identity) = "acs12";
 option csharp_namespace = "AElf.Standards.ACS12";
 
-service UserContractMethodFeeProviderContract {
+service UserContract{
     
 }
-
 
 message UserContractMethodFees {
   // List of fees to be charged.

@@ -33,62 +33,50 @@ internal class CodeCheckProposalReleaseTransactionGenerator : ISystemTransaction
 
     public ILogger<ProposalApprovalTransactionGenerator> Logger { get; set; }
 
-    public async Task<List<Transaction>> GenerateTransactionsAsync(Address from, long preBlockHeight,
-        Hash preBlockHash)
+    public async Task<List<Transaction>> GenerateTransactionsAsync(Address from, long preBlockHeight, Hash preBlockHash)
     {
-        var generatedTransactions = new List<Transaction>();
         var chainContext = new ChainContext
         {
             BlockHash = preBlockHash, BlockHeight = preBlockHeight
         };
-        if (!_transactionPackingOptionProvider.IsTransactionPackable(chainContext))
-            return generatedTransactions;
+        if (!_transactionPackingOptionProvider.IsTransactionPackable(chainContext)) return new List<Transaction>();
 
         var zeroContractAddress = _smartContractAddressService.GetZeroSmartContractAddress();
 
-        if (zeroContractAddress == null) return generatedTransactions;
+        if (zeroContractAddress == null) return new List<Transaction>();
 
-        var proposalList =
+        var releasableProposals =
             await _codeCheckProposalService.GetReleasableProposalListAsync(from, preBlockHash, preBlockHeight);
-        if (proposalList == null || proposalList.Count == 0)
-            return generatedTransactions;
+        if (releasableProposals == null || releasableProposals.Count == 0) return new List<Transaction>();
 
-        var releasedProposalList = await _codeCheckReleasedProposalIdProvider.GetProposalIdsAsync(new BlockIndex
+        var alreadyReleased = (await _codeCheckReleasedProposalIdProvider.GetProposalIdsAsync(new BlockIndex
         {
             BlockHash = preBlockHash,
             BlockHeight = preBlockHeight
-        });
-        if (releasedProposalList.ProposalIds.Count != 0)
-        {
-            proposalList = proposalList.Where(o => !releasedProposalList.ProposalIds.Contains(o.ProposalId)).ToList();
-        }
+        })).ProposalIds.ToHashSet();
 
-        foreach (var proposal in proposalList)
-        {
-            var generatedTransaction = new Transaction
-            {
-                From = from,
-                MethodName = nameof(ACS0Container.ACS0Stub.ReleaseApprovedUserSmartContract),
-                To = zeroContractAddress,
-                RefBlockNumber = preBlockHeight,
-                RefBlockPrefix = BlockHelper.GetRefBlockPrefix(preBlockHash),
-                Params = new ReleaseContractInput
-                {
-                    ProposalId = proposal.ProposalId,
-                    ProposedContractInputHash = proposal.ProposedContractInputHash
-                }.ToByteString()
-            };
-            generatedTransactions.Add(generatedTransaction);
+        var releaseRequired = releasableProposals.Where(o => !alreadyReleased.Contains(o.ProposalId)).ToList();
 
-            await _codeCheckReleasedProposalIdProvider.AddProposalIdAsync(new BlockIndex
+        var releaseContractTransactions = releaseRequired.Select(proposal => new Transaction
+        {
+            From = from,
+            MethodName = nameof(ACS0Container.ACS0Stub.ReleaseApprovedUserSmartContract),
+            To = zeroContractAddress,
+            RefBlockNumber = preBlockHeight,
+            RefBlockPrefix = BlockHelper.GetRefBlockPrefix(preBlockHash),
+            Params = new ReleaseContractInput
             {
-                BlockHash = preBlockHash,
-                BlockHeight = preBlockHeight
-            }, proposal.ProposalId);
-            
-            Logger.LogTrace("Code check proposal release transaction generated: {proposalId}.",proposal.ProposalId.ToHex());
-        }
-        
-        return generatedTransactions;
+                ProposalId = proposal.ProposalId,
+                ProposedContractInputHash = proposal.ProposedContractInputHash
+            }.ToByteString()
+        }).ToList();
+
+        await _codeCheckReleasedProposalIdProvider.AddProposalIdsAsync(new BlockIndex
+        {
+            BlockHash = preBlockHash,
+            BlockHeight = preBlockHeight
+        }, releaseRequired.Select(p => p.ProposalId).ToList());
+
+        return releaseContractTransactions;
     }
 }

@@ -37,8 +37,8 @@ internal class CodeCheckProposalService : ICodeCheckProposalService, ITransientD
     public async Task<List<CodeCheckProposal>> GetReleasableProposalListAsync(Address from, Hash blockHash,
         long blockHeight)
     {
-        var proposalList = _codeCheckProposalProvider.GetAllProposals();
-        var result = await _contractReaderFactory.Create(new ContractReaderContext
+        var allOpenProposals = _codeCheckProposalProvider.GetAllProposals();
+        var releaseThresholdReachedProposals = await _contractReaderFactory.Create(new ContractReaderContext
         {
             BlockHash = blockHash,
             BlockHeight = blockHeight,
@@ -48,21 +48,20 @@ internal class CodeCheckProposalService : ICodeCheckProposalService, ITransientD
                 BlockHeight = blockHeight
             })
         }).GetReleaseThresholdReachedProposals.CallAsync(new ProposalIdList
-            { ProposalIds = { proposalList.Select(o => o.ProposalId).ToList() } });
+            { ProposalIds = { allOpenProposals.Select(o => o.ProposalId).ToList() } });
 
-        if (result == null || result.ProposalIds.Count == 0)
+        if (releaseThresholdReachedProposals == null || releaseThresholdReachedProposals.ProposalIds.Count == 0)
         {
             return null;
         }
 
-        return proposalList.Where(o => result.ProposalIds.Contains(o.ProposalId)).ToList();
+        return allOpenProposals.Where(o => releaseThresholdReachedProposals.ProposalIds.Contains(o.ProposalId)).ToList();
     }
 
     public async Task ClearProposalByLibAsync(Hash blockHash, long blockHeight)
     {
-        var proposalList = _codeCheckProposalProvider.GetAllProposals();
-        var proposalIdList = proposalList.Select(o => o.ProposalId).ToList();
-        var result = await _contractReaderFactory.Create(new ContractReaderContext
+        var stillOpenProposals = _codeCheckProposalProvider.GetAllProposals().Select(o => o.ProposalId).ToList();
+        var releaseThresholdReachedProposals = await _contractReaderFactory.Create(new ContractReaderContext
             {
                 BlockHash = blockHash,
                 BlockHeight = blockHeight,
@@ -72,12 +71,9 @@ internal class CodeCheckProposalService : ICodeCheckProposalService, ITransientD
                     BlockHeight = blockHeight
                 })
             }).GetAvailableProposals
-            .CallAsync(new ProposalIdList { ProposalIds = { proposalIdList } });
+            .CallAsync(new ProposalIdList { ProposalIds = { stillOpenProposals } });
 
-        if (result == null)
-            return;
-
-        foreach (var proposalId in proposalIdList.Except(result.ProposalIds))
+        foreach (var proposalId in stillOpenProposals.Except(releaseThresholdReachedProposals.ProposalIds))
         {
             if (!_codeCheckProposalProvider.TryGetProposalCreatedHeight(proposalId, out var h) ||
                 h > blockHeight)
