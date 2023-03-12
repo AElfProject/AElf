@@ -21,7 +21,9 @@ public partial class TokenContract
     /// <returns></returns>
     public override ChargeTransactionFeesOutput ChargeTransactionFees(ChargeTransactionFeesInput input)
     {
-        if (AssertPermissionAndInput(input))
+        AssertPermissionAndInput(input);
+        // Primary token not created yet.
+        if (State.ChainPrimaryTokenSymbol.Value == null)
         {
             return new ChargeTransactionFeesOutput {Success = true};
         }
@@ -49,7 +51,9 @@ public partial class TokenContract
 
     public override ChargeTransactionFeesOutput ChargeUserContractTransactionFees(ChargeTransactionFeesInput input)
     {
-        if (AssertPermissionAndInput(input))
+        AssertPermissionAndInput(input);
+        // Primary token not created yet.
+        if (State.ChainPrimaryTokenSymbol.Value == null)
         {
             return new ChargeTransactionFeesOutput {Success = true};
         }
@@ -93,13 +97,10 @@ public partial class TokenContract
         return chargingOutput;
     }
 
-    private bool AssertPermissionAndInput(ChargeTransactionFeesInput input)
+    private void AssertPermissionAndInput(ChargeTransactionFeesInput input)
     {
         AssertTransactionGeneratedByPlugin();
         Assert(input.MethodName != null && input.ContractAddress != null, "Invalid charge transaction fees input.");
-
-        // Primary token not created yet.
-        return State.ChainPrimaryTokenSymbol.Value == null;
     }
 
     private UserContractMethodFees GetActualFee(Address contractAddress, string methodName)
@@ -107,6 +108,8 @@ public partial class TokenContract
         if (State.ConfigurationContract.Value == null)
             State.ConfigurationContract.Value =
                 Context.GetContractAddressByName(SmartContractConstants.ConfigurationContractSystemName);
+        //Get the fee of the specified contract method set by the configuration contract.
+        //configuration_key:UserContractMethod_contractAddress_methodName
         var spec = State.ConfigurationContract.GetConfiguration.Call(new StringValue
         {
             Value = $"{TokenContractConstants.UserContractMethodFeeKey}_{contractAddress}_{methodName}"
@@ -117,7 +120,8 @@ public partial class TokenContract
             fee.MergeFrom(spec.Value);
             return fee;
         }
-
+        //If special key is null,get the normal fee set by the configuration contract.
+        //configuration_key:UserContractMethod
         var value = State.ConfigurationContract.GetConfiguration.Call(new StringValue
         {
             Value = TokenContractConstants.UserContractMethodFeeKey
@@ -126,8 +130,6 @@ public partial class TokenContract
         {
             return new UserContractMethodFees();
         }
-
-        ;
         fee.MergeFrom(value.Value);
         return fee;
     }
@@ -268,20 +270,9 @@ public partial class TokenContract
 
     private Dictionary<string, long> GetBaseFeeDictionary(MethodFees methodFees)
     {
-        var dict = new Dictionary<string, long>();
-        foreach (var methodFee in methodFees.Fees)
-        {
-            if (dict.ContainsKey(methodFee.Symbol))
-            {
-                dict[methodFee.Symbol] = dict[methodFee.Symbol].Add(methodFee.BasicFee);
-            }
-            else
-            {
-                dict[methodFee.Symbol] = methodFee.BasicFee;
-            }
-        }
-
-        return dict;
+        return methodFees.Fees
+            .GroupBy(f => f.Symbol, f => f.BasicFee)
+            .ToDictionary(g => g.Key, g => g.Sum());
     }
 
     private Dictionary<string, long> GetUserContractFeeDictionary(UserContractMethodFees fees)

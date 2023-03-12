@@ -19,10 +19,12 @@ service UserContract{
     
 }
 
+//Specified method fee for user contract.
 message UserContractMethodFees {
   // List of fees to be charged.
   repeated UserContractMethodFee fees = 2;
-  bool is_size_fee_free = 3;// Optional based on the implementation of SetMethodFee method.
+  // Optional based on the implementation of SetConfiguration method.
+  bool is_size_fee_free = 3;
 }
 
 message UserContractMethodFee {
