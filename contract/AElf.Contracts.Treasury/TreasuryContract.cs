@@ -606,11 +606,10 @@ public partial class TreasuryContract : TreasuryContractImplContainer.TreasuryCo
         var pubkey = ByteString.CopyFrom(ByteArrayHelper.HexStringToByteArray(input.Pubkey));
         
         var admin = State.ElectionContract.GetCandidateAdmin.Call(new StringValue {Value = input.Pubkey});
-        var candidateList = State.ElectionContract.GetCandidates.Call(new Empty());
-        var candidateAddressList = candidateList.Value.Select(a => Address.FromPublicKey(a.ToByteArray()));
-
         Assert(Context.Origin == admin , "No permission.");
-        Assert(candidateAddressList.Contains(Address.FromPublicKey(pubkey.ToByteArray())),"Pubkey is not a candidate.");
+        
+        var candidateList = State.ElectionContract.GetCandidates.Call(new Empty());
+        Assert(candidateList.Value.Contains(pubkey),"Pubkey is not a candidate.");
 
         var previousProfitsReceiver = State.ProfitsReceiverMap[input.Pubkey];
         //Set same profits receiver address.
