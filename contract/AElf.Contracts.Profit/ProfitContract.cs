@@ -322,9 +322,17 @@ public partial class ProfitContract : ProfitContractImplContainer.ProfitContract
             ? profitDetails.Details.Where(d => !d.IsWeightRemoved).ToList()
             : profitDetails.Details
                 .Where(d => d.EndPeriod < scheme.CurrentPeriod && !d.IsWeightRemoved).ToList();
-        
+        //id == null
+        if (scheme.CanRemoveBeneficiaryDirectly && profitDetailId != null)
+        {
+            detailsCanBeRemoved = detailsCanBeRemoved.All(d => d.Id != profitDetailId)
+                ? detailsCanBeRemoved.Where(d => d.Id == null).ToList()
+                : detailsCanBeRemoved.Where(d => d.Id == profitDetailId).ToList();
+        }
+
         // remove the profitDetail with the profitDetailId, and de-duplicate it before involving.
-        if (profitDetailId != null && profitDetails.Details.Any(d => d.Id == profitDetailId) && detailsCanBeRemoved.All(d => d.Id != profitDetailId))
+        if (profitDetailId != null && profitDetails.Details.Any(d => d.Id == profitDetailId) &&
+            detailsCanBeRemoved.All(d => d.Id != profitDetailId))
         {
             detailsCanBeRemoved.Add(profitDetails.Details.Single(d => d.Id == profitDetailId));
         }
@@ -352,9 +360,9 @@ public partial class ProfitContract : ProfitContractImplContainer.ProfitContract
 
             Context.LogDebug(() => $"ProfitDetails after removing expired details: {profitDetails}");
         }
-        
+
         var weightCanBeRemoved = profitDetails.Details
-                .Where(d => d.EndPeriod == scheme.CurrentPeriod && !d.IsWeightRemoved).ToList();
+            .Where(d => d.EndPeriod == scheme.CurrentPeriod && !d.IsWeightRemoved).ToList();
         foreach (var profitDetail in weightCanBeRemoved)
         {
             profitDetail.IsWeightRemoved = true;
@@ -362,7 +370,7 @@ public partial class ProfitContract : ProfitContractImplContainer.ProfitContract
 
         var weights = weightCanBeRemoved.Sum(d => d.Shares);
         removedDetails.Add(0, weights);
-        
+
 
         // Clear old profit details.
         if (profitDetails.Details.Count != 0)

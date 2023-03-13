@@ -520,8 +520,9 @@ message AnnounceElectionForInput {
 }
 
 message SetProfitsReceiverInput {
-    aelf.Address candidate_address = 1;
+    string candidate_pubkey = 1;
     aelf.Address receiver_address = 2;
+    aelf.Address previous_receiver_address = 3;
 }
 
 message FixTotalWeightsInput {
