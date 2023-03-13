@@ -185,6 +185,16 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         Context.SendInline(State.ContractDeploymentController.Value.ContractAddress,
             nameof(AuthorizationContractContainer.AuthorizationContractReferenceState
                 .CreateProposalBySystemContract), proposalCreationInput);
+        
+        var contractVersionCheckResult =
+            Context.CheckContractVersion(info.ContractVersion, new SmartContractRegistration
+            {
+                Code = input.Code,
+                Category = State.SmartContractRegistrations[info.CodeHash].Category,
+                CodeHash = HashHelper.ComputeFrom(input.Code.ToByteArray())
+            });
+        Assert(contractVersionCheckResult.IsSubsequentVersion,
+            $"The version to be deployed is lower than the effective version({info.ContractVersion}), please correct the version number.");
 
         Context.Fire(new ContractProposed
         {
@@ -303,7 +313,6 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
 
         info.CodeHash = newCodeHash;
         info.Version++;
-        State.ContractInfos[contractAddress] = info;
 
         var reg = new SmartContractRegistration
         {
@@ -314,16 +323,23 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
             Version = info.Version
         };
 
+        var contractInfo = Context.UpdateSmartContract(contractAddress, reg, null, info.ContractVersion);
+        Assert(contractInfo.IsSubsequentVersion,
+            $"The version to be deployed is lower than the effective version({info.ContractVersion}), please correct the version number.");
+
+        info.ContractVersion = contractInfo.ContractVersion;
+        reg.ContractVersion = info.ContractVersion;
+
+        State.ContractInfos[contractAddress] = info;
         State.SmartContractRegistrations[reg.CodeHash] = reg;
-
-        Context.UpdateContract(contractAddress, reg, null);
-
+        
         Context.Fire(new CodeUpdated
         {
             Address = contractAddress,
             OldCodeHash = oldCodeHash,
             NewCodeHash = newCodeHash,
-            Version = info.Version
+            Version = info.Version,
+            ContractVersion = info.ContractVersion
         });
 
         Context.LogDebug(() => "BasicContractZero - update success: " + contractAddress.ToBase58());

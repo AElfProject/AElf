@@ -65,7 +65,7 @@ public sealed class BlockChainAppServiceTest : WebAppTestBase
     public IReadOnlyDictionary<string, byte[]> Codes =>
         _codes ?? (_codes = ContractsDeployer.GetContractCodes<BlockChainAppServiceTest>());
 
-    private byte[] ConfigurationContractCode => Codes.Single(kv => kv.Key.Contains("Configuration")).Value;
+    private byte[] TestContractCode => Codes.Single(kv => kv.Key.Contains("TestContract.BasicFunction")).Value;
     private byte[] VoteContractCode => Codes.Single(kv => kv.Key.Contains("Vote")).Value;
 
     [Fact]
@@ -179,7 +179,7 @@ public sealed class BlockChainAppServiceTest : WebAppTestBase
             Params = ByteString.CopyFrom(new ContractUpdateInput
             {
                 Address = address,
-                Code = ByteString.CopyFrom(ConfigurationContractCode)
+                Code = ByteString.CopyFrom(TestContractCode)
             }.ToByteArray()),
             RefBlockNumber = chain.BestChainHeight,
             RefBlockPrefix = BlockHelper.GetRefBlockPrefix(chain.BestChainHash)

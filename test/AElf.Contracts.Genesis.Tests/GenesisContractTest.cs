@@ -144,7 +144,7 @@ public class BasicContractZeroTest : AuthorityNotRequiredBasicContractZeroTestBa
             new ContractUpdateInput
             {
                 Address = contractAddress,
-                Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("Consensus")).Value)
+                Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("TestContract.BasicFunction")).Value)
             });
         resultUpdate.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
@@ -152,7 +152,7 @@ public class BasicContractZeroTest : AuthorityNotRequiredBasicContractZeroTestBa
         updateAddress.ShouldBe(contractAddress);
 
         var resultHash = await DefaultTester.GetContractHash.CallAsync(updateAddress);
-        var contractCode = Codes.Single(kv => kv.Key.Contains("Consensus")).Value;
+        var contractCode = Codes.Single(kv => kv.Key.Contains("TestContract.BasicFunction")).Value;
         var contractHash = HashHelper.ComputeFrom(contractCode);
         resultHash.ShouldBe(contractHash);
     }

@@ -14,7 +14,7 @@ Blockchain, and 1-5 initial nodes are recommended.
 
 In the Getting Started section, we described the steps to start multiple
 nodes, you can follow the :doc:`Running multi-nodes with
-Docker <../getting-started/development-environment/docker-multi-node>` 
+Docker <../getting-started/development-environment/node>` 
 to complete the initial nodes startup (this section also takes the
 example of starting three initial nodes).
 

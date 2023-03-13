@@ -2,9 +2,10 @@ syntax = "proto3";
 
 import "aelf/options.proto";
 import "aelf/core.proto";
+import "acs1.proto";
+import "transaction_fee.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/wrappers.proto";
-import "acs1.proto";
 
 option csharp_namespace = "AElf.Contracts.TestContract.BasicFunction";
 
@@ -24,6 +25,10 @@ service BasicFunctionContract {
     rpc UnlockToken(UnlockTokenInput) returns (google.protobuf.Empty) {
     }
     rpc ValidateOrigin(aelf.Address) returns (google.protobuf.Empty) {
+    }
+    rpc CreateTokenThroughMultiToken(CreateTokenThroughMultiTokenInput) returns (google.protobuf.Empty) {
+    }
+    rpc ApproveTokenToMultiToken(ApproveTokenInput) returns (google.protobuf.Empty) {
     }
 
     //View
@@ -86,6 +91,41 @@ message UnlockTokenInput {
     string usage = 4;
     int64 amount = 5;
 }
+
+message ApproveTokenInput{
+    // The address that allowance will be increased. 
+    aelf.Address spender = 1;
+    // The symbol of token to approve.
+    string symbol = 2;
+    // The amount of token to approve.
+    int64 amount = 3;
+}
+
+message  CreateTokenThroughMultiTokenInput{
+    // The symbol of the token.
+    string symbol = 1;
+    // The full name of the token.
+    string token_name = 2;
+    // The total supply of the token.
+    int64 total_supply = 3;
+    // The precision of the token
+    int32 decimals = 4;
+    // The address that created the token.
+    aelf.Address issuer = 5;
+    // A flag indicating if this token is burnable.
+    bool is_burnable = 6;
+    // A whitelist address list used to lock tokens.
+    repeated aelf.Address lock_white_list = 7;
+    // The chain id of the token.
+    int32 issue_chain_id = 8;
+    // The external information of the token.
+    ExternalInfo external_info = 9;
+}
+
+message ExternalInfo {
+    map<string, string> value = 1;
+}
+
 //Output
 
 message GetLockedTokenAmountInput {

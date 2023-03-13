@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using AElf.Contracts.MultiToken;
 using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
@@ -146,4 +147,56 @@ public partial class BasicFunctionContract : BasicFunctionContractContainer.Basi
 
         return new Empty();
     }
+    
+
+    public override Empty CreateTokenThroughMultiToken(CreateTokenThroughMultiTokenInput input)
+    {
+        if (State.TokenContract.Value == null)
+            State.TokenContract.Value =
+                Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
+        var fee = State.TokenContract.GetMethodFee.Call(new StringValue{Value = "Create"});
+        var approveFee = new Dictionary<string, long>();
+        if (fee == null || fee.Fees.Count == 0)
+        {
+            var symbol = Context.Variables.NativeSymbol;
+            var feeAmount = 10000_00000000;
+            approveFee[symbol] = feeAmount;
+        }
+        else
+        {
+            foreach (var f in fee.Fees)
+            {
+                approveFee[f.Symbol] = f.BasicFee;
+            }
+        }
+
+        foreach (var (key, value) in approveFee)
+        {
+            State.TokenContract.Approve.Send(new ApproveInput
+            {
+                Spender = State.TokenContract.Value,
+                Amount = value,
+                Symbol = key
+            });
+        }
+
+        State.TokenContract.Create.Send(new CreateInput
+        {
+            Symbol = input.Symbol,
+            Decimals = input.Decimals,
+            Issuer = input.Issuer,
+            IsBurnable = input.IsBurnable,
+            IssueChainId = input.IssueChainId,
+            TokenName = input.TokenName,
+            TotalSupply = input.TotalSupply,
+            ExternalInfo = new MultiToken.ExternalInfo
+            {
+                Value = { input.ExternalInfo.Value }
+            },
+            LockWhiteList = { input.LockWhiteList }
+        });
+        
+        return new Empty();
+    }
+
 }
