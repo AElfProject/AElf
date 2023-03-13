@@ -51,6 +51,9 @@ service TreasuryContract {
     rpc SetProfitsReceiver (SetProfitsReceiverInput) returns (google.protobuf.Empty) {
     }
 
+    rpc ReplaceCandidateProfitsReceiver (ReplaceCandidateProfitsReceiverInput) returns (google.protobuf.Empty) {
+    }
+    
     // Used to estimate the revenue weight of 10000 tokens voted by users.
     rpc GetWelfareRewardAmountSample (GetWelfareRewardAmountSampleInput) returns (GetWelfareRewardAmountSampleOutput) {
         option (aelf.is_view) = true;
@@ -77,6 +80,10 @@ service TreasuryContract {
     }
     
     rpc GetProfitsReceiver (google.protobuf.StringValue) returns (aelf.Address) {
+        option (aelf.is_view) = true;
+    }
+
+    rpc GetProfitsReceiverOrDefault (google.protobuf.StringValue) returns (aelf.Address) {
         option (aelf.is_view) = true;
     }
 }
@@ -154,6 +161,11 @@ message RecordMinerReplacementInput {
 message SetProfitsReceiverInput {
     string pubkey = 1;
     aelf.Address profits_receiver_address = 2;
+}
+
+message ReplaceCandidateProfitsReceiverInput{
+    string old_pubkey = 1;
+    string new_pubkey = 2;
 }
 
 message StringList {
