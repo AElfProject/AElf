@@ -23,7 +23,13 @@ internal class UserContractFeeChargePreExecutionPlugin : MethodFeeChargedPreExec
     {
         return HasApplicableAcs(descriptors);
     }
-
+    protected override bool IsExemptedTransaction(Transaction transaction, Address tokenContractAddress,
+        TokenContractImplContainer.TokenContractImplStub tokenStub)
+    {
+        return transaction.To == tokenContractAddress &&
+               (transaction.MethodName == nameof(tokenStub.ChargeTransactionFees) || transaction.MethodName ==
+                   nameof(tokenStub.ChargeUserContractTransactionFees));
+    }
     protected override Transaction GetTransaction(TokenContractImplContainer.TokenContractImplStub tokenStub,
         ChargeTransactionFeesInput chargeTransactionFeesInput)
     {
