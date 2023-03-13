@@ -114,7 +114,8 @@ internal class MethodFeeChargedPreExecutionPluginBase : SmartContractExecutionPl
         }
         catch (Exception e)
         {
-            Logger.LogError($"Failed to generate ChargeTransactionFees tx. {e.Message}");
+            Logger.LogError(
+                $"Failed to generate ChargeTransactionFees tx.Transaction to: {transactionContext.Transaction.To},transation method name: {transactionContext.Transaction.MethodName}. Error message: {e.Message}");
             throw;
         }
     }
