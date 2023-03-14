@@ -155,24 +155,4 @@ public static class Extensions
     {
         return assembly.GetTypes().SingleOrDefault(t => t.Name == nameof(ExecutionObserverProxy));
     }
-
-    public static List<TypeDefinition> GetAllTypes(this ModuleDefinition module)
-    {
-        return module.Types.SelectMany(GetAllTypes).ToList();
-    }
-
-    public static List<TypeDefinition> GetAllTypes(this TypeDefinition typeDefinition)
-    {
-        var types = new List<TypeDefinition>
-        {
-            typeDefinition
-        };
-
-        foreach (var nestedType in typeDefinition.NestedTypes)
-        {
-            types.AddRange(GetAllTypes(nestedType));
-        }
-
-        return types;
-    }
 }
