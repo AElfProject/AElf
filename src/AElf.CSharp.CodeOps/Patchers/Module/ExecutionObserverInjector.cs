@@ -24,32 +24,12 @@ public class ExecutionObserverInjector : IPatcher<ModuleDefinition>
 
         var proxyBuilder = new ExecutionObserverProxyBuilder(module, nmspace);
 
-        foreach (var method in GetAllTypes(module).SelectMany(t => t.Methods))
+        foreach (var method in module.GetAllTypes().SelectMany(t => t.Methods))
         {
             new MethodPatcher(method, proxyBuilder).DoPatch();
         }
 
         module.Types.Add(proxyBuilder.ObserverType);
-    }
-
-    private List<TypeDefinition> GetAllTypes(ModuleDefinition module)
-    {
-        return module.Types.SelectMany(GetAllTypes).ToList();
-    }
-
-    private List<TypeDefinition> GetAllTypes(TypeDefinition typeDefinition)
-    {
-        var types = new List<TypeDefinition>
-        {
-            typeDefinition
-        };
-
-        foreach (var nestedType in typeDefinition.NestedTypes)
-        {
-            types.AddRange(GetAllTypes(nestedType));
-        }
-
-        return types;
     }
 }
 
