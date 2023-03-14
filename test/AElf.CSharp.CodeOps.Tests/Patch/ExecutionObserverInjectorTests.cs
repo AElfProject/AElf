@@ -14,7 +14,7 @@ public class ExecutionObserverInjectorTests : CSharpCodeOpsTestBase
     {
         var module = GetContractModule(typeof(TestContract));
         var ns = "AElf.CSharp.CodeOps";
-        var typeDefinition = ExecutionObserverInjector.ConstructCounterProxy(module, ns);
+        var typeDefinition = new ExecutionObserverProxyBuilder(module, ns).ObserverType;
         typeDefinition.Methods.Count.ShouldBe(3);
         typeDefinition.Methods.Select(method => method.DeclaringType.FullName)
             .ShouldAllBe(name => name == string.Concat(ns, ".", nameof(ExecutionObserverProxy)));
@@ -30,7 +30,7 @@ public class ExecutionObserverInjectorTests : CSharpCodeOpsTestBase
     {
         var module = GetContractModule(typeof(TestContract));
 
-        var typeDefinition = ExecutionObserverInjector.ConstructCounterProxy(module, "AElf.Test");
+        var typeDefinition = new ExecutionObserverProxyBuilder(module, "AElf.Test").ObserverType;
 
         var executionObserverInjector = new ExecutionObserverInjector();
         executionObserverInjector.Patch(module);

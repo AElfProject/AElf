@@ -20,7 +20,7 @@ public class ObserverProxyValidator : IValidator<ModuleDefinition>, ITransientDe
     {
         // Module is only used to construct the type
         var module = AssemblyDefinition.ReadAssembly(typeof(ExecutionObserverProxy).Assembly.Location).MainModule;
-        _counterProxyTypeRef = ExecutionObserverInjector.ConstructCounterProxy(module, "AElf.Reference");
+        _counterProxyTypeRef = new ExecutionObserverProxyBuilder(module, "AElf.Reference").ObserverType;
     }
 
     public bool SystemContactIgnored => true;
