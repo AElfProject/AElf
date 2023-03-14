@@ -367,6 +367,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.FeatureManager.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.WebApp.MessageQueue", "src\AElf.WebApp.MessageQueue\AElf.WebApp.MessageQueue.csproj", "{3AB0732E-AE2D-4DC0-BC84-D75F06D4A5B4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContract.ExecutionPluginForUserContractFee.Tests.TestContract", "test\AElf.Kernel.SmartContract.ExecutionPluginForUserContractFee.Tests.TestContract\AElf.Kernel.SmartContract.ExecutionPluginForUserContractFee.Tests.TestContract.csproj", "{AB27298B-E6BE-4ACB-ADF1-64239E2A7A1C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -1053,6 +1055,10 @@ Global
 		{3AB0732E-AE2D-4DC0-BC84-D75F06D4A5B4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3AB0732E-AE2D-4DC0-BC84-D75F06D4A5B4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3AB0732E-AE2D-4DC0-BC84-D75F06D4A5B4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AB27298B-E6BE-4ACB-ADF1-64239E2A7A1C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AB27298B-E6BE-4ACB-ADF1-64239E2A7A1C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AB27298B-E6BE-4ACB-ADF1-64239E2A7A1C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AB27298B-E6BE-4ACB-ADF1-64239E2A7A1C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1238,5 +1244,6 @@ Global
 		{B24BC602-DAFD-4941-A913-8B0725691681} = {90B310B4-C2DB-419E-B5EE-97FA096B62CC}
 		{1B44277E-74EB-49B2-B8FD-05C29EE51985} = {4E54480A-D155-43ED-9736-1A5BE7957211}
 		{3AB0732E-AE2D-4DC0-BC84-D75F06D4A5B4} = {13B37500-5DF4-4C64-BD57-2CA6A619596A}
+		{AB27298B-E6BE-4ACB-ADF1-64239E2A7A1C} = {4E54480A-D155-43ED-9736-1A5BE7957211}
 	EndGlobalSection
 EndGlobal

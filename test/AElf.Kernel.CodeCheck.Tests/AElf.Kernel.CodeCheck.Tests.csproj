@@ -2,11 +2,12 @@
 
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
+        <RootNamespace>AElf.Kernel.CodeCheck</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\src\AElf.Kernel.CodeCheck\AElf.Kernel.CodeCheck.csproj"/>
-        <ProjectReference Include="..\AElf.Kernel.Tests\AElf.Kernel.Tests.csproj"/>
+        <ProjectReference Include="..\..\src\AElf.Kernel.CodeCheck\AElf.Kernel.CodeCheck.csproj" />
+        <ProjectReference Include="..\AElf.Kernel.Tests\AElf.Kernel.Tests.csproj" />
     </ItemGroup>
 
     <ItemGroup>
@@ -23,6 +24,18 @@
     <ItemGroup>
         <ContractStub Include="..\..\protobuf\acs3.proto">
             <Link>Protobuf\Proto\acs3.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\parliament_contract.proto">
+            <Link>Protobuf\Proto\reference\parliament_contract.proto</Link>
+        </ContractStub>
+        <CommonMessage Include="..\..\protobuf\authority_info.proto">
+            <Link>Protobuf\Proto\authority_info.proto</Link>
+        </CommonMessage>
+        <ContractStub Include="..\..\protobuf\acs0.proto">
+            <Link>Protobuf\Proto\acs0.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\acs1.proto">
+            <Link>Protobuf\Proto\acs1.proto</Link>
         </ContractStub>
     </ItemGroup>
 

@@ -19,8 +19,7 @@ public partial class BasicContractZero
             Assert(State.NameAddressMapping[name] == null, "contract name has already been registered before");
 
         var codeHash = HashHelper.ComputeFrom(code);
-
-        Assert(State.SmartContractRegistrations[codeHash] == null, "contract code has already been deployed before");
+        AssertContractExists(codeHash);
 
         var serialNumber = State.ContractSerialNumber.Value;
         // Increment
@@ -36,7 +35,6 @@ public partial class BasicContractZero
             IsSystemContract = isSystemContract,
             Version = 1
         };
-        State.ContractInfos[contractAddress] = info;
 
         var reg = new SmartContractRegistration
         {
@@ -44,20 +42,26 @@ public partial class BasicContractZero
             Code = ByteString.CopyFrom(code),
             CodeHash = codeHash,
             IsSystemContract = info.IsSystemContract,
-            Version = info.Version
+            Version = info.Version,
+            ContractAddress = contractAddress
         };
 
+        var contractInfo = Context.DeploySmartContract(contractAddress, reg, name);
+        
+        info.ContractVersion = contractInfo.ContractVersion;
+        reg.ContractVersion = info.ContractVersion;
+        
+        State.ContractInfos[contractAddress] = info;
         State.SmartContractRegistrations[reg.CodeHash] = reg;
-
-        Context.DeployContract(contractAddress, reg, name);
-
+        
         Context.Fire(new ContractDeployed
         {
             CodeHash = codeHash,
             Address = contractAddress,
             Author = author,
             Version = info.Version,
-            Name = name
+            Name = name,
+            ContractVersion = info.ContractVersion
         });
 
         Context.LogDebug(() => "BasicContractZero - Deployment ContractHash: " + codeHash.ToHex());
@@ -72,6 +76,52 @@ public partial class BasicContractZero
         State.ContractCodeHashListMap[Context.CurrentHeight] = contractCodeHashList;
 
         return contractAddress;
+    }
+    
+    private void UpdateSmartContract(Address contractAddress, byte[] code, Address author)
+    {
+        var info = State.ContractInfos[contractAddress];
+        Assert(info != null, "Contract not found.");
+        Assert(author == info.Author, "No permission.");
+
+        var oldCodeHash = info.CodeHash;
+        var newCodeHash = HashHelper.ComputeFrom(code);
+        Assert(oldCodeHash != newCodeHash, "Code is not changed.");
+        AssertContractExists(newCodeHash);
+
+        info.CodeHash = newCodeHash;
+        info.Version++;
+
+        var reg = new SmartContractRegistration
+        {
+            Category = info.Category,
+            Code = ByteString.CopyFrom(code),
+            CodeHash = newCodeHash,
+            IsSystemContract = info.IsSystemContract,
+            Version = info.Version,
+            ContractAddress = contractAddress
+        };
+        
+        var contractInfo = Context.UpdateSmartContract(contractAddress, reg, null, info.ContractVersion);
+        Assert(contractInfo.IsSubsequentVersion,
+            $"The version to be deployed is lower than the effective version({info.ContractVersion}), please correct the version number.");
+
+        info.ContractVersion = contractInfo.ContractVersion;
+        reg.ContractVersion = info.ContractVersion;
+        
+        State.ContractInfos[contractAddress] = info;
+        State.SmartContractRegistrations[reg.CodeHash] = reg;
+
+        Context.Fire(new CodeUpdated
+        {
+            Address = contractAddress,
+            OldCodeHash = oldCodeHash,
+            NewCodeHash = newCodeHash,
+            Version = info.Version,
+            ContractVersion = info.ContractVersion
+        });
+
+        Context.LogDebug(() => "BasicContractZero - update success: " + contractAddress.ToBase58());
     }
 
     private void RequireSenderAuthority(Address address = null)
@@ -215,6 +265,95 @@ public partial class BasicContractZero
         return State.ContractProposalExpirationTimePeriod.Value == 0
             ? ContractProposalExpirationTimePeriod
             : State.ContractProposalExpirationTimePeriod.Value;
+    }
+    
+    private void AssertCurrentMiner()
+    {
+        RequireConsensusContractStateSet();
+        var isCurrentMiner = State.ConsensusContract.IsCurrentMiner.Call(Context.Sender).Value;
+        Context.LogDebug(() => $"Sender is currentMiner : {isCurrentMiner}.");
+        Assert(isCurrentMiner, "No permission.");
+    }
+    
+    private void RequireConsensusContractStateSet()
+    {
+        if (State.ConsensusContract.Value != null)
+            return;
+        State.ConsensusContract.Value =
+            Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
+    }
+
+    private void SendUserContractProposal(Hash proposingInputHash, string releaseMethodName, ByteString @params)
+    {
+        var registered = State.ContractProposingInputMap[proposingInputHash];
+        Assert(registered == null || Context.CurrentBlockTime >= registered.ExpiredTime, "Already proposed.");
+        var proposedInfo = new ContractProposingInput
+        {
+            Proposer = Context.Self,
+            Status = ContractProposingInputStatus.CodeCheckProposed,
+            ExpiredTime = Context.CurrentBlockTime.AddSeconds(CodeCheckProposalExpirationTimePeriod),
+            Author = Context.Sender
+        };
+        State.ContractProposingInputMap[proposingInputHash] = proposedInfo;
+
+        var codeCheckController = State.CodeCheckController.Value;
+        var proposalCreationInput = new CreateProposalBySystemContractInput
+        {
+            ProposalInput = new CreateProposalInput
+            {
+                ToAddress = Context.Self,
+                ContractMethodName = releaseMethodName,
+                Params = @params,
+                OrganizationAddress = codeCheckController.OwnerAddress,
+                ExpiredTime = proposedInfo.ExpiredTime
+            },
+            OriginProposer = Context.Self
+        };
+        
+        Context.SendInline(codeCheckController.ContractAddress,
+            nameof(AuthorizationContractContainer.AuthorizationContractReferenceState
+                .CreateProposalBySystemContract), proposalCreationInput);
+    }
+
+    private void AssertUserDeployContract()
+    {
+        // Only the symbol of main chain or public side chain is native symbol.
+        RequireTokenContractContractAddressSet();
+        var primaryTokenSymbol = State.TokenContract.GetPrimaryTokenSymbol.Call(new Empty()).Value;
+        if (Context.Variables.NativeSymbol == primaryTokenSymbol)
+        {
+            return;
+        }
+        
+        RequireParliamentContractAddressSet();
+        var whitelist = State.ParliamentContract.GetProposerWhiteList.Call(new Empty());
+        Assert(whitelist.Proposers.Contains(Context.Sender), "No permission.");
+    }
+
+    private void RequireTokenContractContractAddressSet()
+    {
+        if (State.TokenContract.Value == null)
+            State.TokenContract.Value =
+                Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
+    }
+
+    private void AssertContractVersion(string currentVersion, ByteString code, int category)
+    {
+        var contractVersionCheckResult =
+            Context.CheckContractVersion(currentVersion, new SmartContractRegistration
+            {
+                Code = code,
+                Category = category,
+                CodeHash = HashHelper.ComputeFrom(code.ToByteArray())
+            });
+        Assert(contractVersionCheckResult.IsSubsequentVersion,
+            $"The version to be deployed is lower than the effective version({currentVersion}), please correct the version number.");
+
+    }
+
+    private void AssertContractExists(Hash codeHash)
+    {
+        Assert(State.SmartContractRegistrations[codeHash] == null, "contract code has already been deployed before.");
     }
 }
 

@@ -17,4 +17,5 @@ public static class TokenContractConstants
     public const int DELEGATEE_MAX_COUNT = 128;
     public const char NFTSymbolSeparator = '-';
     public const int NFTSymbolMaxLength = 30;
+    public const string UserContractMethodFeeKey = "UserContractMethodFee"; 
 }

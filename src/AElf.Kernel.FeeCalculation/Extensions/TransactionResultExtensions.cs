@@ -10,21 +10,11 @@ public static class TransactionResultExtensions
 {
     public static Dictionary<string, long> GetChargedTransactionFees(this TransactionResult transactionResult)
     {
-        var relatedLogs = transactionResult.Logs.Where(l => l.Name == nameof(TransactionFeeCharged)).ToList();
-        if (!relatedLogs.Any()) return new Dictionary<string, long>();
-        var transactionFeeChargedList = relatedLogs.Select(l => TransactionFeeCharged.Parser.ParseFrom(l.NonIndexed));
-        var result = new Dictionary<string, long>();
-        foreach (var fee in transactionFeeChargedList)
-        {
-            if (result.TryGetValue(fee.Symbol,out var value))
-            {
-                result[fee.Symbol] = value.Add(fee.Amount);
-            }else
-            {
-                result[fee.Symbol] = fee.Amount;
-            }
-        }
-        return result;
+        return transactionResult.Logs
+            .Where(l => l.Name == nameof(TransactionFeeCharged))
+            .Select(l => TransactionFeeCharged.Parser.ParseFrom(l.NonIndexed))
+            .GroupBy(fee => fee.Symbol, fee => fee.Amount)
+            .ToDictionary(g => g.Key, g => g.Sum());
     }
 
     public static Dictionary<string, long> GetConsumedResourceTokens(this TransactionResult transactionResult)

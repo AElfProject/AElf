@@ -88,6 +88,10 @@ service TokenContract {
     // Used to collect transaction fees.
     rpc ChargeTransactionFees (ChargeTransactionFeesInput) returns (ChargeTransactionFeesOutput) {
     }
+    
+    rpc ChargeUserContractTransactionFees(ChargeTransactionFeesInput) returns(ChargeTransactionFeesOutput){
+        
+    }
 
     // Check the token threshold.
     rpc CheckThreshold (CheckThresholdInput) returns (google.protobuf.Empty) {
