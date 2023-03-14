@@ -1,39 +1,36 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Diagnostics.CodeAnalysis;
 using AElf.Kernel.SmartContract;
-using JetBrains.Annotations;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
-using Mono.Cecil.Rocks;
 
-namespace AElf.CSharp.CodeOps.Patchers.Module;
+namespace AElf.CSharp.CodeOps.Patchers.Module.CallAndBranchCounts;
 
-public class ExecutionObserverInjector : IPatcher<ModuleDefinition>
-{
-    public bool SystemContactIgnored => true;
-
-    public void Patch(ModuleDefinition module)
-    {
-        // Check if already injected, do not double inject
-        if (module.Types.Select(t => t.Name).Contains(nameof(ExecutionObserverProxy)))
-            return;
-
-        // ReSharper disable once IdentifierTypo
-        var nmspace = module.Types.Single(m => m.BaseType is TypeDefinition).Namespace;
-
-        var proxyBuilder = new ExecutionObserverProxyBuilder(module, nmspace);
-
-        foreach (var method in module.GetAllTypes().SelectMany(t => t.Methods))
-        {
-            new MethodPatcher(method, proxyBuilder).DoPatch();
-        }
-
-        module.Types.Add(proxyBuilder.ObserverType);
-    }
-}
-
-class ExecutionObserverProxyBuilder
+/// <summary>
+/// // Creates a patch as follows
+/// public static class ExecutionObserverProxy
+/// {
+///     [ThreadStatic]
+///     private static IExecutionObserver _observer;
+///
+///     public static void SetObserver([In] IExecutionObserver observer) => ExecutionObserverProxy._observer = observer;
+///
+///     public static void BranchCount()
+///     {
+///         if (ExecutionObserverProxy._observer == null)
+///             return;
+///         ExecutionObserverProxy._observer.BranchCount();
+///     }
+///
+///     public static void CallCount()
+///     {
+///         if (ExecutionObserverProxy._observer == null)
+///             return;
+///         ExecutionObserverProxy._observer.CallCount();
+///     }
+/// }
+/// </summary>
+internal class Patch
 {
     private readonly ModuleDefinition _hostModule;
     private readonly string _namespace;
@@ -43,7 +40,7 @@ class ExecutionObserverProxyBuilder
     private MethodDefinition _branchCountMethod;
     private MethodDefinition _callCountMethod;
 
-    internal ExecutionObserverProxyBuilder([NotNull] ModuleDefinition hostModule, [NotNull] string namespace_)
+    internal Patch([NotNull] ModuleDefinition hostModule, [NotNull] string namespace_)
     {
         _hostModule = hostModule ?? throw new ArgumentNullException(nameof(hostModule));
         _namespace = namespace_ ?? throw new ArgumentNullException(nameof(namespace_));
@@ -201,68 +198,6 @@ class ExecutionObserverProxyBuilder
             }
 
             return _callCountMethod;
-        }
-    }
-}
-
-class MethodPatcher
-{
-    private readonly ExecutionObserverProxyBuilder _proxyBuilder;
-    private readonly MethodDefinition _method;
-    private bool _alreadyPatched = false;
-    private List<Instruction> _allBranchingInstructions;
-
-    internal MethodPatcher(MethodDefinition method, ExecutionObserverProxyBuilder proxyBuilder)
-    {
-        _method = method;
-        _proxyBuilder = proxyBuilder;
-    }
-
-    private List<Instruction> AllBranchingInstructions
-    {
-        get
-        {
-            if (_allBranchingInstructions == null)
-            {
-                _allBranchingInstructions = _method.Body.Instructions
-                    .Where(i => Constants.JumpingOpCodes.Contains(i.OpCode)).ToList();
-            }
-
-            return _allBranchingInstructions;
-        }
-    }
-
-    public void DoPatch()
-    {
-        if (!_method.HasBody) return;
-        if (_alreadyPatched) return;
-        var processor = _method.Body.GetILProcessor();
-        processor.Body.SimplifyMacros();
-        InsertCallCountAtBeginningOfMethodBody(processor);
-        InsertBranchCountForAllBranches(processor);
-        processor.Body.OptimizeMacros();
-        _alreadyPatched = true;
-    }
-
-    private void InsertCallCountAtBeginningOfMethodBody(ILProcessor processor)
-    {
-        var callCallCountMethod = processor.Create(OpCodes.Call, _proxyBuilder.CallCountMethod);
-        processor.InsertBefore(_method.Body.Instructions.First(), callCallCountMethod);
-    }
-
-    private void InsertBranchCountForAllBranches(ILProcessor processor)
-    {
-        static bool IsValidInstruction(Instruction instruction)
-        {
-            var targetInstruction = (Instruction) instruction.Operand;
-            return targetInstruction.Offset < instruction.Offset; // What does this mean?
-        }
-
-        foreach (var instruction in AllBranchingInstructions.Where(IsValidInstruction))
-        {
-            var jumpingDestination = (Instruction) instruction.Operand;
-            var callBranchCountMethod = processor.Create(OpCodes.Call, _proxyBuilder.BranchCountMethod);
-            processor.InsertAfter(jumpingDestination, callBranchCountMethod);
         }
     }
 }

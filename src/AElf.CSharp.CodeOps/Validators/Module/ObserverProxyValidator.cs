@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using AElf.CSharp.CodeOps.Patchers.Module;
+using AElf.CSharp.CodeOps.Patchers.Module.CallAndBranchCounts;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Volo.Abp.DependencyInjection;
@@ -20,7 +20,7 @@ public class ObserverProxyValidator : IValidator<ModuleDefinition>, ITransientDe
     {
         // Module is only used to construct the type
         var module = AssemblyDefinition.ReadAssembly(typeof(ExecutionObserverProxy).Assembly.Location).MainModule;
-        _counterProxyTypeRef = new ExecutionObserverProxyBuilder(module, "AElf.Reference").ObserverType;
+        _counterProxyTypeRef = new Patch(module, "AElf.Reference").ObserverType;
     }
 
     public bool SystemContactIgnored => true;
