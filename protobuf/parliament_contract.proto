@@ -66,6 +66,16 @@ service ParliamentContract {
     rpc GetNotVotedProposals(ProposalIdList) returns (ProposalIdList){
         option (aelf.is_view) = true;
     }
+
+    // Filter reached release threshold proposals.
+    rpc GetReleaseThresholdReachedProposals(ProposalIdList) returns (ProposalIdList){
+        option (aelf.is_view) = true;
+    }
+
+    // Filter available proposals.
+    rpc GetAvailableProposals(ProposalIdList) returns (ProposalIdList){
+        option (aelf.is_view) = true;
+    }
     
     // Calculates with input and return the organization address.
     rpc CalculateOrganizationAddress(CreateOrganizationInput) returns (aelf.Address){

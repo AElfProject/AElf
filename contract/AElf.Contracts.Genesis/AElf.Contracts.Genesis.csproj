@@ -1,5 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
-    <Import Project="..\..\common.props"/>
+    <Import Project="..\..\common.props" />
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
         <PackageId>AElf.Contracts.Genesis</PackageId>
@@ -46,6 +46,9 @@
         </ContractReference>
         <ContractReference Include="..\..\protobuf\token_contract.proto">
             <Link>Protobuf\Proto\reference\token_contract.proto</Link>
+        </ContractReference>
+        <ContractReference Include="..\..\protobuf\aedpos_contract.proto">
+            <Link>Protobuf\Proto\reference\aedpos_contract.proto</Link>
         </ContractReference>
     </ItemGroup>
 </Project>

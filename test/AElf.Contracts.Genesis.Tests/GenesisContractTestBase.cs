@@ -86,7 +86,7 @@ public class BasicContractZeroTestBase : TestBase.ContractTestBase<BasicContract
 
     protected Address AnotherMinerAddress => Address.FromPublicKey(AnotherMinerKeyPair.PublicKey);
 
-    protected void StartSideChain()
+    protected void StartSideChain(string sideChainSymbol = "STA")
     {
         var chainId = ChainHelper.ConvertBase58ToChainId("Side");
         var mainChainId = Tester.GetChainAsync().Result.Id;
@@ -95,7 +95,7 @@ public class BasicContractZeroTestBase : TestBase.ContractTestBase<BasicContract
         AsyncHelper.RunSync(() =>
             SideChainTester.InitialCustomizedChainAsync(chainId,
                 configureSmartContract: SideChainTester.GetSideChainSystemContract(
-                    SideChainTester.GetCallOwnerAddress(), mainChainId, "STA", out TotalSupply,
+                    SideChainTester.GetCallOwnerAddress(), mainChainId, sideChainSymbol, out TotalSupply,
                     SideChainTester.GetCallOwnerAddress())));
         SideBasicContractZeroAddress = SideChainTester.GetZeroContractAddress();
         SideTokenContractAddress = SideChainTester.GetContractAddress(TokenSmartContractAddressNameProvider.Name);
@@ -104,7 +104,7 @@ public class BasicContractZeroTestBase : TestBase.ContractTestBase<BasicContract
 
         SideChainMinerTester = SideChainTester.CreateNewContractTester(SideChainTester.InitialMinerList.First());
     }
-
+    
     protected async Task ApproveWithMinersAsync(
         ContractTester<BasicContractZeroTestAElfModule> tester, Address parliamentContract, Hash proposalId)
     {
