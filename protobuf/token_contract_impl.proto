@@ -238,3 +238,9 @@ message DeveloperFeeController {
     // The developer organization of members.
     AuthorityInfo developer_controller = 3;
 }
+
+enum SymbolType {
+    TOKEN = 0;
+    NFT = 1;
+    NFT_COLLECTION = 2;
+}

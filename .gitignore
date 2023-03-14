@@ -304,7 +304,7 @@ scripts/patcher/*
 
 tools
 .dotnet
-!.idea/
+.idea/.idea.AElf.All/*
 .idea/.idea.AElf/.idea/contentModel.xml
 .idea/.idea.AElf/.idea/encodings.xml
 .idea/.idea.AElf/.idea/indexLayout.xml

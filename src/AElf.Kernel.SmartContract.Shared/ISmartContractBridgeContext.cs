@@ -48,8 +48,14 @@ public interface ISmartContractBridgeContext
     bool VerifySignature(Transaction tx);
 
     void DeployContract(Address address, SmartContractRegistration registration, Hash name);
-
+    
     void UpdateContract(Address address, SmartContractRegistration registration, Hash name);
+    
+    ContractInfoDto DeploySmartContract(Address address, SmartContractRegistration registration,Hash name);
+
+    ContractInfoDto UpdateSmartContract(Address address, SmartContractRegistration registration, Hash name, string previousContractVersion);
+
+    ContractVersionCheckDto CheckContractVersion(string previousContractVersion, SmartContractRegistration registration);
 
     T Call<T>(Address fromAddress, Address toAddress, string methodName, ByteString args)
         where T : IMessage<T>, new();

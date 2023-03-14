@@ -43,9 +43,9 @@ public sealed class ExecutionPluginForMethodFeeTest : ExecutionPluginForMethodFe
     private async Task DeployTestContractAsync()
     {
         var category = KernelConstants.CodeCoverageRunnerCategory;
-        var code = Codes.Single(kv => kv.Key.Contains("TestContract")).Value;
+        var code = Codes.Single(kv => kv.Key.Contains("ExecutionPluginForMethodFee.Tests.TestContract")).Value;
         _testContractAddress = await DeploySystemSmartContract(category, code,
-            HashHelper.ComputeFrom("TestContract"),
+            HashHelper.ComputeFrom("ExecutionPluginForMethodFee.Tests.TestContract"),
             DefaultSenderKeyPair);
         _testContractStub =
             GetTester<ContractContainer.ContractStub>(_testContractAddress, DefaultSenderKeyPair);
@@ -123,6 +123,7 @@ public sealed class ExecutionPluginForMethodFeeTest : ExecutionPluginForMethodFe
         transactions[0].From.ShouldBe(DefaultSender);
         transactions[0].To.ShouldBe(await GetTokenContractAddressAsync());
     }
+    
 
     private I GetCreateInstance<I, T>() where T : I
     {
@@ -262,6 +263,8 @@ public sealed class ExecutionPluginForMethodFeeTest : ExecutionPluginForMethodFe
 
         var dummy = await _testContractStub.DummyMethod.SendAsync(new Empty()); // This will deduct the fee
         dummy.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        var chargingAddress = GetChargingAddress(dummy.TransactionResult);
+        chargingAddress.ShouldContain(dummy.Transaction.From);
 
         var transactionFeeDic = dummy.TransactionResult.GetChargedTransactionFees();
         await CheckTransactionFeesMapAsync(transactionFeeDic);
@@ -272,6 +275,12 @@ public sealed class ExecutionPluginForMethodFeeTest : ExecutionPluginForMethodFe
             Symbol = "ELF"
         });
         after.Balance.ShouldBe(before.Balance - transactionFeeDic[before.Symbol]);
+    }
+    
+    private static List<Address> GetChargingAddress(TransactionResult transactionResult)
+    {
+        var relatedLogs = transactionResult.Logs.Where(l => l.Name == nameof(TransactionFeeCharged)).ToList();
+        return relatedLogs.Select(l => TransactionFeeCharged.Parser.ParseFrom(l.Indexed[0]).ChargingAddress).ToList();
     }
 
     private async Task CheckTransactionFeesMapAsync(Dictionary<string, long> transactionFeeDic)

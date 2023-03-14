@@ -1,4 +1,5 @@
 using AElf.Contracts.Association;
+using AElf.Contracts.Configuration;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.Parliament;
 using AElf.Contracts.Referendum;
@@ -13,4 +14,6 @@ public partial class TokenContractState
     internal ReferendumContractContainer.ReferendumContractReferenceState ReferendumContract { get; set; }
     internal AEDPoSContractContainer.AEDPoSContractReferenceState ConsensusContract { get; set; }
     internal DividendPoolContractContainer.DividendPoolContractReferenceState DividendPoolContract { get; set; }
+    
+    internal ConfigurationContainer.ConfigurationReferenceState ConfigurationContract { get; set; }
 }

@@ -13,7 +13,7 @@ public abstract class SmartContractExecutionPluginBase
         _acsSymbol = acsSymbol;
     }
 
-    protected bool IsTargetAcsSymbol(IReadOnlyList<ServiceDescriptor> descriptors)
+    protected bool HasApplicableAcs(IReadOnlyList<ServiceDescriptor> descriptors)
     {
         return descriptors.Any(service => service.File.GetIdentity() == _acsSymbol);
     }

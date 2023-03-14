@@ -15,14 +15,16 @@ public partial class TokenContract
 {
     private static bool IsValidSymbolChar(char character)
     {
-        return (character >= 'A' && character <= 'Z') || (character >= '0' && character <= '9');
+        return (character >= 'A' && character <= 'Z') || (character >= '0' && character <= '9') || character == TokenContractConstants.NFTSymbolSeparator;
+    }
+
+    private bool IsValidItemIdChar(char character)
+    {
+        return character >= '0' && character <= '9';
     }
 
     private bool IsValidCreateSymbolChar(char character)
     {
-        if (State.CreateTokenWhiteListMap[Context.Sender])
-            return (character >= 'A' && character <= 'Z') || (character >= '0' && character <= '9');
-
         return character >= 'A' && character <= 'Z';
     }
 
@@ -98,7 +100,7 @@ public partial class TokenContract
     {
         return freeAllowances?.Value.FirstOrDefault(a => a.Symbol == symbol);
     }
-    
+
     private long GetFreeFeeAllowanceAmount(MethodFeeFreeAllowances freeAllowances, string symbol)
     {
         var existingAllowance = 0L;
@@ -187,16 +189,16 @@ public partial class TokenContract
         return tokenInfo.IssueChainId;
     }
 
-    private void AssertValidCreateInput(CreateInput input)
+    private void AssertValidCreateInput(CreateInput input, SymbolType symbolType)
     {
-        var isValid = input.TokenName.Length <= TokenContractConstants.TokenNameLength
-                      && input.Symbol.Length > 0
-                      && input.Decimals >= 0
-                      && input.Decimals <= TokenContractConstants.MaxDecimals;
-        if (!State.CreateTokenWhiteListMap[Context.Sender])
-            isValid = isValid && input.Symbol.Length <= TokenContractConstants.SymbolMaxLength;
-
-        Assert(isValid, "Invalid input.");
+        Assert(input.TokenName.Length <= TokenContractConstants.TokenNameLength
+               && input.Symbol.Length > 0
+               && input.Decimals >= 0
+               && input.Decimals <= TokenContractConstants.MaxDecimals, "Invalid input.");
+        if (symbolType == SymbolType.Token)
+            Assert(input.Symbol.Length <= TokenContractConstants.SymbolMaxLength, "Invalid token symbol length");
+        if (symbolType == SymbolType.Nft || symbolType == SymbolType.NftCollection)
+            Assert(input.Symbol.Length <= TokenContractConstants.NFTSymbolMaxLength, "Invalid NFT symbol length");
     }
 
     private void CheckCrossChainTokenContractRegistrationControllerAuthority()

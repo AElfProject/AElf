@@ -46,6 +46,30 @@ service ACS0 {
     // Release the proposal which has passed the code check.
     rpc ReleaseCodeCheckedContract (ReleaseContractInput) returns (google.protobuf.Empty) {
     }
+
+    // Deploy a user smart contract on chain and return the hash of the contract code.
+    rpc DeployUserSmartContract (ContractDeploymentInput) returns (DeployUserSmartContractOutput) {
+    }
+
+    // Update a user smart contract on chain.
+    rpc UpdateUserSmartContract (ContractUpdateInput) returns (google.protobuf.Empty) {
+    }
+
+    // Release the proposal which has passed the code check.
+    rpc ReleaseApprovedUserSmartContract(ReleaseContractInput) returns (google.protobuf.Empty) {
+    }
+
+    // Perform user contract deployment.
+    rpc PerformDeployUserSmartContract(ContractDeploymentInput) returns (aelf.Address) {
+    }
+
+    // Perform user contract update.
+    rpc PerformUpdateUserSmartContract(ContractUpdateInput) returns (google.protobuf.Empty) {
+    }
+
+    // Set author of the specified contract.
+    rpc SetContractAuthor (SetContractAuthorInput) returns (google.protobuf.Empty) {
+    }
     
     // Validate whether the input system contract exists.
     rpc ValidateSystemContractAddress(ValidateSystemContractAddressInput) returns (google.protobuf.Empty){
@@ -110,6 +134,7 @@ message ContractInfo
     bool is_system_contract = 5;
     // The version of the current contract.
     int32 version = 6;
+    string contract_version = 7;
 }
 
 message ContractDeploymentInput {
@@ -183,6 +208,7 @@ message ContractDeployed
     int32 version = 4;
     // The name of the contract. It has to be unique.
     aelf.Hash Name = 5;
+    string contract_version = 6;
 }
 
 message CodeCheckRequired
@@ -196,6 +222,8 @@ message CodeCheckRequired
     sint32 category = 3;
     // Indicates if the contract is the system contract.
     bool is_system_contract = 4;
+    // Indicates if the contract is the user contract.
+    bool is_user_contract = 5;
 }
 
 message CodeUpdated
@@ -209,6 +237,18 @@ message CodeUpdated
     aelf.Hash new_code_hash = 3;
     // The version of the current contract.
     int32 version = 4;
+    string contract_version = 5;
+}
+
+message AuthorUpdated
+{
+    option (aelf.is_event) = true;
+    // The address of the contract.
+    aelf.Address address = 1 [(aelf.is_indexed) = true];
+    // The old author of the contract.
+    aelf.Address old_author = 2;
+    // The new author of the contract.
+    aelf.Address new_author = 3;
 }
 
 message ValidateSystemContractAddressInput {
@@ -231,4 +271,13 @@ message ContractCodeHashList {
 
 message ContractCodeHashMap {
     map<int64, ContractCodeHashList> value = 1;
+}
+
+message SetContractAuthorInput{
+    aelf.Address contract_address = 1;
+    aelf.Address new_author = 2;
+}
+
+message DeployUserSmartContractOutput{
+    aelf.Hash code_hash = 1;
 }
