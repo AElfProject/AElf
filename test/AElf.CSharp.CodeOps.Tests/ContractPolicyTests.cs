@@ -5,6 +5,7 @@ using System.Threading;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
 using AElf.CSharp.CodeOps.Patchers.Module;
+using AElf.CSharp.CodeOps.Patchers.Module.SafeMethods;
 using AElf.CSharp.CodeOps.Validators;
 using AElf.CSharp.CodeOps.Validators.Method;
 using AElf.CSharp.CodeOps.Validators.Module;
@@ -110,7 +111,7 @@ public class ContractPolicyTests : CSharpCodeOpsTestBase
     private static byte[] InjectCallReplacerCode(byte[] code)
     {
         var asm = AssemblyDefinition.ReadAssembly(new MemoryStream(code));
-        var patcher = new MethodCallReplacer();
+        var patcher = new StringMethodsReplacer();
         patcher.Patch(asm.MainModule);
 
         var newCode = new MemoryStream();
