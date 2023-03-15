@@ -1,4 +1,6 @@
 using System.Text;
+using AElf.Sdk.CSharp;
+using Google.Protobuf;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
@@ -22,10 +24,10 @@ public class CSharpCodeOpsTestBase
     protected AssemblyDefinition CompileToAssemblyDefinition(string source)
     {
         var bytes = CompileAssembly(source);
-        using var stream = new MemoryStream(bytes);
+        var stream = new MemoryStream(bytes);
         var asm = AssemblyDefinition.ReadAssembly(stream);
         var module = asm.MainModule;
-        foreach (var methodDefinition in module.GetAllTypes().SelectMany(t=>t.Methods))
+        foreach (var methodDefinition in module.GetAllTypes().SelectMany(t => t.Methods))
         {
             if (methodDefinition.HasBody)
             {
@@ -37,7 +39,7 @@ public class CSharpCodeOpsTestBase
         return asm;
     }
 
-    private byte[] CompileAssembly(string source)
+    protected byte[] CompileAssembly(string source)
     {
         var tree = SyntaxFactory.ParseSyntaxTree(source.Trim());
         var compilation = CSharpCompilation.Create("__Code__")
@@ -79,6 +81,7 @@ public class CSharpCodeOpsTestBase
     static CSharpCodeOpsTestBase()
     {
         AddNetCoreDefaultReferences();
+        AddSmartContractReferences();
     }
 
     public static bool AddAssembly(string assemblyDll)
@@ -142,5 +145,11 @@ public class CSharpCodeOpsTestBase
             rtPath + "System.Collections.NonGeneric.dll",
             rtPath + "Microsoft.CSharp.dll"
         );
+    }
+
+    private static void AddSmartContractReferences()
+    {
+        AddAssembly(typeof(CSharpSmartContract).Assembly.Location);
+        AddAssembly(typeof(IMessage).Assembly.Location);
     }
 }
