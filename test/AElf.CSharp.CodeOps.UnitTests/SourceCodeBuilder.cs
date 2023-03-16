@@ -4,6 +4,7 @@ internal class SourceCodeBuilder
 {
     private readonly string _namespace;
     private readonly string _contractTypeName = "Contract";
+    private readonly string _stateTypeName = "StateType";
     private readonly List<string> _otherClasses = new();
     private readonly List<string> _classesNestedInContract = new();
     private readonly List<string> _stateFields = new();
@@ -41,6 +42,7 @@ internal class SourceCodeBuilder
     }
 
     internal string ContractTypeFullName => $"{_namespace}.{_contractTypeName}";
+    internal string StateTypeName => _stateTypeName;
 
     private string NestedClassesCode => _classesNestedInContract.JoinAsString("\n");
     private string OtherClassesCode => _otherClasses.JoinAsString("\n");
@@ -58,7 +60,7 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace " + _namespace + @"
 {
-    public class State : ContractState
+    public class " + _stateTypeName + @" : ContractState
     {
 
 " + StateFieldsCode + @"
@@ -67,7 +69,7 @@ namespace " + _namespace + @"
 
     public class Container
     {
-        public class ContractBase : AElf.Sdk.CSharp.CSharpSmartContract<State>
+        public class ContractBase : AElf.Sdk.CSharp.CSharpSmartContract<" + _stateTypeName + @">
         {
         }
     }
