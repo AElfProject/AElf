@@ -13,7 +13,7 @@ namespace AElf.Contracts.Genesis;
 public partial class BasicContractZero
 {
     private Address DeploySmartContract(Hash name, int category, byte[] code, bool isSystemContract,
-        Address author)
+        Address author, bool isUserContract)
     {
         if (name != null)
             Assert(State.NameAddressMapping[name] == null, "contract name has already been registered before");
@@ -33,7 +33,8 @@ public partial class BasicContractZero
             Category = category,
             CodeHash = codeHash,
             IsSystemContract = isSystemContract,
-            Version = 1
+            Version = 1,
+            IsUserContract = isUserContract
         };
 
         var reg = new SmartContractRegistration
@@ -43,7 +44,8 @@ public partial class BasicContractZero
             CodeHash = codeHash,
             IsSystemContract = info.IsSystemContract,
             Version = info.Version,
-            ContractAddress = contractAddress
+            ContractAddress = contractAddress,
+            IsUserContract = isUserContract
         };
 
         var contractInfo = Context.DeploySmartContract(contractAddress, reg, name);
@@ -78,7 +80,7 @@ public partial class BasicContractZero
         return contractAddress;
     }
     
-    private void UpdateSmartContract(Address contractAddress, byte[] code, Address author)
+    private void UpdateSmartContract(Address contractAddress, byte[] code, Address author, bool isUserContract)
     {
         var info = State.ContractInfos[contractAddress];
         Assert(info != null, "Contract not found.");
@@ -90,6 +92,7 @@ public partial class BasicContractZero
         AssertContractExists(newCodeHash);
 
         info.CodeHash = newCodeHash;
+        info.IsUserContract = isUserContract;
         info.Version++;
 
         var reg = new SmartContractRegistration
@@ -99,7 +102,8 @@ public partial class BasicContractZero
             CodeHash = newCodeHash,
             IsSystemContract = info.IsSystemContract,
             Version = info.Version,
-            ContractAddress = contractAddress
+            ContractAddress = contractAddress,
+            IsUserContract = isUserContract
         };
         
         var contractInfo = Context.UpdateSmartContract(contractAddress, reg, null, info.ContractVersion);

@@ -1,6 +1,8 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.Parliament;
+using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.CodeCheck.Application;
 using AElf.Kernel.Configuration;
 using AElf.Kernel.Proposal;
 using AElf.Kernel.Proposal.Infrastructure;
@@ -28,6 +30,7 @@ public class CodeCheckTestAElfModule : AElfModule
         context.Services.RemoveAll<IProposalProvider>();
         context.Services.AddSingleton<IProposalProvider, ProposalProvider>();
         context.Services.AddSingleton<ILogEventProcessor, CodeCheckRequiredLogEventProcessor>();
+        context.Services.AddSingleton<IBlockValidationProvider, CodeCheckValidationProvider>();
         Configure<CodeCheckOptions>(options => { options.CodeCheckEnabled = true; });
         context.Services.AddTransient(provider =>
         {
@@ -137,6 +140,55 @@ public class CodeCheckTestAElfModule : AElfModule
                             ExecutionStatus = ExecutionStatus.Executed,
                             ReturnValue = new ContractInfo().ToByteString()
                         });
+                    }
+
+                    if (txn.MethodName == nameof(ACS0Container.ACS0Stub.GetContractCodeHashListByDeployingBlockHeight))
+                    {
+                        var height = Int64Value.Parser.ParseFrom(txn.Params).Value;
+                        switch (height)
+                        {
+                            case 2:
+                                return Task.FromResult(new TransactionTrace
+                                {
+                                    ExecutionStatus = ExecutionStatus.Executed,
+                                    ReturnValue = new ContractCodeHashList().ToByteString()
+                                });
+                            case 3:
+                            case 4:
+                                return Task.FromResult(new TransactionTrace
+                                {
+                                    ExecutionStatus = ExecutionStatus.Executed,
+                                    ReturnValue = new ContractCodeHashList{Value = { HashHelper.ComputeFrom(height) }}.ToByteString()
+                                });
+                        }
+                    }
+                    
+                    if (txn.MethodName == nameof(ACS0Container.ACS0Stub.GetSmartContractRegistrationByCodeHash))
+                    {
+                        var codeHash = Hash.Parser.ParseFrom(txn.Params);
+                        if (codeHash == HashHelper.ComputeFrom(3L))
+                        {
+                            return Task.FromResult(new TransactionTrace
+                            {
+                                ExecutionStatus = ExecutionStatus.Executed,
+                                ReturnValue = new SmartContractRegistration
+                                {
+                                    Category = CodeCheckConstant.SuccessAudit
+                                }.ToByteString()
+                            });
+                        }
+                        
+                        if (codeHash == HashHelper.ComputeFrom(4L))
+                        {
+                            return Task.FromResult(new TransactionTrace
+                            {
+                                ExecutionStatus = ExecutionStatus.Executed,
+                                ReturnValue = new SmartContractRegistration
+                                {
+                                    Category = CodeCheckConstant.FailAudit
+                                }.ToByteString()
+                            });
+                        }
                     }
 
                     return null;
