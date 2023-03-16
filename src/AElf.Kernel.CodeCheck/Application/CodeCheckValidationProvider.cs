@@ -80,7 +80,7 @@ internal class CodeCheckValidationProvider : IBlockValidationProvider
                 continue;
             }
 
-            Logger.LogWarning("Code check validate failed. block hash: {BlockHash}, code hash: {CodeHash}", blockHash,
+            Logger.LogWarning("Code check validate failed. block hash: {BlockHash}, code hash: {CodeHash}", blockHash.ToHex(),
                 codeHash.ToHex());
             return false;
         }
