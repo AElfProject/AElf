@@ -54,13 +54,7 @@ internal class CodeCheckValidationProvider : IBlockValidationProvider
             BlockHeight = block.Header.Height,
             ContractAddress = genesisContractAddress
         }).GetContractCodeHashListByDeployingBlockHeight.CallAsync(new Int64Value { Value = block.Header.Height });
-
-        if (codeHashList == null || !codeHashList.Value.Any())
-        {
-            Logger.LogDebug("CodeHashList is empty.");
-            return true;
-        }
-
+        
         foreach (var codeHash in codeHashList.Value)
         {
             if (_checkedCodeHashProvider.IsCodeHashExists(new BlockIndex
