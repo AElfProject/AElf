@@ -388,6 +388,275 @@ public class Contract : Container.ContractBase
         DoTest(states, method, expectedContractCode);
     }
 
+    [Fact]
+    public void Patched_ReadonlyState_And_SingletonState_And_MappedState_In_Separate_Class()
+    {
+        var states = @"
+        public ReadonlyState<StringValue> ReadonlyFoo { get; set; }
+        public SingletonState<StringValue> SingletonFoo { get; set; }
+        public MappedState<int, int, int, int, StringValue> MappedFoo { get; set; }
+";
+
+        var classSource = @"
+public class AnotherClass {
+    public void Update(StateType state)
+    {
+        state.ReadonlyFoo.Value = new StringValue(){
+            Value = ""abc""
+        };
+        state.SingletonFoo.Value = new StringValue(){
+            Value = ""abc""
+        };
+        state.MappedFoo[1][2][3][4] = new StringValue(){
+            Value = ""abc""
+        };
+    }
+}
+";
+
+        var expectedContractCode = @"using AElf.Sdk.CSharp;
+using AElf.Sdk.CSharp.State;
+using Google.Protobuf.WellKnownTypes;
+
+namespace TestContract;
+
+public class AnotherClass
+{
+	public void Update (StateType state)
+	{
+		ReadonlyState<StringValue> readonlyFoo = state.ReadonlyFoo;
+		object obj = new StringValue {
+			Value = ""abc""
+		};
+		readonlyFoo.Value = (StringValue)((CSharpSmartContractAbstract)this).Context.ValidateStateSize (obj);
+
+		SingletonState<StringValue> singletonFoo = state.SingletonFoo;
+		object obj2 = new StringValue {
+			Value = ""abc""
+		};
+		singletonFoo.Value = (StringValue)((CSharpSmartContractAbstract)this).Context.ValidateStateSize (obj2);
+
+		MappedState<int, StringValue> mappedState = state.MappedFoo [1] [2] [3];
+		object obj3 = new StringValue {
+			Value = ""abc""
+		};
+		mappedState [4] = (StringValue)((CSharpSmartContractAbstract)this).Context.ValidateStateSize (obj3);
+	}
+}
+";
+        var builder = new SourceCodeBuilder("TestContract")
+            .AddStateField(states)
+            .AddClass(classSource);
+        var asm = CompileToAssemblyDefinition(builder.Build());
+        var module = asm.MainModule;
+        ApplyPatch(module);
+        var patchedCode =
+            DecompileType(module.GetAllTypes().Single(t => t.Name == "AnotherClass"));
+        Assert.Equal(expectedContractCode.CleanCode(), patchedCode.CleanCode());
+    }
+
+    
+    [Fact]
+    public void Patched_ReadonlyState_And_SingletonState_And_MappedState_In_Separate_Class_Static_Method()
+    {
+        var states = @"
+        public ReadonlyState<StringValue> ReadonlyFoo { get; set; }
+        public SingletonState<StringValue> SingletonFoo { get; set; }
+        public MappedState<int, int, int, int, StringValue> MappedFoo { get; set; }
+";
+
+        var classSource = @"
+public class AnotherClass {
+    public static void Update(StateType state)
+    {
+        state.ReadonlyFoo.Value = new StringValue(){
+            Value = ""abc""
+        };
+        state.SingletonFoo.Value = new StringValue(){
+            Value = ""abc""
+        };
+        state.MappedFoo[1][2][3][4] = new StringValue(){
+            Value = ""abc""
+        };
+    }
+}
+";
+
+        var expectedContractCode = @"using AElf.Sdk.CSharp;
+using AElf.Sdk.CSharp.State;
+using Google.Protobuf.WellKnownTypes;
+
+namespace TestContract;
+
+public class AnotherClass
+{
+	public static void Update (StateType state)
+	{
+		ReadonlyState<StringValue> readonlyFoo = state.ReadonlyFoo;
+		object obj = new StringValue {
+			Value = ""abc""
+		};
+		readonlyFoo.Value = (StringValue)((CSharpSmartContractAbstract)(object)state).Context.ValidateStateSize (obj);
+		SingletonState<StringValue> singletonFoo = state.SingletonFoo;
+		object obj2 = new StringValue {
+			Value = ""abc""
+		};
+		singletonFoo.Value = (StringValue)((CSharpSmartContractAbstract)(object)state).Context.ValidateStateSize (obj2);
+		MappedState<int, StringValue> mappedState = state.MappedFoo [1] [2] [3];
+		object obj3 = new StringValue {
+			Value = ""abc""
+		};
+		mappedState [4] = (StringValue)((CSharpSmartContractAbstract)(object)state).Context.ValidateStateSize (obj3);
+	}
+}
+";
+        var builder = new SourceCodeBuilder("TestContract")
+            .AddStateField(states)
+            .AddClass(classSource);
+        var asm = CompileToAssemblyDefinition(builder.Build());
+        var module = asm.MainModule;
+        ApplyPatch(module);
+        var patchedCode =
+            DecompileType(module.GetAllTypes().Single(t => t.Name == "AnotherClass"));
+        Assert.Equal(expectedContractCode.CleanCode(), patchedCode.CleanCode());
+    }
+    
+    [Fact]
+    public void Patched_ReadonlyState_And_SingletonState_And_MappedState_In_Separate_Class_Extension_Method()
+    {
+        var states = @"
+        public ReadonlyState<StringValue> ReadonlyFoo { get; set; }
+        public SingletonState<StringValue> SingletonFoo { get; set; }
+        public MappedState<int, int, int, int, StringValue> MappedFoo { get; set; }
+";
+
+        var classSource = @"
+public static class AnotherClass {
+    public static void Update(this StateType state)
+    {
+        state.ReadonlyFoo.Value = new StringValue(){
+            Value = ""abc""
+        };
+        state.SingletonFoo.Value = new StringValue(){
+            Value = ""abc""
+        };
+        state.MappedFoo[1][2][3][4] = new StringValue(){
+            Value = ""abc""
+        };
+    }
+}
+";
+
+        var expectedContractCode = @"using AElf.Sdk.CSharp;
+using AElf.Sdk.CSharp.State;
+using Google.Protobuf.WellKnownTypes;
+
+namespace TestContract;
+
+public static class AnotherClass
+{
+	public static void Update (this StateType state)
+	{
+		ReadonlyState<StringValue> readonlyFoo = state.ReadonlyFoo;
+		object obj = new StringValue {
+			Value = ""abc""
+		};
+		readonlyFoo.Value = (StringValue)((CSharpSmartContractAbstract)(object)state).Context.ValidateStateSize (obj);
+		SingletonState<StringValue> singletonFoo = state.SingletonFoo;
+		object obj2 = new StringValue {
+			Value = ""abc""
+		};
+		singletonFoo.Value = (StringValue)((CSharpSmartContractAbstract)(object)state).Context.ValidateStateSize (obj2);
+		MappedState<int, StringValue> mappedState = state.MappedFoo [1] [2] [3];
+		object obj3 = new StringValue {
+			Value = ""abc""
+		};
+		mappedState [4] = (StringValue)((CSharpSmartContractAbstract)(object)state).Context.ValidateStateSize (obj3);
+	}
+}
+";
+        var builder = new SourceCodeBuilder("TestContract")
+            .AddStateField(states)
+            .AddClass(classSource);
+        var asm = CompileToAssemblyDefinition(builder.Build());
+        var module = asm.MainModule;
+        ApplyPatch(module);
+        var patchedCode =
+            DecompileType(module.GetAllTypes().Single(t => t.Name == "AnotherClass"));
+        Assert.Equal(expectedContractCode.CleanCode(), patchedCode.CleanCode());
+    }
+    
+    [Fact]
+    public void Patched_ReadonlyState_And_SingletonState_And_MappedState_In_Nested_Class()
+    {
+        var states = @"
+        public ReadonlyState<StringValue> ReadonlyFoo { get; set; }
+        public SingletonState<StringValue> SingletonFoo { get; set; }
+        public MappedState<int, int, int, int, StringValue> MappedFoo { get; set; }
+";
+
+        var classSource = @"
+public class OuterClass{
+public class AnotherClass {
+    public void Update(StateType state)
+    {
+        state.ReadonlyFoo.Value = new StringValue(){
+            Value = ""abc""
+        };
+        state.SingletonFoo.Value = new StringValue(){
+            Value = ""abc""
+        };
+        state.MappedFoo[1][2][3][4] = new StringValue(){
+            Value = ""abc""
+        };
+    }
+}
+}
+";
+
+        var expectedContractCode = @"using AElf.Sdk.CSharp;
+using AElf.Sdk.CSharp.State;
+using Google.Protobuf.WellKnownTypes;
+
+namespace TestContract;
+
+public class OuterClass
+{
+	public class AnotherClass
+	{
+		public void Update (StateType state)
+		{
+			ReadonlyState<StringValue> readonlyFoo = state.ReadonlyFoo;
+			object obj = new StringValue {
+				Value = ""abc""
+			};
+			readonlyFoo.Value = (StringValue)((CSharpSmartContractAbstract)this).Context.ValidateStateSize (obj);
+
+			SingletonState<StringValue> singletonFoo = state.SingletonFoo;
+			object obj2 = new StringValue {
+				Value = ""abc""
+			};
+			singletonFoo.Value = (StringValue)((CSharpSmartContractAbstract)this).Context.ValidateStateSize (obj2);
+
+			MappedState<int, StringValue> mappedState = state.MappedFoo [1] [2] [3];
+			object obj3 = new StringValue {
+				Value = ""abc""
+			};
+			mappedState [4] = (StringValue)((CSharpSmartContractAbstract)this).Context.ValidateStateSize (obj3);
+		}
+	}
+}
+";
+        var builder = new SourceCodeBuilder("TestContract")
+            .AddStateField(states)
+            .AddClass(classSource);
+        var asm = CompileToAssemblyDefinition(builder.Build());
+        var module = asm.MainModule;
+        ApplyPatch(module);
+        var patchedCode =
+            DecompileType(module.GetAllTypes().Single(t => t.Name == "AnotherClass"));
+        Assert.Equal(expectedContractCode.CleanCode(), patchedCode.CleanCode());
+    }
     #region Private Helpers
 
     private static ModuleDefinition ApplyPatch(ModuleDefinition module)
