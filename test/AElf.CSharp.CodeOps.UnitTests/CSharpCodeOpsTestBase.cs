@@ -1,6 +1,11 @@
 using System.Text;
 using AElf.Sdk.CSharp;
+using AElf.Types;
 using Google.Protobuf;
+using ICSharpCode.Decompiler;
+using ICSharpCode.Decompiler.CSharp;
+using ICSharpCode.Decompiler.Metadata;
+using ICSharpCode.Decompiler.TypeSystem;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
@@ -73,6 +78,25 @@ public class CSharpCodeOpsTestBase
 
             return codeStream.ToArray();
         }
+    }
+
+    protected static string DecompileType(TypeDefinition typ)
+    {
+        using var stream = new MemoryStream();
+        typ.Module.Assembly.Write(stream);
+
+        stream.Seek(0, SeekOrigin.Begin);
+        var peFile = new PEFile("Contract", stream);
+        var resolver = new UniversalAssemblyResolver(
+            typeof(ISmartContract).Assembly.Location, true, ".NETSTANDARD"
+        );
+        resolver.AddSearchDirectory(Path.GetDirectoryName(typeof(object).Assembly.Location));
+        var typeSystem = new DecompilerTypeSystem(peFile, resolver);
+        var decompiler = new CSharpDecompiler(typeSystem, new DecompilerSettings());
+        var fullName = typ.FullName.Replace("/", "+");
+        var syntaxTree = decompiler.DecompileType(new FullTypeName(fullName));
+        var decompiled = syntaxTree.ToString().Replace("\r\n", "\n");
+        return decompiled;
     }
 
     public static HashSet<PortableExecutableReference> References { get; set; } =
@@ -151,5 +175,7 @@ public class CSharpCodeOpsTestBase
     {
         AddAssembly(typeof(CSharpSmartContract).Assembly.Location);
         AddAssembly(typeof(IMessage).Assembly.Location);
+        AddAssembly(typeof(Address).Assembly.Location);
+        AddAssembly(typeof(AElf.CSharp.Core.IMethod).Assembly.Location);
     }
 }

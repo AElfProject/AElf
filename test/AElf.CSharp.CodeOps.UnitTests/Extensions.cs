@@ -8,6 +8,7 @@ public static class Extensions
     {
         var code = originalCode.Replace("\r\n", "\n");
         code = Regex.Replace(code, "\n+", "\n", RegexOptions.Multiline);
+        code = Regex.Replace(code, "\\s+", "\\s");
         return code.Trim();
     }
 }

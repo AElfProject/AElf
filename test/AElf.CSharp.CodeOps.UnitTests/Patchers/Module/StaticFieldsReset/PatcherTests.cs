@@ -325,24 +325,7 @@ public class Contract : Container.ContractBase
         return module;
     }
 
-    private static string DecompileType(TypeDefinition typ)
-    {
-        using var stream = new MemoryStream();
-        typ.Module.Assembly.Write(stream);
-        
-        stream.Seek(0, SeekOrigin.Begin);
-        var peFile = new PEFile("Contract", stream);
-        var resolver = new UniversalAssemblyResolver(
-            typeof(ISmartContract).Assembly.Location, true, ".NETSTANDARD"
-        );
-        resolver.AddSearchDirectory(Path.GetDirectoryName(typeof(object).Assembly.Location));
-        var typeSystem = new DecompilerTypeSystem(peFile, resolver);
-        var decompiler = new CSharpDecompiler(typeSystem, new DecompilerSettings());
-        var fullName = typ.FullName.Replace("/", "+");
-        var syntaxTree = decompiler.DecompileType(new FullTypeName(fullName));
-        var decompiled = syntaxTree.ToString().Replace("\r\n", "\n");
-        return decompiled;
-    }
+
 
     #endregion
 }
