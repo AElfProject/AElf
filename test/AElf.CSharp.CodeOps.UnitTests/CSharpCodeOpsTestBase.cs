@@ -104,7 +104,7 @@ public class CSharpCodeOpsTestBase
 
     static CSharpCodeOpsTestBase()
     {
-        AddNetCoreDefaultReferences();
+        AddNet6References();
         AddSmartContractReferences();
     }
 
@@ -145,30 +145,12 @@ public class CSharpCodeOpsTestBase
     }
 
 
-    public static void AddNetCoreDefaultReferences()
+    public static void AddNet6References()
     {
-        var rtPath = Path.GetDirectoryName(typeof(object).Assembly.Location) +
-                     Path.DirectorySeparatorChar;
-
-        AddAssemblies(
-            rtPath + "System.Private.CoreLib.dll",
-            rtPath + "System.Runtime.dll",
-            rtPath + "System.Console.dll",
-            rtPath + "netstandard.dll",
-            rtPath + "System.Text.RegularExpressions.dll", // IMPORTANT!
-            rtPath + "System.Linq.dll",
-            rtPath + "System.Linq.Expressions.dll", // IMPORTANT!
-            rtPath + "System.IO.dll",
-            rtPath + "System.Net.Primitives.dll",
-            rtPath + "System.Net.Http.dll",
-            rtPath + "System.Private.Uri.dll",
-            rtPath + "System.Reflection.dll",
-            rtPath + "System.ComponentModel.Primitives.dll",
-            rtPath + "System.Globalization.dll",
-            rtPath + "System.Collections.Concurrent.dll",
-            rtPath + "System.Collections.NonGeneric.dll",
-            rtPath + "Microsoft.CSharp.dll"
-        );
+        foreach (var portableExecutableReference in Basic.Reference.Assemblies.Net60.References.All)
+        {
+            References.Add(portableExecutableReference);
+        }
     }
 
     private static void AddSmartContractReferences()
