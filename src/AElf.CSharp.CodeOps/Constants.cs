@@ -18,19 +18,24 @@ public static class Constants
         OpCodes.Bge_Un_S,
         OpCodes.Bgt,
         OpCodes.Bgt_S,
+        OpCodes.Bgt_Un,
+        OpCodes.Bgt_Un_S,
         OpCodes.Ble,
         OpCodes.Ble_S,
         OpCodes.Ble_Un,
+        OpCodes.Ble_Un_S,
         OpCodes.Blt,
         OpCodes.Blt_S,
+        OpCodes.Blt_Un,
+        OpCodes.Blt_Un_S,
         OpCodes.Bne_Un,
         OpCodes.Bne_Un_S,
         OpCodes.Br,
+        OpCodes.Br_S,
         OpCodes.Brfalse,
         OpCodes.Brfalse_S,
         OpCodes.Brtrue,
         OpCodes.Brtrue_S,
-        OpCodes.Br_S
     };
 
     public static readonly HashSet<string> PrimitiveTypes = new()
