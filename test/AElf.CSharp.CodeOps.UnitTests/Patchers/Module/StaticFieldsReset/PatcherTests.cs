@@ -1,16 +1,13 @@
-using ICSharpCode.Decompiler;
-using ICSharpCode.Decompiler.CSharp;
-using ICSharpCode.Decompiler.Metadata;
-using ICSharpCode.Decompiler.TypeSystem;
+using AElf.CSharp.CodeOps.Patchers.Module;
 using Mono.Cecil;
 using Mono.Cecil.Rocks;
 using Xunit;
 
-namespace AElf.CSharp.CodeOps.Patchers.Module.StaticFieldsReset;
+namespace AElf.CSharp.CodeOps.UnitTests.Patchers.Module.StaticFieldsReset;
 
 public class PatcherTests : CSharpCodeOpsTestBase
 {
-    [Fact]
+	[Fact]
     public void Patch_Separate_Class()
     {
         var anotherClass = @"
@@ -55,9 +52,6 @@ public class AnotherClass
 
 	public static void ResetFields ()
 	{
-		//IL_0018: Expected I8, but got I4
-		//IL_002a: Expected I8, but got I4
-		//IL_0030: Expected O, but got I4
 		a = 0;
 		b = 0;
 		c = 0;
@@ -65,7 +59,7 @@ public class AnotherClass
 		e = 0;
 		f = 0u;
 		g = 0uL;
-		h = 0m;
+		h = decimal.Zero;
 		i = '\0';
 		j = 0;
 		k = null;
@@ -150,9 +144,6 @@ public class OuterMostClass
 
 			public static void ResetFields ()
 			{
-				//IL_0018: Expected I8, but got I4
-				//IL_002a: Expected I8, but got I4
-				//IL_0030: Expected O, but got I4
 				a = 0;
 				b = 0;
 				c = 0;
@@ -160,7 +151,7 @@ public class OuterMostClass
 				e = 0;
 				f = 0u;
 				g = 0uL;
-				h = 0m;
+				h = decimal.Zero;
 				i = '\0';
 				j = 0;
 				k = null;
@@ -265,9 +256,6 @@ public class Contract : Container.ContractBase
 
 				public static void ResetFields ()
 				{
-					//IL_0018: Expected I8, but got I4
-					//IL_002a: Expected I8, but got I4
-					//IL_0030: Expected O, but got I4
 					a = 0;
 					b = 0;
 					c = 0;
@@ -275,7 +263,7 @@ public class Contract : Container.ContractBase
 					e = 0;
 					f = 0u;
 					g = 0uL;
-					h = 0m;
+					h = decimal.Zero;
 					i = '\0';
 					j = 0;
 					k = null;

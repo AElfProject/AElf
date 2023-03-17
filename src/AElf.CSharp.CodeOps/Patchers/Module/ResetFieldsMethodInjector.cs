@@ -1,12 +1,17 @@
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using Google.Protobuf.Reflection;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
+using Mono.Cecil.Rocks;
+using MethodAttributes = Mono.Cecil.MethodAttributes;
 
 namespace AElf.CSharp.CodeOps.Patchers.Module;
 
-public class ResetFieldsMethodInjector : IPatcher<ModuleDefinition>
+public partial class ResetFieldsMethodInjector : IPatcher<ModuleDefinition>
 {
     public bool SystemContactIgnored => false;
         
@@ -142,11 +147,42 @@ public class ResetFieldsMethodInjector : IPatcher<ModuleDefinition>
 
     private static void LoadDefaultValue(ILProcessor il, FieldReference field)
     {
-        il.Emit(field.FieldType.IsValueType ? OpCodes.Ldc_I4_0 : OpCodes.Ldnull);
+        if (field.FieldType.FullName == "System.Int64" || field.FieldType.FullName == "System.UInt64")
+        {
+            il.Emit(OpCodes.Ldc_I4_0);
+            il.Emit(OpCodes.Conv_I8);
+        }
+        else if (field.FieldType.FullName == "System.Decimal")
+        {
+            il.Emit(OpCodes.Ldfld, field.DeclaringType.Module.ImportReference(DecimalZeroField));
+        }
+        else if (field.FieldType.IsValueType)
+        {
+            il.Emit(OpCodes.Ldc_I4_0);
+        }
+        else
+        {
+            il.Emit(OpCodes.Ldnull);
+        }
     }
 
     public static void ResetFields()
     {
         // This method is to use its name only
+    }
+}
+
+public partial class ResetFieldsMethodInjector
+{
+    private static readonly FieldDefinition DecimalZeroField = null;
+    static ResetFieldsMethodInjector()
+    {
+        var systemRuntime = Basic.Reference.Assemblies.Net60.Resources.SystemRuntime;
+
+        using var stream = new MemoryStream(systemRuntime);
+
+        DecimalZeroField = AssemblyDefinition.ReadAssembly(stream)
+            .MainModule.GetAllTypes().Single(t => t.FullName == "System.Decimal")
+            .Fields.Single(f => f.Name == "Zero");
     }
 }
