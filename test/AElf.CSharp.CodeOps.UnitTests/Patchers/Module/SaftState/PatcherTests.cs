@@ -1,9 +1,10 @@
 using AElf.CSharp.CodeOps.Instructions;
+using AElf.CSharp.CodeOps.Patchers.Module;
 using Mono.Cecil;
 using Mono.Cecil.Rocks;
 using Xunit;
 
-namespace AElf.CSharp.CodeOps.Patchers.Module.SaftState;
+namespace AElf.CSharp.CodeOps.UnitTests.Patchers.Module.SaftState;
 
 public class PatcherTests : CSharpCodeOpsTestBase
 {
