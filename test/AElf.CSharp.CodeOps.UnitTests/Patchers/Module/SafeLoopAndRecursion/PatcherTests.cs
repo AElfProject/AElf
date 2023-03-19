@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using AElf.CSharp.CodeOps.Patchers.Module.CallAndBranchCounts;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
@@ -27,7 +28,7 @@ public class PatcherTests : CSharpCodeOpsTestBase
     [InlineData(
         OpCodeEnum.Bge_S,
         "int num = 1; while (num >= 1) {DummyMethod();}",
-        "int num = 1; while (num >= 1) {ExecutionObserverProxy.BranchCount(); DummyMethod();}"        
+        "int num = 1; while (num >= 1) {ExecutionObserverProxy.BranchCount(); DummyMethod();}"
     )]
     [InlineData(
         OpCodeEnum.Bge_Un,
@@ -132,12 +133,12 @@ public class PatcherTests : CSharpCodeOpsTestBase
     [InlineData(
         OpCodeEnum.Brtrue,
         "bool flag = true; while(flag) {DummyMethod();}",
-	    "bool flag = true; while(flag) {ExecutionObserverProxy.BranchCount(); DummyMethod();}"
+        "bool flag = true; while(flag) {ExecutionObserverProxy.BranchCount(); DummyMethod();}"
     )]
     [InlineData(
         OpCodeEnum.Brtrue_S,
         "bool flag = true; while(flag) {DummyMethod();}",
-	    "bool flag = true; while(flag) {ExecutionObserverProxy.BranchCount(); DummyMethod();}"
+        "bool flag = true; while(flag) {ExecutionObserverProxy.BranchCount(); DummyMethod();}"
     )]
     public void Patch_Branch(OpCodeEnum opCodeEnum, string originalMethodBody, string patchedMethodBody)
     {
@@ -173,6 +174,53 @@ public class Contract : Container.ContractBase
         DoTest(method, expectedPatchedContractCode, OpCodeLookup[opCodeEnum]);
     }
 
+    [Fact]
+    public void ObserverProxy_Type_Added()
+    {
+        const string typeNameToBeAdded = "ExecutionObserverProxy";
+        var builder = new SourceCodeBuilder("TestContract");
+        var module = CompileToAssemblyDefinition(builder.Build()).MainModule;
+        var notHavingExecutionObserverProxyType = module.GetAllTypes().All(t => t.Name != typeNameToBeAdded);
+        Assert.True(notHavingExecutionObserverProxyType);
+        ApplyPatch(module);
+        var hasExecutionObserverProxyType = module.GetAllTypes().Any(t => t.Name == typeNameToBeAdded);
+        Assert.True(hasExecutionObserverProxyType);
+        var addedType =
+            DecompileType(module.GetAllTypes().Single(t => t.Name == typeNameToBeAdded));
+        const string expectedAddedType = @"using System;
+using System.Runtime.InteropServices;
+using AElf.Kernel.SmartContract;
+
+namespace TestContract;
+
+public static class ExecutionObserverProxy
+{
+	[ThreadStatic]
+	private static IExecutionObserver _observer;
+
+	public static void SetObserver ([In] IExecutionObserver observer)
+	{
+		_observer = observer;
+	}
+
+	public static void BranchCount ()
+	{
+		if (_observer != null) {
+			_observer.BranchCount ();
+		}
+	}
+
+	public static void CallCount ()
+	{
+		if (_observer != null) {
+			_observer.CallCount ();
+		}
+	}
+}
+";
+        Assert.Equal(expectedAddedType.CleanCode(), addedType.CleanCode());
+    }
+
     #region Helpers
 
     private static ModuleDefinition ApplyPatch(ModuleDefinition module)
@@ -196,6 +244,8 @@ public class Contract : Container.ContractBase
         Assert.Equal(expectedContractCode.CleanCode(), patchedCode.CleanCode());
     }
 
+    [SuppressMessage("ReSharper", "InconsistentNaming")]
+    [SuppressMessage("ReSharper", "IdentifierTypo")]
     public enum OpCodeEnum
     {
         Beq,
