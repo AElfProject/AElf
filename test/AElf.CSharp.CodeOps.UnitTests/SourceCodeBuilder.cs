@@ -2,17 +2,17 @@ namespace AElf.CSharp.CodeOps;
 
 internal class SourceCodeBuilder
 {
-    private readonly string _namespace;
-    private readonly string _contractTypeName = "Contract";
-    private readonly string _stateTypeName = "StateType";
+    protected readonly string Namespace;
+    protected const string ContractTypeName = "Contract";
+    private const string _stateTypeName = "StateType";
     private readonly List<string> _otherClasses = new();
     private readonly List<string> _classesNestedInContract = new();
     private readonly List<string> _stateFields = new();
     private readonly List<string> _methods = new();
 
-    internal SourceCodeBuilder(string namespace_ = "__Contract__")
+    internal SourceCodeBuilder(string @namespace = "__Contract__")
     {
-        _namespace = namespace_;
+        Namespace = @namespace;
     }
 
     internal SourceCodeBuilder AddClass(string source, bool isNestedInContract = false)
@@ -41,26 +41,29 @@ internal class SourceCodeBuilder
         return this;
     }
 
-    internal string ContractTypeFullName => $"{_namespace}.{_contractTypeName}";
+    internal string ContractTypeFullName => $"{Namespace}.{ContractTypeName}";
     internal string StateTypeName => _stateTypeName;
 
-    private string NestedClassesCode => _classesNestedInContract.JoinAsString("\n");
-    private string OtherClassesCode => _otherClasses.JoinAsString("\n");
-    private string StateFieldsCode => _stateFields.JoinAsString("\n");
-    private string MethodsCode => _methods.JoinAsString("\n");
+    protected string NestedClassesCode => _classesNestedInContract.JoinAsString("\n");
+    protected string OtherClassesCode => _otherClasses.JoinAsString("\n");
+    protected string StateFieldsCode => _stateFields.JoinAsString("\n");
+    protected string MethodsCode => _methods.JoinAsString("\n");
 
-    internal string Build()
+    public virtual string Build()
     {
         return @"
+using System;
+using System.Runtime.InteropServices;
+using AElf.Kernel.SmartContract;
 using AElf.CSharp.Core;
 using AElf.Types;
 using Google.Protobuf;
 using AElf.Sdk.CSharp.State;
 using Google.Protobuf.WellKnownTypes;
 
-namespace " + _namespace + @"
+namespace " + Namespace + @"
 {
-    public class " + _stateTypeName + @" : ContractState
+    public class " + StateTypeName + @" : ContractState
     {
 
 " + StateFieldsCode + @"
@@ -76,7 +79,7 @@ namespace " + _namespace + @"
 
 " + OtherClassesCode + @"
 
-    public class " + _contractTypeName + @" : Container.ContractBase
+    public class " + ContractTypeName + @" : Container.ContractBase
     {
 " + MethodsCode + @"
 " + NestedClassesCode + @"

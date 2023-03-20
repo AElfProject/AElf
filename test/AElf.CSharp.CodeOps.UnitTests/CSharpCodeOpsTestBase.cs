@@ -159,5 +159,6 @@ public class CSharpCodeOpsTestBase
         AddAssembly(typeof(IMessage).Assembly.Location);
         AddAssembly(typeof(Address).Assembly.Location);
         AddAssembly(typeof(AElf.CSharp.Core.IMethod).Assembly.Location);
+        AddAssembly(typeof(AElf.Kernel.SmartContract.IExecutionObserver).Assembly.Location);
     }
 }
