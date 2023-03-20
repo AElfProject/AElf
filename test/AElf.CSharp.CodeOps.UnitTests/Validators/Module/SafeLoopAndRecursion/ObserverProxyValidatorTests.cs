@@ -39,7 +39,7 @@ public class ObserverProxyValidatorTests : CSharpCodeOpsTestBase
 
     [Theory]
     [MemberData(nameof(TestData))]
-    public void Check_Fails_Branch_Has_No_Call_Count(OpCodeEnum opCodeEnum, string infiniteLoopLogic)
+    public void Check_Fails_Branch_Has_No_Branch_Count(OpCodeEnum opCodeEnum, string infiniteLoopLogic)
     {
         var opCode = OpCodeFixtures.OpCodeLookup[opCodeEnum];
         const string methodName = "InfiniteLoop";
@@ -66,7 +66,7 @@ public class ObserverProxyValidatorTests : CSharpCodeOpsTestBase
 
     [Theory]
     [MemberData(nameof(TestData))]
-    public void Check_Passes_Branch_Has_Call_Count(OpCodeEnum opCodeEnum, string infiniteLoopLogic)
+    public void Check_Passes_Branch_Has_Branch_Count(OpCodeEnum opCodeEnum, string infiniteLoopLogic)
     {
         infiniteLoopLogic =
             infiniteLoopLogic.Replace("DummyMethod();", "ExecutionObserverProxy.BranchCount(); DummyMethod();");
