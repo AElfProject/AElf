@@ -87,7 +87,8 @@ internal class MethodPatcher
         {
             var jumpingDestination = (Instruction) instruction.Operand;
             var callBranchCountMethod = processor.Create(OpCodes.Call, _proxy.BranchCountMethod);
-            processor.InsertAfter(jumpingDestination, callBranchCountMethod);
+            processor.InsertBefore(jumpingDestination, callBranchCountMethod);
+            instruction.Operand = callBranchCountMethod;
         }
     }
 }

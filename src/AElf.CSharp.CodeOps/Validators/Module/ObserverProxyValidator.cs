@@ -132,9 +132,9 @@ public class ObserverProxyValidator : IValidator<ModuleDefinition>, ITransientDe
                 && instruction.Operand is Instruction targetInstruction 
                 && targetInstruction.Offset < instruction.Offset)
             {
-                var proxyCallInstruction = targetInstruction.Next; 
-
-                if (!(proxyCallInstruction.OpCode == OpCodes.Call && proxyCallInstruction.Operand == _injProxyBranchCount))
+                var targetIsCallToBranchCount = targetInstruction.OpCode == OpCodes.Call &&
+                                                targetInstruction.Operand == _injProxyBranchCount; 
+                if (!targetIsCallToBranchCount)
                 {
                     errors.Add(new ObserverProxyValidationResult("Missing execution observer branch count call detected. " +
                                                                  $"[{method.DeclaringType.Name} > {method.Name}]"));
