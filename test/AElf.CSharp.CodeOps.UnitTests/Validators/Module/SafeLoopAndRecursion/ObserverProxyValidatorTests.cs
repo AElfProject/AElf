@@ -39,6 +39,36 @@ public class ObserverProxyValidatorTests : CSharpCodeOpsTestBase
 
     [Theory]
     [MemberData(nameof(TestData))]
+    public void Check_Passes_Branch_Has_Branch_Count(OpCodeEnum opCodeEnum, string infiniteLoopLogic)
+    {
+	    infiniteLoopLogic =
+		    infiniteLoopLogic.Replace("DummyMethod();", "ExecutionObserverProxy.BranchCount(); DummyMethod();");
+	    var opCode = OpCodeFixtures.OpCodeLookup[opCodeEnum];
+	    const string methodName = "InfiniteLoop";
+	    var method = @"
+            private void DummyMethod(){
+				ExecutionObserverProxy.CallCount();
+            }
+            public void InfiniteLoop()
+            {
+				ExecutionObserverProxy.CallCount();
+				" + infiniteLoopLogic + @"
+            }";
+	    var builder = new SourceCodeBuilder("TestContract").AddClass(ObserverProxyClassSource).AddMethod(method);
+	    var source = builder.Build();
+	    var module = CompileToAssemblyDefinition(source).MainModule;
+	    var methodDefinition = module.GetAllTypes().SelectMany(t => t.Methods).Single(x => x.Name == methodName);
+	    methodDefinition.MaybeReplaceShortFormOpCodeWithLongForm(opCode);
+	    module.AssertMethodHasOpCode(methodName, opCode);
+	    methodDefinition.Body.OptimizeMacros();
+	    var errorMessages = new ObserverProxyValidator().Validate(module, new CancellationToken())
+		    .Select(r => r.Message).ToList();
+
+	    Assert.Empty(errorMessages);
+    }
+
+    [Theory]
+    [MemberData(nameof(TestData))]
     public void Check_Fails_Branch_Has_No_Branch_Count(OpCodeEnum opCodeEnum, string infiniteLoopLogic)
     {
         var opCode = OpCodeFixtures.OpCodeLookup[opCodeEnum];
@@ -64,36 +94,118 @@ public class ObserverProxyValidatorTests : CSharpCodeOpsTestBase
             s => s == "Missing execution observer branch count call detected. [Contract > InfiniteLoop]");
     }
 
-    [Theory]
-    [MemberData(nameof(TestData))]
-    public void Check_Passes_Branch_Has_Branch_Count(OpCodeEnum opCodeEnum, string infiniteLoopLogic)
+    [Fact]
+    public void Check_Fails_Method_Has_No_Call_Count()
     {
-        infiniteLoopLogic =
-            infiniteLoopLogic.Replace("DummyMethod();", "ExecutionObserverProxy.BranchCount(); DummyMethod();");
-        var opCode = OpCodeFixtures.OpCodeLookup[opCodeEnum];
-        const string methodName = "InfiniteLoop";
-        var method = @"
-            private void DummyMethod(){
-				ExecutionObserverProxy.CallCount();
-            }
-            public void InfiniteLoop()
-            {
-				ExecutionObserverProxy.CallCount();
-				" + infiniteLoopLogic + @"
-            }";
+        var method = "private void DummyMethod(){DummyMethod();}";
         var builder = new SourceCodeBuilder("TestContract").AddClass(ObserverProxyClassSource).AddMethod(method);
         var source = builder.Build();
         var module = CompileToAssemblyDefinition(source).MainModule;
-        var methodDefinition = module.GetAllTypes().SelectMany(t => t.Methods).Single(x => x.Name == methodName);
-        methodDefinition.MaybeReplaceShortFormOpCodeWithLongForm(opCode);
-        module.AssertMethodHasOpCode(methodName, opCode);
-        methodDefinition.Body.OptimizeMacros();
         var errorMessages = new ObserverProxyValidator().Validate(module, new CancellationToken())
             .Select(r => r.Message).ToList();
 
-        Assert.Empty(errorMessages);
+        Assert.Contains(errorMessages,
+            s => s == "Missing execution observer call count call detected. [Contract > DummyMethod]");
     }
 
+    [Fact]
+    public void Check_Fails_Bad_Proxy_Definition_Bad_BranchCount()
+    {
+        var badProxyDefinition = @"
+public static class ExecutionObserverProxy
+{
+	[ThreadStatic]
+	private static IExecutionObserver _observer;
+
+	public static void SetObserver ([In] IExecutionObserver observer)
+	{
+		_observer = observer;
+	}
+
+	public static void BranchCount ()
+	{
+		// Method body removed
+	}
+
+	public static void CallCount ()
+	{
+		if (_observer != null) {
+			_observer.CallCount ();
+		}
+	}
+}";
+        var method = @"
+            private void DummyMethod(){
+				ExecutionObserverProxy.CallCount();
+            }";
+        var builder = new SourceCodeBuilder("TestContract").AddClass(badProxyDefinition).AddMethod(method);
+        var source = builder.Build();
+        var module = CompileToAssemblyDefinition(source).MainModule;
+        var errorMessages = new ObserverProxyValidator().Validate(module, new CancellationToken())
+            .Select(r => r.Message).ToList();
+        Assert.Single(errorMessages);
+
+        Assert.Contains("proxy method body is tampered", errorMessages.Single());
+    }
+
+    [Fact]
+    public void Check_Fails_Bad_Proxy_Definition_Bad_CallCount()
+    {
+	    var badProxyDefinition = @"
+public static class ExecutionObserverProxy
+{
+	[ThreadStatic]
+	private static IExecutionObserver _observer;
+
+	public static void SetObserver ([In] IExecutionObserver observer)
+	{
+		_observer = observer;
+	}
+
+	public static void BranchCount ()
+	{
+		if (_observer != null) {
+			_observer.BranchCount ();
+		}
+	}
+
+	public static void CallCount ()
+	{
+		// Method body removed
+	}
+}";
+	    var method = @"
+            private void DummyMethod(){
+				ExecutionObserverProxy.CallCount();
+            }";
+	    var builder = new SourceCodeBuilder("TestContract").AddClass(badProxyDefinition).AddMethod(method);
+	    var source = builder.Build();
+	    var module = CompileToAssemblyDefinition(source).MainModule;
+	    var errorMessages = new ObserverProxyValidator().Validate(module, new CancellationToken())
+		    .Select(r => r.Message).ToList();
+	    Assert.Single(errorMessages);
+
+	    Assert.Contains("proxy method body is tampered", errorMessages.Single());
+    }
+
+    [Fact]
+    public void Check_Fails_Calling_SetObserver()
+    {
+
+	    var method = @"
+            private void DummyMethod(){
+				ExecutionObserverProxy.CallCount();
+				ExecutionObserverProxy.SetObserver(null);
+            }";
+	    var builder = new SourceCodeBuilder("TestContract").AddClass(ObserverProxyClassSource).AddMethod(method);
+	    var source = builder.Build();
+	    var module = CompileToAssemblyDefinition(source).MainModule;
+	    var errorMessages = new ObserverProxyValidator().Validate(module, new CancellationToken())
+		    .Select(r => r.Message).ToList();
+	    Assert.Single(errorMessages);
+
+	    Assert.Contains("Proxy initialize call detected from within the contract. [Contract > DummyMethod]", errorMessages.Single());
+    }
     #region Private Helpers
 
     private const string ObserverProxyClassSource = @"
