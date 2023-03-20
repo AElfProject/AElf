@@ -40,10 +40,10 @@ internal class Patch
     private MethodDefinition _branchCountMethod;
     private MethodDefinition _callCountMethod;
 
-    internal Patch([NotNull] ModuleDefinition hostModule, [NotNull] string namespace_)
+    internal Patch([NotNull] ModuleDefinition hostModule, [NotNull] string @namespace)
     {
         _hostModule = hostModule ?? throw new ArgumentNullException(nameof(hostModule));
-        _namespace = namespace_ ?? throw new ArgumentNullException(nameof(namespace_));
+        _namespace = @namespace ?? throw new ArgumentNullException(nameof(@namespace));
     }
 
     public TypeDefinition ObserverType
