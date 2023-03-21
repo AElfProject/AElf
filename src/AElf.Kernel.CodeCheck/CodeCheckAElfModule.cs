@@ -21,7 +21,6 @@ public class CodeCheckAElfModule : AElfModule
         //context.Services.AddSingleton<IBlockAcceptedLogEventProcessor, ContractDeployedLogEventProcessor>();
         context.Services.AddSingleton<IContractAuditorContainer, ContractAuditorContainer>();
         context.Services.AddSingleton<IBlockValidationProvider, CodeCheckValidationProvider>();
-        context.Services.AddTransient<ITransactionValidationProvider, CodeCheckTransactionValidationProvider>();
         context.Services.AddTransient<ISystemTransactionGenerator, CodeCheckProposalReleaseTransactionGenerator>();
     }
 }

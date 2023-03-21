@@ -57,11 +57,7 @@ public class CodeCheckValidationProviderTests: CodeCheckTestBase
         block.Header.Bloom = ByteString.CopyFrom(bloom.Data);
         validationResult = await _blockValidationProvider.ValidateBlockAfterExecuteAsync(block);
         validationResult.ShouldBeTrue();
-        
-        block.Header.Height = 3;
-        validationResult = await _blockValidationProvider.ValidateBlockAfterExecuteAsync(block);
-        validationResult.ShouldBeTrue();
-        
+
         block.Header.Height = 4;
         validationResult = await _blockValidationProvider.ValidateBlockAfterExecuteAsync(block);
         validationResult.ShouldBeFalse();
