@@ -101,7 +101,9 @@ public class StateWrittenInstructionInjector : IStateWrittenInstructionInjector,
         MethodReference stateSizeLimitInstruction;
         try
         {
-            stateSizeLimitInstruction = (MethodReference) instruction.Previous?.Operand;
+            var previousIsCast = instruction.Previous?.OpCode == OpCodes.Castclass;
+            var expectedToBeValidateStateSize = previousIsCast ? instruction.Previous.Previous : instruction.Previous;
+            stateSizeLimitInstruction = (MethodReference) expectedToBeValidateStateSize?.Operand;
         }
         catch (InvalidCastException)
         {
