@@ -59,6 +59,7 @@ public class InstructionInjectionValidator : IValidator<ModuleDefinition>, ITran
         foreach (var instruction in methodDefinition.Body.Instructions.Where(instruction =>
                      _instructionInjector.IdentifyInstruction(instruction)).ToList())
         {
+            // TODO: https://github.com/AElfProject/AElf/issues/3387
             if (isNotContractImplementation)
             {
                 result.Add(new MethodCallInjectionValidationResult(
