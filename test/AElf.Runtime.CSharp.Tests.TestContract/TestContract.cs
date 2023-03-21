@@ -193,9 +193,9 @@ public class TestContract : TestContractContainer.TestContractBase
         public static int k;
 
         public void TestState()
-        {
+        {/* State update is not allowed in non-contract class
             var state = new TestContractState();
-            state.ProtoInfo.Value = new ProtobufMessage();
+            state.ProtoInfo.Value = new ProtobufMessage();*/
         }
     }
 }
