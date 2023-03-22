@@ -7,8 +7,6 @@ namespace AElf.Runtime.CSharp.Tests.TestContract;
 
 public class TestContract : TestContractContainer.TestContractBase
 {
-    public static int i;
-
     public override BoolOutput TestBoolState(BoolInput input)
     {
         State.BoolInfo.Value = input.BoolValue;
@@ -189,8 +187,6 @@ public class TestContract : TestContractContainer.TestContractBase
 
     public class TestNestClass
     {
-        public const int j = 1;
-        public static int k;
 
         public void TestState()
         {/* State update is not allowed in non-contract class
