@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Runtime.Loader;
 using System.Threading.Tasks.Dataflow;
 using AElf.Kernel.Proposal.Application;
@@ -43,17 +44,11 @@ public class CodeCheckJobProcessor : ICodeCheckJobProcessor, ISingletonDependenc
     {
         return await _codeCheckTransformBlock.SendAsync(job);
     }
-    
+
     public async Task CompleteAsync()
     {
         _codeCheckTransformBlock.Complete();
-        await _codeCheckTransformBlock.Completion;
-        
-        foreach (var action in _codeCheckProcessesJobTransformBlock)
-        {
-            action.Complete();
-            await action.Completion;
-        }
+        await Task.WhenAll(_codeCheckProcessesJobTransformBlock.Select(o => o.Completion));
     }
 
     private TransformBlock<CodeCheckJob, CodeCheckJob> CreateCodeCheckBufferBlock()

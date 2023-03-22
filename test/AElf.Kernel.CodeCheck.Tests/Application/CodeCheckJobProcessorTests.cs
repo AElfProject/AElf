@@ -56,7 +56,6 @@ public class CodeCheckJobProcessorTests: CodeCheckParallelTestBase
             ProposedContractInputHash = HashHelper.ComputeFrom("ProposedContractInputHash"),
         };
         await _codeCheckJobProcessor.SendAsync(job);
-        await Task.Delay(1000);
         await _codeCheckJobProcessor.CompleteAsync();
 
         var notApprovedProposalIdList = _proposalProvider.GetAllProposals();
@@ -97,7 +96,6 @@ public class CodeCheckJobProcessorTests: CodeCheckParallelTestBase
             ProposedContractInputHash = HashHelper.ComputeFrom("ProposedContractInputHash"),
         };
         await _codeCheckJobProcessor.SendAsync(job);
-        await Task.Delay(1000);
         await _codeCheckJobProcessor.CompleteAsync();
 
         var notApprovedProposalIdList = _proposalProvider.GetAllProposals();
@@ -138,7 +136,6 @@ public class CodeCheckJobProcessorTests: CodeCheckParallelTestBase
         
         var jobTasks = jobs.Select(async job => await _codeCheckJobProcessor.SendAsync(job));
         await jobTasks.WhenAll();
-        await Task.Delay(1000);
         await _codeCheckJobProcessor.CompleteAsync();
 
         var notApprovedProposalIdList = _proposalProvider.GetAllProposals();
