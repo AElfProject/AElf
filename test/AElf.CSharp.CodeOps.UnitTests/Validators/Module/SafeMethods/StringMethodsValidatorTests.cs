@@ -17,8 +17,6 @@ public class StringMethodsValidatorTests : CSharpCodeOpsTestBase
         var builder = new SourceCodeBuilder("TestContract").AddMethod(method);
         var source = builder.Build();
         var module = CompileToAssemblyDefinition(source).MainModule;
-        var methodDefinition = module.GetAllTypes().SelectMany(t => t.Methods).Single(m => m.Name == "Foo");
-        
         var whitelistProvider = new WhitelistProvider();
         var errorMessages =  new WhitelistValidator(whitelistProvider).Validate(module, new CancellationToken())
             .Select(r => r.Message).ToList();
