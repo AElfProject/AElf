@@ -16,6 +16,9 @@ public class CodeCheckAElfModule : AElfModule
 {
     public override void ConfigureServices(ServiceConfigurationContext context)
     {
+        var configuration = context.Services.GetConfiguration();
+        Configure<CodeCheckOptions>(configuration.GetSection("CodeCheck"));
+
         context.Services
             .AddSingleton<IBlocksExecutionSucceededLogEventProcessor, CodeCheckRequiredLogEventProcessor>();
         //context.Services.AddSingleton<IBlockAcceptedLogEventProcessor, ContractDeployedLogEventProcessor>();
