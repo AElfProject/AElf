@@ -52,17 +52,25 @@ public class CodeCheckRequiredLogEventProcessor : LogEventProcessorBase, IBlocks
                     .ParseFrom(transactionResult.Logs.First(l => l.Name == nameof(ProposalCreated)).NonIndexed)
                     .ProposalId;
 
-                await _codeCheckJobProcessor.SendAsync(new CodeCheckJob
+                var code = eventData.Code.ToByteArray();
+                var sendResult = await _codeCheckJobProcessor.SendAsync(new CodeCheckJob
                 {
                     BlockHash = block.GetHash(),
                     BlockHeight = block.Height,
-                    ContractCode = eventData.Code.ToByteArray(),
+                    ContractCode = code,
                     ContractCategory = eventData.Category,
                     IsSystemContract = eventData.IsSystemContract,
                     IsUserContract = eventData.IsUserContract,
                     CodeCheckProposalId = proposalId,
                     ProposedContractInputHash = eventData.ProposedContractInputHash
                 });
+
+                if (!sendResult)
+                {
+                    Logger.LogError(
+                        "Unable to perform code check. BlockHash: {BlockHash}, BlockHeight: {BlockHeight}, CodeHash: {CodeHash}, ProposalId: {ProposalId}",
+                        block.GetHash(), block.Height, HashHelper.ComputeFrom(code).ToHex(), proposalId.ToHex());
+                }
             }
         }
     }

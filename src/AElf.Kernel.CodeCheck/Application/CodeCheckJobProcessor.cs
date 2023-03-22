@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Loader;
 using System.Threading.Tasks.Dataflow;
@@ -9,11 +10,13 @@ namespace AElf.Kernel.CodeCheck.Application;
 public interface ICodeCheckJobProcessor
 {
     Task<bool> SendAsync(CodeCheckJob job);
+    Task CompleteAsync();
 }
 
 public class CodeCheckJobProcessor : ICodeCheckJobProcessor, ISingletonDependency
 {
     private readonly TransformBlock<CodeCheckJob, CodeCheckJob> _codeCheckTransformBlock;
+    private List<ActionBlock<CodeCheckJob>> _codeCheckProcessesJobTransformBlock;
     private readonly CodeCheckOptions _codeCheckOptions;
     private readonly ICheckedCodeHashProvider _checkedCodeHashProvider;
     private readonly ICodeCheckService _codeCheckService;
@@ -40,6 +43,18 @@ public class CodeCheckJobProcessor : ICodeCheckJobProcessor, ISingletonDependenc
     {
         return await _codeCheckTransformBlock.SendAsync(job);
     }
+    
+    public async Task CompleteAsync()
+    {
+        _codeCheckTransformBlock.Complete();
+        await _codeCheckTransformBlock.Completion;
+        
+        foreach (var action in _codeCheckProcessesJobTransformBlock)
+        {
+            action.Complete();
+            await action.Completion;
+        }
+    }
 
     private TransformBlock<CodeCheckJob, CodeCheckJob> CreateCodeCheckBufferBlock()
     {
@@ -48,21 +63,24 @@ public class CodeCheckJobProcessor : ICodeCheckJobProcessor, ISingletonDependenc
         var updateBucketIndexTransformBlock = new TransformBlock<CodeCheckJob, CodeCheckJob>(UpdateBucketIndex,
             new ExecutionDataflowBlockOptions
             {
-                BoundedCapacity = Math.Max(_codeCheckOptions.PoolLimit, 1),
-                MaxDegreeOfParallelism = _codeCheckOptions.PoolParallelismDegree
+                BoundedCapacity = Math.Max(_codeCheckOptions.MaxBoundedCapacity, 1),
+                MaxDegreeOfParallelism = _codeCheckOptions.MaxDegreeOfParallelism
             });
-        for (var i = 0; i < _codeCheckOptions.PoolParallelismDegree; i++)
+        
+        _codeCheckProcessesJobTransformBlock = new List<ActionBlock<CodeCheckJob>>();
+        for (var i = 0; i < _codeCheckOptions.MaxDegreeOfParallelism; i++)
         {
             var processCodeCheckJobTransformBlock = new ActionBlock<CodeCheckJob>(
                 async codeCheckJob => await ProcessCodeCheckJobAsync(codeCheckJob),
                 new ExecutionDataflowBlockOptions
                 {
-                    BoundedCapacity = Math.Max(_codeCheckOptions.PoolLimit, 1),
+                    BoundedCapacity = Math.Max(_codeCheckOptions.MaxBoundedCapacity, 1),
                     EnsureOrdered = false
                 });
             var index = i;
             updateBucketIndexTransformBlock.LinkTo(processCodeCheckJobTransformBlock, linkOptions,
                 codeCheckJob => codeCheckJob.BucketIndex == index);
+            _codeCheckProcessesJobTransformBlock.Add(processCodeCheckJobTransformBlock);
         }
 
         return updateBucketIndexTransformBlock;
@@ -102,7 +120,7 @@ public class CodeCheckJobProcessor : ICodeCheckJobProcessor, ISingletonDependenc
         var assembly = assemblyLoadContext.LoadFromStream(new MemoryStream(job.ContractCode));
         
         job.BucketIndex =
-            Math.Abs(HashHelper.ComputeFrom(assembly.GetName().Name).ToInt64() % _codeCheckOptions.PoolParallelismDegree);
+            Math.Abs(HashHelper.ComputeFrom(assembly.GetName().Name).ToInt64() % _codeCheckOptions.MaxDegreeOfParallelism);
         assemblyLoadContext.Unload();
         
         return job;

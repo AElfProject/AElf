@@ -8,7 +8,9 @@ using AElf.Kernel.CodeCheck.Tests;
 using AElf.Kernel.Proposal.Infrastructure;
 using AElf.Kernel.SmartContract.Domain;
 using Google.Protobuf;
+using Nito.AsyncEx;
 using Shouldly;
+using Volo.Abp.Threading;
 using Xunit;
 
 namespace AElf.Kernel.CodeCheck.Application;
@@ -54,7 +56,7 @@ public class CodeCheckJobProcessorTests: CodeCheckParallelTestBase
             ProposedContractInputHash = HashHelper.ComputeFrom("ProposedContractInputHash"),
         };
         await _codeCheckJobProcessor.SendAsync(job);
-        await Task.Delay(3000);
+        await _codeCheckJobProcessor.CompleteAsync();
 
         var notApprovedProposalIdList = _proposalProvider.GetAllProposals();
         notApprovedProposalIdList.Count.ShouldBe(1);
@@ -94,7 +96,7 @@ public class CodeCheckJobProcessorTests: CodeCheckParallelTestBase
             ProposedContractInputHash = HashHelper.ComputeFrom("ProposedContractInputHash"),
         };
         await _codeCheckJobProcessor.SendAsync(job);
-        await Task.Delay(3000);
+        await _codeCheckJobProcessor.CompleteAsync();
 
         var notApprovedProposalIdList = _proposalProvider.GetAllProposals();
         notApprovedProposalIdList.Count.ShouldBe(0);
@@ -131,9 +133,11 @@ public class CodeCheckJobProcessorTests: CodeCheckParallelTestBase
                 ProposedContractInputHash = HashHelper.ComputeFrom("ProposedContractInputHash" + i)
             });
         }
+        
+        var jobTasks = jobs.Select(async job => await _codeCheckJobProcessor.SendAsync(job));
+        await jobTasks.WhenAll();
 
-        Parallel.ForEach(jobs, job => { _codeCheckJobProcessor.SendAsync(job); });
-        await Task.Delay(5000);
+        await _codeCheckJobProcessor.CompleteAsync();
 
         var notApprovedProposalIdList = _proposalProvider.GetAllProposals();
         notApprovedProposalIdList.Count.ShouldBe(jobs.Count);
