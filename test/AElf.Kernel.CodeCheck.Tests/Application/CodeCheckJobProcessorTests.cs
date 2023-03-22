@@ -95,7 +95,8 @@ public class CodeCheckJobProcessorTests: CodeCheckParallelTestBase
             CodeCheckProposalId = HashHelper.ComputeFrom("CodeCheckProposalId"),
             ProposedContractInputHash = HashHelper.ComputeFrom("ProposedContractInputHash"),
         };
-        await _codeCheckJobProcessor.SendAsync(job);
+        var sendResult = await _codeCheckJobProcessor.SendAsync(job);
+        sendResult.ShouldBeTrue();
         await _codeCheckJobProcessor.CompleteAsync();
 
         var notApprovedProposalIdList = _proposalProvider.GetAllProposals();
