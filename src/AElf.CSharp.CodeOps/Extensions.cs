@@ -4,8 +4,10 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using AElf.Sdk.CSharp.State;
+using Google.Protobuf.Reflection;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
+using Mono.Cecil.Rocks;
 
 namespace AElf.CSharp.CodeOps;
 
@@ -51,6 +53,40 @@ public static class Extensions
         fields.AddRange(type.NestedTypes.SelectMany(GetResetableStaticFields));
 
         return fields;
+    }
+
+    public static bool IsDisallowedStaticField(this FieldDefinition field)
+    {
+        var isStatic = field.IsStatic;
+        var isNotReadonly = !field.IsInitOnly;
+        var isNotConstant = !field.HasConstant;
+        var isNotInProtobufGeneratedType = field.FieldType.FullName != typeof(FileDescriptor).FullName &&
+                                           field.FieldType.FullName != typeof(MessageDescriptor).FullName;
+        var isNotFunctionFieldInGeneratedClass = !field.IsFuncTypeFieldInGeneratedClass();
+        return new[]
+        {
+            isStatic, isNotReadonly, isNotConstant, isNotInProtobufGeneratedType, isNotFunctionFieldInGeneratedClass
+        }.All(x => x);
+    }
+
+    /// <summary>
+    /// <c>Func</c> type static fields are generated for LINQ operations. We should allow them and not reset them.
+    /// </summary>
+    /// <param name="field"></param>
+    /// <returns></returns>
+    private static bool IsFuncTypeFieldInGeneratedClass(this FieldDefinition field)
+    {
+        if (field.DeclaringType.Name != "<>c")
+        {
+            return false;
+        }
+
+        if (field.FieldType is GenericInstanceType genericInstance)
+        {
+            return Constants.FuncTypes.Contains(genericInstance.ElementType.FullName);
+        }
+
+        return false;
     }
 
     public static IEnumerable<FieldDefinition> GetAllFields(this TypeDefinition type,
@@ -165,7 +201,7 @@ public static class Extensions
 
         return self.DeclaringType.FullName + "::" + self.Name;
     }
-    
+
     // Borrowed from https://github.com/jbevain/cecil/blob/7b8ee049a151204997eecf587c69acc2f67c8405/Mono.Cecil/MethodReference.cs#L105-L114
     public static string FullNameWithoutDeclaringType(this MethodReference self)
     {

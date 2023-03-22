@@ -50,4 +50,14 @@ public static class Constants
         typeof(ulong).FullName,
         typeof(string).FullName
     };
+
+    /// <summary>
+    /// The compiler will generate static fields for LINQ functions. We allow those static fields and won't reset them.
+    /// </summary>
+    public static HashSet<string> FuncTypes = new ()
+    {
+        "System.Func`1", "System.Func`2", "System.Func`3", "System.Func`4", "System.Func`5", "System.Func`6",
+        "System.Func`7", "System.Func`8", "System.Func`9", "System.Func`10", "System.Func`11", "System.Func`12",
+        "System.Func`13", "System.Func`14", "System.Func`15", "System.Func`16", "System.Func`17"
+    };
 }
