@@ -47,10 +47,6 @@ public class CodeCheckJobProcessor : ICodeCheckJobProcessor, ISingletonDependenc
 
     public async Task CompleteAsync()
     {
-        while (_codeCheckTransformBlock.InputCount > 0 && _codeCheckTransformBlock.OutputCount > 0)
-        {
-            ;
-        }
         _codeCheckTransformBlock.Complete();
         await Task.WhenAll(_codeCheckProcessesJobTransformBlock.Select(o => o.Completion));
     }
