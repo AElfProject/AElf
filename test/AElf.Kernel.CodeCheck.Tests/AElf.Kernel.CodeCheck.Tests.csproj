@@ -39,8 +39,5 @@
             <Link>Protobuf\Proto\acs1.proto</Link>
         </ContractStub>
     </ItemGroup>
-    <ItemGroup>
-      <Compile Remove="MockContractPatcher.cs" />
-    </ItemGroup>
 
 </Project>
