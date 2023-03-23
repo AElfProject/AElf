@@ -51,9 +51,10 @@ public partial class ElectionContractTests : ElectionContractTestBase
         return announceResult;
     }
 
-    private async Task<TransactionResult> QuitElectionAsync(ECKeyPair keyPair)
+    private async Task<TransactionResult> QuitElectionAsync(ECKeyPair keyPair, ECKeyPair candidateKeyPair = null)
     {
-        var electionStub = GetElectionContractTester(keyPair);
+        candidateKeyPair ??= keyPair;
+        var electionStub = GetElectionContractTester(candidateKeyPair);
         return (await electionStub.QuitElection.SendAsync(new StringValue { Value = keyPair.PublicKey.ToHex() }))
             .TransactionResult;
     }

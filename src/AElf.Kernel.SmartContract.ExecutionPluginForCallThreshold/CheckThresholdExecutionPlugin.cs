@@ -37,7 +37,7 @@ internal class MethodCallingThresholdPreExecutionPlugin : SmartContractExecution
     public async Task<IEnumerable<Transaction>> GetPreTransactionsAsync(
         IReadOnlyList<ServiceDescriptor> descriptors, ITransactionContext transactionContext)
     {
-        if (!IsTargetAcsSymbol(descriptors)) return new List<Transaction>();
+        if (!HasApplicableAcs(descriptors)) return new List<Transaction>();
 
         var thresholdSettingStub = _thresholdSettingContractReaderFactory.Create(new ContractReaderContext
         {

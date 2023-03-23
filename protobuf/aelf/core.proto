@@ -96,6 +96,8 @@ message SmartContractRegistration {
     int32 version = 5;
     // The version of the contract.
     string contract_version = 6;
+    // The address of the current contract.
+    Address contract_address = 7;
 }
 
 message TransactionExecutingStateSet {

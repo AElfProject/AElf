@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using AElf.Kernel.CodeCheck.Application;
 using AElf.Kernel.CodeCheck.Infrastructure;
@@ -27,21 +28,21 @@ public partial class CodeCheckTest : CodeCheckTestBase
     public async Task PerformCodeCheckAsync_Without_CodeCheckEnable_Test()
     {
         _codeCheckOptions.CodeCheckEnabled = false;
-        var result = await _codeCheckService.PerformCodeCheckAsync(null, null, 0, 0, false);
+        var result = await _codeCheckService.PerformCodeCheckAsync(null, null, 0, 0, false, false);
         result.ShouldBeTrue();
     }
 
     [Fact]
     public async Task PerformCodeCheckAsync_With_Invalid_Category_Test()
     {
-        var result = await _codeCheckService.PerformCodeCheckAsync(null, null, 0, -1, false);
+        var result = await _codeCheckService.PerformCodeCheckAsync(null, null, 0, -1, false,false);
         result.ShouldBeFalse();
     }
 
     [Fact]
     public async Task PerformCodeCheckAsync_With_Audit_Fail_Test()
     {
-        var result = await _codeCheckService.PerformCodeCheckAsync(null, null, 0, CodeCheckConstant.FailAudit, false);
+        var result = await _codeCheckService.PerformCodeCheckAsync(null, null, 0, CodeCheckConstant.FailAudit, false,false);
         result.ShouldBeFalse();
     }
 
@@ -49,7 +50,7 @@ public partial class CodeCheckTest : CodeCheckTestBase
     public async Task PerformCodeCheckAsync_Success_Test()
     {
         var result =
-            await _codeCheckService.PerformCodeCheckAsync(null, null, 0, CodeCheckConstant.SuccessAudit, false);
+            await _codeCheckService.PerformCodeCheckAsync(null, null, 0, CodeCheckConstant.SuccessAudit, false,false);
         result.ShouldBeTrue();
     }
 }

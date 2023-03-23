@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Profit;
+using AElf.Contracts.Treasury;
 using AElf.Contracts.Vote;
 using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
@@ -106,16 +107,7 @@ public partial class ElectionContract
             dataCenterList.DataCenters.Add(input.CandidatePubkey,
                 State.CandidateVotes[input.CandidatePubkey].ObtainedActiveVotedVotesAmount);
 
-            State.ProfitContract.AddBeneficiary.Send(new AddBeneficiaryInput
-            {
-                SchemeId = State.SubsidyHash.Value,
-                BeneficiaryShare = new BeneficiaryShare
-                {
-                    Beneficiary =
-                        Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(input.CandidatePubkey)),
-                    Shares = 1
-                }
-            });
+            AddBeneficiary(input.CandidatePubkey);
         }
         else
         {
@@ -465,16 +457,7 @@ public partial class ElectionContract
             {
                 State.DataCentersRankingList.Value.DataCenters.Add(input.CandidatePubkey,
                     candidateVotesAmount);
-                State.ProfitContract.AddBeneficiary.Send(new AddBeneficiaryInput
-                {
-                    SchemeId = State.SubsidyHash.Value,
-                    BeneficiaryShare = new BeneficiaryShare
-                    {
-                        Beneficiary =
-                            Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(input.CandidatePubkey)),
-                        Shares = 1
-                    }
-                });
+                AddBeneficiary(input.CandidatePubkey);
             }
             else
             {
@@ -749,24 +732,72 @@ public partial class ElectionContract
     private void NotifyProfitReplaceCandidateInDataCenter(string oldCandidateInDataCenter,
         string newCandidateDataCenter)
     {
-        State.ProfitContract.RemoveBeneficiary.Send(new RemoveBeneficiaryInput
-        {
-            SchemeId = State.SubsidyHash.Value,
-            Beneficiary = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(oldCandidateInDataCenter))
-        });
+        RemoveBeneficiary(oldCandidateInDataCenter);
+
         if (newCandidateDataCenter == null)
             return;
+
+        AddBeneficiary(newCandidateDataCenter);
+    }
+
+    #endregion
+
+    #region subsidy helper
+
+    private Hash GenerateSubsidyId(string pubkey,Address beneficiaryAddress)
+    {
+        return HashHelper.ConcatAndCompute(HashHelper.ComputeFrom(pubkey), HashHelper.ComputeFrom(beneficiaryAddress),
+            HashHelper.ComputeFrom(Context.Self));
+    }
+    
+    private Address GetProfitsReceiverOrDefault(string pubkey)
+    {
+        if (State.TreasuryContract.Value == null)
+            State.TreasuryContract.Value =
+                Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
+        var address = State.TreasuryContract.GetProfitsReceiverOrDefault.Call(new StringValue
+        {
+            Value = pubkey
+        });
+        return address;
+    }
+
+    private void AddBeneficiary(string candidatePubkey, Address profitsReceiver = null)
+    {
+        var beneficiaryAddress = GetBeneficiaryAddress(candidatePubkey, profitsReceiver);
+        var subsidyId = GenerateSubsidyId(candidatePubkey,beneficiaryAddress);
         State.ProfitContract.AddBeneficiary.Send(new AddBeneficiaryInput
         {
             SchemeId = State.SubsidyHash.Value,
             BeneficiaryShare = new BeneficiaryShare
             {
-                Beneficiary =
-                    Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(newCandidateDataCenter)),
-                Shares = 1
-            }
+                Beneficiary = beneficiaryAddress,
+                Shares = 1,
+            },
+            ProfitDetailId = subsidyId
         });
     }
 
+    private void RemoveBeneficiary(string candidatePubkey,Address profitsReceiver = null)
+    {
+        var beneficiaryAddress = GetBeneficiaryAddress(candidatePubkey, profitsReceiver);
+        var previousSubsidyId = GenerateSubsidyId(candidatePubkey,beneficiaryAddress);
+        State.ProfitContract.RemoveBeneficiary.Send(new RemoveBeneficiaryInput
+        {
+            SchemeId = State.SubsidyHash.Value,
+            Beneficiary = beneficiaryAddress,
+            ProfitDetailId = previousSubsidyId
+        });
+    }
+
+    private Address GetBeneficiaryAddress(string candidatePubkey, Address profitsReceiver = null)
+    {
+        profitsReceiver = profitsReceiver == null ? GetProfitsReceiverOrDefault(candidatePubkey) : profitsReceiver;
+        var beneficiaryAddress = profitsReceiver.Value.Any()
+            ? profitsReceiver
+            : Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(candidatePubkey));
+        return beneficiaryAddress;
+    }
+    
     #endregion
 }

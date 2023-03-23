@@ -787,19 +787,22 @@ public class ContractTester<TContractTestAElfModule> : ITransientDependency
                 TotalSupply = nativeTokenInfo.TotalSupply
             });
 
-        tokenInitializationCallList.Add(
-            nameof(TokenContract.Create),
-            new CreateInput
-            {
-                Decimals = 2,
-                IsBurnable = true,
-                Issuer = Address.FromPublicKey(KeyPair.PublicKey),
-                TotalSupply = 1_000_000_000,
-                Symbol = symbol,
-                TokenName = "TEST",
-                IssueChainId = chainOptions.ChainId
-            }
-        );
+        if (symbol != "ELF")
+        {
+            tokenInitializationCallList.Add(
+                nameof(TokenContract.Create),
+                new CreateInput
+                {
+                    Decimals = 2,
+                    IsBurnable = true,
+                    Issuer = Address.FromPublicKey(KeyPair.PublicKey),
+                    TotalSupply = 1_000_000_000,
+                    Symbol = symbol,
+                    TokenName = "TEST",
+                    IssueChainId = chainOptions.ChainId
+                }
+            );
+        }
 
         tokenInitializationCallList.Add(nameof(TokenContract.SetPrimaryTokenSymbol),
             new SetPrimaryTokenSymbolInput
