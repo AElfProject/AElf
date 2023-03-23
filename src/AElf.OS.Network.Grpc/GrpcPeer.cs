@@ -2,7 +2,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -24,53 +23,34 @@ namespace AElf.OS.Network.Grpc;
 /// </summary>
 public class GrpcPeer : IPeer
 {
-    private const int MaxMetricsPerMethod = 100;
     private const int BlockRequestTimeout = 700;
     private const int CheckHealthTimeout = 1000;
     private const int BlocksRequestTimeout = 5000;
     private const int GetNodesTimeout = 500;
     private const int UpdateHandshakeTimeout = 3000;
-    private const int StreamRecoveryWaitTime = 500;
-
     private const int BlockCacheMaxItems = 1024;
     private const int TransactionCacheMaxItems = 10_000;
 
     private const int QueuedTransactionTimeout = 10_000;
     private const int QueuedBlockTimeout = 100_000;
 
-    private readonly Channel _channel;
-    private readonly PeerService.PeerServiceClient _client;
+    public IPeerHolder Holder { get; }
     private readonly BoundedExpirationCache _knownBlockCache;
 
     private readonly BoundedExpirationCache _knownTransactionCache;
-    private readonly ConcurrentDictionary<string, ConcurrentQueue<RequestMetric>> _recentRequestsRoundtripTimes;
 
     private readonly ActionBlock<StreamJob> _sendAnnouncementJobs;
     private readonly ActionBlock<StreamJob> _sendBlockJobs;
     private readonly ActionBlock<StreamJob> _sendTransactionJobs;
-    private AsyncClientStreamingCall<BlockAnnouncement, VoidReply> _announcementStreamCall;
-    private AsyncClientStreamingCall<BlockWithTransactions, VoidReply> _blockStreamCall;
-    private AsyncClientStreamingCall<LibAnnouncement, VoidReply> _libAnnouncementStreamCall;
 
-    private AsyncClientStreamingCall<Transaction, VoidReply> _transactionStreamCall;
-
-    public GrpcPeer(GrpcClient client, DnsEndPoint remoteEndpoint, PeerConnectionInfo peerConnectionInfo)
+    public GrpcPeer(IPeerHolder holder, DnsEndPoint remoteEndpoint, PeerConnectionInfo peerConnectionInfo)
     {
-        _channel = client.Channel;
-        _client = client.Client;
-
+        Holder = holder;
         RemoteEndpoint = remoteEndpoint;
         Info = peerConnectionInfo;
 
         _knownTransactionCache = new BoundedExpirationCache(TransactionCacheMaxItems, QueuedTransactionTimeout);
         _knownBlockCache = new BoundedExpirationCache(BlockCacheMaxItems, QueuedBlockTimeout);
-
-        _recentRequestsRoundtripTimes = new ConcurrentDictionary<string, ConcurrentQueue<RequestMetric>>();
-        RecentRequestsRoundtripTimes =
-            new ReadOnlyDictionary<string, ConcurrentQueue<RequestMetric>>(_recentRequestsRoundtripTimes);
-
-        _recentRequestsRoundtripTimes.TryAdd(nameof(MetricNames.GetBlock), new ConcurrentQueue<RequestMetric>());
-        _recentRequestsRoundtripTimes.TryAdd(nameof(MetricNames.GetBlocks), new ConcurrentQueue<RequestMetric>());
 
         _sendAnnouncementJobs = new ActionBlock<StreamJob>(SendStreamJobAsync,
             new ExecutionDataflowBlockOptions
@@ -91,7 +71,7 @@ public class GrpcPeer : IPeer
 
     public Timestamp LastSentHandshakeTime { get; private set; }
 
-    public bool IsConnected { get; set; }
+
     public bool IsShutdown { get; set; }
     public Hash CurrentBlockHash { get; private set; }
     public long CurrentBlockHeight { get; private set; }
@@ -102,20 +82,20 @@ public class GrpcPeer : IPeer
     /// </summary>
     public byte[] OutboundSessionId => Info.SessionId;
 
-    public IReadOnlyDictionary<string, ConcurrentQueue<RequestMetric>> RecentRequestsRoundtripTimes { get; }
-
     /// <summary>
     ///     Property that describes that describes if the peer is ready for send/request operations. It's based
     ///     on the state of the underlying channel and the IsConnected.
     /// </summary>
-    public bool IsReady => (_channel.State == ChannelState.Idle || _channel.State == ChannelState.Ready) && IsConnected;
+    public bool IsReady => Holder.IsReady;
+
+    public bool IsConnected => Holder.IsConnected;
 
     public bool IsInvalid =>
-        !IsConnected &&
+        !Holder.IsConnected &&
         Info.ConnectionTime.AddMilliseconds(NetworkConstants.PeerConnectionTimeout) <
         TimestampHelper.GetUtcNow();
 
-    public string ConnectionStatus => _channel.State.ToString();
+    public string ConnectionStatus => Holder.ConnectionStatus;
 
     public Hash LastKnownLibHash { get; private set; }
     public long LastKnownLibHeight { get; private set; }
@@ -134,19 +114,10 @@ public class GrpcPeer : IPeer
     public int BufferedAnnouncementsCount => _sendAnnouncementJobs.InputCount;
 
     public PeerConnectionInfo Info { get; }
-    
+
     public Dictionary<string, List<RequestMetric>> GetRequestMetrics()
     {
-        var metrics = new Dictionary<string, List<RequestMetric>>();
-        foreach (var roundtripTime in _recentRequestsRoundtripTimes.ToArray())
-        {
-            var metricsToAdd = new List<RequestMetric>();
-
-            metrics.Add(roundtripTime.Key, metricsToAdd);
-            foreach (var requestMetric in roundtripTime.Value) metricsToAdd.Add(requestMetric);
-        }
-
-        return metrics;
+        return Holder.GetRequestMetrics();
     }
 
     public Task<NodeList> GetNodesAsync(int count = NetworkConstants.DefaultDiscoveryMaxNodesToRequest)
@@ -158,7 +129,7 @@ public class GrpcPeer : IPeer
             { GrpcConstants.SessionIdMetadataKey, OutboundSessionId }
         };
 
-        return RequestAsync(() => _client.GetNodesAsync(new NodesRequest { MaxCount = count }, data), request);
+        return Holder.GetNodesAsync(new NodesRequest { MaxCount = count }, data, request);
     }
 
     public void UpdateLastKnownLib(LibAnnouncement libAnnouncement)
@@ -178,8 +149,7 @@ public class GrpcPeer : IPeer
             { GrpcConstants.TimeoutMetadataKey, CheckHealthTimeout.ToString() },
             { GrpcConstants.SessionIdMetadataKey, OutboundSessionId }
         };
-
-        await RequestAsync(() => _client.CheckHealthAsync(new HealthCheckRequest(), data), request);
+        await Holder.CheckHealthAsync(data, request);
     }
 
     public async Task<BlockWithTransactions> GetBlockByHashAsync(Hash hash)
@@ -199,14 +169,12 @@ public class GrpcPeer : IPeer
             { GrpcConstants.SessionIdMetadataKey, OutboundSessionId }
         };
 
-        var blockReply = await RequestAsync(() => _client.RequestBlockAsync(blockRequest, data), request);
-
-        return blockReply?.Block;
+        return await Holder.RequestBlockAsync(blockRequest, data, request);
     }
 
     public async Task<List<BlockWithTransactions>> GetBlocksAsync(Hash firstHash, int count)
     {
-        var blockRequest = new BlocksRequest { PreviousBlockHash = firstHash, Count = count };
+        var blocksRequest = new BlocksRequest { PreviousBlockHash = firstHash, Count = count };
         var blockInfo = $"{{ first: {firstHash}, count: {count} }}";
 
         var request = new GrpcRequest
@@ -222,30 +190,13 @@ public class GrpcPeer : IPeer
             { GrpcConstants.SessionIdMetadataKey, OutboundSessionId }
         };
 
-        var list = await RequestAsync(() => _client.RequestBlocksAsync(blockRequest, data), request);
-
-        if (list == null)
-            return new List<BlockWithTransactions>();
-
-        return list.Blocks.ToList();
+        var list = await Holder.RequestBlocksAsync(blocksRequest, data, request);
+        return list == null ? new List<BlockWithTransactions>() : list.Blocks.ToList();
     }
 
     public async Task<bool> TryRecoverAsync()
     {
-        if (_channel.State == ChannelState.Shutdown)
-            return false;
-
-        await _channel.TryWaitForStateChangedAsync(_channel.State,
-            DateTime.UtcNow.AddSeconds(NetworkConstants.DefaultPeerRecoveryTimeout));
-
-        // Either we connected again or the state change wait timed out.
-        if (_channel.State == ChannelState.TransientFailure || _channel.State == ChannelState.Connecting)
-        {
-            IsConnected = false;
-            return false;
-        }
-
-        return true;
+        return await Holder.TryRecoverAsync();
     }
 
     public bool KnowsBlock(Hash hash)
@@ -270,46 +221,13 @@ public class GrpcPeer : IPeer
 
     public async Task DisconnectAsync(bool gracefulDisconnect)
     {
-        IsConnected = false;
         IsShutdown = true;
 
         // we complete but no need to await the jobs
         _sendAnnouncementJobs.Complete();
         _sendBlockJobs.Complete();
         _sendTransactionJobs.Complete();
-
-        _announcementStreamCall?.Dispose();
-        _transactionStreamCall?.Dispose();
-        _blockStreamCall?.Dispose();
-
-        // send disconnect message if the peer is still connected and the connection
-        // is stable.
-        if (gracefulDisconnect && (_channel.State == ChannelState.Idle || _channel.State == ChannelState.Ready))
-        {
-            var request = new GrpcRequest { ErrorMessage = "Could not send disconnect." };
-
-            try
-            {
-                var metadata = new Metadata { { GrpcConstants.SessionIdMetadataKey, OutboundSessionId } };
-
-                await RequestAsync(
-                    () => _client.DisconnectAsync(new DisconnectReason
-                        { Why = DisconnectReason.Types.Reason.Shutdown }, metadata), request);
-            }
-            catch (NetworkException)
-            {
-                // swallow the exception, we don't care because we're disconnecting.
-            }
-        }
-
-        try
-        {
-            await _channel.ShutdownAsync();
-        }
-        catch (InvalidOperationException)
-        {
-            // if channel already shutdown
-        }
+        await Holder.DisconnectAsync(gracefulDisconnect);
     }
 
     public void UpdateLastReceivedHandshake(Handshake handshake)
@@ -334,120 +252,14 @@ public class GrpcPeer : IPeer
             { GrpcConstants.TimeoutMetadataKey, UpdateHandshakeTimeout.ToString() },
             { GrpcConstants.SessionIdMetadataKey, OutboundSessionId }
         };
-
-        await RequestAsync(() => _client.ConfirmHandshakeAsync(new ConfirmHandshakeRequest(), data), request);
-    }
-
-    private async Task<TResp> RequestAsync<TResp>(Func<AsyncUnaryCall<TResp>> func, GrpcRequest requestParams)
-    {
-        var metricsName = requestParams.MetricName;
-        var timeRequest = !string.IsNullOrEmpty(metricsName);
-        var requestStartTime = TimestampHelper.GetUtcNow();
-
-        Stopwatch requestTimer = null;
-
-        if (timeRequest)
-            requestTimer = Stopwatch.StartNew();
-
-        try
-        {
-            var response = await func();
-            if (timeRequest)
-            {
-                requestTimer.Stop();
-                RecordMetric(requestParams, requestStartTime, requestTimer.ElapsedMilliseconds);
-            }
-
-            return response;
-        }
-        catch (ObjectDisposedException ex)
-        {
-            throw new NetworkException("Peer is closed", ex, NetworkExceptionType.Unrecoverable);
-        }
-        catch (AggregateException ex)
-        {
-            if (!(ex.InnerException is RpcException rpcException))
-                throw new NetworkException($"Unknown exception. {this}: {requestParams.ErrorMessage}",
-                    NetworkExceptionType.Unrecoverable);
-
-            throw HandleRpcException(rpcException, requestParams.ErrorMessage);
-        }
-    }
-
-    private void RecordMetric(GrpcRequest grpcRequest, Timestamp requestStartTime, long elapsedMilliseconds)
-    {
-        var metrics = _recentRequestsRoundtripTimes[grpcRequest.MetricName];
-
-        while (metrics.Count >= MaxMetricsPerMethod)
-            metrics.TryDequeue(out _);
-
-        metrics.Enqueue(new RequestMetric
-        {
-            Info = grpcRequest.MetricInfo,
-            RequestTime = requestStartTime,
-            MethodName = grpcRequest.MetricName,
-            RoundTripTime = elapsedMilliseconds
-        });
-    }
-
-    /// <summary>
-    ///     This method handles the case where the peer is potentially down. If the Rpc call
-    ///     put the channel in TransientFailure or Connecting, we give the connection a certain time to recover.
-    /// </summary>
-    private NetworkException HandleRpcException(RpcException exception, string errorMessage)
-    {
-        var message = $"Failed request to {this}: {errorMessage}";
-        var type = NetworkExceptionType.Rpc;
-
-        if (_channel.State != ChannelState.Ready)
-        {
-            // if channel has been shutdown (unrecoverable state) remove it.
-            if (_channel.State == ChannelState.Shutdown)
-            {
-                message = $"Peer is shutdown - {this}: {errorMessage}";
-                type = NetworkExceptionType.Unrecoverable;
-            }
-            else if (_channel.State == ChannelState.TransientFailure || _channel.State == ChannelState.Connecting)
-            {
-                // from this we try to recover
-                message = $"Peer is unstable - {this}: {errorMessage}";
-                type = NetworkExceptionType.PeerUnstable;
-            }
-            else
-            {
-                // if idle just after an exception, disconnect.
-                message = $"Peer idle, channel state {_channel.State} - {this}: {errorMessage}";
-                type = NetworkExceptionType.Unrecoverable;
-            }
-        }
-        else
-        {
-            // there was an exception, not related to connectivity.
-            if (exception.StatusCode == StatusCode.Cancelled)
-            {
-                message = $"Request was cancelled {this}: {errorMessage}";
-                type = NetworkExceptionType.Unrecoverable;
-            }
-            else if (exception.StatusCode == StatusCode.Unknown)
-            {
-                message = $"Exception in handler {this}: {errorMessage}";
-                type = NetworkExceptionType.HandlerException;
-            }
-        }
-
-        return new NetworkException(message, exception, type);
+        await Holder.ConfirmHandshakeAsync(new ConfirmHandshakeRequest(), data, request);
     }
 
     public override string ToString()
     {
-        return $"{{ listening-port: {RemoteEndpoint}, key: {Info.Pubkey.Substring(0, 45)}... }}";
+        return $"{{ listening-port: {RemoteEndpoint}, {Info} }}";
     }
 
-    private enum MetricNames
-    {
-        GetBlocks,
-        GetBlock
-    }
 
     #region Streaming
 
@@ -509,8 +321,8 @@ public class GrpcPeer : IPeer
         }
         catch (RpcException ex)
         {
-            job.SendCallback?.Invoke(HandleRpcException(ex, $"Could not broadcast to {this}: "));
-            await Task.Delay(StreamRecoveryWaitTime);
+            job.SendCallback?.Invoke(Holder.HandleRpcException(ex, $"Could not broadcast to {this}: "));
+            await Task.Delay(GrpcConstants.StreamRecoveryWaitTime);
             return;
         }
         catch (Exception ex)
@@ -524,21 +336,7 @@ public class GrpcPeer : IPeer
 
     private async Task BroadcastBlockAsync(BlockWithTransactions blockWithTransactions)
     {
-        if (_blockStreamCall == null)
-            _blockStreamCall = _client.BlockBroadcastStream(new Metadata
-                { { GrpcConstants.SessionIdMetadataKey, OutboundSessionId } });
-
-        try
-        {
-            await _blockStreamCall.RequestStream.WriteAsync(blockWithTransactions);
-        }
-        catch (RpcException)
-        {
-            _blockStreamCall.Dispose();
-            _blockStreamCall = null;
-
-            throw;
-        }
+        await Holder.BroadcastBlockAsync(blockWithTransactions);
     }
 
     /// <summary>
@@ -547,21 +345,7 @@ public class GrpcPeer : IPeer
     /// </summary>
     private async Task SendAnnouncementAsync(BlockAnnouncement header)
     {
-        if (_announcementStreamCall == null)
-            _announcementStreamCall = _client.AnnouncementBroadcastStream(new Metadata
-                { { GrpcConstants.SessionIdMetadataKey, OutboundSessionId } });
-
-        try
-        {
-            await _announcementStreamCall.RequestStream.WriteAsync(header);
-        }
-        catch (RpcException)
-        {
-            _announcementStreamCall.Dispose();
-            _announcementStreamCall = null;
-
-            throw;
-        }
+        await Holder.BroadcastAnnouncementBlockAsync(header);
     }
 
     /// <summary>
@@ -570,21 +354,7 @@ public class GrpcPeer : IPeer
     /// </summary>
     private async Task SendTransactionAsync(Transaction transaction)
     {
-        if (_transactionStreamCall == null)
-            _transactionStreamCall = _client.TransactionBroadcastStream(new Metadata
-                { { GrpcConstants.SessionIdMetadataKey, OutboundSessionId } });
-
-        try
-        {
-            await _transactionStreamCall.RequestStream.WriteAsync(transaction);
-        }
-        catch (RpcException)
-        {
-            _transactionStreamCall.Dispose();
-            _transactionStreamCall = null;
-
-            throw;
-        }
+        await Holder.BroadcastTransactionAsync(transaction);
     }
 
     /// <summary>
@@ -593,22 +363,14 @@ public class GrpcPeer : IPeer
     /// </summary>
     public async Task SendLibAnnouncementAsync(LibAnnouncement libAnnouncement)
     {
-        if (_libAnnouncementStreamCall == null)
-            _libAnnouncementStreamCall = _client.LibAnnouncementBroadcastStream(new Metadata
-                { { GrpcConstants.SessionIdMetadataKey, OutboundSessionId } });
-
-        try
-        {
-            await _libAnnouncementStreamCall.RequestStream.WriteAsync(libAnnouncement);
-        }
-        catch (RpcException)
-        {
-            _libAnnouncementStreamCall.Dispose();
-            _libAnnouncementStreamCall = null;
-
-            throw;
-        }
+        await Holder.BroadcastLibAnnouncementAsync(libAnnouncement);
     }
 
     #endregion
+}
+
+public enum MetricNames
+{
+    GetBlocks,
+    GetBlock
 }

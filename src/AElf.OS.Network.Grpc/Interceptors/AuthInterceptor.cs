@@ -72,7 +72,8 @@ public class AuthInterceptor : Interceptor
     private bool IsNeedAuth(string methodName)
     {
         return methodName != GetFullMethodName(nameof(PeerService.PeerServiceBase.Ping)) &&
-               methodName != GetFullMethodName(nameof(PeerService.PeerServiceBase.DoHandshake));
+               methodName != GetFullMethodName(nameof(PeerService.PeerServiceBase.DoHandshake)) &&
+               methodName != GetFullMethodName(nameof(PeerService.PeerServiceBase.RequestByStream));
     }
 
     private string GetFullMethodName(string methodName)

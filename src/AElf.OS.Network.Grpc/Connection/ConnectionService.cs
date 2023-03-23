@@ -2,11 +2,13 @@ using System;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using AElf.Kernel;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Infrastructure;
 using AElf.OS.Network.Protocol;
 using AElf.OS.Network.Types;
+using Grpc.Core;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -153,7 +155,7 @@ public class ConnectionService : IConnectionService
             throw;
         }
 
-        currentPeer.IsConnected = true;
+        currentPeer.Holder.IsConnected = true;
         currentPeer.SyncState = SyncState.Syncing;
 
         Logger.LogInformation(
@@ -167,7 +169,7 @@ public class ConnectionService : IConnectionService
         return true;
     }
 
-    public async Task<HandshakeReply> DoHandshakeAsync(DnsEndPoint endpoint, Handshake handshake)
+    private async Task<HandshakeReply> PreDoHandshakeAsync(DnsEndPoint endpoint, Handshake handshake)
     {
         // validate the handshake (signature, chain id...)
         var handshakeValidationResult = await _handshakeProvider.ValidateHandshakeAsync(handshake);
@@ -189,6 +191,18 @@ public class ConnectionService : IConnectionService
             return new HandshakeReply { Error = HandshakeError.RepeatedConnection };
         }
 
+        return null;
+    }
+
+    public async Task<HandshakeReply> DoHandshakeAsync(DnsEndPoint endpoint, Handshake handshake)
+    {
+        var preCheckRes = await PreDoHandshakeAsync(endpoint, handshake);
+        if (preCheckRes != null)
+            return preCheckRes;
+
+        if (handshake.HandshakeData.Version == KernelConstants.ProtocolVersion && handshake.HandshakeData.ListeningPort == KernelConstants.ClosedPort)
+            return new HandshakeReply { Handshake = await _handshakeProvider.GetHandshakeAsync(), Error = HandshakeError.HandshakeOk };
+        var pubkey = handshake.HandshakeData.Pubkey.ToHex();
         try
         {
             // mark the (IP; pubkey) pair as currently handshaking
@@ -216,7 +230,7 @@ public class ConnectionService : IConnectionService
             Logger.LogDebug($"Added to pool {grpcPeer.RemoteEndpoint} - {grpcPeer.Info.Pubkey}.");
 
             // send back our handshake
-            var replyHandshake = await _handshakeProvider.GetHandshakeAsync();
+            var replyHandshake = await _handshakeProvider.GetHandshakeAsync(KernelConstants.PreProtocolVersion);
             grpcPeer.InboundSessionId = replyHandshake.SessionId.ToByteArray();
             grpcPeer.UpdateLastSentHandshake(replyHandshake);
 
@@ -226,6 +240,62 @@ public class ConnectionService : IConnectionService
         finally
         {
             // remove the handshaking mark (IP; pubkey)
+            _peerPool.RemoveHandshakingPeer(endpoint.Host, pubkey);
+        }
+    }
+
+    public async Task<HandshakeReply> DoHandshakeByStreamAsync(DnsEndPoint endpoint, IAsyncStreamWriter<StreamMessage> responseStream, Handshake handshake)
+    {
+        var preCheckRes = await PreDoHandshakeAsync(endpoint, handshake);
+        if (preCheckRes != null)
+            return preCheckRes;
+
+        var pubkey = handshake.HandshakeData.Pubkey.ToHex();
+        try
+        {
+            // mark the (IP; pubkey) pair as currently handshaking
+            if (!_peerPool.AddHandshakingPeer(endpoint.Host, pubkey))
+                return new HandshakeReply { Error = HandshakeError.ConnectionRefused };
+
+            // create the connection to the peer
+            var grpcPeer = await _peerDialer.DialBackPeerByStreamAsync(responseStream, handshake);
+
+            if (grpcPeer == null)
+            {
+                Logger.LogWarning("Could not dial back to stream {pubkey}.", pubkey);
+                return new HandshakeReply { Error = HandshakeError.InvalidConnection };
+            }
+
+            // add the new peer to the pool
+            var oldPeer = _peerPool.FindPeerByPublicKey(grpcPeer.Info.Pubkey);
+            if (oldPeer == null)
+            {
+                if (!_peerPool.TryAddPeer(grpcPeer))
+                {
+                    Logger.LogDebug("Stopping connection, peer already in the pool {pubkey}.", grpcPeer.Info.Pubkey);
+                    await grpcPeer.DisconnectAsync(false);
+                    return new HandshakeReply { Error = HandshakeError.RepeatedConnection };
+                }
+            }
+            else if (!_peerPool.TryReplace(grpcPeer.Info.Pubkey, oldPeer, grpcPeer))
+            {
+                Logger.LogDebug("Stopping connection, peer upgrade failed {pubkey}.", grpcPeer.Info.Pubkey);
+                await grpcPeer.DisconnectAsync(false);
+                return new HandshakeReply { Error = HandshakeError.StreamHandshakeUpgradeFailed };
+            }
+
+            Logger.LogDebug($"Added to pool {grpcPeer.RemoteEndpoint} - {grpcPeer.Info.Pubkey}.");
+
+            // send back our handshake
+            var replyHandshake = await _handshakeProvider.GetHandshakeAsync(KernelConstants.PreProtocolVersion);
+            grpcPeer.InboundSessionId = replyHandshake.SessionId.ToByteArray();
+            grpcPeer.UpdateLastSentHandshake(replyHandshake);
+
+            Logger.LogDebug("Sending back handshake to {pubkey}.", pubkey);
+            return new HandshakeReply { Handshake = replyHandshake, Error = HandshakeError.HandshakeOk };
+        }
+        finally
+        {
             _peerPool.RemoveHandshakingPeer(endpoint.Host, pubkey);
         }
     }
@@ -244,9 +314,8 @@ public class ConnectionService : IConnectionService
                               $" - LIB height {peer.LastKnownLibHeight}" +
                               $" - best chain [{peer.CurrentBlockHeight}, {peer.CurrentBlockHash}]");
 
-        peer.IsConnected = true;
+        peer.Holder.IsConnected = true;
         peer.SyncState = SyncState.Syncing;
-
         FireConnectionEvent(peer);
     }
 

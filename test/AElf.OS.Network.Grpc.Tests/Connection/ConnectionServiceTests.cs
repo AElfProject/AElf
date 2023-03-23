@@ -63,7 +63,7 @@ public class ConnectionServiceTests : GrpcNetworkTestBase
     public async Task Connect_PeerAlreadyInPoolAndIsInvalid_Test()
     {
         var peer = CreatePeerAndAddToPeerPool(NetworkTestConstants.GoodPeerEndpoint, NetworkTestConstants.FakePubkey2);
-        peer.IsConnected = false;
+        peer.Holder.IsConnected = false;
         peer.Info.ConnectionTime = TimestampHelper.GetUtcNow()
             .AddMilliseconds(-NetworkConstants.PeerConnectionTimeout - 1000);
 

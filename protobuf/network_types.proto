@@ -80,6 +80,7 @@ enum HandshakeError {
     CONNECTION_REFUSED = 5;
     INVALID_CONNECTION = 6;
     SIGNATURE_TIMEOUT = 7;
+    STREAM_HANDSHAKE_UPGRADE_FAILED = 8;
 }
 
 message ConfirmHandshakeRequest {

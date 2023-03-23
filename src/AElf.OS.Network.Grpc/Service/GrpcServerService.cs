@@ -26,17 +26,19 @@ public class GrpcServerService : PeerService.PeerServiceBase
 {
     private readonly IBlockchainService _blockchainService;
     private readonly IConnectionService _connectionService;
+    private readonly IStreamService _streamService;
     private readonly INodeManager _nodeManager;
 
     private readonly ISyncStateService _syncStateService;
 
     public GrpcServerService(ISyncStateService syncStateService, IConnectionService connectionService,
-        IBlockchainService blockchainService, INodeManager nodeManager)
+        IBlockchainService blockchainService, INodeManager nodeManager, IStreamService streamService)
     {
         _syncStateService = syncStateService;
         _connectionService = connectionService;
         _blockchainService = blockchainService;
         _nodeManager = nodeManager;
+        _streamService = streamService;
 
         EventBus = NullLocalEventBus.Instance;
         Logger = NullLogger<GrpcServerService>.Instance;
@@ -68,6 +70,23 @@ public class GrpcServerService : PeerService.PeerServiceBase
             Logger.LogWarning(e, $"Handshake failed - {context.Peer}: ");
             throw;
         }
+    }
+
+    public override async Task RequestByStream(IAsyncStreamReader<StreamMessage> requestStream, IServerStreamWriter<StreamMessage> responseStream, ServerCallContext context)
+    {
+        Logger.LogDebug($"Block stream started with {context.GetPeerInfo()} - {context.Peer}.");
+
+        try
+        {
+            await requestStream.ForEachAsync(async req => await _streamService.ProcessStreamRequest(req, responseStream, context));
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(e, $"Block stream error - {context.GetPeerInfo()}: ");
+            throw;
+        }
+
+        Logger.LogDebug($"Block stream finished with {context.GetPeerInfo()} - {context.Peer}.");
     }
 
     public override Task<VoidReply> ConfirmHandshake(ConfirmHandshakeRequest request,
@@ -121,6 +140,7 @@ public class GrpcServerService : PeerService.PeerServiceBase
         _ = EventBus.PublishAsync(new BlockReceivedEvent(block, peerPubkey));
         return Task.CompletedTask;
     }
+   
 
     public override async Task<VoidReply> AnnouncementBroadcastStream(
         IAsyncStreamReader<BlockAnnouncement> requestStream, ServerCallContext context)

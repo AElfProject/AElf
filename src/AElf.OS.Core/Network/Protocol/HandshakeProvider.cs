@@ -30,14 +30,14 @@ public class HandshakeProvider : IHandshakeProvider
 
     public ILogger<HandshakeProvider> Logger { get; set; }
 
-    public async Task<Handshake> GetHandshakeAsync()
+    public async Task<Handshake> GetHandshakeAsync(int version)
     {
         var chain = await _blockchainService.GetChainAsync();
 
         var handshakeData = new HandshakeData
         {
             ChainId = chain.Id,
-            Version = KernelConstants.ProtocolVersion,
+            Version = version,
             ListeningPort = _networkOptions.ListeningPort,
             Pubkey = ByteString.CopyFrom(await _accountService.GetPublicKeyAsync()),
             BestChainHash = chain.BestChainHash,
@@ -60,6 +60,11 @@ public class HandshakeProvider : IHandshakeProvider
         return handshake;
     }
 
+    private bool IsInvalidateProtocolVersion(int version)
+    {
+        return version != KernelConstants.ProtocolVersion && version != KernelConstants.PreProtocolVersion;
+    }
+
     public async Task<HandshakeValidationResult> ValidateHandshakeAsync(Handshake handshake)
     {
         var pubkey = handshake.HandshakeData.Pubkey.ToHex();
@@ -74,9 +79,9 @@ public class HandshakeProvider : IHandshakeProvider
             return HandshakeValidationResult.InvalidChainId;
         }
 
-        if (handshake.HandshakeData.Version != KernelConstants.ProtocolVersion)
+        if (IsInvalidateProtocolVersion(handshake.HandshakeData.Version))
         {
-            Logger.LogDebug($"Version is is incorrect: {handshake.HandshakeData.Version}.");
+            Logger.LogDebug($"Version is incorrect: {handshake.HandshakeData.Version}.");
             return HandshakeValidationResult.InvalidVersion;
         }
 

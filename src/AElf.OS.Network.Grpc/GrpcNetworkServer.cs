@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using AElf.Kernel;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Grpc.Helpers;
 using AElf.OS.Network.Helpers;
@@ -49,7 +50,8 @@ public class GrpcNetworkServer : IAElfNetworkServer, ISingletonDependency
 
     public async Task StartAsync()
     {
-        await StartListeningAsync();
+        if (NetworkOptions.ListeningPort != KernelConstants.ClosedPort)
+            await StartListeningAsync();
         await DialBootNodesAsync();
 
         await EventBus.PublishAsync(new NetworkInitializedEvent());
@@ -97,7 +99,7 @@ public class GrpcNetworkServer : IAElfNetworkServer, ISingletonDependency
     {
         try
         {
-            await _server.ShutdownAsync();
+            await _server?.ShutdownAsync();
         }
         catch (InvalidOperationException)
         {

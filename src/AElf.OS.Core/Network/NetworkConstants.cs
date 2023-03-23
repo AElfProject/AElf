@@ -26,7 +26,7 @@ public static class NetworkConstants
     public const string TransactionBroadcastQueueName = "TransactionBroadcastQueue";
     public const string BlockBroadcastQueueName = "BlockBroadcastQueue";
 
-    public const long HandshakeTimeout = 1500;
+    public const long HandshakeTimeout = 15000;
 
     public const long PeerConnectionTimeout = 10000;
 

@@ -29,7 +29,7 @@ public class GrpcPeerTests : GrpcNetworkWithChainTestBase
         _pool = GetRequiredService<IPeerPool>();
 
         _grpcPeer = GrpcTestPeerHelper.CreateNewPeer();
-        _grpcPeer.IsConnected = true;
+        _grpcPeer.Holder.IsConnected = true;
         _nonInterceptedPeer = MockServiceClient("127.0.0.1:2000");
 
         _pool.TryAddPeer(_grpcPeer);
@@ -171,7 +171,7 @@ public class GrpcPeerTests : GrpcNetworkWithChainTestBase
         var executed = new AutoResetEvent(false);
 
         NetworkException exception = null;
-        _nonInterceptedPeer.IsConnected = false;
+        _nonInterceptedPeer.Holder.IsConnected = false;
         Should.Throw<NetworkException>(() =>
             _nonInterceptedPeer.EnqueueAnnouncement(new BlockAnnouncement(), ex =>
             {
@@ -186,7 +186,7 @@ public class GrpcPeerTests : GrpcNetworkWithChainTestBase
         var executed = new AutoResetEvent(false);
 
         NetworkException exception = null;
-        _nonInterceptedPeer.IsConnected = false;
+        _nonInterceptedPeer.Holder.IsConnected = false;
 
         Should.Throw<NetworkException>(() =>
             _nonInterceptedPeer.EnqueueBlock(new BlockWithTransactions(), ex =>
@@ -202,7 +202,7 @@ public class GrpcPeerTests : GrpcNetworkWithChainTestBase
         var executed = new AutoResetEvent(false);
 
         NetworkException exception = null;
-        _nonInterceptedPeer.IsConnected = false;
+        _nonInterceptedPeer.Holder.IsConnected = false;
 
         Should.Throw<NetworkException>(() =>
             _nonInterceptedPeer.EnqueueTransaction(new Transaction(), ex =>
@@ -218,7 +218,7 @@ public class GrpcPeerTests : GrpcNetworkWithChainTestBase
         var executed = new AutoResetEvent(false);
 
         NetworkException exception = null;
-        _nonInterceptedPeer.IsConnected = false;
+        _nonInterceptedPeer.Holder.IsConnected = false;
 
         Should.Throw<NetworkException>(() =>
             _nonInterceptedPeer.EnqueueLibAnnouncement(new LibAnnouncement(), ex =>
@@ -441,7 +441,7 @@ public class GrpcPeerTests : GrpcNetworkWithChainTestBase
         var grpcPeer = GrpcTestPeerHelper.CreatePeerWithClient(ipAddress,
             NetworkTestConstants.FakePubkey, mockClient.Object);
 
-        grpcPeer.IsConnected = true;
+        grpcPeer.Holder.IsConnected = true;
 
         return grpcPeer;
     }
