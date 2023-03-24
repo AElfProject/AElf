@@ -16,13 +16,15 @@ public partial class ResetFieldsMethodInjector : IPatcher<ModuleDefinition>
     public void Patch(ModuleDefinition module)
     {
         var checker = new ExecutionObserverProxyChecker(module);
-        var disallowedFields = module.GetAllTypes().SelectMany(t => t.Fields).Where(f => f.IsDisallowedStaticField())
+        /*
+         TODO: Comment out this first before we handle it properly, see https://github.com/AElfProject/AElf/issues/3389
+         var disallowedFields = module.GetAllTypes().SelectMany(t => t.Fields).Where(f => f.IsDisallowedStaticField())
             .Where(f => !checker.IsObserverFieldThatRequiresResetting(f)).ToList();
         if (!disallowedFields.IsNullOrEmpty())
         {
-            return;
-            //throw new InvalidCodeException("Static field is not allowed in user code.");
+            throw new InvalidCodeException("Static field is not allowed in user code.");
         }
+        */
         foreach (var type in module.Types.Where(t => !t.IsContractImplementation()))
         {
             InjectTypeWithResetFields(checker, module, type);
