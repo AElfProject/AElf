@@ -10,6 +10,7 @@
     <ItemGroup>
         <PackageReference Include="BenchmarkDotNet" Version="0.12.1"/>
         <PackageReference Include="BenchmarkDotNet.Diagnostics.Windows" Version="0.12.1"/>
+        <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="4.6.0-1.final" />
     </ItemGroup>
 
     <ItemGroup>
