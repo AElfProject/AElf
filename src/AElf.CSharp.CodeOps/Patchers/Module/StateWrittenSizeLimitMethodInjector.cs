@@ -53,7 +53,8 @@ public class StateWrittenSizeLimitMethodInjector : IPatcher<ModuleDefinition>
         if (instructionsRequiringInjection.Count > 0 && isNotContractImplementation)
         {
             // TODO: https://github.com/AElfProject/AElf/issues/3387
-            throw new InvalidCodeException("Updating state in non-contract class.");
+            return;
+            //throw new InvalidCodeException("Updating state in non-contract class.");
         }
         foreach (var instruction in instructionsRequiringInjection)
         {

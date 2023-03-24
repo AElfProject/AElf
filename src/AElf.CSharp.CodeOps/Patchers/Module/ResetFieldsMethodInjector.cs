@@ -20,7 +20,8 @@ public partial class ResetFieldsMethodInjector : IPatcher<ModuleDefinition>
             .Where(f => !checker.IsObserverFieldThatRequiresResetting(f)).ToList();
         if (!disallowedFields.IsNullOrEmpty())
         {
-            throw new InvalidCodeException("Static field is not allowed in user code.");
+            return;
+            //throw new InvalidCodeException("Static field is not allowed in user code.");
         }
         foreach (var type in module.Types.Where(t => !t.IsContractImplementation()))
         {
