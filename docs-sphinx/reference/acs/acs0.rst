@@ -615,7 +615,7 @@ aelf.Transaction
 +----------------------+-------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+---------+
 | params               | `bytes <#bytes>`__            | The parameters to pass to the smart contract method.                                                                                                                                               |         |
 +----------------------+-------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+---------+
-| signature            | `bytes <#bytes>`__            | When signing a transaction it¡¯s actually a subset of the fields: from/to and the target method as well as the parameter that were given. It also contains the reference block number and prefix.   |         |
+| signature            | `bytes <#bytes>`__            | When signing a transaction itï¿½ï¿½s actually a subset of the fields: from/to and the target method as well as the parameter that were given. It also contains the reference block number and prefix.  |         |
 +----------------------+-------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+---------+
 
 .. raw:: html
