@@ -33,18 +33,18 @@ public class PeerDialer : IPeerDialer
 {
     private readonly IAccountService _accountService;
     private readonly IHandshakeProvider _handshakeProvider;
+    private readonly IStreamClientProvider _streamClientProvider;
 
-    private readonly IStreamTaskResourcePool _streamTaskResourcePool;
 
     private KeyCertificatePair _clientKeyCertificatePair;
     public ILocalEventBus EventBus { get; set; }
 
     public PeerDialer(IAccountService accountService,
-        IHandshakeProvider handshakeProvider, IStreamTaskResourcePool streamTaskResourcePool)
+        IHandshakeProvider handshakeProvider, IStreamClientProvider streamClientProvider)
     {
         _accountService = accountService;
         _handshakeProvider = handshakeProvider;
-        _streamTaskResourcePool = streamTaskResourcePool;
+        _streamClientProvider = streamClientProvider;
         EventBus = NullLocalEventBus.Instance;
 
         Logger = NullLogger<PeerDialer>.Instance;
@@ -92,10 +92,11 @@ public class PeerDialer : IPeerDialer
 
         Logger.LogDebug("dail peer info Handshake={Handshake}", handshake);
         if (CanDoHandshakeByStream(handshake))
-            CallDoHandshakeByStreamAsync(client, remoteEndpoint, handshake, peer, obHolder);
+            await CallDoHandshakeByStreamAsync(client, remoteEndpoint, peer, obHolder);
+        else
+            peer.InboundSessionId = handshake.SessionId.ToByteArray();
         peer.UpdateLastReceivedHandshake(handshakeReply.Handshake);
 
-        peer.InboundSessionId = handshake.SessionId.ToByteArray();
         peer.UpdateLastSentHandshake(handshake);
 
         return peer;
@@ -118,10 +119,9 @@ public class PeerDialer : IPeerDialer
     }
 
 
-    public async Task<GrpcPeer> DialBackPeerByStreamAsync(IAsyncStreamWriter<StreamMessage> responseStream, Handshake handshake)
+    public async Task<GrpcPeer> DialBackPeerByStreamAsync(DnsEndPoint remoteEndpoint, IAsyncStreamWriter<StreamMessage> responseStream, Handshake handshake)
     {
-        var streamClient = new StreamClient(responseStream, _streamTaskResourcePool);
-        var pingReply = await streamClient.Ping(null);
+        var streamClient = _streamClientProvider.GetStreamClient(responseStream);
         Logger.LogWarning("recive stream ping reply");
         var info = new PeerConnectionInfo
         {
@@ -138,11 +138,9 @@ public class PeerDialer : IPeerDialer
         {
             { GrpcConstants.PubkeyMetadataKey, nodePubkey },
             { GrpcConstants.PeerInfoMetadataKey, info.ToString() },
-            { GrpcConstants.StreamPeerHostKey, Dns.GetHostName() },
-            { GrpcConstants.StreamPeerPortKey, KernelConstants.ClosedPort.ToString() }
         };
         Logger.LogWarning("DialBackPeerByStreamAsync meta={meta}", meta);
-        var peer = new GrpcPeer(new InboundPeerHolder(streamClient, info, meta), null, info);
+        var peer = new GrpcPeer(new InboundPeerHolder(streamClient, info, meta), remoteEndpoint, info);
 
         peer.UpdateLastReceivedHandshake(handshake);
 
@@ -232,7 +230,7 @@ public class PeerDialer : IPeerDialer
         return handshake.HandshakeData.Version == KernelConstants.ProtocolVersion && handshake.HandshakeData.ListeningPort == KernelConstants.ClosedPort;
     }
 
-    private async Task CallDoHandshakeByStreamAsync(GrpcClient client, DnsEndPoint remoteEndPoint, Handshake handshake, GrpcPeer peer, OutboundPeerHolder peerHolder)
+    private async Task CallDoHandshakeByStreamAsync(GrpcClient client, DnsEndPoint remoteEndPoint, GrpcPeer peer, OutboundPeerHolder peerHolder)
     {
         try
         {
@@ -240,19 +238,20 @@ public class PeerDialer : IPeerDialer
             {
                 { GrpcConstants.RetryCountMetadataKey, "0" },
                 { GrpcConstants.TimeoutMetadataKey, (NetworkOptions.PeerDialTimeout * 2).ToString() },
-                { GrpcConstants.StreamPeerHostKey, Dns.GetHostName() },
-                { GrpcConstants.StreamPeerPortKey, KernelConstants.ClosedPort.ToString() }
             };
             var call = client.Client.RequestByStream(metadata);
-            var streamClient = new StreamClient(call.RequestStream, _streamTaskResourcePool);
+            var streamClient = _streamClientProvider.GetStreamClient(call.RequestStream);
             var tokenSource = new CancellationTokenSource();
             peerHolder.StartServe(call, Task.Run(async () =>
             {
                 await call.ResponseStream.ForEachAsync(async req => await
                     EventBus.PublishAsync(new StreamMessageReceivedEvent(req.ToByteString(), peer.Info.Pubkey)));
             }, tokenSource.Token), tokenSource);
-            await streamClient.HandleShake(new HandshakeRequest { Handshake = handshake }, metadata);
-            Logger.LogDebug($"streaming Handshake to {remoteEndPoint} successful.");
+            var handshake = await _handshakeProvider.GetHandshakeAsync();
+            var handShakeReply = await streamClient.HandShake(new HandshakeRequest { Handshake = handshake }, metadata);
+            peer.InboundSessionId = handshake.SessionId.ToByteArray();
+            peer.Info.SessionId = handShakeReply.Handshake.SessionId.ToByteArray();
+            Logger.LogDebug("streaming Handshake to {remoteEndPoint} successful.handShakeReply={handShakeReply}", remoteEndPoint.ToString(), handShakeReply.Handshake);
         }
         catch (Exception)
         {

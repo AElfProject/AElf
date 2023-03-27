@@ -258,7 +258,7 @@ public class ConnectionService : IConnectionService
                 return new HandshakeReply { Error = HandshakeError.ConnectionRefused };
 
             // create the connection to the peer
-            var grpcPeer = await _peerDialer.DialBackPeerByStreamAsync(responseStream, handshake);
+            var grpcPeer = await _peerDialer.DialBackPeerByStreamAsync(new AElfPeerEndpoint(endpoint.Host, handshake.HandshakeData.ListeningPort), responseStream, handshake);
 
             if (grpcPeer == null)
             {
@@ -267,19 +267,9 @@ public class ConnectionService : IConnectionService
             }
 
             // add the new peer to the pool
-            var oldPeer = _peerPool.FindPeerByPublicKey(grpcPeer.Info.Pubkey);
-            if (oldPeer == null)
+            if (!_peerPool.TryAddPeer(grpcPeer))
             {
-                if (!_peerPool.TryAddPeer(grpcPeer))
-                {
-                    Logger.LogDebug("Stopping connection, peer already in the pool {pubkey}.", grpcPeer.Info.Pubkey);
-                    await grpcPeer.DisconnectAsync(false);
-                    return new HandshakeReply { Error = HandshakeError.RepeatedConnection };
-                }
-            }
-            else if (!_peerPool.TryReplace(grpcPeer.Info.Pubkey, oldPeer, grpcPeer))
-            {
-                Logger.LogDebug("Stopping connection, peer upgrade failed {pubkey}.", grpcPeer.Info.Pubkey);
+                Logger.LogDebug("Stopping connection, peer already in the pool {pubkey}.", grpcPeer.Info.Pubkey);
                 await grpcPeer.DisconnectAsync(false);
                 return new HandshakeReply { Error = HandshakeError.StreamHandshakeUpgradeFailed };
             }
@@ -316,6 +306,8 @@ public class ConnectionService : IConnectionService
 
         peer.Holder.IsConnected = true;
         peer.SyncState = SyncState.Syncing;
+
+        //TODO: fix endpoint zero
         FireConnectionEvent(peer);
     }
 

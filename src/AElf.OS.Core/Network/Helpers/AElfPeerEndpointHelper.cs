@@ -70,6 +70,22 @@ public static class AElfPeerEndpointHelper
         return true;
     }
 
+    public static int GetEndpointPort(string endpointString)
+    {
+        var values = endpointString.Split(new[] { ':' });
+        if (values.Length == 1)
+        {
+            return -1;
+        }
+
+        if (!int.TryParse(values[values.Length - 1], out var port))
+        {
+            return -1;
+        }
+
+        return port;
+    }
+
     private static int GetPort(string p)
     {
         if (!int.TryParse(p, out var port) || port < IPEndPoint.MinPort || port > IPEndPoint.MaxPort)

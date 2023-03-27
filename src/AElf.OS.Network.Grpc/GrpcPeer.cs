@@ -1,7 +1,5 @@
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -15,6 +13,8 @@ using AElf.OS.Network.Protocol.Types;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.OS.Network.Grpc;
 
@@ -42,6 +42,7 @@ public class GrpcPeer : IPeer
     private readonly ActionBlock<StreamJob> _sendAnnouncementJobs;
     private readonly ActionBlock<StreamJob> _sendBlockJobs;
     private readonly ActionBlock<StreamJob> _sendTransactionJobs;
+    public ILogger<GrpcPeer> Logger { get; set; }
 
     public GrpcPeer(IPeerHolder holder, DnsEndPoint remoteEndpoint, PeerConnectionInfo peerConnectionInfo)
     {
@@ -67,6 +68,7 @@ public class GrpcPeer : IPeer
             {
                 BoundedCapacity = NetworkConstants.DefaultMaxBufferedTransactionCount
             });
+        Logger = NullLogger<GrpcPeer>.Instance;
     }
 
     public Timestamp LastSentHandshakeTime { get; private set; }
@@ -221,6 +223,7 @@ public class GrpcPeer : IPeer
 
     public async Task DisconnectAsync(bool gracefulDisconnect)
     {
+        Logger.LogWarning("disconnect {pubkey}", Info.Pubkey);
         IsShutdown = true;
 
         // we complete but no need to await the jobs

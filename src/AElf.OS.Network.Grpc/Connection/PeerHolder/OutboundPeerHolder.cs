@@ -231,7 +231,7 @@ public class OutboundPeerHolder : IPeerHolder
 
     public async Task ConfirmHandshakeAsync(ConfirmHandshakeRequest confirmHandshakeRequest, Metadata header, GrpcRequest request)
     {
-        await RequestAsync(() => _client.ConfirmHandshakeAsync(confirmHandshakeRequest, header), request);
+        await RequestAsync(() => _client.ConfirmHandshakeAsync(new ConfirmHandshakeRequest(), header), request);
     }
 
     public async Task BroadcastBlockAsync(BlockWithTransactions blockWithTransactions)

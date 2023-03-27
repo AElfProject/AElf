@@ -38,69 +38,163 @@ public class InboundPeerHolder : IPeerHolder
 
     public async Task<NodeList> GetNodesAsync(NodesRequest nodesRequest, Metadata header, GrpcRequest request)
     {
-        return await _streamClient.GetNodesAsync(nodesRequest, AddPeerMeta(header), request);
+        try
+        {
+            return await _streamClient.GetNodesAsync(nodesRequest, AddPeerMeta(header));
+        }
+        catch (RpcException e)
+        {
+            var networkException = HandleRpcException(e, request.ErrorMessage);
+            if (networkException.ExceptionType == NetworkExceptionType.Unrecoverable)
+                DisconnectAsync(true);
+
+            throw;
+        }
     }
 
     public async Task CheckHealthAsync(Metadata header, GrpcRequest request)
     {
-        await _streamClient.CheckHealthAsync(AddPeerMeta(header), request);
+        try
+        {
+            await _streamClient.CheckHealthAsync(AddPeerMeta(header));
+        }
+        catch (RpcException e)
+        {
+            var networkException = HandleRpcException(e, request.ErrorMessage);
+            if (networkException.ExceptionType == NetworkExceptionType.Unrecoverable)
+                DisconnectAsync(true);
+
+            throw;
+        }
     }
 
     public async Task<BlockWithTransactions> RequestBlockAsync(BlockRequest blockRequest, Metadata header, GrpcRequest request)
     {
-        return await _streamClient.RequestBlockAsync(blockRequest, AddPeerMeta(header), request);
+        try
+        {
+            return await _streamClient.RequestBlockAsync(blockRequest, AddPeerMeta(header));
+        }
+        catch (RpcException e)
+        {
+            var networkException = HandleRpcException(e, request.ErrorMessage);
+            if (networkException.ExceptionType == NetworkExceptionType.Unrecoverable)
+                DisconnectAsync(true);
+
+            throw;
+        }
     }
 
     public async Task<BlockList> RequestBlocksAsync(BlocksRequest blockRequest, Metadata header, GrpcRequest request)
     {
-        return await _streamClient.RequestBlocksAsync(blockRequest, AddPeerMeta(header), request);
+        try
+        {
+            return await _streamClient.RequestBlocksAsync(blockRequest, AddPeerMeta(header));
+        }
+        catch (RpcException e)
+        {
+            var networkException = HandleRpcException(e, request.ErrorMessage);
+            if (networkException.ExceptionType == NetworkExceptionType.Unrecoverable)
+                DisconnectAsync(true);
+            throw;
+        }
     }
 
     public async Task DisconnectAsync(bool gracefulDisconnect)
     {
+        if (!IsConnected) return;
         IsConnected = false;
         // send disconnect message if the peer is still connected and the connection
         // is stable.
-        if (gracefulDisconnect)
-        {
-            var request = new GrpcRequest { ErrorMessage = "Could not send disconnect." };
+        if (!gracefulDisconnect) return;
+        var request = new GrpcRequest { ErrorMessage = "Could not send disconnect." };
 
-            try
-            {
-                await _streamClient.DisconnectAsync(new DisconnectReason
-                    { Why = DisconnectReason.Types.Reason.Shutdown }, AddPeerMeta(new Metadata { { GrpcConstants.SessionIdMetadataKey, Info.SessionId } }), request);
-            }
-            catch (NetworkException)
-            {
-                // swallow the exception, we don't care because we're disconnecting.
-            }
+        try
+        {
+            await _streamClient.DisconnectAsync(new DisconnectReason
+                { Why = DisconnectReason.Types.Reason.Shutdown }, AddPeerMeta(new Metadata { { GrpcConstants.SessionIdMetadataKey, Info.SessionId } }));
+        }
+        catch (RpcException e)
+        {
+            var networkException = HandleRpcException(e, request.ErrorMessage);
+            if (networkException.ExceptionType == NetworkExceptionType.Unrecoverable)
+                DisconnectAsync(true);
         }
     }
 
 
     public async Task ConfirmHandshakeAsync(ConfirmHandshakeRequest confirmHandshakeRequest, Metadata header, GrpcRequest request)
     {
-        await _streamClient.ConfirmHandshakeAsync(confirmHandshakeRequest, AddPeerMeta(header), request);
+        try
+        {
+            await _streamClient.ConfirmHandshakeAsync(confirmHandshakeRequest, AddPeerMeta(header));
+        }
+        catch (RpcException e)
+        {
+            var networkException = HandleRpcException(e, request.ErrorMessage);
+            if (networkException.ExceptionType == NetworkExceptionType.Unrecoverable)
+                DisconnectAsync(true);
+            throw;
+        }
     }
 
     public async Task BroadcastBlockAsync(BlockWithTransactions blockWithTransactions)
     {
-        await _streamClient.BroadcastBlockAsync(blockWithTransactions, AddPeerMeta(null));
+        try
+        {
+            await _streamClient.BroadcastBlockAsync(blockWithTransactions, AddPeerMeta(null));
+        }
+        catch (RpcException e)
+        {
+            var networkException = HandleRpcException(e, "BroadcastBlockAsync failed");
+            if (networkException.ExceptionType == NetworkExceptionType.Unrecoverable)
+                DisconnectAsync(true);
+            throw;
+        }
     }
 
     public async Task BroadcastAnnouncementBlockAsync(BlockAnnouncement header)
     {
-        await _streamClient.BroadcastAnnouncementBlockAsync(header, AddPeerMeta(null));
+        try
+        {
+            await _streamClient.BroadcastAnnouncementBlockAsync(header, AddPeerMeta(null));
+        }
+        catch (RpcException e)
+        {
+            var networkException = HandleRpcException(e, "BroadcastAnnouncementBlockAsync failed");
+            if (networkException.ExceptionType == NetworkExceptionType.Unrecoverable)
+                DisconnectAsync(true);
+            throw;
+        }
     }
 
     public async Task BroadcastTransactionAsync(Transaction transaction)
     {
-        await _streamClient.BroadcastTransactionAsync(transaction, AddPeerMeta(null));
+        try
+        {
+            await _streamClient.BroadcastTransactionAsync(transaction, AddPeerMeta(null));
+        }
+        catch (RpcException e)
+        {
+            var networkException = HandleRpcException(e, "BroadcastTransactionAsync failed");
+            if (networkException.ExceptionType == NetworkExceptionType.Unrecoverable)
+                DisconnectAsync(true);
+            throw;
+        }
     }
 
     public async Task BroadcastLibAnnouncementAsync(LibAnnouncement libAnnouncement)
     {
-        await _streamClient.BroadcastLibAnnouncementAsync(libAnnouncement, AddPeerMeta(null));
+        try
+        {
+            await _streamClient.BroadcastLibAnnouncementAsync(libAnnouncement, AddPeerMeta(null));
+        }
+        catch (RpcException e)
+        {
+            var networkException = HandleRpcException(e, "BroadcastLibAnnouncementAsync failed");
+            if (networkException.ExceptionType == NetworkExceptionType.Unrecoverable)
+                DisconnectAsync(true);
+            throw;
+        }
     }
 
     public Dictionary<string, List<RequestMetric>> GetRequestMetrics()
@@ -116,6 +210,21 @@ public class InboundPeerHolder : IPeerHolder
 
     public NetworkException HandleRpcException(RpcException exception, string errorMessage)
     {
-        return new NetworkException(errorMessage, exception);
+        var message = $"Failed request to {this}: {errorMessage}";
+        var type = NetworkExceptionType.Rpc;
+        if (exception.StatusCode ==
+            // there was an exception, not related to connectivity.
+            StatusCode.Cancelled)
+        {
+            message = $"Request was cancelled {this}: {errorMessage}";
+            type = NetworkExceptionType.Unrecoverable;
+        }
+        else if (exception.StatusCode == StatusCode.Unknown)
+        {
+            message = $"Exception in handler {this}: {errorMessage}";
+            type = NetworkExceptionType.HandlerException;
+        }
+
+        return new NetworkException(message, exception, type);
     }
 }

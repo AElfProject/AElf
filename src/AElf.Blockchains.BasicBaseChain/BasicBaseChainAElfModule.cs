@@ -130,6 +130,6 @@ public class BasicBaseChainAElfModule : AElfModule
     {
         var osService = context.ServiceProvider.GetService<IOsBlockchainNodeContextService>();
         var that = this;
-        AsyncHelper.RunSync(() => osService.StopAsync(that.OsBlockchainNodeContext));
+        AsyncHelper.RunSync(() => osService?.StopAsync(that.OsBlockchainNodeContext));
     }
 }

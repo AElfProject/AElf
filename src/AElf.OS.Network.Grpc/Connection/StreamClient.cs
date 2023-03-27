@@ -1,8 +1,12 @@
+using System;
 using System.Threading.Tasks;
 using AElf.OS.Network.Grpc.Helpers;
 using AElf.Types;
 using Google.Protobuf;
 using Grpc.Core;
+using Volo.Abp.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.OS.Network.Grpc;
 
@@ -11,14 +15,16 @@ public class StreamClient
     private const int StreamWaitTime = 500;
     private readonly IAsyncStreamWriter<StreamMessage> _clientStreamWriter;
     private readonly IStreamTaskResourcePool _streamTaskResourcePool;
+    public ILogger<StreamClient> Logger { get; set; }
 
     public StreamClient(IAsyncStreamWriter<StreamMessage> clientStreamWriter, IStreamTaskResourcePool streamTaskResourcePool)
     {
         _clientStreamWriter = clientStreamWriter;
         _streamTaskResourcePool = streamTaskResourcePool;
+        Logger = NullLogger<StreamClient>.Instance;
     }
 
-    public async Task<NodeList> GetNodesAsync(NodesRequest nodesRequest, Metadata header, GrpcRequest request)
+    public async Task<NodeList> GetNodesAsync(NodesRequest nodesRequest, Metadata header)
     {
         var reply = await RequestAsync(StreamType.GetNodes, nodesRequest.ToByteString(), header, StreamType.GetNodesReply, GetTimeOutFromHeader(header));
         var nodeList = new NodeList();
@@ -26,17 +32,18 @@ public class StreamClient
         return nodeList;
     }
 
-    public async Task HandleShake(HandshakeRequest request, Metadata header)
+    public async Task<HandshakeReply> HandShake(HandshakeRequest request, Metadata header)
     {
-        await RequestAsync(StreamType.HandShake, request.ToByteString(), header, StreamType.HandShakeReply);
+        var reply = await RequestAsync(StreamType.HandShake, request.ToByteString(), header, StreamType.HandShakeReply);
+        return HandshakeReply.Parser.ParseFrom(reply.Body);
     }
 
-    public async Task CheckHealthAsync(Metadata header, GrpcRequest request)
+    public async Task CheckHealthAsync(Metadata header)
     {
-        await RequestAsync(StreamType.HealthCheck, null, header, StreamType.HealthCheckReply, GetTimeOutFromHeader(header));
+        await RequestAsync(StreamType.HealthCheck, new HealthCheckRequest().ToByteString(), header, StreamType.HealthCheckReply, GetTimeOutFromHeader(header));
     }
 
-    public async Task<BlockWithTransactions> RequestBlockAsync(BlockRequest blockRequest, Metadata header, GrpcRequest request)
+    public async Task<BlockWithTransactions> RequestBlockAsync(BlockRequest blockRequest, Metadata header)
     {
         var reply = await RequestAsync(StreamType.RequestBlock, blockRequest.ToByteString(), header, StreamType.RequestBlockReply, GetTimeOutFromHeader(header));
         var blockWithTransactions = new BlockWithTransactions();
@@ -44,7 +51,7 @@ public class StreamClient
         return blockWithTransactions;
     }
 
-    public async Task<BlockList> RequestBlocksAsync(BlocksRequest blockRequest, Metadata header, GrpcRequest request)
+    public async Task<BlockList> RequestBlocksAsync(BlocksRequest blockRequest, Metadata header)
     {
         var reply = await RequestAsync(StreamType.RequestBlocks, blockRequest.ToByteString(), header, StreamType.RequestBlocksReply, GetTimeOutFromHeader(header));
         var blockList = new BlockList();
@@ -52,12 +59,12 @@ public class StreamClient
         return blockList;
     }
 
-    public async Task DisconnectAsync(DisconnectReason disconnectReason, Metadata header, GrpcRequest request)
+    public async Task DisconnectAsync(DisconnectReason disconnectReason, Metadata header)
     {
         await RequestAsync(StreamType.Disconnect, disconnectReason.ToByteString(), header, StreamType.DisconnectReply);
     }
 
-    public async Task ConfirmHandshakeAsync(ConfirmHandshakeRequest confirmHandshakeRequest, Metadata header, GrpcRequest request)
+    public async Task ConfirmHandshakeAsync(ConfirmHandshakeRequest confirmHandshakeRequest, Metadata header)
     {
         await RequestAsync(StreamType.HandShake, confirmHandshakeRequest.ToByteString(), header, StreamType.HandShakeReply, GetTimeOutFromHeader(header));
     }
@@ -69,7 +76,7 @@ public class StreamClient
 
     public async Task<PongReply> Ping(Metadata header)
     {
-        var msg = await RequestAsync(StreamType.Ping, null, header, StreamType.PongReply);
+        var msg = await RequestAsync(StreamType.Ping, new PingRequest().ToByteString(), header, StreamType.PongReply);
         return msg == null ? null : PongReply.Parser.ParseFrom(msg.Body);
     }
 
@@ -113,7 +120,28 @@ public class StreamClient
 
         foreach (var e in header)
         {
+            if (e.IsBinary) continue;
             streamMessage.Meta.Add(e.Key, e.Value);
         }
+    }
+}
+
+public interface IStreamClientProvider
+{
+    StreamClient GetStreamClient(IAsyncStreamWriter<StreamMessage> clientStreamWriter);
+}
+
+public class StreamClientProvider : IStreamClientProvider, ISingletonDependency
+{
+    private readonly IStreamTaskResourcePool _streamTaskResourcePool;
+
+    public StreamClientProvider(IStreamTaskResourcePool streamTaskResourcePool)
+    {
+        _streamTaskResourcePool = streamTaskResourcePool;
+    }
+
+    public StreamClient GetStreamClient(IAsyncStreamWriter<StreamMessage> clientStreamWriter)
+    {
+        return new StreamClient(clientStreamWriter, _streamTaskResourcePool);
     }
 }

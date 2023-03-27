@@ -9,9 +9,6 @@ public static class GrpcConstants
     public const string RetryCountMetadataKey = "retry-count";
     public const string GrpcRequestCompressKey = "grpc-internal-encoding-request";
 
-    public const string StreamPeerHostKey = "stream-peer-host";
-    public const string StreamPeerPortKey = "stream-peer-port";
-
     public const string GrpcGzipConst = "gzip";
 
     public const int DefaultRequestTimeout = 200;

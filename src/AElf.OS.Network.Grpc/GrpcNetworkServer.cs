@@ -99,7 +99,8 @@ public class GrpcNetworkServer : IAElfNetworkServer, ISingletonDependency
     {
         try
         {
-            await _server?.ShutdownAsync();
+            if (_server != null)
+                await _server.ShutdownAsync();
         }
         catch (InvalidOperationException)
         {

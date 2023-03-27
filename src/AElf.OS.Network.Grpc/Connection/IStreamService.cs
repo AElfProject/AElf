@@ -46,7 +46,6 @@ public class StreamService : IStreamService, ISingletonDependency
         IBlockchainService blockchainService, IPeerPool peerPool, ITaskQueueManager taskQueueManager)
     {
         Logger = NullLogger<StreamService>.Instance;
-        ;
         _connectionService = connectionService;
         _streamTaskResourcePool = streamTaskResourcePool;
         _nodeManager = nodeManager;
@@ -80,7 +79,7 @@ public class StreamService : IStreamService, ISingletonDependency
                     break;
                 case StreamType.HandShake:
                     var handleShakeReply = await ProcessHandShake(request, responseStream, context);
-                    await responseStream.WriteAsync(new StreamMessage { StreamType = StreamType.HandShakeReply, Body = handleShakeReply.ToByteString() });
+                    await responseStream.WriteAsync(new StreamMessage { StreamType = StreamType.HandShakeReply, RequestId = request.RequestId, Body = handleShakeReply.ToByteString() });
                     break;
                 case StreamType.GetNodes:
                     var nodeList = await GetNodes(NodesRequest.Parser.ParseFrom(request.Body), context.GetPeerInfo());
@@ -144,6 +143,8 @@ public class StreamService : IStreamService, ISingletonDependency
     {
         var message = StreamMessage.Parser.ParseFrom(reply);
         Logger.LogInformation("receive {requestId} {streamType}", message.RequestId, message.StreamType);
+        if (await ProcessStreamRequest(message)) return;
+
         var peer = _peerPool.FindPeerByPublicKey(clientPubKey) as GrpcPeer;
         if (peer == null)
         {
@@ -153,7 +154,7 @@ public class StreamService : IStreamService, ISingletonDependency
 
         try
         {
-            await ProcessStreamReply(message, (peer.Holder as OutboundPeerHolder)?.GetResponseStream());
+            await ProcessStreamRequest(message, (peer.Holder as OutboundPeerHolder)?.GetResponseStream());
             Logger.LogInformation("handle stream call success, clientPubKey={clientPubKey} request={requestId} {streamType}");
         }
         catch (RpcException ex)
@@ -192,8 +193,7 @@ public class StreamService : IStreamService, ISingletonDependency
         if (!success) await _connectionService.TrySchedulePeerReconnectionAsync(peer);
     }
 
-
-    private async Task ProcessStreamReply(StreamMessage reply, IAsyncStreamWriter<StreamMessage> responseStream)
+    private async Task<bool> ProcessStreamRequest(StreamMessage reply)
     {
         switch (reply.StreamType)
         {
@@ -209,13 +209,38 @@ public class StreamService : IStreamService, ISingletonDependency
             case StreamType.RequestBlockReply:
             case StreamType.RequestBlocksReply:
             case StreamType.GetNodesReply:
+                Logger.LogInformation("receive {RequestId} {streamType}", reply.RequestId, reply.StreamType);
+                _streamTaskResourcePool.TrySetResult(reply.RequestId, reply);
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    private async Task ProcessStreamRequest(StreamMessage reply, IAsyncStreamWriter<StreamMessage> responseStream)
+    {
+        switch (reply.StreamType)
+        {
+            case StreamType.HandShakeReply:
+            case StreamType.DisconnectReply:
+            case StreamType.PongReply:
+            case StreamType.BlockBroadcastReply:
+            case StreamType.TransactionBroadcastReply:
+            case StreamType.AnnouncementBroadcastReply:
+            case StreamType.LibAnnouncementBroadcastReply:
+            case StreamType.ConfirmHandShakeReply:
+            case StreamType.HealthCheckReply:
+            case StreamType.RequestBlockReply:
+            case StreamType.RequestBlocksReply:
+            case StreamType.GetNodesReply:
+                Logger.LogWarning("receive {RequestId}", reply.RequestId);
                 _streamTaskResourcePool.TrySetResult(reply.RequestId, reply);
                 break;
-            case StreamType.HandShake:
-                var handshakeReply = await _connectionService.DoHandshakeByStreamAsync(new DnsEndPoint(reply.Meta[GrpcConstants.StreamPeerHostKey], int.Parse(reply.Meta[GrpcConstants.StreamPeerPortKey])), responseStream,
-                    Handshake.Parser.ParseFrom(reply.Body));
-                await responseStream.WriteAsync(new StreamMessage { StreamType = StreamType.HandShakeReply, RequestId = reply.RequestId, Body = handshakeReply.ToByteString() });
-                return;
+            // case StreamType.HandShake:
+            //     var handshakeReply = await _connectionService.DoHandshakeByStreamAsync(new DnsEndPoint(reply.Meta[GrpcConstants.StreamPeerHostKey], int.Parse(reply.Meta[GrpcConstants.StreamPeerPortKey])), responseStream,
+            //         Handshake.Parser.ParseFrom(reply.Body));
+            //     await responseStream.WriteAsync(new StreamMessage { StreamType = StreamType.HandShakeReply, RequestId = reply.RequestId, Body = handshakeReply.ToByteString() });
+            //     return;
             case StreamType.GetNodes:
                 var nodeList = await GetNodes(NodesRequest.Parser.ParseFrom(reply.Body), reply.Meta[GrpcConstants.PeerInfoMetadataKey]);
                 await responseStream.WriteAsync(new StreamMessage { StreamType = StreamType.GetNodesReply, RequestId = reply.RequestId, Body = nodeList.ToByteString() });
@@ -348,7 +373,7 @@ public class StreamService : IStreamService, ISingletonDependency
 
             if (!GrpcEndPointHelper.ParseDnsEndPoint(context.Peer, out var peerEndpoint))
                 return new HandshakeReply { Error = HandshakeError.InvalidConnection };
-            return await _connectionService.DoHandshakeByStreamAsync(peerEndpoint, responseStream, Handshake.Parser.ParseFrom(request.Body));
+            return await _connectionService.DoHandshakeByStreamAsync(peerEndpoint, responseStream, HandshakeRequest.Parser.ParseFrom(request.Body).Handshake);
         }
         catch (Exception e)
         {

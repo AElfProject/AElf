@@ -238,7 +238,10 @@ public class NetworkService : INetworkService, ISingletonDependency
                     || ex.ExceptionType == NetworkExceptionType.PeerUnstable)
                 {
                     Logger.LogInformation(ex, $"Removing unhealthy peer {peer}.");
-                    await _networkServer.TrySchedulePeerReconnectionAsync(peer);
+                    if (peer.RemoteEndpoint.Port == KernelConstants.ClosedPort)
+                        peer.DisconnectAsync(true);
+                    else
+                        await _networkServer.TrySchedulePeerReconnectionAsync(peer);
                 }
             }
         }
