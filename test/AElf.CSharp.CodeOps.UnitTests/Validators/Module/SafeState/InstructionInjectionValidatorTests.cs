@@ -2,7 +2,7 @@ using AElf.CSharp.CodeOps.Instructions;
 using AElf.CSharp.CodeOps.Validators.Method;
 using Xunit;
 
-namespace AElf.CSharp.CodeOps.Validators.Module.SafeState;
+namespace AElf.CSharp.CodeOps.UnitTests.Validators.Module.SafeState;
 
 public class InstructionInjectionValidatorTests : CSharpCodeOpsTestBase
 {
