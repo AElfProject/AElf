@@ -46,7 +46,11 @@ public partial class ResetFieldsMethodInjector : IPatcher<ModuleDefinition>
         }
 
         // Get static non-initonly, non-constant fields
-        var fields = type.Fields.Where(checker.IsObserverFieldThatRequiresResetting).ToList();
+        var fields = type.Fields.Where(
+            f => 
+            checker.IsObserverFieldThatRequiresResetting(f) ||
+            f.IsFuncTypeFieldInGeneratedClass()
+        ).ToList();
 
         callToNestedResetNeeded |= fields.Any();
 

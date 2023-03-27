@@ -74,7 +74,7 @@ public static class Extensions
     /// </summary>
     /// <param name="field"></param>
     /// <returns></returns>
-    private static bool IsFuncTypeFieldInGeneratedClass(this FieldDefinition field)
+    public static bool IsFuncTypeFieldInGeneratedClass(this FieldDefinition field)
     {
         if (field.DeclaringType.Name != "<>c")
         {

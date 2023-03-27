@@ -69,7 +69,11 @@ public class ResetFieldsValidator : IValidator<ModuleDefinition>, ITransientDepe
         }
         else
         {
-            fieldsToReset.AddRange(type.Fields.Where(checker.IsObserverFieldThatRequiresResetting));
+            fieldsToReset.AddRange(type.Fields.Where(
+                    f => checker.IsObserverFieldThatRequiresResetting(f)
+                         || f.IsFuncTypeFieldInGeneratedClass()
+                )
+            );
         }
 
         if (resetFieldsMethod == null)
