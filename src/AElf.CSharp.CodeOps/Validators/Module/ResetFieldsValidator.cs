@@ -139,9 +139,18 @@ public class ResetFieldsValidator : IValidator<ModuleDefinition>, ITransientDepe
                 continue;
 
             // Skip if loading 0 or null to stack
-            if (instruction.OpCode == OpCodes.Ldc_I4_0 || instruction.OpCode == OpCodes.Ldnull) // Default value
+            if (instruction.OpCode == OpCodes.Ldc_I4_0 || instruction.OpCode == OpCodes.Conv_I8 || instruction.OpCode == OpCodes.Ldnull) // Default value
                 continue;
 
+            if (instruction.OpCode == OpCodes.Ldfld && instruction.Operand != null &&
+                instruction.Operand is FieldReference fieldReference)
+            {
+                if (fieldReference.Name == "Zero" && fieldReference.DeclaringType.FullName == "System.Decimal")
+                {
+                    continue;
+                }
+            }
+            
             // If setting a field
             if ((instruction.OpCode == OpCodes.Stfld || instruction.OpCode == OpCodes.Stsfld) &&
                 instruction.Operand is FieldDefinition field)
