@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.OS.Network.Application;
@@ -15,8 +16,8 @@ public class InboundPeerHolder : IPeerHolder
     public PeerConnectionInfo Info { get; }
 
     public bool IsConnected { get; set; }
-    public bool IsReady { get; }
-    public string ConnectionStatus { get; }
+    public bool IsReady => IsConnected;
+    public string ConnectionStatus => IsConnected.ToString();
 
     public InboundPeerHolder(StreamClient streamClient, PeerConnectionInfo info, Dictionary<string, string> peerMeta)
     {
@@ -42,14 +43,18 @@ public class InboundPeerHolder : IPeerHolder
         {
             return await _streamClient.GetNodesAsync(nodesRequest, AddPeerMeta(header));
         }
+        catch (InvalidOperationException)
+        {
+            DisconnectAsync(true);
+        }
         catch (RpcException e)
         {
             var networkException = HandleRpcException(e, request.ErrorMessage);
             if (networkException.ExceptionType == NetworkExceptionType.Unrecoverable)
                 DisconnectAsync(true);
-
-            throw;
         }
+
+        return null;
     }
 
     public async Task CheckHealthAsync(Metadata header, GrpcRequest request)
@@ -58,13 +63,15 @@ public class InboundPeerHolder : IPeerHolder
         {
             await _streamClient.CheckHealthAsync(AddPeerMeta(header));
         }
+        catch (InvalidOperationException)
+        {
+            DisconnectAsync(true);
+        }
         catch (RpcException e)
         {
             var networkException = HandleRpcException(e, request.ErrorMessage);
             if (networkException.ExceptionType == NetworkExceptionType.Unrecoverable)
                 DisconnectAsync(true);
-
-            throw;
         }
     }
 
@@ -74,14 +81,18 @@ public class InboundPeerHolder : IPeerHolder
         {
             return await _streamClient.RequestBlockAsync(blockRequest, AddPeerMeta(header));
         }
+        catch (InvalidOperationException)
+        {
+            DisconnectAsync(true);
+        }
         catch (RpcException e)
         {
             var networkException = HandleRpcException(e, request.ErrorMessage);
             if (networkException.ExceptionType == NetworkExceptionType.Unrecoverable)
                 DisconnectAsync(true);
-
-            throw;
         }
+
+        return new BlockWithTransactions();
     }
 
     public async Task<BlockList> RequestBlocksAsync(BlocksRequest blockRequest, Metadata header, GrpcRequest request)
@@ -90,13 +101,18 @@ public class InboundPeerHolder : IPeerHolder
         {
             return await _streamClient.RequestBlocksAsync(blockRequest, AddPeerMeta(header));
         }
+        catch (InvalidOperationException)
+        {
+            DisconnectAsync(true);
+        }
         catch (RpcException e)
         {
             var networkException = HandleRpcException(e, request.ErrorMessage);
             if (networkException.ExceptionType == NetworkExceptionType.Unrecoverable)
                 DisconnectAsync(true);
-            throw;
         }
+
+        return null;
     }
 
     public async Task DisconnectAsync(bool gracefulDisconnect)
@@ -106,16 +122,18 @@ public class InboundPeerHolder : IPeerHolder
         // send disconnect message if the peer is still connected and the connection
         // is stable.
         if (!gracefulDisconnect) return;
-        var request = new GrpcRequest { ErrorMessage = "Could not send disconnect." };
-
         try
         {
             await _streamClient.DisconnectAsync(new DisconnectReason
                 { Why = DisconnectReason.Types.Reason.Shutdown }, AddPeerMeta(new Metadata { { GrpcConstants.SessionIdMetadataKey, Info.SessionId } }));
         }
+        catch (InvalidOperationException)
+        {
+            DisconnectAsync(true);
+        }
         catch (RpcException e)
         {
-            var networkException = HandleRpcException(e, request.ErrorMessage);
+            var networkException = HandleRpcException(e, "Could not send disconnect.");
             if (networkException.ExceptionType == NetworkExceptionType.Unrecoverable)
                 DisconnectAsync(true);
         }
@@ -127,6 +145,11 @@ public class InboundPeerHolder : IPeerHolder
         try
         {
             await _streamClient.ConfirmHandshakeAsync(confirmHandshakeRequest, AddPeerMeta(header));
+        }
+        catch (InvalidOperationException)
+        {
+            DisconnectAsync(true);
+            throw;
         }
         catch (RpcException e)
         {
@@ -143,6 +166,11 @@ public class InboundPeerHolder : IPeerHolder
         {
             await _streamClient.BroadcastBlockAsync(blockWithTransactions, AddPeerMeta(null));
         }
+        catch (InvalidOperationException)
+        {
+            DisconnectAsync(true);
+            throw;
+        }
         catch (RpcException e)
         {
             var networkException = HandleRpcException(e, "BroadcastBlockAsync failed");
@@ -157,6 +185,11 @@ public class InboundPeerHolder : IPeerHolder
         try
         {
             await _streamClient.BroadcastAnnouncementBlockAsync(header, AddPeerMeta(null));
+        }
+        catch (InvalidOperationException)
+        {
+            DisconnectAsync(true);
+            throw;
         }
         catch (RpcException e)
         {
@@ -173,6 +206,11 @@ public class InboundPeerHolder : IPeerHolder
         {
             await _streamClient.BroadcastTransactionAsync(transaction, AddPeerMeta(null));
         }
+        catch (InvalidOperationException)
+        {
+            DisconnectAsync(true);
+            throw;
+        }
         catch (RpcException e)
         {
             var networkException = HandleRpcException(e, "BroadcastTransactionAsync failed");
@@ -187,6 +225,11 @@ public class InboundPeerHolder : IPeerHolder
         try
         {
             await _streamClient.BroadcastLibAnnouncementAsync(libAnnouncement, AddPeerMeta(null));
+        }
+        catch (InvalidOperationException)
+        {
+            DisconnectAsync(true);
+            throw;
         }
         catch (RpcException e)
         {

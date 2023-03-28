@@ -19,7 +19,8 @@ public class StreamMessageReceivedEventHandler : ILocalEventHandler<StreamMessag
 
     public async Task HandleEventAsync(StreamMessageReceivedEvent eventData)
     {
-        Logger.LogWarning("handle event {pubkey}", eventData.ClientPubkey);
+        var message = StreamMessage.Parser.ParseFrom(eventData.Message);
+        Logger.LogInformation("handle event requestId {requestId} streamType={streamType} {pubkey}", message.RequestId, message.StreamType, eventData.ClientPubkey);
         await _streamService.ProcessStreamReply(eventData.Message, eventData.ClientPubkey);
     }
 }

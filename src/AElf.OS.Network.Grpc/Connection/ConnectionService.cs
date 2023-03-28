@@ -266,8 +266,28 @@ public class ConnectionService : IConnectionService
                 return new HandshakeReply { Error = HandshakeError.InvalidConnection };
             }
 
-            // add the new peer to the pool
-            if (!_peerPool.TryAddPeer(grpcPeer))
+            var oldPeer = _peerPool.FindPeerByPublicKey(pubkey);
+            if (oldPeer != null)
+            {
+                if (oldPeer.IsInvalid)
+                    if (!_peerPool.TryReplace(pubkey, oldPeer, grpcPeer))
+                    {
+                        Logger.LogDebug("Stopping connection, peer already in the pool {pubkey}.", grpcPeer.Info.Pubkey);
+                        await grpcPeer.DisconnectAsync(false);
+                        return new HandshakeReply { Error = HandshakeError.StreamHandshakeUpgradeFailed };
+                    }
+                    else
+                    {
+                        Logger.LogDebug("replace connection, old peer is invalid {pubkey}.", grpcPeer.Info.Pubkey);
+                    }
+                else
+                {
+                    Logger.LogDebug("Stopping connection, peer already in the pool {pubkey}.", grpcPeer.Info.Pubkey);
+                    await grpcPeer.DisconnectAsync(false);
+                    return new HandshakeReply { Error = HandshakeError.StreamHandshakeUpgradeFailed };
+                }
+            }
+            else if (!_peerPool.TryAddPeer(grpcPeer)) // add the new peer to the pool
             {
                 Logger.LogDebug("Stopping connection, peer already in the pool {pubkey}.", grpcPeer.Info.Pubkey);
                 await grpcPeer.DisconnectAsync(false);
@@ -307,7 +327,6 @@ public class ConnectionService : IConnectionService
         peer.Holder.IsConnected = true;
         peer.SyncState = SyncState.Syncing;
 
-        //TODO: fix endpoint zero
         FireConnectionEvent(peer);
     }
 

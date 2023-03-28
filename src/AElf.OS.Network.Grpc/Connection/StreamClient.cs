@@ -15,7 +15,7 @@ public class StreamClient
     private const int StreamWaitTime = 500;
     private readonly IAsyncStreamWriter<StreamMessage> _clientStreamWriter;
     private readonly IStreamTaskResourcePool _streamTaskResourcePool;
-    public ILogger<StreamClient> Logger { get; set; }
+    public ILogger<StreamClient> Logger { get; }
 
     public StreamClient(IAsyncStreamWriter<StreamMessage> clientStreamWriter, IStreamTaskResourcePool streamTaskResourcePool)
     {

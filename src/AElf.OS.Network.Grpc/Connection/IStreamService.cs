@@ -29,7 +29,7 @@ public interface IStreamService
 
 public class StreamService : IStreamService, ISingletonDependency
 {
-    private ILogger<StreamService> Logger { get; set; }
+    private ILogger<StreamService> Logger { get; }
     private readonly IBlockchainService _blockchainService;
     private readonly IConnectionService _connectionService;
     private readonly INodeManager _nodeManager;
@@ -40,9 +40,9 @@ public class StreamService : IStreamService, ISingletonDependency
 
     private NetworkOptions NetworkOptions => NetworkOptionsSnapshot.Value;
     private IOptionsSnapshot<NetworkOptions> NetworkOptionsSnapshot { get; set; }
-    private ILocalEventBus EventBus { get; set; }
+    private ILocalEventBus EventBus { get; }
 
-    public StreamService(ILogger<StreamService> logger, IConnectionService connectionService, IStreamTaskResourcePool streamTaskResourcePool, INodeManager nodeManager, ISyncStateService syncStateService,
+    public StreamService(IConnectionService connectionService, IStreamTaskResourcePool streamTaskResourcePool, INodeManager nodeManager, ISyncStateService syncStateService,
         IBlockchainService blockchainService, IPeerPool peerPool, ITaskQueueManager taskQueueManager)
     {
         Logger = NullLogger<StreamService>.Instance;
@@ -195,26 +195,11 @@ public class StreamService : IStreamService, ISingletonDependency
 
     private async Task<bool> ProcessStreamRequest(StreamMessage reply)
     {
-        switch (reply.StreamType)
-        {
-            case StreamType.HandShakeReply:
-            case StreamType.DisconnectReply:
-            case StreamType.PongReply:
-            case StreamType.BlockBroadcastReply:
-            case StreamType.TransactionBroadcastReply:
-            case StreamType.AnnouncementBroadcastReply:
-            case StreamType.LibAnnouncementBroadcastReply:
-            case StreamType.ConfirmHandShakeReply:
-            case StreamType.HealthCheckReply:
-            case StreamType.RequestBlockReply:
-            case StreamType.RequestBlocksReply:
-            case StreamType.GetNodesReply:
-                Logger.LogInformation("receive {RequestId} {streamType}", reply.RequestId, reply.StreamType);
-                _streamTaskResourcePool.TrySetResult(reply.RequestId, reply);
-                return true;
-            default:
-                return false;
-        }
+        if (reply.StreamType is not (StreamType.HandShakeReply or StreamType.DisconnectReply or StreamType.PongReply or StreamType.BlockBroadcastReply or StreamType.TransactionBroadcastReply or StreamType.AnnouncementBroadcastReply
+            or StreamType.LibAnnouncementBroadcastReply or StreamType.ConfirmHandShakeReply or StreamType.HealthCheckReply or StreamType.RequestBlockReply or StreamType.RequestBlocksReply or StreamType.GetNodesReply)) return false;
+        Logger.LogInformation("receive {RequestId} {streamType}", reply.RequestId, reply.StreamType);
+        _streamTaskResourcePool.TrySetResult(reply.RequestId, reply);
+        return true;
     }
 
     private async Task ProcessStreamRequest(StreamMessage reply, IAsyncStreamWriter<StreamMessage> responseStream)
@@ -236,7 +221,7 @@ public class StreamService : IStreamService, ISingletonDependency
                 Logger.LogWarning("receive {RequestId}", reply.RequestId);
                 _streamTaskResourcePool.TrySetResult(reply.RequestId, reply);
                 break;
-            // case StreamType.HandShake:
+            // case StreamType.HandShake:       impossible！！！    i
             //     var handshakeReply = await _connectionService.DoHandshakeByStreamAsync(new DnsEndPoint(reply.Meta[GrpcConstants.StreamPeerHostKey], int.Parse(reply.Meta[GrpcConstants.StreamPeerPortKey])), responseStream,
             //         Handshake.Parser.ParseFrom(reply.Body));
             //     await responseStream.WriteAsync(new StreamMessage { StreamType = StreamType.HandShakeReply, RequestId = reply.RequestId, Body = handshakeReply.ToByteString() });
