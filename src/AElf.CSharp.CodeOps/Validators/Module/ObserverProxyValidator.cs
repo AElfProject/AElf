@@ -115,14 +115,14 @@ public class ObserverProxyValidator : IValidator<ModuleDefinition>, ITransientDe
         }
     }
 
-    private bool FollowingByCallToBranchCount(Instruction instruction)
+    private bool IsFollowedByCallToBranchCount(Instruction instruction)
     {
         if (instruction == null)
         {
             return false;
         }
         if (instruction.OpCode == OpCodes.Nop)
-            return instruction.Next != null && FollowingByCallToBranchCount(instruction.Next);
+            return instruction.Next != null && IsFollowedByCallToBranchCount(instruction.Next);
         return instruction.OpCode == OpCodes.Call &&
                instruction.Operand == _injProxyBranchCount;
     }
@@ -148,10 +148,10 @@ public class ObserverProxyValidator : IValidator<ModuleDefinition>, ITransientDe
                 && instruction.Operand is Instruction targetInstruction
                 && targetInstruction.Offset < instruction.Offset)
             {
-                var targetIsCallToBranchCount = FollowingByCallToBranchCount(targetInstruction);
+                var targetIsCallToBranchCount = IsFollowedByCallToBranchCount(targetInstruction);
                 // Note: instructionAfterTargetIsCallToBranchCount is added for backward-compatibility, the call was
                 //       previously injected not at the target position but after the target position.
-                var instructionAfterTargetIsCallToBranchCount = FollowingByCallToBranchCount(targetInstruction.Next);
+                var instructionAfterTargetIsCallToBranchCount = IsFollowedByCallToBranchCount(targetInstruction.Next);
                 if (!targetIsCallToBranchCount && !instructionAfterTargetIsCallToBranchCount)
                 {
                     errors.Add(new ObserverProxyValidationResult(
