@@ -70,7 +70,7 @@ public class PeerDialer : IPeerDialer
         if (client == null)
             return null;
 
-        var handshake = await _handshakeProvider.GetHandshakeAsync();
+        var handshake = await _handshakeProvider.GetHandshakeAsync(KernelConstants.PreProtocolVersion);
         var handshakeReply = await CallDoHandshakeAsync(client, remoteEndpoint, handshake);
 
         if (!await ProcessHandshakeReply(handshakeReply, remoteEndpoint))
@@ -92,7 +92,7 @@ public class PeerDialer : IPeerDialer
         var peer = new GrpcPeer(obHolder, remoteEndpoint, connectionInfo);
 
         Logger.LogDebug("dail peer info Handshake={Handshake}", handshake);
-        if (CanDoHandshakeByStream(handshake))
+        if (CanDoHandshakeByStream(handshake, handshakeReply.Handshake))
             await CallDoHandshakeByStreamAsync(client, remoteEndpoint, peer, obHolder);
         else
             peer.InboundSessionId = handshake.SessionId.ToByteArray();
@@ -154,7 +154,7 @@ public class PeerDialer : IPeerDialer
 
         if (client == null)
             return false;
-        await CheckStreamEndpointAvailableAsync(remoteEndpoint);// this will be called loop by stream client discovery 
+        await CheckStreamEndpointAvailableAsync(remoteEndpoint); // this will be called loop by stream client discovery 
         try
         {
             await PingNodeAsync(client, remoteEndpoint);
@@ -243,9 +243,9 @@ public class PeerDialer : IPeerDialer
         return handshakeReply;
     }
 
-    private bool CanDoHandshakeByStream(Handshake handshake)
+    private bool CanDoHandshakeByStream(Handshake handshake, Handshake handshakeReply)
     {
-        return handshake.HandshakeData.Version == KernelConstants.ProtocolVersion && handshake.HandshakeData.ListeningPort == KernelConstants.ClosedPort;
+        return handshake.HandshakeData.ListeningPort == KernelConstants.ClosedPort && handshakeReply.HandshakeData.Version == KernelConstants.ProtocolVersion;
     }
 
     private async Task CallDoHandshakeByStreamAsync(GrpcClient client, DnsEndPoint remoteEndPoint, GrpcPeer peer, OutboundPeerHolder peerHolder)

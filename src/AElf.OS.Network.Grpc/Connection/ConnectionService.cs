@@ -200,7 +200,7 @@ public class ConnectionService : IConnectionService
         if (preCheckRes != null)
             return preCheckRes;
 
-        if (handshake.HandshakeData.Version == KernelConstants.ProtocolVersion && handshake.HandshakeData.ListeningPort == KernelConstants.ClosedPort)
+        if (handshake.HandshakeData.ListeningPort == KernelConstants.ClosedPort)
             return new HandshakeReply { Handshake = await _handshakeProvider.GetHandshakeAsync(), Error = HandshakeError.HandshakeOk };
         var pubkey = handshake.HandshakeData.Pubkey.ToHex();
         try
@@ -297,7 +297,7 @@ public class ConnectionService : IConnectionService
             Logger.LogDebug($"Added to pool {grpcPeer.RemoteEndpoint} - {grpcPeer.Info.Pubkey}.");
 
             // send back our handshake
-            var replyHandshake = await _handshakeProvider.GetHandshakeAsync(KernelConstants.PreProtocolVersion);
+            var replyHandshake = await _handshakeProvider.GetHandshakeAsync();
             grpcPeer.InboundSessionId = replyHandshake.SessionId.ToByteArray();
             grpcPeer.UpdateLastSentHandshake(replyHandshake);
 
