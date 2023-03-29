@@ -127,15 +127,8 @@ public class InboundPeerHolder : IPeerHolder
             await _streamClient.DisconnectAsync(new DisconnectReason
                 { Why = DisconnectReason.Types.Reason.Shutdown }, AddPeerMeta(new Metadata { { GrpcConstants.SessionIdMetadataKey, Info.SessionId } }));
         }
-        catch (InvalidOperationException)
+        catch (Exception e)
         {
-            DisconnectAsync(true);
-        }
-        catch (RpcException e)
-        {
-            var networkException = HandleRpcException(e, "Could not send disconnect.");
-            if (networkException.ExceptionType == NetworkExceptionType.Unrecoverable)
-                DisconnectAsync(true);
         }
     }
 
@@ -225,6 +218,27 @@ public class InboundPeerHolder : IPeerHolder
         try
         {
             await _streamClient.BroadcastLibAnnouncementAsync(libAnnouncement, AddPeerMeta(null));
+        }
+        catch (InvalidOperationException)
+        {
+            DisconnectAsync(true);
+            throw;
+        }
+        catch (RpcException e)
+        {
+            var networkException = HandleRpcException(e, "BroadcastLibAnnouncementAsync failed");
+            if (networkException.ExceptionType == NetworkExceptionType.Unrecoverable)
+                DisconnectAsync(true);
+            throw;
+        }
+    }
+
+    public async Task Ping()
+    {
+        if (_streamClient == null) return;
+        try
+        {
+            await _streamClient.Ping(AddPeerMeta(null));
         }
         catch (InvalidOperationException)
         {

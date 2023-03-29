@@ -233,6 +233,12 @@ public class GrpcPeer : IPeer
         await Holder.DisconnectAsync(gracefulDisconnect);
     }
 
+    public async Task Ping()
+    {
+        await Holder.Ping();
+    }
+
+
     public void UpdateLastReceivedHandshake(Handshake handshake)
     {
         LastKnownLibHeight = handshake.HandshakeData.LastIrreversibleBlockHeight;

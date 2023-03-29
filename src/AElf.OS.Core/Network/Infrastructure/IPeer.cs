@@ -7,6 +7,7 @@ using AElf.OS.Network.Metrics;
 using AElf.OS.Network.Protocol.Types;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
+using Grpc.Core;
 
 namespace AElf.OS.Network.Infrastructure;
 
@@ -50,4 +51,5 @@ public interface IPeer
 
     Dictionary<string, List<RequestMetric>> GetRequestMetrics();
     Task DisconnectAsync(bool gracefulDisconnect);
+    Task Ping();
 }

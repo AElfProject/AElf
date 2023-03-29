@@ -28,4 +28,7 @@
             <Link>Protobuf\Proto\basic_contract_zero.proto</Link>
         </ContractStub>
     </ItemGroup>
+    <ItemGroup>
+      <PackageReference Include="Grpc.Core.Api" Version="2.46.3" />
+    </ItemGroup>
 </Project>

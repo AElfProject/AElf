@@ -7,9 +7,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.OS.Network.Application;
+using AElf.OS.Network.Grpc.Helpers;
 using AElf.OS.Network.Metrics;
 using AElf.OS.Network.Protocol.Types;
 using AElf.Types;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 
@@ -155,6 +157,13 @@ public class OutboundPeerHolder : IPeerHolder
             MethodName = grpcRequest.MetricName,
             RoundTripTime = elapsedMilliseconds
         });
+    }
+
+    public async Task Ping()
+    {
+        var stream = GetResponseStream();
+        if (stream == null) return;
+        await stream.WriteAsync(new StreamMessage { RequestId = CommonHelper.GenerateRequestId(), StreamType = StreamType.Ping, Body = new PingRequest().ToByteString() });
     }
 
     public Dictionary<string, List<RequestMetric>> GetRequestMetrics()

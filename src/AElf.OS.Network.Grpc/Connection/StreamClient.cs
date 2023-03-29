@@ -13,13 +13,13 @@ namespace AElf.OS.Network.Grpc;
 public class StreamClient
 {
     private const int StreamWaitTime = 500;
-    private readonly IAsyncStreamWriter<StreamMessage> _clientStreamWriter;
+    public readonly IAsyncStreamWriter<StreamMessage> ClientStreamWriter;
     private readonly IStreamTaskResourcePool _streamTaskResourcePool;
     public ILogger<StreamClient> Logger { get; }
 
     public StreamClient(IAsyncStreamWriter<StreamMessage> clientStreamWriter, IStreamTaskResourcePool streamTaskResourcePool)
     {
-        _clientStreamWriter = clientStreamWriter;
+        ClientStreamWriter = clientStreamWriter;
         _streamTaskResourcePool = streamTaskResourcePool;
         Logger = NullLogger<StreamClient>.Instance;
     }
@@ -106,7 +106,7 @@ public class StreamClient
         var requestId = CommonHelper.GenerateRequestId();
         var streamMessage = new StreamMessage { StreamType = replyType, RequestId = requestId, Body = reply };
         AddAllHeaders(streamMessage, header);
-        await _clientStreamWriter.WriteAsync(streamMessage);
+        await ClientStreamWriter.WriteAsync(streamMessage);
         _streamTaskResourcePool.RegistryTaskPromise(requestId, expectReturnType, new TaskCompletionSource<StreamMessage>());
         return await _streamTaskResourcePool.GetResult(requestId, timeout);
     }

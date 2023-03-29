@@ -26,6 +26,7 @@ public interface IPeerHolder
     Task BroadcastAnnouncementBlockAsync(BlockAnnouncement header);
     Task BroadcastTransactionAsync(Transaction transaction);
     Task BroadcastLibAnnouncementAsync(LibAnnouncement libAnnouncement);
+    Task Ping();
 
     Dictionary<string, List<RequestMetric>> GetRequestMetrics();
     Task<bool> TryRecoverAsync();
