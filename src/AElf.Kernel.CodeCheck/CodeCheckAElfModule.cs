@@ -16,12 +16,14 @@ public class CodeCheckAElfModule : AElfModule
 {
     public override void ConfigureServices(ServiceConfigurationContext context)
     {
+        var configuration = context.Services.GetConfiguration();
+        Configure<CodeCheckOptions>(configuration.GetSection("CodeCheck"));
+
         context.Services
             .AddSingleton<IBlocksExecutionSucceededLogEventProcessor, CodeCheckRequiredLogEventProcessor>();
         //context.Services.AddSingleton<IBlockAcceptedLogEventProcessor, ContractDeployedLogEventProcessor>();
         context.Services.AddSingleton<IContractAuditorContainer, ContractAuditorContainer>();
         context.Services.AddSingleton<IBlockValidationProvider, CodeCheckValidationProvider>();
-        context.Services.AddTransient<ITransactionValidationProvider, CodeCheckTransactionValidationProvider>();
         context.Services.AddTransient<ISystemTransactionGenerator, CodeCheckProposalReleaseTransactionGenerator>();
     }
 }
