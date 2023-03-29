@@ -28,7 +28,7 @@ public interface IStreamService
 
 public class StreamService : IStreamService, ISingletonDependency
 {
-    private ILogger<StreamService> Logger { get; }
+    public ILogger<StreamService> Logger { get; set; }
     private readonly IBlockchainService _blockchainService;
     private readonly IConnectionService _connectionService;
     private readonly INodeManager _nodeManager;
@@ -38,8 +38,8 @@ public class StreamService : IStreamService, ISingletonDependency
     private readonly ITaskQueueManager _taskQueueManager;
 
     private NetworkOptions NetworkOptions => NetworkOptionsSnapshot.Value;
-    private IOptionsSnapshot<NetworkOptions> NetworkOptionsSnapshot { get; set; }
-    private ILocalEventBus EventBus { get; }
+    public IOptionsSnapshot<NetworkOptions> NetworkOptionsSnapshot { get; set; }
+    public ILocalEventBus EventBus { get; set; }
 
     public StreamService(IConnectionService connectionService, IStreamTaskResourcePool streamTaskResourcePool, INodeManager nodeManager, ISyncStateService syncStateService,
         IBlockchainService blockchainService, IPeerPool peerPool, ITaskQueueManager taskQueueManager)
@@ -141,32 +141,31 @@ public class StreamService : IStreamService, ISingletonDependency
     public async Task ProcessStreamReply(ByteString reply, string clientPubKey)
     {
         var message = StreamMessage.Parser.ParseFrom(reply);
-        Logger.LogInformation("receive {requestId} {streamType}", message.RequestId, message.StreamType);
+        Logger.LogInformation("receive {requestId} {streamType} {meta}", message.RequestId, message.StreamType, message.Meta);
         if (await ProcessStreamRequest(message)) return;
 
         var peer = _peerPool.FindPeerByPublicKey(clientPubKey) as GrpcPeer;
         if (peer == null)
         {
-            Logger.LogError("clientPubKey={clientPubKey} not found for {requestId} {streamType}", message.RequestId, message.StreamType);
+            Logger.LogError("clientPubKey={clientPubKey} not found for {requestId} {streamType}", clientPubKey, message.RequestId, message.StreamType);
             return;
         }
 
         try
         {
             await ProcessStreamRequest(message, (peer.Holder as OutboundPeerHolder)?.GetResponseStream());
-            Logger.LogInformation("handle stream call success, clientPubKey={clientPubKey} request={requestId} {streamType}");
+            Logger.LogInformation("handle stream call success, clientPubKey={clientPubKey} request={requestId} {streamType}", clientPubKey, message.RequestId, message.StreamType);
         }
         catch (RpcException ex)
         {
             HandleNetworkException(peer, peer.Holder.HandleRpcException(ex, $"Could not broadcast to {this}: "));
-            Logger.LogError(ex, "handle stream call failed, clientPubKey={clientPubKey} request={requestId} {streamType}");
+            Logger.LogError(ex, "handle stream call failed, clientPubKey={clientPubKey} request={requestId} {streamType}", clientPubKey, message.RequestId, message.StreamType);
             await Task.Delay(GrpcConstants.StreamRecoveryWaitTime);
         }
         catch (Exception ex)
         {
             HandleNetworkException(peer, new NetworkException("Unknown exception during broadcast.", ex));
-            Logger.LogError(ex, "handle stream call failed, clientPubKey={clientPubKey} request={requestId} {streamType}");
-            throw;
+            Logger.LogError(ex, "handle stream call failed, clientPubKey={clientPubKey} request={requestId} {streamType}", clientPubKey, message.RequestId, message.StreamType);
         }
     }
 
@@ -220,7 +219,7 @@ public class StreamService : IStreamService, ISingletonDependency
                 Logger.LogWarning("receive {RequestId}", reply.RequestId);
                 _streamTaskResourcePool.TrySetResult(reply.RequestId, reply);
                 break;
-            // case StreamType.HandShake:       impossible！！！    i
+            // case StreamType.HandShake:       impossible！！！    
             //     var handshakeReply = await _connectionService.DoHandshakeByStreamAsync(new DnsEndPoint(reply.Meta[GrpcConstants.StreamPeerHostKey], int.Parse(reply.Meta[GrpcConstants.StreamPeerPortKey])), responseStream,
             //         Handshake.Parser.ParseFrom(reply.Body));
             //     await responseStream.WriteAsync(new StreamMessage { StreamType = StreamType.HandShakeReply, RequestId = reply.RequestId, Body = handshakeReply.ToByteString() });
@@ -280,10 +279,10 @@ public class StreamService : IStreamService, ISingletonDependency
         var peer = TryGetPeerByPubkey(peerPubkey);
 
         if (peer.SyncState != SyncState.Finished) peer.SyncState = SyncState.Finished;
-
+        Logger.LogDebug("{peerPubkey} SyncState={SyncState}", peerPubkey, peer.SyncState);
         if (!peer.TryAddKnownBlock(block.GetHash()))
             return Task.CompletedTask;
-
+        Logger.LogDebug("{peerPubkey} add success={hash}", peerPubkey, block.GetHash().ToHex());
         _ = EventBus.PublishAsync(new BlockReceivedEvent(block, peerPubkey));
         return Task.CompletedTask;
     }
@@ -461,7 +460,7 @@ public class StreamService : IStreamService, ISingletonDependency
             throw;
         }
 
-        Logger.LogDebug("Sending {nodes.Nodes.Count} to {peerInfo}.", peerInfo);
+        Logger.LogDebug("Sending {Count} to {peerInfo}.", nodes.Nodes.Count, peerInfo);
         return nodes;
     }
 

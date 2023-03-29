@@ -169,7 +169,7 @@ public class ConnectionService : IConnectionService
         return true;
     }
 
-    private async Task<HandshakeReply> PreDoHandshakeAsync(DnsEndPoint endpoint, Handshake handshake)
+    private async Task<HandshakeReply> ValidateHandshakeAsync(DnsEndPoint endpoint, Handshake handshake)
     {
         // validate the handshake (signature, chain id...)
         var handshakeValidationResult = await _handshakeProvider.ValidateHandshakeAsync(handshake);
@@ -180,28 +180,21 @@ public class ConnectionService : IConnectionService
         }
 
         Logger.LogDebug($"peer {endpoint} sent a valid handshake {handshake}");
-
-        var pubkey = handshake.HandshakeData.Pubkey.ToHex();
-
-        // keep the healthy peer.
-        var currentPeer = _peerPool.FindPeerByPublicKey(pubkey);
-        if (currentPeer != null)
-        {
-            Logger.LogDebug($"Peer: {pubkey} already in peer pool, repeated connection {endpoint}");
-            return new HandshakeReply { Error = HandshakeError.RepeatedConnection };
-        }
-
         return null;
     }
 
     public async Task<HandshakeReply> DoHandshakeAsync(DnsEndPoint endpoint, Handshake handshake)
     {
-        var preCheckRes = await PreDoHandshakeAsync(endpoint, handshake);
+        var preCheckRes = await ValidateHandshakeAsync(endpoint, handshake);
         if (preCheckRes != null)
             return preCheckRes;
 
         if (handshake.HandshakeData.ListeningPort == KernelConstants.ClosedPort)
+        {
+            Logger.LogDebug("receive close port handshake, will upgrade to stream, remote={endpoint}", endpoint.Host);
             return new HandshakeReply { Handshake = await _handshakeProvider.GetHandshakeAsync(), Error = HandshakeError.HandshakeOk };
+        }
+
         var pubkey = handshake.HandshakeData.Pubkey.ToHex();
         try
         {
@@ -219,8 +212,31 @@ public class ConnectionService : IConnectionService
                 return new HandshakeReply { Error = HandshakeError.InvalidConnection };
             }
 
+            var oldPeer = _peerPool.FindPeerByPublicKey(pubkey);
+            if (oldPeer != null)
+            {
+                var oldPeerIsStream = oldPeer.RemoteEndpoint.Port == KernelConstants.ClosedPort;
+                if (oldPeerIsStream && oldPeer.IsInvalid)
+                    if (_peerPool.TryReplace(pubkey, oldPeer, grpcPeer))
+                    {
+                        await oldPeer.DisconnectAsync(false);
+                        Logger.LogDebug("replace connection, oldPeerIsP2P={oldPeerIsStream} IsInvalid={IsInvalid} {pubkey}.", oldPeerIsStream, oldPeer.IsInvalid, grpcPeer.Info.Pubkey);
+                    }
+                    else
+                    {
+                        Logger.LogDebug("Stopping connection, peer already in the pool oldPeerIsP2P={oldPeerIsStream} IsInvalid={IsInvalid} {pubkey}.", oldPeerIsStream, oldPeer.IsInvalid, grpcPeer.Info.Pubkey);
+                        await grpcPeer.DisconnectAsync(false);
+                        return new HandshakeReply { Error = HandshakeError.StreamHandshakeUpgradeFailed };
+                    }
+                else
+                {
+                    Logger.LogDebug($"Stopping connection, peer already in the pool {grpcPeer.Info.Pubkey}.");
+                    await grpcPeer.DisconnectAsync(false);
+                    return new HandshakeReply { Error = HandshakeError.RepeatedConnection };
+                }
+            }
             // add the new peer to the pool
-            if (!_peerPool.TryAddPeer(grpcPeer))
+            else if (!_peerPool.TryAddPeer(grpcPeer))
             {
                 Logger.LogDebug($"Stopping connection, peer already in the pool {grpcPeer.Info.Pubkey}.");
                 await grpcPeer.DisconnectAsync(false);
@@ -246,7 +262,7 @@ public class ConnectionService : IConnectionService
 
     public async Task<HandshakeReply> DoHandshakeByStreamAsync(DnsEndPoint endpoint, IAsyncStreamWriter<StreamMessage> responseStream, Handshake handshake)
     {
-        var preCheckRes = await PreDoHandshakeAsync(endpoint, handshake);
+        var preCheckRes = await ValidateHandshakeAsync(endpoint, handshake);
         if (preCheckRes != null)
             return preCheckRes;
 
@@ -269,20 +285,15 @@ public class ConnectionService : IConnectionService
             var oldPeer = _peerPool.FindPeerByPublicKey(pubkey);
             if (oldPeer != null)
             {
-                if (oldPeer.IsInvalid)
-                    if (!_peerPool.TryReplace(pubkey, oldPeer, grpcPeer))
-                    {
-                        Logger.LogDebug("Stopping connection, peer already in the pool {pubkey}.", grpcPeer.Info.Pubkey);
-                        await grpcPeer.DisconnectAsync(false);
-                        return new HandshakeReply { Error = HandshakeError.StreamHandshakeUpgradeFailed };
-                    }
-                    else
-                    {
-                        Logger.LogDebug("replace connection, old peer is invalid {pubkey}.", grpcPeer.Info.Pubkey);
-                    }
+                var oldPeerIsStream = oldPeer.RemoteEndpoint.Port == KernelConstants.ClosedPort;
+                if (_peerPool.TryReplace(pubkey, oldPeer, grpcPeer))
+                {
+                    await oldPeer.DisconnectAsync(false);
+                    Logger.LogDebug("replace connection, oldPeerIsP2P={oldPeerIsStream} IsInvalid={IsInvalid} {pubkey}.", oldPeerIsStream, oldPeer.IsInvalid, grpcPeer.Info.Pubkey);
+                }
                 else
                 {
-                    Logger.LogDebug("Stopping connection, peer already in the pool {pubkey}.", grpcPeer.Info.Pubkey);
+                    Logger.LogDebug("Stopping connection, peer already in the pool oldPeerIsP2P={oldPeerIsStream} IsInvalid={IsInvalid} {pubkey}.", oldPeerIsStream, oldPeer.IsInvalid, grpcPeer.Info.Pubkey);
                     await grpcPeer.DisconnectAsync(false);
                     return new HandshakeReply { Error = HandshakeError.StreamHandshakeUpgradeFailed };
                 }

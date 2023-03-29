@@ -43,15 +43,18 @@ public class InboundPeerHolder : IPeerHolder
         {
             return await _streamClient.GetNodesAsync(nodesRequest, AddPeerMeta(header));
         }
-        catch (InvalidOperationException)
-        {
-            DisconnectAsync(true);
-        }
         catch (RpcException e)
         {
             var networkException = HandleRpcException(e, request.ErrorMessage);
             if (networkException.ExceptionType == NetworkExceptionType.Unrecoverable)
                 DisconnectAsync(true);
+        }
+        catch (Exception e)
+        {
+            if (e is TimeoutException or InvalidOperationException)
+            {
+                DisconnectAsync(true);
+            }
         }
 
         return null;
@@ -63,15 +66,18 @@ public class InboundPeerHolder : IPeerHolder
         {
             await _streamClient.CheckHealthAsync(AddPeerMeta(header));
         }
-        catch (InvalidOperationException)
-        {
-            DisconnectAsync(true);
-        }
         catch (RpcException e)
         {
             var networkException = HandleRpcException(e, request.ErrorMessage);
             if (networkException.ExceptionType == NetworkExceptionType.Unrecoverable)
                 DisconnectAsync(true);
+        }
+        catch (Exception e)
+        {
+            if (e is TimeoutException or InvalidOperationException)
+            {
+                DisconnectAsync(true);
+            }
         }
     }
 
@@ -81,15 +87,18 @@ public class InboundPeerHolder : IPeerHolder
         {
             return await _streamClient.RequestBlockAsync(blockRequest, AddPeerMeta(header));
         }
-        catch (InvalidOperationException)
-        {
-            DisconnectAsync(true);
-        }
         catch (RpcException e)
         {
             var networkException = HandleRpcException(e, request.ErrorMessage);
             if (networkException.ExceptionType == NetworkExceptionType.Unrecoverable)
                 DisconnectAsync(true);
+        }
+        catch (Exception e)
+        {
+            if (e is TimeoutException or InvalidOperationException)
+            {
+                DisconnectAsync(true);
+            }
         }
 
         return new BlockWithTransactions();
@@ -101,15 +110,18 @@ public class InboundPeerHolder : IPeerHolder
         {
             return await _streamClient.RequestBlocksAsync(blockRequest, AddPeerMeta(header));
         }
-        catch (InvalidOperationException)
-        {
-            DisconnectAsync(true);
-        }
         catch (RpcException e)
         {
             var networkException = HandleRpcException(e, request.ErrorMessage);
             if (networkException.ExceptionType == NetworkExceptionType.Unrecoverable)
                 DisconnectAsync(true);
+        }
+        catch (Exception e)
+        {
+            if (e is TimeoutException or InvalidOperationException)
+            {
+                DisconnectAsync(true);
+            }
         }
 
         return null;
@@ -159,16 +171,19 @@ public class InboundPeerHolder : IPeerHolder
         {
             await _streamClient.BroadcastBlockAsync(blockWithTransactions, AddPeerMeta(null));
         }
-        catch (InvalidOperationException)
-        {
-            DisconnectAsync(true);
-            throw;
-        }
         catch (RpcException e)
         {
             var networkException = HandleRpcException(e, "BroadcastBlockAsync failed");
             if (networkException.ExceptionType == NetworkExceptionType.Unrecoverable)
                 DisconnectAsync(true);
+            throw;
+        }
+        catch (Exception e)
+        {
+            if (e is TimeoutException or InvalidOperationException)
+            {
+                DisconnectAsync(true);
+            }
             throw;
         }
     }
@@ -179,16 +194,20 @@ public class InboundPeerHolder : IPeerHolder
         {
             await _streamClient.BroadcastAnnouncementBlockAsync(header, AddPeerMeta(null));
         }
-        catch (InvalidOperationException)
-        {
-            DisconnectAsync(true);
-            throw;
-        }
         catch (RpcException e)
         {
-            var networkException = HandleRpcException(e, "BroadcastAnnouncementBlockAsync failed");
+            var networkException = HandleRpcException(e, "BroadcastBlockAsync failed");
             if (networkException.ExceptionType == NetworkExceptionType.Unrecoverable)
                 DisconnectAsync(true);
+            throw;
+        }
+        catch (Exception e)
+        {
+            if (e is TimeoutException or InvalidOperationException)
+            {
+                DisconnectAsync(true);
+            }
+
             throw;
         }
     }
@@ -199,16 +218,20 @@ public class InboundPeerHolder : IPeerHolder
         {
             await _streamClient.BroadcastTransactionAsync(transaction, AddPeerMeta(null));
         }
-        catch (InvalidOperationException)
-        {
-            DisconnectAsync(true);
-            throw;
-        }
         catch (RpcException e)
         {
-            var networkException = HandleRpcException(e, "BroadcastTransactionAsync failed");
+            var networkException = HandleRpcException(e, "BroadcastBlockAsync failed");
             if (networkException.ExceptionType == NetworkExceptionType.Unrecoverable)
                 DisconnectAsync(true);
+            throw;
+        }
+        catch (Exception e)
+        {
+            if (e is TimeoutException or InvalidOperationException)
+            {
+                DisconnectAsync(true);
+            }
+
             throw;
         }
     }
@@ -219,16 +242,20 @@ public class InboundPeerHolder : IPeerHolder
         {
             await _streamClient.BroadcastLibAnnouncementAsync(libAnnouncement, AddPeerMeta(null));
         }
-        catch (InvalidOperationException)
-        {
-            DisconnectAsync(true);
-            throw;
-        }
         catch (RpcException e)
         {
-            var networkException = HandleRpcException(e, "BroadcastLibAnnouncementAsync failed");
+            var networkException = HandleRpcException(e, "BroadcastBlockAsync failed");
             if (networkException.ExceptionType == NetworkExceptionType.Unrecoverable)
                 DisconnectAsync(true);
+            throw;
+        }
+        catch (Exception e)
+        {
+            if (e is TimeoutException or InvalidOperationException)
+            {
+                DisconnectAsync(true);
+            }
+
             throw;
         }
     }
@@ -240,16 +267,20 @@ public class InboundPeerHolder : IPeerHolder
         {
             await _streamClient.Ping(AddPeerMeta(null));
         }
-        catch (InvalidOperationException)
-        {
-            DisconnectAsync(true);
-            throw;
-        }
         catch (RpcException e)
         {
-            var networkException = HandleRpcException(e, "BroadcastLibAnnouncementAsync failed");
+            var networkException = HandleRpcException(e, "BroadcastBlockAsync failed");
             if (networkException.ExceptionType == NetworkExceptionType.Unrecoverable)
                 DisconnectAsync(true);
+            throw;
+        }
+        catch (Exception e)
+        {
+            if (e is TimeoutException or InvalidOperationException)
+            {
+                DisconnectAsync(true);
+            }
+
             throw;
         }
     }
