@@ -99,7 +99,7 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         var transactionMethodCallList = input.TransactionMethodCallList;
 
         // Context.Sender should be identical to Genesis contract address before initialization in production
-        var address = DeploySmartContract(name, category, code, true, Context.Sender);
+        var address = DeploySmartContract(name, category, code, true, Context.Sender, false);
 
         if (transactionMethodCallList != null)
             foreach (var methodCall in transactionMethodCallList.Value)
@@ -282,7 +282,7 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
 
         var address =
             DeploySmartContract(null, input.Category, input.Code.ToByteArray(), false,
-                DecideNonSystemContractAuthor(contractProposingInput?.Proposer, Context.Sender));
+                DecideNonSystemContractAuthor(contractProposingInput?.Proposer, Context.Sender), false);
         return address;
     }
 
@@ -296,7 +296,7 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         if (!TryClearContractProposingData(inputHash, out _))
             Assert(Context.Sender == info.Author, "No permission.");
 
-        UpdateSmartContract(contractAddress, input.Code.ToByteArray(), info.Author);
+        UpdateSmartContract(contractAddress, input.Code.ToByteArray(), info.Author, false);
         
         return contractAddress;
     }
@@ -448,7 +448,7 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         TryClearContractProposingData(inputHash, out var contractProposingInput);
 
         var address = DeploySmartContract(null, input.Category, input.Code.ToByteArray(), false,
-            contractProposingInput.Author);
+            contractProposingInput.Author, true);
         return address;
     }
 
@@ -459,7 +459,7 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         var inputHash = CalculateHashFromInput(input);
         TryClearContractProposingData(inputHash, out var proposingInput);
 
-        UpdateSmartContract(input.Address, input.Code.ToByteArray(), proposingInput.Author);
+        UpdateSmartContract(input.Address, input.Code.ToByteArray(), proposingInput.Author, true);
         
         return new Empty();
     }
