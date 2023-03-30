@@ -97,6 +97,7 @@ public class StreamClient
 
     private int GetTimeOutFromHeader(Metadata header)
     {
+        if (header == null) return StreamWaitTime;
         var t = header.Get(GrpcConstants.TimeoutMetadataKey)?.Value;
         return int.Parse(t);
     }

@@ -260,7 +260,7 @@ public class PeerDialer : IPeerDialer
             var call = client.Client.RequestByStream(metadata);
             var streamClient = _streamClientProvider.GetStreamClient(call.RequestStream);
             var tokenSource = new CancellationTokenSource();
-            peerHolder.StartServe(call, Task.Run(async () =>
+            peerHolder.StartServe(call, streamClient, Task.Run(async () =>
             {
                 await call.ResponseStream.ForEachAsync(async req => await
                     EventBus.PublishAsync(new StreamMessageReceivedEvent(req.ToByteString(), peer.Info.Pubkey)));

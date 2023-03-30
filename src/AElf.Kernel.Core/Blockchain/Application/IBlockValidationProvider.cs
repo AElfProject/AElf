@@ -157,7 +157,7 @@ public class BlockValidationProvider : IBlockValidationProvider
                     block.Header.PreviousBlockHash);
             if (!blockIndexExists)
                 continue;
-            Logger.LogDebug("Transaction: {TransactionId} repackaged", transactionId);
+            Logger.LogDebug("Transaction: {TransactionId} repackaged", transactionId.ToHex());
             return false;
         }
 

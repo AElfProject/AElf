@@ -38,6 +38,7 @@ public class OutboundPeerHolder : IPeerHolder
     private AsyncClientStreamingCall<LibAnnouncement, VoidReply> _libAnnouncementStreamCall;
     private AsyncClientStreamingCall<Transaction, VoidReply> _transactionStreamCall;
     private AsyncDuplexStreamingCall<StreamMessage, StreamMessage> _duplexStreamingCall;
+    private StreamClient _streamClient;
     public IReadOnlyDictionary<string, ConcurrentQueue<RequestMetric>> RecentRequestsRoundtripTimes { get; }
 
     private Task _serveTask;
@@ -161,9 +162,8 @@ public class OutboundPeerHolder : IPeerHolder
 
     public async Task Ping()
     {
-        var stream = GetResponseStream();
-        if (stream == null) return;
-        await stream.WriteAsync(new StreamMessage { RequestId = CommonHelper.GenerateRequestId(), StreamType = StreamType.Ping, Body = new PingRequest().ToByteString() });
+        if (_streamClient == null) return;
+        await _streamClient.Ping(null);
     }
 
     public Dictionary<string, List<RequestMetric>> GetRequestMetrics()
@@ -183,6 +183,7 @@ public class OutboundPeerHolder : IPeerHolder
     public async Task CheckHealthAsync(Metadata header, GrpcRequest request)
     {
         await RequestAsync(() => _client.CheckHealthAsync(new HealthCheckRequest(), header), request);
+        await CheckStreamHealthAsync(header);
     }
 
 
@@ -326,9 +327,23 @@ public class OutboundPeerHolder : IPeerHolder
         return false;
     }
 
-    public void StartServe(AsyncDuplexStreamingCall<StreamMessage, StreamMessage> duplexStreamingCall, Task serveTask, CancellationTokenSource tokenSource)
+    public async Task CheckStreamHealthAsync(Metadata header)
+    {
+        if (_streamClient == null) return;
+        try
+        {
+            await _streamClient.CheckHealthAsync(header);
+        }
+        catch (Exception e)
+        {
+            throw new NetworkException("failed to check stream health", e, NetworkExceptionType.Unrecoverable);
+        }
+    }
+
+    public void StartServe(AsyncDuplexStreamingCall<StreamMessage, StreamMessage> duplexStreamingCall, StreamClient streamClient, Task serveTask, CancellationTokenSource tokenSource)
     {
         _duplexStreamingCall = duplexStreamingCall;
+        _streamClient = streamClient;
         _serveTask = serveTask;
         _streamListenTaskTokenSource = tokenSource;
     }
