@@ -10,7 +10,7 @@ namespace AElf.CSharp.CodeOps.Patch;
 
 public class ResetFieldsMethodInjectorTests : CSharpCodeOpsTestBase
 {
-    [Fact]
+    [Fact(Skip = "Static field not allowed in user code https://github.com/AElfProject/AElf/issues/3388")]
     public void ResetFields_Static_Test()
     {
         var module = GetContractModule(typeof(TestContract));
