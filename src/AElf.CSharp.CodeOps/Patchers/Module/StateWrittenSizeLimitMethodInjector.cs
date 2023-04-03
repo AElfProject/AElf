@@ -1,5 +1,6 @@
 using System.Linq;
 using AElf.CSharp.CodeOps.Instructions;
+using AElf.Kernel.CodeCheck;
 using Mono.Cecil;
 
 namespace AElf.CSharp.CodeOps.Patchers.Module;
@@ -46,8 +47,18 @@ public class StateWrittenSizeLimitMethodInjector : IPatcher<ModuleDefinition>
 
         var ilProcessor = methodDefinition.Body.GetILProcessor();
 
-        foreach (var instruction in methodDefinition.Body.Instructions.Where(instruction =>
-                     _instructionInjector.IdentifyInstruction(instruction)).ToList())
+        var instructionsRequiringInjection =
+            methodDefinition.Body.Instructions.Where(_instructionInjector.IdentifyInstruction).ToList();
+        /*
+         TODO: Comment out this first before we handle it properly, see https://github.com/AElfProject/AElf/issues/3389
+         var isNotContractImplementation = !methodDefinition.DeclaringType.IsContractImplementation();
+        if (instructionsRequiringInjection.Count > 0 && isNotContractImplementation)
+        {
+            // TODO: https://github.com/AElfProject/AElf/issues/3387
+            throw new InvalidCodeException("Updating state in non-contract class.");
+        }
+        */
+        foreach (var instruction in instructionsRequiringInjection)
         {
             _instructionInjector.InjectInstruction(ilProcessor, instruction, moduleDefinition);
         }

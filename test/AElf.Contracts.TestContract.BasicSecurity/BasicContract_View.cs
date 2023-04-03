@@ -177,7 +177,7 @@ public partial class BasicSecurityContract
     {
         return new ResetOutput
         {
-            Int32Value = _number,
+            // Int32Value = _number,
             Int64Value = _field1,
             StringValue = _field2 ?? string.Empty,
             BoolValue = _field3,
@@ -200,15 +200,17 @@ public partial class BasicSecurityContract
         return new ResetNestedOutput
         {
             Int32Value = _innerContractType.CheckNumberValue(),
-            StringValue = _innerContractType.CheckStaticValue() ?? string.Empty
+            // StringValue = _innerContractType.CheckStaticValue() ?? string.Empty
         };
     }
 
     public override BoolValue CheckNonContractTypesStaticFieldsReset(Empty input)
     {
-        var res = InnerContractType.CheckAllStaticFieldsReset()
-                  && BasicContractTestType.CheckAllStaticFieldsReset()
-                  && BasicContractTestType.InnerTestType.CheckInnerTypeStaticFieldsReset();
+        // var res = InnerContractType.CheckAllStaticFieldsReset()
+        //           && BasicContractTestType.CheckAllStaticFieldsReset()
+        //           && BasicContractTestType.InnerTestType.CheckInnerTypeStaticFieldsReset();
+        // Static field not allowed in user code https://github.com/AElfProject/AElf/issues/3388
+        var res = true;
         return new BoolValue { Value = res };
     }
 
