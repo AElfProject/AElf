@@ -135,6 +135,8 @@ message ContractInfo
     // The version of the current contract.
     int32 version = 6;
     string contract_version = 7;
+    // Indicates if the contract is the user contract.
+    bool is_user_contract = 8;
 }
 
 message ContractDeploymentInput {

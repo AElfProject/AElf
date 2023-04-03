@@ -27,7 +27,8 @@ public class CSharpCodeOpsAElfModule : AElfModule
 
         context.Services.AddTransient<IPatcher, StateWrittenSizeLimitMethodInjector>();
         context.Services.AddTransient<IPatcher, ResetFieldsMethodInjector>();
-        context.Services.AddTransient<IPatcher, ExecutionObserverInjector>();
-        context.Services.AddTransient<IPatcher, MethodCallReplacer>();
+        context.Services.AddTransient<IPatcher, Patchers.Module.CallAndBranchCounts.Patcher>();
+        context.Services.AddTransient<IPatcher, Patchers.Module.SafeMethods.StringMethodsReplacer>();
+        context.Services.AddTransient<IPatcher, Patchers.Module.SafeMath.Patcher>();
     }
 }

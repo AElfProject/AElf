@@ -33,7 +33,17 @@ public partial class BasicContractZero
 
     public override MethodFees GetMethodFee(StringValue input)
     {
-        return State.TransactionFees[input.Value];
+        var fees = State.TransactionFees[input.Value];
+        if (fees == null && input.Value == nameof(ReleaseApprovedUserSmartContract))
+        {
+            fees = new MethodFees
+            {
+                MethodName = input.Value,
+                IsSizeFeeFree = true
+            };
+        }
+
+        return fees;
     }
 
     public override AuthorityInfo GetMethodFeeController(Empty input)

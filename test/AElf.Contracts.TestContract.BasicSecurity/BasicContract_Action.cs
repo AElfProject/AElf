@@ -10,9 +10,9 @@ public partial class BasicSecurityContract : BasicSecurityContractContainer.Basi
 {
     private const int Number = 1;
     private const string String = "TEST";
-    private static int _number;
+    // private static int _number;// NOTE: Static field not allowed in user code https://github.com/AElfProject/AElf/issues/3388
 
-    public static InnerContractType _innerContractTypeStaticField;
+    // public static InnerContractType _innerContractTypeStaticField;
     private BasicContractTestType _basicTestType;
     private long _field1;
     private string _field2;
@@ -260,7 +260,7 @@ public partial class BasicSecurityContract : BasicSecurityContractContainer.Basi
 
     public override Empty TestResetFields(ResetInput input)
     {
-        _number = input.Int32Value;
+        // _number = input.Int32Value;
         _field1 = input.Int64Value;
         _field2 = input.StringValue;
         _field3 = input.BoolValue;
@@ -276,12 +276,12 @@ public partial class BasicSecurityContract : BasicSecurityContractContainer.Basi
         _innerContractType = new InnerContractType();
         _innerContractType.SetValue(input.Int32Value, input.StringValue);
         var number = _innerContractType.CheckNumberValue();
-        var staticString = _innerContractType.CheckStaticValue();
+        // var staticString = _innerContractType.CheckStaticValue();
 
         return new ResetNestedOutput
         {
             Int32Value = number,
-            StringValue = staticString
+            // StringValue = staticString
         };
     }
 
@@ -290,25 +290,25 @@ public partial class BasicSecurityContract : BasicSecurityContractContainer.Basi
         _basicTestType = new BasicContractTestType();
         _basicTestType.SetBasicContractTestType(input.Int32Value);
         var s = _basicTestType.CheckFunc().Invoke(input.StringValue);
-        var testType = _basicTestType.CheckTypeValue();
-        _basicTestType.SetStaticField();
-        BasicContractTestType.BasicContractTestTypePublicStaticField = new BasicContractTestType();
+        // var testType = _basicTestType.CheckTypeValue();
+        // _basicTestType.SetStaticField();
+        // BasicContractTestType.BasicContractTestTypePublicStaticField = new BasicContractTestType();
 
         var innerTestTypeObj = new BasicContractTestType.InnerTestType(1);
         innerTestTypeObj.SetStaticField();
-        BasicContractTestType.InnerTestType.InnerTestTypePublicStaticField =
-            new BasicContractTestType.InnerTestType(2);
+        // BasicContractTestType.InnerTestType.InnerTestTypePublicStaticField =
+        //     new BasicContractTestType.InnerTestType(2);
 
-        var innerContractTypeObj = new InnerContractType();
-        innerContractTypeObj.SetStaticField();
-        InnerContractType.InnerContractTypePublicStaticField = new InnerContractType();
+        // var innerContractTypeObj = new InnerContractType();
+        // innerContractTypeObj.SetStaticField();
+        // InnerContractType.InnerContractTypePublicStaticField = new InnerContractType();
 
         return new ResetOtherTypeNestedOutput
         {
-            TypeConst = testType.CheckConstNumberValue(),
-            TypeNumber = testType.CheckNumberValue(),
+            // TypeConst = testType.CheckConstNumberValue(),
+            // TypeNumber = testType.CheckNumberValue(),
             BasicTypeNumber = _basicTestType.CheckNumberValue(),
-            BasicTypeStaticNumber = _basicTestType.CheckStaticNumberValue(),
+            // BasicTypeStaticNumber = _basicTestType.CheckStaticNumberValue(),
             StringValue = s
         };
     }
@@ -378,16 +378,16 @@ public partial class BasicSecurityContract : BasicSecurityContractContainer.Basi
 
     public class InnerContractType
     {
-        private static string _testTypeString;
-
-        private static InnerContractType _innerContractTypePrivateStaticField;
-        public static InnerContractType InnerContractTypePublicStaticField;
+        // private static string _testTypeString; // Static field not allowed in user code https://github.com/AElfProject/AElf/issues/3388
+        //
+        // private static InnerContractType _innerContractTypePrivateStaticField; // Static field not allowed in user code https://github.com/AElfProject/AElf/issues/3388
+        // public static InnerContractType InnerContractTypePublicStaticField; // Static field not allowed in user code https://github.com/AElfProject/AElf/issues/3388
         private int _testTypeNumber;
 
         public void SetValue(int number, string s)
         {
             _testTypeNumber = number;
-            _testTypeString = s;
+            // _testTypeString = s;
         }
 
         public int CheckNumberValue()
@@ -395,21 +395,23 @@ public partial class BasicSecurityContract : BasicSecurityContractContainer.Basi
             return _testTypeNumber;
         }
 
-        public string CheckStaticValue()
-        {
-            return _testTypeString;
-        }
+        // Static field not allowed in user code https://github.com/AElfProject/AElf/issues/3388
+        // public string CheckStaticValue()
+        // {
+        //     return _testTypeString;
+        // }
 
-        public void SetStaticField()
-        {
-            _innerContractTypePrivateStaticField = this;
-        }
+        // Static field not allowed in user code https://github.com/AElfProject/AElf/issues/3388
+        // public void SetStaticField()
+        // {
+        //     _innerContractTypePrivateStaticField = this;
+        // }
 
-        public static bool CheckAllStaticFieldsReset()
-        {
-            return _testTypeString == null && _innerContractTypePrivateStaticField == null &&
-                   InnerContractTypePublicStaticField == null;
-        }
+        // public static bool CheckAllStaticFieldsReset()
+        // {
+        //     return _testTypeString == null && _innerContractTypePrivateStaticField == null &&
+        //            InnerContractTypePublicStaticField == null;
+        // }
     }
 }
 

@@ -1,5 +1,6 @@
 using System.Linq;
 using AElf.CSharp.CodeOps.Patchers.Module;
+using AElf.CSharp.CodeOps.Patchers.Module.SafeMethods;
 using AElf.Runtime.CSharp.Tests.TestContract;
 using AElf.Sdk.CSharp;
 using Mono.Cecil;
@@ -24,7 +25,7 @@ public class MethodCallReplacerTests : CSharpCodeOpsTestBase
             res.ShouldBeFalse();
         }
 
-        var replacer = new MethodCallReplacer();
+        var replacer = new StringMethodsReplacer();
         replacer.Patch(module);
 
         {
@@ -48,8 +49,10 @@ public class MethodCallReplacerTests : CSharpCodeOpsTestBase
             res.ShouldBeTrue();
         }
 
-        var replacer = new MethodCallReplacer();
+        var replacer = new StringMethodsReplacer();
         replacer.Patch(module);
+        var safeMathPatcher = new Patchers.Module.SafeMath.Patcher();
+        safeMathPatcher.Patch(module);
 
         {
             var res = ContainsMathOpCode(

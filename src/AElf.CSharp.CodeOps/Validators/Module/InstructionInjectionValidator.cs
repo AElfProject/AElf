@@ -28,10 +28,10 @@ public class InstructionInjectionValidator : IValidator<ModuleDefinition>, ITran
         {
             result.AddRange(ValidateType(typ, moduleDefinition));
         }
-            
+
         return result;
     }
-        
+
     private List<ValidationResult> ValidateType(TypeDefinition type, ModuleDefinition moduleDefinition)
     {
         var result = new List<ValidationResult>();
@@ -48,28 +48,41 @@ public class InstructionInjectionValidator : IValidator<ModuleDefinition>, ITran
 
         return result;
     }
-        
+
     private List<ValidationResult> ValidateMethod(ModuleDefinition moduleDefinition, MethodDefinition methodDefinition)
     {
-        var result = new List<ValidationResult>();
-
         if (!methodDefinition.HasBody)
-            return result;
+            return new List<ValidationResult>();
+        var isNotContractImplementation = !methodDefinition.DeclaringType.IsContractImplementation();
 
+        var result = new List<ValidationResult>();
         foreach (var instruction in methodDefinition.Body.Instructions.Where(instruction =>
                      _instructionInjector.IdentifyInstruction(instruction)).ToList())
         {
-            if (_instructionInjector.ValidateInstruction(moduleDefinition, instruction))
-                continue;
-            result.Add(new MethodCallInjectionValidationResult(
-                $"{_instructionInjector.GetType()} validation failed.").WithInfo(methodDefinition.Name,
-                methodDefinition.DeclaringType.Namespace, methodDefinition.DeclaringType.FullName, null));
+            // TODO: https://github.com/AElfProject/AElf/issues/3387
+            if (isNotContractImplementation)
+            {
+                result.Add(new MethodCallInjectionValidationResult(
+                    $"{_instructionInjector.GetType()} validation failed. Updating state in non-contract class is not allowed."
+                ).WithInfo(
+                    methodDefinition.Name,
+                    methodDefinition.DeclaringType.Namespace,
+                    methodDefinition.DeclaringType.FullName,
+                    null
+                ));
+            }
+            else if (!_instructionInjector.ValidateInstruction(moduleDefinition, instruction))
+            {
+                result.Add(new MethodCallInjectionValidationResult(
+                    $"{_instructionInjector.GetType()} validation failed.").WithInfo(methodDefinition.Name,
+                    methodDefinition.DeclaringType.Namespace, methodDefinition.DeclaringType.FullName, null));
+            }
         }
 
         return result;
     }
 }
-    
+
 public class MethodCallInjectionValidationResult : ValidationResult
 {
     public MethodCallInjectionValidationResult(string message) : base(message)

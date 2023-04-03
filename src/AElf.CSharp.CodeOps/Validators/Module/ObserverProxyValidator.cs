@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using AElf.CSharp.CodeOps.Patchers.Module;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Volo.Abp.DependencyInjection;
@@ -20,7 +19,8 @@ public class ObserverProxyValidator : IValidator<ModuleDefinition>, ITransientDe
     {
         // Module is only used to construct the type
         var module = AssemblyDefinition.ReadAssembly(typeof(ExecutionObserverProxy).Assembly.Location).MainModule;
-        _counterProxyTypeRef = ExecutionObserverInjector.ConstructCounterProxy(module, "AElf.Reference");
+        _counterProxyTypeRef =
+            new AElf.CSharp.CodeOps.Patchers.Module.CallAndBranchCounts.Patch(module, "AElf.Reference").ObserverType;
     }
 
     public bool SystemContactIgnored => true;
@@ -28,7 +28,7 @@ public class ObserverProxyValidator : IValidator<ModuleDefinition>, ITransientDe
     public IEnumerable<ValidationResult> Validate(ModuleDefinition module, CancellationToken ct)
     {
         var errors = new List<ValidationResult>();
-            
+
         // Get proxy type reference
         _injProxyType = module.Types.SingleOrDefault(t => t.Name == nameof(ExecutionObserverProxy));
 
@@ -39,20 +39,20 @@ public class ObserverProxyValidator : IValidator<ModuleDefinition>, ITransientDe
             };
 
         CheckObserverProxyIsNotTampered(errors);
-            
+
         // Get references for proxy methods
         _injProxySetObserver =
             _injProxyType.Methods.SingleOrDefault(m => m.Name == nameof(ExecutionObserverProxy.SetObserver));
         _injProxyBranchCount =
             _injProxyType.Methods.SingleOrDefault(m => m.Name == nameof(ExecutionObserverProxy.BranchCount));
-        _injProxyCallCount = 
+        _injProxyCallCount =
             _injProxyType.Methods.SingleOrDefault(m => m.Name == nameof(ExecutionObserverProxy.CallCount));
-                
+
         foreach (var typ in module.Types)
         {
             CheckCallsFromTypes(errors, typ, ct);
         }
-            
+
         return errors;
     }
 
@@ -69,26 +69,30 @@ public class ObserverProxyValidator : IValidator<ModuleDefinition>, ITransientDe
 
             if (injMethod == null)
             {
-                errors.Add(new ObserverProxyValidationResult(refMethod.Name + " is not implemented in observer proxy."));
+                errors.Add(new ObserverProxyValidationResult(refMethod.Name +
+                                                             " is not implemented in observer proxy."));
             }
 
             if (!injMethod.HasSameBody(refMethod))
             {
-                var contractMethodBody = string.Join("\n", injMethod?.Body.Instructions.Select(i => i.ToString()).ToArray());
-                var referenceMethodBody = string.Join("\n", refMethod?.Body.Instructions.Select(i => i.ToString()).ToArray());
-                    
-                errors.Add(new ObserverProxyValidationResult( 
+                var contractMethodBody =
+                    string.Join("\n", injMethod?.Body.Instructions.Select(i => i.ToString()).ToArray());
+                var referenceMethodBody =
+                    string.Join("\n", refMethod?.Body.Instructions.Select(i => i.ToString()).ToArray());
+
+                errors.Add(new ObserverProxyValidationResult(
                     $"{refMethod.Name} proxy method body is tampered.\n" +
                     $"Injected Contract: \n{contractMethodBody}\n\n" +
                     $"Reference:\n{referenceMethodBody}"));
             }
-                
+
             if (!injMethod.HasSameParameters(refMethod))
             {
-                errors.Add(new ObserverProxyValidationResult(refMethod.Name + " proxy method accepts different parameters."));
+                errors.Add(new ObserverProxyValidationResult(refMethod.Name +
+                                                             " proxy method accepts different parameters."));
             }
         }
-            
+
         if (_injProxyType.Methods.Count != _counterProxyTypeRef.Methods.Count)
             errors.Add(new ObserverProxyValidationResult("Observer type contains unusual number of methods."));
     }
@@ -97,9 +101,9 @@ public class ObserverProxyValidator : IValidator<ModuleDefinition>, ITransientDe
     {
         if (typ == _injProxyType) // Do not need to validate calls from the injected proxy
             return;
-            
+
         // Patch the methods in the type
-        foreach (var method in typ.Methods)
+        foreach (var method in typ.Methods.Where(m => !m.IsConstructor))
         {
             CheckCallsFromMethods(errors, method, ct);
         }
@@ -111,11 +115,23 @@ public class ObserverProxyValidator : IValidator<ModuleDefinition>, ITransientDe
         }
     }
 
+    private bool IsFollowedByCallToBranchCount(Instruction instruction)
+    {
+        if (instruction == null)
+        {
+            return false;
+        }
+        if (instruction.OpCode == OpCodes.Nop)
+            return instruction.Next != null && IsFollowedByCallToBranchCount(instruction.Next);
+        return instruction.OpCode == OpCodes.Call &&
+               instruction.Operand == _injProxyBranchCount;
+    }
+
     private void CheckCallsFromMethods(List<ValidationResult> errors, MethodDefinition method, CancellationToken ct)
     {
         if (ct.IsCancellationRequested)
             throw new ContractAuditTimeoutException();
-            
+
         if (!method.HasBody)
             return;
 
@@ -124,33 +140,37 @@ public class ObserverProxyValidator : IValidator<ModuleDefinition>, ITransientDe
         if (!(firstInstruction.OpCode == OpCodes.Call && firstInstruction.Operand == _injProxyCallCount))
             errors.Add(new ObserverProxyValidationResult($"Missing execution observer call count call detected. " +
                                                          $"[{method.DeclaringType.Name} > {method.Name}]"));
-            
+
         // Should be a call placed before each branching opcode
         foreach (var instruction in method.Body.Instructions)
         {
-            if (Constants.JumpingOpCodes.Contains(instruction.OpCode) 
-                && instruction.Operand is Instruction targetInstruction 
+            if (Constants.JumpingOpCodes.Contains(instruction.OpCode)
+                && instruction.Operand is Instruction targetInstruction
                 && targetInstruction.Offset < instruction.Offset)
             {
-                var proxyCallInstruction = targetInstruction.Next; 
-
-                if (!(proxyCallInstruction.OpCode == OpCodes.Call && proxyCallInstruction.Operand == _injProxyBranchCount))
+                var targetIsCallToBranchCount = IsFollowedByCallToBranchCount(targetInstruction);
+                // Note: instructionAfterTargetIsCallToBranchCount is added for backward-compatibility, the call was
+                //       previously injected not at the target position but after the target position.
+                var instructionAfterTargetIsCallToBranchCount = IsFollowedByCallToBranchCount(targetInstruction.Next);
+                if (!targetIsCallToBranchCount && !instructionAfterTargetIsCallToBranchCount)
                 {
-                    errors.Add(new ObserverProxyValidationResult("Missing execution observer branch count call detected. " +
-                                                                 $"[{method.DeclaringType.Name} > {method.Name}]"));
+                    errors.Add(new ObserverProxyValidationResult(
+                        "Missing execution observer branch count call detected. " +
+                        $"[{method.DeclaringType.Name} > {method.Name}]"));
                 }
             }
-                
+
             // Calling SetObserver method within contract is a breach
             if (instruction.OpCode == OpCodes.Call && instruction.Operand == _injProxySetObserver)
             {
-                errors.Add(new ObserverProxyValidationResult($"Proxy initialize call detected from within the contract. " +
-                                                             $"[{method.DeclaringType.Name} > {method.Name}]"));
+                errors.Add(new ObserverProxyValidationResult(
+                    $"Proxy initialize call detected from within the contract. " +
+                    $"[{method.DeclaringType.Name} > {method.Name}]"));
             }
         }
     }
 }
-    
+
 public class ObserverProxyValidationResult : ValidationResult
 {
     public ObserverProxyValidationResult(string message) : base(message)

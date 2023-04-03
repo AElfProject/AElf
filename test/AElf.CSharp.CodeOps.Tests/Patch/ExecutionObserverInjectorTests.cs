@@ -14,7 +14,7 @@ public class ExecutionObserverInjectorTests : CSharpCodeOpsTestBase
     {
         var module = GetContractModule(typeof(TestContract));
         var ns = "AElf.CSharp.CodeOps";
-        var typeDefinition = ExecutionObserverInjector.ConstructCounterProxy(module, ns);
+        var typeDefinition = new Patchers.Module.CallAndBranchCounts.Patch(module, ns).ObserverType;
         typeDefinition.Methods.Count.ShouldBe(3);
         typeDefinition.Methods.Select(method => method.DeclaringType.FullName)
             .ShouldAllBe(name => name == string.Concat(ns, ".", nameof(ExecutionObserverProxy)));
@@ -30,9 +30,9 @@ public class ExecutionObserverInjectorTests : CSharpCodeOpsTestBase
     {
         var module = GetContractModule(typeof(TestContract));
 
-        var typeDefinition = ExecutionObserverInjector.ConstructCounterProxy(module, "AElf.Test");
+        var typeDefinition = new Patchers.Module.CallAndBranchCounts.Patch(module, "AElf.Test").ObserverType;
 
-        var executionObserverInjector = new ExecutionObserverInjector();
+        var executionObserverInjector = new Patchers.Module.CallAndBranchCounts.Patcher();
         executionObserverInjector.Patch(module);
         var typePatched = module.Types.Single(t => t.Name == nameof(ExecutionObserverProxy));
         typePatched.HasSameFields(typeDefinition).ShouldBeTrue();
@@ -46,7 +46,7 @@ public class ExecutionObserverInjectorTests : CSharpCodeOpsTestBase
     {
         var module = GetContractModule(typeof(BadContract));
 
-        var executionObserverInjector = new ExecutionObserverInjector();
+        var executionObserverInjector = new Patchers.Module.CallAndBranchCounts.Patcher();
         executionObserverInjector.Patch(module);
     }
 }

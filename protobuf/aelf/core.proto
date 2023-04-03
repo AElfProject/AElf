@@ -98,6 +98,8 @@ message SmartContractRegistration {
     string contract_version = 6;
     // The address of the current contract.
     Address contract_address = 7;
+    // Indicates if the contract is the user contract.
+    bool is_user_contract = 8;
 }
 
 message TransactionExecutingStateSet {

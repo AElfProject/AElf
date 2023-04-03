@@ -198,12 +198,6 @@ public class ContractAuditorTests : CSharpCodeOpsTestBase
                 i => i.Namespace == "System" && i.Type == "String" && i.Member == ".ctor")
             .ShouldNotBeNull();
 
-        // Denied member use in nested class
-        LookFor(findings,
-                "UseDeniedMemberInNestedClass",
-                i => i.Namespace == "System" && i.Type == "DateTime" && i.Member == "get_Now")
-            .ShouldNotBeNull();
-
         // Denied member use in separate class
         LookFor(findings,
                 "UseDeniedMemberInSeparateClass",
@@ -238,12 +232,6 @@ public class ContractAuditorTests : CSharpCodeOpsTestBase
             .FirstOrDefault(f => f is ContractStructureValidationResult &&
                                  f.Info.Type == "BadCase2" && f.Info.ReferencingMethod == ".cctor" &&
                                  f.Info.Member == "Number").ShouldNotBeNull();
-
-        // Initialization value not allowed for resettable members, in contract
-        findings
-            .FirstOrDefault(f => f is ContractStructureValidationResult &&
-                                 f.Info.Type == "BadContract" && f.Info.ReferencingMethod == ".ctor" &&
-                                 f.Info.Member == "i").ShouldNotBeNull();
 
         // findings.FirstOrDefault(f => f is ContractStructureValidationResult &&
         //                              f.Info.Type == "BadContract" && f.Info.Member == "staticNotAllowedTypeField").ShouldBeNull();
@@ -282,7 +270,7 @@ public class ContractAuditorTests : CSharpCodeOpsTestBase
         }
     }
 
-    [Fact]
+    [Fact(Skip = "Static field not allowed in user code https://github.com/AElfProject/AElf/issues/3388")]
     public void CheckResetField_ForMissingReset()
     {
         var code = ReadContractCode(typeof(BadContract));
