@@ -98,7 +98,13 @@ public class ArrayValidator : IValidator<MethodDefinition>, ITransientDependency
             }
                 
             if (error != null)
-                errors.Add(error.WithInfo(method.Name, method.DeclaringType.Namespace, method.DeclaringType.Name, null));
+            {
+                var name = method.Name;
+                var ns = method.DeclaringType?.Namespace;
+                var typeName = method.DeclaringType?.Name;
+
+                errors.Add(error.WithInfo(name, ns, typeName, null));
+            }
         }
 
         return errors;
