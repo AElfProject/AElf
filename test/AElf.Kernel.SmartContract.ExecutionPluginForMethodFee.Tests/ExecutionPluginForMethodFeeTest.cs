@@ -43,9 +43,9 @@ public sealed class ExecutionPluginForMethodFeeTest : ExecutionPluginForMethodFe
     private async Task DeployTestContractAsync()
     {
         var category = KernelConstants.CodeCoverageRunnerCategory;
-        var code = Codes.Single(kv => kv.Key.Contains("TestContract")).Value;
+        var code = Codes.Single(kv => kv.Key.Contains("ExecutionPluginForMethodFee.Tests.TestContract")).Value;
         _testContractAddress = await DeploySystemSmartContract(category, code,
-            HashHelper.ComputeFrom("TestContract"),
+            HashHelper.ComputeFrom("ExecutionPluginForMethodFee.Tests.TestContract"),
             DefaultSenderKeyPair);
         _testContractStub =
             GetTester<ContractContainer.ContractStub>(_testContractAddress, DefaultSenderKeyPair);
@@ -123,6 +123,7 @@ public sealed class ExecutionPluginForMethodFeeTest : ExecutionPluginForMethodFe
         transactions[0].From.ShouldBe(DefaultSender);
         transactions[0].To.ShouldBe(await GetTokenContractAddressAsync());
     }
+    
 
     private I GetCreateInstance<I, T>() where T : I
     {

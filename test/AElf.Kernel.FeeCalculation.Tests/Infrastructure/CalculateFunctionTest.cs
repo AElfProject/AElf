@@ -1,5 +1,7 @@
 using System;
+using System.Linq;
 using AElf.Contracts.MultiToken;
+using AElf.CSharp.Core.Extension;
 using AElf.Kernel.FeeCalculation.Extensions;
 using AElf.Types;
 using Google.Protobuf;
@@ -61,8 +63,32 @@ public class CalculateFunctionTest
     public void GetChargedTransactionFees_Test()
     {
         var transactionResult = new TransactionResult();
+        transactionResult.Logs.Add(new TransactionFeeCharged
+        {
+            Amount = 1,
+            Symbol = "ELF"
+        }.ToLogEvent());
+        transactionResult.Logs.Add(new TransactionFeeCharged
+        {
+            Amount = 2,
+            Symbol = "ELF"
+        }.ToLogEvent());
+        transactionResult.Logs.Add(new TransactionFeeCharged
+        {
+            Amount = 3,
+            Symbol = "TEST"
+        }.ToLogEvent());
+        transactionResult.Logs.Add(new TransactionFeeCharged
+        {
+            Amount = 4,
+            Symbol = "TEST"
+        }.ToLogEvent());
         var feeDic = transactionResult.GetChargedTransactionFees();
-        feeDic.Count.ShouldBe(0);
+        feeDic.Count.ShouldBe(2);
+        feeDic.Keys.First().ShouldBe("ELF");
+        feeDic.Values.First().ShouldBe(3);
+        feeDic.Keys.Last().ShouldBe("TEST");
+        feeDic.Values.Last().ShouldBe(7);
     }
 
     [Fact]

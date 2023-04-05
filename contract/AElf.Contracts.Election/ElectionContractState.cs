@@ -96,4 +96,5 @@ public partial class ElectionContractState : ContractState
     public BoolState ElectionEnabled { get; set; }
 
     public MappedState<Hash, bool> WeightsAlreadyFixedMap { get; set; }
+    
 }

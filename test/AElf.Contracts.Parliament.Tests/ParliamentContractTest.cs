@@ -1458,6 +1458,103 @@ public class ParliamentContractTest : ParliamentContractTestBase
         validProposals.ProposalIds.Count.ShouldBe(0);
     }
 
+    [Fact]
+    public async Task GetReleaseThresholdReachedProposals_Test()
+    {
+        await InitializeParliamentContracts();
+
+        var minimalApprovalThreshold = 3000;
+        var maximalAbstentionThreshold = 3000;
+        var maximalRejectionThreshold = 3000;
+        var minimalVoteThreshold = 6000;
+        var organizationAddress = await CreateOrganizationAsync(minimalApprovalThreshold,
+            maximalAbstentionThreshold, maximalRejectionThreshold, minimalVoteThreshold);
+        
+        var proposalId = HashHelper.ComputeFrom("proposalId");
+        var parliamentContractStub = GetParliamentContractTester(InitialMinersKeyPairs[0]);
+        var reachedReleasedList = await parliamentContractStub.GetReleaseThresholdReachedProposals.CallAsync(new ProposalIdList
+        {
+            ProposalIds = { proposalId }
+        });
+        reachedReleasedList.ProposalIds.Count.ShouldBe(0);
+        
+        proposalId = await CreateProposalAsync(DefaultSenderKeyPair, organizationAddress);
+        reachedReleasedList = await parliamentContractStub.GetReleaseThresholdReachedProposals.CallAsync(new ProposalIdList
+        {
+            ProposalIds = { proposalId }
+        });
+        reachedReleasedList.ProposalIds.Count.ShouldBe(0);
+        
+        await ApproveAsync(InitialMinersKeyPairs[0], proposalId);
+        reachedReleasedList = await parliamentContractStub.GetReleaseThresholdReachedProposals.CallAsync(new ProposalIdList
+        {
+            ProposalIds = { proposalId }
+        });
+        reachedReleasedList.ProposalIds.Count.ShouldBe(0);
+
+        await ApproveAsync(InitialMinersKeyPairs[1], proposalId);
+        reachedReleasedList = await parliamentContractStub.GetReleaseThresholdReachedProposals.CallAsync(new ProposalIdList
+        {
+            ProposalIds = { proposalId }
+        });
+        reachedReleasedList.ProposalIds.Count.ShouldBe(1);
+        reachedReleasedList.ProposalIds[0].ShouldBe(proposalId);
+    }
+    
+    [Fact]
+    public async Task GetAvailableProposals_Test()
+    {
+        await InitializeParliamentContracts();
+
+        var minimalApprovalThreshold = 3000;
+        var maximalAbstentionThreshold = 3000;
+        var maximalRejectionThreshold = 3000;
+        var minimalVoteThreshold = 6000;
+        var organizationAddress = await CreateOrganizationAsync(minimalApprovalThreshold,
+            maximalAbstentionThreshold, maximalRejectionThreshold, minimalVoteThreshold);
+        
+        var proposalId = HashHelper.ComputeFrom("proposalId");
+        var parliamentContractStub = GetParliamentContractTester(InitialMinersKeyPairs[0]);
+        var reachedReleasedList = await parliamentContractStub.GetAvailableProposals.CallAsync(new ProposalIdList
+        {
+            ProposalIds = { proposalId }
+        });
+        reachedReleasedList.ProposalIds.Count.ShouldBe(0);
+        
+        proposalId = await CreateProposalAsync(DefaultSenderKeyPair, organizationAddress);
+        reachedReleasedList = await parliamentContractStub.GetAvailableProposals.CallAsync(new ProposalIdList
+        {
+            ProposalIds = { proposalId }
+        });
+        reachedReleasedList.ProposalIds.Count.ShouldBe(1);
+        reachedReleasedList.ProposalIds[0].ShouldBe(proposalId);
+        
+        await ApproveAsync(InitialMinersKeyPairs[0], proposalId);
+        reachedReleasedList = await parliamentContractStub.GetAvailableProposals.CallAsync(new ProposalIdList
+        {
+            ProposalIds = { proposalId }
+        });
+        reachedReleasedList.ProposalIds.Count.ShouldBe(1);
+        reachedReleasedList.ProposalIds[0].ShouldBe(proposalId);
+
+        await ApproveAsync(InitialMinersKeyPairs[1], proposalId);
+        reachedReleasedList = await parliamentContractStub.GetAvailableProposals.CallAsync(new ProposalIdList
+        {
+            ProposalIds = { proposalId }
+        });
+        reachedReleasedList.ProposalIds.Count.ShouldBe(1);
+        reachedReleasedList.ProposalIds[0].ShouldBe(proposalId);
+        
+        await TransferToOrganizationAddressAsync(organizationAddress);
+        await ParliamentContractStub.Release.SendAsync(proposalId);
+        
+        reachedReleasedList = await parliamentContractStub.GetAvailableProposals.CallAsync(new ProposalIdList
+        {
+            ProposalIds = { proposalId }
+        });
+        reachedReleasedList.ProposalIds.Count.ShouldBe(0);
+    }
+
     private async Task<Hash> CreateProposalAsync(ECKeyPair proposalKeyPair, Address organizationAddress)
     {
         var transferInput = new TransferInput

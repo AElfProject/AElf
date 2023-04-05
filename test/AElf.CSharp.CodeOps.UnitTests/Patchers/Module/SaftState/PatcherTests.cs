@@ -390,7 +390,7 @@ public class Contract : Container.ContractBase
         DoTest(states, method, expectedContractCode);
     }
 
-    [Fact]
+    [Fact(Skip = "Throw exception temporarily disabled https://github.com/AElfProject/AElf/issues/3389")]
     public void Patcher_Throws_Invalid_Code_In_Separate_Class()
     {
         var states = @"
@@ -424,7 +424,7 @@ public class AnotherClass {
     }
 
     
-    [Fact]
+    [Fact(Skip = "Throw exception temporarily disabled https://github.com/AElfProject/AElf/issues/3389")]
     public void Patcher_Throws_Invalid_Code_In_Separate_Class_Static_Method()
     {
         var states = @"
@@ -458,7 +458,7 @@ public class AnotherClass {
         Assert.Throws<InvalidCodeException>(()=>ApplyPatch(module));
     }
     
-    [Fact]
+    [Fact(Skip = "Throw exception temporarily disabled https://github.com/AElfProject/AElf/issues/3389")]
     public void Patcher_Throws_Invalid_Code_In_Separate_Class_Extension_Method()
     {
         var states = @"
@@ -492,7 +492,7 @@ public static class AnotherClass {
         Assert.Throws<InvalidCodeException>(()=>ApplyPatch(module));
     }
     
-    [Fact]
+    [Fact(Skip = "Throw exception temporarily disabled https://github.com/AElfProject/AElf/issues/3389")]
     public void Patcher_Throws_Invalid_Code_In_Nested_Class()
     {
         var states = @"

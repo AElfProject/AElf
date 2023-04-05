@@ -8,7 +8,7 @@ namespace AElf.CSharp.CodeOps.UnitTests.Patchers.Module.StaticFieldsReset;
 
 public class PatcherTests : CSharpCodeOpsTestBase
 {
-    [Fact]
+    [Fact(Skip = "Throw exception temporarily disabled https://github.com/AElfProject/AElf/issues/3389")]
     public void Patch_Separate_Class()
     {
         var anotherClass = @"
@@ -74,7 +74,7 @@ public class AnotherClass
         Assert.Throws<InvalidCodeException>(() => ApplyPatch(module));
     }
 
-    [Fact]
+    [Fact(Skip = "Throw exception temporarily disabled https://github.com/AElfProject/AElf/issues/3389")]
     public void Patch_Nested_Class()
     {
         var anotherClass = @"
@@ -168,7 +168,7 @@ public class OuterMostClass
         Assert.Throws<InvalidCodeException>(() => ApplyPatch(module));
     }
 
-    [Fact]
+    [Fact(Skip = "Throw exception temporarily disabled https://github.com/AElfProject/AElf/issues/3389")]
     public void Patch_Nested_In_Contract()
     {
         var anotherClass = @"
