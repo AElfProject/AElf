@@ -19,9 +19,9 @@ AElf is a blockchain system aiming to achieve scalability and extensibility thro
 For more information you can follow these links:
 * [Official website](https://aelf.io)
 * [Documentation](https://docs.aelf.io/en/latest/)
-    * [Environment setup](https://docs.aelf.io/en/latest/getting-started/development-environment/environment-setup.html)
-    * [Running a node](https://docs.aelf.io/en/latest/getting-started/development-environment/docker.html)
-    * [Smart contract development](https://docs.aelf.io/en/latest/getting-started/smart-contract-development/index.html)
+    * [Environment setup](https://docs.aelf.io/en/latest/getting_started/development-environment/index.html)
+    * [Running a node](https://docs.aelf.io/en/latest/getting_started/development-environment/node.html)
+    * [Smart contract development](https://docs.aelf.io/en/latest/getting_started/smart_contracts/index.html)
     * [Web Api](https://docs.aelf.io/en/latest/reference/web-api/web-api.html)
     * [Testnet](https://docs.aelf.io/en/latest/tutorials/testnet.html)
 * [White Paper](https://aelf.com/gridcn/aelf_whitepaper_v1.7_en.pdf) 
@@ -45,8 +45,8 @@ This repo is where you will find the code that can use to run an AElf node. It a
 
 We strongly recommend you follow official documentation that will guide you through installing dependencies and running the node, 
 these two guides will get you started:  
-* [Environment setup](https://docs.aelf.io/en/latest/getting-started/development-environment/environment-setup.html)  
-* [Running a node](https://docs.aelf.io/en/latest/getting-started/development-environment/docker.html)  
+* [Environment setup](https://docs.aelf.io/en/latest/getting_started/development-environment/index.html)  
+* [Running a node](https://docs.aelf.io/en/latest/getting_started/development-environment/node.html)  
 
 ## Contributing
 
