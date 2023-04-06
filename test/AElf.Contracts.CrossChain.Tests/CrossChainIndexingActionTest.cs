@@ -738,7 +738,7 @@ public class CrossChainIndexingActionTest : CrossChainContractTestBase<CrossChai
             tx.TransactionResult.Error.ShouldContain("No permission.");
         }
 
-        await CrossChainContractStub.ReleaseCrossChainIndexingProposal.SendAsync(
+        var result = await CrossChainContractStub.ReleaseCrossChainIndexingProposal.SendAsync(
             new ReleaseCrossChainIndexingProposalInput
             {
                 ChainIdList = { sideChainId }
@@ -751,11 +751,19 @@ public class CrossChainIndexingActionTest : CrossChainContractTestBase<CrossChai
             });
             indexedHeight.Value.ShouldBe(2);
 
+            var logEvent = result.TransactionResult.Logs.First(l => l.Name == nameof(SideChainIndexed));
+            var indexEvent =new SideChainIndexed();
+            indexEvent.MergeFrom(logEvent.Indexed[0]);
+            indexEvent.MergeFrom(logEvent.NonIndexed);
+            indexEvent.ChainId.ShouldBe(sideChainId);
+            indexEvent.IndexedHeight.ShouldBe(2);
+
             var balance = await CrossChainContractStub.GetSideChainBalance.CallAsync(new Int32Value
             {
                 Value = sideChainId
             });
             balance.Value.ShouldBe(lockedToken - 2);
+
         }
 
         {
@@ -1279,6 +1287,13 @@ public class CrossChainIndexingActionTest : CrossChainContractTestBase<CrossChai
         {
             var indexedHeight = await CrossChainContractStub.GetParentChainHeight.CallAsync(new Empty());
             indexedHeight.Value.ShouldBe(parentChainHeightOfCreation);
+            
+            var logEvent = releaseResult.TransactionResult.Logs.First(l => l.Name == nameof(ParentChainIndexed));
+            var indexEvent =new ParentChainIndexed();
+            indexEvent.MergeFrom(logEvent.Indexed[0]);
+            indexEvent.MergeFrom(logEvent.NonIndexed);
+            indexEvent.ChainId.ShouldBe(parentChainId);
+            indexEvent.IndexedHeight.ShouldBe(indexedHeight.Value);
         }
     }
 

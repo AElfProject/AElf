@@ -5,8 +5,6 @@ namespace AElf.Runtime.CSharp.Tests.TestContract;
 
 public class TestContractState : ContractState
 {
-    private static BoolState boolState;
-    private static readonly BoolState boolState2;
     public BoolState BoolInfo { get; set; }
     public Int32State Int32Info { get; set; }
     public UInt32State UInt32Info { get; set; }

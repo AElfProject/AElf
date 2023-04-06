@@ -648,7 +648,20 @@ public class MultiTokenContractCrossChainTest : MultiTokenContractCrossChainTest
             TransferTransactionBytes = crossChainTransferTransaction.ToByteString(),
             MerklePath = transferMerKlePath
         };
-        await SideChainTokenContractStub.CrossChainReceiveToken.SendAsync(crossChainReceiveTokenInput);
+        var receiveResult = await SideChainTokenContractStub.CrossChainReceiveToken.SendAsync(crossChainReceiveTokenInput);
+        
+        var logEvent = receiveResult.TransactionResult.Logs.First(l => l.Name == nameof(CrossChainReceived));
+        var receivedEvent =new CrossChainReceived();
+        receivedEvent.MergeFrom(logEvent.NonIndexed);
+        receivedEvent.From.ShouldBe(SideChainTestKit.DefaultAccount.Address);
+        receivedEvent.To.ShouldBe(SideChainTestKit.DefaultAccount.Address);
+        receivedEvent.Symbol.ShouldBe(NativeToken);
+        receivedEvent.Amount.ShouldBe(1000);
+        receivedEvent.Memo.ShouldBeEmpty();
+        receivedEvent.FromChainId.ShouldBe(MainChainId);
+        receivedEvent.ParentChainHeight.ShouldBe(height);
+        receivedEvent.IssueChainId.ShouldBe(MainChainId);
+        receivedEvent.TransferTransactionId.ShouldBe(crossChainTransferTransaction.GetHash());
 
         var output = await SideChainTokenContractStub.GetBalance.CallAsync(new GetBalanceInput
         {
@@ -754,7 +767,7 @@ public class MultiTokenContractCrossChainTest : MultiTokenContractCrossChainTest
     }
 
     [Fact]
-    public async Task SideChain_CrossChainReceived_WrongReceiver_Test()
+    public async Task SideChain_CrossChainReceived_DifferentReceiver_Test()
     {
         var sideChainId = await GenerateSideChainAsync();
         await RegisterSideChainContractAddressOnMainChainAsync();
@@ -788,9 +801,8 @@ public class MultiTokenContractCrossChainTest : MultiTokenContractCrossChainTest
             SideTokenContractAddress,
             SampleAccount.Accounts[2].KeyPair);
         var executionResult =
-            await tokenContractImplStub.CrossChainReceiveToken.SendWithExceptionAsync(crossChainReceiveTokenInput);
-        Assert.True(executionResult.TransactionResult.Status == TransactionResultStatus.Failed);
-        Assert.Contains("Unable to claim cross chain token.", executionResult.TransactionResult.Error);
+            await tokenContractImplStub.CrossChainReceiveToken.SendAsync(crossChainReceiveTokenInput);
+        Assert.True(executionResult.TransactionResult.Status == TransactionResultStatus.Mined);
     }
 
     [Fact]

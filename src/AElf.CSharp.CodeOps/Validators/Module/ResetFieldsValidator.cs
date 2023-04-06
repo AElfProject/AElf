@@ -12,27 +12,29 @@ namespace AElf.CSharp.CodeOps.Validators.Module;
 public class ResetFieldsValidator : IValidator<ModuleDefinition>, ITransientDependency
 {
     public bool SystemContactIgnored => false;
-        
+
     public IEnumerable<ValidationResult> Validate(ModuleDefinition module, CancellationToken ct)
     {
+        var checker = new ExecutionObserverProxyChecker(module);
         var errors = module.Types
             .Where(t => t.Name != nameof(ExecutionObserverProxy))
-            .SelectMany(t => ValidateResetFieldsMethod(t, t.IsContractImplementation(), ct))
+            .SelectMany(t => ValidateResetFieldsMethod(checker, t, t.IsContractImplementation(), ct))
             .ToList();
 
         return errors;
     }
 
-    private IEnumerable<ValidationResult> ValidateResetFieldsMethod(TypeDefinition type, bool isContractImplementation, CancellationToken ct)
+    private IEnumerable<ValidationResult> ValidateResetFieldsMethod(ExecutionObserverProxyChecker checker,
+        TypeDefinition type, bool isContractImplementation, CancellationToken ct)
     {
         if (ct.IsCancellationRequested)
             throw new ContractAuditTimeoutException();
-            
+
         var errors = new List<ValidationResult>();
-            
+
         // Validate nested types (Do not consider any nested types as contract implementation)
-        errors.AddRange(type.NestedTypes.SelectMany(t => 
-            ValidateResetFieldsMethod(t, false, ct)));
+        errors.AddRange(type.NestedTypes.SelectMany(t =>
+            ValidateResetFieldsMethod(checker, t, false, ct)));
 
         var fieldsToReset = new List<FieldDefinition>();
 
@@ -42,20 +44,21 @@ public class ResetFieldsValidator : IValidator<ModuleDefinition>, ITransientDepe
             .Where(t => t != null)
             .ToList();
 
-        var resetFieldsMethod = type.Methods.SingleOrDefault(m => m.Name == nameof(ResetFieldsMethodInjector.ResetFields));
-            
+        var resetFieldsMethod =
+            type.Methods.SingleOrDefault(m => m.Name == nameof(ResetFieldsMethodInjector.ResetFields));
+
         if (isContractImplementation)
         {
             // All fields including static ones and also base class instance fields should be reset
             fieldsToReset.AddRange(type.GetAllFields(f => !(f.IsInitOnly || f.HasConstant)));
-                
+
             // Contract implementation's ResetFields method should be calling all other types' ResetFields methods
             methodsToCall.AddRange(type.Module.Types
                 .Where(t => t != type)
                 .Select(t => t.Methods.SingleOrDefault(m =>
                     m.Name == nameof(ResetFieldsMethodInjector.ResetFields)))
                 .Where(t => t != null));
-                
+
             // Ensure contract implementation's ResetFields method is accessible from CSharpSmartContractProxy
             if (resetFieldsMethod != null && !resetFieldsMethod.IsPublic)
             {
@@ -66,11 +69,11 @@ public class ResetFieldsValidator : IValidator<ModuleDefinition>, ITransientDepe
         }
         else
         {
-            fieldsToReset.AddRange(type.Fields
-                .Where(f => 
-                    f.IsStatic && 
-                    !(f.IsInitOnly || f.HasConstant) && 
-                    f.FieldType.FullName != typeof(FileDescriptor).FullName));
+            fieldsToReset.AddRange(type.Fields.Where(
+                    f => checker.IsObserverFieldThatRequiresResetting(f)
+                         || f.IsFuncTypeFieldInGeneratedClass()
+                )
+            );
         }
 
         if (resetFieldsMethod == null)
@@ -111,35 +114,45 @@ public class ResetFieldsValidator : IValidator<ModuleDefinition>, ITransientDepe
         return errors;
     }
 
-    private IEnumerable<ValidationResult> ValidateMethodInstructions(MethodDefinition resetFieldsMethod, List<FieldDefinition> fieldsToReset, 
+    private IEnumerable<ValidationResult> ValidateMethodInstructions(MethodDefinition resetFieldsMethod,
+        List<FieldDefinition> fieldsToReset,
         List<MethodDefinition> methodsToCall)
     {
         var errors = new List<ValidationResult>();
-            
+
         foreach (var instruction in resetFieldsMethod.Body.Instructions)
         {
             // Skip first instruction in ResetFields method, this is supposed to be CallCount call
             // and validation of this is handled in ObserverProxyValidator
-            if (instruction.Offset == 0 && 
-                instruction.OpCode == OpCodes.Call && 
-                instruction.Operand is MethodReference methodRef && 
-                methodRef.Name == nameof(ExecutionObserverProxy.CallCount)) 
+            if (instruction.Offset == 0 &&
+                instruction.OpCode == OpCodes.Call &&
+                instruction.Operand is MethodReference methodRef &&
+                methodRef.Name == nameof(ExecutionObserverProxy.CallCount))
                 continue;
-                
+
             // If ret, assume end of the method and exit the loop
             if (instruction.OpCode == OpCodes.Ret)
                 break;
-                
+
             // Skip if using "this" to set an instance field
             if (instruction.OpCode == OpCodes.Ldarg_0)
                 continue;
-                
+
             // Skip if loading 0 or null to stack
-            if (instruction.OpCode == OpCodes.Ldc_I4_0 || instruction.OpCode == OpCodes.Ldnull) // Default value
+            if (instruction.OpCode == OpCodes.Ldc_I4_0 || instruction.OpCode == OpCodes.Conv_I8 || instruction.OpCode == OpCodes.Ldnull) // Default value
                 continue;
-                
+
+            if (instruction.OpCode == OpCodes.Ldfld && instruction.Operand != null &&
+                instruction.Operand is FieldReference fieldReference)
+            {
+                if (fieldReference.Name == "Zero" && fieldReference.DeclaringType.FullName == "System.Decimal")
+                {
+                    continue;
+                }
+            }
+            
             // If setting a field
-            if ((instruction.OpCode == OpCodes.Stfld || instruction.OpCode == OpCodes.Stsfld) && 
+            if ((instruction.OpCode == OpCodes.Stfld || instruction.OpCode == OpCodes.Stsfld) &&
                 instruction.Operand is FieldDefinition field)
             {
                 if (fieldsToReset.Remove(field))
@@ -156,18 +169,18 @@ public class ResetFieldsValidator : IValidator<ModuleDefinition>, ITransientDepe
                     continue;
                 }
             }
-                
+
             // If reached here, then something is wrong
             errors.Add(new ResetFieldsValidationResult(
                     $"Unexpected instruction {instruction} found in ResetFields method.")
-                .WithInfo(resetFieldsMethod.Name, resetFieldsMethod.DeclaringType.Namespace, 
+                .WithInfo(resetFieldsMethod.Name, resetFieldsMethod.DeclaringType.Namespace,
                     resetFieldsMethod.DeclaringType.Name, null));
         }
 
         return errors;
     }
 }
-    
+
 public class ResetFieldsValidationResult : ValidationResult
 {
     public ResetFieldsValidationResult(string message) : base(message)

@@ -14,8 +14,7 @@ using Volo.Abp.Modularity;
 
 namespace AElf.Contract.TestContract;
 
-[DependsOn(typeof(ContractTestModule))]
-[DependsOn(typeof(CSharpCodeOpsAElfModule))]
+[DependsOn(typeof(CSharpCodeOpsAElfModule),typeof(ContractTestModule))]
 public class TestContractAElfModule : ContractTestModule
 {
     public override void ConfigureServices(ServiceConfigurationContext context)

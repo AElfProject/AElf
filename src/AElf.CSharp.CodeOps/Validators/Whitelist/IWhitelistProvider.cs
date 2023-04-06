@@ -92,7 +92,9 @@ public class WhitelistProvider : IWhitelistProvider
                 .Type(nameof(UInt64), Permission.Allowed)
                 .Type(nameof(Decimal), Permission.Allowed)
                 .Type(nameof(String), Permission.Allowed, member => member
-                    .Constructor(Permission.Denied))
+                    .Constructor(Permission.Denied)
+                    .Member(nameof(String.Concat), Permission.Denied)
+                )
                 .Type(typeof(Byte[]).Name, Permission.Allowed)
             );
     }

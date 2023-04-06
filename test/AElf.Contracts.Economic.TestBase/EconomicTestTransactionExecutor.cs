@@ -51,9 +51,13 @@ public class EconomicTestTransactionExecutor : ITestTransactionExecutor
         return blockExecutedSet.TransactionResultMap[transaction.GetHash()];
     }
 
-    public Task<TransactionResult> ExecuteWithExceptionAsync(Transaction transaction)
+    public async Task<TransactionResult> ExecuteWithExceptionAsync(Transaction transaction)
     {
-        throw new NotImplementedException();
+        var transactionResult = await ExecuteAsync(transaction);
+        if (transactionResult.Status == TransactionResultStatus.Mined)
+            throw new Exception($"Succeed to execute {transaction.MethodName}.");
+
+        return transactionResult;
     }
 
     public async Task<ByteString> ReadAsync(Transaction transaction)

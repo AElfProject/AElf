@@ -8,10 +8,6 @@ namespace AElf.Runtime.CSharp.Tests.BadContract;
 
 public class BadContract : BadContractContainer.BadContractBase
 {
-    int i = 1;
-    private static BadCase1 staticNotAllowedTypeField;
-    private static int staticAllowedTypeField;
-        
     public override Empty UpdateDoubleState(DoubleInput input)
     {
         State.Double.Value = input.DoubleValue;
@@ -83,13 +79,6 @@ public class BadContract : BadContractContainer.BadContractBase
         return new Empty();
     }
 
-    public override Empty TestCallToNestedClass(Empty input)
-    {
-        State.CurrentTime.Value = NestedClass.UseDeniedMemberInNestedClass();
-
-        return new Empty();
-    }
-        
     public override Empty TestCallToSeparateClass(Empty input)
     {
         State.CurrentTime.Value = SeparateClass.UseDeniedMemberInSeparateClass();
@@ -132,13 +121,6 @@ public class BadContract : BadContractContainer.BadContractBase
         return new Empty();
     }
 
-    private class NestedClass
-    {
-        public static DateTime UseDeniedMemberInNestedClass()
-        {
-            return DateTime.Now;
-        }
-    }
 
     public override Int32Value TestGetHashCodeCall(Empty input)
     {

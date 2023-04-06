@@ -121,7 +121,6 @@ public partial class MultiTokenContractTests : MultiTokenContractTestBase
             IsBurnable = NativeTokenInfo.IsBurnable,
             LockWhiteList =
             {
-                BasicFunctionContractAddress,
                 OtherBasicFunctionContractAddress,
                 TokenConverterContractAddress,
                 TreasuryContractAddress
@@ -521,7 +520,7 @@ public partial class MultiTokenContractTests : MultiTokenContractTestBase
         createTokenInfoWithInvalidTokenName.MergeFrom(createTokenInfo);
         createTokenInfoWithInvalidTokenName.Symbol = "ITISAVERYLONGSYMBOLNAME";
         createTokenRet = await TokenContractStub.Create.SendWithExceptionAsync(createTokenInfoWithInvalidTokenName);
-        createTokenRet.TransactionResult.Error.ShouldContain("Invalid input");
+        createTokenRet.TransactionResult.Error.ShouldContain("Invalid token symbol length");
         var createTokenInfoWithInvalidDecimal = new CreateInput();
         createTokenInfoWithInvalidDecimal.MergeFrom(createTokenInfo);
         createTokenInfoWithInvalidDecimal.Decimals = 100;

@@ -313,5 +313,36 @@ public partial class ParliamentContract : ParliamentContractImplContainer.Parlia
         return result;
     }
 
+    public override ProposalIdList GetReleaseThresholdReachedProposals(ProposalIdList input)
+    {
+        var result = new ProposalIdList();
+        foreach (var proposalId in input.ProposalIds)
+        {
+            var proposal = State.Proposals[proposalId];
+            if (proposal == null || !Validate(proposal))
+                continue;
+            var organization = State.Organizations[proposal.OrganizationAddress];
+            if (organization == null || !IsReleaseThresholdReached(proposal, organization))
+                continue;
+            result.ProposalIds.Add(proposalId);
+        }
+
+        return result;
+    }
+    
+    public override ProposalIdList GetAvailableProposals(ProposalIdList input)
+    {
+        var result = new ProposalIdList();
+        foreach (var proposalId in input.ProposalIds)
+        {
+            var proposal = State.Proposals[proposalId];
+            if (proposal == null || !Validate(proposal))
+                continue;
+            result.ProposalIds.Add(proposalId);
+        }
+
+        return result;
+    }
+
     #endregion view
 }

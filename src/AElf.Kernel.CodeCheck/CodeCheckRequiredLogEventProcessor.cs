@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using AElf.CSharp.Core.Extension;
 using AElf.Kernel.CodeCheck.Application;
-using AElf.Kernel.Proposal.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Standards.ACS0;
 using AElf.Standards.ACS3;
@@ -11,19 +10,14 @@ namespace AElf.Kernel.CodeCheck;
 
 public class CodeCheckRequiredLogEventProcessor : LogEventProcessorBase, IBlocksExecutionSucceededLogEventProcessor
 {
-    private readonly ICheckedCodeHashProvider _checkedCodeHashProvider;
-    private readonly ICodeCheckService _codeCheckService;
-    private readonly IProposalService _proposalService;
     private readonly ISmartContractAddressService _smartContractAddressService;
+    private readonly ICodeCheckJobProcessor _codeCheckJobProcessor;
 
     public CodeCheckRequiredLogEventProcessor(ISmartContractAddressService smartContractAddressService,
-        ICodeCheckService codeCheckService, IProposalService proposalService,
-        ICheckedCodeHashProvider checkedCodeHashProvider)
+        ICodeCheckJobProcessor codeCheckJobProcessor)
     {
         _smartContractAddressService = smartContractAddressService;
-        _codeCheckService = codeCheckService;
-        _proposalService = proposalService;
-        _checkedCodeHashProvider = checkedCodeHashProvider;
+        _codeCheckJobProcessor = codeCheckJobProcessor;
 
         Logger = NullLogger<CodeCheckRequiredLogEventProcessor>.Instance;
     }
@@ -43,40 +37,41 @@ public class CodeCheckRequiredLogEventProcessor : LogEventProcessorBase, IBlocks
         return Task.FromResult(InterestedEvent);
     }
 
-    public override Task ProcessAsync(Block block, Dictionary<TransactionResult, List<LogEvent>> logEventsMap)
+    public override async Task ProcessAsync(Block block, Dictionary<TransactionResult, List<LogEvent>> logEventsMap)
     {
         Logger.LogInformation("Start handling CodeCheckRequired log event.");
         foreach (var events in logEventsMap)
         {
             var transactionResult = events.Key;
             foreach (var logEvent in events.Value)
-                // a new task for time-consuming code check job 
-                Task.Run(async () =>
+            {
+                var eventData = new CodeCheckRequired();
+                eventData.MergeFrom(logEvent);
+
+                var proposalId = ProposalCreated.Parser
+                    .ParseFrom(transactionResult.Logs.First(l => l.Name == nameof(ProposalCreated)).NonIndexed)
+                    .ProposalId;
+
+                var code = eventData.Code.ToByteArray();
+                var sendResult = await _codeCheckJobProcessor.SendAsync(new CodeCheckJob
                 {
-                    var eventData = new CodeCheckRequired();
-                    eventData.MergeFrom(logEvent);
-                    var codeCheckResult = await _codeCheckService.PerformCodeCheckAsync(
-                        eventData.Code.ToByteArray(),
-                        transactionResult.BlockHash, transactionResult.BlockNumber, eventData.Category,
-                        eventData.IsSystemContract);
-                    Logger.LogInformation($"Code check result: {codeCheckResult}");
-                    if (!codeCheckResult)
-                        return;
-
-                    var proposalId = ProposalCreated.Parser
-                        .ParseFrom(transactionResult.Logs.First(l => l.Name == nameof(ProposalCreated)).NonIndexed)
-                        .ProposalId;
-                    // Cache proposal id to generate system approval transaction later
-                    _proposalService.AddNotApprovedProposal(proposalId, transactionResult.BlockNumber);
-
-                    await _checkedCodeHashProvider.AddCodeHashAsync(new BlockIndex
-                    {
-                        BlockHash = block.GetHash(),
-                        BlockHeight = block.Height
-                    }, HashHelper.ComputeFrom(eventData.Code.ToByteArray()));
+                    BlockHash = block.GetHash(),
+                    BlockHeight = block.Height,
+                    ContractCode = code,
+                    ContractCategory = eventData.Category,
+                    IsSystemContract = eventData.IsSystemContract,
+                    IsUserContract = eventData.IsUserContract,
+                    CodeCheckProposalId = proposalId,
+                    ProposedContractInputHash = eventData.ProposedContractInputHash
                 });
-        }
 
-        return Task.CompletedTask;
+                if (!sendResult)
+                {
+                    Logger.LogError(
+                        "Unable to perform code check. BlockHash: {BlockHash}, BlockHeight: {BlockHeight}, CodeHash: {CodeHash}, ProposalId: {ProposalId}",
+                        block.GetHash(), block.Height, HashHelper.ComputeFrom(code).ToHex(), proposalId.ToHex());
+                }
+            }
+        }
     }
 }

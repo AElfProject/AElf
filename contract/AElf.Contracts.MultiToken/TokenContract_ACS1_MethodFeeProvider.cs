@@ -46,8 +46,8 @@ public partial class TokenContract
                 MethodName = input.Value,
                 IsSizeFeeFree = true
             };
-
-        if (input.Value == nameof(Create))
+        var fees = State.TransactionFees[input.Value];
+        if (input.Value == nameof(Create) && fees == null)
             return new MethodFees
             {
                 MethodName = input.Value,
@@ -61,7 +61,7 @@ public partial class TokenContract
                 }
             };
 
-        return State.TransactionFees[input.Value];
+        return fees;
     }
 
     public override AuthorityInfo GetMethodFeeController(Empty input)

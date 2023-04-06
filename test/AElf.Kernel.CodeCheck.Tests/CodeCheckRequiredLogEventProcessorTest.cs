@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.CSharp.Core.Extension;
 using AElf.Kernel.Proposal.Infrastructure;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Standards.ACS0;
 using AElf.Standards.ACS3;
 using AElf.Types;
 using Google.Protobuf;
@@ -13,12 +15,10 @@ namespace AElf.Kernel.CodeCheck.Tests;
 public class LogEventProcessorTest : CodeCheckTestBase
 {
     private readonly ILogEventProcessor _logEventProcessor;
-    private readonly IProposalProvider _proposalProvider;
 
     public LogEventProcessorTest()
     {
         _logEventProcessor = GetRequiredService<ILogEventProcessor>();
-        _proposalProvider = GetRequiredService<IProposalProvider>();
     }
 
     [Fact]
@@ -48,9 +48,33 @@ public class LogEventProcessorTest : CodeCheckTestBase
             }
         };
         var logEventsMap = new Dictionary<TransactionResult, List<LogEvent>>();
+        
+        var block = new Block
+        {
+            Header = new BlockHeader
+            {
+                Height = 100,
+                PreviousBlockHash = HashHelper.ComputeFrom("PreviousBlockHash"),
+                MerkleTreeRootOfTransactions = HashHelper.ComputeFrom("MerkleTreeRootOfTransactions"),
+                MerkleTreeRootOfWorldState = HashHelper.ComputeFrom("MerkleTreeRootOfWorldState"),
+                MerkleTreeRootOfTransactionStatus = HashHelper.ComputeFrom("MerkleTreeRootOfTransactionStatus"),
+                Time = TimestampHelper.GetUtcNow(),
+                SignerPubkey = ByteString.CopyFromUtf8("SignerPubkey")
+            }
+        };
 
         // use default auditor
-        logEventsMap[transactionResult] = new List<LogEvent> { new() };
-        await _logEventProcessor.ProcessAsync(new Block(), logEventsMap);
+        logEventsMap[transactionResult] = new List<LogEvent>
+        {
+            new CodeCheckRequired
+            {
+                Category = 0,
+                Code = ByteString.Empty,
+                IsSystemContract = false,
+                IsUserContract = true,
+                ProposedContractInputHash = HashHelper.ComputeFrom(""),
+            }.ToLogEvent(ZeroContractFakeAddress)
+        };
+        await _logEventProcessor.ProcessAsync(block, logEventsMap);
     }
 }
