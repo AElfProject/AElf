@@ -326,14 +326,14 @@ Treasury.SetProfitsReceiverInput
 
 .. raw:: html
 
-   <div id="Treasury.ReplaceCandidateProfitsReceiver">
+   <div id="Treasury.ReplaceCandidateProfitsReceiverInput">
 
 .. raw:: html
 
    </div>
 
-Treasury.ReplaceCandidateProfitsReceiver
-''''''''''''''''''''''''''''''''''''''''
+Treasury.ReplaceCandidateProfitsReceiverInput
+''''''''''''''''''''''''''''''''''''''''''''''
 
 +---------------------------+------------------------------+-----------------------------------+---------+
 | Field                     | Type                         | Description                       | Label   |
