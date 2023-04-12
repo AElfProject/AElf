@@ -3,13 +3,9 @@ ACS12 - User Contract Standard
 
 ACS12 is used to manage user contract.
 
-Interface
----------
-
-The contract inherited from ACS12 need implement the following interfaces:
 
 Types
-~~~~~
+-----
 
 .. raw:: html
 
@@ -20,7 +16,7 @@ Types
    </div>
 
 acs12.UserContractMethodFees
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 +-------------------+-------------------------------------------------------------------+-------------+----------------------------------------------------------------------+
 | Field             | Type                                                              | Label       | Description                                                          |
@@ -39,7 +35,7 @@ acs12.UserContractMethodFees
    </div>
 
 acs12.UserContractMethodFee
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ========= ==================== ===== ===================================
 Field     Type                 Label Description
