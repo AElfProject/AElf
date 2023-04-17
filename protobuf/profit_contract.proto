@@ -60,6 +60,10 @@ service ProfitContract {
     rpc RemoveSubScheme (RemoveSubSchemeInput) returns (google.protobuf.Empty) {
     }
     
+    // Increase backup subsidy TotalShare
+    rpc IncreaseBackupSubsidyTotalShare (aelf.Hash) returns (google.protobuf.Empty) {
+    }
+    
     // Reset the manager of a scheme.
     rpc ResetManager (ResetManagerInput) returns (google.protobuf.Empty) {
     }

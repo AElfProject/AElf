@@ -1679,6 +1679,19 @@ public partial class ProfitContractTests
             details.Details.First().LastProfitPeriod.ShouldBe(scheme.CurrentPeriod);
         }
     }
+    
+    [Fact]
+    public async Task IncreaseBackupSubsidyTotalShare_Test()
+    {
+        var schemeId = await CreateSchemeAsync();
+        var scheme = await ProfitContractStub.GetScheme.CallAsync(schemeId);
+        scheme.TotalShares.ShouldBe(0);
+        await ProfitContractStub.IncreaseBackupSubsidyTotalShare.SendAsync(schemeId);
+        scheme = await ProfitContractStub.GetScheme.CallAsync(schemeId);
+        scheme.TotalShares.ShouldBe(1);
+        var result = await ProfitContractStub.IncreaseBackupSubsidyTotalShare.SendWithExceptionAsync(schemeId);
+        result.TransactionResult.Error.ShouldContain("Already increased");
+    }
 
     private async Task ContributeProfits(Hash schemeId, long amount = 100)
     {
