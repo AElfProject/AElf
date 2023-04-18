@@ -37,8 +37,7 @@ Compared with the procedure where BP approval is required, for
 no-approval-needed contract deployment/update, developers only need
 to initiate 1 transaction in the entire process.
 .. figure:: No-BP-approval-required.png
-   :alt: 合约部署流程
-
+:alt: 合约部署流程
 
 Developer: DeployUserSmartContract / UpdateUserSmartContract
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
