@@ -116,7 +116,7 @@ Developer: ReleaseApprovedContract
 
 
 BP: Parliament.ApproveMultiProposals (automatic)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 -  BPs automatically complete the contract code check. If the code
    passes the check, an ``ApproveMultiProposals`` transaction will be

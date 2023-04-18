@@ -73,7 +73,7 @@ BP: Parliament.ApproveMultiProposals (automatic)
    
 
 BP: ReleaseApprovedUserSmartContract (automatic)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 -  Once the automatic code check passes by no less than 2/3 of BPs
    (rounding down) + 1, BPs will release the CodeCheck proposal by
