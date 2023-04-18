@@ -15,8 +15,10 @@ contracts without BPs' approval. Please note that for different
 conditions, the requirement for initiators differs.
 1. Deploying user contracts on shared SideChains, can be initiated
    by users or BPs. 
+   
 2. Updating user contracts on shared SideChains, can only be
    initiated by contract creators. 
+   
 3. Deploying user contracts on exclusive SideChains, can only be
    initiated by SideChain creators.
 4. Updating user contracts on exclusive SideChains, can only be
