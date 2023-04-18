@@ -14,11 +14,9 @@ In the following 6 situations, you can choose to deploy/update
 contracts without BPs' approval. Please note that for different
 conditions, the requirement for initiators differs.
 1. Deploying user contracts on shared SideChains, can be initiated
-   by users or BPs. 
-   
+   by users or BPs.
 2. Updating user contracts on shared SideChains, can only be
    initiated by contract creators. 
-   
 3. Deploying user contracts on exclusive SideChains, can only be
    initiated by SideChain creators.
 4. Updating user contracts on exclusive SideChains, can only be
@@ -28,7 +26,7 @@ conditions, the requirement for initiators differs.
    strongly encourage you to not deploy on MainChain). 
 6. Updating user contracts on MainChain, can only be initiated by
    contract creators.
-*User contracts here refer to non-system contracts.
+*User contracts here refer to non-system contracts.*
 
 Please note that the prerequisite for successful deployments/updates
 is that your contracts have implemented the ACS12 standards.
