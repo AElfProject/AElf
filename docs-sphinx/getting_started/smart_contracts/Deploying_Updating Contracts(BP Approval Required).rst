@@ -1,4 +1,4 @@
-Deploying+Updating Contracts (BP Approval Required)
+Deploying_Updating Contracts (BP Approval Required)
 =====================================================================
 
 Contracts deployment/update can be done by 2 means: one is via aelf
