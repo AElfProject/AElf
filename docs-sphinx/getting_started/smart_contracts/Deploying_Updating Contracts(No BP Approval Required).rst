@@ -1,5 +1,5 @@
-Deploying_Updating Contracts (No BP Approval Required)
-========================================================================
+Deploying Updating Contracts (No BP Approval Required)
+======================================================
 
 Contracts deployment/update can be done by 2 means: one is via aelf
 explorer while the other is via aelf-command. Before you start
