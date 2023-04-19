@@ -24,7 +24,7 @@ conditions, the requirement for initiators differs.
    initiated by contract creators.
 5. Deploying user contracts on MainChain, can only be initiated by
    BPs (The recommended contract deployment is on SideChains and we
-   strongly encourage you to not deploy on MainChain). 
+   strongly encourage you to not deploy on MainChain).
 6. Updating user contracts on MainChain, can only be initiated by
    contract creators.
 
