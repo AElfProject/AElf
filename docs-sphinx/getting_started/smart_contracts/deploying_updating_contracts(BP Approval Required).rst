@@ -1,4 +1,4 @@
-Deploying Updating Contracts(BP Approval Required)
+Deploying/Updating Contracts(BP Approval Required)
 ==================================================
 
 Contracts deployment/update can be done by 2 means: one is via aelf
@@ -13,6 +13,7 @@ Overview
 In the following 3 situations, the contract updating process must be
 initiated by the BP and the contracts can only be updated after
 having obtained the BPs' approval.
+
 1. Upgrading the system contracts on MainChain.
 2. Upgrading the system contracts on exclusive SideChains.
 3. Upgrading the system contracts on shared SideChains.
@@ -48,7 +49,7 @@ This section will walk you through the procedure of contract deployment
 / update through aelf-command. 
 
 .. figure:: img/BP-approval-required.png
-   :alt: 合约部署流程
+   :alt: Contracts deployment/update procedure
 
 
 Developer: ProposeNewContract / ProposeUpdateContract

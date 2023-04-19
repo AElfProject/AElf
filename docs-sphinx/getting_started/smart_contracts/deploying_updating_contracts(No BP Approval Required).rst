@@ -1,4 +1,4 @@
-Deploying Updating Contracts(No BP Approval Required)
+Deploying/Updating Contracts(No BP Approval Required)
 =====================================================
 
 Contracts deployment/update can be done by 2 means: one is via aelf
@@ -36,8 +36,8 @@ is that your contracts have implemented the ACS12 standards.
 Compared with the procedure where BP approval is required, for
 no-approval-needed contract deployment/update, developers only need
 to initiate 1 transaction in the entire process.
-.. figure:: No-BP-approval-required.png
-:alt: 合约部署流程
+.. figure:: img/No-BP-approval-required.png
+   :alt: Contracts deployment/update procedure
 
 Developer: DeployUserSmartContract / UpdateUserSmartContract
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
