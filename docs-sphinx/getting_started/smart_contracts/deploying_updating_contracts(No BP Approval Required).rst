@@ -36,6 +36,7 @@ is that your contracts have implemented the ACS12 standards.
 Compared with the procedure where BP approval is required, for
 no-approval-needed contract deployment/update, developers only need
 to initiate 1 transaction in the entire process.
+
 .. figure:: img/No-BP-approval-required.png
    :alt: Contracts deployment/update procedure
 
