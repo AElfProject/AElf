@@ -27,7 +27,6 @@ public class BoundedExpirationCache
     {
         if (clean)
             CleanExpired();
-        RNGCryptoServiceProvider
         return _hashLookup.ContainsKey(hash);
     }
 
