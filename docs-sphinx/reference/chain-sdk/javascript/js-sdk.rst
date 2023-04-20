@@ -566,7 +566,7 @@ Attempts to remove a node from the connected network nodes
 
 Estimate transaction fee
 
-*Wbe API path*
+*Web API path*
 
 ``/api/blockChain/calculateTransactionFee``
 
