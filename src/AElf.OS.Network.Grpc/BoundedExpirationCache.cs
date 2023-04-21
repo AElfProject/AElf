@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Security.Cryptography;
 using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using AElf.Types;
@@ -26,7 +27,6 @@ public class BoundedExpirationCache
     {
         if (clean)
             CleanExpired();
-
         return _hashLookup.ContainsKey(hash);
     }
 

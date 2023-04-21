@@ -1,5 +1,5 @@
 Smart Contracts
-===================================== 
+=============== 
 
 .. toctree::
    :maxdepth: 2
@@ -8,5 +8,6 @@ Smart Contracts
    Development Environment <development_environment>
    Creating Smart Contracts <creating_smart_contracts>
    Testing Smart Contracts <testing_smart_contracts>
-   Deploying Smart Contracts <deploying_smart_contracts>
+   Deploying/Updating Contracts(BP Approval Required) <deploying_updating_contracts(BP Approval Required)>
+   Deploying/Updating Contracts(No BP Approval Required) <deploying_updating_contracts(No BP Approval Required)>
    
