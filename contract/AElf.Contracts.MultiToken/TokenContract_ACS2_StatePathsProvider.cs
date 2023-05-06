@@ -70,7 +70,7 @@ public partial class TokenContract
 
     private void AddPathForTransactionFee(ResourceInfo resourceInfo, String from)
     {
-        var symbols = GetMethodFeeSymbols();
+        var symbols = GetTransactionFeeSymbols();
         var primaryTokenSymbol = GetPrimaryTokenSymbol(new Empty()).Value;
         if (_primaryTokenSymbol != string.Empty && !symbols.Contains(primaryTokenSymbol))
             symbols.Add(primaryTokenSymbol);
