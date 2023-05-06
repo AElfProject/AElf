@@ -62,8 +62,9 @@ public partial class MultiTokenContractTests
         var newSymbolList = new SymbolListToPayTxSizeFee();
         await CreateNativeTokenAsync();
         await CreateTokenAsync(DefaultAddress, "CPU");
+        await CreateTokenAsync(DefaultAddress, "NET");
         var methodName = "Transfer";
-        var tokenSymbol = NativeTokenInfo.Symbol;
+        var tokenSymbol = "NET";
         var basicFee = 100;
         var methodFeeController = await TokenContractStub.GetMethodFeeController.CallAsync(new Empty());
         var proposalMethodName = nameof(TokenContractStub.SetMethodFee);

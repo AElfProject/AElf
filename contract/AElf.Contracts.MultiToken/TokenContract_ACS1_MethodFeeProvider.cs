@@ -98,12 +98,16 @@ public partial class TokenContract
                 return symbols;
             }
         }
+        
+        if (State.SymbolListToPayTxSizeFee.Value == null) return symbols;
+        
         foreach (var sizeFee in State.SymbolListToPayTxSizeFee.Value.SymbolsToPayTxSizeFee)
         {
             if (!symbols.Contains(sizeFee.TokenSymbol))
                 symbols.Add(sizeFee.TokenSymbol);
         }
         return symbols;
+
     }
 
     private void RequiredMethodFeeControllerSet()
