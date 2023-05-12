@@ -389,6 +389,11 @@ public partial class TokenContract
                     out symbolChargedForBaseFee, out amountChargedForBaseFee, out amountChargedForBaseAllowance,
                     out availableBalance, out availableAllowance);
             }
+
+            if (delegations != null && availableSymbol == null)
+            {
+                return false;
+            }
         }
 
         var chargeResult = availableBalance.Add(availableAllowance) >= txSizeFeeAmount;
@@ -1147,9 +1152,8 @@ public partial class TokenContract
     private bool IsDelegationEnough(string txSymbol, string baseSymbol, long cost,
         long txSizeFeeAmount, TransactionFeeDelegations delegations)
     {
-        return (baseSymbol == txSymbol
-            ? delegations.Delegations[txSymbol]
-                .Sub(cost)
+        return delegations.Delegations.Keys.Contains(txSymbol) && 
+               (baseSymbol == txSymbol ? delegations.Delegations[txSymbol].Sub(cost)
             : delegations.Delegations[txSymbol]) >= txSizeFeeAmount;
     }
 
