@@ -32,7 +32,7 @@ public partial class TokenContract
                     }
                 };
                 AddPathForTransactionFee(resourceInfo, txn.From.ToString(),txn.MethodName);
-                AddPathForDelegatees(resourceInfo, txn.From);
+                AddPathForDelegatees(resourceInfo, txn.From,txn.MethodName);
                 return resourceInfo;
             }
 
@@ -59,7 +59,7 @@ public partial class TokenContract
                     }
                 };
                 AddPathForTransactionFee(resourceInfo, txn.From.ToString(),txn.MethodName);
-                AddPathForDelegatees(resourceInfo, txn.From);
+                AddPathForDelegatees(resourceInfo, txn.From,txn.MethodName);
                 return resourceInfo;
             }
 
@@ -97,7 +97,7 @@ public partial class TokenContract
         };
     } 
     
-    private void AddPathForDelegatees(ResourceInfo resourceInfo, Address from)
+    private void AddPathForDelegatees(ResourceInfo resourceInfo, Address from,string methodName)
     {
         var allDelegatees = State.TransactionFeeDelegateesMap[from];
         if (allDelegatees != null)
@@ -106,7 +106,7 @@ public partial class TokenContract
             {
                 if (delegations == null) return;
                 var add = Address.FromBase58(delegations).ToString();
-                AddPathForTransactionFee(resourceInfo, add);
+                AddPathForTransactionFee(resourceInfo, add,methodName);
                 resourceInfo.WritePaths.Add(GetPath(nameof(TokenContractState.MethodFeeFreeAllowancesMap), add));
                 resourceInfo.WritePaths.Add(GetPath(nameof(TokenContractState.MethodFeeFreeAllowancesLastRefreshTimeMap), add));
             }
