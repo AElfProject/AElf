@@ -31,7 +31,7 @@ public partial class TokenContract
                         GetPath(nameof(TokenContractState.MethodFeeFreeAllowancesConfig))
                     }
                 };
-                AddPathForTransactionFee(resourceInfo, txn.From.ToString());
+                AddPathForTransactionFee(resourceInfo, txn.From.ToString(),txn.MethodName);
                 AddPathForDelegatees(resourceInfo, txn.From);
                 return resourceInfo;
             }
@@ -58,7 +58,7 @@ public partial class TokenContract
                         GetPath(nameof(TokenContractState.MethodFeeFreeAllowancesConfig))
                     }
                 };
-                AddPathForTransactionFee(resourceInfo, txn.From.ToString());
+                AddPathForTransactionFee(resourceInfo, txn.From.ToString(),txn.MethodName);
                 AddPathForDelegatees(resourceInfo, txn.From);
                 return resourceInfo;
             }
@@ -68,9 +68,9 @@ public partial class TokenContract
         }
     }
 
-    private void AddPathForTransactionFee(ResourceInfo resourceInfo, String from)
+    private void AddPathForTransactionFee(ResourceInfo resourceInfo, String from,string methodName)
     {
-        var symbols = GetTransactionFeeSymbols();
+        var symbols = GetTransactionFeeSymbols(methodName);
         var primaryTokenSymbol = GetPrimaryTokenSymbol(new Empty()).Value;
         if (_primaryTokenSymbol != string.Empty && !symbols.Contains(primaryTokenSymbol))
             symbols.Add(primaryTokenSymbol);

@@ -75,15 +75,7 @@ public partial class TokenContract
 
     #region private methods
 
-    private List<string> GetTransactionFeeSymbols()
-    {
-        var transferSymbols = GetTransactionFeeSymbolsByMethod(nameof(Transfer));
-        var transferFromSymbols = GetTransactionFeeSymbolsByMethod(nameof(TransferFrom));
-        var symbols = transferSymbols.Union(transferFromSymbols).ToList();
-        return symbols;
-    }
-
-    private List<string> GetTransactionFeeSymbolsByMethod(string methodName)
+    private List<string> GetTransactionFeeSymbols(string methodName)
     {
         var symbols = new List<string>();
         if (State.TransactionFees[methodName] != null)
@@ -107,8 +99,8 @@ public partial class TokenContract
                 symbols.Add(sizeFee.TokenSymbol);
         }
         return symbols;
-
     }
+
 
     private void RequiredMethodFeeControllerSet()
     {
