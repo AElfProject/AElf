@@ -190,7 +190,7 @@ public class ConnectionService : IConnectionService
         if (preCheckRes != null)
             return preCheckRes;
 
-        if (handshake.HandshakeData.NodeVersion.GreaterThanSupportStreamMinVersion(NetworkOptionsSnapshot.Value.SupportStreamMinVersion))
+        if (handshake.HandshakeData.NodeVersion.GreaterThanSupportStreamMinVersion(NetworkOptions.SupportStreamMinVersion))
         {
             Logger.LogDebug("receive nodeversion>={version} handshake, will upgrade to stream, remote={endpoint}", KernelConstants.SupportStreamMinVersion, endpoint.Host);
             return new HandshakeReply { Handshake = await _handshakeProvider.GetHandshakeAsync(), Error = HandshakeError.HandshakeOk };

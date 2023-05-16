@@ -229,8 +229,8 @@ public class PeerDialer : IPeerDialer
 
     private bool UpgradeToStream(Handshake handshake, Handshake handshakeReply)
     {
-        return handshake.HandshakeData.NodeVersion.GreaterThanSupportStreamMinVersion(NetworkOptionsSnapshot.Value.SupportStreamMinVersion) &&
-               handshakeReply.HandshakeData.NodeVersion.GreaterThanSupportStreamMinVersion(NetworkOptionsSnapshot.Value.SupportStreamMinVersion);
+        return handshake.HandshakeData.NodeVersion.GreaterThanSupportStreamMinVersion(NetworkOptions.SupportStreamMinVersion) &&
+               handshakeReply.HandshakeData.NodeVersion.GreaterThanSupportStreamMinVersion(NetworkOptions.SupportStreamMinVersion);
     }
 
     private async Task<GrpcStreamPeer> DailStreamPeerAsync(GrpcClient client, DnsEndPoint remoteEndpoint, PeerConnectionInfo connectionInfo)
