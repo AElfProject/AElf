@@ -120,7 +120,11 @@ public class GrpcNetworkServer : IAElfNetworkServer, ISingletonDependency
         var serverOptions = new List<ChannelOption>
         {
             new(ChannelOptions.MaxSendMessageLength, GrpcConstants.DefaultMaxSendMessageLength),
-            new(ChannelOptions.MaxReceiveMessageLength, GrpcConstants.DefaultMaxReceiveMessageLength)
+            new(ChannelOptions.MaxReceiveMessageLength, GrpcConstants.DefaultMaxReceiveMessageLength),
+            new(GrpcConstants.GrpcArgKeepalivePermitWithoutCalls, GrpcConstants.GrpcArgKeepalivePermitWithoutCallsOpen),
+            new(GrpcConstants.GrpcArgHttp2MaxPingsWithoutData, GrpcConstants.GrpcArgHttp2MaxPingsWithoutDataVal),
+            new(GrpcConstants.GrpcArgKeepaliveTimeoutMs, GrpcConstants.GrpcArgKeepaliveTimeoutMsVal),
+            new(GrpcConstants.GrpcArgKeepaliveTimeMs, GrpcConstants.GrpcArgKeepaliveTimeMsVal)
         };
 
         // setup service
@@ -183,5 +187,10 @@ public class GrpcNetworkServer : IAElfNetworkServer, ISingletonDependency
             }).ToList();
 
         await Task.WhenAll(taskList.ToArray<Task>());
+    }
+
+    public async Task<bool> BuildStreamForPeerAsync(IPeer peer)
+    {
+        return await _connectionService.BuildStreamForPeerAsync(peer);
     }
 }
