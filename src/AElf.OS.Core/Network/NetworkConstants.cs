@@ -33,6 +33,7 @@ public static class NetworkConstants
     public const int DefaultMaxBufferedTransactionCount = 100;
     public const int DefaultMaxBufferedBlockCount = 50;
     public const int DefaultMaxBufferedAnnouncementCount = 200;
+    public const int DefaultMaxBufferedStreamCount = 200;
 
     public const int DefaultPeerReconnectionPeriod = 60_000; // 1 min
     public const int DefaultMaximumReconnectionTime = 60_000 * 60 * 24; // 1 day

@@ -158,7 +158,7 @@ public class BlockchainStateService : IBlockchainStateService
 
         Logger.LogDebug(
             "Start merge lib height: {LastIrreversibleBlockHeight}, lib block hash: {LastIrreversibleBlockHash}, merge count: {BlockIndexesCount}",
-            lastIrreversibleBlockHeight, lastIrreversibleBlockHash, blockIndexes.Count);
+            lastIrreversibleBlockHeight, lastIrreversibleBlockHash.ToHex(), blockIndexes.Count);
 
         foreach (var blockIndex in blockIndexes)
             try

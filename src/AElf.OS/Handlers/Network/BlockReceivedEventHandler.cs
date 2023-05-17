@@ -46,7 +46,7 @@ public class BlockReceivedEventHandler : ILocalEventHandler<BlockReceivedEvent>,
         var chain = await _blockchainService.GetChainAsync();
 
         Logger.LogDebug(
-            $"About to process new block: {blockWithTransactions.Header.GetHash()} of height {blockWithTransactions.Height}");
+            $"About to process new block: {blockWithTransactions.Header.GetHash().ToHex()} of height {blockWithTransactions.Height}");
 
         if (!await _blockSyncValidationService.ValidateBlockBeforeSyncAsync(chain, blockWithTransactions,
                 senderPubkey))

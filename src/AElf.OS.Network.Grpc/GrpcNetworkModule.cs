@@ -21,5 +21,22 @@ public class GrpcNetworkModule : AElfModule
 
         context.Services.AddSingleton<AuthInterceptor>();
         context.Services.AddSingleton<RetryInterceptor>();
+
+        ConfigureStreamMethods(context);
+    }
+
+    private void ConfigureStreamMethods(ServiceConfigurationContext context)
+    {
+        context.Services.AddSingleton<IStreamMethod, GetNodesMethod>();
+        context.Services.AddSingleton<IStreamMethod, HealthCheckMethod>();
+        context.Services.AddSingleton<IStreamMethod, PingMethod>();
+        context.Services.AddSingleton<IStreamMethod, DisconnectMethod>();
+        context.Services.AddSingleton<IStreamMethod, ConfirmHandShakeMethod>();
+        context.Services.AddSingleton<IStreamMethod, RequestBlockMethod>();
+        context.Services.AddSingleton<IStreamMethod, RequestBlocksMethod>();
+        context.Services.AddSingleton<IStreamMethod, BlockBroadcastMethod>();
+        context.Services.AddSingleton<IStreamMethod, AnnouncementBroadcastMethod>();
+        context.Services.AddSingleton<IStreamMethod, TransactionBroadcastMethod>();
+        context.Services.AddSingleton<IStreamMethod, LibAnnouncementBroadcastMethod>();
     }
 }

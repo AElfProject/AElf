@@ -112,7 +112,7 @@ public class FullBlockchainExecutingService : IBlockchainExecutingService, ITran
                 == null)
             {
                 Logger.LogWarning(
-                    $"Fail to load transaction result. block hash : {blockHash}, tx id: {transactionId}");
+                    "Fail to load transaction result. block hash : {blockHash}, tx id: {transactionId}", blockHash.ToHex(), transactionId.ToHex());
 
                 return null;
             }
