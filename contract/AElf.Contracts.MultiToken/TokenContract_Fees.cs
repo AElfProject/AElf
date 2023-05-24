@@ -675,6 +675,12 @@ public partial class TokenContract
             var amount = bill.Value;
             ModifyBalance(Context.Self, symbol, amount);
             TransferTransactionFeesToFeeReceiver(symbol, amount);
+            Context.Fire(new TransactionFeeClaimed
+            {
+                Symbol = symbol,
+                Amount = amount,
+                Receiver = Context.Self
+            });
         }
 
         Context.LogDebug(() => "Finish claim transaction fee.");
@@ -772,11 +778,12 @@ public partial class TokenContract
                 if (amount > 0)
                 {
                     ModifyBalance(bill.ContractAddress, symbol, -amount);
+                    var receiver = Context.Self;
                     if (isMainChain)
                     {
                         Context.LogDebug(() => $"Adding {amount} of {symbol}s to dividend pool.");
                         // Main Chain.
-                        ModifyBalance(Context.Self, symbol, amount);
+                        ModifyBalance(receiver, symbol, amount);
                         State.DividendPoolContract.Donate.Send(new DonateInput
                         {
                             Symbol = symbol,
@@ -787,10 +794,17 @@ public partial class TokenContract
                     {
                         Context.LogDebug(() => $"Adding {amount} of {symbol}s to consensus address account.");
                         // Side Chain
-                        var consensusContractAddress =
+                        receiver =
                             Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
-                        ModifyBalance(consensusContractAddress, symbol, amount);
+                        ModifyBalance(receiver, symbol, amount);
                     }
+                    Context.Fire(new ResourceTokenClaimed
+                    {
+                        Symbol = symbol,
+                        Amount = amount,
+                        Payer = bill.ContractAddress,
+                        Receiver = receiver
+                    });
                 }
             }
         }
@@ -869,7 +883,9 @@ public partial class TokenContract
             Context.Fire(new RentalCharged()
             {
                 Symbol = symbol,
-                Amount = donates
+                Amount = donates,
+                Payer = creator,
+                Receiver = consensusContractAddress
             });
         }
     }
