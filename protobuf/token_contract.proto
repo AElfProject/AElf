@@ -240,7 +240,7 @@ service TokenContract {
     }
     
     rpc GetTransactionFeeDelegationsOfADelegatee(GetTransactionFeeDelegationsOfADelegateeInput) returns(TransactionFeeDelegations){
-      option (aelf.is_view) = true;
+        option (aelf.is_view) = true;
     }
 }
 
