@@ -141,12 +141,12 @@ service TokenContractImpl {
         option (aelf.is_view) = true;
     }
     
-    // Get delegation according to the delegator,transaction and delegatee.
-    rpc GetTransactionFeeDelegateInfos (GetTransactionFeeDelegateInfosInput) returns (TransactionFeeDelegateInfo) {
+    // Get delegatee info list according to the delegator and transaction.
+    rpc GetTransactionFeeDelegateeList (GetTransactionFeeDelegateeListInput) returns (GetTransactionFeeDelegateeListOutput) {
         option (aelf.is_view) = true;
     }
-    // Get delegatee info list according to the delegator and transaction.
-    rpc GetTransactionFeeDelegateInfosOfADelegatee(GetTransactionFeeDelegateInfosOfADelegateeInput) returns (TransactionFeeDelegatee){
+    // Get delegation according to the delegator,transaction and delegatee.
+    rpc GetTransactionFeeDelegateInfosOfADelegatee(GetTransactionFeeDelegateInfosOfADelegateeInput) returns (token.TransactionFeeDelegations){
         option (aelf.is_view) = true;
     }
 }
@@ -266,28 +266,13 @@ enum SymbolType {
     NFT_COLLECTION = 2;
 }
 
-message TransactionFeeDelegateInfo{
-    // delegation, symbols and its' amount
-    map<string, int64> delegations = 1;
-    // height when added
-    int64 block_height = 2;
-    //Whether to pay transaction fee continuously
-    bool isUnlimitedDelegate = 3;
-}
-
-message TransactionFeeDelegatee{
-    //delegatee -> delegate info
-    map<string,TransactionFeeDelegateInfo> delegatees = 1;
-}
-
-
 message SetTransactionFeeDelegateInfosInput{
     // the delegator address
     aelf.Address delegator_address = 1;
     //delegate info list (support batch)
-    repeated delegateInfo delegate_info_list = 2;
+    repeated DelegateInfo delegate_info_list = 2;
 }
-message delegateInfo{
+message DelegateInfo{
     //symbol->amount
     map<string, int64> delegations = 1;
     aelf.Address contract_address = 2;
@@ -300,21 +285,21 @@ message RemoveTransactionFeeDelegatorInfosInput{
     // the delegator address
     aelf.Address delegator_address = 1;
     // delegate transaction info (support batch)
-    repeated delegateTransaction delegate_transaction_list = 2;
+    repeated DelegateTransaction delegate_transaction_list = 2;
 }
-message delegateTransaction{
+message DelegateTransaction{
     aelf.Address contract_address = 1;
     string method_name = 2;
 }
-message delegateTransactionList{
-    repeated delegateTransaction value = 1;
+message DelegateTransactionList{
+    repeated DelegateTransaction value = 1;
 }
 
 message RemoveTransactionFeeDelegateeInfosInput {
     // the delegatee address
     aelf.Address delegatee_address = 1;
     // delegate transaction info (support batch)
-    repeated delegateTransaction delegate_transaction_list = 2;
+    repeated DelegateTransaction delegate_transaction_list = 2;
 }
 
 message GetTransactionFeeDelegateInfosOfADelegateeInput {
@@ -323,24 +308,27 @@ message GetTransactionFeeDelegateInfosOfADelegateeInput {
     aelf.Address contract_address = 3;
     string method_name = 4;
 }
-message GetTransactionFeeDelegateInfosInput {
+message GetTransactionFeeDelegateeListInput {
     aelf.Address delegator_address = 1;
     aelf.Address contract_address = 2;
     string method_name = 3;
+}
+message GetTransactionFeeDelegateeListOutput {
+    repeated aelf.Address delegatee_addresses = 1;
 }
 message TransactionFeeDelegateInfoAdded {
     option (aelf.is_event) = true;
     aelf.Address delegator = 1;
     aelf.Address delegatee = 2;
     aelf.Address caller = 3;
-    delegateTransactionList delegate_transaction_list = 4;
+    DelegateTransactionList delegate_transaction_list = 4;
 }
 message TransactionFeeDelegateInfoUpdated {
     option (aelf.is_event) = true;
     aelf.Address delegator = 1 ;
     aelf.Address delegatee = 2 ;
     aelf.Address caller = 3 ;
-    delegateTransactionList delegate_transaction_list = 4;
+    DelegateTransactionList delegate_transaction_list = 4;
 }
 
 message TransactionFeeDelegateInfoCancelled {
@@ -348,4 +336,5 @@ message TransactionFeeDelegateInfoCancelled {
     aelf.Address delegator = 1 ;
     aelf.Address delegatee = 2 ;
     aelf.Address caller = 3 ;
+    DelegateTransactionList delegate_transaction_list = 4;
 }

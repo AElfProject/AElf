@@ -56,7 +56,7 @@ public partial class TokenContract
         // Primary token not created yet.
         if (State.ChainPrimaryTokenSymbol.Value == null)
         {
-            return new ChargeTransactionFeesOutput {Success = true};
+            return new ChargeTransactionFeesOutput { Success = true };
         }
 
         // Record tx fee bill during current charging process.
@@ -89,20 +89,26 @@ public partial class TokenContract
         {
             var delegatorAddress = fromAddress;
             chargingResult = ChargeFromDelegations(input, ref fromAddress, ref bill, ref allowanceBill, fee,
-                isSizeFeeFree,delegatorAddress);
+                isSizeFeeFree, delegatorAddress);
         }
+
         if (!chargingResult)
         {
-            var delegateeAddress = State.TransactionFeeDelegateesMap[fromAddress].Delegatees;
-            foreach (var (delegatee,_) in delegateeAddress)
+            var transactionFeeDelegatees = State.TransactionFeeDelegateesMap[fromAddress] ??
+                State.TransactionFeeDelegateInfoMap[fromAddress][input.ContractAddress][input.MethodName];
+            if (transactionFeeDelegatees != null)
             {
-                ChargeFromDelegations(input, ref fromAddress, ref bill, ref allowanceBill, fee,
-                    isSizeFeeFree,Address.FromBase58(delegatee));
+                var delegateeAddress = transactionFeeDelegatees.Delegatees;
+                foreach (var (delegatee, _) in delegateeAddress)
+                {
+                    chargingResult = ChargeFromDelegations(input, ref fromAddress, ref bill, ref allowanceBill, fee,
+                        isSizeFeeFree, Address.FromBase58(delegatee));
+                }
             }
         }
 
         ModifyBalance(fromAddress, bill, allowanceBill);
-        var chargingOutput = new ChargeTransactionFeesOutput {Success = chargingResult};
+        var chargingOutput = new ChargeTransactionFeesOutput { Success = chargingResult };
         if (!chargingResult)
             chargingOutput.ChargingInformation = "Transaction fee not enough.";
         return chargingOutput;
@@ -149,64 +155,64 @@ public partial class TokenContract
 
     private bool ChargeFromDelegations(ChargeTransactionFeesInput input, ref Address fromAddress,
         ref TransactionFeeBill bill, ref TransactionFreeFeeAllowanceBill allowanceBill,
-        Dictionary<string, long> fee, bool isSizeFeeFree,Address delegatorAddress)
+        Dictionary<string, long> fee, bool isSizeFeeFree, Address delegatorAddress)
     {
         var chargingResult = false;
         // Try to charge delegatees
         // Get delegatee list according to the delegator
-        if (State.TransactionFeeDelegateesMap[delegatorAddress]?.Delegatees == null) return false;
-        if (State.TransactionFeeDelegateesMap[delegatorAddress].Delegatees != null)
+        if ((State.TransactionFeeDelegateesMap[delegatorAddress]?.Delegatees == null) &&
+            (State.TransactionFeeDelegateInfoMap[delegatorAddress][input.ContractAddress][input.MethodName]?.Delegatees == null))
         {
-            foreach (var (delegatee, delegations) in State.TransactionFeeDelegateesMap[delegatorAddress].Delegatees)
-            {
-                // compare current block height with the block height when the delegatee added
-                if (Context.Transaction.RefBlockNumber < delegations.BlockHeight) continue;
-
-                var delegateeBill = new TransactionFeeBill();
-                var delegateeAllowanceBill = new TransactionFreeFeeAllowanceBill();
-                var delegateeAddress = Address.FromBase58(delegatee);
-                var delegateeChargingResult = ChargeTransactionFeesToBill(input, delegateeAddress,
-                    ref delegateeBill, ref delegateeAllowanceBill, fee, isSizeFeeFree, delegations);
-
-                if (!delegateeChargingResult) continue;
-
-                bill = delegateeBill;
-                allowanceBill = delegateeAllowanceBill;
-                fromAddress = delegateeAddress;
-                chargingResult = true;
-                ModifyDelegation(delegateeBill, delegateeAllowanceBill, fromAddress);
-                break;
-            }
+            return false;
         }
+
+        var delegationInfo = State.TransactionFeeDelegateesMap[delegatorAddress]?.Delegatees ??
+                             State.TransactionFeeDelegateInfoMap[delegatorAddress][input.ContractAddress][
+                                 input.MethodName]?.Delegatees;
+        foreach (var (delegatee, delegations) in delegationInfo)
+        {
+            // compare current block height with the block height when the delegatee added
+            if (Context.Transaction.RefBlockNumber < delegations.BlockHeight) continue;
+
+            var delegateeBill = new TransactionFeeBill();
+            var delegateeAllowanceBill = new TransactionFreeFeeAllowanceBill();
+            var delegateeAddress = Address.FromBase58(delegatee);
+            var delegateeChargingResult = ChargeTransactionFeesToBill(input, delegateeAddress,
+                ref delegateeBill, ref delegateeAllowanceBill, fee, isSizeFeeFree, delegations);
+
+            if (!delegateeChargingResult) continue;
+
+            bill = delegateeBill;
+            allowanceBill = delegateeAllowanceBill;
+            fromAddress = delegateeAddress;
+            chargingResult = true;
+            ModifyDelegation(delegateeBill, delegateeAllowanceBill, fromAddress, input.ContractAddress, input.MethodName,delegatorAddress);
+            break;
+        }
+
 
         return chargingResult;
     }
 
     private void ModifyDelegation(TransactionFeeBill bill, TransactionFreeFeeAllowanceBill allowanceBill,
-        Address delegateeAddress)
+        Address delegateeAddress,Address contractAddress,string methodName,Address delegatorAddress)
     {
         foreach (var (symbol, amount) in bill.FeesMap)
         {
-            if (amount > 0)
-            {
-                State.TransactionFeeDelegateesMap[Context.Sender].Delegatees[delegateeAddress.ToBase58()]
-                        .Delegations[symbol] =
-                    State.TransactionFeeDelegateesMap[Context.Sender].Delegatees[delegateeAddress.ToBase58()]
-                        .Delegations[symbol]
-                        .Sub(amount);
-            }
+            if (amount <= 0) continue;
+            var delegateInfo = State.TransactionFeeDelegateesMap[delegatorAddress] ??
+                               State.TransactionFeeDelegateInfoMap[delegatorAddress][contractAddress][methodName];
+            delegateInfo.Delegatees[delegateeAddress.ToBase58()].Delegations[symbol] =
+                delegateInfo.Delegatees[delegateeAddress.ToBase58()].Delegations[symbol].Sub(amount);
         }
-
+        
         foreach (var (symbol, amount) in allowanceBill.FreeFeeAllowancesMap)
         {
-            if (amount > 0)
-            {
-                State.TransactionFeeDelegateesMap[Context.Sender].Delegatees[delegateeAddress.ToBase58()]
-                        .Delegations[symbol] =
-                    State.TransactionFeeDelegateesMap[Context.Sender].Delegatees[delegateeAddress.ToBase58()]
-                        .Delegations[symbol]
-                        .Sub(amount);
-            }
+            if (amount <= 0) continue;
+            var delegateInfo = State.TransactionFeeDelegateesMap[Context.Sender] ??
+                               State.TransactionFeeDelegateInfoMap[Context.Sender][contractAddress][methodName];
+            delegateInfo.Delegatees[delegateeAddress.ToBase58()].Delegations[symbol] =
+                delegateInfo.Delegatees[delegateeAddress.ToBase58()].Delegations[symbol].Sub(amount);
         }
     }
 
@@ -256,6 +262,7 @@ public partial class TokenContract
             successToChargeBaseFee =
                 ChargeBaseFee(fee, fromAddress, ref bill, freeAllowances, ref allowanceBill, delegations);
         }
+
         //For delegation, if the base fee fails to be charged, the size fee will not be charged
         if (delegations != null && !successToChargeBaseFee)
         {
@@ -357,7 +364,8 @@ public partial class TokenContract
         {
             var allSymbolToTxFee = input.SymbolsToPayTxSizeFee.ToList();
             var availableSymbol = GetAvailableSymbolToPayTxFee(allSymbolToTxFee, fromAddress, txSizeFeeAmount,
-                freeAllowances, symbolChargedForBaseFee, amountChargedForBaseFee, amountChargedForBaseAllowance, delegations);
+                freeAllowances, symbolChargedForBaseFee, amountChargedForBaseFee, amountChargedForBaseAllowance,
+                delegations);
 
             if (availableSymbol != null && availableSymbol.TokenSymbol != symbolToPayTxFee)
             {
@@ -368,6 +376,7 @@ public partial class TokenContract
                     out symbolChargedForBaseFee, out amountChargedForBaseFee, out amountChargedForBaseAllowance,
                     out availableBalance, out availableAllowance);
             }
+
             //For delegation,if there is no available token,return false,no need to generate bill
             if (delegations != null && availableSymbol == null)
             {
@@ -431,11 +440,11 @@ public partial class TokenContract
                     symbolChargedForBaseFee, amountChargedForBaseFee, freeAllowances, amountChargedForBaseAllowance);
                 return balance >= txSizeFeeAmount;
             }) ?? allSymbolToTxFee.FirstOrDefault(x =>
-                {
-                    var balance = GetBalancePlusAllowanceCalculatedBaseOnPrimaryToken(fromAddress, x,
-                        symbolChargedForBaseFee, amountChargedForBaseFee, freeAllowances, amountChargedForBaseAllowance);
-                    return balance > 0;
-                });
+            {
+                var balance = GetBalancePlusAllowanceCalculatedBaseOnPrimaryToken(fromAddress, x,
+                    symbolChargedForBaseFee, amountChargedForBaseFee, freeAllowances, amountChargedForBaseAllowance);
+                return balance > 0;
+            });
         }
         else
         {
@@ -639,18 +648,20 @@ public partial class TokenContract
     /// <param name="delegations"></param>
     /// <returns></returns>
     private bool ChargeFirstSufficientToken(Dictionary<string, long> symbolToAmountMap, Address fromAddress,
-        out string symbol, out long amount, out long existingBalance, out long existingAllowance, MethodFeeFreeAllowances freeAllowances,
+        out string symbol, out long amount, out long existingBalance, out long existingAllowance,
+        MethodFeeFreeAllowances freeAllowances,
         TransactionFeeDelegations delegations = null)
     {
         symbol = null;
         amount = 0L;
         existingBalance = 0L;
         existingAllowance = 0L;
-    
-        symbol = GetAvailableSymbolToPayBaseFee(symbolToAmountMap, fromAddress, freeAllowances, out amount, delegations);
+
+        symbol = GetAvailableSymbolToPayBaseFee(symbolToAmountMap, fromAddress, freeAllowances, out amount,
+            delegations);
         //Whether or not delegation exists, there is no token that can be used for payment
         if (symbol == null) return false;
-    
+
         //For delegation, There is enough token balance and delegation to pay
         //For user, There is enough token balance to pay or there is a token balance greater than 0
         existingBalance = GetBalance(fromAddress, symbol);
@@ -673,7 +684,7 @@ public partial class TokenContract
 
         return false;
     }
-    
+
     private string GetAvailableSymbolToPayBaseFee(Dictionary<string, long> symbolToAmountMap, Address fromAddress,
         MethodFeeFreeAllowances freeAllowances, out long amount, TransactionFeeDelegations delegations = null)
     {
@@ -709,13 +720,19 @@ public partial class TokenContract
                 amount = value;
                 var existingBalance = GetBalance(fromAddress, symbol);
                 var existingAllowance = GetFreeFeeAllowanceAmount(freeAllowances, symbol);
-                if (!delegations.Delegations.ContainsKey(symbol) || delegations.Delegations[symbol] < amount ||
-                    existingBalance.Add(existingAllowance) < amount) continue;
-                symbolOfValidBalance = symbol;
-                break;
+                // is unlimited delegate is true && balance enough
+                // is unlimited delegate is false && delegation enough && balance enough
+                if ((delegations.IsUnlimitedDelegate && existingBalance.Add(existingAllowance) >= amount) ||
+                    (!delegations.IsUnlimitedDelegate && delegations.Delegations.ContainsKey(symbol) &&
+                     delegations.Delegations[symbol] > amount &&
+                     existingBalance.Add(existingAllowance) >= amount))
+                {
+                    symbolOfValidBalance = symbol;
+                    break;
+                }
             }
         }
-        
+
         return symbolOfValidBalance;
     }
 
@@ -1153,10 +1170,14 @@ public partial class TokenContract
     private bool IsDelegationEnough(string txSymbol, string baseSymbol, long cost,
         long txSizeFeeAmount, TransactionFeeDelegations delegations)
     {
-        return delegations.Delegations.Keys.Contains(txSymbol) &&
-               (baseSymbol == txSymbol
-                   ? delegations.Delegations[txSymbol].Sub(cost)
-                   : delegations.Delegations[txSymbol]) >= txSizeFeeAmount;
+        if (!delegations.IsUnlimitedDelegate)
+        {
+            return delegations.Delegations.Keys.Contains(txSymbol) && (baseSymbol == txSymbol
+                ? delegations.Delegations[txSymbol].Sub(cost)
+                : delegations.Delegations[txSymbol]) >= txSizeFeeAmount;
+        }
+
+        return true;
     }
 
     private void AssertSymbolToPayTxFeeIsValid(string tokenSymbol, out long totalSupply)

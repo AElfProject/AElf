@@ -153,7 +153,7 @@ service TokenContract {
     
     // Get all delegatees' address of delegator from input
     rpc GetTransactionFeeDelegatees (GetTransactionFeeDelegateesInput) returns (GetTransactionFeeDelegateesOutput) {
-        
+        option (aelf.is_view) = true;
     }
 
     // Query token information.
@@ -681,6 +681,8 @@ message TransactionFeeDelegations{
     map<string, int64> delegations = 1;
     // height when added
     int64 block_height = 2;
+    //Whether to pay transaction fee continuously
+    bool isUnlimitedDelegate = 3;
 }
 
 message TransactionFeeDelegatees{

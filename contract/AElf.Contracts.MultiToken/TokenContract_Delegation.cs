@@ -192,4 +192,261 @@ public partial class TokenContract
             DelegateeAddresses = { allDelegatees.Delegatees.Keys.Select(Address.FromBase58) }
         };
     }
+
+    public override Empty SetTransactionFeeDelegateInfos(SetTransactionFeeDelegateInfosInput input)
+    {
+        Assert(input.DelegatorAddress.Value.Any() && input.DelegateInfoList.Count > 0,
+            "Delegator address and delegate info cannot be null.");
+        var toAddTransactionList = new DelegateTransactionList();
+        var toUpdateTransactionList = new DelegateTransactionList();
+        var toCancelTransactionList = new DelegateTransactionList();
+        var delegatorAddress = input.DelegatorAddress;
+        foreach (var delegateInfo in input.DelegateInfoList)
+        {
+            //If isUnlimitedDelegate is false,delegate info list should > 0.
+            Assert(delegateInfo.IsUnlimitedDelegate || delegateInfo.Delegations.Count > 0,
+                "Delegation cannot be null.");
+            var existDelegateeInfoList =
+                State.TransactionFeeDelegateInfoMap[delegatorAddress][delegateInfo.ContractAddress]
+                    [delegateInfo.MethodName] ?? new TransactionFeeDelegatees();
+            var delegateeAddress = Context.Sender.ToBase58();
+            var existDelegateeList = existDelegateeInfoList.Delegatees;
+            //If the transaction contains delegatee,update delegate info.
+            if (existDelegateeList.TryGetValue(delegateeAddress, out var value))
+            {
+                UpdateDelegateInfo(ref value, ref toUpdateTransactionList,delegateInfo);
+                existDelegateeList[delegateeAddress] = value;
+            } //else,add new delegate info.
+            else
+            {
+                Assert(existDelegateeList.Count <= TokenContractConstants.DELEGATEE_MAX_COUNT,
+                    "The quantity of delegatee has reached its limit");
+                existDelegateeList.Add(delegateeAddress, new TransactionFeeDelegations());
+                var transactionFeeDelegations = existDelegateeList[delegateeAddress];
+                AddDelegateInfo(ref transactionFeeDelegations,ref toAddTransactionList,delegateInfo);
+            }
+            
+            if (existDelegateeInfoList.Delegatees[delegateeAddress].Delegations.Count == 0 &&
+                !existDelegateeInfoList.Delegatees[delegateeAddress].IsUnlimitedDelegate)
+            {
+                existDelegateeInfoList.Delegatees.Remove(delegateeAddress);
+                toCancelTransactionList.Value.Add(new DelegateTransaction
+                {
+                    ContractAddress = delegateInfo.ContractAddress,
+                    MethodName = delegateInfo.MethodName
+                });
+            }
+            
+            State.TransactionFeeDelegateInfoMap[delegatorAddress][delegateInfo.ContractAddress]
+                [delegateInfo.MethodName] = existDelegateeInfoList;
+        }
+
+        FireLogEvent(toAddTransactionList, toUpdateTransactionList, toCancelTransactionList, delegatorAddress);
+
+        return new Empty();
+    }
+
+    private void AddDelegateInfo(ref TransactionFeeDelegations existDelegateeList,ref DelegateTransactionList toAddTransactionList,DelegateInfo delegateInfo)
+    {
+        if (!delegateInfo.IsUnlimitedDelegate)
+        {
+            foreach (var (symbol, amount) in delegateInfo.Delegations)
+            {
+                AssertValidToken(symbol, amount);
+                existDelegateeList.Delegations[symbol] = amount;
+            }
+        }
+
+        existDelegateeList.BlockHeight = Context.CurrentHeight;
+        existDelegateeList.IsUnlimitedDelegate = delegateInfo.IsUnlimitedDelegate;
+        toAddTransactionList.Value.Add(new DelegateTransaction
+        {
+            ContractAddress = delegateInfo.ContractAddress,
+            MethodName = delegateInfo.MethodName
+        });
+    }
+    private void UpdateDelegateInfo(ref TransactionFeeDelegations existDelegateInfo,ref DelegateTransactionList toUpdateTransactionList,DelegateInfo delegateInfo)
+    {
+        var existDelegation = existDelegateInfo.Delegations;
+        if (delegateInfo.IsUnlimitedDelegate)
+        {
+            existDelegation.Clear();
+        }
+        else
+        {
+            var delegation = delegateInfo.Delegations;
+            foreach (var (symbol, amount) in delegation)
+            {
+                if (existDelegation.ContainsKey(symbol))
+                {
+                    if (amount < 0)
+                    {
+                        existDelegation.Remove(symbol);
+                    }
+                    else
+                    {
+                        AssertValidToken(symbol, amount);
+                        existDelegation[symbol] = amount;
+                    }
+                }
+                else
+                {
+                    AssertValidToken(symbol, amount);
+                    existDelegation[symbol] = amount;
+                }
+            }
+        }
+        
+        existDelegateInfo.BlockHeight = Context.CurrentHeight;
+        existDelegateInfo.IsUnlimitedDelegate = delegateInfo.IsUnlimitedDelegate;
+        toUpdateTransactionList.Value.Add(new DelegateTransaction
+        {
+            ContractAddress = delegateInfo.ContractAddress,
+            MethodName = delegateInfo.MethodName
+        });
+    }
+    private void FireLogEvent(DelegateTransactionList toAddTransactionList,
+        DelegateTransactionList toUpdateTransactionList, DelegateTransactionList toCancelTransactionList,
+        Address delegatorAddress)
+    {
+        if (toAddTransactionList.Value.Count > 0)
+        {
+            Context.Fire(new TransactionFeeDelegateInfoAdded
+            {
+                Caller = Context.Sender,
+                Delegatee = Context.Sender,
+                Delegator = delegatorAddress,
+                DelegateTransactionList = toAddTransactionList
+            });
+        }
+
+        if (toUpdateTransactionList.Value.Count > 0)
+        {
+            Context.Fire(new TransactionFeeDelegateInfoUpdated
+            {
+                Caller = Context.Sender,
+                Delegatee = Context.Sender,
+                Delegator = delegatorAddress,
+                DelegateTransactionList = toUpdateTransactionList
+            });
+        }
+
+        if (toCancelTransactionList.Value.Count > 0)
+        {
+            Context.Fire(new TransactionFeeDelegateInfoCancelled
+            {
+                Caller = Context.Sender,
+                Delegatee = Context.Sender,
+                Delegator = delegatorAddress,
+                DelegateTransactionList = toCancelTransactionList
+            });
+        }
+    }
+
+    public override Empty RemoveTransactionFeeDelegateeInfos(RemoveTransactionFeeDelegateeInfosInput input)
+    {
+        Assert(input.DelegateeAddress != null, "Delegatee address cannot be null.");
+        Assert(input.DelegateTransactionList.Count > 0, "Delegate transaction list should not be null.");
+        var delegateTransactionList = input.DelegateTransactionList;
+        var delegatorAddress = Context.Sender;
+        var delegateeAddress = input.DelegateeAddress.ToBase58();
+        var toCancelTransactionList = new DelegateTransactionList();
+        foreach (var delegateTransaction in delegateTransactionList.ToList().Distinct())
+        {
+            var delegateeInfo =
+                State.TransactionFeeDelegateInfoMap[delegatorAddress][delegateTransaction.ContractAddress][
+                    delegateTransaction.MethodName];
+            if (delegateeInfo != null && delegateeInfo.Delegatees.ContainsKey(delegateeAddress))
+            {
+                delegateeInfo.Delegatees.Remove(delegateeAddress);
+                toCancelTransactionList.Value.Add(delegateTransaction);
+            }
+
+            State.TransactionFeeDelegateInfoMap[delegatorAddress][delegateTransaction.ContractAddress][
+                delegateTransaction.MethodName] = delegateeInfo;
+        }
+
+        if (toCancelTransactionList.Value.Count > 0)
+        {
+            Context.Fire(new TransactionFeeDelegateInfoCancelled
+            {
+                Caller = Context.Sender,
+                Delegatee = input.DelegateeAddress,
+                Delegator = Context.Sender,
+                DelegateTransactionList = toCancelTransactionList
+            });
+        }
+
+        return new Empty();
+    }
+
+    public override Empty RemoveTransactionFeeDelegatorInfos(RemoveTransactionFeeDelegatorInfosInput input)
+    {
+        Assert(input.DelegatorAddress != null, "Delegator address cannot be null.");
+        Assert(input.DelegateTransactionList.Count > 0, "Delegate transaction list should not be null.");
+        var delegateTransactionList = input.DelegateTransactionList;
+        var delegateeAddress = Context.Sender.ToBase58();
+        var delegatorAddress = input.DelegatorAddress;
+        var toCancelTransactionList = new DelegateTransactionList();
+        foreach (var delegateTransaction in delegateTransactionList.ToList().Distinct())
+        {
+            var delegateeInfo =
+                State.TransactionFeeDelegateInfoMap[delegatorAddress][delegateTransaction.ContractAddress][
+                    delegateTransaction.MethodName];
+            if (delegateeInfo != null && delegateeInfo.Delegatees.ContainsKey(delegateeAddress))
+            {
+                delegateeInfo.Delegatees.Remove(delegateeAddress);
+                toCancelTransactionList.Value.Add(delegateTransaction);
+            }
+
+            State.TransactionFeeDelegateInfoMap[delegatorAddress][delegateTransaction.ContractAddress][
+                delegateTransaction.MethodName] = delegateeInfo;
+        }
+
+        if (toCancelTransactionList.Value.Count > 0)
+        {
+            Context.Fire(new TransactionFeeDelegateInfoCancelled
+            {
+                Caller = Context.Sender,
+                Delegatee = input.DelegatorAddress,
+                Delegator = Context.Sender,
+                DelegateTransactionList = toCancelTransactionList
+            });
+        }
+
+        return new Empty();
+    }
+
+    public override GetTransactionFeeDelegateeListOutput GetTransactionFeeDelegateeList(
+        GetTransactionFeeDelegateeListInput input)
+    {
+        Assert(input.DelegatorAddress != null && input.ContractAddress != null && input.MethodName != null,
+            "invalid input");
+        var allDelegatees =
+            State.TransactionFeeDelegateInfoMap[input.DelegatorAddress][input.ContractAddress][input.MethodName];
+
+        if (allDelegatees == null || allDelegatees.Delegatees == null || allDelegatees.Delegatees.Count == 0)
+        {
+            return new GetTransactionFeeDelegateeListOutput();
+        }
+
+        return new GetTransactionFeeDelegateeListOutput
+        {
+            DelegateeAddresses = { allDelegatees.Delegatees.Keys.Select(Address.FromBase58) }
+        };
+    }
+
+    public override TransactionFeeDelegations GetTransactionFeeDelegateInfosOfADelegatee(
+        GetTransactionFeeDelegateInfosOfADelegateeInput input)
+    {
+        var allDelegatees =
+            State.TransactionFeeDelegateInfoMap[input.DelegatorAddress][input.ContractAddress][input.MethodName];
+        var delegateeAddress = input.DelegateeAddress.ToBase58();
+        // According to protoBuf, return an empty object, but null.
+        if (allDelegatees == null) return new TransactionFeeDelegations();
+
+        var allDelegateesMap = allDelegatees.Delegatees;
+        var result = allDelegateesMap.TryGetValue(delegateeAddress, out var value);
+        return result ? value : new TransactionFeeDelegations();
+    }
 }
