@@ -186,7 +186,10 @@ public partial class TokenContract
             allowanceBill = delegateeAllowanceBill;
             fromAddress = delegateeAddress;
             chargingResult = true;
-            ModifyDelegation(delegateeBill, delegateeAllowanceBill, fromAddress, input.ContractAddress, input.MethodName,delegatorAddress);
+            if (!delegations.IsUnlimitedDelegate)
+            {
+                ModifyDelegation(delegateeBill, delegateeAllowanceBill, fromAddress, input.ContractAddress, input.MethodName,delegatorAddress);
+            }
             break;
         }
 
