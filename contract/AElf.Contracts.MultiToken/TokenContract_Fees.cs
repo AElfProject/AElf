@@ -103,6 +103,10 @@ public partial class TokenContract
                 {
                     chargingResult = ChargeFromDelegations(input, ref fromAddress, ref bill, ref allowanceBill, fee,
                         isSizeFeeFree, Address.FromBase58(delegatee));
+                    if (chargingResult)
+                    {
+                        break;
+                    }
                 }
             }
         }
@@ -160,15 +164,14 @@ public partial class TokenContract
         var chargingResult = false;
         // Try to charge delegatees
         // Get delegatee list according to the delegator
-        if ((State.TransactionFeeDelegateesMap[delegatorAddress]?.Delegatees == null) &&
-            (State.TransactionFeeDelegateInfoMap[delegatorAddress][input.ContractAddress][input.MethodName]?.Delegatees == null))
+        var delegationInfo = State.TransactionFeeDelegateesMap[delegatorAddress]?.Delegatees ??
+                             State.TransactionFeeDelegateInfoMap[delegatorAddress][input.ContractAddress][input.MethodName]?.Delegatees;
+        
+        if (delegationInfo == null)
         {
             return false;
         }
 
-        var delegationInfo = State.TransactionFeeDelegateesMap[delegatorAddress]?.Delegatees ??
-                             State.TransactionFeeDelegateInfoMap[delegatorAddress][input.ContractAddress][
-                                 input.MethodName]?.Delegatees;
         foreach (var (delegatee, delegations) in delegationInfo)
         {
             // compare current block height with the block height when the delegatee added
@@ -188,8 +191,10 @@ public partial class TokenContract
             chargingResult = true;
             if (!delegations.IsUnlimitedDelegate)
             {
-                ModifyDelegation(delegateeBill, delegateeAllowanceBill, fromAddress, input.ContractAddress, input.MethodName,delegatorAddress);
+                ModifyDelegation(delegateeBill, delegateeAllowanceBill, fromAddress, input.ContractAddress,
+                    input.MethodName, delegatorAddress);
             }
+
             break;
         }
 
@@ -367,8 +372,7 @@ public partial class TokenContract
         {
             var allSymbolToTxFee = input.SymbolsToPayTxSizeFee.ToList();
             var availableSymbol = GetAvailableSymbolToPayTxFee(allSymbolToTxFee, fromAddress, txSizeFeeAmount,
-                freeAllowances, symbolChargedForBaseFee, amountChargedForBaseFee, amountChargedForBaseAllowance,
-                delegations);
+                freeAllowances, symbolChargedForBaseFee, amountChargedForBaseFee, amountChargedForBaseAllowance, delegations);
 
             if (availableSymbol != null && availableSymbol.TokenSymbol != symbolToPayTxFee)
             {
@@ -727,8 +731,7 @@ public partial class TokenContract
                 // is unlimited delegate is false && delegation enough && balance enough
                 if ((delegations.IsUnlimitedDelegate && existingBalance.Add(existingAllowance) >= amount) ||
                     (!delegations.IsUnlimitedDelegate && delegations.Delegations.ContainsKey(symbol) &&
-                     delegations.Delegations[symbol] > amount &&
-                     existingBalance.Add(existingAllowance) >= amount))
+                     delegations.Delegations[symbol] > amount && existingBalance.Add(existingAllowance) >= amount))
                 {
                     symbolOfValidBalance = symbol;
                     break;
@@ -1175,7 +1178,7 @@ public partial class TokenContract
     {
         if (!delegations.IsUnlimitedDelegate)
         {
-            return delegations.Delegations.Keys.Contains(txSymbol) && (baseSymbol == txSymbol
+            return delegations.Delegations.ContainsKey(txSymbol) && (baseSymbol == txSymbol
                 ? delegations.Delegations[txSymbol].Sub(cost)
                 : delegations.Delegations[txSymbol]) >= txSizeFeeAmount;
         }
