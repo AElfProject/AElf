@@ -559,7 +559,7 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
         await CreateTokenAsync(DefaultSender, sizeFeeSymbol);
 
         await IssueTokenToDefaultSenderAsync(NativeTokenSymbol, initialBalance);
-        await IssueTokenToUserAsync(NativeTokenSymbol, initialDelegateeBalance, delegateeAddress);
+        await IssueTokenToUserAsync(NativeTokenSymbol, initialDelegateeBalance, DelegateeAddress);
         await IssueTokenToUserAsync(NativeTokenSymbol, initialUserBalance, userAddress);
 
         var delegations = new Dictionary<string, long>
@@ -568,20 +568,21 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
             [basicFeeSymbol] = delegateeAmountBasic,
             [sizeFeeSymbol] = delegateeAmountSize
         };
-        var transactionResult = await TokenContractStub2.SetTransactionFeeDelegations.SendAsync(new SetTransactionFeeDelegationsInput
-        {
-            DelegatorAddress = DefaultSender,
-            Delegations =
+        var transactionResult = await TokenContractStub2.SetTransactionFeeDelegations.SendAsync(
+            new SetTransactionFeeDelegationsInput
             {
-                delegations
-            }
-        });
+                DelegatorAddress = DefaultSender,
+                Delegations =
+                {
+                    delegations
+                }
+            });
         // Test Case 11
         {
             var result = await TokenContractStubA.GetTransactionFeeDelegationsOfADelegatee.CallAsync(
                 new GetTransactionFeeDelegationsOfADelegateeInput
                 {
-                    DelegateeAddress = delegateeAddress,
+                    DelegateeAddress = DelegateeAddress,
                     DelegatorAddress = DefaultSender
                 });
             result.BlockHeight.ShouldBe(transactionResult.TransactionResult.BlockNumber);
@@ -590,7 +591,7 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
             var result = await TokenContractStub.GetTransactionFeeDelegationsOfADelegatee.CallAsync(
                 new GetTransactionFeeDelegationsOfADelegateeInput
                 {
-                    DelegateeAddress = delegateeAddress,
+                    DelegateeAddress = DelegateeAddress,
                     DelegatorAddress = DefaultSender
                 });
             result.Delegations[NativeTokenSymbol].ShouldBe(delegateeAmountNativeToken);
@@ -602,8 +603,8 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
         {
             await IssueTokenToDefaultSenderAsync(basicFeeSymbol, baseFeeBalance);
             await IssueTokenToDefaultSenderAsync(sizeFeeSymbol, sizeFeeBalance);
-            await IssueTokenToUserAsync(basicFeeSymbol, baseFeeDelegateBalance, delegateeAddress);
-            await IssueTokenToUserAsync(sizeFeeSymbol, sizeFeeDelegateBalance, delegateeAddress);
+            await IssueTokenToUserAsync(basicFeeSymbol, baseFeeDelegateBalance, DelegateeAddress);
+            await IssueTokenToUserAsync(sizeFeeSymbol, sizeFeeDelegateBalance, DelegateeAddress);
             await IssueTokenToUserAsync(basicFeeSymbol, baseFeeUserBalance, userAddress);
             await IssueTokenToUserAsync(sizeFeeSymbol, sizeFeeUserBalance, userAddress);
         }
@@ -706,7 +707,7 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
             var delegationResult = await TokenContractStub.GetTransactionFeeDelegationsOfADelegatee.CallAsync(
                 new GetTransactionFeeDelegationsOfADelegateeInput
                 {
-                    DelegateeAddress = delegateeAddress,
+                    DelegateeAddress = DelegateeAddress,
                     DelegatorAddress = DefaultSender
                 });
             var chargeFeeRetDefault =
@@ -714,7 +715,7 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
             if (chargeFeeRetDefault.Transaction.RefBlockNumber >= delegationResult.BlockHeight + 2)
             {
                 chargeFeeRetDefault.Output.Success.ShouldBe(true);
-                
+
                 var afterBalance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
                 {
                     Symbol = basicFeeSymbol,
@@ -725,13 +726,13 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
                 var afterDelegateeBalance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
                 {
                     Symbol = basicFeeSymbol,
-                    Owner = delegateeAddress
+                    Owner = DelegateeAddress
                 });
                 afterDelegateeBalance.Balance.ShouldBe(afterBalanceDelegatee);
                 var delegation = await TokenContractStub.GetTransactionFeeDelegationsOfADelegatee.CallAsync(
                     new GetTransactionFeeDelegationsOfADelegateeInput
                     {
-                        DelegateeAddress = delegateeAddress,
+                        DelegateeAddress = DelegateeAddress,
                         DelegatorAddress = DefaultSender
                     });
                 delegation.Delegations[basicFeeSymbol].ShouldBe(afterDelegateeAmount);
@@ -739,11 +740,11 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
             else
             {
                 chargeFeeRetDefault.Output.Success.ShouldBe(false);
-                
+
                 var delegation = await TokenContractStub.GetTransactionFeeDelegationsOfADelegatee.CallAsync(
                     new GetTransactionFeeDelegationsOfADelegateeInput
                     {
-                        DelegateeAddress = delegateeAddress,
+                        DelegateeAddress = DelegateeAddress,
                         DelegatorAddress = DefaultSender
                     });
                 delegation.Delegations[basicFeeSymbol].ShouldBe(delegateeAmountBasic);
@@ -771,7 +772,7 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
         await CreateTokenAsync(DefaultSender, sizeFeeSymbol);
 
         await IssueTokenToDefaultSenderAsync(NativeTokenSymbol, initialBalance);
-        await IssueTokenToUserAsync(NativeTokenSymbol, initialDelegateeBalance, delegateeAddress);
+        await IssueTokenToUserAsync(NativeTokenSymbol, initialDelegateeBalance, DelegateeAddress);
 
         var delegations = new Dictionary<string, long>
         {
@@ -791,7 +792,7 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
             var result = await TokenContractStub.GetTransactionFeeDelegationsOfADelegatee.CallAsync(
                 new GetTransactionFeeDelegationsOfADelegateeInput
                 {
-                    DelegateeAddress = delegateeAddress,
+                    DelegateeAddress = DelegateeAddress,
                     DelegatorAddress = DefaultSender
                 });
             result.Delegations[NativeTokenSymbol].ShouldBe(delegateeAmountNativeToken);
@@ -802,8 +803,8 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
         {
             await IssueTokenToDefaultSenderAsync(basicFeeSymbol, baseFeeBalance);
             await IssueTokenToDefaultSenderAsync(sizeFeeSymbol, sizeFeeBalance);
-            await IssueTokenToUserAsync(basicFeeSymbol, baseFeeDelegateBalance, delegateeAddress);
-            await IssueTokenToUserAsync(sizeFeeSymbol, sizeFeeDelegateBalance, delegateeAddress);
+            await IssueTokenToUserAsync(basicFeeSymbol, baseFeeDelegateBalance, DelegateeAddress);
+            await IssueTokenToUserAsync(sizeFeeSymbol, sizeFeeDelegateBalance, DelegateeAddress);
         }
 
         await SubmitAndPassProposalOfDefaultParliamentAsync(TokenContractAddress,
@@ -890,13 +891,13 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
             var afterDelegateeBalance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
                 Symbol = basicFeeSymbol,
-                Owner = delegateeAddress
+                Owner = DelegateeAddress
             });
             afterDelegateeBalance.Balance.ShouldBe(afterBalanceDelegatee);
             var delegation = await TokenContractStub.GetTransactionFeeDelegationsOfADelegatee.CallAsync(
                 new GetTransactionFeeDelegationsOfADelegateeInput
                 {
-                    DelegateeAddress = delegateeAddress,
+                    DelegateeAddress = DelegateeAddress,
                     DelegatorAddress = DefaultSender
                 });
             delegation.Delegations[sizeFeeSymbol].ShouldBe(afterDelegateeAmount);
@@ -913,8 +914,8 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
         await SetPrimaryTokenSymbolAsync();
         await CreateTokenAsync(DefaultSender, basicFeeSymbol);
 
-        await IssueTokenToUserAsync(NativeTokenSymbol, initialDelegateeBalance, delegateeAddress);
-        await IssueTokenToUserAsync(basicFeeSymbol, initialDelegateeBalance, delegateeAddress);
+        await IssueTokenToUserAsync(NativeTokenSymbol, initialDelegateeBalance, DelegateeAddress);
+        await IssueTokenToUserAsync(basicFeeSymbol, initialDelegateeBalance, DelegateeAddress);
 
         var delegations = new Dictionary<string, long>
         {
@@ -933,7 +934,7 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
             var result = await TokenContractStub.GetTransactionFeeDelegationsOfADelegatee.CallAsync(
                 new GetTransactionFeeDelegationsOfADelegateeInput
                 {
-                    DelegateeAddress = delegateeAddress,
+                    DelegateeAddress = DelegateeAddress,
                     DelegatorAddress = userAddress
                 });
             result.Delegations[basicFeeSymbol].ShouldBe(delegateeAmountBasic);
@@ -975,14 +976,14 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
             var afterDelegateeBalance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
                 Symbol = basicFeeSymbol,
-                Owner = delegateeAddress
+                Owner = DelegateeAddress
             });
             afterDelegateeBalance.Balance.ShouldBe(exceptDelegateeBalance);
 
             var afterDelegateeElfBalance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
                 Symbol = NativeTokenSymbol,
-                Owner = delegateeAddress
+                Owner = DelegateeAddress
             });
             afterDelegateeElfBalance.Balance.ShouldBe(exceptDelegateeElfBalance);
         }
@@ -1006,8 +1007,22 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
         await CreateTokenAsync(DefaultSender, sizeFeeSymbol);
 
         await IssueTokenToDefaultSenderAsync(NativeTokenSymbol, initialBalance);
-        await IssueTokenToUserAsync(NativeTokenSymbol, initialDelegateeBalance, delegateeAddress);
+        await IssueTokenToUserAsync(NativeTokenSymbol, initialDelegateeBalance, DelegateeAddress);
         await IssueTokenToUserAsync(NativeTokenSymbol, initialUserBalance, userAddress);
+        await IssueTokenToUserAsync(NativeTokenSymbol, initialUserBalance, UserTomSender);
+        if (baseFeeBalance != 0 && sizeFeeBalance != 0 &&
+            baseFeeDelegateBalance != 0 && sizeFeeDelegateBalance != 0 &&
+            baseFeeUserBalance != 0 && sizeFeeUserBalance != 0)
+        {
+            await IssueTokenToDefaultSenderAsync(basicFeeSymbol, baseFeeBalance);
+            await IssueTokenToDefaultSenderAsync(sizeFeeSymbol, sizeFeeBalance);
+            await IssueTokenToUserAsync(basicFeeSymbol, baseFeeDelegateBalance, DelegateeAddress);
+            await IssueTokenToUserAsync(sizeFeeSymbol, sizeFeeDelegateBalance, DelegateeAddress);
+            await IssueTokenToUserAsync(basicFeeSymbol, baseFeeUserBalance, userAddress);
+            await IssueTokenToUserAsync(sizeFeeSymbol, sizeFeeUserBalance, userAddress);
+            await IssueTokenToUserAsync(basicFeeSymbol, baseFeeUserBalance, UserTomSender);
+            await IssueTokenToUserAsync(sizeFeeSymbol, sizeFeeUserBalance, UserTomSender);
+        }
 
         var delegations = new Dictionary<string, long>
         {
@@ -1015,9 +1030,34 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
             [basicFeeSymbol] = delegateeAmountBasic,
             [sizeFeeSymbol] = delegateeAmountSize
         };
+        var delegations1 = new Dictionary<string, long>
+        {
+            [NativeTokenSymbol] = 5,
+        };
         var delegateInfo1 = new DelegateInfo
         {
             Delegations = { delegations },
+            IsUnlimitedDelegate = false,
+            MethodName = nameof(TokenContractContainer.TokenContractStub.Transfer),
+            ContractAddress = TokenContractAddress,
+        };
+        var delegateInfo2 = new DelegateInfo
+        {
+            Delegations = { delegations },
+            IsUnlimitedDelegate = false,
+            MethodName = nameof(TokenContractContainer.TokenContractStub.TransferFrom),
+            ContractAddress = TokenContractAddress,
+        };
+        var delegateInfo3 = new DelegateInfo
+        {
+            Delegations = { delegations },
+            IsUnlimitedDelegate = false,
+            MethodName = nameof(TokenContractContainer.TokenContractStub.TransferFrom),
+            ContractAddress = ConsensusContractAddress,
+        };
+        var delegateInfo4 = new DelegateInfo
+        {
+            Delegations = { delegations1 },
             IsUnlimitedDelegate = false,
             MethodName = nameof(TokenContractContainer.TokenContractStub.Transfer),
             ContractAddress = TokenContractAddress,
@@ -1028,12 +1068,31 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
                 DelegatorAddress = DefaultSender,
                 DelegateInfoList = { delegateInfo1 }
             });
-        // Test Case 11
+        //delegate User transferFrom method
+        var transactionResult1 = await TokenContractStubDelegate1.SetTransactionFeeDelegateInfos.SendAsync(
+            new SetTransactionFeeDelegateInfosInput
+            {
+                DelegatorAddress = userAddress,
+                DelegateInfoList = { delegateInfo2 }
+            });
+        //delegate User ConsensusContract
+        var transactionResult2 = await TokenContractStubDelegate1.SetTransactionFeeDelegateInfos.SendAsync(
+            new SetTransactionFeeDelegateInfosInput
+            {
+                DelegatorAddress = userAddress,
+                DelegateInfoList = { delegateInfo3 }
+            });
+        var transactionResult3 = await TokenContractStubDelegate1.SetTransactionFeeDelegateInfos.SendAsync(
+            new SetTransactionFeeDelegateInfosInput
+            {
+                DelegatorAddress = UserTomSender,
+                DelegateInfoList = { delegateInfo4 }
+            });
         {
             var result = await TokenContractStubDelegate1.GetTransactionFeeDelegateInfosOfADelegatee.CallAsync(
                 new GetTransactionFeeDelegateInfosOfADelegateeInput
                 {
-                    DelegateeAddress = delegateeAddress,
+                    DelegateeAddress = DelegateeAddress,
                     DelegatorAddress = DefaultSender,
                     ContractAddress = TokenContractAddress,
                     MethodName = nameof(TokenContractContainer.TokenContractStub.Transfer)
@@ -1042,16 +1101,40 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
             result.Delegations[NativeTokenSymbol].ShouldBe(delegateeAmountNativeToken);
         }
 
-        if (baseFeeBalance != 0 && sizeFeeBalance != 0 &&
-            baseFeeDelegateBalance != 0 && sizeFeeDelegateBalance != 0 &&
-            baseFeeUserBalance != 0 && sizeFeeUserBalance != 0)
+        var delegationsBefore = await TokenContractStubDelegate1.GetTransactionFeeDelegateInfosOfADelegatee.CallAsync(
+            new GetTransactionFeeDelegateInfosOfADelegateeInput
+            {
+                DelegateeAddress = DelegateeAddress,
+                DelegatorAddress = userAddress,
+                ContractAddress = TokenContractAddress,
+                MethodName = nameof(TokenContractContainer.TokenContractStub.TransferFrom)
+            });
+        delegationsBefore.BlockHeight.ShouldBe(transactionResult1.TransactionResult.BlockNumber);
+        delegationsBefore.Delegations[NativeTokenSymbol].ShouldBe(delegateeAmountNativeToken);
+
+
+        var delegationBefore2 = await TokenContractStubDelegate1.GetTransactionFeeDelegateInfosOfADelegatee.CallAsync(
+            new GetTransactionFeeDelegateInfosOfADelegateeInput
+            {
+                DelegateeAddress = DelegateeAddress,
+                DelegatorAddress = userAddress,
+                ContractAddress = ConsensusContractAddress,
+                MethodName = nameof(TokenContractContainer.TokenContractStub.TransferFrom)
+            });
+        delegationBefore2.BlockHeight.ShouldBe(transactionResult2.TransactionResult.BlockNumber);
+        delegationBefore2.Delegations[NativeTokenSymbol].ShouldBe(delegateeAmountNativeToken);
+
         {
-            await IssueTokenToDefaultSenderAsync(basicFeeSymbol, baseFeeBalance);
-            await IssueTokenToDefaultSenderAsync(sizeFeeSymbol, sizeFeeBalance);
-            await IssueTokenToUserAsync(basicFeeSymbol, baseFeeDelegateBalance, delegateeAddress);
-            await IssueTokenToUserAsync(sizeFeeSymbol, sizeFeeDelegateBalance, delegateeAddress);
-            await IssueTokenToUserAsync(basicFeeSymbol, baseFeeUserBalance, userAddress);
-            await IssueTokenToUserAsync(sizeFeeSymbol, sizeFeeUserBalance, userAddress);
+            var result = await TokenContractStubDelegate1.GetTransactionFeeDelegateInfosOfADelegatee.CallAsync(
+                new GetTransactionFeeDelegateInfosOfADelegateeInput
+                {
+                    DelegateeAddress = DelegateeAddress,
+                    DelegatorAddress = UserTomSender,
+                    ContractAddress = TokenContractAddress,
+                    MethodName = nameof(TokenContractContainer.TokenContractStub.Transfer)
+                });
+            result.BlockHeight.ShouldBe(transactionResult3.TransactionResult.BlockNumber);
+            result.Delegations[NativeTokenSymbol].ShouldBe(5);
         }
 
         await SubmitAndPassProposalOfDefaultParliamentAsync(TokenContractAddress,
@@ -1090,53 +1173,18 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
                 freeAllowances.Value.ShouldBeEmpty();
             }
         }
-
-        var methodFee = new MethodFees
-        {
-            MethodName = nameof(TokenContractContainer.TokenContractStub.Transfer),
-            Fees =
-            {
-                new MethodFee
-                {
-                    Symbol = basicFeeSymbol,
-                    BasicFee = basicFee
-                }
-            }
-        };
-        await SubmitAndPassProposalOfDefaultParliamentAsync(TokenContractAddress,
-            nameof(TokenContractImplContainer.TokenContractImplStub.SetMethodFee), methodFee);
-
-        var sizeFeeSymbolList = new SymbolListToPayTxSizeFee
-        {
-            SymbolsToPayTxSizeFee =
-            {
-                new SymbolToPayTxSizeFee
-                {
-                    TokenSymbol = sizeFeeSymbol,
-                    AddedTokenWeight = 1,
-                    BaseTokenWeight = 1
-                },
-                new SymbolToPayTxSizeFee
-                {
-                    TokenSymbol = NativeTokenSymbol,
-                    AddedTokenWeight = 1,
-                    BaseTokenWeight = 1
-                }
-            }
-        };
-        await SubmitAndPassProposalOfDefaultParliamentAsync(TokenContractAddress,
-            nameof(TokenContractImplContainer.TokenContractImplStub.SetSymbolsToPayTxSizeFee), sizeFeeSymbolList);
-
-
+        var sizeFeeSymbolList = await SetMethodOrSizeFeeAsync(basicFeeSymbol,sizeFeeSymbol,80);
+        
         var chargeTransactionFeesInput = new ChargeTransactionFeesInput
         {
             MethodName = nameof(TokenContractContainer.TokenContractStub.Transfer),
             ContractAddress = TokenContractAddress,
             TransactionSizeFee = sizeFee,
         };
+
         chargeTransactionFeesInput.SymbolsToPayTxSizeFee.AddRange(sizeFeeSymbolList.SymbolsToPayTxSizeFee);
         {
-            var chargeFeeRetUser = await TokenContractStub3.ChargeTransactionFees.SendAsync(chargeTransactionFeesInput);
+            var chargeFeeRetUser = await TokenContractStubA.ChargeTransactionFees.SendAsync(chargeTransactionFeesInput);
             chargeFeeRetUser.Output.Success.ShouldBe(false);
             chargeFeeRetUser.Output.ChargingInformation.ShouldBe("Transaction fee not enough.");
 
@@ -1147,13 +1195,47 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
             });
             afterBalance.Balance.ShouldBe(0);
         }
-        // Test Case 12
+        {
+            var chargeFeeRetUser =
+                await TokenContractStubDelegator.ChargeTransactionFees.SendAsync(chargeTransactionFeesInput);
+            chargeFeeRetUser.Output.Success.ShouldBe(false);
+            chargeFeeRetUser.Output.ChargingInformation.ShouldBe("Transaction fee not enough.");
+
+            var afterBalance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Symbol = basicFeeSymbol,
+                Owner = UserTomSender
+            });
+            afterBalance.Balance.ShouldBe(0);
+        }
+        var delegationsAfter = await TokenContractStubDelegate1.GetTransactionFeeDelegateInfosOfADelegatee.CallAsync(
+            new GetTransactionFeeDelegateInfosOfADelegateeInput
+            {
+                DelegateeAddress = DelegateeAddress,
+                DelegatorAddress = userAddress,
+                ContractAddress = TokenContractAddress,
+                MethodName = nameof(TokenContractContainer.TokenContractStub.TransferFrom)
+            });
+        delegationsAfter.BlockHeight.ShouldBe(transactionResult1.TransactionResult.BlockNumber);
+        delegationsAfter.Delegations[NativeTokenSymbol].ShouldBe(delegateeAmountNativeToken);
+
+
+        var delegationAfter2 = await TokenContractStubDelegate1.GetTransactionFeeDelegateInfosOfADelegatee.CallAsync(
+            new GetTransactionFeeDelegateInfosOfADelegateeInput
+            {
+                DelegateeAddress = DelegateeAddress,
+                DelegatorAddress = DefaultSender,
+                ContractAddress = TokenContractAddress,
+                MethodName = nameof(TokenContractContainer.TokenContractStub.Transfer)
+            });
+        delegationAfter2.BlockHeight.ShouldBe(transactionResult.TransactionResult.BlockNumber);
+        delegationAfter2.Delegations[NativeTokenSymbol].ShouldBe(delegateeAmountNativeToken);
         {
             var delegationResult =
                 await TokenContractStubDelegate1.GetTransactionFeeDelegateInfosOfADelegatee.CallAsync(
                     new GetTransactionFeeDelegateInfosOfADelegateeInput
                     {
-                        DelegateeAddress = delegateeAddress,
+                        DelegateeAddress = DelegateeAddress,
                         DelegatorAddress = DefaultSender,
                         ContractAddress = TokenContractAddress,
                         MethodName = nameof(TokenContractContainer.TokenContractStub.Transfer)
@@ -1174,13 +1256,13 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
                 var afterDelegateeBalance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
                 {
                     Symbol = basicFeeSymbol,
-                    Owner = delegateeAddress
+                    Owner = DelegateeAddress
                 });
                 afterDelegateeBalance.Balance.ShouldBe(afterBalanceDelegatee);
                 var delegation = await TokenContractStubDelegate1.GetTransactionFeeDelegateInfosOfADelegatee.CallAsync(
                     new GetTransactionFeeDelegateInfosOfADelegateeInput
                     {
-                        DelegateeAddress = delegateeAddress,
+                        DelegateeAddress = DelegateeAddress,
                         DelegatorAddress = DefaultSender,
                         ContractAddress = TokenContractAddress,
                         MethodName = nameof(TokenContractContainer.TokenContractStub.Transfer)
@@ -1194,7 +1276,7 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
                 var delegation = await TokenContractStubDelegate1.GetTransactionFeeDelegateInfosOfADelegatee.CallAsync(
                     new GetTransactionFeeDelegateInfosOfADelegateeInput
                     {
-                        DelegateeAddress = delegateeAddress,
+                        DelegateeAddress = DelegateeAddress,
                         DelegatorAddress = DefaultSender,
                         ContractAddress = TokenContractAddress,
                         MethodName = nameof(TokenContractContainer.TokenContractStub.Transfer)
@@ -1205,7 +1287,7 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
     }
 
     [Theory]
-    [InlineData( 10, 20, 100, 1000, 1000, 1000, 10, 10, 20, 20, 100, 100,  80, 80,  20, 920)]
+    [InlineData(10, 20, 100, 1000, 1000, 1000, 10, 10, 20, 20, 100, 100, 80, 80, 20, 920)]
     public async Task ChargeTransactionFee_DelegationNew_Second_Success(
         long initialBalance, long initialDelegateeBalance, long initialDelegatee2Balance,
         long delegateeAmountNativeToken, long delegateeAmountBasic, long delegateeAmountSize,
@@ -1221,7 +1303,7 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
         await CreateTokenAsync(DefaultSender, sizeFeeSymbol);
 
         await IssueTokenToDefaultSenderAsync(NativeTokenSymbol, initialBalance);
-        await IssueTokenToUserAsync(NativeTokenSymbol, initialDelegateeBalance, delegateeAddress);
+        await IssueTokenToUserAsync(NativeTokenSymbol, initialDelegateeBalance, DelegateeAddress);
         await IssueTokenToUserAsync(NativeTokenSymbol, initialDelegatee2Balance, Delegatee2Address);
         if (baseFeeBalance != 0 && sizeFeeBalance != 0 &&
             baseFeeDelegateBalance != 0 && sizeFeeDelegateBalance != 0 &&
@@ -1229,8 +1311,8 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
         {
             await IssueTokenToDefaultSenderAsync(basicFeeSymbol, baseFeeBalance);
             await IssueTokenToDefaultSenderAsync(sizeFeeSymbol, sizeFeeBalance);
-            await IssueTokenToUserAsync(basicFeeSymbol, baseFeeDelegateBalance, delegateeAddress);
-            await IssueTokenToUserAsync(sizeFeeSymbol, sizeFeeDelegateBalance, delegateeAddress);
+            await IssueTokenToUserAsync(basicFeeSymbol, baseFeeDelegateBalance, DelegateeAddress);
+            await IssueTokenToUserAsync(sizeFeeSymbol, sizeFeeDelegateBalance, DelegateeAddress);
             await IssueTokenToUserAsync(basicFeeSymbol, baseFeeDelegate2Balance, Delegatee2Address);
             await IssueTokenToUserAsync(sizeFeeSymbol, sizeFeeDelegate2Balance, Delegatee2Address);
         }
@@ -1268,46 +1350,11 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
         await TokenContractStubDelegate2.SetTransactionFeeDelegateInfos.SendAsync(
             new SetTransactionFeeDelegateInfosInput
             {
-                DelegatorAddress = delegateeAddress,
+                DelegatorAddress = DelegateeAddress,
                 DelegateInfoList = { delegateInfo2 }
             });
 
-        var methodFee = new MethodFees
-        {
-            MethodName = nameof(TokenContractContainer.TokenContractStub.Transfer),
-            Fees =
-            {
-                new MethodFee
-                {
-                    Symbol = basicFeeSymbol,
-                    BasicFee = basicFee
-                }
-            }
-        };
-        await SubmitAndPassProposalOfDefaultParliamentAsync(TokenContractAddress,
-            nameof(TokenContractImplContainer.TokenContractImplStub.SetMethodFee), methodFee);
-
-        var sizeFeeSymbolList = new SymbolListToPayTxSizeFee
-        {
-            SymbolsToPayTxSizeFee =
-            {
-                new SymbolToPayTxSizeFee
-                {
-                    TokenSymbol = sizeFeeSymbol,
-                    AddedTokenWeight = 1,
-                    BaseTokenWeight = 1
-                },
-                new SymbolToPayTxSizeFee
-                {
-                    TokenSymbol = NativeTokenSymbol,
-                    AddedTokenWeight = 1,
-                    BaseTokenWeight = 1
-                }
-            }
-        };
-        await SubmitAndPassProposalOfDefaultParliamentAsync(TokenContractAddress,
-            nameof(TokenContractImplContainer.TokenContractImplStub.SetSymbolsToPayTxSizeFee), sizeFeeSymbolList);
-
+        var sizeFeeSymbolList = await SetMethodOrSizeFeeAsync(basicFeeSymbol,sizeFeeSymbol,80);
 
         var chargeTransactionFeesInput = new ChargeTransactionFeesInput
         {
@@ -1320,7 +1367,7 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
             await TokenContractStubDelegate1.GetTransactionFeeDelegateInfosOfADelegatee.CallAsync(
                 new GetTransactionFeeDelegateInfosOfADelegateeInput
                 {
-                    DelegateeAddress = delegateeAddress,
+                    DelegateeAddress = DelegateeAddress,
                     DelegatorAddress = DefaultSender,
                     ContractAddress = TokenContractAddress,
                     MethodName = nameof(TokenContractContainer.TokenContractStub.Transfer)
@@ -1330,12 +1377,13 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
                 new GetTransactionFeeDelegateInfosOfADelegateeInput
                 {
                     DelegateeAddress = Delegatee2Address,
-                    DelegatorAddress = delegateeAddress,
+                    DelegatorAddress = DelegateeAddress,
                     ContractAddress = TokenContractAddress,
                     MethodName = nameof(TokenContractContainer.TokenContractStub.Transfer)
                 });
         var chargeFeeRetDefault = await TokenContractStub.ChargeTransactionFees.SendAsync(chargeTransactionFeesInput);
-        if (chargeFeeRetDefault.Transaction.RefBlockNumber >= delegationResult.BlockHeight + 2 && chargeFeeRetDefault.Transaction.RefBlockNumber >= delegationResult2.BlockHeight + 2)
+        if (chargeFeeRetDefault.Transaction.RefBlockNumber >= delegationResult.BlockHeight + 2 &&
+            chargeFeeRetDefault.Transaction.RefBlockNumber >= delegationResult2.BlockHeight + 2)
         {
             chargeFeeRetDefault.Output.Success.ShouldBe(true);
 
@@ -1351,10 +1399,10 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
             var afterDelegateeBalance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
                 Symbol = basicFeeSymbol,
-                Owner = delegateeAddress
+                Owner = DelegateeAddress
             });
             afterDelegateeBalance.Balance.ShouldBe(20);
-            
+
             var afterSecondaryDelegateeBalance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
                 Symbol = basicFeeSymbol,
@@ -1365,7 +1413,7 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
                 new GetTransactionFeeDelegateInfosOfADelegateeInput
                 {
                     DelegateeAddress = Delegatee2Address,
-                    DelegatorAddress = delegateeAddress,
+                    DelegatorAddress = DelegateeAddress,
                     ContractAddress = TokenContractAddress,
                     MethodName = nameof(TokenContractContainer.TokenContractStub.Transfer)
                 });
@@ -1378,7 +1426,7 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
             var delegation = await TokenContractStubDelegate1.GetTransactionFeeDelegateInfosOfADelegatee.CallAsync(
                 new GetTransactionFeeDelegateInfosOfADelegateeInput
                 {
-                    DelegateeAddress = delegateeAddress,
+                    DelegateeAddress = DelegateeAddress,
                     DelegatorAddress = DefaultSender,
                     ContractAddress = TokenContractAddress,
                     MethodName = nameof(TokenContractContainer.TokenContractStub.Transfer)
@@ -1388,16 +1436,17 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
                 new GetTransactionFeeDelegateInfosOfADelegateeInput
                 {
                     DelegateeAddress = Delegatee2Address,
-                    DelegatorAddress = delegateeAddress,
+                    DelegatorAddress = DelegateeAddress,
                     ContractAddress = TokenContractAddress,
                     MethodName = nameof(TokenContractContainer.TokenContractStub.Transfer)
                 });
             delegation2.Delegations[basicFeeSymbol].ShouldBe(delegateeAmountBasic);
         }
     }
+
     [Theory]
-    [InlineData( 10, 20, 70, 1000, 1000, 1000, 10, 10, 20, 20, 70, 70,  80, 80,  70, 1000)]
-    public async Task ChargeTransactionFee_DelegationNew_Second_Failed(
+    [InlineData(10, 20, 70, 1000, 1000, 1000, 10, 10, 20, 20, 70, 70, 80, 80, 70, 1000)]
+    public async Task ChargeTransactionFee_DelegationNew_Second_Failed_DelegateeBalanceIsNotEnough(
         long initialBalance, long initialDelegateeBalance, long initialDelegatee2Balance,
         long delegateeAmountNativeToken, long delegateeAmountBasic, long delegateeAmountSize,
         long baseFeeBalance, long sizeFeeBalance, long baseFeeDelegateBalance, long sizeFeeDelegateBalance,
@@ -1412,7 +1461,7 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
         await CreateTokenAsync(DefaultSender, sizeFeeSymbol);
 
         await IssueTokenToDefaultSenderAsync(NativeTokenSymbol, initialBalance);
-        await IssueTokenToUserAsync(NativeTokenSymbol, initialDelegateeBalance, delegateeAddress);
+        await IssueTokenToUserAsync(NativeTokenSymbol, initialDelegateeBalance, DelegateeAddress);
         await IssueTokenToUserAsync(NativeTokenSymbol, initialDelegatee2Balance, Delegatee2Address);
         if (baseFeeBalance != 0 && sizeFeeBalance != 0 &&
             baseFeeDelegateBalance != 0 && sizeFeeDelegateBalance != 0 &&
@@ -1420,8 +1469,8 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
         {
             await IssueTokenToDefaultSenderAsync(basicFeeSymbol, baseFeeBalance);
             await IssueTokenToDefaultSenderAsync(sizeFeeSymbol, sizeFeeBalance);
-            await IssueTokenToUserAsync(basicFeeSymbol, baseFeeDelegateBalance, delegateeAddress);
-            await IssueTokenToUserAsync(sizeFeeSymbol, sizeFeeDelegateBalance, delegateeAddress);
+            await IssueTokenToUserAsync(basicFeeSymbol, baseFeeDelegateBalance, DelegateeAddress);
+            await IssueTokenToUserAsync(sizeFeeSymbol, sizeFeeDelegateBalance, DelegateeAddress);
             await IssueTokenToUserAsync(basicFeeSymbol, baseFeeDelegate2Balance, Delegatee2Address);
             await IssueTokenToUserAsync(sizeFeeSymbol, sizeFeeDelegate2Balance, Delegatee2Address);
         }
@@ -1459,46 +1508,11 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
         await TokenContractStubDelegate2.SetTransactionFeeDelegateInfos.SendAsync(
             new SetTransactionFeeDelegateInfosInput
             {
-                DelegatorAddress = delegateeAddress,
+                DelegatorAddress = DelegateeAddress,
                 DelegateInfoList = { delegateInfo2 }
             });
 
-        var methodFee = new MethodFees
-        {
-            MethodName = nameof(TokenContractContainer.TokenContractStub.Transfer),
-            Fees =
-            {
-                new MethodFee
-                {
-                    Symbol = basicFeeSymbol,
-                    BasicFee = basicFee
-                }
-            }
-        };
-        await SubmitAndPassProposalOfDefaultParliamentAsync(TokenContractAddress,
-            nameof(TokenContractImplContainer.TokenContractImplStub.SetMethodFee), methodFee);
-
-        var sizeFeeSymbolList = new SymbolListToPayTxSizeFee
-        {
-            SymbolsToPayTxSizeFee =
-            {
-                new SymbolToPayTxSizeFee
-                {
-                    TokenSymbol = sizeFeeSymbol,
-                    AddedTokenWeight = 1,
-                    BaseTokenWeight = 1
-                },
-                new SymbolToPayTxSizeFee
-                {
-                    TokenSymbol = NativeTokenSymbol,
-                    AddedTokenWeight = 1,
-                    BaseTokenWeight = 1
-                }
-            }
-        };
-        await SubmitAndPassProposalOfDefaultParliamentAsync(TokenContractAddress,
-            nameof(TokenContractImplContainer.TokenContractImplStub.SetSymbolsToPayTxSizeFee), sizeFeeSymbolList);
-
+        var sizeFeeSymbolList = await SetMethodOrSizeFeeAsync(basicFeeSymbol,sizeFeeSymbol,80);
 
         var chargeTransactionFeesInput = new ChargeTransactionFeesInput
         {
@@ -1511,7 +1525,7 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
             await TokenContractStubDelegate1.GetTransactionFeeDelegateInfosOfADelegatee.CallAsync(
                 new GetTransactionFeeDelegateInfosOfADelegateeInput
                 {
-                    DelegateeAddress = delegateeAddress,
+                    DelegateeAddress = DelegateeAddress,
                     DelegatorAddress = DefaultSender,
                     ContractAddress = TokenContractAddress,
                     MethodName = nameof(TokenContractContainer.TokenContractStub.Transfer)
@@ -1521,12 +1535,13 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
                 new GetTransactionFeeDelegateInfosOfADelegateeInput
                 {
                     DelegateeAddress = Delegatee2Address,
-                    DelegatorAddress = delegateeAddress,
+                    DelegatorAddress = DelegateeAddress,
                     ContractAddress = TokenContractAddress,
                     MethodName = nameof(TokenContractContainer.TokenContractStub.Transfer)
                 });
         var chargeFeeRetDefault = await TokenContractStub.ChargeTransactionFees.SendAsync(chargeTransactionFeesInput);
-        if (chargeFeeRetDefault.Transaction.RefBlockNumber >= delegationResult.BlockHeight + 2 && chargeFeeRetDefault.Transaction.RefBlockNumber >= delegationResult2.BlockHeight + 2)
+        if (chargeFeeRetDefault.Transaction.RefBlockNumber >= delegationResult.BlockHeight + 2 &&
+            chargeFeeRetDefault.Transaction.RefBlockNumber >= delegationResult2.BlockHeight + 2)
         {
             chargeFeeRetDefault.Output.Success.ShouldBe(false);
             chargeFeeRetDefault.Output.ChargingInformation.ShouldBe("Transaction fee not enough.");
@@ -1543,10 +1558,10 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
             var afterDelegateeBalance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
                 Symbol = basicFeeSymbol,
-                Owner = delegateeAddress
+                Owner = DelegateeAddress
             });
             afterDelegateeBalance.Balance.ShouldBe(20);
-            
+
             //no change 
             var afterSecondaryDelegateeBalance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
@@ -1558,7 +1573,7 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
                 new GetTransactionFeeDelegateInfosOfADelegateeInput
                 {
                     DelegateeAddress = Delegatee2Address,
-                    DelegatorAddress = delegateeAddress,
+                    DelegatorAddress = DelegateeAddress,
                     ContractAddress = TokenContractAddress,
                     MethodName = nameof(TokenContractContainer.TokenContractStub.Transfer)
                 });
@@ -1569,8 +1584,235 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
             chargeFeeRetDefault.Output.Success.ShouldBe(false);
         }
     }
+
     [Theory]
-    [InlineData( 10, 20, 100, 1000, 1000, 1000, 10, 10, 20, 20, 100, 100,  80, 80,  20, 920)]
+    [InlineData(10, 20, 100, 30, 30, 30, 10, 10, 20, 20, 100, 100, 80, 80, 100, 30)]
+    public async Task ChargeTransactionFee_DelegationNew_Second_Failed_DelegationIsNotEnough(
+        long initialBalance, long initialDelegateeBalance, long initialDelegatee2Balance,
+        long delegateeAmountNativeToken, long delegateeAmountBasic, long delegateeAmountSize,
+        long baseFeeBalance, long sizeFeeBalance, long baseFeeDelegateBalance, long sizeFeeDelegateBalance,
+        long baseFeeDelegate2Balance, long sizeFeeDelegate2Balance,
+        long basicFee, long sizeFee, long afterBalanceDelegatee, long afterDelegateeAmount)
+    {
+        var basicFeeSymbol = "BASIC";
+        var sizeFeeSymbol = "SIZE";
+
+        await SetPrimaryTokenSymbolAsync();
+        await CreateTokenAsync(DefaultSender, basicFeeSymbol);
+        await CreateTokenAsync(DefaultSender, sizeFeeSymbol);
+
+        await IssueTokenToDefaultSenderAsync(NativeTokenSymbol, initialBalance);
+        await IssueTokenToUserAsync(NativeTokenSymbol, initialDelegateeBalance, DelegateeAddress);
+        await IssueTokenToUserAsync(NativeTokenSymbol, initialDelegatee2Balance, Delegatee2Address);
+        if (baseFeeBalance != 0 && sizeFeeBalance != 0 &&
+            baseFeeDelegateBalance != 0 && sizeFeeDelegateBalance != 0 &&
+            baseFeeDelegate2Balance != 0 && sizeFeeDelegate2Balance != 0)
+        {
+            await IssueTokenToDefaultSenderAsync(basicFeeSymbol, baseFeeBalance);
+            await IssueTokenToDefaultSenderAsync(sizeFeeSymbol, sizeFeeBalance);
+            await IssueTokenToUserAsync(basicFeeSymbol, baseFeeDelegateBalance, DelegateeAddress);
+            await IssueTokenToUserAsync(sizeFeeSymbol, sizeFeeDelegateBalance, DelegateeAddress);
+            await IssueTokenToUserAsync(basicFeeSymbol, baseFeeDelegate2Balance, Delegatee2Address);
+            await IssueTokenToUserAsync(sizeFeeSymbol, sizeFeeDelegate2Balance, Delegatee2Address);
+        }
+
+        var delegations = new Dictionary<string, long>
+        {
+            [NativeTokenSymbol] = 5,
+        };
+        var delegations2 = new Dictionary<string, long>
+        {
+            [NativeTokenSymbol] = delegateeAmountNativeToken,
+            [basicFeeSymbol] = delegateeAmountBasic,
+            [sizeFeeSymbol] = delegateeAmountSize
+        };
+        var delegateInfo1 = new DelegateInfo
+        {
+            Delegations = { delegations },
+            IsUnlimitedDelegate = false,
+            MethodName = nameof(TokenContractContainer.TokenContractStub.Transfer),
+            ContractAddress = TokenContractAddress,
+        };
+        var delegateInfo2 = new DelegateInfo
+        {
+            Delegations = { delegations2 },
+            IsUnlimitedDelegate = false,
+            MethodName = nameof(TokenContractContainer.TokenContractStub.Transfer),
+            ContractAddress = TokenContractAddress,
+        };
+        await TokenContractStubDelegate1.SetTransactionFeeDelegateInfos.SendAsync(
+            new SetTransactionFeeDelegateInfosInput
+            {
+                DelegatorAddress = DefaultSender,
+                DelegateInfoList = { delegateInfo1 }
+            });
+        await TokenContractStubDelegate2.SetTransactionFeeDelegateInfos.SendAsync(
+            new SetTransactionFeeDelegateInfosInput
+            {
+                DelegatorAddress = DelegateeAddress,
+                DelegateInfoList = { delegateInfo2 }
+            });
+
+        var sizeFeeSymbolList = await SetMethodOrSizeFeeAsync(basicFeeSymbol,sizeFeeSymbol,80);
+
+        var chargeTransactionFeesInput = new ChargeTransactionFeesInput
+        {
+            MethodName = nameof(TokenContractContainer.TokenContractStub.Transfer),
+            ContractAddress = TokenContractAddress,
+            TransactionSizeFee = sizeFee,
+        };
+        chargeTransactionFeesInput.SymbolsToPayTxSizeFee.AddRange(sizeFeeSymbolList.SymbolsToPayTxSizeFee);
+        var chargeFeeRetDefault = await TokenContractStub.ChargeTransactionFees.SendAsync(chargeTransactionFeesInput);
+        chargeFeeRetDefault.Output.Success.ShouldBe(false);
+
+            //no change
+            var afterBalance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Symbol = basicFeeSymbol,
+                Owner = DefaultSender
+            });
+            afterBalance.Balance.ShouldBe(0);
+
+            //no change 
+            var afterDelegateeBalance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Symbol = basicFeeSymbol,
+                Owner = DelegateeAddress
+            });
+            afterDelegateeBalance.Balance.ShouldBe(20);
+
+            var afterSecondaryDelegateeBalance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Symbol = basicFeeSymbol,
+                Owner = Delegatee2Address
+            });
+            afterSecondaryDelegateeBalance.Balance.ShouldBe(afterBalanceDelegatee);
+            var delegation = await TokenContractStubDelegate1.GetTransactionFeeDelegateInfosOfADelegatee.CallAsync(
+                new GetTransactionFeeDelegateInfosOfADelegateeInput
+                {
+                    DelegateeAddress = Delegatee2Address,
+                    DelegatorAddress = DelegateeAddress,
+                    ContractAddress = TokenContractAddress,
+                    MethodName = nameof(TokenContractContainer.TokenContractStub.Transfer)
+                });
+            delegation.Delegations[basicFeeSymbol].ShouldBe(afterDelegateeAmount);
+    }
+
+    [Theory]
+    [InlineData(10, 20, 100, 1000, 1000, 1000, 10, 10, 20, 20, 100, 100, 80, 80, 100, 1000)]
+    public async Task ChargeTransactionFee_DelegationNew_Second_Failed_DelegateIsNotExist(
+        long initialBalance, long initialDelegateeBalance, long initialDelegatee2Balance,
+        long delegateeAmountNativeToken, long delegateeAmountBasic, long delegateeAmountSize,
+        long baseFeeBalance, long sizeFeeBalance, long baseFeeDelegateBalance, long sizeFeeDelegateBalance,
+        long baseFeeDelegate2Balance, long sizeFeeDelegate2Balance,
+        long basicFee, long sizeFee, long afterBalanceDelegatee, long afterDelegateeAmount)
+    {
+        var basicFeeSymbol = "BASIC";
+        var sizeFeeSymbol = "SIZE";
+
+        await SetPrimaryTokenSymbolAsync();
+        await CreateTokenAsync(DefaultSender, basicFeeSymbol);
+        await CreateTokenAsync(DefaultSender, sizeFeeSymbol);
+
+        await IssueTokenToDefaultSenderAsync(NativeTokenSymbol, initialBalance);
+        await IssueTokenToUserAsync(NativeTokenSymbol, initialDelegateeBalance, DelegateeAddress);
+        await IssueTokenToUserAsync(NativeTokenSymbol, initialDelegatee2Balance, Delegatee2Address);
+        if (baseFeeBalance != 0 && sizeFeeBalance != 0 &&
+            baseFeeDelegateBalance != 0 && sizeFeeDelegateBalance != 0 &&
+            baseFeeDelegate2Balance != 0 && sizeFeeDelegate2Balance != 0)
+        {
+            await IssueTokenToDefaultSenderAsync(basicFeeSymbol, baseFeeBalance);
+            await IssueTokenToDefaultSenderAsync(sizeFeeSymbol, sizeFeeBalance);
+            await IssueTokenToUserAsync(basicFeeSymbol, baseFeeDelegateBalance, DelegateeAddress);
+            await IssueTokenToUserAsync(sizeFeeSymbol, sizeFeeDelegateBalance, DelegateeAddress);
+            await IssueTokenToUserAsync(basicFeeSymbol, baseFeeDelegate2Balance, Delegatee2Address);
+            await IssueTokenToUserAsync(sizeFeeSymbol, sizeFeeDelegate2Balance, Delegatee2Address);
+        }
+
+        var delegations = new Dictionary<string, long>
+        {
+            [NativeTokenSymbol] = 5,
+        };
+        var delegations2 = new Dictionary<string, long>
+        {
+            [NativeTokenSymbol] = delegateeAmountNativeToken,
+            [basicFeeSymbol] = delegateeAmountBasic,
+            [sizeFeeSymbol] = delegateeAmountSize
+        };
+        var delegateInfo1 = new DelegateInfo
+        {
+            Delegations = { delegations },
+            IsUnlimitedDelegate = false,
+            MethodName = nameof(TokenContractContainer.TokenContractStub.Transfer),
+            ContractAddress = TokenContractAddress,
+        };
+        var delegateInfo2 = new DelegateInfo
+        {
+            Delegations = { delegations2 },
+            IsUnlimitedDelegate = false,
+            MethodName = nameof(TokenContractContainer.TokenContractStub.Transfer),
+            ContractAddress = ConsensusContractAddress,
+        };
+        await TokenContractStubDelegate1.SetTransactionFeeDelegateInfos.SendAsync(
+            new SetTransactionFeeDelegateInfosInput
+            {
+                DelegatorAddress = DefaultSender,
+                DelegateInfoList = { delegateInfo1 }
+            });
+        await TokenContractStubDelegate2.SetTransactionFeeDelegateInfos.SendAsync(
+            new SetTransactionFeeDelegateInfosInput
+            {
+                DelegatorAddress = DelegateeAddress,
+                DelegateInfoList = { delegateInfo2 }
+            });
+
+        var sizeFeeSymbolList = await SetMethodOrSizeFeeAsync(basicFeeSymbol,sizeFeeSymbol,basicFee);
+
+        var chargeTransactionFeesInput = new ChargeTransactionFeesInput
+        {
+            MethodName = nameof(TokenContractContainer.TokenContractStub.Transfer),
+            ContractAddress = TokenContractAddress,
+            TransactionSizeFee = sizeFee,
+        };
+        chargeTransactionFeesInput.SymbolsToPayTxSizeFee.AddRange(sizeFeeSymbolList.SymbolsToPayTxSizeFee);
+        var chargeFeeRetDefault = await TokenContractStub.ChargeTransactionFees.SendAsync(chargeTransactionFeesInput);
+        chargeFeeRetDefault.Output.Success.ShouldBe(false);
+
+        //no change
+        var afterBalance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+        {
+            Symbol = basicFeeSymbol,
+            Owner = DefaultSender
+        });
+        afterBalance.Balance.ShouldBe(0);
+
+        //no change 
+        var afterDelegateeBalance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+        {
+            Symbol = basicFeeSymbol,
+            Owner = DelegateeAddress
+        });
+        afterDelegateeBalance.Balance.ShouldBe(20);
+
+        var afterSecondaryDelegateeBalance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+        {
+            Symbol = basicFeeSymbol,
+            Owner = Delegatee2Address
+        });
+        afterSecondaryDelegateeBalance.Balance.ShouldBe(afterBalanceDelegatee);
+        var delegation = await TokenContractStubDelegate1.GetTransactionFeeDelegateInfosOfADelegatee.CallAsync(
+            new GetTransactionFeeDelegateInfosOfADelegateeInput
+            {
+                DelegateeAddress = Delegatee2Address,
+                DelegatorAddress = DelegateeAddress,
+                ContractAddress = ConsensusContractAddress,
+                MethodName = nameof(TokenContractContainer.TokenContractStub.Transfer)
+            });
+        delegation.Delegations[basicFeeSymbol].ShouldBe(afterDelegateeAmount);
+    }
+
+    [Theory]
+    [InlineData(10, 20, 100, 1000, 1000, 1000, 10, 10, 20, 20, 100, 100, 80, 80, 20, 920)]
     public async Task ChargeTransactionFee_DelegationOldFirst_NewSecond_Success(
         long initialBalance, long initialDelegateeBalance, long initialDelegatee2Balance,
         long delegateeAmountNativeToken, long delegateeAmountBasic, long delegateeAmountSize,
@@ -1586,7 +1828,7 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
         await CreateTokenAsync(DefaultSender, sizeFeeSymbol);
 
         await IssueTokenToDefaultSenderAsync(NativeTokenSymbol, initialBalance);
-        await IssueTokenToUserAsync(NativeTokenSymbol, initialDelegateeBalance, delegateeAddress);
+        await IssueTokenToUserAsync(NativeTokenSymbol, initialDelegateeBalance, DelegateeAddress);
         await IssueTokenToUserAsync(NativeTokenSymbol, initialDelegatee2Balance, Delegatee2Address);
         if (baseFeeBalance != 0 && sizeFeeBalance != 0 &&
             baseFeeDelegateBalance != 0 && sizeFeeDelegateBalance != 0 &&
@@ -1594,8 +1836,8 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
         {
             await IssueTokenToDefaultSenderAsync(basicFeeSymbol, baseFeeBalance);
             await IssueTokenToDefaultSenderAsync(sizeFeeSymbol, sizeFeeBalance);
-            await IssueTokenToUserAsync(basicFeeSymbol, baseFeeDelegateBalance, delegateeAddress);
-            await IssueTokenToUserAsync(sizeFeeSymbol, sizeFeeDelegateBalance, delegateeAddress);
+            await IssueTokenToUserAsync(basicFeeSymbol, baseFeeDelegateBalance, DelegateeAddress);
+            await IssueTokenToUserAsync(sizeFeeSymbol, sizeFeeDelegateBalance, DelegateeAddress);
             await IssueTokenToUserAsync(basicFeeSymbol, baseFeeDelegate2Balance, Delegatee2Address);
             await IssueTokenToUserAsync(sizeFeeSymbol, sizeFeeDelegate2Balance, Delegatee2Address);
         }
@@ -1626,47 +1868,12 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
         await TokenContractStubDelegate2.SetTransactionFeeDelegateInfos.SendAsync(
             new SetTransactionFeeDelegateInfosInput
             {
-                DelegatorAddress = delegateeAddress,
+                DelegatorAddress = DelegateeAddress,
                 DelegateInfoList = { delegateInfo2 }
             });
 
-        var methodFee = new MethodFees
-        {
-            MethodName = nameof(TokenContractContainer.TokenContractStub.Transfer),
-            Fees =
-            {
-                new MethodFee
-                {
-                    Symbol = basicFeeSymbol,
-                    BasicFee = basicFee
-                }
-            }
-        };
-        await SubmitAndPassProposalOfDefaultParliamentAsync(TokenContractAddress,
-            nameof(TokenContractImplContainer.TokenContractImplStub.SetMethodFee), methodFee);
-
-        var sizeFeeSymbolList = new SymbolListToPayTxSizeFee
-        {
-            SymbolsToPayTxSizeFee =
-            {
-                new SymbolToPayTxSizeFee
-                {
-                    TokenSymbol = sizeFeeSymbol,
-                    AddedTokenWeight = 1,
-                    BaseTokenWeight = 1
-                },
-                new SymbolToPayTxSizeFee
-                {
-                    TokenSymbol = NativeTokenSymbol,
-                    AddedTokenWeight = 1,
-                    BaseTokenWeight = 1
-                }
-            }
-        };
-        await SubmitAndPassProposalOfDefaultParliamentAsync(TokenContractAddress,
-            nameof(TokenContractImplContainer.TokenContractImplStub.SetSymbolsToPayTxSizeFee), sizeFeeSymbolList);
-
-
+        var sizeFeeSymbolList = await SetMethodOrSizeFeeAsync(basicFeeSymbol,sizeFeeSymbol,basicFee);
+        
         var chargeTransactionFeesInput = new ChargeTransactionFeesInput
         {
             MethodName = nameof(TokenContractContainer.TokenContractStub.Transfer),
@@ -1678,7 +1885,7 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
             await TokenContractStubDelegate1.GetTransactionFeeDelegationsOfADelegatee.CallAsync(
                 new GetTransactionFeeDelegationsOfADelegateeInput
                 {
-                    DelegateeAddress = delegateeAddress,
+                    DelegateeAddress = DelegateeAddress,
                     DelegatorAddress = DefaultSender
                 });
         var delegationResult2 =
@@ -1686,12 +1893,13 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
                 new GetTransactionFeeDelegateInfosOfADelegateeInput
                 {
                     DelegateeAddress = Delegatee2Address,
-                    DelegatorAddress = delegateeAddress,
+                    DelegatorAddress = DelegateeAddress,
                     ContractAddress = TokenContractAddress,
                     MethodName = nameof(TokenContractContainer.TokenContractStub.Transfer)
                 });
         var chargeFeeRetDefault = await TokenContractStub.ChargeTransactionFees.SendAsync(chargeTransactionFeesInput);
-        if (chargeFeeRetDefault.Transaction.RefBlockNumber >= delegationResult.BlockHeight + 2 && chargeFeeRetDefault.Transaction.RefBlockNumber >= delegationResult2.BlockHeight + 2)
+        if (chargeFeeRetDefault.Transaction.RefBlockNumber >= delegationResult.BlockHeight + 2 &&
+            chargeFeeRetDefault.Transaction.RefBlockNumber >= delegationResult2.BlockHeight + 2)
         {
             chargeFeeRetDefault.Output.Success.ShouldBe(true);
 
@@ -1707,10 +1915,10 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
             var afterDelegateeBalance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
                 Symbol = basicFeeSymbol,
-                Owner = delegateeAddress
+                Owner = DelegateeAddress
             });
             afterDelegateeBalance.Balance.ShouldBe(20);
-            
+
             var afterSecondaryDelegateeBalance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
                 Symbol = basicFeeSymbol,
@@ -1721,7 +1929,7 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
                 new GetTransactionFeeDelegateInfosOfADelegateeInput
                 {
                     DelegateeAddress = Delegatee2Address,
-                    DelegatorAddress = delegateeAddress,
+                    DelegatorAddress = DelegateeAddress,
                     ContractAddress = TokenContractAddress,
                     MethodName = nameof(TokenContractContainer.TokenContractStub.Transfer)
                 });
@@ -1734,7 +1942,7 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
             var delegation = await TokenContractStubDelegate1.GetTransactionFeeDelegationsOfADelegatee.CallAsync(
                 new GetTransactionFeeDelegationsOfADelegateeInput
                 {
-                    DelegateeAddress = delegateeAddress,
+                    DelegateeAddress = DelegateeAddress,
                     DelegatorAddress = DefaultSender
                 });
             delegation.Delegations[NativeTokenSymbol].ShouldBe(5);
@@ -1742,16 +1950,16 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
                 new GetTransactionFeeDelegateInfosOfADelegateeInput
                 {
                     DelegateeAddress = Delegatee2Address,
-                    DelegatorAddress = delegateeAddress,
+                    DelegatorAddress = DelegateeAddress,
                     ContractAddress = TokenContractAddress,
                     MethodName = nameof(TokenContractContainer.TokenContractStub.Transfer)
                 });
             delegation2.Delegations[basicFeeSymbol].ShouldBe(delegateeAmountBasic);
         }
     }
-    
+
     [Theory]
-    [InlineData( 10, 20, 100, 10, 10, 20, 20, 100, 100,  80, 80,  20)]
+    [InlineData(10, 20, 100, 10, 10, 20, 20, 100, 100, 80, 80, 20)]
     public async Task ChargeTransactionFee_DelegationNew_UnlimitedDelegate_Success(
         long initialBalance, long initialDelegateeBalance, long initialDelegatee2Balance,
         long baseFeeBalance, long sizeFeeBalance, long baseFeeDelegateBalance, long sizeFeeDelegateBalance,
@@ -1766,7 +1974,7 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
         await CreateTokenAsync(DefaultSender, sizeFeeSymbol);
 
         await IssueTokenToDefaultSenderAsync(NativeTokenSymbol, initialBalance);
-        await IssueTokenToUserAsync(NativeTokenSymbol, initialDelegateeBalance, delegateeAddress);
+        await IssueTokenToUserAsync(NativeTokenSymbol, initialDelegateeBalance, DelegateeAddress);
         await IssueTokenToUserAsync(NativeTokenSymbol, initialDelegatee2Balance, Delegatee2Address);
         if (baseFeeBalance != 0 && sizeFeeBalance != 0 &&
             baseFeeDelegateBalance != 0 && sizeFeeDelegateBalance != 0 &&
@@ -1774,8 +1982,8 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
         {
             await IssueTokenToDefaultSenderAsync(basicFeeSymbol, baseFeeBalance);
             await IssueTokenToDefaultSenderAsync(sizeFeeSymbol, sizeFeeBalance);
-            await IssueTokenToUserAsync(basicFeeSymbol, baseFeeDelegateBalance, delegateeAddress);
-            await IssueTokenToUserAsync(sizeFeeSymbol, sizeFeeDelegateBalance, delegateeAddress);
+            await IssueTokenToUserAsync(basicFeeSymbol, baseFeeDelegateBalance, DelegateeAddress);
+            await IssueTokenToUserAsync(sizeFeeSymbol, sizeFeeDelegateBalance, DelegateeAddress);
             await IssueTokenToUserAsync(basicFeeSymbol, baseFeeDelegate2Balance, Delegatee2Address);
             await IssueTokenToUserAsync(sizeFeeSymbol, sizeFeeDelegate2Balance, Delegatee2Address);
         }
@@ -1799,10 +2007,322 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
         await TokenContractStubDelegate2.SetTransactionFeeDelegateInfos.SendAsync(
             new SetTransactionFeeDelegateInfosInput
             {
-                DelegatorAddress = delegateeAddress,
+                DelegatorAddress = DelegateeAddress,
                 DelegateInfoList = { delegateInfo2 }
             });
 
+        var sizeFeeSymbolList = await SetMethodOrSizeFeeAsync(basicFeeSymbol,sizeFeeSymbol,basicFee);
+
+        var chargeTransactionFeesInput = new ChargeTransactionFeesInput
+        {
+            MethodName = nameof(TokenContractContainer.TokenContractStub.Transfer),
+            ContractAddress = TokenContractAddress,
+            TransactionSizeFee = sizeFee,
+        };
+        chargeTransactionFeesInput.SymbolsToPayTxSizeFee.AddRange(sizeFeeSymbolList.SymbolsToPayTxSizeFee);
+        var delegationResult =
+            await TokenContractStubDelegate1.GetTransactionFeeDelegationsOfADelegatee.CallAsync(
+                new GetTransactionFeeDelegationsOfADelegateeInput
+                {
+                    DelegateeAddress = DelegateeAddress,
+                    DelegatorAddress = DefaultSender
+                });
+        var delegationResult2 =
+            await TokenContractStubDelegate1.GetTransactionFeeDelegateInfosOfADelegatee.CallAsync(
+                new GetTransactionFeeDelegateInfosOfADelegateeInput
+                {
+                    DelegateeAddress = Delegatee2Address,
+                    DelegatorAddress = DelegateeAddress,
+                    ContractAddress = TokenContractAddress,
+                    MethodName = nameof(TokenContractContainer.TokenContractStub.Transfer)
+                });
+        var chargeFeeRetDefault = await TokenContractStub.ChargeTransactionFees.SendAsync(chargeTransactionFeesInput);
+        if (chargeFeeRetDefault.Transaction.RefBlockNumber >= delegationResult.BlockHeight + 2 &&
+            chargeFeeRetDefault.Transaction.RefBlockNumber >= delegationResult2.BlockHeight + 2)
+        {
+            chargeFeeRetDefault.Output.Success.ShouldBe(true);
+
+            //no change
+            var afterBalance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Symbol = basicFeeSymbol,
+                Owner = DefaultSender
+            });
+            afterBalance.Balance.ShouldBe(10);
+
+            //no change 
+            var afterDelegateeBalance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Symbol = basicFeeSymbol,
+                Owner = DelegateeAddress
+            });
+            afterDelegateeBalance.Balance.ShouldBe(20);
+
+            var afterSecondaryDelegateeBalance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Symbol = basicFeeSymbol,
+                Owner = Delegatee2Address
+            });
+            afterSecondaryDelegateeBalance.Balance.ShouldBe(afterBalanceDelegatee);
+        }
+        else
+        {
+            chargeFeeRetDefault.Output.Success.ShouldBe(false);
+
+            var delegation = await TokenContractStubDelegate1.GetTransactionFeeDelegationsOfADelegatee.CallAsync(
+                new GetTransactionFeeDelegationsOfADelegateeInput
+                {
+                    DelegateeAddress = DelegateeAddress,
+                    DelegatorAddress = DefaultSender
+                });
+            delegation.Delegations[NativeTokenSymbol].ShouldBe(5);
+        }
+    }
+
+    [Fact]
+    public async Task ChargeTransactionFee_DelegationNew_MultiDelegate_Success()
+    {
+        var basicFeeSymbol = "BASIC";
+        var sizeFeeSymbol = "SIZE";
+
+        await SetPrimaryTokenSymbolAsync();
+        await CreateTokenAsync(DefaultSender, basicFeeSymbol);
+        await CreateTokenAsync(DefaultSender, sizeFeeSymbol);
+
+        var tokenList = new List<string> { NativeTokenSymbol, basicFeeSymbol, sizeFeeSymbol };
+        await IssueTokenListToUserAsync(tokenList, 10, DefaultSender);
+        await IssueTokenListToUserAsync(tokenList, 20, DelegateeAddress);
+        await IssueTokenListToUserAsync(tokenList, 100, Delegatee2Address);
+        await IssueTokenListToUserAsync(tokenList, 20, Delegatee3Address);
+        await IssueTokenListToUserAsync(tokenList, 20, SecondaryDelegatee1Address);
+        await IssueTokenListToUserAsync(tokenList, 100, SecondaryDelegatee2Address);
+        await IssueTokenListToUserAsync(tokenList, 20, SecondaryDelegatee3Address);
+        await IssueTokenListToUserAsync(tokenList, 20, SecondaryDelegatee4Address);
+        await IssueTokenListToUserAsync(tokenList, 200, SecondaryDelegatee5Address);
+        await IssueTokenListToUserAsync(tokenList, 100, SecondaryDelegatee6Address);
+
+        //first delegate
+        //delegatee1 -> default sender, balance is not enough
+        //delegatee2 -> default sender, delegation is not enough
+        //delegatee3 -> default sender, balance and delegation is not enough
+        var delegations1 = new Dictionary<string, long>
+        {
+            [NativeTokenSymbol] = 100,
+            [basicFeeSymbol] = 100,
+            [sizeFeeSymbol] = 100,
+        };
+        var delegations2 = new Dictionary<string, long>
+        {
+            [NativeTokenSymbol] = 10
+        };
+        var delegations3 = new Dictionary<string, long>
+        {
+            [NativeTokenSymbol] = 30,
+            [basicFeeSymbol] = 100
+        };
+        var delegateInfo1 = new DelegateInfo
+        {
+            IsUnlimitedDelegate = false,
+            MethodName = nameof(TokenContractContainer.TokenContractStub.Transfer),
+            ContractAddress = TokenContractAddress,
+            Delegations = { delegations1 }
+        };
+        var delegateInfo2 = new DelegateInfo
+        {
+            IsUnlimitedDelegate = false,
+            MethodName = nameof(TokenContractContainer.TokenContractStub.Transfer),
+            ContractAddress = TokenContractAddress,
+            Delegations = { delegations2 }
+        };
+        var delegateInfo3 = new DelegateInfo
+        {
+            IsUnlimitedDelegate = false,
+            MethodName = nameof(TokenContractContainer.TokenContractStub.Transfer),
+            ContractAddress = TokenContractAddress,
+            Delegations = { delegations3 }
+        };
+        await TokenContractStubDelegate1.SetTransactionFeeDelegateInfos.SendAsync(
+            new SetTransactionFeeDelegateInfosInput
+            {
+                DelegatorAddress = DefaultSender,
+                DelegateInfoList = { delegateInfo1 },
+            });
+        await TokenContractStubDelegate2.SetTransactionFeeDelegateInfos.SendAsync(
+            new SetTransactionFeeDelegateInfosInput
+            {
+                DelegatorAddress = DefaultSender,
+                DelegateInfoList = { delegateInfo2 }
+            });
+        await TokenContractStubDelegate3.SetTransactionFeeDelegateInfos.SendAsync(
+            new SetTransactionFeeDelegateInfosInput
+            {
+                DelegatorAddress = DefaultSender,
+                DelegateInfoList = { delegateInfo3 }
+            });
+        //second delegate
+        //secondary delegatee1 -> delegatee1, balance is not enough
+        //secondary delegatee2 -> delegatee1, delegation is not enough
+        //secondary delegatee3 -> delegatee1, balance and delegation is not enough
+        //secondary delegatee4 -> delegatee2, balance is not enough
+        //secondary delegatee5 -> delegatee2, success
+        //secondary delegatee6 -> delegatee3
+        await TokenContractStubSecondaryDelegate1.SetTransactionFeeDelegateInfos.SendAsync(
+            new SetTransactionFeeDelegateInfosInput
+            {
+                DelegatorAddress = DelegateeAddress,
+                DelegateInfoList = { delegateInfo1 }
+            });
+        await TokenContractStubSecondaryDelegate2.SetTransactionFeeDelegateInfos.SendAsync(
+            new SetTransactionFeeDelegateInfosInput
+            {
+                DelegatorAddress = DelegateeAddress,
+                DelegateInfoList = { delegateInfo2 }
+            });
+        await TokenContractStubSecondaryDelegate3.SetTransactionFeeDelegateInfos.SendAsync(
+            new SetTransactionFeeDelegateInfosInput
+            {
+                DelegatorAddress = DelegateeAddress,
+                DelegateInfoList = { delegateInfo3 }
+            });
+        await TokenContractStubSecondaryDelegate4.SetTransactionFeeDelegateInfos.SendAsync(
+            new SetTransactionFeeDelegateInfosInput
+            {
+                DelegatorAddress = Delegatee2Address,
+                DelegateInfoList = { delegateInfo1 }
+            });
+        await TokenContractStubSecondaryDelegate5.SetTransactionFeeDelegateInfos.SendAsync(
+            new SetTransactionFeeDelegateInfosInput
+            {
+                DelegatorAddress = Delegatee2Address,
+                DelegateInfoList = { delegateInfo1 }
+            });
+        await TokenContractStubSecondaryDelegate6.SetTransactionFeeDelegateInfos.SendAsync(
+            new SetTransactionFeeDelegateInfosInput
+            {
+                DelegatorAddress = Delegatee3Address,
+                DelegateInfoList = { delegateInfo3 }
+            });
+
+        var sizeFeeSymbolList = await SetMethodOrSizeFeeAsync(basicFeeSymbol, sizeFeeSymbol, 80);
+        var chargeTransactionFeesInput = new ChargeTransactionFeesInput
+        {
+            MethodName = nameof(TokenContractContainer.TokenContractStub.Transfer),
+            ContractAddress = TokenContractAddress,
+            TransactionSizeFee = 80,
+        };
+        chargeTransactionFeesInput.SymbolsToPayTxSizeFee.AddRange(sizeFeeSymbolList.SymbolsToPayTxSizeFee);
+
+        var delegateList = new List<(Address, Address)>
+        {
+            (DelegateeAddress, DefaultSender),
+            (Delegatee2Address, DefaultSender),
+            (Delegatee3Address, DefaultSender),
+            (SecondaryDelegatee1Address, DelegateeAddress),
+            (SecondaryDelegatee2Address, DelegateeAddress),
+            (SecondaryDelegatee3Address, DelegateeAddress),
+            (SecondaryDelegatee4Address, Delegatee2Address),
+            (SecondaryDelegatee5Address, Delegatee2Address),
+            (SecondaryDelegatee6Address, Delegatee3Address),
+            (DelegateeAddress, DefaultSender),
+            (DelegateeAddress, DefaultSender),
+            (DelegateeAddress, DefaultSender)
+        };
+
+        var chargeFeeRetDefault = await TokenContractStub.ChargeTransactionFees.SendAsync(chargeTransactionFeesInput);
+        var result = await GetSetDelegationResultAsync(delegateList, chargeFeeRetDefault.Transaction.RefBlockNumber);
+        if (result)
+        {
+            chargeFeeRetDefault.Output.Success.ShouldBe(true);
+            await CheckUserBalanceAsync(NativeTokenSymbol, DefaultSender, 10);
+            await CheckUserBalanceAsync(basicFeeSymbol, DelegateeAddress, 20);
+            await CheckUserBalanceAsync(basicFeeSymbol, Delegatee2Address, 100);
+            await CheckUserBalanceAsync(NativeTokenSymbol, Delegatee3Address, 20);
+            await CheckUserBalanceAsync(basicFeeSymbol, SecondaryDelegatee1Address, 20);
+            await CheckUserBalanceAsync(basicFeeSymbol, SecondaryDelegatee2Address, 100);
+            await CheckUserBalanceAsync(NativeTokenSymbol, SecondaryDelegatee3Address, 20);
+            await CheckUserBalanceAsync(NativeTokenSymbol, SecondaryDelegatee4Address, 20);
+            //change
+            await CheckUserBalanceAsync(basicFeeSymbol, SecondaryDelegatee5Address, 120);
+            await CheckUserBalanceAsync(NativeTokenSymbol, SecondaryDelegatee6Address, 100);
+            var delegateInfo =
+                await TokenContractStubDelegate1.GetTransactionFeeDelegateInfosOfADelegatee.CallAsync(
+                    new GetTransactionFeeDelegateInfosOfADelegateeInput
+                    {
+                        DelegateeAddress = SecondaryDelegatee5Address,
+                        DelegatorAddress = Delegatee2Address,
+                        ContractAddress = TokenContractAddress,
+                        MethodName = nameof(TokenContractContainer.TokenContractStub.Transfer)
+                    });
+            delegateInfo.Delegations[basicFeeSymbol].ShouldBe(20);
+            var delegation = await TokenContractStubDelegate1.GetTransactionFeeDelegateInfosOfADelegatee.CallAsync(
+                new GetTransactionFeeDelegateInfosOfADelegateeInput
+                {
+                    DelegateeAddress = SecondaryDelegatee3Address,
+                    DelegatorAddress = DelegateeAddress,
+                    ContractAddress = TokenContractAddress,
+                    MethodName = nameof(TokenContractContainer.TokenContractStub.Transfer)
+                });
+            delegation.Delegations[NativeTokenSymbol].ShouldBe(30);
+            delegation.Delegations[basicFeeSymbol].ShouldBe(100);
+        }
+        else
+        {
+            chargeFeeRetDefault.Output.Success.ShouldBe(false);
+            var delegateInfo =
+                await TokenContractStubDelegate1.GetTransactionFeeDelegateInfosOfADelegatee.CallAsync(
+                    new GetTransactionFeeDelegateInfosOfADelegateeInput
+                    {
+                        DelegateeAddress = SecondaryDelegatee5Address,
+                        DelegatorAddress = Delegatee2Address,
+                        ContractAddress = TokenContractAddress,
+                        MethodName = nameof(TokenContractContainer.TokenContractStub.Transfer)
+                    });
+            delegateInfo.Delegations[basicFeeSymbol].ShouldBe(100);
+        }
+    }
+
+    private async Task IssueTokenListToUserAsync(List<string> symbols, long amount, Address address)
+    {
+        foreach (var symbol in symbols)
+        {
+            await IssueTokenToUserAsync(symbol, amount, address);
+        }
+    }
+    
+    private async Task<bool> GetSetDelegationResultAsync(List<(Address, Address)> delegateAddressList,
+        long refBlockHeight)
+    {
+        var result = true;
+        foreach (var (delegateeAddress, delegatorAddress) in delegateAddressList)
+        {
+            var delegateInfo =
+                await TokenContractStubDelegate1.GetTransactionFeeDelegateInfosOfADelegatee.CallAsync(
+                    new GetTransactionFeeDelegateInfosOfADelegateeInput
+                    {
+                        DelegateeAddress = delegateeAddress,
+                        DelegatorAddress = delegatorAddress,
+                        ContractAddress = TokenContractAddress,
+                        MethodName = nameof(TokenContractContainer.TokenContractStub.Transfer)
+                    });
+            result = result && refBlockHeight >= delegateInfo.BlockHeight + 2;
+        }
+
+        return result;
+    }
+
+    private async Task CheckUserBalanceAsync(string symbol, Address owner, long balance)
+    {
+        var userBalance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+        {
+            Symbol = symbol,
+            Owner = owner
+        });
+        userBalance.Balance.ShouldBe(balance);
+    }
+
+    private async Task<SymbolListToPayTxSizeFee> SetMethodOrSizeFeeAsync(string basicFeeSymbol, string sizeFeeSymbol,
+        long basicFee)
+    {
         var methodFee = new MethodFees
         {
             MethodName = nameof(TokenContractContainer.TokenContractStub.Transfer),
@@ -1838,73 +2358,10 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
         };
         await SubmitAndPassProposalOfDefaultParliamentAsync(TokenContractAddress,
             nameof(TokenContractImplContainer.TokenContractImplStub.SetSymbolsToPayTxSizeFee), sizeFeeSymbolList);
-
-
-        var chargeTransactionFeesInput = new ChargeTransactionFeesInput
-        {
-            MethodName = nameof(TokenContractContainer.TokenContractStub.Transfer),
-            ContractAddress = TokenContractAddress,
-            TransactionSizeFee = sizeFee,
-        };
-        chargeTransactionFeesInput.SymbolsToPayTxSizeFee.AddRange(sizeFeeSymbolList.SymbolsToPayTxSizeFee);
-        var delegationResult =
-            await TokenContractStubDelegate1.GetTransactionFeeDelegationsOfADelegatee.CallAsync(
-                new GetTransactionFeeDelegationsOfADelegateeInput
-                {
-                    DelegateeAddress = delegateeAddress,
-                    DelegatorAddress = DefaultSender
-                });
-        var delegationResult2 =
-            await TokenContractStubDelegate1.GetTransactionFeeDelegateInfosOfADelegatee.CallAsync(
-                new GetTransactionFeeDelegateInfosOfADelegateeInput
-                {
-                    DelegateeAddress = Delegatee2Address,
-                    DelegatorAddress = delegateeAddress,
-                    ContractAddress = TokenContractAddress,
-                    MethodName = nameof(TokenContractContainer.TokenContractStub.Transfer)
-                });
-        var chargeFeeRetDefault = await TokenContractStub.ChargeTransactionFees.SendAsync(chargeTransactionFeesInput);
-        if (chargeFeeRetDefault.Transaction.RefBlockNumber >= delegationResult.BlockHeight + 2 && chargeFeeRetDefault.Transaction.RefBlockNumber >= delegationResult2.BlockHeight + 2)
-        {
-            chargeFeeRetDefault.Output.Success.ShouldBe(true);
-
-            //no change
-            var afterBalance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
-            {
-                Symbol = basicFeeSymbol,
-                Owner = DefaultSender
-            });
-            afterBalance.Balance.ShouldBe(10);
-
-            //no change 
-            var afterDelegateeBalance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
-            {
-                Symbol = basicFeeSymbol,
-                Owner = delegateeAddress
-            });
-            afterDelegateeBalance.Balance.ShouldBe(20);
-            
-            var afterSecondaryDelegateeBalance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
-            {
-                Symbol = basicFeeSymbol,
-                Owner = Delegatee2Address
-            });
-            afterSecondaryDelegateeBalance.Balance.ShouldBe(afterBalanceDelegatee);
-        }
-        else
-        {
-            chargeFeeRetDefault.Output.Success.ShouldBe(false);
-
-            var delegation = await TokenContractStubDelegate1.GetTransactionFeeDelegationsOfADelegatee.CallAsync(
-                new GetTransactionFeeDelegationsOfADelegateeInput
-                {
-                    DelegateeAddress = delegateeAddress,
-                    DelegatorAddress = DefaultSender
-                });
-            delegation.Delegations[NativeTokenSymbol].ShouldBe(5);
-        }
+        return sizeFeeSymbolList;
     }
-    
+
+
     private async Task<long> GetTokenSupplyAmount(string tokenSymbol)
     {
         var tokenInfo = await TokenContractStub.GetTokenInfo.CallAsync(new GetTokenInfoInput
@@ -1956,7 +2413,7 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
         issueResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
     }
 
-    // single node
+// single node
     private async Task SubmitAndPassProposalOfDefaultParliamentAsync(Address contractAddress, string methodName,
         IMessage input)
     {
