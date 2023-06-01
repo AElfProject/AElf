@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using AElf.Contracts.Parliament;
@@ -15,7 +16,8 @@ public partial class TokenContract
 {
     private static bool IsValidSymbolChar(char character)
     {
-        return (character >= 'A' && character <= 'Z') || (character >= '0' && character <= '9') || character == TokenContractConstants.NFTSymbolSeparator;
+        return (character >= 'A' && character <= 'Z') || (character >= '0' && character <= '9') ||
+               character == TokenContractConstants.NFTSymbolSeparator;
     }
 
     private bool IsValidItemIdChar(char character)
@@ -76,41 +78,66 @@ public partial class TokenContract
         State.Balances[address][symbol] = target;
     }
 
-    private void ModifyFreeFeeAllowanceAmount(MethodFeeFreeAllowances freeAllowances, string symbol, long addAmount)
+    private void ModifyFreeFeeAllowanceAmount(Address fromAddress,
+        MethodFeeFreeAllowancesMap methodFeeFreeAllowancesMap, string symbol,
+        long addAmount)
     {
-        var freeAllowance = GetFreeFeeAllowance(freeAllowances, symbol);
-        if (freeAllowance != null)
+        var freeAllowanceAmount = GetFreeFeeAllowanceAmount(methodFeeFreeAllowancesMap, symbol);
+        if (addAmount < 0 && freeAllowanceAmount < -addAmount)
         {
-            var before = freeAllowance.Amount;
-            if (addAmount < 0 && before < -addAmount)
-                Assert(false,
-                    $"Insufficient amount of {symbol} for free fee allowance. Need amount: {-addAmount}; Current amount: {before}");
+            Assert(false,
+                $"Insufficient amount of {symbol} for free fee allowance. Need amount: {-addAmount}; Current amount: {freeAllowanceAmount}");
+        }
+        
+        // var symbolList = methodFeeFreeAllowancesMap.Map.Keys;
+        var symbolList = GetSymbolListSortedByExpirationTime(methodFeeFreeAllowancesMap, fromAddress);
 
-            var target = before.Add(addAmount);
-            freeAllowance.Amount = target;
+        foreach (var s in symbolList)
+        {
+            if (addAmount == 0) break;
+
+            var currentAllowance = methodFeeFreeAllowancesMap.Map[s].Map[symbol].Amount;
+
+            addAmount += currentAllowance;
+
+            methodFeeFreeAllowancesMap.Map[s].Map[symbol].Amount = addAmount >= 0 ? addAmount : 0;
         }
     }
+
+    private List<string> GetSymbolListSortedByExpirationTime(MethodFeeFreeAllowancesMap methodFeeFreeAllowancesMap, Address fromAddress)
+    {
+        return methodFeeFreeAllowancesMap.Map.Keys.OrderBy(t =>
+            State.MethodFeeFreeAllowancesConfigMap[t].RefreshSeconds - (Context.CurrentBlockTime -
+                                                                        State.MethodFeeFreeAllowancesLastRefreshTimeMap[
+                                                                            fromAddress][t]).Seconds).ToList();
+    }
+
 
     private long GetBalance(Address address, string symbol)
     {
         return State.Balances[address][symbol];
     }
 
-    private MethodFeeFreeAllowance GetFreeFeeAllowance(MethodFeeFreeAllowances freeAllowances, string symbol)
-    {
-        return freeAllowances?.Value.FirstOrDefault(a => a.Symbol == symbol);
-    }
+    // private MethodFeeFreeAllowance GetFreeFeeAllowance(MethodFeeFreeAllowances freeAllowances, string symbol)
+    // {
+    //     return freeAllowances?.Value.FirstOrDefault(a => a.Symbol == symbol);
+    // }
 
-    private long GetFreeFeeAllowanceAmount(MethodFeeFreeAllowances freeAllowances, string symbol)
+    private long GetFreeFeeAllowanceAmount(MethodFeeFreeAllowancesMap methodFeeFreeAllowancesMap, string symbol)
     {
-        var existingAllowance = 0L;
-        var freeAllowance = GetFreeFeeAllowance(freeAllowances, symbol);
-        if (freeAllowance != null)
+        var allowance = 0L;
+        var map = methodFeeFreeAllowancesMap?.Map;
+
+        if (map == null) return allowance;
+
+        foreach (var freeAllowances in map.Values)
         {
-            existingAllowance = freeAllowance.Amount;
+            var freeAllowance = freeAllowances.Map.Values.FirstOrDefault(t => t.Symbol == symbol);
+
+            allowance.Add(freeAllowance?.Amount ?? 0L);
         }
 
-        return existingAllowance;
+        return allowance;
     }
 
     private void AssertSystemContractOrLockWhiteListAddress(string symbol)

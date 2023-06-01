@@ -77,6 +77,12 @@ service TokenContractImpl {
     rpc ChangeDeveloperController (AuthorityInfo) returns (google.protobuf.Empty) {
     }
 
+    rpc ConfigMethodFeeFreeAllowances (ConfigMethodFeeFreeAllowancesInput) returns (google.protobuf.Empty) {
+    }
+
+    rpc RemoveMethodFeeFreeAllowancesConfig (RemoveMethodFeeFreeAllowancesConfigInput) returns (google.protobuf.Empty) {
+    }
+
     // Get the address of fee receiver.
     rpc GetFeeReceiver (google.protobuf.Empty) returns (aelf.Address){
         option (aelf.is_view) = true;
@@ -126,6 +132,14 @@ service TokenContractImpl {
     // Query the unit price of the side chain resource cost, resource cost = unit price * quantity, 
     // the quantity can be queried through GetResourceUsage.
     rpc GetOwningRentalUnitValue (google.protobuf.Empty) returns (OwningRentalUnitValue) {
+        option (aelf.is_view) = true;
+    }
+
+    // Query
+    rpc GetMethodFeeFreeAllowances (aelf.Address) returns (MethodFeeFreeAllowancesMap) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetMethodFeeFreeAllowancesConfig (google.protobuf.Empty) returns (GetMethodFeeFreeAllowancesConfigOutput) {
         option (aelf.is_view) = true;
     }
 }
@@ -243,4 +257,46 @@ enum SymbolType {
     TOKEN = 0;
     NFT = 1;
     NFT_COLLECTION = 2;
+}
+
+message MethodFeeFreeAllowancesConfig {
+    repeated string symbols = 1;
+}
+
+message ConfigMethodFeeFreeAllowancesInput {
+    string symbol = 1;
+    MethodFeeFreeAllowances method_fee_free_allowances = 2;
+    int64 refresh_seconds = 3;
+    int64 threshold = 4;
+}
+
+message RemoveMethodFeeFreeAllowancesConfigInput {
+    repeated string symbols = 1;
+}
+
+message GetMethodFeeFreeAllowancesConfigOutput {
+    repeated FreeAllowanceConfig value = 1;
+}
+
+message FreeAllowanceConfig {
+    MethodFeeFreeAllowanceMap free_allowances = 1;
+    int64 refresh_seconds = 2;
+    int64 threshold = 3;
+}
+
+message MethodFeeFreeAllowanceMap {
+    map<string, MethodFeeFreeAllowance> map = 1;
+}
+
+message MethodFeeFreeAllowancesMap {
+    map<string, MethodFeeFreeAllowanceMap> map = 1;
+}
+
+message MethodFeeFreeAllowances{
+    repeated MethodFeeFreeAllowance value = 1;
+}
+
+message MethodFeeFreeAllowance {
+    string symbol = 1;
+    int64 amount = 2;
 }

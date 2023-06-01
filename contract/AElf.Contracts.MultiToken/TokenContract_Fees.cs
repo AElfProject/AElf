@@ -25,7 +25,7 @@ public partial class TokenContract
         // Primary token not created yet.
         if (State.ChainPrimaryTokenSymbol.Value == null)
         {
-            return new ChargeTransactionFeesOutput {Success = true};
+            return new ChargeTransactionFeesOutput { Success = true };
         }
 
         // Record tx fee bill during current charging process.
@@ -33,7 +33,7 @@ public partial class TokenContract
         var allowanceBill = new TransactionFreeFeeAllowanceBill();
         var fromAddress = Context.Sender;
         var methodFees = Context.Call<MethodFees>(input.ContractAddress, nameof(GetMethodFee),
-            new StringValue {Value = input.MethodName});
+            new StringValue { Value = input.MethodName });
         var fee = new Dictionary<string, long>();
         var isSizeFeeFree = false;
         if (methodFees != null)
@@ -55,7 +55,7 @@ public partial class TokenContract
         // Primary token not created yet.
         if (State.ChainPrimaryTokenSymbol.Value == null)
         {
-            return new ChargeTransactionFeesOutput {Success = true};
+            return new ChargeTransactionFeesOutput { Success = true };
         }
 
         // Record tx fee bill during current charging process.
@@ -91,7 +91,7 @@ public partial class TokenContract
         }
 
         ModifyBalance(fromAddress, bill, allowanceBill);
-        var chargingOutput = new ChargeTransactionFeesOutput {Success = chargingResult};
+        var chargingOutput = new ChargeTransactionFeesOutput { Success = chargingResult };
         if (!chargingResult)
             chargingOutput.ChargingInformation = "Transaction fee not enough.";
         return chargingOutput;
@@ -120,6 +120,7 @@ public partial class TokenContract
             fee.MergeFrom(spec.Value);
             return fee;
         }
+
         //If special key is null,get the normal fee set by the configuration contract.
         //configuration_key:UserContractMethod
         var value = State.ConfigurationContract.GetConfiguration.Call(new StringValue
@@ -130,6 +131,7 @@ public partial class TokenContract
         {
             return new UserContractMethodFees();
         }
+
         fee.MergeFrom(value.Value);
         return fee;
     }
@@ -161,6 +163,7 @@ public partial class TokenContract
             ModifyDelegation(delegateeBill, delegateeAllowanceBill, fromAddress);
             break;
         }
+
         return chargingResult;
     }
 
@@ -196,7 +199,7 @@ public partial class TokenContract
         TransactionFreeFeeAllowanceBill allowanceBill)
     {
         SetOrRefreshMethodFeeFreeAllowances(fromAddress);
-        var freeAllowances = CalculateMethodFeeFreeAllowances(fromAddress)?.Clone();
+        var freeAllowancesMap = CalculateMethodFeeFreeAllowances(fromAddress);
 
         // Update balances and allowances
         foreach (var (symbol, amount) in bill.FeesMap)
@@ -211,15 +214,20 @@ public partial class TokenContract
             });
         }
 
+        if (freeAllowancesMap?.Map == null || freeAllowancesMap.Map.Count == 0) return;
+
         foreach (var (symbol, amount) in allowanceBill.FreeFeeAllowancesMap)
         {
             if (amount > 0)
             {
-                ModifyFreeFeeAllowanceAmount(freeAllowances, symbol, -amount);
+                ModifyFreeFeeAllowanceAmount(fromAddress, freeAllowancesMap, symbol, -amount);
             }
         }
 
-        State.MethodFeeFreeAllowancesMap[fromAddress] = freeAllowances;
+        foreach (var (symbol, freeAllowances) in freeAllowancesMap.Map)
+        {
+            State.MethodFeeFreeAllowancesMap[fromAddress][symbol] = freeAllowances;
+        }
     }
 
     private bool ChargeTransactionFeesToBill(ChargeTransactionFeesInput input, Address fromAddress,
@@ -230,13 +238,13 @@ public partial class TokenContract
         var successToChargeBaseFee = true;
 
         SetOrRefreshMethodFeeFreeAllowances(fromAddress);
-        var freeAllowances = CalculateMethodFeeFreeAllowances(fromAddress)?.Clone();
+        var freeAllowancesMap = CalculateMethodFeeFreeAllowances(fromAddress)?.Clone();
 
         if (fee.Count != 0)
         {
             // If base fee is set before, charge base fee.
             successToChargeBaseFee =
-                ChargeBaseFee(fee, fromAddress, ref bill, freeAllowances, ref allowanceBill, delegations);
+                ChargeBaseFee(fee, fromAddress, ref bill, freeAllowancesMap, ref allowanceBill, delegations);
         }
 
         var successToChargeSizeFee = true;
@@ -244,7 +252,7 @@ public partial class TokenContract
         {
             // If IsSizeFeeFree == true, do not charge size fee.
             successToChargeSizeFee =
-                ChargeSizeFee(input, fromAddress, ref bill, freeAllowances, ref allowanceBill, delegations);
+                ChargeSizeFee(input, fromAddress, ref bill, freeAllowancesMap, ref allowanceBill, delegations);
         }
 
         return successToChargeBaseFee && successToChargeSizeFee;
@@ -253,19 +261,20 @@ public partial class TokenContract
     private void SetOrRefreshMethodFeeFreeAllowances(Address address)
     {
         var config = State.MethodFeeFreeAllowancesConfig.Value;
-        if (config == null || State.Balances[address][Context.Variables.NativeSymbol] < config.Threshold)
-        {
-            return;
-        }
+        if (config == null) return;
 
-        var lastRefreshTime = State.MethodFeeFreeAllowancesLastRefreshTimeMap[address];
-        if (lastRefreshTime != null && config.RefreshSeconds > (Context.CurrentBlockTime - lastRefreshTime).Seconds)
+        foreach (var symbol in config.Symbols)
         {
-            return;
-        }
+            if (State.Balances[address][symbol] < State.MethodFeeFreeAllowancesConfigMap[symbol].Threshold) continue;
+            var lastRefreshTime = State.MethodFeeFreeAllowancesLastRefreshTimeMap[address][symbol];
 
-        State.MethodFeeFreeAllowancesLastRefreshTimeMap[address] = Context.CurrentBlockTime;
-        State.MethodFeeFreeAllowancesMap[address] = config.FreeAllowances;
+            if (lastRefreshTime != null && State.MethodFeeFreeAllowancesConfigMap[symbol].RefreshSeconds >
+                (Context.CurrentBlockTime - lastRefreshTime).Seconds) continue;
+
+            State.MethodFeeFreeAllowancesLastRefreshTimeMap[address][symbol] = Context.CurrentBlockTime;
+            State.MethodFeeFreeAllowancesMap[address][symbol] =
+                State.MethodFeeFreeAllowancesConfigMap[symbol].FreeAllowances;
+        }
     }
 
     private Dictionary<string, long> GetBaseFeeDictionary(MethodFees methodFees)
@@ -283,12 +292,12 @@ public partial class TokenContract
     }
 
     private bool ChargeBaseFee(Dictionary<string, long> methodFeeMap, Address fromAddress, ref TransactionFeeBill bill,
-        MethodFeeFreeAllowances freeAllowances, ref TransactionFreeFeeAllowanceBill allowanceBill,
+        MethodFeeFreeAllowancesMap freeAllowancesMap, ref TransactionFreeFeeAllowanceBill allowanceBill,
         TransactionFeeDelegations delegations = null)
     {
         // Fail to charge
         if (!ChargeFirstSufficientToken(methodFeeMap, fromAddress, out var symbolToChargeBaseFee,
-                out var amountToChargeBaseFee, out var existingBalance, out var existingAllowance, freeAllowances,
+                out var amountToChargeBaseFee, out var existingBalance, out var existingAllowance, freeAllowancesMap,
                 delegations))
         {
             Context.LogDebug(() => "Failed to charge first sufficient token.");
@@ -318,7 +327,7 @@ public partial class TokenContract
     }
 
     private bool ChargeSizeFee(ChargeTransactionFeesInput input, Address fromAddress, ref TransactionFeeBill bill,
-        MethodFeeFreeAllowances freeAllowances, ref TransactionFreeFeeAllowanceBill allowanceBill,
+        MethodFeeFreeAllowancesMap methodFeeFreeAllowancesMap, ref TransactionFreeFeeAllowanceBill allowanceBill,
         TransactionFeeDelegations delegations = null)
     {
         string symbolChargedForBaseFee = null;
@@ -338,8 +347,8 @@ public partial class TokenContract
             ? GetBalance(fromAddress, symbolToPayTxFee).Sub(amountChargedForBaseFee)
             : GetBalance(fromAddress, symbolToPayTxFee);
         var availableAllowance = symbolChargedForBaseFee == symbolToPayTxFee
-            ? GetFreeFeeAllowanceAmount(freeAllowances, symbolToPayTxFee).Sub(amountChargedForBaseAllowance)
-            : GetFreeFeeAllowanceAmount(freeAllowances, symbolToPayTxFee);
+            ? GetFreeFeeAllowanceAmount(methodFeeFreeAllowancesMap, symbolToPayTxFee).Sub(amountChargedForBaseAllowance)
+            : GetFreeFeeAllowanceAmount(methodFeeFreeAllowancesMap, symbolToPayTxFee);
         var txSizeFeeAmount = input.TransactionSizeFee;
 
 
@@ -350,7 +359,8 @@ public partial class TokenContract
             // get 1st Balance + Allowance > size fee, else, get 1st > 0
             var availableSymbol = allSymbolToTxFee.FirstOrDefault(x =>
                 GetBalancePlusAllowanceCalculatedBaseOnPrimaryToken(fromAddress, x, symbolChargedForBaseFee,
-                    amountChargedForBaseFee, freeAllowances, amountChargedForBaseAllowance) >= txSizeFeeAmount &&
+                    amountChargedForBaseFee, methodFeeFreeAllowancesMap, amountChargedForBaseAllowance) >=
+                txSizeFeeAmount &&
                 IsDelegationEnoughBaseOnPrimaryToken(x, symbolChargedForBaseFee,
                     amountChargedForBaseFee.Add(amountChargedForBaseAllowance), txSizeFeeAmount, delegations));
 
@@ -363,7 +373,7 @@ public partial class TokenContract
             {
                 availableSymbol ??= allSymbolToTxFee.FirstOrDefault(x =>
                     GetBalancePlusAllowanceCalculatedBaseOnPrimaryToken(fromAddress, x, symbolChargedForBaseFee,
-                        amountChargedForBaseFee, freeAllowances, amountChargedForBaseAllowance) > 0);
+                        amountChargedForBaseFee, methodFeeFreeAllowancesMap, amountChargedForBaseAllowance) > 0);
             }
 
             if (availableSymbol != null && availableSymbol.TokenSymbol != symbolToPayTxFee)
@@ -375,8 +385,9 @@ public partial class TokenContract
                     ? GetBalance(fromAddress, symbolToPayTxFee).Sub(amountChargedForBaseFee)
                     : GetBalance(fromAddress, symbolToPayTxFee);
                 availableAllowance = symbolChargedForBaseFee == symbolToPayTxFee
-                    ? GetFreeFeeAllowanceAmount(freeAllowances, symbolToPayTxFee).Sub(amountChargedForBaseAllowance)
-                    : GetFreeFeeAllowanceAmount(freeAllowances, symbolToPayTxFee);
+                    ? GetFreeFeeAllowanceAmount(methodFeeFreeAllowancesMap, symbolToPayTxFee)
+                        .Sub(amountChargedForBaseAllowance)
+                    : GetFreeFeeAllowanceAmount(methodFeeFreeAllowancesMap, symbolToPayTxFee);
             }
         }
 
@@ -591,12 +602,13 @@ public partial class TokenContract
     /// <param name="amount"></param>
     /// <param name="existingBalance"></param>
     /// <param name="existingAllowance"></param>
-    /// <param name="freeAllowances"></param>
+    /// <param name="methodFeeFreeAllowancesMap"></param>
     /// <param name="delegations"></param>
     /// <returns></returns>
     private bool ChargeFirstSufficientToken(Dictionary<string, long> symbolToAmountMap, Address fromAddress,
         out string symbol,
-        out long amount, out long existingBalance, out long existingAllowance, MethodFeeFreeAllowances freeAllowances,
+        out long amount, out long existingBalance, out long existingAllowance,
+        MethodFeeFreeAllowancesMap methodFeeFreeAllowancesMap,
         TransactionFeeDelegations delegations = null)
     {
         symbol = null;
@@ -617,7 +629,7 @@ public partial class TokenContract
             amount = symbolToAmount.Value;
 
             // free allowance in current token symbol
-            existingAllowance = GetFreeFeeAllowanceAmount(freeAllowances, symbol);
+            existingAllowance = GetFreeFeeAllowanceAmount(methodFeeFreeAllowancesMap, symbol);
 
             // if delegations is null, that means no delegation is involved.
             if (delegations == null
@@ -644,7 +656,7 @@ public partial class TokenContract
         {
             symbol = primaryTokenSymbol;
             existingBalance = GetBalance(fromAddress, primaryTokenSymbol);
-            existingAllowance = GetFreeFeeAllowanceAmount(freeAllowances, symbol);
+            existingAllowance = GetFreeFeeAllowanceAmount(methodFeeFreeAllowancesMap, symbol);
         }
         else
         {
@@ -652,7 +664,7 @@ public partial class TokenContract
             if (symbol != null)
             {
                 existingBalance = GetBalance(fromAddress, symbolOfValidBalance);
-                existingAllowance = GetFreeFeeAllowanceAmount(freeAllowances, symbol);
+                existingAllowance = GetFreeFeeAllowanceAmount(methodFeeFreeAllowancesMap, symbol);
             }
         }
 
@@ -815,7 +827,7 @@ public partial class TokenContract
         }
 
         // Update LastPayRentTime if it is ready to charge rental.
-        State.LastPayRentTime.Value += new Duration {Seconds = duration.Mul(60)};
+        State.LastPayRentTime.Value += new Duration { Seconds = duration.Mul(60) };
 
         foreach (var symbol in Context.Variables.GetStringArray(TokenContractConstants.PayRentalSymbolListName))
         {
@@ -999,55 +1011,115 @@ public partial class TokenContract
         return State.FeeReceiver.Value;
     }
 
-    public override Empty ConfigMethodFeeFreeAllowances(MethodFeeFreeAllowancesConfig input)
+    public override Empty ConfigMethodFeeFreeAllowances(ConfigMethodFeeFreeAllowancesInput input)
     {
         AssertSenderAddressWith(GetDefaultParliamentController().OwnerAddress);
-        State.MethodFeeFreeAllowancesConfig.Value = input;
+        Assert(string.IsNullOrWhiteSpace(input.Symbol), "Invalid input symbol");
+        Assert(input.MethodFeeFreeAllowances?.Value != null && input.MethodFeeFreeAllowances.Value.Count > 0,
+            "Invalid input allowances");
+        Assert(input.Threshold > 0, "Invalid input threshold");
+        Assert(input.RefreshSeconds > 0, "Invalid input refresh seconds");
+
+        State.MethodFeeFreeAllowancesConfigMap[input.Symbol].Threshold = input.Threshold;
+        State.MethodFeeFreeAllowancesConfigMap[input.Symbol].RefreshSeconds = input.RefreshSeconds;
+        State.MethodFeeFreeAllowancesConfigMap[input.Symbol].FreeAllowances = new MethodFeeFreeAllowanceMap();
+        foreach (var allowance in input.MethodFeeFreeAllowances!.Value!)
+        {
+            State.MethodFeeFreeAllowancesConfigMap[input.Symbol].FreeAllowances.Map.Add(allowance.Symbol, allowance);
+        }
+
+        if (!State.MethodFeeFreeAllowancesConfig.Value.Symbols.Contains(input.Symbol))
+        {
+            State.MethodFeeFreeAllowancesConfig.Value.Symbols.Add(input.Symbol);
+        }
+
         return new Empty();
     }
 
-    public override MethodFeeFreeAllowancesConfig GetMethodFeeFreeAllowancesConfig(Empty input)
+    public override Empty RemoveMethodFeeFreeAllowancesConfig(RemoveMethodFeeFreeAllowancesConfigInput input)
     {
-        return State.MethodFeeFreeAllowancesConfig.Value;
+        AssertSenderAddressWith(GetDefaultParliamentController().OwnerAddress);
+        Assert(input.Symbols != null && input.Symbols.Count > 0, "Invalid input");
+        Assert(State.MethodFeeFreeAllowancesConfig.Value != null, "Method fee free allowances config not set");
+
+        var symbols = input.Symbols!.Distinct();
+
+        foreach (var symbol in symbols)
+        {
+            if (State.MethodFeeFreeAllowancesConfig.Value!.Symbols.Contains(symbol))
+            {
+                State.MethodFeeFreeAllowancesConfig.Value.Symbols.Remove(symbol);
+            }
+        }
+
+        return new Empty();
     }
 
-    public override MethodFeeFreeAllowances GetMethodFeeFreeAllowances(Address input)
+    public override GetMethodFeeFreeAllowancesConfigOutput GetMethodFeeFreeAllowancesConfig(Empty input)
+    {
+        var symbols = State.MethodFeeFreeAllowancesConfig.Value.Symbols;
+        var output = new GetMethodFeeFreeAllowancesConfigOutput();
+
+        foreach (var symbol in symbols)
+        {
+            output.Value.Add(State.MethodFeeFreeAllowancesConfigMap[symbol]);
+        }
+
+        return output;
+    }
+
+    public override MethodFeeFreeAllowancesMap GetMethodFeeFreeAllowances(Address input)
     {
         return CalculateMethodFeeFreeAllowances(input);
     }
 
-    private MethodFeeFreeAllowances CalculateMethodFeeFreeAllowances(Address input)
+    private MethodFeeFreeAllowancesMap CalculateMethodFeeFreeAllowances(Address input)
     {
-        var freeAllowances = State.MethodFeeFreeAllowancesMap[input];
+        var freeAllowanceMap = State.MethodFeeFreeAllowancesMap[input];
+
         var freeAllowancesConfig = State.MethodFeeFreeAllowancesConfig.Value;
         if (freeAllowancesConfig == null)
         {
-            return new MethodFeeFreeAllowances();
+            return new MethodFeeFreeAllowancesMap();
         }
 
         var config = freeAllowancesConfig.Clone();
+        var methodFeeFreeAllowancesMap = new MethodFeeFreeAllowancesMap();
 
-        var balance = State.Balances[input][Context.Variables.NativeSymbol];
-        if (balance < config.Threshold) return new MethodFeeFreeAllowances();
-
-        var lastRefreshTime = State.MethodFeeFreeAllowancesLastRefreshTimeMap[input];
-
-        if (freeAllowances == null)
+        foreach (var symbol in config.Symbols)
         {
-            if (balance >= config.Threshold)
+            var balance = State.Balances[input][symbol];
+            if (balance < State.MethodFeeFreeAllowancesConfigMap[symbol].Threshold) continue;
+
+            var lastRefreshTime = State.MethodFeeFreeAllowancesLastRefreshTimeMap[input][symbol];
+
+            var freeAllowances = freeAllowanceMap[symbol];
+
+            if (freeAllowances == null)
             {
-                return new MethodFeeFreeAllowances {Value = {config.FreeAllowances.Value}};
+                if (balance >= State.MethodFeeFreeAllowancesConfigMap[symbol].Threshold)
+                {
+                    methodFeeFreeAllowancesMap.Map.Add(symbol,
+                        State.MethodFeeFreeAllowancesConfigMap[symbol].FreeAllowances);
+                    continue;
+                }
+            }
+
+            if (lastRefreshTime == null)
+            {
+                methodFeeFreeAllowancesMap.Map.Add(symbol, freeAllowances);
+            }
+            else
+            {
+                methodFeeFreeAllowancesMap.Map.Add(symbol,
+                    (Context.CurrentBlockTime - lastRefreshTime).Seconds >
+                    State.MethodFeeFreeAllowancesConfigMap[symbol].RefreshSeconds
+                        ? State.MethodFeeFreeAllowancesConfigMap[symbol].FreeAllowances
+                        : freeAllowances);
             }
         }
 
-        if (lastRefreshTime == null)
-        {
-            return freeAllowances;
-        }
-
-        return (Context.CurrentBlockTime - lastRefreshTime).Seconds > config.RefreshSeconds
-            ? new MethodFeeFreeAllowances {Value = {config.FreeAllowances.Value}}
-            : freeAllowances;
+        return methodFeeFreeAllowancesMap;
     }
 
     private long GetBalanceCalculatedBaseOnPrimaryToken(Address fromAddress, SymbolToPayTxSizeFee tokenInfo,
@@ -1063,18 +1135,18 @@ public partial class TokenContract
 
     private long GetBalancePlusAllowanceCalculatedBaseOnPrimaryToken(Address fromAddress,
         SymbolToPayTxSizeFee tokenInfo, string baseSymbol,
-        long cost, MethodFeeFreeAllowances freeAllowances, long allowanceCost)
+        long cost, MethodFeeFreeAllowancesMap methodFeeFreeAllowancesMap, long allowanceCost)
     {
         return GetBalanceCalculatedBaseOnPrimaryToken(fromAddress, tokenInfo, baseSymbol, cost).Add(
-            GetAllowanceCalculatedBaseOnPrimaryToken(tokenInfo, freeAllowances, baseSymbol, allowanceCost));
+            GetAllowanceCalculatedBaseOnPrimaryToken(tokenInfo, methodFeeFreeAllowancesMap, baseSymbol, allowanceCost));
     }
 
     private long GetAllowanceCalculatedBaseOnPrimaryToken(SymbolToPayTxSizeFee tokenInfo,
-        MethodFeeFreeAllowances freeAllowances, string baseSymbol,
+        MethodFeeFreeAllowancesMap methodFeeFreeAllowancesMap, string baseSymbol,
         long allowanceCost)
     {
         var availableAllowance =
-            GetFreeFeeAllowanceAmount(freeAllowances,
+            GetFreeFeeAllowanceAmount(methodFeeFreeAllowancesMap,
                 tokenInfo.TokenSymbol); //GetBalance(Context.Sender, tokenInfo.TokenSymbol);
         if (tokenInfo.TokenSymbol == baseSymbol)
             availableAllowance = availableAllowance.Sub(allowanceCost);

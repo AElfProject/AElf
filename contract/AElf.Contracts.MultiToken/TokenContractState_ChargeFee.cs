@@ -36,6 +36,7 @@ public partial class TokenContractState
     public MappedState<string, long> OwningRental { get; set; }
 
     public SingletonState<MethodFeeFreeAllowancesConfig> MethodFeeFreeAllowancesConfig { get; set; }
-    public MappedState<Address, MethodFeeFreeAllowances> MethodFeeFreeAllowancesMap { get; set; }
-    public MappedState<Address, Timestamp> MethodFeeFreeAllowancesLastRefreshTimeMap { get; set; }
+    public MappedState<string, FreeAllowanceConfig> MethodFeeFreeAllowancesConfigMap { get; set; }
+    public MappedState<Address, string, MethodFeeFreeAllowanceMap> MethodFeeFreeAllowancesMap { get; set; }
+    public MappedState<Address, string, Timestamp> MethodFeeFreeAllowancesLastRefreshTimeMap { get; set; }
 }
