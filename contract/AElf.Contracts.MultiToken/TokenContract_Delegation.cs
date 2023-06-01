@@ -195,7 +195,7 @@ public partial class TokenContract
 
     public override Empty SetTransactionFeeDelegateInfos(SetTransactionFeeDelegateInfosInput input)
     {
-        Assert(input.DelegatorAddress.Value.Any() && input.DelegateInfoList.Count > 0,
+        Assert(input.DelegatorAddress != null && input.DelegateInfoList.Count > 0,
             "Delegator address and delegate info cannot be null.");
         var toAddTransactionList = new DelegateTransactionList();
         var toUpdateTransactionList = new DelegateTransactionList();
@@ -206,6 +206,8 @@ public partial class TokenContract
             //If isUnlimitedDelegate is false,delegate info list should > 0.
             Assert(delegateInfo.IsUnlimitedDelegate || delegateInfo.Delegations.Count > 0,
                 "Delegation cannot be null.");
+            Assert(delegateInfo.ContractAddress != null && !string.IsNullOrEmpty(delegateInfo.MethodName) &&
+                   delegateInfo.MethodName.All(IsValidMethodNameChar), "Invalid contract address and method name.");
             var existDelegateeInfoList =
                 State.TransactionFeeDelegateInfoMap[delegatorAddress][delegateInfo.ContractAddress]
                     [delegateInfo.MethodName] ?? new TransactionFeeDelegatees();
@@ -214,7 +216,7 @@ public partial class TokenContract
             //If the transaction contains delegatee,update delegate info.
             if (existDelegateeList.TryGetValue(delegateeAddress, out var value))
             {
-                UpdateDelegateInfo(ref value, ref toUpdateTransactionList,delegateInfo);
+                UpdateDelegateInfo(ref value, ref toUpdateTransactionList, delegateInfo);
                 existDelegateeList[delegateeAddress] = value;
             } //else,add new delegate info.
             else
@@ -223,9 +225,9 @@ public partial class TokenContract
                     "The quantity of delegatee has reached its limit");
                 existDelegateeList.Add(delegateeAddress, new TransactionFeeDelegations());
                 var transactionFeeDelegations = existDelegateeList[delegateeAddress];
-                AddDelegateInfo(ref transactionFeeDelegations,ref toAddTransactionList,delegateInfo);
+                AddDelegateInfo(ref transactionFeeDelegations, ref toAddTransactionList, delegateInfo);
             }
-            
+
             if (existDelegateeInfoList.Delegatees[delegateeAddress].Delegations.Count == 0 &&
                 !existDelegateeInfoList.Delegatees[delegateeAddress].IsUnlimitedDelegate)
             {
@@ -236,7 +238,7 @@ public partial class TokenContract
                     MethodName = delegateInfo.MethodName
                 });
             }
-            
+
             State.TransactionFeeDelegateInfoMap[delegatorAddress][delegateInfo.ContractAddress]
                 [delegateInfo.MethodName] = existDelegateeInfoList;
         }
@@ -246,7 +248,8 @@ public partial class TokenContract
         return new Empty();
     }
 
-    private void AddDelegateInfo(ref TransactionFeeDelegations existDelegateeList,ref DelegateTransactionList toAddTransactionList,DelegateInfo delegateInfo)
+    private void AddDelegateInfo(ref TransactionFeeDelegations existDelegateeList,
+        ref DelegateTransactionList toAddTransactionList, DelegateInfo delegateInfo)
     {
         if (!delegateInfo.IsUnlimitedDelegate)
         {
@@ -256,7 +259,6 @@ public partial class TokenContract
                 existDelegateeList.Delegations[symbol] = amount;
             }
         }
-
         existDelegateeList.BlockHeight = Context.CurrentHeight;
         existDelegateeList.IsUnlimitedDelegate = delegateInfo.IsUnlimitedDelegate;
         toAddTransactionList.Value.Add(new DelegateTransaction
@@ -265,7 +267,9 @@ public partial class TokenContract
             MethodName = delegateInfo.MethodName
         });
     }
-    private void UpdateDelegateInfo(ref TransactionFeeDelegations existDelegateInfo,ref DelegateTransactionList toUpdateTransactionList,DelegateInfo delegateInfo)
+
+    private void UpdateDelegateInfo(ref TransactionFeeDelegations existDelegateInfo,
+        ref DelegateTransactionList toUpdateTransactionList, DelegateInfo delegateInfo)
     {
         var existDelegation = existDelegateInfo.Delegations;
         if (delegateInfo.IsUnlimitedDelegate)
@@ -279,7 +283,7 @@ public partial class TokenContract
             {
                 if (existDelegation.ContainsKey(symbol))
                 {
-                    if (amount < 0)
+                    if (amount <= 0)
                     {
                         existDelegation.Remove(symbol);
                     }
@@ -296,7 +300,7 @@ public partial class TokenContract
                 }
             }
         }
-        
+
         existDelegateInfo.BlockHeight = Context.CurrentHeight;
         existDelegateInfo.IsUnlimitedDelegate = delegateInfo.IsUnlimitedDelegate;
         toUpdateTransactionList.Value.Add(new DelegateTransaction
@@ -305,6 +309,7 @@ public partial class TokenContract
             MethodName = delegateInfo.MethodName
         });
     }
+
     private void FireLogEvent(DelegateTransactionList toAddTransactionList,
         DelegateTransactionList toUpdateTransactionList, DelegateTransactionList toCancelTransactionList,
         Address delegatorAddress)
@@ -353,15 +358,14 @@ public partial class TokenContract
         var toCancelTransactionList = new DelegateTransactionList();
         foreach (var delegateTransaction in delegateTransactionList.ToList().Distinct())
         {
+            Assert(delegateTransaction.ContractAddress != null && !string.IsNullOrEmpty(delegateTransaction.MethodName) &&
+                   delegateTransaction.MethodName.All(IsValidMethodNameChar), "Invalid contract address and method name.");
             var delegateeInfo =
                 State.TransactionFeeDelegateInfoMap[delegatorAddress][delegateTransaction.ContractAddress][
                     delegateTransaction.MethodName];
-            if (delegateeInfo != null && delegateeInfo.Delegatees.ContainsKey(delegateeAddress))
-            {
-                delegateeInfo.Delegatees.Remove(delegateeAddress);
-                toCancelTransactionList.Value.Add(delegateTransaction);
-            }
-
+            if (delegateeInfo == null || !delegateeInfo.Delegatees.ContainsKey(delegateeAddress)) continue;
+            delegateeInfo.Delegatees.Remove(delegateeAddress);
+            toCancelTransactionList.Value.Add(delegateTransaction);
             State.TransactionFeeDelegateInfoMap[delegatorAddress][delegateTransaction.ContractAddress][
                 delegateTransaction.MethodName] = delegateeInfo;
         }
@@ -390,15 +394,14 @@ public partial class TokenContract
         var toCancelTransactionList = new DelegateTransactionList();
         foreach (var delegateTransaction in delegateTransactionList.ToList().Distinct())
         {
+            Assert(delegateTransaction.ContractAddress != null && !string.IsNullOrEmpty(delegateTransaction.MethodName) &&
+                   delegateTransaction.MethodName.All(IsValidMethodNameChar), "Invalid contract address and method name.");
             var delegateeInfo =
                 State.TransactionFeeDelegateInfoMap[delegatorAddress][delegateTransaction.ContractAddress][
                     delegateTransaction.MethodName];
-            if (delegateeInfo != null && delegateeInfo.Delegatees.ContainsKey(delegateeAddress))
-            {
-                delegateeInfo.Delegatees.Remove(delegateeAddress);
-                toCancelTransactionList.Value.Add(delegateTransaction);
-            }
-
+            if (delegateeInfo == null || !delegateeInfo.Delegatees.ContainsKey(delegateeAddress)) continue;
+            delegateeInfo.Delegatees.Remove(delegateeAddress);
+            toCancelTransactionList.Value.Add(delegateTransaction);
             State.TransactionFeeDelegateInfoMap[delegatorAddress][delegateTransaction.ContractAddress][
                 delegateTransaction.MethodName] = delegateeInfo;
         }
@@ -408,8 +411,8 @@ public partial class TokenContract
             Context.Fire(new TransactionFeeDelegateInfoCancelled
             {
                 Caller = Context.Sender,
-                Delegatee = input.DelegatorAddress,
-                Delegator = Context.Sender,
+                Delegator = input.DelegatorAddress,
+                Delegatee = Context.Sender,
                 DelegateTransactionList = toCancelTransactionList
             });
         }
@@ -421,11 +424,11 @@ public partial class TokenContract
         GetTransactionFeeDelegateeListInput input)
     {
         Assert(input.DelegatorAddress != null && input.ContractAddress != null && input.MethodName != null,
-            "invalid input");
+            "Invalid input.");
         var allDelegatees =
             State.TransactionFeeDelegateInfoMap[input.DelegatorAddress][input.ContractAddress][input.MethodName];
 
-        if (allDelegatees == null || allDelegatees.Delegatees == null || allDelegatees.Delegatees.Count == 0)
+        if (allDelegatees?.Delegatees == null || allDelegatees.Delegatees.Count == 0)
         {
             return new GetTransactionFeeDelegateeListOutput();
         }
