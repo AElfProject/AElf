@@ -260,6 +260,21 @@ enum SymbolType {
 }
 
 message MethodFeeFreeAllowancesConfig {
+    MethodFeeFreeAllowances free_allowances = 1;
+    int64 refresh_seconds = 2;
+    int64 threshold = 3;
+}
+
+message MethodFeeFreeAllowances{
+    repeated MethodFeeFreeAllowance value = 1;
+}
+
+message MethodFeeFreeAllowance {
+    string symbol = 1;
+    int64 amount = 2;
+}
+
+message MethodFeeFreeAllowancesSymbolList {
     repeated string symbols = 1;
 }
 
@@ -290,13 +305,4 @@ message MethodFeeFreeAllowanceMap {
 
 message MethodFeeFreeAllowancesMap {
     map<string, MethodFeeFreeAllowanceMap> map = 1;
-}
-
-message MethodFeeFreeAllowances{
-    repeated MethodFeeFreeAllowance value = 1;
-}
-
-message MethodFeeFreeAllowance {
-    string symbol = 1;
-    int64 amount = 2;
 }

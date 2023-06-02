@@ -110,7 +110,7 @@ public partial class TokenContract
     {
         return methodFeeFreeAllowancesMap.Map.Keys.OrderBy(t =>
             State.MethodFeeFreeAllowancesConfigMap[t].RefreshSeconds - (Context.CurrentBlockTime -
-                                                                        State.MethodFeeFreeAllowancesLastRefreshTimeMap[
+                                                                        State.MethodFeeFreeAllowancesLastRefreshTimes[
                                                                             fromAddress][t]).Seconds).ToList();
     }
 
