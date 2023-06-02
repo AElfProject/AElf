@@ -293,6 +293,7 @@ public class ExecutePluginTransactionDirectlyForMethodFeeTestBase : ContractTest
     internal Address TreasuryContractAddress { get; set; }
     internal Address ConsensusContractAddress { get; set; }
     internal TokenContractContainer.TokenContractStub TokenContractStub { get; set; }
+    internal TokenContractImplContainer.TokenContractImplStub TokenContractImplStub { get; set; }
     internal TokenContractContainer.TokenContractStub TokenContractStub2 { get; set; }
     internal TokenContractContainer.TokenContractStub TokenContractStub3 { get; set; }
     internal ParliamentContractImplContainer.ParliamentContractImplStub ParliamentContractStub { get; set; }
@@ -349,6 +350,8 @@ public class ExecutePluginTransactionDirectlyForMethodFeeTestBase : ContractTest
                 GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, UserKeyPair);
             TokenContractStubA = 
                 GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, UserKeyPair);
+            TokenContractImplStub =
+                GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, DefaultSenderKeyPair);
         }
 
         // Parliament

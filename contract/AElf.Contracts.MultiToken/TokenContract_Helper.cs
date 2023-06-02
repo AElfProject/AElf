@@ -88,8 +88,7 @@ public partial class TokenContract
             Assert(false,
                 $"Insufficient amount of {symbol} for free fee allowance. Need amount: {-addAmount}; Current amount: {freeAllowanceAmount}");
         }
-        
-        // var symbolList = methodFeeFreeAllowancesMap.Map.Keys;
+
         var symbolList = GetSymbolListSortedByExpirationTime(methodFeeFreeAllowancesMap, fromAddress);
 
         foreach (var s in symbolList)
@@ -98,13 +97,16 @@ public partial class TokenContract
 
             var currentAllowance = methodFeeFreeAllowancesMap.Map[s].Map[symbol].Amount;
 
+            if (currentAllowance == 0) continue;
+
             addAmount += currentAllowance;
 
             methodFeeFreeAllowancesMap.Map[s].Map[symbol].Amount = addAmount >= 0 ? addAmount : 0;
         }
     }
 
-    private List<string> GetSymbolListSortedByExpirationTime(MethodFeeFreeAllowancesMap methodFeeFreeAllowancesMap, Address fromAddress)
+    private List<string> GetSymbolListSortedByExpirationTime(MethodFeeFreeAllowancesMap methodFeeFreeAllowancesMap,
+        Address fromAddress)
     {
         return methodFeeFreeAllowancesMap.Map.Keys.OrderBy(t =>
             State.MethodFeeFreeAllowancesConfigMap[t].RefreshSeconds - (Context.CurrentBlockTime -
@@ -134,7 +136,7 @@ public partial class TokenContract
         {
             var freeAllowance = freeAllowances.Map.Values.FirstOrDefault(t => t.Symbol == symbol);
 
-            allowance.Add(freeAllowance?.Amount ?? 0L);
+            allowance = allowance.Add(freeAllowance?.Amount ?? 0L);
         }
 
         return allowance;

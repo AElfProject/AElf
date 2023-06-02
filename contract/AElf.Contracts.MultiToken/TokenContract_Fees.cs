@@ -7,6 +7,7 @@ using AElf.Standards.ACS10;
 using AElf.Standards.ACS12;
 using AElf.Types;
 using Google.Protobuf;
+using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.MultiToken;
@@ -214,7 +215,7 @@ public partial class TokenContract
             });
         }
 
-        if (freeAllowancesMap?.Map == null || freeAllowancesMap.Map.Count == 0) return;
+        if (freeAllowancesMap.Map == null || freeAllowancesMap.Map.Count == 0) return;
 
         foreach (var (symbol, amount) in allowanceBill.FreeFeeAllowancesMap)
         {
@@ -222,11 +223,6 @@ public partial class TokenContract
             {
                 ModifyFreeFeeAllowanceAmount(fromAddress, freeAllowancesMap, symbol, -amount);
             }
-        }
-
-        foreach (var (symbol, freeAllowances) in freeAllowancesMap.Map)
-        {
-            State.MethodFeeFreeAllowancesMap[fromAddress][symbol] = freeAllowances;
         }
     }
 
@@ -238,7 +234,7 @@ public partial class TokenContract
         var successToChargeBaseFee = true;
 
         SetOrRefreshMethodFeeFreeAllowances(fromAddress);
-        var freeAllowancesMap = CalculateMethodFeeFreeAllowances(fromAddress)?.Clone();
+        var freeAllowancesMap = CalculateMethodFeeFreeAllowances(fromAddress);
 
         if (fee.Count != 0)
         {
@@ -273,7 +269,7 @@ public partial class TokenContract
 
             State.MethodFeeFreeAllowancesLastRefreshTimeMap[address][symbol] = Context.CurrentBlockTime;
             State.MethodFeeFreeAllowancesMap[address][symbol] =
-                State.MethodFeeFreeAllowancesConfigMap[symbol].FreeAllowances;
+                State.MethodFeeFreeAllowancesConfigMap[symbol].FreeAllowances.Clone();
         }
     }
 
@@ -1014,19 +1010,29 @@ public partial class TokenContract
     public override Empty ConfigMethodFeeFreeAllowances(ConfigMethodFeeFreeAllowancesInput input)
     {
         AssertSenderAddressWith(GetDefaultParliamentController().OwnerAddress);
-        Assert(string.IsNullOrWhiteSpace(input.Symbol), "Invalid input symbol");
+        Assert(!string.IsNullOrWhiteSpace(input.Symbol), "Invalid input symbol");
         Assert(input.MethodFeeFreeAllowances?.Value != null && input.MethodFeeFreeAllowances.Value.Count > 0,
             "Invalid input allowances");
-        Assert(input.Threshold > 0, "Invalid input threshold");
-        Assert(input.RefreshSeconds > 0, "Invalid input refresh seconds");
+        Assert(input.Threshold >= 0, "Invalid input threshold");
+        Assert(input.RefreshSeconds >= 0, "Invalid input refresh seconds");
 
-        State.MethodFeeFreeAllowancesConfigMap[input.Symbol].Threshold = input.Threshold;
-        State.MethodFeeFreeAllowancesConfigMap[input.Symbol].RefreshSeconds = input.RefreshSeconds;
-        State.MethodFeeFreeAllowancesConfigMap[input.Symbol].FreeAllowances = new MethodFeeFreeAllowanceMap();
+        var config = new FreeAllowanceConfig
+        {
+            Threshold = input.Threshold,
+            RefreshSeconds = input.RefreshSeconds,
+            FreeAllowances = new MethodFeeFreeAllowanceMap()
+        };
         foreach (var allowance in input.MethodFeeFreeAllowances!.Value!)
         {
-            State.MethodFeeFreeAllowancesConfigMap[input.Symbol].FreeAllowances.Map.Add(allowance.Symbol, allowance);
+            config.FreeAllowances.Map.Add(allowance.Symbol, allowance);
         }
+
+        State.MethodFeeFreeAllowancesConfigMap[input.Symbol] = config;
+
+        State.MethodFeeFreeAllowancesConfig.Value ??= new MethodFeeFreeAllowancesConfig
+        {
+            Symbols = { new RepeatedField<string>() }
+        };
 
         if (!State.MethodFeeFreeAllowancesConfig.Value.Symbols.Contains(input.Symbol))
         {
@@ -1083,10 +1089,9 @@ public partial class TokenContract
             return new MethodFeeFreeAllowancesMap();
         }
 
-        var config = freeAllowancesConfig.Clone();
         var methodFeeFreeAllowancesMap = new MethodFeeFreeAllowancesMap();
 
-        foreach (var symbol in config.Symbols)
+        foreach (var symbol in freeAllowancesConfig.Symbols)
         {
             var balance = State.Balances[input][symbol];
             if (balance < State.MethodFeeFreeAllowancesConfigMap[symbol].Threshold) continue;
@@ -1100,7 +1105,7 @@ public partial class TokenContract
                 if (balance >= State.MethodFeeFreeAllowancesConfigMap[symbol].Threshold)
                 {
                     methodFeeFreeAllowancesMap.Map.Add(symbol,
-                        State.MethodFeeFreeAllowancesConfigMap[symbol].FreeAllowances);
+                        State.MethodFeeFreeAllowancesConfigMap[symbol].FreeAllowances.Clone());
                     continue;
                 }
             }
@@ -1114,7 +1119,7 @@ public partial class TokenContract
                 methodFeeFreeAllowancesMap.Map.Add(symbol,
                     (Context.CurrentBlockTime - lastRefreshTime).Seconds >
                     State.MethodFeeFreeAllowancesConfigMap[symbol].RefreshSeconds
-                        ? State.MethodFeeFreeAllowancesConfigMap[symbol].FreeAllowances
+                        ? State.MethodFeeFreeAllowancesConfigMap[symbol].FreeAllowances.Clone()
                         : freeAllowances);
             }
         }
