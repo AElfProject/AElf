@@ -169,7 +169,7 @@ public partial class MultiTokenContractTests
     public async Task ConfigMethodFeeFreeAllowances_Without_Authorization_Test()
     {
         var configMethodFeeFreeAllowancesRet =
-            await TokenContractStub.ConfigMethodFeeFreeAllowances.SendWithExceptionAsync(new MethodFeeFreeAllowancesConfig());
+            await TokenContractStub.ConfigMethodFeeFreeAllowances.SendWithExceptionAsync(new ConfigMethodFeeFreeAllowancesInput());
         configMethodFeeFreeAllowancesRet.TransactionResult.Error.ShouldContain("Unauthorized behavior.");
     }
 
