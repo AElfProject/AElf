@@ -1018,6 +1018,7 @@ public partial class TokenContract
 
         var config = new FreeAllowanceConfig
         {
+            Symbol = input.Symbol,
             Threshold = input.Threshold,
             RefreshSeconds = input.RefreshSeconds,
             FreeAllowances = new MethodFeeFreeAllowanceMap()

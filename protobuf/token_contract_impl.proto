@@ -294,9 +294,10 @@ message GetMethodFeeFreeAllowancesConfigOutput {
 }
 
 message FreeAllowanceConfig {
-    MethodFeeFreeAllowanceMap free_allowances = 1;
-    int64 refresh_seconds = 2;
-    int64 threshold = 3;
+    string symbol = 1;
+    MethodFeeFreeAllowanceMap free_allowances = 2;
+    int64 refresh_seconds = 3;
+    int64 threshold = 4;
 }
 
 message MethodFeeFreeAllowanceMap {

@@ -39,8 +39,23 @@ public partial class TokenContractState
     public MappedState<Address, MethodFeeFreeAllowances> MethodFeeFreeAllowancesMap { get; set; }
     public MappedState<Address, Timestamp> MethodFeeFreeAllowancesLastRefreshTimeMap { get; set; }
     
+    /// <summary>
+    ///  Symbol List
+    /// </summary>
     public SingletonState<MethodFeeFreeAllowancesSymbolList> MethodFeeFreeAllowancesSymbolList { get; set; }
+    
+    /// <summary>
+    /// Symbol -> FreeAllowanceConfig
+    /// </summary>
     public MappedState<string, FreeAllowanceConfig> MethodFeeFreeAllowancesConfigMap { get; set; }
+    
+    /// <summary>
+    /// Address -> Symbol -> MethodFeeFreeAllowanceMap
+    /// </summary>
     public MappedState<Address, string, MethodFeeFreeAllowanceMap> MethodFeeFreeAllowances { get; set; }
+    
+    /// <summary>
+    /// Address -> Symbol -> LastRefreshTime
+    /// </summary>
     public MappedState<Address, string, Timestamp> MethodFeeFreeAllowancesLastRefreshTimes { get; set; }
 }
