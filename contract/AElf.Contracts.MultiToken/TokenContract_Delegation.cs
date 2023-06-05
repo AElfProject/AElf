@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -352,35 +353,9 @@ public partial class TokenContract
     {
         Assert(input.DelegateeAddress != null, "Delegatee address cannot be null.");
         Assert(input.DelegateTransactionList.Count > 0, "Delegate transaction list should not be null.");
-        var delegateTransactionList = input.DelegateTransactionList;
         var delegatorAddress = Context.Sender;
-        var delegateeAddress = input.DelegateeAddress.ToBase58();
-        var toCancelTransactionList = new DelegateTransactionList();
-        foreach (var delegateTransaction in delegateTransactionList.ToList().Distinct())
-        {
-            Assert(delegateTransaction.ContractAddress != null && !string.IsNullOrEmpty(delegateTransaction.MethodName) &&
-                   delegateTransaction.MethodName.All(IsValidMethodNameChar), "Invalid contract address and method name.");
-            var delegateeInfo =
-                State.TransactionFeeDelegateInfoMap[delegatorAddress][delegateTransaction.ContractAddress][
-                    delegateTransaction.MethodName];
-            if (delegateeInfo == null || !delegateeInfo.Delegatees.ContainsKey(delegateeAddress)) continue;
-            delegateeInfo.Delegatees.Remove(delegateeAddress);
-            toCancelTransactionList.Value.Add(delegateTransaction);
-            State.TransactionFeeDelegateInfoMap[delegatorAddress][delegateTransaction.ContractAddress][
-                delegateTransaction.MethodName] = delegateeInfo;
-        }
-
-        if (toCancelTransactionList.Value.Count > 0)
-        {
-            Context.Fire(new TransactionFeeDelegateInfoCancelled
-            {
-                Caller = Context.Sender,
-                Delegatee = input.DelegateeAddress,
-                Delegator = Context.Sender,
-                DelegateTransactionList = toCancelTransactionList
-            });
-        }
-
+        var delegateeAddress = input.DelegateeAddress?.ToBase58();
+        RemoveTransactionFeeDelegateInfo(input.DelegateTransactionList.ToList(), delegatorAddress, delegateeAddress);
         return new Empty();
     }
 
@@ -388,11 +363,16 @@ public partial class TokenContract
     {
         Assert(input.DelegatorAddress != null, "Delegator address cannot be null.");
         Assert(input.DelegateTransactionList.Count > 0, "Delegate transaction list should not be null.");
-        var delegateTransactionList = input.DelegateTransactionList;
         var delegateeAddress = Context.Sender.ToBase58();
         var delegatorAddress = input.DelegatorAddress;
+        RemoveTransactionFeeDelegateInfo(input.DelegateTransactionList.ToList(), delegatorAddress, delegateeAddress);
+        return new Empty();
+    }
+
+    private void RemoveTransactionFeeDelegateInfo(List<DelegateTransaction> delegateTransactionList,Address delegatorAddress,string delegateeAddress)
+    {
         var toCancelTransactionList = new DelegateTransactionList();
-        foreach (var delegateTransaction in delegateTransactionList.ToList().Distinct())
+        foreach (var delegateTransaction in delegateTransactionList.Distinct())
         {
             Assert(delegateTransaction.ContractAddress != null && !string.IsNullOrEmpty(delegateTransaction.MethodName) &&
                    delegateTransaction.MethodName.All(IsValidMethodNameChar), "Invalid contract address and method name.");
@@ -411,13 +391,11 @@ public partial class TokenContract
             Context.Fire(new TransactionFeeDelegateInfoCancelled
             {
                 Caller = Context.Sender,
-                Delegator = input.DelegatorAddress,
-                Delegatee = Context.Sender,
+                Delegator = delegatorAddress,
+                Delegatee = Address.FromBase58(delegateeAddress),
                 DelegateTransactionList = toCancelTransactionList
             });
         }
-
-        return new Empty();
     }
 
     public override GetTransactionFeeDelegateeListOutput GetTransactionFeeDelegateeList(

@@ -217,8 +217,8 @@ public partial class TokenContract
         foreach (var (symbol, amount) in allowanceBill.FreeFeeAllowancesMap)
         {
             if (amount <= 0) continue;
-            var delegateInfo = State.TransactionFeeDelegateesMap[Context.Sender] ??
-                               State.TransactionFeeDelegateInfoMap[Context.Sender][contractAddress][methodName];
+            var delegateInfo = State.TransactionFeeDelegateesMap[delegatorAddress] ??
+                               State.TransactionFeeDelegateInfoMap[delegatorAddress][contractAddress][methodName];
             delegateInfo.Delegatees[delegateeAddress.ToBase58()].Delegations[symbol] =
                 delegateInfo.Delegatees[delegateeAddress.ToBase58()].Delegations[symbol].Sub(amount);
         }
@@ -359,6 +359,7 @@ public partial class TokenContract
         MethodFeeFreeAllowances freeAllowances, ref TransactionFreeFeeAllowanceBill allowanceBill,
         TransactionFeeDelegations delegations = null)
     {
+        //If delegation != null,from address->delegateeAddress
         // Size Fee is charged in primary token, elf.
         var symbolToPayTxFee = State.ChainPrimaryTokenSymbol.Value;
         //Get primary token balance
