@@ -1010,34 +1010,40 @@ public partial class TokenContract
     public override Empty ConfigMethodFeeFreeAllowances(ConfigMethodFeeFreeAllowancesInput input)
     {
         AssertSenderAddressWith(GetDefaultParliamentController().OwnerAddress);
-        Assert(!string.IsNullOrWhiteSpace(input.Symbol), "Invalid input symbol");
-        Assert(input.MethodFeeFreeAllowances?.Value != null && input.MethodFeeFreeAllowances.Value.Count > 0,
-            "Invalid input allowances");
-        Assert(input.Threshold >= 0, "Invalid input threshold");
-        Assert(input.RefreshSeconds >= 0, "Invalid input refresh seconds");
-
-        var config = new FreeAllowanceConfig
-        {
-            Symbol = input.Symbol,
-            Threshold = input.Threshold,
-            RefreshSeconds = input.RefreshSeconds,
-            FreeAllowances = new MethodFeeFreeAllowanceMap()
-        };
-        foreach (var allowance in input.MethodFeeFreeAllowances!.Value!)
-        {
-            config.FreeAllowances.Map.Add(allowance.Symbol, allowance);
-        }
-
-        State.MethodFeeFreeAllowancesConfigMap[input.Symbol] = config;
+        Assert(input.Value != null && input.Value.Count > 0, "Invalid input");
 
         State.MethodFeeFreeAllowancesSymbolList.Value ??= new MethodFeeFreeAllowancesSymbolList
         {
             Symbols = { new RepeatedField<string>() }
         };
-
-        if (!State.MethodFeeFreeAllowancesSymbolList.Value.Symbols.Contains(input.Symbol))
+        
+        foreach (var allowances in input.Value!)
         {
-            State.MethodFeeFreeAllowancesSymbolList.Value.Symbols.Add(input.Symbol);
+            Assert(!string.IsNullOrWhiteSpace(allowances.Symbol), "Invalid input symbol");
+            Assert(allowances.MethodFeeFreeAllowances?.Value != null && allowances.MethodFeeFreeAllowances.Value.Count > 0,
+                "Invalid input allowances");
+            Assert(allowances.Threshold >= 0, "Invalid input threshold");
+            Assert(allowances.RefreshSeconds >= 0, "Invalid input refresh seconds");
+            
+            var config = new FreeAllowanceConfig
+            {
+                Symbol = allowances.Symbol,
+                Threshold = allowances.Threshold,
+                RefreshSeconds = allowances.RefreshSeconds,
+                FreeAllowances = new MethodFeeFreeAllowanceMap()
+            };
+            
+            foreach (var allowance in allowances.MethodFeeFreeAllowances!.Value!)
+            {
+                config.FreeAllowances.Map.Add(allowance.Symbol, allowance);
+            }
+            
+            State.MethodFeeFreeAllowancesConfigMap[allowances.Symbol] = config;
+            
+            if (!State.MethodFeeFreeAllowancesSymbolList.Value.Symbols.Contains(allowances.Symbol))
+            {
+                State.MethodFeeFreeAllowancesSymbolList.Value.Symbols.Add(allowances.Symbol);
+            }
         }
 
         return new Empty();

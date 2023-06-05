@@ -302,20 +302,26 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
         await SubmitAndPassProposalOfDefaultParliamentAsync(TokenContractAddress,
             nameof(TokenContractImplStub.ConfigMethodFeeFreeAllowances), new ConfigMethodFeeFreeAllowancesInput
             {
-                Symbol = NativeTokenSymbol,
-                MethodFeeFreeAllowances = new MethodFeeFreeAllowances
+                Value =
                 {
-                    Value =
+                    new ConfigMethodFeeFreeAllowance
                     {
-                        new MethodFeeFreeAllowance
+                        Symbol = NativeTokenSymbol,
+                        MethodFeeFreeAllowances = new MethodFeeFreeAllowances
                         {
-                            Symbol = NativeTokenSymbol,
-                            Amount = freeAmount
-                        }
+                            Value =
+                            {
+                                new MethodFeeFreeAllowance
+                                {
+                                    Symbol = NativeTokenSymbol,
+                                    Amount = freeAmount
+                                }
+                            }
+                        },
+                        RefreshSeconds = refreshSeconds,
+                        Threshold = threshold
                     }
-                },
-                RefreshSeconds = refreshSeconds,
-                Threshold = threshold
+                }
             });
 
         var methodFee = new MethodFees
@@ -431,25 +437,31 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
         await SubmitAndPassProposalOfDefaultParliamentAsync(TokenContractAddress,
             nameof(TokenContractImplStub.ConfigMethodFeeFreeAllowances), new ConfigMethodFeeFreeAllowancesInput
             {
-                MethodFeeFreeAllowances = new MethodFeeFreeAllowances
+                Value =
                 {
-                    Value =
+                    new ConfigMethodFeeFreeAllowance
                     {
-                        new MethodFeeFreeAllowance
+                        MethodFeeFreeAllowances = new MethodFeeFreeAllowances
                         {
-                            Symbol = basicFeeSymbol,
-                            Amount = baseFeeFreeAmount
+                            Value =
+                            {
+                                new MethodFeeFreeAllowance
+                                {
+                                    Symbol = basicFeeSymbol,
+                                    Amount = baseFeeFreeAmount
+                                },
+                                new MethodFeeFreeAllowance
+                                {
+                                    Symbol = sizeFeeSymbol,
+                                    Amount = sizeFeeFreeAmount
+                                }
+                            }
                         },
-                        new MethodFeeFreeAllowance
-                        {
-                            Symbol = sizeFeeSymbol,
-                            Amount = sizeFeeFreeAmount
-                        }
+                        RefreshSeconds = 100,
+                        Threshold = threshold,
+                        Symbol = NativeTokenSymbol
                     }
-                },
-                RefreshSeconds = 100,
-                Threshold = threshold,
-                Symbol = NativeTokenSymbol
+                }
             });
 
 
@@ -622,25 +634,31 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
         await SubmitAndPassProposalOfDefaultParliamentAsync(TokenContractAddress,
             nameof(TokenContractImplStub.ConfigMethodFeeFreeAllowances), new ConfigMethodFeeFreeAllowancesInput
             {
-                MethodFeeFreeAllowances = new MethodFeeFreeAllowances
+                Value =
                 {
-                    Value =
+                    new ConfigMethodFeeFreeAllowance
                     {
-                        new MethodFeeFreeAllowance
+                        MethodFeeFreeAllowances = new MethodFeeFreeAllowances
                         {
-                            Symbol = basicFeeSymbol,
-                            Amount = baseFeeFreeAmount
+                            Value =
+                            {
+                                new MethodFeeFreeAllowance
+                                {
+                                    Symbol = basicFeeSymbol,
+                                    Amount = baseFeeFreeAmount
+                                },
+                                new MethodFeeFreeAllowance
+                                {
+                                    Symbol = sizeFeeSymbol,
+                                    Amount = sizeFeeFreeAmount
+                                }
+                            }
                         },
-                        new MethodFeeFreeAllowance
-                        {
-                            Symbol = sizeFeeSymbol,
-                            Amount = sizeFeeFreeAmount
-                        }
+                        RefreshSeconds = 100,
+                        Threshold = threshold,
+                        Symbol = NativeTokenSymbol
                     }
-                },
-                RefreshSeconds = 100,
-                Threshold = threshold,
-                Symbol = NativeTokenSymbol
+                }
             });
         {
             var freeAllowances = await TokenContractImplStub.GetMethodFeeFreeAllowances.CallAsync(userAddress);
@@ -824,25 +842,31 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
         await SubmitAndPassProposalOfDefaultParliamentAsync(TokenContractAddress,
             nameof(TokenContractImplStub.ConfigMethodFeeFreeAllowances), new ConfigMethodFeeFreeAllowancesInput
             {
-                MethodFeeFreeAllowances = new MethodFeeFreeAllowances
+                Value =
                 {
-                    Value =
+                    new ConfigMethodFeeFreeAllowance
                     {
-                        new MethodFeeFreeAllowance
+                        MethodFeeFreeAllowances = new MethodFeeFreeAllowances
                         {
-                            Symbol = basicFeeSymbol,
-                            Amount = baseFeeFreeAmount
+                            Value =
+                            {
+                                new MethodFeeFreeAllowance
+                                {
+                                    Symbol = basicFeeSymbol,
+                                    Amount = baseFeeFreeAmount
+                                },
+                                new MethodFeeFreeAllowance
+                                {
+                                    Symbol = sizeFeeSymbol,
+                                    Amount = sizeFeeFreeAmount
+                                }
+                            }
                         },
-                        new MethodFeeFreeAllowance
-                        {
-                            Symbol = sizeFeeSymbol,
-                            Amount = sizeFeeFreeAmount
-                        }
+                        RefreshSeconds = 100,
+                        Threshold = threshold,
+                        Symbol = NativeTokenSymbol
                     }
-                },
-                RefreshSeconds = 100,
-                Threshold = threshold,
-                Symbol = NativeTokenSymbol
+                }
             });
 
         var methodFee = new MethodFees
