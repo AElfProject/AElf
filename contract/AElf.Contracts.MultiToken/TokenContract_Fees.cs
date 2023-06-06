@@ -1019,7 +1019,7 @@ public partial class TokenContract
         
         foreach (var allowances in input.Value!)
         {
-            Assert(!string.IsNullOrWhiteSpace(allowances.Symbol), "Invalid input symbol");
+            ValidateToken(allowances.Symbol);
             Assert(allowances.MethodFeeFreeAllowances?.Value != null && allowances.MethodFeeFreeAllowances.Value.Count > 0,
                 "Invalid input allowances");
             Assert(allowances.Threshold >= 0, "Invalid input threshold");
@@ -1047,6 +1047,12 @@ public partial class TokenContract
         }
 
         return new Empty();
+    }
+
+    private void ValidateToken(string symbol)
+    {
+        Assert(!string.IsNullOrWhiteSpace(symbol), "Invalid input symbol");
+        Assert(State.TokenInfos[symbol] != null, $"Symbol {symbol} not exist");
     }
 
     public override Empty RemoveMethodFeeFreeAllowancesConfig(RemoveMethodFeeFreeAllowancesConfigInput input)
