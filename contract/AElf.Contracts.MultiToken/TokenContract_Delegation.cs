@@ -217,8 +217,7 @@ public partial class TokenContract
             //If the transaction contains delegatee,update delegate info.
             if (existDelegateeList.TryGetValue(delegateeAddress, out var value))
             {
-                UpdateDelegateInfo(ref value, ref toUpdateTransactionList, delegateInfo);
-                existDelegateeList[delegateeAddress] = value;
+                toUpdateTransactionList.Value.Add(UpdateDelegateInfo(value, delegateInfo));
             } //else,add new delegate info.
             else
             {
@@ -226,7 +225,7 @@ public partial class TokenContract
                     "The quantity of delegatee has reached its limit");
                 existDelegateeList.Add(delegateeAddress, new TransactionFeeDelegations());
                 var transactionFeeDelegations = existDelegateeList[delegateeAddress];
-                AddDelegateInfo(ref transactionFeeDelegations, ref toAddTransactionList, delegateInfo);
+                toAddTransactionList.Value.Add(AddDelegateInfo(transactionFeeDelegations, delegateInfo));
             }
 
             if (existDelegateeInfoList.Delegatees[delegateeAddress].Delegations.Count == 0 &&
@@ -249,8 +248,7 @@ public partial class TokenContract
         return new Empty();
     }
 
-    private void AddDelegateInfo(ref TransactionFeeDelegations existDelegateeList,
-        ref DelegateTransactionList toAddTransactionList, DelegateInfo delegateInfo)
+    private DelegateTransaction AddDelegateInfo(TransactionFeeDelegations existDelegateeList, DelegateInfo delegateInfo)
     {
         if (!delegateInfo.IsUnlimitedDelegate)
         {
@@ -262,15 +260,14 @@ public partial class TokenContract
         }
         existDelegateeList.BlockHeight = Context.CurrentHeight;
         existDelegateeList.IsUnlimitedDelegate = delegateInfo.IsUnlimitedDelegate;
-        toAddTransactionList.Value.Add(new DelegateTransaction
+        return new DelegateTransaction
         {
             ContractAddress = delegateInfo.ContractAddress,
             MethodName = delegateInfo.MethodName
-        });
+        };
     }
 
-    private void UpdateDelegateInfo(ref TransactionFeeDelegations existDelegateInfo,
-        ref DelegateTransactionList toUpdateTransactionList, DelegateInfo delegateInfo)
+    private DelegateTransaction UpdateDelegateInfo(TransactionFeeDelegations existDelegateInfo, DelegateInfo delegateInfo)
     {
         var existDelegation = existDelegateInfo.Delegations;
         if (delegateInfo.IsUnlimitedDelegate)
@@ -304,11 +301,11 @@ public partial class TokenContract
 
         existDelegateInfo.BlockHeight = Context.CurrentHeight;
         existDelegateInfo.IsUnlimitedDelegate = delegateInfo.IsUnlimitedDelegate;
-        toUpdateTransactionList.Value.Add(new DelegateTransaction
+        return new DelegateTransaction
         {
             ContractAddress = delegateInfo.ContractAddress,
             MethodName = delegateInfo.MethodName
-        });
+        };
     }
 
     private void FireLogEvent(DelegateTransactionList toAddTransactionList,

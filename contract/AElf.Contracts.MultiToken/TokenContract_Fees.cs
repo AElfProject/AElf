@@ -657,90 +657,94 @@ public partial class TokenContract
     /// <returns></returns>
     private bool ChargeFirstSufficientToken(Dictionary<string, long> symbolToAmountMap, Address fromAddress,
         out string symbol, out long amount, out long existingBalance, out long existingAllowance,
-        MethodFeeFreeAllowances freeAllowances,
-        TransactionFeeDelegations delegations = null)
+        MethodFeeFreeAllowances freeAllowances, TransactionFeeDelegations delegations = null)
     {
         symbol = null;
         amount = 0L;
         existingBalance = 0L;
         existingAllowance = 0L;
+        bool chargeResult;
 
-        symbol = GetAvailableSymbolToPayBaseFee(symbolToAmountMap, fromAddress, freeAllowances, out amount,
-            delegations);
-        //Whether or not delegation exists, there is no token that can be used for payment
-        if (symbol == null) return false;
-
-        //For delegation, There is enough token balance and delegation to pay
-        //For user, There is enough token balance to pay or there is a token balance greater than 0
-        existingBalance = GetBalance(fromAddress, symbol);
-        existingAllowance = GetFreeFeeAllowanceAmount(freeAllowances, symbol);
-        //For delegation, return true
-        //For user,if balance enough return true
-        if (delegations != null || existingBalance.Add(existingAllowance) >= amount)
+        if (delegations != null)
         {
-            return true;
+            //from address -> delegatee
+            chargeResult = TryToChargeDelegateBaseFee(symbolToAmountMap, fromAddress, freeAllowances, delegations,
+                out amount, out symbol, out existingBalance, out existingAllowance);
+            return chargeResult;
         }
 
-        //For user, else priority charge primary token
-        var primaryTokenSymbol = GetPrimaryTokenSymbol(new Empty()).Value;
-        if (symbolToAmountMap.ContainsKey(primaryTokenSymbol))
+        chargeResult = TryToChargeUserBaseFee(symbolToAmountMap, fromAddress, freeAllowances,
+            out amount, out symbol, out existingBalance, out existingAllowance);
+
+        //For user, if charge failed and delegation is null, priority charge primary token
+        if (!chargeResult)
         {
-            symbol = primaryTokenSymbol;
+            var primaryTokenSymbol = GetPrimaryTokenSymbol(new Empty()).Value;
+            if (symbolToAmountMap.ContainsKey(primaryTokenSymbol))
+            {
+                symbol = primaryTokenSymbol;
+                existingBalance = GetBalance(fromAddress, symbol);
+                existingAllowance = GetFreeFeeAllowanceAmount(freeAllowances, symbol);
+            }
+        }
+
+        return chargeResult;
+    }
+
+    private bool TryToChargeUserBaseFee(Dictionary<string, long> symbolToAmountMap, Address fromAddress,
+        MethodFeeFreeAllowances freeAllowances, out long amount, out string symbolOfValidBalance,
+        out long existingBalance, out long existingAllowance)
+    {
+        symbolOfValidBalance = null;
+        amount = 0;
+        existingBalance = 0;
+        existingAllowance = 0;
+        //For user
+        //Find the token that satisfies the balance of the fee,if there is no token that satisfies the balance of the fee, find the token that balance > 0
+        foreach (var (symbol, value) in symbolToAmountMap)
+        {
+            // current token symbol
+            amount = value;
             existingBalance = GetBalance(fromAddress, symbol);
             existingAllowance = GetFreeFeeAllowanceAmount(freeAllowances, symbol);
+            if (existingBalance.Add(existingAllowance) > 0)
+            {
+                symbolOfValidBalance = symbol;
+            }
+
+            if (existingBalance.Add(existingAllowance) >= amount)
+                return true;
         }
 
         return false;
     }
 
-    private string GetAvailableSymbolToPayBaseFee(Dictionary<string, long> symbolToAmountMap, Address fromAddress,
-        MethodFeeFreeAllowances freeAllowances, out long amount, TransactionFeeDelegations delegations = null)
+    private bool TryToChargeDelegateBaseFee(Dictionary<string, long> symbolToAmountMap, Address fromAddress,
+        MethodFeeFreeAllowances freeAllowances, TransactionFeeDelegations delegations,
+        out long amount, out string symbolOfValidBalance, out long existingBalance, out long existingAllowance)
     {
-        string symbolOfValidBalance = null;
+        symbolOfValidBalance = null;
         amount = 0;
-        // Traverse available token symbols, check balance one by one
-        // until there's balance of one certain token is enough to pay the fee.
-        //For user
-        //Find the token that satisfies the balance of the fee,if there is no token that satisfies the balance of the fee, find the token that balance > 0
-        if (delegations == null)
+        existingBalance = 0;
+        existingAllowance = 0;
+        //Find the token that satisfies the delegate limit and satisfies the balance of the fee
+        foreach (var (symbol, value) in symbolToAmountMap)
         {
-            foreach (var (symbol, value) in symbolToAmountMap)
+            // current token symbol
+            amount = value;
+            existingBalance = GetBalance(fromAddress, symbol);
+            existingAllowance = GetFreeFeeAllowanceAmount(freeAllowances, symbol);
+            // is unlimited delegate is true && balance enough
+            // is unlimited delegate is false && delegation enough && balance enough
+            if (existingBalance.Add(existingAllowance) < amount) continue;
+            if (delegations.IsUnlimitedDelegate || (!delegations.IsUnlimitedDelegate && delegations.Delegations.ContainsKey(symbol) 
+                    && delegations.Delegations[symbol] >= amount))
             {
-                // current token symbol
-                amount = value;
-                var existingBalance = GetBalance(fromAddress, symbol);
-                var existingAllowance = GetFreeFeeAllowanceAmount(freeAllowances, symbol);
-                if (existingBalance.Add(existingAllowance) > 0)
-                {
-                    symbolOfValidBalance = symbol;
-                }
-
-                if (existingBalance.Add(existingAllowance) >= amount) break;
+                symbolOfValidBalance = symbol;
+                return true;
             }
         }
-        //For delegation
-        else
-        {
-            //Find the token that satisfies the delegate limit and satisfies the balance of the fee
-            foreach (var (symbol, value) in symbolToAmountMap)
-            {
-                // current token symbol
-                amount = value;
-                var existingBalance = GetBalance(fromAddress, symbol);
-                var existingAllowance = GetFreeFeeAllowanceAmount(freeAllowances, symbol);
-                // is unlimited delegate is true && balance enough
-                // is unlimited delegate is false && delegation enough && balance enough
-                if ((delegations.IsUnlimitedDelegate && existingBalance.Add(existingAllowance) >= amount) ||
-                    (!delegations.IsUnlimitedDelegate && delegations.Delegations.ContainsKey(symbol) &&
-                     delegations.Delegations[symbol] > amount && existingBalance.Add(existingAllowance) >= amount))
-                {
-                    symbolOfValidBalance = symbol;
-                    break;
-                }
-            }
-        }
-
-        return symbolOfValidBalance;
+        return false;
     }
 
     public override Empty ClaimTransactionFees(TotalTransactionFeesMap input)
