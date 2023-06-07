@@ -10,7 +10,6 @@ using AElf.ContractTestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.CSharp.Core.Extension;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Configuration;
 using AElf.Kernel.Proposal;
 using AElf.Kernel.SmartContract.Application;
@@ -23,7 +22,6 @@ using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
 using Volo.Abp.Threading;
-using Xunit;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests;
 
@@ -31,10 +29,12 @@ public class ExecutionPluginForMethodFeeTestBase : ContractTestBase<ExecutionPlu
 {
 }
 
-public class ExecutionPluginForUserContractMethodFeeTestBase : ContractTestBase<ExecutionPluginForUserContractMethodFeeTestModule>
+public class
+    ExecutionPluginForUserContractMethodFeeTestBase : ContractTestBase<
+        ExecutionPluginForUserContractMethodFeeTestModule>
 {
     protected const string NativeTokenSymbol = "ELF";
-    
+
     internal Address ConfigurationAddress;
     internal Address ParliamentAddress;
     internal Address ConsensusContractAddress;
@@ -46,12 +46,13 @@ public class ExecutionPluginForUserContractMethodFeeTestBase : ContractTestBase<
     internal AEDPoSContractContainer.AEDPoSContractStub AEDPoSContractStub { get; set; }
     protected new ISmartContractAddressService ContractAddressService =>
         Application.ServiceProvider.GetRequiredService<ISmartContractAddressService>();
+
     protected IBlockchainService BlockChainService =>
         Application.ServiceProvider.GetRequiredService<IBlockchainService>();
-    
+
     protected ECKeyPair DefaultSenderKeyPair => Accounts[0].KeyPair;
     protected Address DefaultAddress => Accounts[0].Address;
-    
+
     protected List<ECKeyPair> InitialCoreDataCenterKeyPairs =>
         Accounts.Take(1).Select(a => a.KeyPair).ToList();
 
@@ -59,17 +60,19 @@ public class ExecutionPluginForUserContractMethodFeeTestBase : ContractTestBase<
     {
         AsyncHelper.RunSync(InitializeContracts);
     }
+
     private async Task InitializeContracts()
     {
         await DeployContractsAsync();
-        AuthorizationContractStub=
+        AuthorizationContractStub =
             GetTester<AuthorizationContractContainer.AuthorizationContractStub>(ParliamentAddress,
                 DefaultSenderKeyPair);
         await InitializeAElfConsensus();
-        await InitializedParliament(); 
+        await InitializedParliament();
         TokenContractStub = await GetTokenContractStubAsync();
         await SetPrimaryTokenSymbolAsync();
     }
+
     private async Task<Address> GetTokenContractAddressAsync()
     {
         var preBlockHeader = await BlockChainService.GetBestChainLastBlockHeaderAsync();
@@ -83,6 +86,7 @@ public class ExecutionPluginForUserContractMethodFeeTestBase : ContractTestBase<
 
         return contractMapping[TokenSmartContractAddressNameProvider.Name];
     }
+
     private async Task<TokenContractContainer.TokenContractStub> GetTokenContractStubAsync()
     {
         TokenContractAddress = await GetTokenContractAddressAsync();
@@ -121,7 +125,6 @@ public class ExecutionPluginForUserContractMethodFeeTestBase : ContractTestBase<
             ParliamentContractStub =
                 GetTester<ParliamentContractImplContainer.ParliamentContractImplStub>(ParliamentAddress,
                     DefaultSenderKeyPair);
-            
         }
         //Consensus
         {
@@ -133,6 +136,7 @@ public class ExecutionPluginForUserContractMethodFeeTestBase : ContractTestBase<
                     DefaultSenderKeyPair);
         }
     }
+
     private async Task InitializeAElfConsensus()
     {
         {
@@ -180,6 +184,7 @@ public class ExecutionPluginForUserContractMethodFeeTestBase : ContractTestBase<
 
         return round;
     }
+
     private async Task SetPrimaryTokenSymbolAsync()
     {
         await TokenContractStub.SetPrimaryTokenSymbol.SendAsync(new SetPrimaryTokenSymbolInput
@@ -284,8 +289,11 @@ public class ExecutePluginTransactionDirectlyForMethodFeeTestBase : ContractTest
 {
     protected const string NativeTokenSymbol = "ELF";
 
+    protected readonly IBlockTimeProvider _blockTimeProvider;
+
     protected ExecutePluginTransactionDirectlyForMethodFeeTestBase()
     {
+        _blockTimeProvider = GetRequiredService<IBlockTimeProvider>();
         AsyncHelper.RunSync(InitializeContracts);
     }
 
@@ -305,6 +313,7 @@ public class ExecutePluginTransactionDirectlyForMethodFeeTestBase : ContractTest
 
     internal ECKeyPair UserTomSenderKeyPair => Accounts[10].KeyPair;
     internal Address UserTomSender => Accounts[10].Address;
+
     protected List<ECKeyPair> InitialCoreDataCenterKeyPairs =>
         Accounts.Take(1).Select(a => a.KeyPair).ToList();
 
@@ -314,9 +323,10 @@ public class ExecutePluginTransactionDirectlyForMethodFeeTestBase : ContractTest
 
     internal TokenContractContainer.TokenContractStub TokenContractStubA { get; set; }
     internal Address UserAAddress => Accounts[3].Address;
-    internal Address UserCAddress => Accounts[4].Address;
+    internal Address UserBAddress => Accounts[4].Address;
+    internal Address UserCAddress => Accounts[5].Address;
 
- 
+
     private async Task InitializeContracts()
     {
         await DeployContractsAsync();
@@ -346,9 +356,9 @@ public class ExecutePluginTransactionDirectlyForMethodFeeTestBase : ContractTest
                 GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, DefaultSenderKeyPair);
             TokenContractStub2 =
                 GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, DelegateeKeyPair);
-            TokenContractStub3 = 
+            TokenContractStub3 =
                 GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, UserKeyPair);
-            TokenContractStubA = 
+            TokenContractStubA =
                 GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, UserKeyPair);
             TokenContractImplStub =
                 GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, DefaultSenderKeyPair);

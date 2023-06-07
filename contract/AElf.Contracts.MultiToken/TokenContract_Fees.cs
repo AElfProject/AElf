@@ -1016,15 +1016,16 @@ public partial class TokenContract
         {
             Symbols = { new RepeatedField<string>() }
         };
-        
+
         foreach (var allowances in input.Value!)
         {
             ValidateToken(allowances.Symbol);
-            Assert(allowances.MethodFeeFreeAllowances?.Value != null && allowances.MethodFeeFreeAllowances.Value.Count > 0,
+            Assert(
+                allowances.MethodFeeFreeAllowances?.Value != null && allowances.MethodFeeFreeAllowances.Value.Count > 0,
                 "Invalid input allowances");
             Assert(allowances.Threshold >= 0, "Invalid input threshold");
             Assert(allowances.RefreshSeconds >= 0, "Invalid input refresh seconds");
-            
+
             var config = new FreeAllowanceConfig
             {
                 Symbol = allowances.Symbol,
@@ -1032,14 +1033,14 @@ public partial class TokenContract
                 RefreshSeconds = allowances.RefreshSeconds,
                 FreeAllowances = new MethodFeeFreeAllowanceMap()
             };
-            
+
             foreach (var allowance in allowances.MethodFeeFreeAllowances!.Value!)
             {
                 config.FreeAllowances.Map.Add(allowance.Symbol, allowance);
             }
-            
+
             State.MethodFeeFreeAllowancesConfigMap[allowances.Symbol] = config;
-            
+
             if (!State.MethodFeeFreeAllowancesSymbolList.Value.Symbols.Contains(allowances.Symbol))
             {
                 State.MethodFeeFreeAllowancesSymbolList.Value.Symbols.Add(allowances.Symbol);
@@ -1129,11 +1130,11 @@ public partial class TokenContract
             }
             else
             {
-                methodFeeFreeAllowancesMap.Map.Add(symbol,
+                methodFeeFreeAllowancesMap.Map[symbol] =
                     (Context.CurrentBlockTime - lastRefreshTime).Seconds >
                     State.MethodFeeFreeAllowancesConfigMap[symbol].RefreshSeconds
                         ? State.MethodFeeFreeAllowancesConfigMap[symbol].FreeAllowances.Clone()
-                        : freeAllowances);
+                        : freeAllowances;
             }
         }
 

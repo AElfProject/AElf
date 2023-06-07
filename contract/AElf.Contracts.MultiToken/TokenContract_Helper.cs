@@ -93,8 +93,10 @@ public partial class TokenContract
 
         foreach (var s in symbolList)
         {
-            if (addAmount == 0) break;
-
+            if (addAmount >= 0) break;
+            
+            if (!methodFeeFreeAllowancesMap.Map[s].Map.ContainsKey(symbol)) continue;
+            
             var currentAllowance = methodFeeFreeAllowancesMap.Map[s].Map[symbol].Amount;
 
             if (currentAllowance == 0) continue;
