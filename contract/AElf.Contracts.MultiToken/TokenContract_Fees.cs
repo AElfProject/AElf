@@ -365,7 +365,7 @@ public partial class TokenContract
         // Size Fee is charged in primary token, elf.
         var symbolToPayTxFee = State.ChainPrimaryTokenSymbol.Value;
         //Get primary token balance
-        GetAvailableBalance(symbolToPayTxFee, fromAddress, bill, freeAllowances, allowanceBill,
+        GetAvailableBalance(symbolToPayTxFee, fromAddress, bill, methodFeeFreeAllowancesMap, allowanceBill,
             out var symbolChargedForBaseFee, out var amountChargedForBaseFee, out var amountChargedForBaseAllowance,
             out var availableBalance, out var availableAllowance);
         var txSizeFeeAmount = input.TransactionSizeFee;
@@ -375,15 +375,15 @@ public partial class TokenContract
         {
             var allSymbolToTxFee = input.SymbolsToPayTxSizeFee.ToList();
             var availableSymbol = GetAvailableSymbolToPayTxFee(allSymbolToTxFee, fromAddress, txSizeFeeAmount,
-                freeAllowances, symbolChargedForBaseFee, amountChargedForBaseFee, amountChargedForBaseAllowance,
-                delegations);
+                methodFeeFreeAllowancesMap, symbolChargedForBaseFee, amountChargedForBaseFee,
+                amountChargedForBaseAllowance, delegations);
 
             if (availableSymbol != null && availableSymbol.TokenSymbol != symbolToPayTxFee)
             {
                 symbolToPayTxFee = availableSymbol.TokenSymbol;
                 txSizeFeeAmount = txSizeFeeAmount.Mul(availableSymbol.AddedTokenWeight)
                     .Div(availableSymbol.BaseTokenWeight);
-                GetAvailableBalance(symbolToPayTxFee, fromAddress, bill, freeAllowances, allowanceBill,
+                GetAvailableBalance(symbolToPayTxFee, fromAddress, bill, methodFeeFreeAllowancesMap, allowanceBill,
                     out symbolChargedForBaseFee, out amountChargedForBaseFee, out amountChargedForBaseAllowance,
                     out availableBalance, out availableAllowance);
             }
@@ -412,7 +412,7 @@ public partial class TokenContract
     }
 
     private void GetAvailableBalance(string symbolToPayTxFee, Address fromAddress, TransactionFeeBill bill,
-        MethodFeeFreeAllowances freeAllowances, TransactionFreeFeeAllowanceBill allowanceBill,
+        MethodFeeFreeAllowancesMap methodFeeFreeAllowancesMap, TransactionFreeFeeAllowanceBill allowanceBill,
         out string symbolChargedForBaseFee, out long amountChargedForBaseFee, out long amountChargedForBaseAllowance,
         out long availableBalance, out long availableAllowance)
     {
@@ -432,12 +432,12 @@ public partial class TokenContract
             ? GetBalance(fromAddress, symbolToPayTxFee).Sub(amountChargedForBaseFee)
             : GetBalance(fromAddress, symbolToPayTxFee);
         availableAllowance = symbolChargedForBaseFee == symbolToPayTxFee
-            ? GetFreeFeeAllowanceAmount(freeAllowances, symbolToPayTxFee).Sub(amountChargedForBaseAllowance)
-            : GetFreeFeeAllowanceAmount(freeAllowances, symbolToPayTxFee);
+            ? GetFreeFeeAllowanceAmount(methodFeeFreeAllowancesMap, symbolToPayTxFee).Sub(amountChargedForBaseAllowance)
+            : GetFreeFeeAllowanceAmount(methodFeeFreeAllowancesMap, symbolToPayTxFee);
     }
 
     private SymbolToPayTxSizeFee GetAvailableSymbolToPayTxFee(List<SymbolToPayTxSizeFee> allSymbolToTxFee,
-        Address fromAddress, long txSizeFeeAmount, MethodFeeFreeAllowances freeAllowances,
+        Address fromAddress, long txSizeFeeAmount, MethodFeeFreeAllowancesMap methodFeeFreeAllowancesMap,
         string symbolChargedForBaseFee, long amountChargedForBaseFee, long amountChargedForBaseAllowance,
         TransactionFeeDelegations delegations = null)
     {
@@ -448,12 +448,14 @@ public partial class TokenContract
             availableSymbol = allSymbolToTxFee.FirstOrDefault(x =>
             {
                 var balance = GetBalancePlusAllowanceCalculatedBaseOnPrimaryToken(fromAddress, x,
-                    symbolChargedForBaseFee, amountChargedForBaseFee, freeAllowances, amountChargedForBaseAllowance);
+                    symbolChargedForBaseFee, amountChargedForBaseFee, methodFeeFreeAllowancesMap,
+                    amountChargedForBaseAllowance);
                 return balance >= txSizeFeeAmount;
             }) ?? allSymbolToTxFee.FirstOrDefault(x =>
             {
                 var balance = GetBalancePlusAllowanceCalculatedBaseOnPrimaryToken(fromAddress, x,
-                    symbolChargedForBaseFee, amountChargedForBaseFee, freeAllowances, amountChargedForBaseAllowance);
+                    symbolChargedForBaseFee, amountChargedForBaseFee, methodFeeFreeAllowancesMap,
+                    amountChargedForBaseAllowance);
                 return balance > 0;
             });
         }
@@ -464,7 +466,8 @@ public partial class TokenContract
                 var delegationEnough = IsDelegationEnoughBaseOnPrimaryToken(x, symbolChargedForBaseFee,
                     amountChargedForBaseFee.Add(amountChargedForBaseAllowance), txSizeFeeAmount, delegations);
                 var balance = GetBalancePlusAllowanceCalculatedBaseOnPrimaryToken(fromAddress, x,
-                    symbolChargedForBaseFee, amountChargedForBaseFee, freeAllowances, amountChargedForBaseAllowance);
+                    symbolChargedForBaseFee, amountChargedForBaseFee, methodFeeFreeAllowancesMap,
+                    amountChargedForBaseAllowance);
                 return delegationEnough && balance >= txSizeFeeAmount;
             });
         }
@@ -667,7 +670,7 @@ public partial class TokenContract
         existingBalance = 0L;
         existingAllowance = 0L;
 
-        symbol = GetAvailableSymbolToPayBaseFee(symbolToAmountMap, fromAddress, freeAllowances, out amount,
+        symbol = GetAvailableSymbolToPayBaseFee(symbolToAmountMap, fromAddress, methodFeeFreeAllowancesMap, out amount,
             delegations);
         //Whether or not delegation exists, there is no token that can be used for payment
         if (symbol == null) return false;
@@ -675,7 +678,7 @@ public partial class TokenContract
         //For delegation, There is enough token balance and delegation to pay
         //For user, There is enough token balance to pay or there is a token balance greater than 0
         existingBalance = GetBalance(fromAddress, symbol);
-        existingAllowance = GetFreeFeeAllowanceAmount(freeAllowances, symbol);
+        existingAllowance = GetFreeFeeAllowanceAmount(methodFeeFreeAllowancesMap, symbol);
         //For delegation, return true
         //For user,if balance enough return true
         if (delegations != null || existingBalance.Add(existingAllowance) >= amount)
@@ -689,14 +692,15 @@ public partial class TokenContract
         {
             symbol = primaryTokenSymbol;
             existingBalance = GetBalance(fromAddress, symbol);
-            existingAllowance = GetFreeFeeAllowanceAmount(freeAllowances, symbol);
+            existingAllowance = GetFreeFeeAllowanceAmount(methodFeeFreeAllowancesMap, symbol);
         }
 
         return false;
     }
 
     private string GetAvailableSymbolToPayBaseFee(Dictionary<string, long> symbolToAmountMap, Address fromAddress,
-        MethodFeeFreeAllowances freeAllowances, out long amount, TransactionFeeDelegations delegations = null)
+        MethodFeeFreeAllowancesMap methodFeeFreeAllowancesMap, out long amount,
+        TransactionFeeDelegations delegations = null)
     {
         string symbolOfValidBalance = null;
         amount = 0;
@@ -711,7 +715,7 @@ public partial class TokenContract
                 // current token symbol
                 amount = value;
                 var existingBalance = GetBalance(fromAddress, symbol);
-                var existingAllowance = GetFreeFeeAllowanceAmount(freeAllowances, symbol);
+                var existingAllowance = GetFreeFeeAllowanceAmount(methodFeeFreeAllowancesMap, symbol);
                 if (existingBalance.Add(existingAllowance) > 0)
                 {
                     symbolOfValidBalance = symbol;
@@ -729,7 +733,7 @@ public partial class TokenContract
                 // current token symbol
                 amount = value;
                 var existingBalance = GetBalance(fromAddress, symbol);
-                var existingAllowance = GetFreeFeeAllowanceAmount(freeAllowances, symbol);
+                var existingAllowance = GetFreeFeeAllowanceAmount(methodFeeFreeAllowancesMap, symbol);
                 // is unlimited delegate is true && balance enough
                 // is unlimited delegate is false && delegation enough && balance enough
                 if ((delegations.IsUnlimitedDelegate && existingBalance.Add(existingAllowance) >= amount) ||
