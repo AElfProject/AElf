@@ -504,7 +504,7 @@ public partial class MultiTokenContractTests
     [Fact]
     public async Task SetDelegateInfos_UpdateDelegate_Success_Test()
     {
-        await SetDelegateInfos_NewDelegate_Success_Test();
+        await SetDelegateInfos_NewOrUpdateDelegate_Success_Test();
         var delegations1 = new Dictionary<string, long>
         {
             [NativeToken] = 300,
@@ -542,10 +542,16 @@ public partial class MultiTokenContractTests
             },
             IsUnlimitedDelegate = false
         };
+        var delegateInfo4 = new DelegateInfo
+        {
+            ContractAddress = BasicContractZeroAddress,
+            MethodName = "test1",
+            IsUnlimitedDelegate = true
+        };
         await TokenContractStub.SetTransactionFeeDelegateInfos.SendAsync(new SetTransactionFeeDelegateInfosInput
         {
             DelegatorAddress = User1Address,
-            DelegateInfoList = { delegateInfo1,delegateInfo2,delegateInfo3 }
+            DelegateInfoList = { delegateInfo1,delegateInfo2,delegateInfo3,delegateInfo4 }
         });
         {
             var delegateInfoOfADelegatee = await TokenContractStub.GetTransactionFeeDelegateInfosOfADelegatee.CallAsync(
@@ -589,12 +595,24 @@ public partial class MultiTokenContractTests
             delegateInfoOfADelegatee.IsUnlimitedDelegate.ShouldBeFalse();
             delegateInfoOfADelegatee.BlockHeight.ShouldBeGreaterThan(0);
         }
-        
+        {
+            var delegateInfoOfADelegatee = await TokenContractStub.GetTransactionFeeDelegateInfosOfADelegatee.CallAsync(
+                new GetTransactionFeeDelegateInfosOfADelegateeInput
+                {
+                    ContractAddress = BasicContractZeroAddress,
+                    DelegatorAddress = User1Address,
+                    DelegateeAddress = DefaultAddress,
+                    MethodName = "test1"
+                });
+            delegateInfoOfADelegatee.Delegations.ShouldBeEmpty();
+            delegateInfoOfADelegatee.IsUnlimitedDelegate.ShouldBeTrue();
+            delegateInfoOfADelegatee.BlockHeight.ShouldBeGreaterThan(0);
+        }
     }
     [Fact]
     public async Task SetDelegateInfos_UpdateDelegate_RemoveDelegation_Success_Test()
     {
-        await SetDelegateInfos_NewDelegate_Success_Test();
+        await SetDelegateInfos_NewOrUpdateDelegate_Success_Test();
         var delegations1 = new Dictionary<string, long>
         {
             [NativeToken] = 300,
@@ -604,7 +622,12 @@ public partial class MultiTokenContractTests
         var delegations2 = new Dictionary<string, long>
         {
             [NativeToken] = 0,
-            [BasicFeeSymbol] = 200,
+            [SizeFeeSymbol] = 200,
+        };
+        var delegations3 = new Dictionary<string, long>
+        {
+            [NativeToken] = 5,
+            [BasicFeeSymbol] = 0
         };
         var delegateInfo1 = new DelegateInfo
         {
@@ -626,10 +649,20 @@ public partial class MultiTokenContractTests
             },
             IsUnlimitedDelegate = false
         };
+        var delegateInfo3 = new DelegateInfo
+        {
+            ContractAddress = BasicContractZeroAddress,
+            MethodName = "test1",
+            Delegations =
+            {
+                delegations3
+            },
+            IsUnlimitedDelegate = false
+        };
         var executionResult = await TokenContractStub.SetTransactionFeeDelegateInfos.SendAsync(new SetTransactionFeeDelegateInfosInput
         {
             DelegatorAddress = User1Address,
-            DelegateInfoList = { delegateInfo1,delegateInfo2 }
+            DelegateInfoList = { delegateInfo1,delegateInfo2,delegateInfo3 }
         });
         {
             var delegateInfoOfADelegatee = await TokenContractStub.GetTransactionFeeDelegateInfosOfADelegatee.CallAsync(
@@ -656,7 +689,21 @@ public partial class MultiTokenContractTests
                     MethodName = "test2"
                 });
             delegateInfoOfADelegatee.Delegations.Count.ShouldBe(1);
-            delegateInfoOfADelegatee.Delegations[BasicFeeSymbol].ShouldBe(200);
+            delegateInfoOfADelegatee.Delegations[SizeFeeSymbol].ShouldBe(200);
+            delegateInfoOfADelegatee.IsUnlimitedDelegate.ShouldBeFalse();
+            delegateInfoOfADelegatee.BlockHeight.ShouldBeGreaterThan(0);
+        }
+        {
+            var delegateInfoOfADelegatee = await TokenContractStub.GetTransactionFeeDelegateInfosOfADelegatee.CallAsync(
+                new GetTransactionFeeDelegateInfosOfADelegateeInput
+                {
+                    ContractAddress = BasicContractZeroAddress,
+                    DelegatorAddress = User1Address,
+                    DelegateeAddress = DefaultAddress,
+                    MethodName = "test1"
+                });
+            delegateInfoOfADelegatee.Delegations.Count.ShouldBe(1);
+            delegateInfoOfADelegatee.Delegations[NativeToken].ShouldBe(5);
             delegateInfoOfADelegatee.IsUnlimitedDelegate.ShouldBeFalse();
             delegateInfoOfADelegatee.BlockHeight.ShouldBeGreaterThan(0);
         }
@@ -665,11 +712,13 @@ public partial class MultiTokenContractTests
                 .FirstOrDefault(i => i.Name == nameof(TransactionFeeDelegateInfoUpdated))?.NonIndexed);
             log.Delegator.ShouldBe(User1Address);
             log.Delegatee.ShouldBe(DefaultAddress);
-            log.DelegateTransactionList.Value.Count.ShouldBe(2);
+            log.DelegateTransactionList.Value.Count.ShouldBe(3);
             log.DelegateTransactionList.Value[0].ContractAddress.ShouldBe(BasicFunctionContractAddress);
             log.DelegateTransactionList.Value[0].MethodName.ShouldBe("test1");
             log.DelegateTransactionList.Value[1].ContractAddress.ShouldBe(BasicFunctionContractAddress);
             log.DelegateTransactionList.Value[1].MethodName.ShouldBe("test2");
+            log.DelegateTransactionList.Value[2].ContractAddress.ShouldBe(BasicContractZeroAddress);
+            log.DelegateTransactionList.Value[2].MethodName.ShouldBe("test1");
         }
     }
     [Fact]
@@ -782,6 +831,10 @@ public partial class MultiTokenContractTests
         {
             [NativeToken] = 60,
         };
+        var delegations5 = new Dictionary<string, long>
+        {
+            [NativeToken] = 0,
+        };
         var delegateInfo1 = new DelegateInfo
         {
             ContractAddress = BasicFunctionContractAddress,
@@ -808,10 +861,20 @@ public partial class MultiTokenContractTests
             },
             IsUnlimitedDelegate = false
         };
+        var delegateInfo5 = new DelegateInfo
+        {
+            ContractAddress = BasicContractZeroAddress,
+            MethodName = "test1",
+            Delegations =
+            {
+                delegations5
+            },
+            IsUnlimitedDelegate = false
+        };
         var executionResult = await TokenContractStub.SetTransactionFeeDelegateInfos.SendAsync(new SetTransactionFeeDelegateInfosInput
         {
             DelegatorAddress = User1Address,
-            DelegateInfoList = { delegateInfo1,delegateInfo2,delegateInfo4 }
+            DelegateInfoList = { delegateInfo1,delegateInfo2,delegateInfo4,delegateInfo5 }
         });
         {
             var delegateInfoOfADelegatee = await TokenContractStub.GetTransactionFeeDelegateInfosOfADelegatee.CallAsync(
@@ -855,6 +918,20 @@ public partial class MultiTokenContractTests
             delegateInfoOfADelegatee.BlockHeight.ShouldBeGreaterThan(0);
         }
         {
+            var delegateInfoOfADelegatee = await TokenContractStub.GetTransactionFeeDelegateInfosOfADelegatee.CallAsync(
+                new GetTransactionFeeDelegateInfosOfADelegateeInput
+                {
+                    ContractAddress = BasicContractZeroAddress,
+                    DelegatorAddress = User1Address,
+                    DelegateeAddress = DefaultAddress,
+                    MethodName = "test1"
+                });
+            delegateInfoOfADelegatee.Delegations.Count.ShouldBe(1);
+            delegateInfoOfADelegatee.Delegations[BasicFeeSymbol].ShouldBe(20);
+            delegateInfoOfADelegatee.IsUnlimitedDelegate.ShouldBeFalse();
+            delegateInfoOfADelegatee.BlockHeight.ShouldBeGreaterThan(0);
+        }
+        {
             {
                 var log = TransactionFeeDelegateInfoAdded.Parser.ParseFrom(executionResult.TransactionResult.Logs
                     .FirstOrDefault(i => i.Name == nameof(TransactionFeeDelegateInfoAdded))?.NonIndexed);
@@ -869,11 +946,13 @@ public partial class MultiTokenContractTests
                     .FirstOrDefault(i => i.Name == nameof(TransactionFeeDelegateInfoUpdated))?.NonIndexed);
                 log.Delegator.ShouldBe(User1Address);
                 log.Delegatee.ShouldBe(DefaultAddress);
-                log.DelegateTransactionList.Value.Count.ShouldBe(2);
+                log.DelegateTransactionList.Value.Count.ShouldBe(3);
                 log.DelegateTransactionList.Value[0].ContractAddress.ShouldBe(BasicFunctionContractAddress);
                 log.DelegateTransactionList.Value[0].MethodName.ShouldBe("test1");
                 log.DelegateTransactionList.Value[1].ContractAddress.ShouldBe(BasicFunctionContractAddress);
                 log.DelegateTransactionList.Value[1].MethodName.ShouldBe("test2");
+                log.DelegateTransactionList.Value[2].ContractAddress.ShouldBe(BasicContractZeroAddress);
+                log.DelegateTransactionList.Value[2].MethodName.ShouldBe("test1");
             }
         }
     }
