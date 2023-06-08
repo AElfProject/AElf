@@ -94,8 +94,9 @@ public partial class TokenContract
 
         if (!chargingResult)
         {
-            var transactionFeeDelegatees = State.TransactionFeeDelegateesMap[fromAddress] ??
-                State.TransactionFeeDelegateInfoMap[fromAddress][input.ContractAddress][input.MethodName];
+            var transactionFeeDelegatees =
+                State.TransactionFeeDelegateInfoMap[fromAddress][input.ContractAddress][input.MethodName] ??
+                State.TransactionFeeDelegateesMap[fromAddress];
             if (transactionFeeDelegatees != null)
             {
                 var delegateeAddress = transactionFeeDelegatees.Delegatees;
@@ -164,9 +165,10 @@ public partial class TokenContract
         var chargingResult = false;
         // Try to charge delegatees
         // Get delegatee list according to the delegator
-        var delegationInfo = State.TransactionFeeDelegateesMap[delegatorAddress]?.Delegatees ??
-                             State.TransactionFeeDelegateInfoMap[delegatorAddress][input.ContractAddress][input.MethodName]?.Delegatees;
-        
+        var delegationInfo =
+            State.TransactionFeeDelegateInfoMap[delegatorAddress][input.ContractAddress][input.MethodName]?.Delegatees ?? 
+            State.TransactionFeeDelegateesMap[delegatorAddress]?.Delegatees;
+
         if (delegationInfo == null)
         {
             return false;
@@ -203,22 +205,24 @@ public partial class TokenContract
     }
 
     private void ModifyDelegation(TransactionFeeBill bill, TransactionFreeFeeAllowanceBill allowanceBill,
-        Address delegateeAddress,Address contractAddress,string methodName,Address delegatorAddress)
+        Address delegateeAddress, Address contractAddress, string methodName, Address delegatorAddress)
     {
         foreach (var (symbol, amount) in bill.FeesMap)
         {
             if (amount <= 0) continue;
-            var delegateInfo = State.TransactionFeeDelegateesMap[delegatorAddress] ??
-                               State.TransactionFeeDelegateInfoMap[delegatorAddress][contractAddress][methodName];
+            var delegateInfo =
+                State.TransactionFeeDelegateInfoMap[delegatorAddress][contractAddress][methodName] ??
+                State.TransactionFeeDelegateesMap[delegatorAddress];
             delegateInfo.Delegatees[delegateeAddress.ToBase58()].Delegations[symbol] =
                 delegateInfo.Delegatees[delegateeAddress.ToBase58()].Delegations[symbol].Sub(amount);
         }
-        
+
         foreach (var (symbol, amount) in allowanceBill.FreeFeeAllowancesMap)
         {
             if (amount <= 0) continue;
-            var delegateInfo = State.TransactionFeeDelegateesMap[delegatorAddress] ??
-                               State.TransactionFeeDelegateInfoMap[delegatorAddress][contractAddress][methodName];
+            var delegateInfo = 
+                State.TransactionFeeDelegateInfoMap[delegatorAddress][contractAddress][methodName] ??
+                State.TransactionFeeDelegateesMap[delegatorAddress];
             delegateInfo.Delegatees[delegateeAddress.ToBase58()].Delegations[symbol] =
                 delegateInfo.Delegatees[delegateeAddress.ToBase58()].Delegations[symbol].Sub(amount);
         }
