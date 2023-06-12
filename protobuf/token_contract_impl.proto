@@ -77,10 +77,10 @@ service TokenContractImpl {
     rpc ChangeDeveloperController (AuthorityInfo) returns (google.protobuf.Empty) {
     }
 
-    rpc ConfigMethodFeeFreeAllowances (ConfigMethodFeeFreeAllowancesInput) returns (google.protobuf.Empty) {
+    rpc ConfigTransactionFeeFreeAllowances (ConfigTransactionFeeFreeAllowancesInput) returns (google.protobuf.Empty) {
     }
 
-    rpc RemoveMethodFeeFreeAllowancesConfig (RemoveMethodFeeFreeAllowancesConfigInput) returns (google.protobuf.Empty) {
+    rpc RemoveTransactionFeeFreeAllowancesConfig (RemoveTransactionFeeFreeAllowancesConfigInput) returns (google.protobuf.Empty) {
     }
 
     // Delegatee sets the delegation and related information of the delegator based on a transaction.
@@ -148,10 +148,10 @@ service TokenContractImpl {
     }
 
     // Query
-    rpc GetMethodFeeFreeAllowances (aelf.Address) returns (MethodFeeFreeAllowancesMap) {
+    rpc GetTransactionFeeFreeAllowances (aelf.Address) returns (TransactionFeeFreeAllowancesMap) {
         option (aelf.is_view) = true;
     }
-    rpc GetMethodFeeFreeAllowancesConfig (google.protobuf.Empty) returns (GetMethodFeeFreeAllowancesConfigOutput) {
+    rpc GetTransactionFeeFreeAllowancesConfig (google.protobuf.Empty) returns (GetTransactionFeeFreeAllowancesConfigOutput) {
         option (aelf.is_view) = true;
     }
     
@@ -295,42 +295,42 @@ message MethodFeeFreeAllowance {
     int64 amount = 2;
 }
 
-message MethodFeeFreeAllowancesSymbolList {
+message TransactionFeeFreeAllowancesSymbolList {
     repeated string symbols = 1;
 }
 
-message ConfigMethodFeeFreeAllowancesInput {
-    repeated ConfigMethodFeeFreeAllowance value = 1;
+message ConfigTransactionFeeFreeAllowancesInput {
+    repeated ConfigTransactionFeeFreeAllowance value = 1;
 }
 
-message ConfigMethodFeeFreeAllowance {
+message ConfigTransactionFeeFreeAllowance {
     string symbol = 1;
     MethodFeeFreeAllowances method_fee_free_allowances = 2;
     int64 refresh_seconds = 3;
     int64 threshold = 4;
 }
 
-message RemoveMethodFeeFreeAllowancesConfigInput {
+message RemoveTransactionFeeFreeAllowancesConfigInput {
     repeated string symbols = 1;
 }
 
-message GetMethodFeeFreeAllowancesConfigOutput {
-    repeated FreeAllowanceConfig value = 1;
+message GetTransactionFeeFreeAllowancesConfigOutput {
+    repeated TransactionFeeFreeAllowanceConfig value = 1;
 }
 
-message FreeAllowanceConfig {
+message TransactionFeeFreeAllowanceConfig {
     string symbol = 1;
-    MethodFeeFreeAllowanceMap free_allowances = 2;
+    TransactionFeeFreeAllowanceMap free_allowances = 2;
     int64 refresh_seconds = 3;
     int64 threshold = 4;
 }
 
-message MethodFeeFreeAllowanceMap {
+message TransactionFeeFreeAllowanceMap {
     map<string, MethodFeeFreeAllowance> map = 1;
 }
 
-message MethodFeeFreeAllowancesMap {
-    map<string, MethodFeeFreeAllowanceMap> map = 1;
+message TransactionFeeFreeAllowancesMap {
+    map<string, TransactionFeeFreeAllowanceMap> map = 1;
 }
 message SetTransactionFeeDelegateInfosInput{
     // the delegator address

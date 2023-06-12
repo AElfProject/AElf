@@ -84,40 +84,40 @@ public partial class TokenContract
     }
 
     private void ModifyFreeFeeAllowanceAmount(Address fromAddress,
-        MethodFeeFreeAllowancesMap methodFeeFreeAllowancesMap, string symbol,
+        TransactionFeeFreeAllowancesMap transactionFeeFreeAllowancesMap, string symbol,
         long addAmount)
     {
-        var freeAllowanceAmount = GetFreeFeeAllowanceAmount(methodFeeFreeAllowancesMap, symbol);
+        var freeAllowanceAmount = GetFreeFeeAllowanceAmount(transactionFeeFreeAllowancesMap, symbol);
         if (addAmount < 0 && freeAllowanceAmount < -addAmount)
         {
             Assert(false,
                 $"Insufficient amount of {symbol} for free fee allowance. Need amount: {-addAmount}; Current amount: {freeAllowanceAmount}");
         }
 
-        var symbolList = GetSymbolListSortedByExpirationTime(methodFeeFreeAllowancesMap, fromAddress);
+        var symbolList = GetSymbolListSortedByExpirationTime(transactionFeeFreeAllowancesMap, fromAddress);
 
         foreach (var s in symbolList)
         {
             if (addAmount >= 0) break;
             
-            if (!methodFeeFreeAllowancesMap.Map[s].Map.ContainsKey(symbol)) continue;
+            if (!transactionFeeFreeAllowancesMap.Map[s].Map.ContainsKey(symbol)) continue;
             
-            var currentAllowance = methodFeeFreeAllowancesMap.Map[s].Map[symbol].Amount;
+            var currentAllowance = transactionFeeFreeAllowancesMap.Map[s].Map[symbol].Amount;
 
             if (currentAllowance == 0) continue;
 
             addAmount += currentAllowance;
 
-            methodFeeFreeAllowancesMap.Map[s].Map[symbol].Amount = addAmount >= 0 ? addAmount : 0;
+            transactionFeeFreeAllowancesMap.Map[s].Map[symbol].Amount = addAmount >= 0 ? addAmount : 0;
         }
     }
 
-    private List<string> GetSymbolListSortedByExpirationTime(MethodFeeFreeAllowancesMap methodFeeFreeAllowancesMap,
+    private List<string> GetSymbolListSortedByExpirationTime(TransactionFeeFreeAllowancesMap transactionFeeFreeAllowancesMap,
         Address fromAddress)
     {
-        return methodFeeFreeAllowancesMap.Map.Keys.OrderBy(t =>
-            State.MethodFeeFreeAllowancesConfigMap[t].RefreshSeconds - (Context.CurrentBlockTime -
-                                                                        State.MethodFeeFreeAllowancesLastRefreshTimes[
+        return transactionFeeFreeAllowancesMap.Map.Keys.OrderBy(t =>
+            State.TransactionFeeFreeAllowancesConfigMap[t].RefreshSeconds - (Context.CurrentBlockTime -
+                                                                        State.TransactionFeeFreeAllowancesLastRefreshTimes[
                                                                             fromAddress][t]).Seconds).ToList();
     }
 
@@ -132,10 +132,10 @@ public partial class TokenContract
     //     return freeAllowances?.Value.FirstOrDefault(a => a.Symbol == symbol);
     // }
 
-    private long GetFreeFeeAllowanceAmount(MethodFeeFreeAllowancesMap methodFeeFreeAllowancesMap, string symbol)
+    private long GetFreeFeeAllowanceAmount(TransactionFeeFreeAllowancesMap transactionFeeFreeAllowancesMap, string symbol)
     {
         var allowance = 0L;
-        var map = methodFeeFreeAllowancesMap?.Map;
+        var map = transactionFeeFreeAllowancesMap?.Map;
 
         if (map == null) return allowance;
 

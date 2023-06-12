@@ -166,11 +166,11 @@ public partial class MultiTokenContractTests
     }
     
     [Fact(DisplayName = "[MultiToken] illegal controller try to set free allowances")]
-    public async Task ConfigMethodFeeFreeAllowances_Without_Authorization_Test()
+    public async Task ConfigTransactionFeeFreeAllowances_Without_Authorization_Test()
     {
-        var configMethodFeeFreeAllowancesRet =
-            await TokenContractStub.ConfigMethodFeeFreeAllowances.SendWithExceptionAsync(new ConfigMethodFeeFreeAllowancesInput());
-        configMethodFeeFreeAllowancesRet.TransactionResult.Error.ShouldContain("Unauthorized behavior.");
+        var configTransactionFeeFreeAllowancesRet =
+            await TokenContractStub.ConfigTransactionFeeFreeAllowances.SendWithExceptionAsync(new ConfigTransactionFeeFreeAllowancesInput());
+        configTransactionFeeFreeAllowancesRet.TransactionResult.Error.ShouldContain("Unauthorized behavior.");
     }
 
     [Fact]

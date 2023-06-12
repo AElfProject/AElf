@@ -300,11 +300,11 @@ public partial class ExecutePluginTransactionDirectlyTest : ExecutePluginTransac
         await IssueTokenToDefaultSenderAsync(NativeTokenSymbol, initialBalance);
 
         await SubmitAndPassProposalOfDefaultParliamentAsync(TokenContractAddress,
-            nameof(TokenContractImplStub.ConfigMethodFeeFreeAllowances), new ConfigMethodFeeFreeAllowancesInput
+            nameof(TokenContractImplStub.ConfigTransactionFeeFreeAllowances), new ConfigTransactionFeeFreeAllowancesInput
             {
                 Value =
                 {
-                    new ConfigMethodFeeFreeAllowance
+                    new ConfigTransactionFeeFreeAllowance
                     {
                         Symbol = NativeTokenSymbol,
                         MethodFeeFreeAllowances = new MethodFeeFreeAllowances
@@ -340,7 +340,7 @@ public partial class ExecutePluginTransactionDirectlyTest : ExecutePluginTransac
             nameof(TokenContractImplContainer.TokenContractImplStub.SetMethodFee), methodFee);
 
         {
-            var freeAllowances = await TokenContractImplStub.GetMethodFeeFreeAllowances.CallAsync(DefaultSender);
+            var freeAllowances = await TokenContractImplStub.GetTransactionFeeFreeAllowances.CallAsync(DefaultSender);
             if (threshold <= initialBalance)
             {
                 freeAllowances.Map.Keys.First().ShouldBe(NativeTokenSymbol);
@@ -384,7 +384,7 @@ public partial class ExecutePluginTransactionDirectlyTest : ExecutePluginTransac
         chargeFeeRet.Output.Success.ShouldBe(true);
 
         {
-            var freeAllowances = await TokenContractImplStub.GetMethodFeeFreeAllowances.CallAsync(DefaultSender);
+            var freeAllowances = await TokenContractImplStub.GetTransactionFeeFreeAllowances.CallAsync(DefaultSender);
             if (threshold <= initialBalance)
             {
                 freeAllowances.Map.Keys.First().ShouldBe(NativeTokenSymbol);
@@ -428,11 +428,11 @@ public partial class ExecutePluginTransactionDirectlyTest : ExecutePluginTransac
         }
 
         await SubmitAndPassProposalOfDefaultParliamentAsync(TokenContractAddress,
-            nameof(TokenContractImplStub.ConfigMethodFeeFreeAllowances), new ConfigMethodFeeFreeAllowancesInput
+            nameof(TokenContractImplStub.ConfigTransactionFeeFreeAllowances), new ConfigTransactionFeeFreeAllowancesInput
             {
                 Value =
                 {
-                    new ConfigMethodFeeFreeAllowance
+                    new ConfigTransactionFeeFreeAllowance
                     {
                         MethodFeeFreeAllowances = new MethodFeeFreeAllowances
                         {
@@ -495,7 +495,7 @@ public partial class ExecutePluginTransactionDirectlyTest : ExecutePluginTransac
             nameof(TokenContractImplContainer.TokenContractImplStub.SetSymbolsToPayTxSizeFee), sizeFeeSymbolList);
 
         {
-            var freeAllowances = await TokenContractImplStub.GetMethodFeeFreeAllowances.CallAsync(DefaultSender);
+            var freeAllowances = await TokenContractImplStub.GetTransactionFeeFreeAllowances.CallAsync(DefaultSender);
             if (threshold <= initialBalance)
             {
                 freeAllowances.Map.Keys.First().ShouldBe(NativeTokenSymbol);
@@ -524,7 +524,7 @@ public partial class ExecutePluginTransactionDirectlyTest : ExecutePluginTransac
         chargeFeeRet.Output.Success.ShouldBe(true);
 
         {
-            var freeAllowances = await TokenContractImplStub.GetMethodFeeFreeAllowances.CallAsync(DefaultSender);
+            var freeAllowances = await TokenContractImplStub.GetTransactionFeeFreeAllowances.CallAsync(DefaultSender);
             if (threshold <= initialBalance)
             {
                 freeAllowances.Map.Keys.First().ShouldBe(NativeTokenSymbol);
@@ -614,11 +614,11 @@ public partial class ExecutePluginTransactionDirectlyTest : ExecutePluginTransac
         }
 
         await SubmitAndPassProposalOfDefaultParliamentAsync(TokenContractAddress,
-            nameof(TokenContractImplStub.ConfigMethodFeeFreeAllowances), new ConfigMethodFeeFreeAllowancesInput
+            nameof(TokenContractImplStub.ConfigTransactionFeeFreeAllowances), new ConfigTransactionFeeFreeAllowancesInput
             {
                 Value =
                 {
-                    new ConfigMethodFeeFreeAllowance
+                    new ConfigTransactionFeeFreeAllowance
                     {
                         MethodFeeFreeAllowances = new MethodFeeFreeAllowances
                         {
@@ -643,7 +643,7 @@ public partial class ExecutePluginTransactionDirectlyTest : ExecutePluginTransac
                 }
             });
         {
-            var freeAllowances = await TokenContractImplStub.GetMethodFeeFreeAllowances.CallAsync(userAddress);
+            var freeAllowances = await TokenContractImplStub.GetTransactionFeeFreeAllowances.CallAsync(userAddress);
             if (threshold <= initialBalance)
             {
                 freeAllowances.Map.Keys.First().ShouldBe(NativeTokenSymbol);
@@ -822,11 +822,11 @@ public partial class ExecutePluginTransactionDirectlyTest : ExecutePluginTransac
         }
 
         await SubmitAndPassProposalOfDefaultParliamentAsync(TokenContractAddress,
-            nameof(TokenContractImplStub.ConfigMethodFeeFreeAllowances), new ConfigMethodFeeFreeAllowancesInput
+            nameof(TokenContractImplStub.ConfigTransactionFeeFreeAllowances), new ConfigTransactionFeeFreeAllowancesInput
             {
                 Value =
                 {
-                    new ConfigMethodFeeFreeAllowance
+                    new ConfigTransactionFeeFreeAllowance
                     {
                         MethodFeeFreeAllowances = new MethodFeeFreeAllowances
                         {
@@ -1159,11 +1159,11 @@ public partial class ExecutePluginTransactionDirectlyTest : ExecutePluginTransac
         }
 
         await SubmitAndPassProposalOfDefaultParliamentAsync(TokenContractAddress,
-            nameof(TokenContractImplStub.ConfigMethodFeeFreeAllowances), new ConfigMethodFeeFreeAllowancesInput
+            nameof(TokenContractImplStub.ConfigTransactionFeeFreeAllowances), new ConfigTransactionFeeFreeAllowancesInput
             {
                 Value =
                 {
-                    new ConfigMethodFeeFreeAllowance
+                    new ConfigTransactionFeeFreeAllowance
                     {
                         Symbol = NativeTokenSymbol,
                         RefreshSeconds = 100,
@@ -1188,7 +1188,7 @@ public partial class ExecutePluginTransactionDirectlyTest : ExecutePluginTransac
                 }
             });
         {
-            var freeAllowances = await TokenContractImplStub.GetMethodFeeFreeAllowances.CallAsync(userAddress);
+            var freeAllowances = await TokenContractImplStub.GetTransactionFeeFreeAllowances.CallAsync(userAddress);
             if (threshold <= initialBalance)
             {
                 freeAllowances.Map.First().Value.Map.Values.First().Symbol.ShouldBe(basicFeeSymbol);

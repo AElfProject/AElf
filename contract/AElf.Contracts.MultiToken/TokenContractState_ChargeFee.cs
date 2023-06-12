@@ -42,20 +42,20 @@ public partial class TokenContractState
     /// <summary>
     ///  Symbol List
     /// </summary>
-    public SingletonState<MethodFeeFreeAllowancesSymbolList> MethodFeeFreeAllowancesSymbolList { get; set; }
+    public SingletonState<TransactionFeeFreeAllowancesSymbolList> TransactionFeeFreeAllowancesSymbolList { get; set; }
     
     /// <summary>
-    /// Symbol -> FreeAllowanceConfig
+    /// Symbol -> TransactionFeeFreeAllowanceConfig
     /// </summary>
-    public MappedState<string, FreeAllowanceConfig> MethodFeeFreeAllowancesConfigMap { get; set; }
+    public MappedState<string, TransactionFeeFreeAllowanceConfig> TransactionFeeFreeAllowancesConfigMap { get; set; }
     
     /// <summary>
-    /// Address -> Symbol -> MethodFeeFreeAllowanceMap
+    /// Address -> Symbol -> TransactionFeeFreeAllowanceMap
     /// </summary>
-    public MappedState<Address, string, MethodFeeFreeAllowanceMap> MethodFeeFreeAllowances { get; set; }
+    public MappedState<Address, string, TransactionFeeFreeAllowanceMap> TransactionFeeFreeAllowances { get; set; }
     
     /// <summary>
     /// Address -> Symbol -> LastRefreshTime
     /// </summary>
-    public MappedState<Address, string, Timestamp> MethodFeeFreeAllowancesLastRefreshTimes { get; set; }
+    public MappedState<Address, string, Timestamp> TransactionFeeFreeAllowancesLastRefreshTimes { get; set; }
 }
