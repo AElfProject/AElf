@@ -446,6 +446,7 @@ public partial class TokenContract
         {
             SymbolToPayTxSizeFee availableSymbolWithAnything = null;
             SymbolToPayTxSizeFee availableSymbolWithBalancePlusAllowanceEnoughToPayTxFee = null;
+            SymbolToPayTxSizeFee availableSymbolWithBalancePlusAllowanceEnoughToPayTxFeeWithAllowance = null;
 
             // get 1st Allowance > size fee, else, get 1st Balance + Allowance > 0, else get 1st > 0
             foreach (var symbolToPlayTxSizeFee in allSymbolToTxFee)
@@ -467,9 +468,13 @@ public partial class TokenContract
 
                 if (balancePlusAllowance < txSizeFeeAmount) continue;
                 availableSymbolWithBalancePlusAllowanceEnoughToPayTxFee ??= symbolToPlayTxSizeFee;
+
+                if (allowance <= 0) continue;
+                availableSymbolWithBalancePlusAllowanceEnoughToPayTxFeeWithAllowance ??= symbolToPlayTxSizeFee;
             }
 
-            availableSymbol ??= availableSymbolWithBalancePlusAllowanceEnoughToPayTxFee ?? availableSymbolWithAnything;
+            availableSymbol ??= availableSymbolWithBalancePlusAllowanceEnoughToPayTxFeeWithAllowance ??
+                                availableSymbolWithBalancePlusAllowanceEnoughToPayTxFee ?? availableSymbolWithAnything;
         }
         else
         {
@@ -693,6 +698,13 @@ public partial class TokenContract
 
         chargeResult = TryToChargeUserBaseFee(symbolToAmountMap, fromAddress, methodFeeFreeAllowancesMap, out amount,
             out symbol, out existingBalance, out existingAllowance);
+        
+        if (symbol != null)
+        {
+            existingBalance = GetBalance(fromAddress, symbol);
+            existingAllowance = GetFreeFeeAllowanceAmount(methodFeeFreeAllowancesMap, symbol);
+
+        }
 
         //For user, if charge failed and delegation is null, priority charge primary token
         if (!chargeResult)
@@ -714,7 +726,10 @@ public partial class TokenContract
         out long existingBalance, out long existingAllowance)
     {
         symbolOfValidBalance = null;
-        string symbolOfValidBalanceAndAllowance = null;
+        string symbolWithAnything = null;
+        string symbolWithBalancePlusAllowanceEnoughToPayTxFee = null;
+        string symbolWithBalancePlusAllowanceEnoughToPayTxFeeWithAllowance = null;
+
         amount = 0;
         existingBalance = 0;
         existingAllowance = 0;
@@ -726,22 +741,33 @@ public partial class TokenContract
             amount = value;
             existingBalance = GetBalance(fromAddress, symbol);
             existingAllowance = GetFreeFeeAllowanceAmount(methodFeeFreeAllowancesMap, symbol);
-            if (existingBalance.Add(existingAllowance) > 0)
+
+            if (existingAllowance >= amount)
             {
                 symbolOfValidBalance = symbol;
+                return true;
             }
 
-            if (existingAllowance >= amount) return true;
+            if (existingBalance.Add(existingAllowance) <= 0) continue;
+            symbolWithAnything ??= symbol;
 
-            if (existingBalance.Add(existingAllowance) >= amount)
-            {
-                symbolOfValidBalanceAndAllowance = symbol;
-            }
+            if (existingBalance.Add(existingAllowance) < amount) continue;
+            symbolWithBalancePlusAllowanceEnoughToPayTxFee ??= symbol;
+
+            if (existingAllowance <= 0) continue;
+            symbolWithBalancePlusAllowanceEnoughToPayTxFeeWithAllowance ??= symbol;
         }
 
-        if (symbolOfValidBalanceAndAllowance == null) return false;
+        if (symbolWithBalancePlusAllowanceEnoughToPayTxFee == null)
+        {
+            symbolOfValidBalance = symbolWithAnything;
 
-        symbolOfValidBalance = symbolOfValidBalanceAndAllowance;
+            return false;
+        }
+
+        symbolOfValidBalance = symbolWithBalancePlusAllowanceEnoughToPayTxFeeWithAllowance ??
+                               symbolWithBalancePlusAllowanceEnoughToPayTxFee;
+
         return true;
     }
 
@@ -1144,7 +1170,7 @@ public partial class TokenContract
 
             foreach (var allowance in allowances.MethodFeeFreeAllowances!.Value!)
             {
-                config.FreeAllowances.Map.Add(allowance.Symbol, allowance);
+                config.FreeAllowances.Map.TryAdd(allowance.Symbol, allowance);
             }
 
             State.MethodFeeFreeAllowancesConfigMap[allowances.Symbol] = config;
