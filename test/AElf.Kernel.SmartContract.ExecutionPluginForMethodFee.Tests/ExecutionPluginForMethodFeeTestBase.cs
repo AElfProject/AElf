@@ -286,6 +286,9 @@ public class ExecutePluginTransactionDirectlyForMethodFeeTestBase : ContractTest
     ExecutionPluginTransactionDirectlyForMethodFeeTestModule>
 {
     protected const string NativeTokenSymbol = "ELF";
+    protected const string USDT = "USDT";
+    protected const string Token1 = "TOKENA";
+    protected const string Token2 = "TOKENB";
 
     protected readonly IBlockTimeProvider _blockTimeProvider;
 
