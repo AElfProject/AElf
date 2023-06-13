@@ -24,11 +24,11 @@ public partial class ExecutePluginTransactionDirectlyTest
                     new ConfigTransactionFeeFreeAllowance
                     {
                         Symbol = NativeTokenSymbol,
-                        MethodFeeFreeAllowances = new MethodFeeFreeAllowances
+                        TransactionFeeFreeAllowances = new TransactionFeeFreeAllowances
                         {
                             Value =
                             {
-                                new MethodFeeFreeAllowance
+                                new TransactionFeeFreeAllowance
                                 {
                                     Symbol = NativeTokenSymbol,
                                     Amount = 0
@@ -67,11 +67,11 @@ public partial class ExecutePluginTransactionDirectlyTest
                     new ConfigTransactionFeeFreeAllowance
                     {
                         Symbol = NativeTokenSymbol,
-                        MethodFeeFreeAllowances = new MethodFeeFreeAllowances
+                        TransactionFeeFreeAllowances = new TransactionFeeFreeAllowances
                         {
                             Value =
                             {
-                                new MethodFeeFreeAllowance
+                                new TransactionFeeFreeAllowance
                                 {
                                     Symbol = NativeTokenSymbol,
                                     Amount = 1_00000000
@@ -125,11 +125,11 @@ public partial class ExecutePluginTransactionDirectlyTest
                     new ConfigTransactionFeeFreeAllowance
                     {
                         Symbol = NativeTokenSymbol,
-                        MethodFeeFreeAllowances = new MethodFeeFreeAllowances
+                        TransactionFeeFreeAllowances = new TransactionFeeFreeAllowances
                         {
                             Value =
                             {
-                                new MethodFeeFreeAllowance
+                                new TransactionFeeFreeAllowance
                                 {
                                     Symbol = NativeTokenSymbol,
                                     Amount = 1_00000000
@@ -171,11 +171,11 @@ public partial class ExecutePluginTransactionDirectlyTest
                     new ConfigTransactionFeeFreeAllowance
                     {
                         Symbol = USDT,
-                        MethodFeeFreeAllowances = new MethodFeeFreeAllowances
+                        TransactionFeeFreeAllowances = new TransactionFeeFreeAllowances
                         {
                             Value =
                             {
-                                new MethodFeeFreeAllowance
+                                new TransactionFeeFreeAllowance
                                 {
                                     Symbol = NativeTokenSymbol,
                                     Amount = 1_00000000
@@ -237,11 +237,11 @@ public partial class ExecutePluginTransactionDirectlyTest
                     new ConfigTransactionFeeFreeAllowance
                     {
                         Symbol = NativeTokenSymbol,
-                        MethodFeeFreeAllowances = new MethodFeeFreeAllowances
+                        TransactionFeeFreeAllowances = new TransactionFeeFreeAllowances
                         {
                             Value =
                             {
-                                new MethodFeeFreeAllowance
+                                new TransactionFeeFreeAllowance
                                 {
                                     Symbol = NativeTokenSymbol,
                                     Amount = 1_00000000
@@ -254,11 +254,11 @@ public partial class ExecutePluginTransactionDirectlyTest
                     new ConfigTransactionFeeFreeAllowance
                     {
                         Symbol = USDT,
-                        MethodFeeFreeAllowances = new MethodFeeFreeAllowances
+                        TransactionFeeFreeAllowances = new TransactionFeeFreeAllowances
                         {
                             Value =
                             {
-                                new MethodFeeFreeAllowance
+                                new TransactionFeeFreeAllowance
                                 {
                                     Symbol = NativeTokenSymbol,
                                     Amount = 1_00000000
@@ -318,16 +318,16 @@ public partial class ExecutePluginTransactionDirectlyTest
                     new ConfigTransactionFeeFreeAllowance
                     {
                         Symbol = USDT,
-                        MethodFeeFreeAllowances = new MethodFeeFreeAllowances
+                        TransactionFeeFreeAllowances = new TransactionFeeFreeAllowances
                         {
                             Value =
                             {
-                                new MethodFeeFreeAllowance
+                                new TransactionFeeFreeAllowance
                                 {
                                     Symbol = NativeTokenSymbol,
                                     Amount = 2_00000000
                                 },
-                                new MethodFeeFreeAllowance
+                                new TransactionFeeFreeAllowance
                                 {
                                     Symbol = "ABC",
                                     Amount = 2_00000000
@@ -418,11 +418,11 @@ public partial class ExecutePluginTransactionDirectlyTest
                     new ConfigTransactionFeeFreeAllowance
                     {
                         Symbol = NativeTokenSymbol,
-                        MethodFeeFreeAllowances = new MethodFeeFreeAllowances
+                        TransactionFeeFreeAllowances = new TransactionFeeFreeAllowances
                         {
                             Value =
                             {
-                                new MethodFeeFreeAllowance
+                                new TransactionFeeFreeAllowance
                                 {
                                     Symbol = NativeTokenSymbol,
                                     Amount = 1_00000000
@@ -443,11 +443,11 @@ public partial class ExecutePluginTransactionDirectlyTest
                     new ConfigTransactionFeeFreeAllowance
                     {
                         Symbol = NativeTokenSymbol,
-                        MethodFeeFreeAllowances = new MethodFeeFreeAllowances
+                        TransactionFeeFreeAllowances = new TransactionFeeFreeAllowances
                         {
                             Value =
                             {
-                                new MethodFeeFreeAllowance
+                                new TransactionFeeFreeAllowance
                                 {
                                     Symbol = NativeTokenSymbol,
                                     Amount = 1_00000000
@@ -584,11 +584,11 @@ public partial class ExecutePluginTransactionDirectlyTest
                     new ConfigTransactionFeeFreeAllowance
                     {
                         Symbol = NativeTokenSymbol,
-                        MethodFeeFreeAllowances = new MethodFeeFreeAllowances
+                        TransactionFeeFreeAllowances = new TransactionFeeFreeAllowances
                         {
                             Value =
                             {
-                                new MethodFeeFreeAllowance
+                                new TransactionFeeFreeAllowance
                                 {
                                     Symbol = NativeTokenSymbol,
                                     Amount = freeAmountELF
@@ -601,11 +601,11 @@ public partial class ExecutePluginTransactionDirectlyTest
                     new ConfigTransactionFeeFreeAllowance
                     {
                         Symbol = USDT,
-                        MethodFeeFreeAllowances = new MethodFeeFreeAllowances
+                        TransactionFeeFreeAllowances = new TransactionFeeFreeAllowances
                         {
                             Value =
                             {
-                                new MethodFeeFreeAllowance
+                                new TransactionFeeFreeAllowance
                                 {
                                     Symbol = NativeTokenSymbol,
                                     Amount = freeAmountUSDT
@@ -697,11 +697,11 @@ public partial class ExecutePluginTransactionDirectlyTest
                     new ConfigTransactionFeeFreeAllowance
                     {
                         Symbol = NativeTokenSymbol,
-                        MethodFeeFreeAllowances = new MethodFeeFreeAllowances
+                        TransactionFeeFreeAllowances = new TransactionFeeFreeAllowances
                         {
                             Value =
                             {
-                                new MethodFeeFreeAllowance
+                                new TransactionFeeFreeAllowance
                                 {
                                     Symbol = Token1,
                                     Amount = freeAmountELF
@@ -714,11 +714,11 @@ public partial class ExecutePluginTransactionDirectlyTest
                     new ConfigTransactionFeeFreeAllowance
                     {
                         Symbol = USDT,
-                        MethodFeeFreeAllowances = new MethodFeeFreeAllowances
+                        TransactionFeeFreeAllowances = new TransactionFeeFreeAllowances
                         {
                             Value =
                             {
-                                new MethodFeeFreeAllowance
+                                new TransactionFeeFreeAllowance
                                 {
                                     Symbol = Token2,
                                     Amount = freeAmountUSDT
@@ -896,16 +896,16 @@ public partial class ExecutePluginTransactionDirectlyTest
                     new ConfigTransactionFeeFreeAllowance
                     {
                         Symbol = NativeTokenSymbol,
-                        MethodFeeFreeAllowances = new MethodFeeFreeAllowances
+                        TransactionFeeFreeAllowances = new TransactionFeeFreeAllowances
                         {
                             Value =
                             {
-                                new MethodFeeFreeAllowance
+                                new TransactionFeeFreeAllowance
                                 {
                                     Symbol = Token1,
                                     Amount = freeAmountTokenA
                                 },
-                                new MethodFeeFreeAllowance
+                                new TransactionFeeFreeAllowance
                                 {
                                     Symbol = Token2,
                                     Amount = freeAmountTokenB
@@ -1018,11 +1018,11 @@ public partial class ExecutePluginTransactionDirectlyTest
                     new ConfigTransactionFeeFreeAllowance
                     {
                         Symbol = NativeTokenSymbol,
-                        MethodFeeFreeAllowances = new MethodFeeFreeAllowances
+                        TransactionFeeFreeAllowances = new TransactionFeeFreeAllowances
                         {
                             Value =
                             {
-                                new MethodFeeFreeAllowance
+                                new TransactionFeeFreeAllowance
                                 {
                                     Symbol = Token1,
                                     Amount = freeAmountELF
@@ -1035,11 +1035,11 @@ public partial class ExecutePluginTransactionDirectlyTest
                     new ConfigTransactionFeeFreeAllowance
                     {
                         Symbol = USDT,
-                        MethodFeeFreeAllowances = new MethodFeeFreeAllowances
+                        TransactionFeeFreeAllowances = new TransactionFeeFreeAllowances
                         {
                             Value =
                             {
-                                new MethodFeeFreeAllowance
+                                new TransactionFeeFreeAllowance
                                 {
                                     Symbol = Token2,
                                     Amount = freeAmountUSDT
@@ -1139,11 +1139,11 @@ public partial class ExecutePluginTransactionDirectlyTest
                     new ConfigTransactionFeeFreeAllowance
                     {
                         Symbol = NativeTokenSymbol,
-                        MethodFeeFreeAllowances = new MethodFeeFreeAllowances
+                        TransactionFeeFreeAllowances = new TransactionFeeFreeAllowances
                         {
                             Value =
                             {
-                                new MethodFeeFreeAllowance
+                                new TransactionFeeFreeAllowance
                                 {
                                     Symbol = NativeTokenSymbol,
                                     Amount = freeAmount
@@ -1263,11 +1263,11 @@ public partial class ExecutePluginTransactionDirectlyTest
                     new ConfigTransactionFeeFreeAllowance
                     {
                         Symbol = NativeTokenSymbol,
-                        MethodFeeFreeAllowances = new MethodFeeFreeAllowances
+                        TransactionFeeFreeAllowances = new TransactionFeeFreeAllowances
                         {
                             Value =
                             {
-                                new MethodFeeFreeAllowance
+                                new TransactionFeeFreeAllowance
                                 {
                                     Symbol = Token1,
                                     Amount = 1000
@@ -1280,11 +1280,11 @@ public partial class ExecutePluginTransactionDirectlyTest
                     new ConfigTransactionFeeFreeAllowance
                     {
                         Symbol = USDT,
-                        MethodFeeFreeAllowances = new MethodFeeFreeAllowances
+                        TransactionFeeFreeAllowances = new TransactionFeeFreeAllowances
                         {
                             Value =
                             {
-                                new MethodFeeFreeAllowance
+                                new TransactionFeeFreeAllowance
                                 {
                                     Symbol = Token2,
                                     Amount = 1000
@@ -1433,11 +1433,11 @@ public partial class ExecutePluginTransactionDirectlyTest
                     new ConfigTransactionFeeFreeAllowance
                     {
                         Symbol = NativeTokenSymbol,
-                        MethodFeeFreeAllowances = new MethodFeeFreeAllowances
+                        TransactionFeeFreeAllowances = new TransactionFeeFreeAllowances
                         {
                             Value =
                             {
-                                new MethodFeeFreeAllowance
+                                new TransactionFeeFreeAllowance
                                 {
                                     Symbol = Token1,
                                     Amount = freeAmount
@@ -1562,16 +1562,16 @@ public partial class ExecutePluginTransactionDirectlyTest
                     new ConfigTransactionFeeFreeAllowance
                     {
                         Symbol = NativeTokenSymbol,
-                        MethodFeeFreeAllowances = new MethodFeeFreeAllowances
+                        TransactionFeeFreeAllowances = new TransactionFeeFreeAllowances
                         {
                             Value =
                             {
-                                new MethodFeeFreeAllowance
+                                new TransactionFeeFreeAllowance
                                 {
                                     Symbol = firstFreeSymbolELF,
                                     Amount = firstFreeAmountELF
                                 },
-                                new MethodFeeFreeAllowance
+                                new TransactionFeeFreeAllowance
                                 {
                                     Symbol = secondFreeSymbolELF,
                                     Amount = secondFreeAmountELF
@@ -1584,16 +1584,16 @@ public partial class ExecutePluginTransactionDirectlyTest
                     new ConfigTransactionFeeFreeAllowance
                     {
                         Symbol = USDT,
-                        MethodFeeFreeAllowances = new MethodFeeFreeAllowances
+                        TransactionFeeFreeAllowances = new TransactionFeeFreeAllowances
                         {
                             Value =
                             {
-                                new MethodFeeFreeAllowance
+                                new TransactionFeeFreeAllowance
                                 {
                                     Symbol = firstFreeSymbolUSDT,
                                     Amount = firstFreeAmountUSDT
                                 },
-                                new MethodFeeFreeAllowance
+                                new TransactionFeeFreeAllowance
                                 {
                                     Symbol = secondFreeSymbolUSDT,
                                     Amount = secondFreeAmountUSDT

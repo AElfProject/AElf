@@ -307,11 +307,11 @@ public partial class ExecutePluginTransactionDirectlyTest : ExecutePluginTransac
                     new ConfigTransactionFeeFreeAllowance
                     {
                         Symbol = NativeTokenSymbol,
-                        MethodFeeFreeAllowances = new MethodFeeFreeAllowances
+                        TransactionFeeFreeAllowances = new TransactionFeeFreeAllowances
                         {
                             Value =
                             {
-                                new MethodFeeFreeAllowance
+                                new TransactionFeeFreeAllowance
                                 {
                                     Symbol = NativeTokenSymbol,
                                     Amount = freeAmount
@@ -434,16 +434,16 @@ public partial class ExecutePluginTransactionDirectlyTest : ExecutePluginTransac
                 {
                     new ConfigTransactionFeeFreeAllowance
                     {
-                        MethodFeeFreeAllowances = new MethodFeeFreeAllowances
+                        TransactionFeeFreeAllowances = new TransactionFeeFreeAllowances
                         {
                             Value =
                             {
-                                new MethodFeeFreeAllowance
+                                new TransactionFeeFreeAllowance
                                 {
                                     Symbol = basicFeeSymbol,
                                     Amount = baseFeeFreeAmount
                                 },
-                                new MethodFeeFreeAllowance
+                                new TransactionFeeFreeAllowance
                                 {
                                     Symbol = sizeFeeSymbol,
                                     Amount = sizeFeeFreeAmount
@@ -620,16 +620,16 @@ public partial class ExecutePluginTransactionDirectlyTest : ExecutePluginTransac
                 {
                     new ConfigTransactionFeeFreeAllowance
                     {
-                        MethodFeeFreeAllowances = new MethodFeeFreeAllowances
+                        TransactionFeeFreeAllowances = new TransactionFeeFreeAllowances
                         {
                             Value =
                             {
-                                new MethodFeeFreeAllowance
+                                new TransactionFeeFreeAllowance
                                 {
                                     Symbol = basicFeeSymbol,
                                     Amount = baseFeeFreeAmount
                                 },
-                                new MethodFeeFreeAllowance
+                                new TransactionFeeFreeAllowance
                                 {
                                     Symbol = sizeFeeSymbol,
                                     Amount = sizeFeeFreeAmount
@@ -828,16 +828,16 @@ public partial class ExecutePluginTransactionDirectlyTest : ExecutePluginTransac
                 {
                     new ConfigTransactionFeeFreeAllowance
                     {
-                        MethodFeeFreeAllowances = new MethodFeeFreeAllowances
+                        TransactionFeeFreeAllowances = new TransactionFeeFreeAllowances
                         {
                             Value =
                             {
-                                new MethodFeeFreeAllowance
+                                new TransactionFeeFreeAllowance
                                 {
                                     Symbol = basicFeeSymbol,
                                     Amount = baseFeeFreeAmount
                                 },
-                                new MethodFeeFreeAllowance
+                                new TransactionFeeFreeAllowance
                                 {
                                     Symbol = sizeFeeSymbol,
                                     Amount = sizeFeeFreeAmount
@@ -1168,16 +1168,16 @@ public partial class ExecutePluginTransactionDirectlyTest : ExecutePluginTransac
                         Symbol = NativeTokenSymbol,
                         RefreshSeconds = 100,
                         Threshold = threshold,
-                        MethodFeeFreeAllowances = new MethodFeeFreeAllowances
+                        TransactionFeeFreeAllowances = new TransactionFeeFreeAllowances
                         {
                             Value =
                             {
-                                new MethodFeeFreeAllowance
+                                new TransactionFeeFreeAllowance
                                 {
                                     Symbol = basicFeeSymbol,
                                     Amount = baseFeeFreeAmount
                                 },
-                                new MethodFeeFreeAllowance
+                                new TransactionFeeFreeAllowance
                                 {
                                     Symbol = sizeFeeSymbol,
                                     Amount = sizeFeeFreeAmount

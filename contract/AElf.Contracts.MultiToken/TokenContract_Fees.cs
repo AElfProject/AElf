@@ -1163,7 +1163,7 @@ public partial class TokenContract
         {
             ValidateToken(allowances.Symbol);
             Assert(
-                allowances.MethodFeeFreeAllowances?.Value != null && allowances.MethodFeeFreeAllowances.Value.Count > 0,
+                allowances.TransactionFeeFreeAllowances?.Value != null && allowances.TransactionFeeFreeAllowances.Value.Count > 0,
                 "Invalid input allowances");
             Assert(allowances.Threshold >= 0, "Invalid input threshold");
             Assert(allowances.RefreshSeconds >= 0, "Invalid input refresh seconds");
@@ -1176,7 +1176,7 @@ public partial class TokenContract
                 FreeAllowances = new TransactionFeeFreeAllowanceMap()
             };
 
-            foreach (var allowance in allowances.MethodFeeFreeAllowances!.Value!)
+            foreach (var allowance in allowances.TransactionFeeFreeAllowances!.Value!)
             {
                 config.FreeAllowances.Map.TryAdd(allowance.Symbol, allowance);
             }

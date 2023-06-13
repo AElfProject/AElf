@@ -295,6 +295,15 @@ message MethodFeeFreeAllowance {
     int64 amount = 2;
 }
 
+message TransactionFeeFreeAllowances{
+    repeated TransactionFeeFreeAllowance value = 1;
+}
+
+message TransactionFeeFreeAllowance {
+    string symbol = 1;
+    int64 amount = 2;
+}
+
 message TransactionFeeFreeAllowancesSymbolList {
     repeated string symbols = 1;
 }
@@ -305,7 +314,7 @@ message ConfigTransactionFeeFreeAllowancesInput {
 
 message ConfigTransactionFeeFreeAllowance {
     string symbol = 1;
-    MethodFeeFreeAllowances method_fee_free_allowances = 2;
+    TransactionFeeFreeAllowances transaction_fee_free_allowances = 2;
     int64 refresh_seconds = 3;
     int64 threshold = 4;
 }
@@ -326,7 +335,7 @@ message TransactionFeeFreeAllowanceConfig {
 }
 
 message TransactionFeeFreeAllowanceMap {
-    map<string, MethodFeeFreeAllowance> map = 1;
+    map<string, TransactionFeeFreeAllowance> map = 1;
 }
 
 message TransactionFeeFreeAllowancesMap {
