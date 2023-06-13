@@ -186,17 +186,6 @@ public class Vrf : IVrf
         return new BigInteger(1, hashTruncated);
     }
 
-    //
-    // public BigInteger Bits2Int(byte[] inputBytes, int qlen)
-    // {
-    //     var output = new BigInteger(inputBytes);
-    //     if (inputBytes.Length * 8 > qlen)
-    //     {
-    //         return output.ShiftRight(inputBytes.Length * 8 - qlen);
-    //     }
-    //
-    //     return output;
-    // }
     public byte[] EncodeProof(Point gamma, BigInteger c, BigInteger s)
     {
         using var secp256k1 = new Secp256k1();
