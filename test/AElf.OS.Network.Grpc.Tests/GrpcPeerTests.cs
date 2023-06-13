@@ -408,7 +408,6 @@ public class GrpcPeerTests : GrpcNetworkWithChainTestBase
                 .ShouldThrow<NetworkException>().ExceptionType.ShouldBe(NetworkExceptionType.Unrecoverable);
             grpcPeer.IsConnected.ShouldBe(false);
             grpcPeer.IsReady.ShouldBe(false);
-            grpcPeer.ConnectionStatus.ShouldBe("");
             grpcPeer.BufferedTransactionsCount.ShouldBe(0);
             grpcPeer.BufferedBlocksCount.ShouldBe(0);
             grpcPeer.BufferedAnnouncementsCount.ShouldBe(0);

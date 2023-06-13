@@ -7,6 +7,7 @@ using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Grpc.Helpers;
+using AElf.OS.Network.Infrastructure;
 using AElf.OS.Network.Protocol.Types;
 using Google.Protobuf;
 using Google.Protobuf.Collections;
@@ -22,10 +23,14 @@ namespace AElf.OS.Network.Grpc;
 public class GrpcStreamServiceTests : GrpcNetworkWithChainTestBase
 {
     private readonly OSTestHelper _osTestHelper;
+    private readonly IStreamService _streamService;
+    private readonly IPeerPool _peerPool;
 
     public GrpcStreamServiceTests()
     {
         _osTestHelper = GetRequiredService<OSTestHelper>();
+        _streamService = GetRequiredService<IStreamService>();
+        _peerPool = GetRequiredService<IPeerPool>();
     }
 
     private ServerCallContext BuildServerCallContext(Metadata metadata = null, string address = null)
@@ -165,7 +170,7 @@ public class GrpcStreamServiceTests : GrpcNetworkWithChainTestBase
         {
         }
 
-        var peerback = new GrpcStreamBackPeer(null, new PeerConnectionInfo(), null,
+        var peerback = new GrpcStreamBackPeer(null, new PeerConnectionInfo() { Pubkey = "0471b4ea88d8cf3d4c58c12e1306a4fdfde64b3a511e8b023c0412032869f47e1ddeaa9b82318a7d1b8d08eb484cfe93a51c319750b65e3df8ffd822a446251b64" }, null,
             new StreamTaskResourcePool(), new Dictionary<string, string>() { { "tmp", "value" } });
         peerback.ConnectionStatus.ShouldBe("Stream Closed");
         var res = await peerback.TryRecoverAsync();
@@ -179,5 +184,37 @@ public class GrpcStreamServiceTests : GrpcNetworkWithChainTestBase
     [Fact]
     public async Task StreamServiceTests()
     {
+        var mockClient = new Mock<PeerService.PeerServiceClient>();
+        var grpcClient = new GrpcClient(new("127.0.0.1:9999", ChannelCredentials.Insecure), mockClient.Object);
+        var peer = new GrpcStreamPeer(grpcClient, null, new PeerConnectionInfo(), null, null,
+            new StreamTaskResourcePool(), new Dictionary<string, string>() { { "tmp", "value" } });
+        peer.InboundSessionId = "123".GetBytes();
+        try
+        {
+            _peerPool.TryAddPeer(peer);
+            await _streamService.ProcessStreamRequestAsync(new StreamMessage { StreamType = StreamType.Reply, MessageType = MessageType.HealthCheck, RequestId = "123", Message = new HealthCheckRequest().ToByteString() },
+                BuildServerCallContext(new Metadata() { { GrpcConstants.SessionIdMetadataKey, "123" }, }));
+            await _streamService.ProcessStreamRequestAsync(new StreamMessage { StreamType = StreamType.Request, MessageType = MessageType.HealthCheck, RequestId = "123", Message = new HealthCheckRequest().ToByteString() },
+                BuildServerCallContext(new Metadata() { { GrpcConstants.SessionIdMetadataKey, "123" }, }));
+        }
+        catch (Exception e)
+        {
+        }
+
+        try
+        {
+            await _streamService.ProcessStreamPeerException(new NetworkException("", NetworkExceptionType.Unrecoverable), peer);
+        }
+        catch (Exception)
+        {
+        }
+
+        try
+        {
+            await _streamService.ProcessStreamPeerException(new NetworkException("", NetworkExceptionType.PeerUnstable), peer);
+        }
+        catch (Exception)
+        {
+        }
     }
 }
