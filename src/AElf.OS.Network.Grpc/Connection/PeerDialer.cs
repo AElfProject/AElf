@@ -33,8 +33,7 @@ public class PeerDialer : IPeerDialer
 {
     private readonly IAccountService _accountService;
     private readonly IHandshakeProvider _handshakeProvider;
-    private KeyCertificatePair _clientKeyCertificatePair;
-    private IStreamTaskResourcePool _streamTaskResourcePool;
+    private readonly IStreamTaskResourcePool _streamTaskResourcePool;
     public ILocalEventBus EventBus { get; set; }
 
     public PeerDialer(IAccountService accountService,
@@ -46,8 +45,6 @@ public class PeerDialer : IPeerDialer
         EventBus = NullLocalEventBus.Instance;
 
         Logger = NullLogger<PeerDialer>.Instance;
-
-        CreateClientKeyCertificatePair();
     }
 
     private NetworkOptions NetworkOptions => NetworkOptionsSnapshot.Value;
@@ -142,7 +139,17 @@ public class PeerDialer : IPeerDialer
         };
         Logger.LogWarning("DialBackPeerByStreamAsync meta={meta}", meta);
         var peer = new GrpcStreamBackPeer(remoteEndpoint, info, responseStream, _streamTaskResourcePool, meta);
-
+        peer.SetStreamSendCallBack(async (ex, streamMessage, callTimes) =>
+        {
+            if (ex == null)
+                Logger.LogDebug("streamRequest write success {times}-{requestId}-{messageType}-{this}-{latency}", callTimes, streamMessage.RequestId, streamMessage.MessageType, peer,
+                    CommonHelper.GetRequestLatency(streamMessage.RequestId));
+            else
+            {
+                Logger.LogError(ex, "streamRequest write fail, {requestId}-{messageType}-{this}", streamMessage.RequestId, streamMessage.MessageType, peer);
+                await EventBus.PublishAsync(new StreamPeerExceptionEvent(ex, peer), false);
+            }
+        });
         peer.UpdateLastReceivedHandshake(handshake);
 
         return peer;
@@ -189,11 +196,6 @@ public class PeerDialer : IPeerDialer
         peer.UpdateLastReceivedHandshake(handshake);
 
         return peer;
-    }
-
-    private void CreateClientKeyCertificatePair()
-    {
-        _clientKeyCertificatePair = TlsHelper.GenerateKeyCertificatePair();
     }
 
     /// <summary>
@@ -245,6 +247,17 @@ public class PeerDialer : IPeerDialer
                     { GrpcConstants.PubkeyMetadataKey, nodePubkey },
                     { GrpcConstants.PeerInfoMetadataKey, connectionInfo.ToString() }
                 });
+            streamPeer.SetStreamSendCallBack(async (ex, streamMessage, callTimes) =>
+            {
+                if (ex == null)
+                    Logger.LogDebug("streamRequest write success {times}-{requestId}-{messageType}-{this}-{latency}", callTimes, streamMessage.RequestId, streamMessage.MessageType, streamPeer,
+                        CommonHelper.GetRequestLatency(streamMessage.RequestId));
+                else
+                {
+                    Logger.LogError(ex, "streamRequest write fail, {requestId}-{messageType}-{this}", streamMessage.RequestId, streamMessage.MessageType, streamPeer);
+                    await EventBus.PublishAsync(new StreamPeerExceptionEvent(ex, streamPeer), false);
+                }
+            });
             var success = await BuildStreamForPeerAsync(streamPeer, call);
             return success ? streamPeer : null;
         }
@@ -266,12 +279,17 @@ public class PeerDialer : IPeerDialer
         {
             try
             {
-                await call.ResponseStream.ForEachAsync(async req => await
-                    EventBus.PublishAsync(new StreamMessageReceivedEvent(req.ToByteString(), streamPeer.Info.Pubkey), false));
+                await call.ResponseStream.ForEachAsync(async req =>
+                {
+                    Logger.LogDebug("listenReceive request={requestId} {streamType}-{messageType} latency={latency}", req.RequestId, req.StreamType, req.MessageType, CommonHelper.GetRequestLatency(req.RequestId));
+                    await EventBus.PublishAsync(new StreamMessageReceivedEvent(req.ToByteString(), streamPeer.Info.Pubkey, req.RequestId), false);
+                });
                 Logger.LogWarning("listen end and complete {remoteEndPoint}", streamPeer.RemoteEndpoint.ToString());
             }
             catch (Exception e)
             {
+                if (e is RpcException exception)
+                    await EventBus.PublishAsync(new StreamPeerExceptionEvent(streamPeer.HandleRpcException(exception, "listen err {remoteEndPoint}"), streamPeer));
                 Logger.LogError(e, "listen err {remoteEndPoint}", streamPeer.RemoteEndpoint.ToString());
             }
         }, tokenSource.Token);
@@ -329,8 +347,9 @@ public class PeerDialer : IPeerDialer
             return null;
 
         Logger.LogDebug($"Upgrading connection to TLS: {certificate}.");
+        var clientKeyCertificatePair = TlsHelper.GenerateKeyCertificatePair();
         ChannelCredentials credentials =
-            new SslCredentials(TlsHelper.ObjectToPem(certificate), _clientKeyCertificatePair);
+            new SslCredentials(TlsHelper.ObjectToPem(certificate), clientKeyCertificatePair);
 
         var channel = new Channel(remoteEndpoint.ToString(), credentials, new List<ChannelOption>
         {
@@ -340,7 +359,7 @@ public class PeerDialer : IPeerDialer
             new(GrpcConstants.GrpcArgKeepalivePermitWithoutCalls, GrpcConstants.GrpcArgKeepalivePermitWithoutCallsOpen),
             new(GrpcConstants.GrpcArgHttp2MaxPingsWithoutData, GrpcConstants.GrpcArgHttp2MaxPingsWithoutDataVal),
             new(GrpcConstants.GrpcArgKeepaliveTimeoutMs, GrpcConstants.GrpcArgKeepaliveTimeoutMsVal),
-            new(GrpcConstants.GrpcArgKeepaliveTimeMs, GrpcConstants.GrpcArgKeepaliveTimeMsVal)
+            new(GrpcConstants.GrpcArgKeepaliveTimeMs, GrpcConstants.GrpcArgKeepaliveTimeMsVal),
         });
 
         var nodePubkey = AsyncHelper.RunSync(() => _accountService.GetPublicKeyAsync()).ToHex();

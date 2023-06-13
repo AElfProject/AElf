@@ -12,6 +12,13 @@ public static class CommonHelper
         return timeMs.ToString() + '_' + guid;
     }
 
+    public static long GetRequestLatency(string requestId)
+    {
+        var sp = requestId.Split("_");
+        if (sp.Length != 2) return -1;
+        return long.TryParse(sp[0], out var start) ? DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - start : -1;
+    }
+
     public static bool GreaterThanSupportStreamMinVersion(this string version, string minVersion)
     {
         return Version.Parse(version).CompareTo(Version.Parse(minVersion)) >= 0;

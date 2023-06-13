@@ -1,9 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using AElf.OS.Network.Application;
+using AElf.OS.Network.Grpc.Helpers;
 using AElf.OS.Network.Protocol.Types;
+using AElf.Types;
 using Grpc.Core;
 
 namespace AElf.OS.Network.Grpc;
@@ -22,13 +25,35 @@ public class GrpcStreamBackPeer : GrpcStreamPeer
 
     public override async Task CheckHealthAsync()
     {
-        var request = new GrpcRequest { ErrorMessage = "Check health failed." };
+        var requestId = CommonHelper.GenerateRequestId();
+        var request = new GrpcRequest { ErrorMessage = $"Check health failed.requestId={requestId}" };
 
         var data = new Metadata
         {
             { GrpcConstants.TimeoutMetadataKey, CheckHealthTimeout.ToString() },
         };
-        await RequestAsync(() => StreamRequestAsync(MessageType.HealthCheck, new HealthCheckRequest(), data), request);
+        await RequestAsync(() => StreamRequestAsync(MessageType.HealthCheck, new HealthCheckRequest(), data, requestId), request);
+    }
+
+    public override async Task<List<BlockWithTransactions>> GetBlocksAsync(Hash firstHash, int count)
+    {
+        var blockRequest = new BlocksRequest { PreviousBlockHash = firstHash, Count = count };
+        var blockInfo = $"{{ first: {firstHash}, count: {count} }}";
+
+        var requestId = CommonHelper.GenerateRequestId();
+        var request = new GrpcRequest
+        {
+            ErrorMessage = $"Get blocks for {blockInfo} failed.requestId={requestId}",
+            MetricName = nameof(MetricNames.GetBlocks),
+            MetricInfo = $"Get blocks for {blockInfo}"
+        };
+
+        var data = new Metadata
+        {
+            { GrpcConstants.TimeoutMetadataKey, BlocksRequestTimeout.ToString() },
+        };
+        var listMessage = await RequestAsync(() => StreamRequestAsync(MessageType.RequestBlocks, blockRequest, data, requestId), request);
+        return listMessage != null ? BlockList.Parser.ParseFrom(listMessage.Message).Blocks.ToList() : new List<BlockWithTransactions>();
     }
 
     public override async Task DisconnectAsync(bool gracefulDisconnect)
@@ -57,7 +82,7 @@ public class GrpcStreamBackPeer : GrpcStreamPeer
     }
 
 
-    protected override NetworkException HandleRpcException(RpcException exception, string errorMessage)
+    public override NetworkException HandleRpcException(RpcException exception, string errorMessage)
     {
         var message = $"Failed request to {this}: {errorMessage}";
         var type = NetworkExceptionType.Rpc;

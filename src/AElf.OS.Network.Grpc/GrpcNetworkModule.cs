@@ -16,7 +16,7 @@ public class GrpcNetworkModule : AElfModule
         context.Services.AddSingleton<PeerService.PeerServiceBase, GrpcServerService>();
 
         // Internal dependencies
-        context.Services.AddTransient<IPeerDialer, PeerDialer>();
+        context.Services.AddSingleton<IPeerDialer, PeerDialer>();
         context.Services.AddSingleton<GrpcServerService>();
 
         context.Services.AddSingleton<AuthInterceptor>();
