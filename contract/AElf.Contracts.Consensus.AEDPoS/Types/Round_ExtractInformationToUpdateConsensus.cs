@@ -10,8 +10,9 @@ public partial class Round
     ///     will record this purpose to their FinalOrderOfNextRound field.
     /// </summary>
     /// <param name="pubkey"></param>
+    /// <param name="randomHash"></param>
     /// <returns></returns>
-    public UpdateValueInput ExtractInformationToUpdateConsensus(string pubkey)
+    public UpdateValueInput ExtractInformationToUpdateConsensus(string pubkey, Hash randomHash)
     {
         if (!RealTimeMinersInformation.ContainsKey(pubkey)) return null;
 
@@ -43,7 +44,8 @@ public partial class Round
             EncryptedPieces = { minerInRound.EncryptedPieces },
             DecryptedPieces = { decryptedPreviousInValues },
             MinersPreviousInValues = { minersPreviousInValues },
-            ImpliedIrreversibleBlockHeight = minerInRound.ImpliedIrreversibleBlockHeight
+            ImpliedIrreversibleBlockHeight = minerInRound.ImpliedIrreversibleBlockHeight,
+            RandomHash = randomHash
         };
     }
 }

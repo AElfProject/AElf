@@ -1,5 +1,6 @@
 using System.Linq;
 using AElf.Standards.ACS4;
+using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
@@ -66,9 +67,10 @@ public partial class AEDPoSContract
             "Data to request consensus information should contain pubkey.");
 
         var pubkey = triggerInformation.Pubkey;
+        var randomHash = triggerInformation.RandomHash;
         var consensusInformation = new AElfConsensusHeaderInformation();
         consensusInformation.MergeFrom(GetConsensusBlockExtraData(input, true).Value);
-        var transactionList = GenerateTransactionListByExtraData(consensusInformation, pubkey);
+        var transactionList = GenerateTransactionListByExtraData(consensusInformation, pubkey, randomHash);
         return transactionList;
     }
 
@@ -126,7 +128,7 @@ public partial class AEDPoSContract
     }
 
     private TransactionList GenerateTransactionListByExtraData(AElfConsensusHeaderInformation consensusInformation,
-        ByteString pubkey)
+        ByteString pubkey, Hash randomHash)
     {
         var round = consensusInformation.Round;
         var behaviour = consensusInformation.Behaviour;
@@ -140,7 +142,7 @@ public partial class AEDPoSContract
                     Transactions =
                     {
                         GenerateTransaction(nameof(UpdateValue),
-                            round.ExtractInformationToUpdateConsensus(pubkey.ToHex()))
+                            round.ExtractInformationToUpdateConsensus(pubkey.ToHex(),randomHash))
                     }
                 };
             case AElfConsensusBehaviour.TinyBlock:
@@ -154,7 +156,8 @@ public partial class AEDPoSContract
                             {
                                 ActualMiningTime = minerInRound.ActualMiningTimes.Last(),
                                 ProducedBlocks = minerInRound.ProducedBlocks,
-                                RoundId = round.RoundIdForValidation
+                                RoundId = round.RoundIdForValidation,
+                                RandomHash = randomHash
                             })
                     }
                 };
@@ -163,7 +166,20 @@ public partial class AEDPoSContract
                 {
                     Transactions =
                     {
-                        GenerateTransaction(nameof(NextRound), round)
+                        GenerateTransaction(nameof(NextRound), new NextRoundInput
+                        {
+                            RoundNumber = round.RoundNumber,
+                            RealTimeMinersInformation = { round.RealTimeMinersInformation },
+                            ExtraBlockProducerOfPreviousRound = round.ExtraBlockProducerOfPreviousRound,
+                            BlockchainAge = round.BlockchainAge,
+                            TermNumber = round.TermNumber,
+                            ConfirmedIrreversibleBlockHeight = round.ConfirmedIrreversibleBlockHeight,
+                            ConfirmedIrreversibleBlockRoundNumber = round.ConfirmedIrreversibleBlockRoundNumber,
+                            IsMinerListJustChanged = round.IsMinerListJustChanged,
+                            RoundIdForValidation = round.RoundIdForValidation,
+                            MainChainMinersRoundNumber = round.MainChainMinersRoundNumber,
+                            RandomHash = randomHash
+                        })
                     }
                 };
             case AElfConsensusBehaviour.NextTerm:
@@ -171,7 +187,20 @@ public partial class AEDPoSContract
                 {
                     Transactions =
                     {
-                        GenerateTransaction(nameof(NextTerm), round)
+                        GenerateTransaction(nameof(NextTerm), new NextTermInput
+                        {
+                            RoundNumber = round.RoundNumber,
+                            RealTimeMinersInformation = { round.RealTimeMinersInformation },
+                            ExtraBlockProducerOfPreviousRound = round.ExtraBlockProducerOfPreviousRound,
+                            BlockchainAge = round.BlockchainAge,
+                            TermNumber = round.TermNumber,
+                            ConfirmedIrreversibleBlockHeight = round.ConfirmedIrreversibleBlockHeight,
+                            ConfirmedIrreversibleBlockRoundNumber = round.ConfirmedIrreversibleBlockRoundNumber,
+                            IsMinerListJustChanged = round.IsMinerListJustChanged,
+                            RoundIdForValidation = round.RoundIdForValidation,
+                            MainChainMinersRoundNumber = round.MainChainMinersRoundNumber,
+                            RandomHash = randomHash
+                        })
                     }
                 };
             default:

@@ -28,19 +28,25 @@ public partial class AEDPoSContract
 
         State.RoundBeforeLatestExecution.Value = GetCurrentRoundInformation(new Empty());
 
+        var randomHash = Hash.Empty;
+
         // The only difference.
         switch (input)
         {
-            case Round round when callerMethodName == nameof(NextRound):
-                ProcessNextRound(round);
+            case NextRoundInput nextRoundInput:
+                randomHash = nextRoundInput.RandomHash;
+                ProcessNextRound(nextRoundInput);
                 break;
-            case Round round when callerMethodName == nameof(NextTerm):
-                ProcessNextTerm(round);
+            case NextTermInput nextTermInput:
+                randomHash = nextTermInput.RandomHash;
+                ProcessNextTerm(nextTermInput);
                 break;
             case UpdateValueInput updateValueInput:
+                randomHash = updateValueInput.RandomHash;
                 ProcessUpdateValue(updateValueInput);
                 break;
             case TinyBlockInput tinyBlockInput:
+                randomHash = tinyBlockInput.RandomHash;
                 ProcessTinyBlock(tinyBlockInput);
                 break;
         }
@@ -65,12 +71,9 @@ public partial class AEDPoSContract
             Context.LogDebug(() =>
                 $"Current round information:\n{currentRound.ToString(_processingBlockMinerPubkey)}");
 
-        var latestSignature = GetLatestSignature(currentRound);
-        var previousRandomHash = State.RandomHashes[Context.CurrentHeight.Sub(1)];
-        var randomHash = previousRandomHash == null
-            ? latestSignature
-            : HashHelper.XorAndCompute(previousRandomHash, latestSignature);
-
+        var previousRandomHash = State.RandomHashes[Context.CurrentHeight.Sub(1)] ?? Hash.Empty;
+        Assert(Context.ECVRFVerify(Context.RecoverPublicKey(), previousRandomHash.ToHex(), randomHash.ToHex()),
+            "Invalid random hash.");
         State.RandomHashes[Context.CurrentHeight] = randomHash;
 
         Context.LogDebug(() => $"New random hash generated: {randomHash} - height {Context.CurrentHeight}");
@@ -100,8 +103,22 @@ public partial class AEDPoSContract
         return latestSignature;
     }
 
-    private void ProcessNextRound(Round nextRound)
+    private void ProcessNextRound(NextRoundInput input)
     {
+        var nextRound = new Round
+        {
+            RoundNumber = input.RoundNumber,
+            RealTimeMinersInformation = { input.RealTimeMinersInformation },
+            ExtraBlockProducerOfPreviousRound = input.ExtraBlockProducerOfPreviousRound,
+            BlockchainAge = input.BlockchainAge,
+            TermNumber = input.TermNumber,
+            ConfirmedIrreversibleBlockHeight = input.ConfirmedIrreversibleBlockHeight,
+            ConfirmedIrreversibleBlockRoundNumber = input.ConfirmedIrreversibleBlockRoundNumber,
+            IsMinerListJustChanged = input.IsMinerListJustChanged,
+            RoundIdForValidation = input.RoundIdForValidation,
+            MainChainMinersRoundNumber = input.MainChainMinersRoundNumber
+        };
+        
         RecordMinedMinerListOfCurrentRound();
 
         TryToGetCurrentRoundInformation(out var currentRound);
@@ -149,8 +166,22 @@ public partial class AEDPoSContract
         Assert(TryToUpdateRoundNumber(nextRound.RoundNumber), "Failed to update round number.");
     }
 
-    private void ProcessNextTerm(Round nextRound)
+    private void ProcessNextTerm(NextTermInput input)
     {
+        var nextRound = new Round
+        {
+            RoundNumber = input.RoundNumber,
+            RealTimeMinersInformation = { input.RealTimeMinersInformation },
+            ExtraBlockProducerOfPreviousRound = input.ExtraBlockProducerOfPreviousRound,
+            BlockchainAge = input.BlockchainAge,
+            TermNumber = input.TermNumber,
+            ConfirmedIrreversibleBlockHeight = input.ConfirmedIrreversibleBlockHeight,
+            ConfirmedIrreversibleBlockRoundNumber = input.ConfirmedIrreversibleBlockRoundNumber,
+            IsMinerListJustChanged = input.IsMinerListJustChanged,
+            RoundIdForValidation = input.RoundIdForValidation,
+            MainChainMinersRoundNumber = input.MainChainMinersRoundNumber
+        };
+        
         RecordMinedMinerListOfCurrentRound();
 
         // Count missed time slot of current round.

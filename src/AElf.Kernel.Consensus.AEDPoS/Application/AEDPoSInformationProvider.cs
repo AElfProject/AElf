@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Kernel.Consensus.AEDPoS.Application;
@@ -22,7 +23,7 @@ internal class AEDPoSInformationProvider : IAEDPoSInformationProvider
         _consensusReaderContextService = consensusReaderContextService;
     }
 
-    public async Task<IEnumerable<string>> GetCurrentMinerList(ChainContext chainContext)
+    public async Task<IEnumerable<string>> GetCurrentMinerListAsync(ChainContext chainContext)
     {
         var contractReaderContext =
             await _consensusReaderContextService.GetContractReaderContextAsync(chainContext);
@@ -30,5 +31,13 @@ internal class AEDPoSInformationProvider : IAEDPoSInformationProvider
             await _contractReaderFactory
                 .Create(contractReaderContext).GetCurrentMinerList.CallAsync(new Empty());
         return minersWithRoundNumber.Pubkeys.Select(k => k.ToHex());
+    }
+
+    public async Task<Hash> GetRandomHashAsync(IChainContext chainContext, long blockHeight)
+    {
+        var contractReaderContext =
+            await _consensusReaderContextService.GetContractReaderContextAsync(chainContext);
+        return await _contractReaderFactory
+            .Create(contractReaderContext).GetRandomHash.CallAsync(new Int64Value { Value = blockHeight });
     }
 }

@@ -80,6 +80,7 @@ public partial class AEDPoSContract : AEDPoSContractImplContainer.AEDPoSContract
         State.CurrentTermNumber.Value = 1;
         State.CurrentRoundNumber.Value = 1;
         State.FirstRoundNumberOfEachTerm[1] = 1;
+        State.RandomHashes[Context.CurrentHeight] = Context.PreviousBlockHash;
         State.MiningInterval.Value = input.GetMiningInterval();
         SetMinerList(input.GetMinerList(), 1);
 
@@ -158,7 +159,7 @@ public partial class AEDPoSContract : AEDPoSContractImplContainer.AEDPoSContract
 
     #region NextRound
 
-    public override Empty NextRound(Round input)
+    public override Empty NextRound(NextRoundInput input)
     {
         SupplyCurrentRoundInformation();
         ProcessConsensusInformation(input);

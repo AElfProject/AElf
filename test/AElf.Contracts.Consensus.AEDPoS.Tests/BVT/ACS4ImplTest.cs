@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.CSharp.Core;
+using AElf.Kernel;
 using AElf.Standards.ACS4;
 using AElf.TestBase;
 using AElf.Types;
@@ -74,7 +75,7 @@ public partial class AEDPoSTest : AEDPoSContractTestBase
         });
 
         var triggerForCommand =
-            TriggerInformationProvider.GetTriggerInformationForConsensusTransactions(
+            TriggerInformationProvider.GetTriggerInformationForConsensusTransactions(new ChainContext(),
                 consensusCommand.ToBytesValue());
 
         var transactionList = await AEDPoSContractStub.GenerateConsensusTransactions.CallAsync(triggerForCommand);
@@ -175,7 +176,7 @@ public partial class AEDPoSTest : AEDPoSContractTestBase
         });
 
         var triggerForCommand = TriggerInformationProvider
-            .GetTriggerInformationForConsensusTransactions(consensusCommand.ToBytesValue());
+            .GetTriggerInformationForConsensusTransactions(new ChainContext(), consensusCommand.ToBytesValue());
 
         var transactionList = await AEDPoSContractStub.GenerateConsensusTransactions.CallAsync(triggerForCommand);
 
@@ -275,7 +276,7 @@ public partial class AEDPoSTest : AEDPoSContractTestBase
         });
 
         var triggerForCommand = TriggerInformationProvider
-            .GetTriggerInformationForConsensusTransactions(consensusCommand.ToBytesValue());
+            .GetTriggerInformationForConsensusTransactions(new ChainContext(), consensusCommand.ToBytesValue());
 
         var transactionList = await AEDPoSContractStub.GenerateConsensusTransactions.CallAsync(triggerForCommand);
 
@@ -298,7 +299,7 @@ public partial class AEDPoSTest : AEDPoSContractTestBase
                 .Div(1000)
         });
 
-        var nextRound = new Round();
+        var nextRound = new NextRoundInput();
         nextRound.MergeFrom(transaction.Params);
 
         await AEDPoSContractStub.NextRound.SendAsync(nextRound);
@@ -323,10 +324,11 @@ public partial class AEDPoSTest : AEDPoSContractTestBase
         validateBeforeResult.Success.ShouldBeTrue();
 
         var roundInfo = await AEDPoSContractStub.GetCurrentRoundInformation.CallAsync(new Empty());
-        roundInfo.RoundNumber++;
-        roundInfo.IsMinerListJustChanged = false;
-        roundInfo.TermNumber++;
-        var transactionResult = await AEDPoSContractStub.NextRound.SendAsync(roundInfo);
+        var nextRoundInput = NextRoundInput.Parser.ParseFrom(roundInfo.ToByteArray());
+        nextRoundInput.RoundNumber++;
+        nextRoundInput.IsMinerListJustChanged = false;
+        nextRoundInput.TermNumber++;
+        var transactionResult = await AEDPoSContractStub.NextRound.SendAsync(nextRoundInput);
         transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
         var validateAfterResult =
@@ -402,7 +404,7 @@ public partial class AEDPoSTest : AEDPoSContractTestBase
             });
 
             var triggerForCommand = TriggerInformationProvider
-                .GetTriggerInformationForConsensusTransactions(consensusCommand.ToBytesValue());
+                .GetTriggerInformationForConsensusTransactions(new ChainContext(), consensusCommand.ToBytesValue());
 
             var transactionList =
                 await AEDPoSContractStub.GenerateConsensusTransactions.CallAsync(triggerForCommand);
@@ -433,7 +435,7 @@ public partial class AEDPoSTest : AEDPoSContractTestBase
             });
 
             var triggerForCommand = TriggerInformationProvider
-                .GetTriggerInformationForConsensusTransactions(consensusCommand.ToBytesValue());
+                .GetTriggerInformationForConsensusTransactions(new ChainContext(), consensusCommand.ToBytesValue());
 
             var transactionList =
                 await AEDPoSContractStub.GenerateConsensusTransactions.CallAsync(triggerForCommand);

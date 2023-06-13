@@ -294,16 +294,16 @@ public class BlockMiningService : IBlockMiningService
                 break;
             case nameof(AEDPoSContractImplContainer.AEDPoSContractImplStub.NextRound):
                 if (withException)
-                    await contractStub.NextRound.SendWithExceptionAsync(Round.Parser.ParseFrom(transaction.Params));
+                    await contractStub.NextRound.SendWithExceptionAsync(NextRoundInput.Parser.ParseFrom(transaction.Params));
                 else
-                    await contractStub.NextRound.SendAsync(Round.Parser.ParseFrom(transaction.Params));
+                    await contractStub.NextRound.SendAsync(NextRoundInput.Parser.ParseFrom(transaction.Params));
 
                 break;
             case nameof(AEDPoSContractImplContainer.AEDPoSContractImplStub.NextTerm):
                 if (withException)
-                    await contractStub.NextTerm.SendWithExceptionAsync(Round.Parser.ParseFrom(transaction.Params));
+                    await contractStub.NextTerm.SendWithExceptionAsync(NextTermInput.Parser.ParseFrom(transaction.Params));
                 else
-                    await contractStub.NextTerm.SendAsync(Round.Parser.ParseFrom(transaction.Params));
+                    await contractStub.NextTerm.SendAsync(NextTermInput.Parser.ParseFrom(transaction.Params));
 
                 break;
         }

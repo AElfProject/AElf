@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using AElf.CSharp.Core;
+using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.AEDPoS;
@@ -8,9 +9,9 @@ namespace AElf.Contracts.Consensus.AEDPoS;
 internal partial class Round
 {
     public bool GenerateNextRoundInformation(Timestamp currentBlockTimestamp, Timestamp blockchainStartTimestamp,
-        out Round nextRound)
+        out NextRoundInput nextRound)
     {
-        nextRound = new Round();
+        nextRound = new NextRoundInput();
 
         var minersMinedCurrentRound = GetMinedMiners();
         var minersNotMinedCurrentRound = GetNotMinedMiners();
@@ -66,6 +67,9 @@ internal partial class Round
         else
             expectedExtraBlockProducer.IsExtraBlockProducer = true;
 
+        // TODO: Set random hash.
+        nextRound.RandomHash = Hash.Empty;
+        
         return true;
     }
 

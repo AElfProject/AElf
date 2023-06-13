@@ -27,7 +27,8 @@ public partial class AEDPoSTest
                 Pubkey = ByteString.CopyFrom(BootMinerKeyPair.PublicKey)
             }.ToBytesValue())).ToConsensusHeaderInformation();
 
-        var transactionResult = await AEDPoSContractStub.NextRound.SendAsync(nextTermInformation.Round);
+        var nextRoundInput = NextRoundInput.Parser.ParseFrom(nextTermInformation.Round.ToByteArray());
+        var transactionResult = await AEDPoSContractStub.NextRound.SendAsync(nextRoundInput);
         transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
         roundNumber = await AEDPoSContractStub.GetCurrentRoundNumber.CallAsync(new Empty());

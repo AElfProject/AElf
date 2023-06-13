@@ -80,7 +80,8 @@ public partial class AEDPoSTest
                 Pubkey = ByteString.CopyFrom(BootMinerKeyPair.PublicKey)
             }.ToBytesValue())).ToConsensusHeaderInformation();
 
-        await AEDPoSContractStub.NextRound.SendAsync(nextTermInformation.Round);
+        var nextRoundInput = NextRoundInput.Parser.ParseFrom(nextTermInformation.Round.ToByteArray());
+        await AEDPoSContractStub.NextRound.SendAsync(nextRoundInput);
         changeTermTime = BlockchainStartTimestamp.ToDateTime().AddMinutes(termIntervalMin).AddSeconds(10);
         BlockTimeProvider.SetBlockTime(changeTermTime.ToTimestamp());
 
@@ -91,7 +92,8 @@ public partial class AEDPoSTest
                 Pubkey = ByteString.CopyFrom(BootMinerKeyPair.PublicKey)
             }.ToBytesValue())).ToConsensusHeaderInformation();
 
-        var transactionResult = await AEDPoSContractStub.NextTerm.SendAsync(nextTermInformation.Round);
+        var nextTermInput = NextTermInput.Parser.ParseFrom(nextTermInformation.Round.ToByteArray());
+        var transactionResult = await AEDPoSContractStub.NextTerm.SendAsync(nextTermInput);
         transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
         var newMinerStub = GetAEDPoSContractStub(ValidationDataCenterKeyPairs[0]);
@@ -117,8 +119,8 @@ public partial class AEDPoSTest
                     Pubkey = ByteStringHelper.FromHexString(currentRound.RealTimeMinersInformation.ElementAt(0).Value
                         .Pubkey)
                 }.ToBytesValue())).ToConsensusHeaderInformation();
-
-            await newMinerStub.NextTerm.SendAsync(nextRoundInformation.Round);
+            nextTermInput = NextTermInput.Parser.ParseFrom(nextTermInformation.Round.ToByteArray());
+            await newMinerStub.NextTerm.SendAsync(nextTermInput);
             termCount++;
         }
     }

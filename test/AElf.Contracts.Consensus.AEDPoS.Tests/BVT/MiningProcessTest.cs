@@ -73,8 +73,8 @@ public partial class AEDPoSTest
                 Behaviour = AElfConsensusBehaviour.NextTerm,
                 Pubkey = ByteString.CopyFrom(BootMinerKeyPair.PublicKey)
             }.ToBytesValue())).ToConsensusHeaderInformation();
-
-        await AEDPoSContractStub.NextTerm.SendAsync(nextTermInformation.Round);
+        var nextTermInput = NextTermInput.Parser.ParseFrom(nextTermInformation.Round.ToByteArray());
+        await AEDPoSContractStub.NextTerm.SendAsync(nextTermInput);
 
         // First candidate cheat others with in value.
         var oneCandidate = GetAEDPoSContractStub(ValidationDataCenterKeyPairs[0]);
@@ -100,8 +100,8 @@ public partial class AEDPoSTest
                 Behaviour = AElfConsensusBehaviour.NextRound,
                 Pubkey = ByteString.CopyFrom(ValidationDataCenterKeyPairs[0].PublicKey)
             }.ToBytesValue())).ToConsensusHeaderInformation().Round;
-
-        await oneCandidate.NextRound.SendAsync(thirdRound);
+        var nextRoundInput = NextRoundInput.Parser.ParseFrom(thirdRound.ToByteArray());
+        await oneCandidate.NextRound.SendAsync(nextRoundInput);
 
         var cheatInformation = (await AEDPoSContractStub.GetConsensusExtraData.CallAsync(
             new AElfConsensusTriggerInformation

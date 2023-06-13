@@ -372,4 +372,9 @@ public class CSharpSmartContractContext : ISmartContractBridgeContext
         return SmartContractBridgeContextImplementation.ConvertVirtualAddressToContractAddressWithContractHashName(
             virtualAddress);
     }
+    
+    public bool ECVRFVerify(byte[] pubKey, string pi, string alpha)
+    {
+        return SmartContractBridgeContextImplementation.ECVRFVerify(pubKey, pi, alpha);
+    }
 }
