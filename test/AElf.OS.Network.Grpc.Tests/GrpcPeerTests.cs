@@ -1,10 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Infrastructure;
+using AElf.OS.Network.Protocol.Types;
 using AElf.Types;
 using Google.Protobuf;
 using Grpc.Core;
@@ -404,6 +406,23 @@ public class GrpcPeerTests : GrpcNetworkWithChainTestBase
 
             grpcPeer.CheckHealthAsync()
                 .ShouldThrow<NetworkException>().ExceptionType.ShouldBe(NetworkExceptionType.Unrecoverable);
+            grpcPeer.IsConnected.ShouldBe(false);
+            grpcPeer.IsReady.ShouldBe(false);
+            grpcPeer.ConnectionStatus.ShouldBe("");
+            grpcPeer.BufferedTransactionsCount.ShouldBe(0);
+            grpcPeer.BufferedBlocksCount.ShouldBe(0);
+            grpcPeer.BufferedAnnouncementsCount.ShouldBe(0);
+
+            var grpcClient = new GrpcClient(new("127.0.0.1:9999", ChannelCredentials.Insecure), mockClient.Object);
+            var peer = new GrpcStreamPeer(grpcClient, null, new PeerConnectionInfo(), null, null,
+                new StreamTaskResourcePool(), new Dictionary<string, string>() { { "tmp", "value" } });
+            try
+            {
+                peer.HandleRpcException(new RpcException(Status.DefaultSuccess), "");
+            }
+            catch (Exception)
+            {
+            }
         }
     }
 

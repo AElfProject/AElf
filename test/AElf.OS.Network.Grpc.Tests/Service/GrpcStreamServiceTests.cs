@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
+using AElf.OS.Network.Application;
 using AElf.OS.Network.Grpc.Helpers;
 using AElf.OS.Network.Protocol.Types;
 using Google.Protobuf;
@@ -84,8 +85,8 @@ public class GrpcStreamServiceTests : GrpcNetworkWithChainTestBase
     {
         var mockClient = new Mock<PeerService.PeerServiceClient>();
         var grpcClient = new GrpcClient(new("127.0.0.1:9999", ChannelCredentials.Insecure), mockClient.Object);
-        var peer = new GrpcStreamPeer(grpcClient, null, new PeerConnectionInfo(), null, null, 
-            new StreamTaskResourcePool(), new Dictionary<string, string>(){{"tmp","value"}});
+        var peer = new GrpcStreamPeer(grpcClient, null, new PeerConnectionInfo(), null, null,
+            new StreamTaskResourcePool(), new Dictionary<string, string>() { { "tmp", "value" } });
         try
         {
             var call = peer.BuildCall();
@@ -163,5 +164,20 @@ public class GrpcStreamServiceTests : GrpcNetworkWithChainTestBase
         catch (Exception)
         {
         }
+
+        var peerback = new GrpcStreamBackPeer(null, new PeerConnectionInfo(), null,
+            new StreamTaskResourcePool(), new Dictionary<string, string>() { { "tmp", "value" } });
+        peerback.ConnectionStatus.ShouldBe("Stream Closed");
+        var res = await peerback.TryRecoverAsync();
+        res.ShouldBe(true);
+        var re = peerback.HandleRpcException(new RpcException(new Status(StatusCode.Cancelled, "")), "");
+        re.ExceptionType.ShouldBe(NetworkExceptionType.Unrecoverable);
+        re = peerback.HandleRpcException(new RpcException(new Status(StatusCode.Unknown, "")), "");
+        re.ExceptionType.ShouldBe(NetworkExceptionType.Unrecoverable);
+    }
+
+    [Fact]
+    public async Task StreamServiceTests()
+    {
     }
 }
