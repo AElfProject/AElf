@@ -71,7 +71,6 @@ public class GrpcServerService : PeerService.PeerServiceBase
         {
             await requestStream.ForEachAsync(async req =>
             {
-                var start = DateTimeOffset.UtcNow;
                 Logger.LogDebug("receive request={requestId} {streamType}-{messageType}", req.RequestId, req.StreamType, req.MessageType);
                 if (req.MessageType == MessageType.HandShake)
                 {
@@ -88,10 +87,8 @@ public class GrpcServerService : PeerService.PeerServiceBase
                 }
                 else
                 {
-                    await _streamService.ProcessStreamRequestAsync(req, context);
+                    _streamService.ProcessStreamRequestAsync(req, context);
                 }
-
-                Logger.LogDebug("finish request={requestId} {streamType}-{messageType}, time cost={delta}", req.RequestId, req.StreamType, req.MessageType, DateTimeOffset.UtcNow.Subtract(start).TotalMilliseconds);
             });
         }
         catch (Exception e)
@@ -208,8 +205,19 @@ public class GrpcServerService : PeerService.PeerServiceBase
     {
         var blocks = await _grpcRequestProcessor.GetBlocksAsync(request, context.GetPeerInfo());
         if (!NetworkOptions.CompressBlocksOnRequest) return blocks;
-        var headers = new Metadata { new(GrpcConstants.GrpcRequestCompressKey, GrpcConstants.GrpcGzipConst) };
-        await context.WriteResponseHeadersAsync(headers);
+        try
+        {
+            var headers = new Metadata { new(GrpcConstants.GrpcRequestCompressKey, GrpcConstants.GrpcGzipConst) };
+            await context.WriteResponseHeadersAsync(headers);
+            Logger.LogDebug(
+                "Replied to {peerInfo} with {count}, request was {request}.", context.GetPeerInfo(), blocks.Blocks.Count, request);
+        }
+        catch (Exception e)
+        {
+            Logger.LogWarning(e, "Request blocks error - {peerInfo} - request={request}. ", context.GetPeerInfo(), request);
+            throw;
+        }
+
         return blocks;
     }
 

@@ -1,10 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Infrastructure;
+using AElf.OS.Network.Protocol.Types;
 using AElf.Types;
 using Google.Protobuf;
 using Grpc.Core;
@@ -404,6 +406,17 @@ public class GrpcPeerTests : GrpcNetworkWithChainTestBase
 
             grpcPeer.CheckHealthAsync()
                 .ShouldThrow<NetworkException>().ExceptionType.ShouldBe(NetworkExceptionType.Unrecoverable);
+            grpcPeer.IsConnected.ShouldBe(false);
+            grpcPeer.IsReady.ShouldBe(false);
+            grpcPeer.BufferedTransactionsCount.ShouldBe(0);
+            grpcPeer.BufferedBlocksCount.ShouldBe(0);
+            grpcPeer.BufferedAnnouncementsCount.ShouldBe(0);
+
+            var grpcClient = new GrpcClient(new("127.0.0.1:9999", ChannelCredentials.Insecure), mockClient.Object);
+            var peer = new GrpcStreamPeer(grpcClient, null, new PeerConnectionInfo() { Pubkey = "0471b4ea88d8cf3d4c58c12e1306a4fdfde64b3a511e8b023c0412032869f47e1ddeaa9b82318a7d1b8d08eb484cfe93a51c319750b65e3df8ffd822a446251b64" }, null,
+                null,
+                new StreamTaskResourcePool(), new Dictionary<string, string>() { { "tmp", "value" } });
+            peer.HandleRpcException(new RpcException(Status.DefaultSuccess), "");
         }
     }
 

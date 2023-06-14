@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,15 +17,20 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.OS.Network.Grpc;
 
+public delegate void StreamSendCallBack(NetworkException ex, StreamMessage streamMessage, int callTimes = 0);
+
 public class GrpcStreamPeer : GrpcPeer
 {
-    private const int StreamWaitTime = 500;
+    private const int StreamWaitTime = 3000;
+    private const int TimeOutRetryTimes = 3;
+
     private AsyncDuplexStreamingCall<StreamMessage, StreamMessage> _duplexStreamingCall;
     private CancellationTokenSource _streamListenTaskTokenSource;
     private IAsyncStreamWriter<StreamMessage> _clientStreamWriter;
 
     private readonly IStreamTaskResourcePool _streamTaskResourcePool;
     private readonly Dictionary<string, string> _peerMeta;
+    private StreamSendCallBack _streamSendCallBack;
 
     protected readonly ActionBlock<StreamJob> _sendStreamJobs;
     public ILogger<GrpcStreamPeer> Logger { get; set; }
@@ -50,7 +54,6 @@ public class GrpcStreamPeer : GrpcPeer
 
     public AsyncDuplexStreamingCall<StreamMessage, StreamMessage> BuildCall()
     {
-        if (_client == null) return null;
         _duplexStreamingCall = _client.RequestByStream(new CallOptions().WithDeadline(DateTime.MaxValue));
         _clientStreamWriter = _duplexStreamingCall.RequestStream;
         return _duplexStreamingCall;
@@ -61,18 +64,28 @@ public class GrpcStreamPeer : GrpcPeer
         _streamListenTaskTokenSource = listenTaskTokenSource;
     }
 
+    public void SetStreamSendCallBack(StreamSendCallBack callBack)
+    {
+        _streamSendCallBack = callBack;
+    }
+
+    public async Task DisposeAsync()
+    {
+        _sendStreamJobs.Complete();
+        await _duplexStreamingCall?.RequestStream?.CompleteAsync();
+        _duplexStreamingCall?.Dispose();
+        _streamListenTaskTokenSource?.Cancel();
+    }
+
     public override async Task DisconnectAsync(bool gracefulDisconnect)
     {
         try
         {
             await RequestAsync(() => StreamRequestAsync(MessageType.Disconnect,
                     new DisconnectReason { Why = DisconnectReason.Types.Reason.Shutdown },
-                    new Metadata { { GrpcConstants.SessionIdMetadataKey, OutboundSessionId } }),
+                    new Metadata { { GrpcConstants.SessionIdMetadataKey, OutboundSessionId } }, null, true),
                 new GrpcRequest { ErrorMessage = "Could not send disconnect." });
-            _sendStreamJobs.Complete();
-            await _duplexStreamingCall?.RequestStream?.CompleteAsync();
-            _duplexStreamingCall?.Dispose();
-            _streamListenTaskTokenSource?.Cancel();
+            await DisposeAsync();
         }
         catch (Exception)
         {
@@ -88,73 +101,61 @@ public class GrpcStreamPeer : GrpcPeer
         {
             { GrpcConstants.RetryCountMetadataKey, "0" },
         };
-        var grpcRequest = new GrpcRequest { ErrorMessage = "handshake failed." };
-        var reply = await RequestAsync(() => StreamRequestAsync(MessageType.HandShake, request, metadata), grpcRequest);
-        return HandshakeReply.Parser.ParseFrom(reply.Message);
+        var requestId = CommonHelper.GenerateRequestId();
+        var grpcRequest = new GrpcRequest { ErrorMessage = $"handshake failed.requestId={requestId}" };
+        var reply = await RequestAsync(() => StreamRequestAsync(MessageType.HandShake, request, metadata, requestId, true), grpcRequest);
+        return reply != null ? HandshakeReply.Parser.ParseFrom(reply.Message) : new HandshakeReply();
     }
 
     public override async Task ConfirmHandshakeAsync()
     {
-        var request = new GrpcRequest { ErrorMessage = "Could not send confirm handshake." };
+        var requestId = CommonHelper.GenerateRequestId();
+        var request = new GrpcRequest { ErrorMessage = $"Could not send confirm handshake.requestId={requestId}" };
 
         var data = new Metadata
         {
             { GrpcConstants.TimeoutMetadataKey, UpdateHandshakeTimeout.ToString() },
         };
-        await RequestAsync(() => StreamRequestAsync(MessageType.ConfirmHandShake, new ConfirmHandshakeRequest(), data), request);
+        var reply = await RequestAsync(() => StreamRequestAsync(MessageType.ConfirmHandShake, new ConfirmHandshakeRequest(), data, requestId, true), request);
+        if (reply == null) throw new Exception("confirm handshake failed");
     }
 
     protected override async Task BroadcastBlockAsync(BlockWithTransactions blockWithTransactions)
     {
-        var request = new GrpcRequest { ErrorMessage = "broadcast block failed." };
-        await RequestAsync(() => StreamRequestAsync(MessageType.BlockBroadcast, blockWithTransactions), request);
+        var requestId = CommonHelper.GenerateRequestId();
+        var request = new GrpcRequest { ErrorMessage = $"broadcast block failed.requestId={requestId}" };
+        await RequestAsync(() => StreamRequestAsync(MessageType.BlockBroadcast, blockWithTransactions, null, requestId), request);
     }
 
     protected override async Task SendAnnouncementAsync(BlockAnnouncement header)
     {
-        var request = new GrpcRequest { ErrorMessage = "broadcast block announcement failed." };
-        await RequestAsync(() => StreamRequestAsync(MessageType.AnnouncementBroadcast, header), request);
+        var requestId = CommonHelper.GenerateRequestId();
+        var request = new GrpcRequest { ErrorMessage = $"broadcast block announcement failed.requestId={requestId}" };
+        await RequestAsync(() => StreamRequestAsync(MessageType.AnnouncementBroadcast, header, null, requestId), request);
     }
 
     protected override async Task SendTransactionAsync(Transaction transaction)
     {
-        var request = new GrpcRequest { ErrorMessage = "broadcast transaction failed." };
-        await RequestAsync(() => StreamRequestAsync(MessageType.TransactionBroadcast, transaction), request);
+        var requestId = CommonHelper.GenerateRequestId();
+        var request = new GrpcRequest { ErrorMessage = $"broadcast transaction failed.requestId={requestId}" };
+        await RequestAsync(() => StreamRequestAsync(MessageType.TransactionBroadcast, transaction, null, requestId), request);
     }
 
     public override async Task SendLibAnnouncementAsync(LibAnnouncement libAnnouncement)
     {
-        var request = new GrpcRequest { ErrorMessage = "broadcast lib announcement failed." };
-        await RequestAsync(() => StreamRequestAsync(MessageType.LibAnnouncementBroadcast, libAnnouncement), request);
+        var requestId = CommonHelper.GenerateRequestId();
+        var request = new GrpcRequest { ErrorMessage = $"broadcast lib announcement failed. requestId={requestId}" };
+        await RequestAsync(() => StreamRequestAsync(MessageType.LibAnnouncementBroadcast, libAnnouncement, null, requestId), request);
     }
 
-    public override async Task<List<BlockWithTransactions>> GetBlocksAsync(Hash firstHash, int count)
-    {
-        var blockRequest = new BlocksRequest { PreviousBlockHash = firstHash, Count = count };
-        var blockInfo = $"{{ first: {firstHash}, count: {count} }}";
-
-        var request = new GrpcRequest
-        {
-            ErrorMessage = $"Get blocks for {blockInfo} failed.",
-            MetricName = nameof(MetricNames.GetBlocks),
-            MetricInfo = $"Get blocks for {blockInfo}"
-        };
-
-        var data = new Metadata
-        {
-            { GrpcConstants.TimeoutMetadataKey, BlocksRequestTimeout.ToString() },
-        };
-        var listMessage = await RequestAsync(() => StreamRequestAsync(MessageType.RequestBlocks, blockRequest, data), request);
-        return BlockList.Parser.ParseFrom(listMessage.Message).Blocks.ToList();
-    }
 
     public override async Task<BlockWithTransactions> GetBlockByHashAsync(Hash hash)
     {
         var blockRequest = new BlockRequest { Hash = hash };
-
+        var requestId = CommonHelper.GenerateRequestId();
         var request = new GrpcRequest
         {
-            ErrorMessage = $"Block request for {hash} failed.",
+            ErrorMessage = $"Block request for {hash} failed. requestId={requestId}",
             MetricName = nameof(MetricNames.GetBlock),
             MetricInfo = $"Block request for {hash}"
         };
@@ -163,31 +164,33 @@ public class GrpcStreamPeer : GrpcPeer
         {
             { GrpcConstants.TimeoutMetadataKey, BlockRequestTimeout.ToString() },
         };
-        var blockMessage = await RequestAsync(() => StreamRequestAsync(MessageType.RequestBlock, blockRequest, data), request);
-        return BlockReply.Parser.ParseFrom(blockMessage.Message).Block;
+        var blockMessage = await RequestAsync(() => StreamRequestAsync(MessageType.RequestBlock, blockRequest, data, requestId), request);
+        return blockMessage != null ? BlockReply.Parser.ParseFrom(blockMessage.Message).Block : new BlockWithTransactions();
     }
 
     public override async Task<NodeList> GetNodesAsync(int count = NetworkConstants.DefaultDiscoveryMaxNodesToRequest)
     {
-        var request = new GrpcRequest { ErrorMessage = "Request nodes failed." };
+        var requestId = CommonHelper.GenerateRequestId();
+        var request = new GrpcRequest { ErrorMessage = $"Request nodes failed.requestId={requestId}" };
         var data = new Metadata
         {
             { GrpcConstants.TimeoutMetadataKey, GetNodesTimeout.ToString() },
         };
-        var listMessage = await RequestAsync(() => StreamRequestAsync(MessageType.GetNodes, new NodesRequest { MaxCount = count }, data), request);
-        return NodeList.Parser.ParseFrom(listMessage.Message);
+        var listMessage = await RequestAsync(() => StreamRequestAsync(MessageType.GetNodes, new NodesRequest { MaxCount = count }, data, requestId), request);
+        return listMessage != null ? NodeList.Parser.ParseFrom(listMessage.Message) : null;
     }
 
     public override async Task CheckHealthAsync()
     {
         await base.CheckHealthAsync();
-        var request = new GrpcRequest { ErrorMessage = "Check health failed." };
+        var requestId = CommonHelper.GenerateRequestId();
+        var request = new GrpcRequest { ErrorMessage = $"Check health failed.requestId={requestId}" };
 
         var data = new Metadata
         {
             { GrpcConstants.TimeoutMetadataKey, CheckHealthTimeout.ToString() },
         };
-        await RequestAsync(() => StreamRequestAsync(MessageType.HealthCheck, new HealthCheckRequest(), data), request);
+        await RequestAsync(() => StreamRequestAsync(MessageType.HealthCheck, new HealthCheckRequest(), data, requestId), request);
     }
 
     public async Task WriteAsync(StreamMessage message, Action<NetworkException> sendCallback)
@@ -202,11 +205,19 @@ public class GrpcStreamPeer : GrpcPeer
         {
             if (job.StreamMessage == null) return;
             Logger.LogDebug("write request={requestId} {streamType}-{messageType}", job.StreamMessage.RequestId, job.StreamMessage.StreamType, job.StreamMessage.MessageType);
+
             await _clientStreamWriter.WriteAsync(job.StreamMessage);
         }
         catch (RpcException ex)
         {
-            job.SendCallback?.Invoke(HandleRpcException(ex, $"Could not write to stream to {this}: "));
+            job.SendCallback?.Invoke(HandleRpcException(ex, $"Could not write to stream to {this}, queueCount={_sendStreamJobs.InputCount}"));
+            return;
+        }
+        catch (Exception e)
+        {
+            var type = e is InvalidOperationException or TimeoutException ? NetworkExceptionType.PeerUnstable : NetworkExceptionType.HandlerException;
+            job.SendCallback?.Invoke(
+                new NetworkException($"{job.StreamMessage?.RequestId}{job.StreamMessage?.StreamType}-{job.StreamMessage?.MessageType} size={job.StreamMessage.ToByteArray().Length} queueCount={_sendStreamJobs.InputCount}", e, type));
             await Task.Delay(StreamRecoveryWaitTime);
             return;
         }
@@ -218,39 +229,47 @@ public class GrpcStreamPeer : GrpcPeer
     {
         var recordRequestTime = !string.IsNullOrEmpty(request.MetricName);
         var requestStartTime = TimestampHelper.GetUtcNow();
-        try
-        {
-            var resp = await func();
-            if (recordRequestTime)
-                RecordMetric(request, requestStartTime, (TimestampHelper.GetUtcNow() - requestStartTime).Milliseconds());
-            return resp;
-        }
-        catch (RpcException e)
-        {
-            throw HandleRpcException(e, request.ErrorMessage);
-        }
-        catch (Exception)
-        {
-            // if (e is TimeoutException or InvalidOperationException)
-            throw HandleRpcException(new RpcException(new Status(StatusCode.Unknown, request.ErrorMessage), request.ErrorMessage), request.ErrorMessage);
-        }
+        var resp = await func();
+        if (recordRequestTime)
+            RecordMetric(request, requestStartTime, (TimestampHelper.GetUtcNow() - requestStartTime).Milliseconds());
+        return resp;
     }
 
-    protected async Task<StreamMessage> StreamRequestAsync(MessageType messageType, IMessage message, Metadata header = null)
+    protected async Task<StreamMessage> StreamRequestAsync(MessageType messageType, IMessage message, Metadata header = null, string requestId = null, bool graceful = false)
     {
-        var requestId = CommonHelper.GenerateRequestId();
-        var streamMessage = new StreamMessage { StreamType = StreamType.Request, MessageType = messageType, RequestId = requestId, Message = message.ToByteString() };
-        AddAllHeaders(streamMessage, header);
-        var promise = new TaskCompletionSource<StreamMessage>();
-        await _streamTaskResourcePool.RegistryTaskPromiseAsync(requestId, messageType, promise);
-        await _sendStreamJobs.SendAsync(new StreamJob
+        for (var i = 0; i < TimeOutRetryTimes; i++)
         {
-            StreamMessage = streamMessage, SendCallback = ex =>
+            requestId = requestId == null || i > 0 ? CommonHelper.GenerateRequestId() : requestId;
+            var streamMessage = new StreamMessage { StreamType = StreamType.Request, MessageType = messageType, RequestId = requestId, Message = message.ToByteString() };
+            AddAllHeaders(streamMessage, header);
+            TaskCompletionSource<StreamMessage> promise = new TaskCompletionSource<StreamMessage>();
+            await _streamTaskResourcePool.RegistryTaskPromiseAsync(requestId, messageType, promise);
+
+            await _sendStreamJobs.SendAsync(new StreamJob
             {
-                if (ex != null) throw ex;
+                StreamMessage = streamMessage, SendCallback = ex =>
+                {
+                    if (ex != null && !graceful) _streamSendCallBack?.Invoke(ex, streamMessage, i);
+                }
+            });
+            var result = await _streamTaskResourcePool.GetResultAsync(promise, requestId, GetTimeOutFromHeader(header));
+            if (result.Item1)
+            {
+                if (!graceful) _streamSendCallBack?.Invoke(null, streamMessage, i);
+                return result.Item2;
             }
-        });
-        return await _streamTaskResourcePool.GetResultAsync(promise, requestId, GetTimeOutFromHeader(header));
+
+            if (i >= TimeOutRetryTimes - 1)
+            {
+                if (!graceful) _streamSendCallBack?.Invoke(new NetworkException($"streaming call time out requestId {requestId}-{messageType}-{this}", null, NetworkExceptionType.PeerUnstable), streamMessage, i);
+                return null;
+            }
+
+            if (graceful) return null;
+            await Task.Delay(StreamRecoveryWaitTime);
+        }
+
+        return null;
     }
 
     private void AddAllHeaders(StreamMessage streamMessage, Metadata metadata = null)
@@ -281,10 +300,10 @@ public class GrpcStreamPeer : GrpcPeer
         return t == null ? StreamWaitTime : int.Parse(t);
     }
 
-    protected override NetworkException HandleRpcException(RpcException exception, string errorMessage)
+    public override NetworkException HandleRpcException(RpcException exception, string errorMessage)
     {
         var message = $"Failed request to {this}: {errorMessage}";
-        var type = NetworkExceptionType.Rpc;
+        NetworkExceptionType type;
 
         if (_channel.State != ChannelState.Ready)
         {
@@ -309,15 +328,28 @@ public class GrpcStreamPeer : GrpcPeer
         }
         else
         {
-            message = $"Peer is ready, but stream is unstable - {this}: {errorMessage}";
-            type = NetworkExceptionType.PeerUnstable;
+            switch (exception.StatusCode)
+            {
+                case StatusCode.Unavailable:
+                case StatusCode.Cancelled:
+                    message = $"Request was cancelled {this}: {errorMessage}";
+                    type = NetworkExceptionType.Unrecoverable;
+                    break;
+                case StatusCode.Internal:
+                    message = $"internal exception {this}: {errorMessage}";
+                    type = NetworkExceptionType.PeerUnstable;
+                    break;
+                case StatusCode.DeadlineExceeded:
+                    message = $"stream call timeout {this} : {errorMessage}";
+                    type = NetworkExceptionType.PeerUnstable;
+                    break;
+                default:
+                    message = $"Exception in handler  {this} : {errorMessage}";
+                    type = NetworkExceptionType.HandlerException;
+                    break;
+            }
         }
 
         return new NetworkException(message, exception, type);
-    }
-
-    public override async Task<bool> TryRecoverAsync()
-    {
-        return IsReady || await base.TryRecoverAsync();
     }
 }
