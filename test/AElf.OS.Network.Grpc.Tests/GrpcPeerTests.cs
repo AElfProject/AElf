@@ -413,15 +413,10 @@ public class GrpcPeerTests : GrpcNetworkWithChainTestBase
             grpcPeer.BufferedAnnouncementsCount.ShouldBe(0);
 
             var grpcClient = new GrpcClient(new("127.0.0.1:9999", ChannelCredentials.Insecure), mockClient.Object);
-            var peer = new GrpcStreamPeer(grpcClient, null, new PeerConnectionInfo(), null, null,
+            var peer = new GrpcStreamPeer(grpcClient, null, new PeerConnectionInfo() { Pubkey = "0471b4ea88d8cf3d4c58c12e1306a4fdfde64b3a511e8b023c0412032869f47e1ddeaa9b82318a7d1b8d08eb484cfe93a51c319750b65e3df8ffd822a446251b64" }, null,
+                null,
                 new StreamTaskResourcePool(), new Dictionary<string, string>() { { "tmp", "value" } });
-            try
-            {
-                peer.HandleRpcException(new RpcException(Status.DefaultSuccess), "");
-            }
-            catch (Exception)
-            {
-            }
+            peer.HandleRpcException(new RpcException(Status.DefaultSuccess), "");
         }
     }
 
