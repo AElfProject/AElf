@@ -14,7 +14,7 @@ public class Vrf : IVrf
     private int QBitsLength => _config.EcParameters.N.BitLength;
     private int N => ((BitSize + 1) / 2 + 7) / 8;
 
-    private VrfConfig _config;
+    private readonly VrfConfig _config;
 
     public Vrf(VrfConfig config)
     {
