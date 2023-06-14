@@ -1,4 +1,5 @@
 using AElf.Cryptography.ECDSA;
+using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Math;
 
 namespace AElf.Cryptography.ECVRF;
@@ -20,9 +21,12 @@ public struct VrfConfig
 {
     public byte SuiteString { get; private set; }
 
-    public VrfConfig(byte suiteString)
+    public X9ECParameters EcParameters { get; private set; }
+
+    public VrfConfig(byte suiteString, X9ECParameters ecParameters)
     {
         SuiteString = suiteString;
+        EcParameters = ecParameters;
     }
 }
 

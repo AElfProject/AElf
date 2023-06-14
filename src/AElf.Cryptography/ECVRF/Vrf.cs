@@ -5,15 +5,14 @@ using System.Security.Cryptography;
 using AElf.Cryptography.ECDSA;
 using Org.BouncyCastle.Math;
 using Secp256k1Net;
-using ECParameters = AElf.Cryptography.ECDSA.ECParameters;
 
 namespace AElf.Cryptography.ECVRF;
 
 public class Vrf : IVrf
 {
-    private const int BitSize = 256;
-    private const int QBitsLength = 256;
-    private const int N = 16;
+    private int BitSize => _config.EcParameters.Curve.FieldSize;
+    private int QBitsLength => _config.EcParameters.N.BitLength;
+    private int N => ((BitSize + 1) / 2 + 7) / 8;
 
     private VrfConfig _config;
 
@@ -38,7 +37,7 @@ public class Vrf : IVrf
         secp256k1.PublicKeyMultiply(kH, nonce);
         var c = HashPoints(secp256k1, hashPoint, Point.FromInner(gamma), Point.FromInner(kB), Point.FromInner(kH));
         var cX = c.Multiply(new BigInteger(1, keyPair.PrivateKey));
-        var s = cX.Add(new BigInteger(1, nonce)).Mod(ECParameters.DomainParams.N);
+        var s = cX.Add(new BigInteger(1, nonce)).Mod(_config.EcParameters.N);
         var pi = EncodeProof(Point.FromInner(gamma), c, s);
         var beta = GammaToHash(secp256k1, Point.FromInner(gamma));
         return new Proof
@@ -194,9 +193,9 @@ public class Vrf : IVrf
 
     private ProofInput DecodeProof(Secp256k1 secp256k1, byte[] pi)
     {
-        const int ptLength = (BitSize + 7) / 8 + 1;
-        const int cLength = N;
-        const int sLength = (QBitsLength + 7) / 8;
+        var ptLength = (BitSize + 7) / 8 + 1;
+        var cLength = N;
+        var sLength = (QBitsLength + 7) / 8;
         if (pi.Length != ptLength + cLength + sLength)
         {
             throw new InvalidProofLengthException();
@@ -225,14 +224,14 @@ public class Vrf : IVrf
         return hasher.ComputeHash(stream);
     }
 
-    private static byte[] Rfc6979Nonce(Secp256k1 secp256k1, ECKeyPair keyPair, Point hashPoint)
+    private byte[] Rfc6979Nonce(Secp256k1 secp256k1, ECKeyPair keyPair, Point hashPoint)
     {
         using var hasher = SHA256.Create();
         var roLen = (QBitsLength + 7) / 8;
         var hBytes = hashPoint.Serialize(secp256k1, true);
 
         var hash = hasher.ComputeHash(hBytes);
-        var bh = Helpers.Bits2Bytes(hash, ECParameters.DomainParams.N, roLen);
+        var bh = Helpers.Bits2Bytes(hash, _config.EcParameters.N, roLen);
 
         var nonce = new byte[Secp256k1.NONCE_LENGTH];
         secp256k1.Rfc6979Nonce(nonce, bh, keyPair.PrivateKey, null, null, 0);

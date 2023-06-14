@@ -4,6 +4,7 @@ using System.IO;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using AElf.Cryptography.ECDSA;
 using AElf.Cryptography.ECVRF;
 using Secp256k1Net;
 using Xunit;
@@ -38,7 +39,7 @@ public class VRFTests
         var expectedHashPoint = Convert.FromHexString("027AD7D4C3A454D9ECC905F1E5436A328F2A106A2606EC4B44111CF9DC72A5B9FF");
         
         using var secp256k1 = new Secp256k1();
-        var cfg = new VrfConfig( 0xfe);
+        var cfg = new VrfConfig( 0xfe, ECParameters.Curve);
         var vrf = new Vrf(cfg);
         var output = vrf.HashToCurveTryAndIncrement(Point.FromSerialized(secp256k1, pkSerialized), alpha);
         var outputSerialized = output.Serialize(secp256k1, true);
@@ -59,7 +60,7 @@ public class VRFTests
            var alpha = Convert.FromHexString(vector.Alpha);
            var expectedPi = Convert.FromHexString(vector.Pi);
            var expectedBeta = Convert.FromHexString(vector.Beta);
-           var cfg = new VrfConfig( 0xfe);
+           var cfg = new VrfConfig( 0xfe, ECParameters.Curve);
            var vrf = new Vrf(cfg);
            var proof = vrf.Prove(kp, alpha);
            Assert.Equal(expectedPi, proof.Pi);
@@ -70,6 +71,7 @@ public class VRFTests
     [Fact]
     public void Verify_Test()
     {
+        var c = ECParameters.Curve;
         var path = Path.Combine( Directory.GetCurrentDirectory(), "secp256_k1_sha256_tai.json");
         var text = File.ReadAllText(path);
         var vectors = JsonSerializer.Deserialize<List<TestVector>>(text);
@@ -80,7 +82,7 @@ public class VRFTests
             var alpha = Convert.FromHexString(vector.Alpha);
             var pi = Convert.FromHexString(vector.Pi);
             var expectedBeta = Convert.FromHexString(vector.Beta);
-            var cfg = new VrfConfig( 0xfe);
+            var cfg = new VrfConfig( 0xfe, ECParameters.Curve);
             var vrf = new Vrf(cfg);
             var beta = vrf.Verify(pk, alpha, pi);
             Assert.Equal(expectedBeta, beta);
@@ -99,7 +101,7 @@ public class VRFTests
             var pk =Convert.FromHexString(vector.Pk);
             var alpha = Encoding.ASCII.GetBytes("this is a wrong message");
             var pi = Convert.FromHexString(vector.Pi);
-            var cfg = new VrfConfig( 0xfe);
+            var cfg = new VrfConfig( 0xfe, ECParameters.Curve);
             var vrf = new Vrf(cfg);
             Assert.Throws<InvalidProofException>(() => vrf.Verify(pk, alpha, pi));
         }
