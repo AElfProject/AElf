@@ -16,6 +16,16 @@ public struct ProofInput
     public BigInteger S { get; set; }
 }
 
+public struct VrfConfig
+{
+    public byte SuiteString { get; private set; }
+
+    public VrfConfig(byte suiteString)
+    {
+        SuiteString = suiteString;
+    }
+}
+
 public interface IVrf
 {
     Proof Prove(ECKeyPair keyPair, byte[] alpha);

@@ -9,114 +9,6 @@ using ECParameters = AElf.Cryptography.ECDSA.ECParameters;
 
 namespace AElf.Cryptography.ECVRF;
 
-public class InvalidSerializedPublicKeyException : Exception
-{
-}
-
-public class FailedToHashToCurveException : Exception
-{
-}
-
-public class InvalidProofLengthException : Exception
-{
-}
-
-public class InvalidScalarException : Exception
-{
-}
-
-public class FailedToMultiplyScalarException : Exception
-{
-}
-
-public class FailedToNegatePublicKeyException : Exception
-{
-}
-
-public class FailedToCombinePublicKeysException : Exception
-{
-}
-
-public class InvalidProofException : Exception
-{
-}
-
-public struct Point
-{
-    private BigInteger P = new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F", 16);
-    public byte[] Inner { get; private set; }
-
-    private Point(byte[] inner)
-    {
-        Inner = inner;
-    }
-
-    public static Point FromInner(byte[] inner)
-    {
-        return new Point() { Inner = inner };
-    }
-
-    public static Point FromSerialized(Secp256k1 secp256k1, byte[] pkSerialized)
-    {
-        if (pkSerialized.Length != Secp256k1.SERIALIZED_COMPRESSED_PUBKEY_LENGTH &&
-            pkSerialized.Length != Secp256k1.SERIALIZED_UNCOMPRESSED_PUBKEY_LENGTH)
-        {
-            throw new InvalidSerializedPublicKeyException();
-        }
-
-        if (pkSerialized.Length == Secp256k1.SERIALIZED_COMPRESSED_PUBKEY_LENGTH)
-        {
-            if (pkSerialized[0] != 0x02 && pkSerialized[0] != 0x03)
-            {
-                throw new InvalidSerializedPublicKeyException();
-            }
-        }
-
-        if (pkSerialized.Length == Secp256k1.SERIALIZED_UNCOMPRESSED_PUBKEY_LENGTH)
-        {
-            if (pkSerialized[0] != 0x04)
-            {
-                throw new InvalidSerializedPublicKeyException();
-            }
-        }
-
-        var inner = new byte[Secp256k1.PUBKEY_LENGTH];
-        var successful = secp256k1.PublicKeyParse(inner, pkSerialized);
-        if (!successful)
-        {
-            throw new InvalidSerializedPublicKeyException();
-        }
-
-        return new Point() { Inner = inner };
-    }
-
-    public byte[] Serialize(Secp256k1 secp256k1, bool compressed = true)
-    {
-        if (compressed)
-        {
-            var output = new byte[Secp256k1.SERIALIZED_COMPRESSED_PUBKEY_LENGTH];
-            secp256k1.PublicKeySerialize(output, Inner, Flags.SECP256K1_EC_COMPRESSED);
-            return output;
-        }
-        else
-        {
-            var output = new byte[Secp256k1.SERIALIZED_UNCOMPRESSED_PUBKEY_LENGTH];
-            secp256k1.PublicKeySerialize(output, Inner, Flags.SECP256K1_EC_UNCOMPRESSED);
-            return output;
-        }
-    }
-}
-
-public struct VrfConfig
-{
-    public byte SuiteString { get; private set; }
-
-    public VrfConfig(byte suiteString)
-    {
-        SuiteString = suiteString;
-    }
-}
-
 public class Vrf : IVrf
 {
     private const int BitSize = 256;
@@ -268,7 +160,7 @@ public class Vrf : IVrf
         throw new FailedToHashToCurveException();
     }
 
-    public BigInteger HashPoints(Secp256k1 secp256k1, params Point[] points)
+    private BigInteger HashPoints(Secp256k1 secp256k1, params Point[] points)
     {
         using var hasher = SHA256.Create();
         using var stream = new MemoryStream();
@@ -287,7 +179,7 @@ public class Vrf : IVrf
         return new BigInteger(1, hashTruncated);
     }
 
-    public byte[] EncodeProof(Point gamma, BigInteger c, BigInteger s)
+    private byte[] EncodeProof(Point gamma, BigInteger c, BigInteger s)
     {
         using var secp256k1 = new Secp256k1();
         var gammaBytes = gamma.Serialize(secp256k1, true);
@@ -300,7 +192,7 @@ public class Vrf : IVrf
         return output;
     }
 
-    public ProofInput DecodeProof(Secp256k1 secp256k1, byte[] pi)
+    private ProofInput DecodeProof(Secp256k1 secp256k1, byte[] pi)
     {
         const int ptLength = (BitSize + 7) / 8 + 1;
         const int cLength = N;
@@ -321,7 +213,7 @@ public class Vrf : IVrf
         };
     }
 
-    public byte[] GammaToHash(Secp256k1 secp256k1, Point gamma)
+    private byte[] GammaToHash(Secp256k1 secp256k1, Point gamma)
     {
         var gammaBytes = gamma.Serialize(secp256k1, true);
         using var hasher = SHA256.Create();
@@ -333,7 +225,7 @@ public class Vrf : IVrf
         return hasher.ComputeHash(stream);
     }
 
-    public static byte[] Rfc6979Nonce(Secp256k1 secp256k1, ECKeyPair keyPair, Point hashPoint)
+    private static byte[] Rfc6979Nonce(Secp256k1 secp256k1, ECKeyPair keyPair, Point hashPoint)
     {
         using var hasher = SHA256.Create();
         var roLen = (QBitsLength + 7) / 8;

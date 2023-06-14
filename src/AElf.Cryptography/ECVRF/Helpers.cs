@@ -1,17 +1,11 @@
 using System;
-using System.IO;
 using System.Linq;
-using System.Security.Cryptography;
-using AElf.Cryptography.ECDSA;
 using Org.BouncyCastle.Math;
-using Secp256k1Net;
-using ECParameters = System.Security.Cryptography.ECParameters;
 
 namespace AElf.Cryptography.ECVRF;
 
 public static class Helpers
 {
-    
     public static byte[] AddLeadingZeros(byte[] data, int requiredLength)
     {
         var zeroBytesLength = requiredLength - data.Length;
