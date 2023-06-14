@@ -102,6 +102,12 @@ public class Vrf<TCurve, THasherFactory> : IVrf where TCurve : IECCurve, new()
             try
             {
                 var outputPoint = curve.DeserializePoint(pkSerialized);
+                if (_config.EcParameters.Curve.Cofactor.CompareTo(BigInteger.One) > 0)
+                {
+                    return curve.MultiplyScalar(outputPoint,
+                        curve.DeserializeScalar(_config.EcParameters.Curve.Cofactor.ToByteArray()));
+                }
+
                 return outputPoint;
             }
             catch (InvalidSerializedPublicKeyException ex)
