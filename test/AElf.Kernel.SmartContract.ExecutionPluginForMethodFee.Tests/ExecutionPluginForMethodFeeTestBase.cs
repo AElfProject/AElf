@@ -290,11 +290,11 @@ public class ExecutePluginTransactionDirectlyForMethodFeeTestBase : ContractTest
     protected const string Token1 = "TOKENA";
     protected const string Token2 = "TOKENB";
 
-    protected readonly IBlockTimeProvider _blockTimeProvider;
+    protected readonly IBlockTimeProvider BlockTimeProvider;
 
     protected ExecutePluginTransactionDirectlyForMethodFeeTestBase()
     {
-        _blockTimeProvider = GetRequiredService<IBlockTimeProvider>();
+        BlockTimeProvider = GetRequiredService<IBlockTimeProvider>();
         AsyncHelper.RunSync(InitializeContracts);
     }
 

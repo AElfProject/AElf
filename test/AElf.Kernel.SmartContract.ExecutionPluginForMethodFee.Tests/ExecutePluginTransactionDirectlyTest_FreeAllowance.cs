@@ -516,7 +516,7 @@ public partial class ExecutePluginTransactionDirectlyTest
             nameof(TokenContractImplStub.RemoveTransactionFeeFreeAllowancesConfig),
             new RemoveTransactionFeeFreeAllowancesConfigInput
             {
-                Symbols = { "ELF", "ELF" }
+                Symbols = { NativeTokenSymbol, NativeTokenSymbol }
             });
         config = TokenContractImplStub.GetTransactionFeeFreeAllowancesConfig.CallAsync(new Empty());
         config.Result.Value.Count.ShouldBe(0);
@@ -539,7 +539,7 @@ public partial class ExecutePluginTransactionDirectlyTest
             nameof(TokenContractImplStub.RemoveTransactionFeeFreeAllowancesConfig),
             new RemoveTransactionFeeFreeAllowancesConfigInput
             {
-                Symbols = { "ELF", USDT }
+                Symbols = { NativeTokenSymbol, USDT }
             });
         userAFreeAllowances = TokenContractImplStub.GetTransactionFeeFreeAllowances.CallAsync(UserAAddress);
         userAFreeAllowances.Result.Map.Count.ShouldBe(0);
@@ -1392,7 +1392,7 @@ public partial class ExecutePluginTransactionDirectlyTest
         await CheckDefaultSenderTokenAsync(Token1, 9000);
         await CheckDefaultSenderTokenAsync(Token2, 10000);
 
-        _blockTimeProvider.SetBlockTime(TimestampHelper.GetUtcNow().AddSeconds(10));
+        BlockTimeProvider.SetBlockTime(TimestampHelper.GetUtcNow().AddSeconds(10));
 
         chargeFeeRet = await TokenContractStub.ChargeTransactionFees.SendAsync(chargeTransactionFeesInput);
         chargeFeeRet.Output.Success.ShouldBe(true);
@@ -1530,11 +1530,11 @@ public partial class ExecutePluginTransactionDirectlyTest
     // case 30
     [InlineData(10000, 10000, 1000, 0, Token1, 1000, NativeTokenSymbol, 1000, 600, 100, Token1, 1000, USDT, 100, 300, 100, 500, 0, 0, 100, 9000, 10000, 1000, 0, 2000, 1, 1, Token1, 1500, USDT, 200, true)]
     // case 31
-    [InlineData(10000, 10000, 10000, 0, Token1, 1000, NativeTokenSymbol, 1000, 600, 100, Token1, 1000, "ELF", 1000, 300, 100, 0, 0, 0, 0, 9000, 10000, 7000, 0, 3000, 5, 3, NativeTokenSymbol, 3000, Token1, 3000, true)]
+    [InlineData(10000, 10000, 10000, 0, Token1, 1000, NativeTokenSymbol, 1000, 600, 100, Token1, 1000, NativeTokenSymbol, 1000, 300, 100, 0, 0, 0, 0, 9000, 10000, 7000, 0, 3000, 5, 3, NativeTokenSymbol, 3000, Token1, 3000, true)]
     // case 32
-    [InlineData(10000, 10000, 1000, 0, Token1, 1000, NativeTokenSymbol, 1000, 600, 100, Token1, 1000, "ELF", 1000, 300, 100, 0, 0, 0, 0, 0, 10000, 0, 0, 3000, 5, 3, NativeTokenSymbol, 15000, USDT, 20000, false)]
+    [InlineData(10000, 10000, 1000, 0, Token1, 1000, NativeTokenSymbol, 1000, 600, 100, Token1, 1000, NativeTokenSymbol, 1000, 300, 100, 0, 0, 0, 0, 0, 10000, 0, 0, 3000, 5, 3, NativeTokenSymbol, 15000, USDT, 20000, false)]
     // case 33
-    [InlineData(5000, 10000, 0, 0, Token1, 1000, Token1, 1000, 600, 100, Token2, 1000, Token2, 1000, 300, 100, 0, 0, 1000, 1000, 0, 8000, 0, 0, 10000, 1, 5, USDT, 2000, "ELF", 0, false)]
+    [InlineData(5000, 10000, 0, 0, Token1, 1000, Token1, 1000, 600, 100, Token2, 1000, Token2, 1000, 300, 100, 0, 0, 1000, 1000, 0, 8000, 0, 0, 10000, 1, 5, USDT, 2000, NativeTokenSymbol, 0, false)]
     public async Task ChargeTransactionFee_MultipleTxFeeTokens_Test(long initialELFBalance, long initialUSDTBalance,
         long initialToken1Balance, long initialToken2Balance, string firstFreeSymbolELF, long firstFreeAmountELF,
         string secondFreeSymbolELF, long secondFreeAmountELF, long refreshSecondsELF, long thresholdELF,
