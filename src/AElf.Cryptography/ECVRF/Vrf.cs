@@ -40,6 +40,7 @@ public class FailedToCombinePublicKeysException : Exception
 public class InvalidProofException : Exception
 {
 }
+
 public struct Point
 {
     private BigInteger P = new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F", 16);
@@ -161,7 +162,7 @@ public class Vrf : IVrf
 
         var pkPoint = Point.FromSerialized(secp256k1, publicKey);
         var hashPoint = HashToCurveTryAndIncrement(pkPoint, alpha);
-        var sBytes = AddLeadingZeros(proofInput.S.ToByteArray(), Secp256k1.PRIVKEY_LENGTH)
+        var sBytes = Helpers.AddLeadingZeros(proofInput.S.ToByteArray(), Secp256k1.PRIVKEY_LENGTH)
             .TakeLast(Secp256k1.PRIVKEY_LENGTH).ToArray();
 
         var sB = new byte[Secp256k1.PUBKEY_LENGTH];
@@ -173,7 +174,8 @@ public class Vrf : IVrf
         var cYNeg = new byte[Secp256k1.PUBKEY_LENGTH];
         Buffer.BlockCopy(pkPoint.Inner, 0, cYNeg, 0, cYNeg.Length);
 
-        if (!secp256k1.PublicKeyMultiply(cYNeg, AddLeadingZeros(proofInput.C.ToByteArray(), Secp256k1.PRIVKEY_LENGTH)))
+        if (!secp256k1.PublicKeyMultiply(cYNeg,
+                Helpers.AddLeadingZeros(proofInput.C.ToByteArray(), Secp256k1.PRIVKEY_LENGTH)))
         {
             throw new FailedToMultiplyScalarException();
         }
@@ -192,15 +194,16 @@ public class Vrf : IVrf
 
         var sH = new byte[Secp256k1.PUBKEY_LENGTH];
         Buffer.BlockCopy(hashPoint.Inner, 0, sH, 0, sH.Length);
-        
+
         if (!secp256k1.PublicKeyMultiply(sH, sBytes))
         {
             throw new FailedToMultiplyScalarException();
         }
-        
+
         var cGammaNeg = new byte[Secp256k1.PUBKEY_LENGTH];
         Buffer.BlockCopy(proofInput.Gamma.Inner, 0, cGammaNeg, 0, cGammaNeg.Length);
-        if (!secp256k1.PublicKeyMultiply(cGammaNeg, AddLeadingZeros(proofInput.C.ToByteArray(), Secp256k1.PRIVKEY_LENGTH)))
+        if (!secp256k1.PublicKeyMultiply(cGammaNeg,
+                Helpers.AddLeadingZeros(proofInput.C.ToByteArray(), Secp256k1.PRIVKEY_LENGTH)))
         {
             throw new FailedToMultiplyScalarException();
         }
@@ -211,7 +214,7 @@ public class Vrf : IVrf
         }
 
         var v = new byte[Secp256k1.PUBKEY_LENGTH];
-        
+
         if (!secp256k1.PublicKeysCombine(v, sH, cGammaNeg))
         {
             throw new FailedToCombinePublicKeysException();
@@ -288,8 +291,8 @@ public class Vrf : IVrf
     {
         using var secp256k1 = new Secp256k1();
         var gammaBytes = gamma.Serialize(secp256k1, true);
-        var cBytes = Int2Bytes(c, N);
-        var sBytes = Int2Bytes(s, (QBitsLength + 7) / 8);
+        var cBytes = Helpers.Int2Bytes(c, N);
+        var sBytes = Helpers.Int2Bytes(s, (QBitsLength + 7) / 8);
         var output = new byte[gammaBytes.Length + cBytes.Length + sBytes.Length];
         Buffer.BlockCopy(gammaBytes, 0, output, 0, gammaBytes.Length);
         Buffer.BlockCopy(cBytes, 0, output, gammaBytes.Length, cBytes.Length);
@@ -318,20 +321,6 @@ public class Vrf : IVrf
         };
     }
 
-    private static byte[] AddLeadingZeros(byte[] data, int requiredLength)
-    {
-        var zeroBytesLength = requiredLength - data.Length;
-        if (zeroBytesLength <= 0) return data;
-        var output = new byte[requiredLength];
-        Buffer.BlockCopy(data, 0, output, zeroBytesLength, data.Length);
-        for (int i = zeroBytesLength - 1; i >= 0; i--)
-        {
-            output[i] = 0x0;
-        }
-
-        return output;
-    }
-
     public byte[] GammaToHash(Secp256k1 secp256k1, Point gamma)
     {
         var gammaBytes = gamma.Serialize(secp256k1, true);
@@ -344,57 +333,17 @@ public class Vrf : IVrf
         return hasher.ComputeHash(stream);
     }
 
-    public byte[] Rfc6979Nonce(Secp256k1 secp256k1, ECKeyPair keyPair, Point hashPoint)
+    public static byte[] Rfc6979Nonce(Secp256k1 secp256k1, ECKeyPair keyPair, Point hashPoint)
     {
         using var hasher = SHA256.Create();
         var roLen = (QBitsLength + 7) / 8;
         var hBytes = hashPoint.Serialize(secp256k1, true);
 
         var hash = hasher.ComputeHash(hBytes);
-        var bh = Bits2Bytes(hash, ECParameters.DomainParams.N, roLen);
+        var bh = Helpers.Bits2Bytes(hash, ECParameters.DomainParams.N, roLen);
 
         var nonce = new byte[Secp256k1.NONCE_LENGTH];
         secp256k1.Rfc6979Nonce(nonce, bh, keyPair.PrivateKey, null, null, 0);
         return nonce;
-    }
-
-    public byte[] Int2Bytes(BigInteger v, int rolen)
-    {
-        var result = v.ToByteArray();
-        if (result.Length < rolen)
-        {
-            return AddLeadingZeros(result, rolen);
-        }
-
-        if (result.Length > rolen)
-        {
-            var skipLength = result.Length - rolen;
-            return result.Skip(skipLength).ToArray();
-        }
-
-        return result;
-    }
-
-    public BigInteger Bits2Int(byte[] inputBytes, int qlen)
-    {
-        var output = new BigInteger(1, inputBytes);
-        if (inputBytes.Length * 8 > qlen)
-        {
-            return output.ShiftRight(inputBytes.Length * 8 - qlen);
-        }
-
-        return output;
-    }
-
-    public byte[] Bits2Bytes(byte[] input, BigInteger q, int rolen)
-    {
-        var z1 = Bits2Int(input, q.BitLength);
-        var z2 = z1.Subtract(q);
-        if (z2.SignValue == -1)
-        {
-            return Int2Bytes(z1, rolen);
-        }
-
-        return Int2Bytes(z2, rolen);
     }
 }
