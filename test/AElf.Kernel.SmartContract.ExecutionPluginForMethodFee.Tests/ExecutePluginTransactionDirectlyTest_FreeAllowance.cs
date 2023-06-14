@@ -1276,7 +1276,7 @@ public partial class ExecutePluginTransactionDirectlyTest
                                 }
                             }
                         },
-                        RefreshSeconds = 2,
+                        RefreshSeconds = 20,
                         Threshold = 100
                     },
                     new ConfigTransactionFeeFreeAllowance
@@ -1293,7 +1293,7 @@ public partial class ExecutePluginTransactionDirectlyTest
                                 }
                             }
                         },
-                        RefreshSeconds = 1,
+                        RefreshSeconds = 10,
                         Threshold = 100
                     }
                 }
@@ -1392,7 +1392,7 @@ public partial class ExecutePluginTransactionDirectlyTest
         await CheckDefaultSenderTokenAsync(Token1, 9000);
         await CheckDefaultSenderTokenAsync(Token2, 10000);
 
-        _blockTimeProvider.SetBlockTime(TimestampHelper.GetUtcNow().AddSeconds(1));
+        _blockTimeProvider.SetBlockTime(TimestampHelper.GetUtcNow().AddSeconds(10));
 
         chargeFeeRet = await TokenContractStub.ChargeTransactionFees.SendAsync(chargeTransactionFeesInput);
         chargeFeeRet.Output.Success.ShouldBe(true);
