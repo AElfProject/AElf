@@ -328,6 +328,8 @@ public partial class AEDPoSTest : AEDPoSContractTestBase
         nextRoundInput.RoundNumber++;
         nextRoundInput.IsMinerListJustChanged = false;
         nextRoundInput.TermNumber++;
+        // TODO: Set random hash.
+        nextRoundInput.RandomHash = Hash.Empty;
         var transactionResult = await AEDPoSContractStub.NextRound.SendAsync(nextRoundInput);
         transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 

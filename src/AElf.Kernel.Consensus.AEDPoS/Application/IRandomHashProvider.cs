@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using AElf.Kernel.Account.Application;
 using AElf.Types;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.Consensus.AEDPoS.Application;
 
@@ -9,7 +10,7 @@ public interface IRandomHashProvider
     Task<Hash> GenerateRandomHashAsync(IChainContext chainContext);
 }
 
-public class RandomHashProvider : IRandomHashProvider
+public class RandomHashProvider : IRandomHashProvider, ITransientDependency
 {
     private readonly IAEDPoSInformationProvider _aedPoSInformationProvider;
     private readonly IAccountService _accountService;

@@ -56,7 +56,9 @@ public partial class EconomicContractsTestBase
             RoundId = round.RoundId,
             ProducedBlocks = minerInRound.ProducedBlocks + 1,
             ActualMiningTime = minerInRound.ExpectedMiningTime,
-            SupposedOrderOfNextRound = 1
+            SupposedOrderOfNextRound = 1,
+            // TODO: Set random hash.
+            RandomHash = Hash.Empty
         });
     }
 

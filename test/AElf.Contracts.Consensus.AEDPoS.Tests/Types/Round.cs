@@ -117,7 +117,9 @@ internal partial class Round
             TuneOrderInformation = { tuneOrderInformation },
             EncryptedPieces = { minerInRound.EncryptedPieces },
             DecryptedPieces = { decryptedPreviousInValues },
-            MinersPreviousInValues = { minersPreviousInValues }
+            MinersPreviousInValues = { minersPreviousInValues },
+            // TODO: Set random hash.
+            RandomHash = Hash.Empty
         };
     }
 
