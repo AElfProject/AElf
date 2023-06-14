@@ -2,44 +2,44 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
+using AElf.Cryptography.Core;
 using AElf.Cryptography.ECDSA;
 using Org.BouncyCastle.Math;
 using Secp256k1Net;
 
 namespace AElf.Cryptography.ECVRF;
 
-public class Vrf : IVrf
+public class Vrf<TCurve, THasherFactory> : IVrf where TCurve : IECCurve, new()
+    where THasherFactory : IHasherFactory, new()
 {
     private int BitSize => _config.EcParameters.Curve.FieldSize;
     private int QBitsLength => _config.EcParameters.N.BitLength;
     private int N => ((BitSize + 1) / 2 + 7) / 8;
 
     private readonly VrfConfig _config;
+    private readonly IHasherFactory _hasherFactory;
 
     public Vrf(VrfConfig config)
     {
         _config = config;
+        _hasherFactory = new THasherFactory();
     }
 
     public Proof Prove(ECKeyPair keyPair, byte[] alpha)
     {
-        using var secp256k1 = new Secp256k1();
-        var point = Point.FromSerialized(secp256k1, keyPair.PublicKey);
+        using var curve = new TCurve();
+        var point = curve.DeserializePoint(keyPair.PublicKey);
         var hashPoint = HashToCurveTryAndIncrement(point, alpha);
-        var gamma = new byte[Secp256k1.PUBKEY_LENGTH];
-        Buffer.BlockCopy(hashPoint.Inner, 0, gamma, 0, gamma.Length);
-        secp256k1.PublicKeyMultiply(gamma, keyPair.PrivateKey);
-        var nonce = Rfc6979Nonce(secp256k1, keyPair, hashPoint);
-        var kB = new byte[Secp256k1.PUBKEY_LENGTH];
-        secp256k1.PublicKeyCreate(kB, nonce);
-        var kH = new byte[Secp256k1.PUBKEY_LENGTH];
-        Buffer.BlockCopy(hashPoint.Inner, 0, kH, 0, kH.Length);
-        secp256k1.PublicKeyMultiply(kH, nonce);
-        var c = HashPoints(secp256k1, hashPoint, Point.FromInner(gamma), Point.FromInner(kB), Point.FromInner(kH));
+        var gamma = curve.MultiplyScalar(hashPoint, curve.DeserializeScalar(keyPair.PrivateKey));
+
+        var nonce = Rfc6979Nonce(keyPair, hashPoint);
+        var kB = curve.GetPoint(nonce);
+        var kH = curve.MultiplyScalar(hashPoint, nonce);
+        var c = HashPoints(hashPoint, gamma, kB, kH);
         var cX = c.Multiply(new BigInteger(1, keyPair.PrivateKey));
-        var s = cX.Add(new BigInteger(1, nonce)).Mod(_config.EcParameters.N);
-        var pi = EncodeProof(Point.FromInner(gamma), c, s);
-        var beta = GammaToHash(secp256k1, Point.FromInner(gamma));
+        var s = cX.Add(new BigInteger(1, nonce.Representation)).Mod(_config.EcParameters.N);
+        var pi = EncodeProof(gamma, c, s);
+        var beta = GammaToHash(gamma);
         return new Proof
         {
             Pi = pi, Beta = beta
@@ -48,93 +48,46 @@ public class Vrf : IVrf
 
     public byte[] Verify(byte[] publicKey, byte[] alpha, byte[] pi)
     {
-        using var secp256k1 = new Secp256k1();
-        var proofInput = DecodeProof(secp256k1, pi);
+        using var curve = new TCurve();
+        var proofInput = DecodeProof(pi);
 
-        var pkPoint = Point.FromSerialized(secp256k1, publicKey);
+        var pkPoint = curve.DeserializePoint(publicKey);
         var hashPoint = HashToCurveTryAndIncrement(pkPoint, alpha);
-        var sBytes = Helpers.AddLeadingZeros(proofInput.S.ToByteArray(), Secp256k1.PRIVKEY_LENGTH)
-            .TakeLast(Secp256k1.PRIVKEY_LENGTH).ToArray();
+        var s = curve.DeserializeScalar(proofInput.S.ToByteArray());
+        var c = curve.DeserializeScalar(proofInput.C.ToByteArray());
 
-        var sB = new byte[Secp256k1.PUBKEY_LENGTH];
-        if (!secp256k1.PublicKeyCreate(sB, sBytes))
-        {
-            throw new InvalidScalarException();
-        }
+        var sB = curve.GetPoint(s);
+        var cY = curve.MultiplyScalar(pkPoint, c);
+        var u = curve.Sub(sB, cY);
 
-        var cYNeg = new byte[Secp256k1.PUBKEY_LENGTH];
-        Buffer.BlockCopy(pkPoint.Inner, 0, cYNeg, 0, cYNeg.Length);
+        var sH = curve.MultiplyScalar(hashPoint, s);
+        var cGamma = curve.MultiplyScalar(proofInput.Gamma, c);
+        var v = curve.Sub(sH, cGamma);
 
-        if (!secp256k1.PublicKeyMultiply(cYNeg,
-                Helpers.AddLeadingZeros(proofInput.C.ToByteArray(), Secp256k1.PRIVKEY_LENGTH)))
-        {
-            throw new FailedToMultiplyScalarException();
-        }
-
-        if (!secp256k1.PublicKeyNegate(cYNeg))
-        {
-            throw new FailedToNegatePublicKeyException();
-        }
-
-        var u = new byte[Secp256k1.PUBKEY_LENGTH];
-
-        if (!secp256k1.PublicKeysCombine(u, sB, cYNeg))
-        {
-            throw new FailedToCombinePublicKeysException();
-        }
-
-        var sH = new byte[Secp256k1.PUBKEY_LENGTH];
-        Buffer.BlockCopy(hashPoint.Inner, 0, sH, 0, sH.Length);
-
-        if (!secp256k1.PublicKeyMultiply(sH, sBytes))
-        {
-            throw new FailedToMultiplyScalarException();
-        }
-
-        var cGammaNeg = new byte[Secp256k1.PUBKEY_LENGTH];
-        Buffer.BlockCopy(proofInput.Gamma.Inner, 0, cGammaNeg, 0, cGammaNeg.Length);
-        if (!secp256k1.PublicKeyMultiply(cGammaNeg,
-                Helpers.AddLeadingZeros(proofInput.C.ToByteArray(), Secp256k1.PRIVKEY_LENGTH)))
-        {
-            throw new FailedToMultiplyScalarException();
-        }
-
-        if (!secp256k1.PublicKeyNegate(cGammaNeg))
-        {
-            throw new FailedToNegatePublicKeyException();
-        }
-
-        var v = new byte[Secp256k1.PUBKEY_LENGTH];
-
-        if (!secp256k1.PublicKeysCombine(v, sH, cGammaNeg))
-        {
-            throw new FailedToCombinePublicKeysException();
-        }
-
-        var derivedC = HashPoints(secp256k1, hashPoint, proofInput.Gamma, Point.FromInner(u), Point.FromInner(v));
+        var derivedC = HashPoints(hashPoint, proofInput.Gamma, u, v);
         if (!derivedC.Equals(proofInput.C))
         {
             throw new InvalidProofException();
         }
 
-        return GammaToHash(secp256k1, proofInput.Gamma);
+        return GammaToHash(proofInput.Gamma);
     }
 
-    public Point HashToCurveTryAndIncrement(Point point, byte[] alpha)
+    public IECPoint HashToCurveTryAndIncrement(IECPoint point, byte[] alpha)
     {
-        using var secp256k1 = new Secp256k1();
+        using var curve = new TCurve();
 
         // Step 1: ctr = 0
         var ctr = 0;
 
         // Step 2: PK_string = point_to_string(Y)
-        var pkString = point.Serialize(secp256k1, true);
+        var pkString = curve.SerializePoint(point, true);
 
         // Steps 3 ~ 6
         byte oneString = 0x01;
         for (; ctr < 256; ctr++)
         {
-            using var hasher = SHA256.Create();
+            using var hasher = _hasherFactory.Create();
             using var stream = new MemoryStream();
             stream.WriteByte(_config.SuiteString);
             stream.WriteByte(oneString);
@@ -148,28 +101,28 @@ public class Vrf : IVrf
             Buffer.BlockCopy(hash, 0, pkSerialized, 1, hash.Length);
             try
             {
-                var outputPoint = Point.FromSerialized(secp256k1, pkSerialized);
+                var outputPoint = curve.DeserializePoint(pkSerialized);
                 return outputPoint;
             }
             catch (InvalidSerializedPublicKeyException ex)
             {
+                // Ignore this exception and try the next ctr
             }
         }
 
         throw new FailedToHashToCurveException();
     }
 
-    private BigInteger HashPoints(Secp256k1 secp256k1, params Point[] points)
+    private BigInteger HashPoints(params IECPoint[] points)
     {
-        using var hasher = SHA256.Create();
+        using var curve = new TCurve();
+        using var hasher = _hasherFactory.Create();
         using var stream = new MemoryStream();
         stream.WriteByte(_config.SuiteString);
         stream.WriteByte(0x02);
         foreach (var point in points)
         {
-            var pkBytes = new byte[Secp256k1.SERIALIZED_COMPRESSED_PUBKEY_LENGTH];
-            secp256k1.PublicKeySerialize(pkBytes, point.Inner, Flags.SECP256K1_EC_COMPRESSED);
-            stream.Write(pkBytes);
+            stream.Write(curve.SerializePoint(point, true));
         }
 
         stream.Seek(0, SeekOrigin.Begin);
@@ -178,10 +131,10 @@ public class Vrf : IVrf
         return new BigInteger(1, hashTruncated);
     }
 
-    private byte[] EncodeProof(Point gamma, BigInteger c, BigInteger s)
+    private byte[] EncodeProof(IECPoint gamma, BigInteger c, BigInteger s)
     {
-        using var secp256k1 = new Secp256k1();
-        var gammaBytes = gamma.Serialize(secp256k1, true);
+        using var curve = new TCurve();
+        var gammaBytes = curve.SerializePoint(gamma, true);
         var cBytes = Helpers.Int2Bytes(c, N);
         var sBytes = Helpers.Int2Bytes(s, (QBitsLength + 7) / 8);
         var output = new byte[gammaBytes.Length + cBytes.Length + sBytes.Length];
@@ -191,8 +144,9 @@ public class Vrf : IVrf
         return output;
     }
 
-    private ProofInput DecodeProof(Secp256k1 secp256k1, byte[] pi)
+    private ProofInput DecodeProof(byte[] pi)
     {
+        using var curve = new TCurve();
         var ptLength = (BitSize + 7) / 8 + 1;
         var cLength = N;
         var sLength = (QBitsLength + 7) / 8;
@@ -201,7 +155,7 @@ public class Vrf : IVrf
             throw new InvalidProofLengthException();
         }
 
-        var gammaPoint = Point.FromSerialized(secp256k1, pi.Take(ptLength).ToArray());
+        var gammaPoint = curve.DeserializePoint(pi.Take(ptLength).ToArray());
         var c = new BigInteger(1, pi.Skip(ptLength).Take(cLength).ToArray());
         var s = new BigInteger(1, pi.TakeLast(sLength).ToArray());
         return new ProofInput()
@@ -212,9 +166,10 @@ public class Vrf : IVrf
         };
     }
 
-    private byte[] GammaToHash(Secp256k1 secp256k1, Point gamma)
+    private byte[] GammaToHash(IECPoint gamma)
     {
-        var gammaBytes = gamma.Serialize(secp256k1, true);
+        using var curve = new TCurve();
+        var gammaBytes = curve.SerializePoint(gamma, true);
         using var hasher = SHA256.Create();
         using var stream = new MemoryStream();
         stream.WriteByte(_config.SuiteString);
@@ -224,17 +179,17 @@ public class Vrf : IVrf
         return hasher.ComputeHash(stream);
     }
 
-    private byte[] Rfc6979Nonce(Secp256k1 secp256k1, ECKeyPair keyPair, Point hashPoint)
+    private IECScalar Rfc6979Nonce(ECKeyPair keyPair, IECPoint hashPoint)
     {
-        using var hasher = SHA256.Create();
+        using var curve = new TCurve();
+        using var hasher = _hasherFactory.Create();
         var roLen = (QBitsLength + 7) / 8;
-        var hBytes = hashPoint.Serialize(secp256k1, true);
+        var hBytes = curve.SerializePoint(hashPoint, true);
 
         var hash = hasher.ComputeHash(hBytes);
         var bh = Helpers.Bits2Bytes(hash, _config.EcParameters.N, roLen);
 
-        var nonce = new byte[Secp256k1.NONCE_LENGTH];
-        secp256k1.Rfc6979Nonce(nonce, bh, keyPair.PrivateKey, null, null, 0);
-        return nonce;
+        var nonce = curve.GetNonce(curve.DeserializeScalar(keyPair.PrivateKey), bh);
+        return curve.DeserializeScalar(nonce);
     }
 }

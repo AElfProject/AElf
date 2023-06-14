@@ -4,6 +4,7 @@ using System.IO;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using AElf.Cryptography.Core;
 using AElf.Cryptography.ECDSA;
 using AElf.Cryptography.ECVRF;
 using Secp256k1Net;
@@ -37,12 +38,12 @@ public class VRFTests
         var pkSerialized = Convert.FromHexString("0360fed4ba255a9d31c961eb74c6356d68c049b8923b61fa6ce669622e60f29fb6");
         var alpha = Encoding.ASCII.GetBytes("sample");
         var expectedHashPoint = Convert.FromHexString("027AD7D4C3A454D9ECC905F1E5436A328F2A106A2606EC4B44111CF9DC72A5B9FF");
-        
-        using var secp256k1 = new Secp256k1();
+
+        using var curve = new Secp256k1Curve();
         var cfg = new VrfConfig( 0xfe, ECParameters.Curve);
-        var vrf = new Vrf(cfg);
-        var output = vrf.HashToCurveTryAndIncrement(Point.FromSerialized(secp256k1, pkSerialized), alpha);
-        var outputSerialized = output.Serialize(secp256k1, true);
+        var vrf = new Vrf<Secp256k1Curve, Sha256HasherFactory>(cfg);
+        var output = vrf.HashToCurveTryAndIncrement(curve.DeserializePoint( pkSerialized), alpha);
+        var outputSerialized = curve.SerializePoint(output, true);
         Assert.Equal(outputSerialized, expectedHashPoint);
     }
 
@@ -61,13 +62,13 @@ public class VRFTests
            var expectedPi = Convert.FromHexString(vector.Pi);
            var expectedBeta = Convert.FromHexString(vector.Beta);
            var cfg = new VrfConfig( 0xfe, ECParameters.Curve);
-           var vrf = new Vrf(cfg);
+           var vrf = new Vrf<Secp256k1Curve, Sha256HasherFactory>(cfg);
            var proof = vrf.Prove(kp, alpha);
            Assert.Equal(expectedPi, proof.Pi);
            Assert.Equal(expectedBeta, proof.Beta);
        }
     }
-
+    
     [Fact]
     public void Verify_Test()
     {
@@ -83,7 +84,7 @@ public class VRFTests
             var pi = Convert.FromHexString(vector.Pi);
             var expectedBeta = Convert.FromHexString(vector.Beta);
             var cfg = new VrfConfig( 0xfe, ECParameters.Curve);
-            var vrf = new Vrf(cfg);
+            var vrf = new Vrf<Secp256k1Curve,Sha256HasherFactory>(cfg);
             var beta = vrf.Verify(pk, alpha, pi);
             Assert.Equal(expectedBeta, beta);
         }
@@ -102,7 +103,7 @@ public class VRFTests
             var alpha = Encoding.ASCII.GetBytes("this is a wrong message");
             var pi = Convert.FromHexString(vector.Pi);
             var cfg = new VrfConfig( 0xfe, ECParameters.Curve);
-            var vrf = new Vrf(cfg);
+            var vrf = new Vrf<Secp256k1Curve,Sha256HasherFactory>(cfg);
             Assert.Throws<InvalidProofException>(() => vrf.Verify(pk, alpha, pi));
         }
     }

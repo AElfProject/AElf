@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using Org.BouncyCastle.Math;
 
-namespace AElf.Cryptography.ECVRF;
+namespace AElf.Cryptography.Core;
 
 public static class Helpers
 {

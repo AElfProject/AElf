@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+using AElf.Cryptography.Core;
 using AElf.Cryptography.ECDSA;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Math;
@@ -12,7 +14,7 @@ public struct Proof
 
 public struct ProofInput
 {
-    public Point Gamma { get; set; }
+    public IECPoint Gamma { get; set; }
     public BigInteger C { get; set; }
     public BigInteger S { get; set; }
 }
@@ -28,6 +30,11 @@ public struct VrfConfig
         SuiteString = suiteString;
         EcParameters = ecParameters;
     }
+}
+
+public interface IHasherFactory
+{
+    HashAlgorithm Create();
 }
 
 public interface IVrf
