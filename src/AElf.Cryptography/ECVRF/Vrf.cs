@@ -17,9 +17,38 @@ public class FailedToHashToCurveException : Exception
 {
 }
 
+public class InvalidProofLengthException : Exception
+{
+}
+
+public class InvalidScalarException : Exception
+{
+}
+
+public class FailedToMultiplyScalarException : Exception
+{
+}
+
+public class FailedToNegatePublicKeyException : Exception
+{
+}
+
+public class FailedToCombinePublicKeysException : Exception
+{
+}
+
+public class InvalidProofException : Exception
+{
+}
 public struct Point
 {
+    private BigInteger P = new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F", 16);
     public byte[] Inner { get; private set; }
+
+    private Point(byte[] inner)
+    {
+        Inner = inner;
+    }
 
     public static Point FromInner(byte[] inner)
     {
@@ -89,8 +118,10 @@ public struct VrfConfig
 
 public class Vrf : IVrf
 {
+    private const int BitSize = 256;
     private const int QBitsLength = 256;
     private const int N = 16;
+
     private VrfConfig _config;
 
     public Vrf(VrfConfig config)
@@ -123,9 +154,76 @@ public class Vrf : IVrf
         };
     }
 
-    public byte[] Verify(byte[] publicKey, Proof proof)
+    public byte[] Verify(byte[] publicKey, byte[] alpha, byte[] pi)
     {
-        throw new System.NotImplementedException();
+        using var secp256k1 = new Secp256k1();
+        var proofInput = DecodeProof(secp256k1, pi);
+
+        var pkPoint = Point.FromSerialized(secp256k1, publicKey);
+        var hashPoint = HashToCurveTryAndIncrement(pkPoint, alpha);
+        var sBytes = AddLeadingZeros(proofInput.S.ToByteArray(), Secp256k1.PRIVKEY_LENGTH)
+            .TakeLast(Secp256k1.PRIVKEY_LENGTH).ToArray();
+
+        var sB = new byte[Secp256k1.PUBKEY_LENGTH];
+        if (!secp256k1.PublicKeyCreate(sB, sBytes))
+        {
+            throw new InvalidScalarException();
+        }
+
+        var cYNeg = new byte[Secp256k1.PUBKEY_LENGTH];
+        Buffer.BlockCopy(pkPoint.Inner, 0, cYNeg, 0, cYNeg.Length);
+
+        if (!secp256k1.PublicKeyMultiply(cYNeg, AddLeadingZeros(proofInput.C.ToByteArray(), Secp256k1.PRIVKEY_LENGTH)))
+        {
+            throw new FailedToMultiplyScalarException();
+        }
+
+        if (!secp256k1.PublicKeyNegate(cYNeg))
+        {
+            throw new FailedToNegatePublicKeyException();
+        }
+
+        var u = new byte[Secp256k1.PUBKEY_LENGTH];
+
+        if (!secp256k1.PublicKeysCombine(u, sB, cYNeg))
+        {
+            throw new FailedToCombinePublicKeysException();
+        }
+
+        var sH = new byte[Secp256k1.PUBKEY_LENGTH];
+        Buffer.BlockCopy(hashPoint.Inner, 0, sH, 0, sH.Length);
+        
+        if (!secp256k1.PublicKeyMultiply(sH, sBytes))
+        {
+            throw new FailedToMultiplyScalarException();
+        }
+        
+        var cGammaNeg = new byte[Secp256k1.PUBKEY_LENGTH];
+        Buffer.BlockCopy(proofInput.Gamma.Inner, 0, cGammaNeg, 0, cGammaNeg.Length);
+        if (!secp256k1.PublicKeyMultiply(cGammaNeg, AddLeadingZeros(proofInput.C.ToByteArray(), Secp256k1.PRIVKEY_LENGTH)))
+        {
+            throw new FailedToMultiplyScalarException();
+        }
+
+        if (!secp256k1.PublicKeyNegate(cGammaNeg))
+        {
+            throw new FailedToNegatePublicKeyException();
+        }
+
+        var v = new byte[Secp256k1.PUBKEY_LENGTH];
+        
+        if (!secp256k1.PublicKeysCombine(v, sH, cGammaNeg))
+        {
+            throw new FailedToCombinePublicKeysException();
+        }
+
+        var derivedC = HashPoints(secp256k1, hashPoint, proofInput.Gamma, Point.FromInner(u), Point.FromInner(v));
+        if (!derivedC.Equals(proofInput.C))
+        {
+            throw new InvalidProofException();
+        }
+
+        return GammaToHash(secp256k1, proofInput.Gamma);
     }
 
     public Point HashToCurveTryAndIncrement(Point point, byte[] alpha)
@@ -199,6 +297,27 @@ public class Vrf : IVrf
         return output;
     }
 
+    public ProofInput DecodeProof(Secp256k1 secp256k1, byte[] pi)
+    {
+        const int ptLength = (BitSize + 7) / 8 + 1;
+        const int cLength = N;
+        const int sLength = (QBitsLength + 7) / 8;
+        if (pi.Length != ptLength + cLength + sLength)
+        {
+            throw new InvalidProofLengthException();
+        }
+
+        var gammaPoint = Point.FromSerialized(secp256k1, pi.Take(ptLength).ToArray());
+        var c = new BigInteger(1, pi.Skip(ptLength).Take(cLength).ToArray());
+        var s = new BigInteger(1, pi.TakeLast(sLength).ToArray());
+        return new ProofInput()
+        {
+            Gamma = gammaPoint,
+            C = c,
+            S = s
+        };
+    }
+
     private static byte[] AddLeadingZeros(byte[] data, int requiredLength)
     {
         var zeroBytesLength = requiredLength - data.Length;
@@ -233,7 +352,7 @@ public class Vrf : IVrf
 
         var hash = hasher.ComputeHash(hBytes);
         var bh = Bits2Bytes(hash, ECParameters.DomainParams.N, roLen);
-        
+
         var nonce = new byte[Secp256k1.NONCE_LENGTH];
         secp256k1.Rfc6979Nonce(nonce, bh, keyPair.PrivateKey, null, null, 0);
         return nonce;
@@ -242,7 +361,7 @@ public class Vrf : IVrf
     public byte[] Int2Bytes(BigInteger v, int rolen)
     {
         var result = v.ToByteArray();
-        if ( result.Length < rolen)
+        if (result.Length < rolen)
         {
             return AddLeadingZeros(result, rolen);
         }
@@ -255,19 +374,19 @@ public class Vrf : IVrf
 
         return result;
     }
-    
-    public BigInteger Bits2Int(byte[]inputBytes, int qlen)
+
+    public BigInteger Bits2Int(byte[] inputBytes, int qlen)
     {
         var output = new BigInteger(1, inputBytes);
         if (inputBytes.Length * 8 > qlen)
         {
             return output.ShiftRight(inputBytes.Length * 8 - qlen);
         }
-        
+
         return output;
     }
 
-    public byte[] Bits2Bytes(byte[]input, BigInteger q, int rolen)
+    public byte[] Bits2Bytes(byte[] input, BigInteger q, int rolen)
     {
         var z1 = Bits2Int(input, q.BitLength);
         var z2 = z1.Subtract(q);

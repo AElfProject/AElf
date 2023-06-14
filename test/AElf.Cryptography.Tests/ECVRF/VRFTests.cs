@@ -67,6 +67,26 @@ public class VRFTests
        }
     }
 
+    [Fact]
+    public void Verify_Test()
+    {
+        var path = Path.Combine( Directory.GetCurrentDirectory(), "secp256_k1_sha256_tai.json");
+        var text = File.ReadAllText(path);
+        var vectors = JsonSerializer.Deserialize<List<TestVector>>(text);
+        using var secp256k1 = new Secp256k1();
+        foreach (var vector in vectors)
+        {
+            var pk =Convert.FromHexString(vector.Pk);
+            var alpha = Convert.FromHexString(vector.Alpha);
+            var pi = Convert.FromHexString(vector.Pi);
+            var expectedBeta = Convert.FromHexString(vector.Beta);
+            var cfg = new VrfConfig( 0xfe);
+            var vrf = new Vrf(cfg);
+            var beta = vrf.Verify(pk, alpha, pi);
+            Assert.Equal(expectedBeta, beta);
+        }
+    }
+
     private byte[] AddLeadingZeros(byte[] sk)
     {
         if (sk.Length < 32)
