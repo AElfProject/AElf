@@ -25,7 +25,7 @@ public class Vrf<TCurve, THasherFactory> : IVrf where TCurve : IECCurve, new()
         _hasherFactory = new THasherFactory();
     }
 
-    public Proof Prove(ECKeyPair keyPair, byte[] alpha)
+    public byte[] Prove(ECKeyPair keyPair, byte[] alpha)
     {
         using var curve = new TCurve();
         var point = curve.DeserializePoint(keyPair.PublicKey);
@@ -38,12 +38,7 @@ public class Vrf<TCurve, THasherFactory> : IVrf where TCurve : IECCurve, new()
         var c = HashPoints(hashPoint, gamma, kB, kH);
         var cX = c.Multiply(new BigInteger(1, keyPair.PrivateKey));
         var s = cX.Add(new BigInteger(1, nonce.Representation)).Mod(_config.EcParameters.N);
-        var pi = EncodeProof(gamma, c, s);
-        var beta = GammaToHash(gamma);
-        return new Proof
-        {
-            Pi = pi, Beta = beta
-        };
+        return EncodeProof(gamma, c, s);
     }
 
     public byte[] Verify(byte[] publicKey, byte[] alpha, byte[] pi)
