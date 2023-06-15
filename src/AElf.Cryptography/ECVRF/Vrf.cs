@@ -25,7 +25,7 @@ public class Vrf<TCurve, THasherFactory> : IVrf where TCurve : IECCurve, new()
         _hasherFactory = new THasherFactory();
     }
 
-    public Proof Prove(ECKeyPair keyPair, byte[] alpha)
+    public byte[] Prove(ECKeyPair keyPair, byte[] alpha)
     {
         using var curve = new TCurve();
         var point = curve.DeserializePoint(keyPair.PublicKey);
@@ -38,12 +38,7 @@ public class Vrf<TCurve, THasherFactory> : IVrf where TCurve : IECCurve, new()
         var c = HashPoints(hashPoint, gamma, kB, kH);
         var cX = c.Multiply(new BigInteger(1, keyPair.PrivateKey));
         var s = cX.Add(new BigInteger(1, nonce.Representation)).Mod(_config.EcParameters.N);
-        var pi = EncodeProof(gamma, c, s);
-        var beta = GammaToHash(gamma);
-        return new Proof
-        {
-            Pi = pi, Beta = beta
-        };
+        return EncodeProof(gamma, c, s);
     }
 
     public byte[] Verify(byte[] publicKey, byte[] alpha, byte[] pi)
@@ -175,12 +170,20 @@ public class Vrf<TCurve, THasherFactory> : IVrf where TCurve : IECCurve, new()
     private byte[] GammaToHash(IECPoint gamma)
     {
         using var curve = new TCurve();
-        var gammaBytes = curve.SerializePoint(gamma, true);
+
+        var gammaCof = gamma;
+        if (_config.EcParameters.Curve.Cofactor.CompareTo(BigInteger.One) > 0)
+        {
+            gammaCof = curve.MultiplyScalar(gamma,
+                curve.DeserializeScalar(_config.EcParameters.Curve.Cofactor.ToByteArray()));
+        }
+
+        var gammaCofBytes = curve.SerializePoint(gammaCof, true);
         using var hasher = SHA256.Create();
         using var stream = new MemoryStream();
         stream.WriteByte(_config.SuiteString);
         stream.WriteByte(0x03);
-        stream.Write(gammaBytes);
+        stream.Write(gammaCofBytes);
         stream.Seek(0, SeekOrigin.Begin);
         return hasher.ComputeHash(stream);
     }

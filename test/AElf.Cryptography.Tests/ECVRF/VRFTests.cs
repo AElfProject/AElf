@@ -60,12 +60,10 @@ public class VRFTests
            var kp = CryptoHelper.FromPrivateKey(sk);
            var alpha = Convert.FromHexString(vector.Alpha);
            var expectedPi = Convert.FromHexString(vector.Pi);
-           var expectedBeta = Convert.FromHexString(vector.Beta);
            var cfg = new VrfConfig( 0xfe, ECParameters.Curve);
            var vrf = new Vrf<Secp256k1Curve, Sha256HasherFactory>(cfg);
-           var proof = vrf.Prove(kp, alpha);
-           Assert.Equal(expectedPi, proof.Pi);
-           Assert.Equal(expectedBeta, proof.Beta);
+           var pi = vrf.Prove(kp, alpha);
+           Assert.Equal(expectedPi, pi);
        }
     }
     

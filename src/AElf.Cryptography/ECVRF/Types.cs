@@ -6,12 +6,6 @@ using Org.BouncyCastle.Math;
 
 namespace AElf.Cryptography.ECVRF;
 
-public struct Proof
-{
-    public byte[] Beta { get; set; }
-    public byte[] Pi { get; set; }
-}
-
 public struct ProofInput
 {
     public IECPoint Gamma { get; set; }
@@ -39,6 +33,6 @@ public interface IHasherFactory
 
 public interface IVrf
 {
-    Proof Prove(ECKeyPair keyPair, byte[] alpha);
+    byte[] Prove(ECKeyPair keyPair, byte[] alpha);
     byte[] Verify(byte[] publicKey, byte[] alpha, byte[] pi);
 }
