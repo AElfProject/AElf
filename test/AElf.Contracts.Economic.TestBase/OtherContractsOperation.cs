@@ -3,6 +3,7 @@ using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.MultiToken;
 using AElf.Cryptography.ECDSA;
 using AElf.Types;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 
@@ -58,7 +59,7 @@ public partial class EconomicContractsTestBase
             ActualMiningTime = minerInRound.ExpectedMiningTime,
             SupposedOrderOfNextRound = 1,
             // TODO: Set random hash.
-            RandomHash = Hash.Empty
+            RandomNumber = ByteString.CopyFrom(Hash.Empty.ToByteArray())
         });
     }
 

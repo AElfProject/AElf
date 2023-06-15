@@ -390,7 +390,7 @@ public class BlockMiningService : IBlockMiningService
             PreviousInValue = HashHelper.ComputeFrom($"InValueOf{pubkey}"),
             Pubkey = pubkey.Value,
             // TODO: Set random hash.
-            RandomHash = Hash.Empty
+            RandomNumber = ByteString.CopyFrom(Hash.Empty.ToByteArray())
         };
 
         var consensusExtraData = await contractStub.GetConsensusExtraData.CallAsync(new BytesValue

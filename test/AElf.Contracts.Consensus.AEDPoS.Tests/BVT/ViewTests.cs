@@ -29,7 +29,7 @@ public partial class AEDPoSTest
 
         var nextRoundInput = NextRoundInput.Parser.ParseFrom(nextTermInformation.Round.ToByteArray());
         // TODO: Set random hash.
-        nextRoundInput.RandomHash = Hash.Empty;
+        nextRoundInput.RandomNumber = ByteString.CopyFrom(Hash.Empty.ToByteArray());
         var transactionResult = await AEDPoSContractStub.NextRound.SendAsync(nextRoundInput);
         transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 

@@ -1,5 +1,6 @@
 using System.Linq;
 using AElf.Types;
+using Google.Protobuf;
 
 namespace AElf.Contracts.Consensus.AEDPoS;
 
@@ -10,9 +11,9 @@ public partial class Round
     ///     will record this purpose to their FinalOrderOfNextRound field.
     /// </summary>
     /// <param name="pubkey"></param>
-    /// <param name="vrfRandomProof"></param>
+    /// <param name="randomNumber"></param>
     /// <returns></returns>
-    public UpdateValueInput ExtractInformationToUpdateConsensus(string pubkey, VrfRandomProof vrfRandomProof)
+    public UpdateValueInput ExtractInformationToUpdateConsensus(string pubkey, ByteString randomNumber)
     {
         if (!RealTimeMinersInformation.ContainsKey(pubkey)) return null;
 
@@ -45,7 +46,7 @@ public partial class Round
             DecryptedPieces = { decryptedPreviousInValues },
             MinersPreviousInValues = { minersPreviousInValues },
             ImpliedIrreversibleBlockHeight = minerInRound.ImpliedIrreversibleBlockHeight,
-            VrfRandomProof = vrfRandomProof
+            RandomNumber = randomNumber
         };
     }
 }

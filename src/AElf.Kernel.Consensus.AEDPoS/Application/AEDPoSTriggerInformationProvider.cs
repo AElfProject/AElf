@@ -16,15 +16,15 @@ internal class AEDPoSTriggerInformationProvider : ITriggerInformationProvider
     private readonly IAccountService _accountService;
     private readonly IInValueCache _inValueCache;
     private readonly ISecretSharingService _secretSharingService;
-    private readonly IRandomHashProvider _randomHashProvider;
+    private readonly IRandomProvider _randomProvider;
 
     public AEDPoSTriggerInformationProvider(IAccountService accountService,
-        ISecretSharingService secretSharingService, IInValueCache inValueCache, IRandomHashProvider randomHashProvider)
+        ISecretSharingService secretSharingService, IInValueCache inValueCache, IRandomProvider randomProvider)
     {
         _accountService = accountService;
         _secretSharingService = secretSharingService;
         _inValueCache = inValueCache;
-        _randomHashProvider = randomHashProvider;
+        _randomProvider = randomProvider;
 
         Logger = NullLogger<AEDPoSTriggerInformationProvider>.Instance;
     }
@@ -76,14 +76,14 @@ internal class AEDPoSTriggerInformationProvider : ITriggerInformationProvider
 
     public BytesValue GetTriggerInformationForConsensusTransactions(IChainContext chainContext, BytesValue consensusCommandBytes)
     {
-        var randomHash = AsyncHelper.RunSync(async ()=> await _randomHashProvider.GenerateRandomHashAsync(chainContext));
+        var randomProve = AsyncHelper.RunSync(async ()=> await _randomProvider.GenerateRandomProveAsync(chainContext));
         
         if (consensusCommandBytes == null)
             return new AElfConsensusTriggerInformation
             {
                 Pubkey = Pubkey,
                 Behaviour = AElfConsensusBehaviour.UpdateValue,
-                RandomHash = randomHash
+                RandomNumber = ByteString.CopyFrom(randomProve)
             }.ToBytesValue();
 
         var command = consensusCommandBytes.ToConsensusCommand();
@@ -98,7 +98,7 @@ internal class AEDPoSTriggerInformationProvider : ITriggerInformationProvider
                 InValue = inValue,
                 PreviousInValue = _inValueCache.GetInValue(hint.PreviousRoundId),
                 Behaviour = hint.Behaviour,
-                RandomHash = randomHash
+                RandomNumber = ByteString.CopyFrom(randomProve)
             };
 
             var secretPieces = _secretSharingService.GetEncryptedPieces(hint.RoundId);
@@ -120,7 +120,7 @@ internal class AEDPoSTriggerInformationProvider : ITriggerInformationProvider
         {
             Pubkey = Pubkey,
             Behaviour = hint.Behaviour,
-            RandomHash = randomHash
+            RandomNumber = ByteString.CopyFrom(randomProve)
         }.ToBytesValue();
     }
 }

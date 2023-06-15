@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using AElf.CSharp.Core;
 using AElf.Types;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.AEDPoS;
@@ -68,7 +69,7 @@ internal partial class Round
             expectedExtraBlockProducer.IsExtraBlockProducer = true;
 
         // TODO: Set random hash.
-        nextRound.RandomHash = Hash.Empty;
+        nextRound.RandomNumber = ByteString.CopyFrom(Hash.Empty.ToByteArray());
         
         return true;
     }

@@ -117,7 +117,7 @@ public partial class AEDPoSContract : AEDPoSContractImplContainer.AEDPoSContract
     // Keep this for compatibility.
     public override Hash GetRandomHash(Int64Value input)
     {
-        Assert(input.Value > 1, "Invalid block height.");
+        Assert(input.Value > 0, "Invalid block height.");
         Assert(Context.CurrentHeight >= input.Value, "Block height not reached.");
         return State.RandomHashes[input.Value] ?? Hash.Empty;
     }

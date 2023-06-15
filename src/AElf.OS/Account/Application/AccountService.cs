@@ -44,7 +44,7 @@ public class AccountService : IAccountService
             cipherMessage);
     }
 
-    public async Task<Proof> ECVrfProveAsync(byte[] message)
+    public async Task<byte[]> ECVrfProveAsync(byte[] message)
     {
         var keyPair = await GetAccountKeyPairAsync();
         return CryptoHelper.ECVrfProve(keyPair, message);

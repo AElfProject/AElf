@@ -11,7 +11,7 @@ public interface IAccountService
     Task<byte[]> GetPublicKeyAsync();
     Task<byte[]> EncryptMessageAsync(byte[] receiverPublicKey, byte[] plainMessage);
     Task<byte[]> DecryptMessageAsync(byte[] senderPublicKey, byte[] cipherMessage);
-    Task<Proof> ECVrfProveAsync(byte[] message);
+    Task<byte[]> ECVrfProveAsync(byte[] message);
 }
 
 public static class AccountServiceExtensions
@@ -57,7 +57,7 @@ public class AccountService : IAccountService, ISingletonDependency
             _ecKeyPairProvider.GetKeyPair().PrivateKey, cipherMessage));
     }
 
-    public Task<Proof> ECVrfProveAsync(byte[] message)
+    public Task<byte[]> ECVrfProveAsync(byte[] message)
     {
         return Task.FromResult(CryptoHelper.ECVrfProve((ECKeyPair)_ecKeyPairProvider.GetKeyPair(), message));
     }

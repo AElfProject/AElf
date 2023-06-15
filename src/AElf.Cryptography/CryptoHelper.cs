@@ -166,7 +166,7 @@ public static class CryptoHelper
         }
     }
 
-    public static Proof ECVrfProve(ECKeyPair keyPair, byte[] alpha)
+    public static byte[] ECVrfProve(ECKeyPair keyPair, byte[] alpha)
     {
         try
         {

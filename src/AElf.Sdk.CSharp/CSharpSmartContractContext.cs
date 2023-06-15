@@ -373,8 +373,8 @@ public class CSharpSmartContractContext : ISmartContractBridgeContext
             virtualAddress);
     }
     
-    public bool ECVrfVerify(byte[] pubKey, byte[] pi, byte[] alpha, byte[] beta)
+    public byte[] ECVrfVerify(byte[] pubKey, byte[] alpha, byte[] pi)
     {
-        return SmartContractBridgeContextImplementation.ECVrfVerify(pubKey, pi, alpha, beta);
+        return SmartContractBridgeContextImplementation.ECVrfVerify(pubKey, alpha, pi);
     }
 }

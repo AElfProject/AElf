@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using AElf.Types;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.AEDPoS;
@@ -119,7 +120,7 @@ internal partial class Round
             DecryptedPieces = { decryptedPreviousInValues },
             MinersPreviousInValues = { minersPreviousInValues },
             // TODO: Set random hash.
-            RandomHash = Hash.Empty
+            RandomNumber = ByteString.CopyFrom(Hash.Empty.ToByteArray())
         };
     }
 

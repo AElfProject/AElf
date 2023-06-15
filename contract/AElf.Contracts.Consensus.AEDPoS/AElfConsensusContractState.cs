@@ -50,7 +50,7 @@ public partial class AEDPoSContractState : ContractState
     public SingletonState<AuthorityInfo> MethodFeeController { get; set; }
     public SingletonState<AuthorityInfo> MaximumMinersCountController { get; set; }
 
-    public MappedState<long, VrfRandomProof> VrfRandomProofs { get; set; }
+    public MappedState<long, Hash> RandomHashes { get; set; }
 
     public SingletonState<long> LatestExecutedHeight { get; set; }
 

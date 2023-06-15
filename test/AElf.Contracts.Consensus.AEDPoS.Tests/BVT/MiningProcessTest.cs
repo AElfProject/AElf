@@ -75,7 +75,7 @@ public partial class AEDPoSTest
             }.ToBytesValue())).ToConsensusHeaderInformation();
         var nextTermInput = NextTermInput.Parser.ParseFrom(nextTermInformation.Round.ToByteArray());
         // TODO: Set random hash.
-        nextTermInput.RandomHash = Hash.Empty;
+        nextTermInput.RandomNumber = ByteString.CopyFrom(Hash.Empty.ToByteArray());
         await AEDPoSContractStub.NextTerm.SendAsync(nextTermInput);
 
         // First candidate cheat others with in value.
@@ -104,7 +104,7 @@ public partial class AEDPoSTest
             }.ToBytesValue())).ToConsensusHeaderInformation().Round;
         var nextRoundInput = NextRoundInput.Parser.ParseFrom(thirdRound.ToByteArray());
         // TODO: Set random hash.
-        nextRoundInput.RandomHash = Hash.Empty;
+        nextRoundInput.RandomNumber = ByteString.CopyFrom(Hash.Empty.ToByteArray());
         await oneCandidate.NextRound.SendAsync(nextRoundInput);
 
         var cheatInformation = (await AEDPoSContractStub.GetConsensusExtraData.CallAsync(
@@ -137,7 +137,7 @@ public partial class AEDPoSTest
             ProducedBlocks = 4,
             ActualMiningTime = BlockTimeProvider.GetBlockTime(),
             // TODO: Set random hash.
-            RandomHash = Hash.Empty
+            RandomNumber = ByteString.CopyFrom(Hash.Empty.ToByteArray())
         };
         var transactionResult = await AEDPoSContractStub.UpdateTinyBlockInformation.SendAsync(input);
         transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
