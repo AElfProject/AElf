@@ -89,7 +89,7 @@ public interface ISmartContractBridgeContext
 
     object ValidateStateSize(object obj);
 
-    bool ECVRFVerify(byte[] pubKey, string pi, string alpha);
+    bool ECVrfVerify(byte[] pubKey, byte[] pi, byte[] alpha, byte[] beta);
 }
 
 [Serializable]

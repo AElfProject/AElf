@@ -28,25 +28,25 @@ public partial class AEDPoSContract
 
         State.RoundBeforeLatestExecution.Value = GetCurrentRoundInformation(new Empty());
 
-        var randomHash = Hash.Empty;
+        VrfRandomProof vrfRandomProof = null;
 
         // The only difference.
         switch (input)
         {
             case NextRoundInput nextRoundInput:
-                randomHash = nextRoundInput.RandomHash;
+                vrfRandomProof = nextRoundInput.VrfRandomProof;
                 ProcessNextRound(nextRoundInput);
                 break;
             case NextTermInput nextTermInput:
-                randomHash = nextTermInput.RandomHash;
+                vrfRandomProof = nextTermInput.VrfRandomProof;
                 ProcessNextTerm(nextTermInput);
                 break;
             case UpdateValueInput updateValueInput:
-                randomHash = updateValueInput.RandomHash;
+                vrfRandomProof = updateValueInput.VrfRandomProof;
                 ProcessUpdateValue(updateValueInput);
                 break;
             case TinyBlockInput tinyBlockInput:
-                randomHash = tinyBlockInput.RandomHash;
+                vrfRandomProof = tinyBlockInput.VrfRandomProof;
                 ProcessTinyBlock(tinyBlockInput);
                 break;
         }
@@ -71,10 +71,13 @@ public partial class AEDPoSContract
             Context.LogDebug(() =>
                 $"Current round information:\n{currentRound.ToString(_processingBlockMinerPubkey)}");
 
-        var previousRandomHash = State.RandomHashes[Context.CurrentHeight.Sub(1)] ?? Hash.Empty;
-        Assert(Context.ECVRFVerify(Context.RecoverPublicKey(), previousRandomHash.ToHex(), randomHash.ToHex()),
+        var previousBeta = State.VrfRandomProofs[Context.CurrentHeight.Sub(1)]?.Beta;
+        var previousRandomHash = previousBeta == null
+            ? Hash.Empty.ToByteArray()
+            : previousBeta.ToByteArray();
+        Assert(Context.ECVrfVerify(Context.RecoverPublicKey(), vrfRandomProof.Pi, vrfRandomProof.Beta, ),
             "Invalid random hash.");
-        State.RandomHashes[Context.CurrentHeight] = randomHash;
+        State.VrfRandomProofs[Context.CurrentHeight] = vrfRandomProof;
 
         Context.LogDebug(() => $"New random hash generated: {randomHash} - height {Context.CurrentHeight}");
 

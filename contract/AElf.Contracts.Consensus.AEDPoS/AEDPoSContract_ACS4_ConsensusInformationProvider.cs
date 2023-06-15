@@ -67,7 +67,7 @@ public partial class AEDPoSContract
             "Data to request consensus information should contain pubkey.");
 
         var pubkey = triggerInformation.Pubkey;
-        var randomHash = triggerInformation.RandomHash;
+        var randomHash = triggerInformation.VrfRandomProof;
         var consensusInformation = new AElfConsensusHeaderInformation();
         consensusInformation.MergeFrom(GetConsensusBlockExtraData(input, true).Value);
         var transactionList = GenerateTransactionListByExtraData(consensusInformation, pubkey, randomHash);
@@ -128,7 +128,7 @@ public partial class AEDPoSContract
     }
 
     private TransactionList GenerateTransactionListByExtraData(AElfConsensusHeaderInformation consensusInformation,
-        ByteString pubkey, Hash randomHash)
+        ByteString pubkey, VrfRandomProof vrfRandomProof)
     {
         var round = consensusInformation.Round;
         var behaviour = consensusInformation.Behaviour;
@@ -142,7 +142,7 @@ public partial class AEDPoSContract
                     Transactions =
                     {
                         GenerateTransaction(nameof(UpdateValue),
-                            round.ExtractInformationToUpdateConsensus(pubkey.ToHex(),randomHash))
+                            round.ExtractInformationToUpdateConsensus(pubkey.ToHex(),vrfRandomProof))
                     }
                 };
             case AElfConsensusBehaviour.TinyBlock:
@@ -157,7 +157,7 @@ public partial class AEDPoSContract
                                 ActualMiningTime = minerInRound.ActualMiningTimes.Last(),
                                 ProducedBlocks = minerInRound.ProducedBlocks,
                                 RoundId = round.RoundIdForValidation,
-                                RandomHash = randomHash
+                                VrfRandomProof = vrfRandomProof
                             })
                     }
                 };
@@ -178,7 +178,7 @@ public partial class AEDPoSContract
                             IsMinerListJustChanged = round.IsMinerListJustChanged,
                             RoundIdForValidation = round.RoundIdForValidation,
                             MainChainMinersRoundNumber = round.MainChainMinersRoundNumber,
-                            RandomHash = randomHash
+                            VrfRandomProof = vrfRandomProof
                         })
                     }
                 };
@@ -199,7 +199,7 @@ public partial class AEDPoSContract
                             IsMinerListJustChanged = round.IsMinerListJustChanged,
                             RoundIdForValidation = round.RoundIdForValidation,
                             MainChainMinersRoundNumber = round.MainChainMinersRoundNumber,
-                            RandomHash = randomHash
+                            VrfRandomProof = vrfRandomProof
                         })
                     }
                 };

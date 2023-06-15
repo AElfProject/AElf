@@ -216,8 +216,8 @@ message UpdateValueInput {
     map<string, aelf.Hash> miners_previous_in_values = 11;
     // The irreversible block height that miner recorded.
     int64 implied_irreversible_block_height = 12;
-    // The random hash of AEDPoS.
-    aelf.Hash random_hash = 13;
+    // The VRF random proof.
+    VrfRandomProof vrf_random_proof = 13;
 }
 
 message MinerList {
@@ -341,8 +341,8 @@ message AElfConsensusTriggerInformation {
     map<string, bytes> decrypted_pieces = 6;
     // The revealed InValues.
     map<string, aelf.Hash> revealed_in_values = 7;
-    // The random hash of AEDPoS.
-    aelf.Hash random_hash = 8;
+    // The VRF random proof.
+    VrfRandomProof vrf_random_proof = 8;
 }
 
 message TermInfo {
@@ -364,8 +364,8 @@ message TinyBlockInput {
     google.protobuf.Timestamp actual_mining_time = 2;
     // Count of blocks currently produced
     int64 produced_blocks = 3;
-    // The random hash of AEDPoS.
-    aelf.Hash random_hash = 4;
+    // The VRF random proof.
+    VrfRandomProof vrf_random_proof = 4;
 }
 
 message VoteMinersCountInput {
@@ -475,8 +475,8 @@ message NextRoundInput {
     bool is_miner_list_just_changed = 9;
     // The round id, calculated by summing block producers’ expecting time (second).
     int64 round_id_for_validation = 10;
-    // The random hash of AEDPoS.
-    aelf.Hash random_hash = 11;
+    // The VRF random proof.
+    VrfRandomProof vrf_random_proof = 11;
 }
 
 message NextTermInput {
@@ -500,6 +500,13 @@ message NextTermInput {
     bool is_miner_list_just_changed = 9;
     // The round id, calculated by summing block producers’ expecting time (second).
     int64 round_id_for_validation = 10;
-    // The random hash of AEDPoS.
-    aelf.Hash random_hash = 11;
+    // The VRF random proof.
+    VrfRandomProof vrf_random_proof = 11;
+}
+
+message VrfRandomProof{
+    // The VRF proof.
+    bytes pi = 1;
+    // The VRF hash output.
+    bytes beta = 2;
 }
