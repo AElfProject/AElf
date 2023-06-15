@@ -175,12 +175,20 @@ public class Vrf<TCurve, THasherFactory> : IVrf where TCurve : IECCurve, new()
     private byte[] GammaToHash(IECPoint gamma)
     {
         using var curve = new TCurve();
-        var gammaBytes = curve.SerializePoint(gamma, true);
+
+        var gammaCof = gamma;
+        if (_config.EcParameters.Curve.Cofactor.CompareTo(BigInteger.One) > 0)
+        {
+            gammaCof = curve.MultiplyScalar(gamma,
+                curve.DeserializeScalar(_config.EcParameters.Curve.Cofactor.ToByteArray()));
+        }
+
+        var gammaCofBytes = curve.SerializePoint(gammaCof, true);
         using var hasher = SHA256.Create();
         using var stream = new MemoryStream();
         stream.WriteByte(_config.SuiteString);
         stream.WriteByte(0x03);
-        stream.Write(gammaBytes);
+        stream.Write(gammaCofBytes);
         stream.Seek(0, SeekOrigin.Begin);
         return hasher.ComputeHash(stream);
     }
