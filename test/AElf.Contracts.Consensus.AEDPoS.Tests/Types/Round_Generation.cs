@@ -9,7 +9,7 @@ namespace AElf.Contracts.Consensus.AEDPoS;
 
 internal partial class Round
 {
-    public bool GenerateNextRoundInformation(Timestamp currentBlockTimestamp, Timestamp blockchainStartTimestamp,
+    public bool GenerateNextRoundInformation(Timestamp currentBlockTimestamp, Timestamp blockchainStartTimestamp, ByteString randomNumber,
         out NextRoundInput nextRound)
     {
         nextRound = new NextRoundInput();
@@ -67,9 +67,7 @@ internal partial class Round
             nextRound.RealTimeMinersInformation.Values.First().IsExtraBlockProducer = true;
         else
             expectedExtraBlockProducer.IsExtraBlockProducer = true;
-
-        // TODO: Set random hash.
-        nextRound.RandomNumber = ByteString.CopyFrom(Hash.Empty.ToByteArray());
+        nextRound.RandomNumber = randomNumber;
         
         return true;
     }

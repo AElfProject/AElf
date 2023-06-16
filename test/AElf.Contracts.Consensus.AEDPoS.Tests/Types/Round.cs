@@ -86,8 +86,9 @@ internal partial class Round
     ///     will record this purpose to their FinalOrderOfNextRound field.
     /// </summary>
     /// <param name="pubkey"></param>
+    /// <param name="randomNumber"></param>
     /// <returns></returns>
-    public UpdateValueInput ExtractInformationToUpdateConsensus(string pubkey)
+    public UpdateValueInput ExtractInformationToUpdateConsensus(string pubkey, ByteString randomNumber)
     {
         if (!RealTimeMinersInformation.ContainsKey(pubkey)) return null;
 
@@ -119,8 +120,7 @@ internal partial class Round
             EncryptedPieces = { minerInRound.EncryptedPieces },
             DecryptedPieces = { decryptedPreviousInValues },
             MinersPreviousInValues = { minersPreviousInValues },
-            // TODO: Set random hash.
-            RandomNumber = ByteString.CopyFrom(Hash.Empty.ToByteArray())
+            RandomNumber = randomNumber
         };
     }
 

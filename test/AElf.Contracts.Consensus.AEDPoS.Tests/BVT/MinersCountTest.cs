@@ -52,6 +52,7 @@ public partial class AEDPoSTest
             voteResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
 
+        byte[] randomNumber;
         foreach (var minerInRound in firstRound.RealTimeMinersInformation.Values.OrderBy(m => m.Order))
         {
             var currentKeyPair = InitialCoreDataCenterKeyPairs.First(p => p.PublicKey.ToHex() == minerInRound.Pubkey);
@@ -65,8 +66,11 @@ public partial class AEDPoSTest
                 (await AEDPoSContractStub.GetConsensusExtraData.CallAsync(triggers[minerInRound.Pubkey]
                     .ToBytesValue())).ToConsensusHeaderInformation();
 
+            randomNumber = await GenerateRandomProveAsync(currentKeyPair);
             // Update consensus information.
-            var toUpdate = headerInformation.Round.ExtractInformationToUpdateConsensus(minerInRound.Pubkey);
+            var toUpdate =
+                headerInformation.Round.ExtractInformationToUpdateConsensus(minerInRound.Pubkey,
+                    ByteString.CopyFrom(randomNumber));
             await tester.UpdateValue.SendAsync(toUpdate);
         }
 
@@ -81,8 +85,8 @@ public partial class AEDPoSTest
             }.ToBytesValue())).ToConsensusHeaderInformation();
 
         var nextRoundInput = NextRoundInput.Parser.ParseFrom(nextTermInformation.Round.ToByteArray());
-        // TODO: Set random hash.
-        nextRoundInput.RandomNumber = ByteString.CopyFrom(Hash.Empty.ToByteArray());
+        randomNumber = await GenerateRandomProveAsync(BootMinerKeyPair);
+        nextRoundInput.RandomNumber = ByteString.CopyFrom(randomNumber);
         await AEDPoSContractStub.NextRound.SendAsync(nextRoundInput);
         changeTermTime = BlockchainStartTimestamp.ToDateTime().AddMinutes(termIntervalMin).AddSeconds(10);
         BlockTimeProvider.SetBlockTime(changeTermTime.ToTimestamp());
@@ -95,8 +99,8 @@ public partial class AEDPoSTest
             }.ToBytesValue())).ToConsensusHeaderInformation();
 
         var nextTermInput = NextTermInput.Parser.ParseFrom(nextTermInformation.Round.ToByteArray());
-        // TODO: Set random hash.
-        nextTermInput.RandomNumber = ByteString.CopyFrom(Hash.Empty.ToByteArray());
+        randomNumber = await GenerateRandomProveAsync(BootMinerKeyPair);
+        nextTermInput.RandomNumber = ByteString.CopyFrom(randomNumber);
         var transactionResult = await AEDPoSContractStub.NextTerm.SendAsync(nextTermInput);
         transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
@@ -107,8 +111,8 @@ public partial class AEDPoSTest
         {
             var currentRound = await newMinerStub.GetCurrentRoundInformation.CallAsync(new Empty());
             var firstPubKey = currentRound.RealTimeMinersInformation.Keys.First();
-            newMinerStub =
-                GetAEDPoSContractStub(ValidationDataCenterKeyPairs.First(o => o.PublicKey.ToHex() == firstPubKey));
+            var keypair = ValidationDataCenterKeyPairs.First(o => o.PublicKey.ToHex() == firstPubKey);
+            newMinerStub = GetAEDPoSContractStub(keypair);
 
             minerCount = currentRound.RealTimeMinersInformation.Count;
             Assert.Equal(AEDPoSContractTestConstants.SupposedMinersCount.Add(termCount.Mul(2)), minerCount);
@@ -124,8 +128,8 @@ public partial class AEDPoSTest
                         .Pubkey)
                 }.ToBytesValue())).ToConsensusHeaderInformation();
             nextTermInput = NextTermInput.Parser.ParseFrom(nextRoundInformation.Round.ToByteArray());
-            // TODO: Set random hash.
-            nextTermInput.RandomNumber = ByteString.CopyFrom(Hash.Empty.ToByteArray());
+            randomNumber = await GenerateRandomProveAsync(keypair);
+            nextTermInput.RandomNumber = ByteString.CopyFrom(randomNumber);
             await newMinerStub.NextTerm.SendAsync(nextTermInput);
             termCount++;
         }

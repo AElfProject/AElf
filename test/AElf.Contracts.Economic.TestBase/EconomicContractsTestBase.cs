@@ -3,6 +3,7 @@ using System.Linq;
 using AElf.ContractTestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
+using AElf.Kernel.Blockchain.Application;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,6 +14,9 @@ public partial class EconomicContractsTestBase : ContractTestBase<EconomicContra
 {
     protected IBlockTimeProvider BlockTimeProvider =>
         Application.ServiceProvider.GetRequiredService<IBlockTimeProvider>();
+    
+    protected IBlockchainService BlockchainService =>
+        Application.ServiceProvider.GetRequiredService<IBlockchainService>();
 
     protected Timestamp StartTimestamp => TimestampHelper.GetUtcNow();
 

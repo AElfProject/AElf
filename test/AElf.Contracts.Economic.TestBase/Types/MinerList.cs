@@ -42,8 +42,8 @@ internal partial class MinerList
         return round;
     }
     
-    public NextTermInput GenerateFirstRoundOfNewTerm(int miningInterval,
-        Timestamp currentBlockTime, long currentRoundNumber = 0, long currentTermNumber = 0, byte[] randomNumber= null)
+    public NextTermInput GenerateFirstRoundOfNewTerm(int miningInterval, byte[] randomNumber,
+        Timestamp currentBlockTime, long currentRoundNumber = 0, long currentTermNumber = 0)
     {
         var sortedMiners =
             (from obj in Pubkeys
@@ -72,7 +72,6 @@ internal partial class MinerList
         input.RoundNumber = currentRoundNumber + 1;
         input.TermNumber = currentTermNumber + 1;
         input.IsMinerListJustChanged = true;
-        // TODO: Set random hash.
         input.RandomNumber = ByteString.CopyFrom(randomNumber);
 
         return input;

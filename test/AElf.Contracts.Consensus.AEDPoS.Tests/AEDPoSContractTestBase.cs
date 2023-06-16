@@ -153,8 +153,9 @@ public class AEDPoSContractTestBase : EconomicContractsTestBase
             .AddMilliseconds(
                 ((long)currentRound.TotalMilliseconds(AEDPoSContractTestConstants.MiningInterval)).Mul(
                     nextRoundNumber.Sub(1)));
+        var randomNumber = await GenerateRandomProveAsync(BootMinerKeyPair);
         currentRound.GenerateNextRoundInformation(expectedStartTime.ToTimestamp(), BlockchainStartTimestamp,
-            out var nextRound);
+            ByteString.CopyFrom(randomNumber), out var nextRound);
         await AEDPoSContractStub.NextRound.SendAsync(nextRound);
     }
 
