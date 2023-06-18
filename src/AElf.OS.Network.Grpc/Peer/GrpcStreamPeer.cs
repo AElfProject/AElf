@@ -54,6 +54,7 @@ public class GrpcStreamPeer : GrpcPeer
 
     public AsyncDuplexStreamingCall<StreamMessage, StreamMessage> BuildCall()
     {
+        if (_client == null) return null;
         _duplexStreamingCall = _client.RequestByStream(new CallOptions().WithDeadline(DateTime.MaxValue));
         _clientStreamWriter = _duplexStreamingCall.RequestStream;
         return _duplexStreamingCall;
@@ -351,5 +352,10 @@ public class GrpcStreamPeer : GrpcPeer
         }
 
         return new NetworkException(message, exception, type);
+    }
+
+    public override string ToString()
+    {
+        return $"{{ streamPeer listening-port: {RemoteEndpoint}, key: {Info.Pubkey.Substring(0, 45)}... }}";
     }
 }

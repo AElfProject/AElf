@@ -78,14 +78,14 @@ public class GrpcStreamBackPeer : GrpcStreamPeer
 
     public override Task<bool> TryRecoverAsync()
     {
-        return Task.FromResult(true);
+        return Task.FromResult(false);
     }
 
 
     public override NetworkException HandleRpcException(RpcException exception, string errorMessage)
     {
         var message = $"Failed request to {this}: {errorMessage}";
-        var type = NetworkExceptionType.Rpc;    
+        var type = NetworkExceptionType.Rpc;
         if (exception.StatusCode ==
             // there was an exception, not related to connectivity.
             StatusCode.Cancelled)
@@ -100,5 +100,10 @@ public class GrpcStreamBackPeer : GrpcStreamPeer
         }
 
         return new NetworkException(message, exception, type);
+    }
+
+    public override string ToString()
+    {
+        return $"{{ streamBackPeer listening-port: {RemoteEndpoint}, key: {Info.Pubkey.Substring(0, 45)}... }}";
     }
 }
