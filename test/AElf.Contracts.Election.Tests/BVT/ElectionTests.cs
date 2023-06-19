@@ -1902,21 +1902,21 @@ public partial class ElectionContractTests : ElectionContractTestBase
 
     #endregion
     
-    // [Fact]
-    // public async Task VirtualAddress_Vote_Test()
-    // {
-    //     var amount = 100;
-    //     const int lockTime = 100 * 60 * 60 * 24;
-    //     var candidatesKeyPairs = await ElectionContract_AnnounceElection_Test();
-    //     var candidateKeyPair = candidatesKeyPairs[0];
-    //     await TestVoteContractStub.VirtualAddressVote.SendAsync(new VirtualAddressVoteInput
-    //     {
-    //         PubKey = candidateKeyPair.PublicKey.ToHex(),
-    //         Amount = amount,
-    //         EndTimestamp = TimestampHelper.GetUtcNow().AddSeconds(lockTime),
-    //         Token = HashHelper.ComputeFrom("token A")
-    //     });
-    // }
+    [Fact]
+    public async Task VirtualAddress_Vote_Test()
+    {
+        var amount = 100;
+        const int lockTime = 100 * 60 * 60 * 24;
+        var candidatesKeyPairs = await ElectionContract_AnnounceElection_Test();
+        var candidateKeyPair = candidatesKeyPairs[0];
+        await TestVoteContractStub.VirtualAddressVote.SendAsync(new VirtualAddressVoteInput
+        {
+            PubKey = candidateKeyPair.PublicKey.ToHex(),
+            Amount = amount,
+            EndTimestamp = TimestampHelper.GetUtcNow().AddSeconds(lockTime),
+            Token = HashHelper.ComputeFrom("token A")
+        });
+    }
 
     [Fact]
     public async Task<Hash> Vote_Test()
