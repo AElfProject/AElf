@@ -25,23 +25,7 @@ public partial class TokenContract
         return CreateToken(input, SymbolType.Nft);
     }
 
-    private void ChargeCreateFees()
-    {
-        if (Context.Sender == Context.Origin) return;
-        if (IsAddressInCreateWhiteList(Context.Sender)) return;
-
-        var fee = GetCreateMethodFee();
-        Assert(fee != null, "not enough balance for create");
-        DoTransferFrom(Context.Sender, Context.Self, Context.Self, fee.Symbol, fee.BasicFee, "");
-
-        ModifyBalance(Context.Self, fee.Symbol, -fee.BasicFee);
-        Context.Fire(new TransactionFeeCharged()
-        {
-            Symbol = fee.Symbol,
-            Amount = fee.BasicFee,
-            ChargingAddress = Context.Self
-        });
-    }
+   
 
     private void DoTransferFrom(Address from, Address to, Address spender, string symbol, long amount, string memo)
     {
@@ -66,12 +50,7 @@ public partial class TokenContract
         State.Allowances[from][spender][symbol] = allowance.Sub(amount);
     }
 
-    private MethodFee GetCreateMethodFee()
-    {
-        var fee = State.TransactionFees[nameof(Create)];
-        if (fee == null || fee.Fees.Count <= 0) return new MethodFee { Symbol = Context.Variables.NativeSymbol, BasicFee = 10000_00000000 };
-        return fee.Fees.FirstOrDefault(f => GetBalance(Context.Sender, f.Symbol) >= f.BasicFee);
-    }
+    
 
     private string GetNftCollectionSymbol(string inputSymbol)
     {

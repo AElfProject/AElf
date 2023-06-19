@@ -47,20 +47,6 @@ public partial class TokenContract
                 IsSizeFeeFree = true
             };
         var fees = State.TransactionFees[input.Value];
-        if (input.Value == nameof(Create) && fees == null)
-            return new MethodFees
-            {
-                MethodName = input.Value,
-                Fees =
-                {
-                    new MethodFee
-                    {
-                        Symbol = Context.Variables.NativeSymbol,
-                        BasicFee = 10000_00000000
-                    }
-                }
-            };
-
         return fees;
     }
 
