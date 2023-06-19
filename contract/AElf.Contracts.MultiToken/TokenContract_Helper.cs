@@ -135,13 +135,13 @@ public partial class TokenContract
     private long GetFreeFeeAllowanceAmount(TransactionFeeFreeAllowancesMap transactionFeeFreeAllowancesMap, string symbol)
     {
         var allowance = 0L;
-        var map = transactionFeeFreeAllowancesMap?.Map;
+        var map = transactionFeeFreeAllowancesMap.Map;
 
         if (map == null) return allowance;
 
         foreach (var freeAllowances in map.Values)
         {
-            var freeAllowance = freeAllowances.Map.Values.FirstOrDefault(t => t.Symbol == symbol);
+            freeAllowances.Map.TryGetValue(symbol, out var freeAllowance);
 
             allowance = allowance.Add(freeAllowance?.Amount ?? 0L);
         }

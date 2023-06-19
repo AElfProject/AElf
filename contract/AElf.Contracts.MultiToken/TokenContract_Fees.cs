@@ -166,7 +166,8 @@ public partial class TokenContract
         // Try to charge delegatees
         // Get delegatee list according to the delegator
         var delegationInfo =
-            State.TransactionFeeDelegateInfoMap[delegatorAddress][input.ContractAddress][input.MethodName]?.Delegatees ?? 
+            State.TransactionFeeDelegateInfoMap[delegatorAddress][input.ContractAddress][input.MethodName]
+                ?.Delegatees ??
             State.TransactionFeeDelegateesMap[delegatorAddress]?.Delegatees;
 
         if (delegationInfo == null)
@@ -219,7 +220,7 @@ public partial class TokenContract
         foreach (var (symbol, amount) in allowanceBill.FreeFeeAllowancesMap)
         {
             if (amount <= 0) continue;
-            var delegateInfo = 
+            var delegateInfo =
                 State.TransactionFeeDelegateInfoMap[delegatorAddress][contractAddress][methodName] ??
                 State.TransactionFeeDelegateesMap[delegatorAddress];
             delegateInfo.Delegatees[delegateeAddress.ToBase58()].Delegations[symbol] =
@@ -298,7 +299,8 @@ public partial class TokenContract
 
         foreach (var symbol in config.Symbols)
         {
-            if (State.Balances[address][symbol] < State.TransactionFeeFreeAllowancesConfigMap[symbol].Threshold) continue;
+            if (State.Balances[address][symbol] <
+                State.TransactionFeeFreeAllowancesConfigMap[symbol].Threshold) continue;
             var lastRefreshTime = State.TransactionFeeFreeAllowancesLastRefreshTimes[address][symbol];
 
             if (lastRefreshTime != null && State.TransactionFeeFreeAllowancesConfigMap[symbol].RefreshSeconds >
@@ -325,12 +327,14 @@ public partial class TokenContract
     }
 
     private bool ChargeBaseFee(Dictionary<string, long> methodFeeMap, Address fromAddress, ref TransactionFeeBill bill,
-        TransactionFeeFreeAllowancesMap transactionFeeFreeAllowancesMap, ref TransactionFreeFeeAllowanceBill allowanceBill,
+        TransactionFeeFreeAllowancesMap transactionFeeFreeAllowancesMap,
+        ref TransactionFreeFeeAllowanceBill allowanceBill,
         TransactionFeeDelegations delegations = null)
     {
         // Fail to charge
         if (!ChargeFirstSufficientToken(methodFeeMap, fromAddress, out var symbolToChargeBaseFee,
-                out var amountToChargeBaseFee, out var existingBalance, out var existingAllowance, transactionFeeFreeAllowancesMap,
+                out var amountToChargeBaseFee, out var existingBalance, out var existingAllowance,
+                transactionFeeFreeAllowancesMap,
                 delegations))
         {
             Context.LogDebug(() => "Failed to charge first sufficient token.");
@@ -360,7 +364,8 @@ public partial class TokenContract
     }
 
     private bool ChargeSizeFee(ChargeTransactionFeesInput input, Address fromAddress, ref TransactionFeeBill bill,
-        TransactionFeeFreeAllowancesMap transactionFeeFreeAllowancesMap, ref TransactionFreeFeeAllowanceBill allowanceBill,
+        TransactionFeeFreeAllowancesMap transactionFeeFreeAllowancesMap,
+        ref TransactionFreeFeeAllowanceBill allowanceBill,
         TransactionFeeDelegations delegations = null)
     {
         //If delegation != null,from address->delegateeAddress
@@ -434,28 +439,23 @@ public partial class TokenContract
             ? GetBalance(fromAddress, symbolToPayTxFee).Sub(amountChargedForBaseFee)
             : GetBalance(fromAddress, symbolToPayTxFee);
         availableAllowance = symbolChargedForBaseFee == symbolToPayTxFee
-            ? GetFreeFeeAllowanceAmount(transactionFeeFreeAllowancesMap, symbolToPayTxFee).Sub(amountChargedForBaseAllowance)
+            ? GetFreeFeeAllowanceAmount(transactionFeeFreeAllowancesMap, symbolToPayTxFee)
+                .Sub(amountChargedForBaseAllowance)
             : GetFreeFeeAllowanceAmount(transactionFeeFreeAllowancesMap, symbolToPayTxFee);
     }
 
     private SymbolToPayTxSizeFee GetAvailableSymbolToPayTxFee(List<SymbolToPayTxSizeFee> allSymbolToTxFee,
         Address fromAddress, long txSizeFeeAmount, TransactionFeeFreeAllowancesMap transactionFeeFreeAllowancesMap,
-        string symbolChargedForBaseFee, long amountChargedForBaseFee, long amountChargedForBaseAllowance,
-        TransactionFeeDelegations delegations = null)
+        string symbolChargedForBaseFee, long amountChargedForBaseFee, long amountChargedForBaseAllowance, TransactionFeeDelegations delegations = null)
     {
         SymbolToPayTxSizeFee availableSymbol = null;
         SymbolToPayTxSizeFee availableSymbolWithAnything = null;
-        SymbolToPayTxSizeFee availableSymbolWithBalancePlusAllowanceEnoughToPayTxFee = null;
+        SymbolToPayTxSizeFee availableSymbolWithEnoughBalancePlusAllowance = null;
         SymbolToPayTxSizeFee availableSymbolWithBalancePlusAllowanceEnoughToPayTxFeeWithAllowance = null;
 
         // get 1st Allowance > size fee, else, get 1st Balance + Allowance > 0, else get 1st > 0
         foreach (var symbolToPlayTxSizeFee in allSymbolToTxFee)
         {
-            var allowance = GetAllowanceCalculatedBaseOnPrimaryToken(symbolToPlayTxSizeFee,
-                transactionFeeFreeAllowancesMap, symbolChargedForBaseFee, amountChargedForBaseAllowance);
-            var balancePlusAllowance = GetBalancePlusAllowanceCalculatedBaseOnPrimaryToken(fromAddress,
-                symbolToPlayTxSizeFee, symbolChargedForBaseFee, amountChargedForBaseFee,
-                transactionFeeFreeAllowancesMap, amountChargedForBaseAllowance);
             if (delegations != null)
             {
                 var delegationEnough = IsDelegationEnoughBaseOnPrimaryToken(symbolToPlayTxSizeFee,
@@ -463,7 +463,13 @@ public partial class TokenContract
                     txSizeFeeAmount, delegations);
                 if (!delegationEnough) break;
             }
-
+            
+            var allowance = GetAllowanceCalculatedBaseOnPrimaryToken(symbolToPlayTxSizeFee,
+                transactionFeeFreeAllowancesMap, symbolChargedForBaseFee, amountChargedForBaseAllowance);
+            var balancePlusAllowance = GetBalancePlusAllowanceCalculatedBaseOnPrimaryToken(fromAddress,
+                symbolToPlayTxSizeFee, symbolChargedForBaseFee, amountChargedForBaseFee,
+                transactionFeeFreeAllowancesMap, amountChargedForBaseAllowance);
+            
             if (allowance >= txSizeFeeAmount)
             {
                 availableSymbol = symbolToPlayTxSizeFee;
@@ -476,14 +482,14 @@ public partial class TokenContract
             }
 
             if (balancePlusAllowance < txSizeFeeAmount) continue;
-            availableSymbolWithBalancePlusAllowanceEnoughToPayTxFee ??= symbolToPlayTxSizeFee;
+            availableSymbolWithEnoughBalancePlusAllowance ??= symbolToPlayTxSizeFee;
 
             if (allowance <= 0) continue;
             availableSymbolWithBalancePlusAllowanceEnoughToPayTxFeeWithAllowance ??= symbolToPlayTxSizeFee;
         }
 
         availableSymbol ??= availableSymbolWithBalancePlusAllowanceEnoughToPayTxFeeWithAllowance ??
-                            availableSymbolWithBalancePlusAllowanceEnoughToPayTxFee ?? availableSymbolWithAnything;
+                            availableSymbolWithEnoughBalancePlusAllowance ?? availableSymbolWithAnything;
 
         return availableSymbol;
     }
@@ -692,9 +698,10 @@ public partial class TokenContract
             return chargeResult;
         }
 
-        chargeResult = TryToChargeUserBaseFee(symbolToAmountMap, fromAddress, transactionFeeFreeAllowancesMap, out amount,
+        chargeResult = TryToChargeUserBaseFee(symbolToAmountMap, fromAddress, transactionFeeFreeAllowancesMap,
+            out amount,
             out symbol, out existingBalance, out existingAllowance);
-        
+
         if (symbol != null)
         {
             existingBalance = GetBalance(fromAddress, symbol);
@@ -717,12 +724,13 @@ public partial class TokenContract
     }
 
     private bool TryToChargeUserBaseFee(Dictionary<string, long> symbolToAmountMap, Address fromAddress,
-        TransactionFeeFreeAllowancesMap transactionFeeFreeAllowancesMap, out long amount, out string symbolOfValidBalance,
+        TransactionFeeFreeAllowancesMap transactionFeeFreeAllowancesMap, out long amount,
+        out string symbolOfValidBalance,
         out long existingBalance, out long existingAllowance)
     {
         symbolOfValidBalance = null;
         string symbolWithAnything = null;
-        string symbolWithBalancePlusAllowanceEnoughToPayTxFee = null;
+        string symbolWithEnoughBalancePlusAllowance = null;
         string symbolWithBalancePlusAllowanceEnoughToPayTxFeeWithAllowance = null;
 
         amount = 0;
@@ -747,13 +755,13 @@ public partial class TokenContract
             symbolWithAnything ??= symbol;
 
             if (existingBalance.Add(existingAllowance) < amount) continue;
-            symbolWithBalancePlusAllowanceEnoughToPayTxFee ??= symbol;
+            symbolWithEnoughBalancePlusAllowance ??= symbol;
 
             if (existingAllowance <= 0) continue;
             symbolWithBalancePlusAllowanceEnoughToPayTxFeeWithAllowance ??= symbol;
         }
 
-        if (symbolWithBalancePlusAllowanceEnoughToPayTxFee == null)
+        if (symbolWithEnoughBalancePlusAllowance == null)
         {
             symbolOfValidBalance = symbolWithAnything;
 
@@ -761,7 +769,7 @@ public partial class TokenContract
         }
 
         symbolOfValidBalance = symbolWithBalancePlusAllowanceEnoughToPayTxFeeWithAllowance ??
-                               symbolWithBalancePlusAllowanceEnoughToPayTxFee;
+                               symbolWithEnoughBalancePlusAllowance;
 
         return true;
     }
@@ -785,7 +793,8 @@ public partial class TokenContract
             existingAllowance = GetFreeFeeAllowanceAmount(transactionFeeFreeAllowancesMap, symbol);
             // is unlimited delegate is true || is unlimited delegate is false and delegation is enough
             if (delegations.IsUnlimitedDelegate || (!delegations.IsUnlimitedDelegate &&
-              delegations.Delegations.ContainsKey(symbol) && delegations.Delegations[symbol] >= amount))
+                                                    delegations.Delegations.ContainsKey(symbol) &&
+                                                    delegations.Delegations[symbol] >= amount))
             {
                 //If allowance is enough,return true
                 if (existingAllowance >= amount)
@@ -1163,7 +1172,8 @@ public partial class TokenContract
         {
             ValidateToken(allowances.Symbol);
             Assert(
-                allowances.TransactionFeeFreeAllowances?.Value != null && allowances.TransactionFeeFreeAllowances.Value.Count > 0,
+                allowances.TransactionFeeFreeAllowances?.Value != null &&
+                allowances.TransactionFeeFreeAllowances.Value.Count > 0,
                 "Invalid input allowances");
             Assert(allowances.Threshold >= 0, "Invalid input threshold");
             Assert(allowances.RefreshSeconds >= 0, "Invalid input refresh seconds");
@@ -1258,12 +1268,9 @@ public partial class TokenContract
 
             if (freeAllowances == null)
             {
-                if (balance >= State.TransactionFeeFreeAllowancesConfigMap[symbol].Threshold)
-                {
-                    transactionFeeFreeAllowancesMap.Map.Add(symbol,
-                        State.TransactionFeeFreeAllowancesConfigMap[symbol].FreeAllowances.Clone());
-                    continue;
-                }
+                transactionFeeFreeAllowancesMap.Map.Add(symbol,
+                    State.TransactionFeeFreeAllowancesConfigMap[symbol].FreeAllowances.Clone());
+                continue;
             }
 
             if (lastRefreshTime == null)
