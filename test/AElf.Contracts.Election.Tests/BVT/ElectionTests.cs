@@ -6,6 +6,7 @@ using AElf.Contracts.Economic.TestBase;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Parliament;
 using AElf.Contracts.Profit;
+using AElf.Contracts.TestContract.TestVote;
 using AElf.Contracts.Vote;
 using AElf.Cryptography.ECDSA;
 using AElf.CSharp.Core;
@@ -1900,4 +1901,88 @@ public partial class ElectionContractTests : ElectionContractTestBase
     }
 
     #endregion
+    
+    // [Fact]
+    // public async Task VirtualAddress_Vote_Test()
+    // {
+    //     var amount = 100;
+    //     const int lockTime = 100 * 60 * 60 * 24;
+    //     var candidatesKeyPairs = await ElectionContract_AnnounceElection_Test();
+    //     var candidateKeyPair = candidatesKeyPairs[0];
+    //     await TestVoteContractStub.VirtualAddressVote.SendAsync(new VirtualAddressVoteInput
+    //     {
+    //         PubKey = candidateKeyPair.PublicKey.ToHex(),
+    //         Amount = amount,
+    //         EndTimestamp = TimestampHelper.GetUtcNow().AddSeconds(lockTime),
+    //         Token = HashHelper.ComputeFrom("token A")
+    //     });
+    // }
+
+    [Fact]
+    public async Task<Hash> Vote_Test()
+    {
+        var amount = 100;
+        const int lockTime = 100 * 60 * 60 * 24;
+        var candidatesKeyPairs = await ElectionContract_AnnounceElection_Test();
+        var candidateKeyPair = candidatesKeyPairs[0];
+        
+        var voteRet = await ElectionContractStub.Vote.SendAsync(new VoteMinerInput
+        {
+            CandidatePubkey = candidateKeyPair.PublicKey.ToHex(),
+            Amount = amount,
+            EndTimestamp = TimestampHelper.GetUtcNow().AddSeconds(lockTime),
+            Token = HashHelper.ComputeFrom("token A")
+        });
+        voteRet.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+        var result = await ElectionContractStub.GetElectorVote.CallAsync(new StringValue
+        {
+            Value = BootMinerKeyPair.PublicKey.ToHex()
+        });
+        result.ActiveVotedVotesAmount.ShouldBe(amount);
+        result = await ElectionContractStub.GetElectorVoteWithRecords.CallAsync(new StringValue
+        {
+            Value = BootMinerKeyPair.PublicKey.ToHex()
+        });
+        result.ActiveVotedVotesAmount.ShouldBe(amount);
+        result = await ElectionContractStub.GetElectorVoteWithAllRecords.CallAsync(new StringValue
+        {
+            Value = BootMinerKeyPair.PublicKey.ToHex()
+        });
+        result.AllVotedVotesAmount.ShouldBe(amount);
+
+        return result.ActiveVotingRecords.First().VoteId;
+    }
+
+    [Fact]
+    public async Task Withdraw_Test()
+    {
+        var voteId = await Vote_Test();
+
+        BlockTimeProvider.SetBlockTime(TimestampHelper.GetUtcNow().AddDays(101));
+        
+        await ElectionContractStub.Withdraw.SendAsync(new Hash
+        {
+            Value = voteId.Value
+        });
+        
+        var result = await ElectionContractStub.GetElectorVote.CallAsync(new StringValue
+        {
+            Value = BootMinerKeyPair.PublicKey.ToHex()
+        });
+        result.ActiveVotedVotesAmount.ShouldBe(0);
+        result = await ElectionContractStub.GetElectorVoteWithRecords.CallAsync(new StringValue
+        {
+            Value = BootMinerKeyPair.PublicKey.ToHex()
+        });
+        result.ActiveVotedVotesAmount.ShouldBe(0);
+        result = await ElectionContractStub.GetElectorVoteWithAllRecords.CallAsync(new StringValue
+        {
+            Value = BootMinerKeyPair.PublicKey.ToHex()
+        });
+
+        result.ActiveVotedVotesAmount.ShouldBe(0);
+        result.WithdrawnVotesRecords.Count().ShouldBe(1);
+        result.AllVotedVotesAmount.ShouldBe(100);
+    }
 }

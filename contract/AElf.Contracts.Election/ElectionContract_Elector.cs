@@ -506,7 +506,6 @@ public partial class ElectionContract
             voterVotes = new ElectorVote
             {
                 Address = Context.Sender,
-                Pubkey = recoveredPublicKey != null ? ByteString.CopyFrom(recoveredPublicKey) : null,
                 ActiveVotingRecordIds = { voteId },
                 ActiveVotedVotesAmount = amount,
                 AllVotedVotesAmount = amount
