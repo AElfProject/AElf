@@ -55,7 +55,8 @@ public class GrpcStreamPeer : GrpcPeer
     public AsyncDuplexStreamingCall<StreamMessage, StreamMessage> BuildCall()
     {
         if (_client == null) return null;
-        _duplexStreamingCall = _client.RequestByStream(new CallOptions().WithDeadline(DateTime.MaxValue));
+        var headers = new Metadata { new(GrpcConstants.GrpcRequestCompressKey, GrpcConstants.GrpcGzipConst) };
+        _duplexStreamingCall = _client.RequestByStream(new CallOptions().WithHeaders(headers).WithDeadline(DateTime.MaxValue));
         _clientStreamWriter = _duplexStreamingCall.RequestStream;
         return _duplexStreamingCall;
     }
@@ -206,7 +207,8 @@ public class GrpcStreamPeer : GrpcPeer
         {
             if (job.StreamMessage == null) return;
             Logger.LogDebug("write request={requestId} {streamType}-{messageType}", job.StreamMessage.RequestId, job.StreamMessage.StreamType, job.StreamMessage.MessageType);
-
+            if (!(job.StreamMessage.StreamType == StreamType.Reply && job.StreamMessage.MessageType == MessageType.RequestBlocks))
+                _clientStreamWriter.WriteOptions = new WriteOptions(WriteFlags.NoCompress);
             await _clientStreamWriter.WriteAsync(job.StreamMessage);
         }
         catch (RpcException ex)
