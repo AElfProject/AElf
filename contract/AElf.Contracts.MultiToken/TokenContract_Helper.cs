@@ -143,8 +143,15 @@ public partial class TokenContract
 
     private void RegisterTokenInfo(TokenInfo tokenInfo)
     {
+        var symbols = tokenInfo.Symbol.Split(TokenContractConstants.NFTSymbolSeparator);
+        var duplicatedToken = State.TokenInfos[symbols.First()];
+        var empty = new TokenInfo();
+        Assert( duplicatedToken == null || duplicatedToken.Equals(empty),"Token name prefix can not be duplicated");
+        var duplicatedNftCollection = State.TokenInfos[symbols.First() + TokenContractConstants.NFTSymbolSeparator + TokenContractConstants.CollectionId];
+        Assert( duplicatedNftCollection == null ||duplicatedNftCollection.Equals(empty),"Token name prefix can not be duplicated");
+
         var existing = State.TokenInfos[tokenInfo.Symbol];
-        Assert(existing == null || existing.Equals(new TokenInfo()), "Token already exists.");
+        Assert(existing == null || existing.Equals(empty), "Token already exists.");
         Assert(!string.IsNullOrEmpty(tokenInfo.Symbol) && tokenInfo.Symbol.All(IsValidSymbolChar),
             "Invalid symbol.");
         Assert(!string.IsNullOrEmpty(tokenInfo.TokenName), "Token name can neither be null nor empty.");
