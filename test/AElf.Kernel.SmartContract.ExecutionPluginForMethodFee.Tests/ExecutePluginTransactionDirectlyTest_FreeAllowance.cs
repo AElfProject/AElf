@@ -1535,6 +1535,7 @@ public partial class ExecutePluginTransactionDirectlyTest
     [InlineData(10000, 10000, 1000, 0, Token1, 1000, NativeTokenSymbol, 1000, 600, 100, Token1, 1000, NativeTokenSymbol, 1000, 300, 100, 0, 0, 0, 0, 0, 10000, 0, 0, 3000, 5, 3, NativeTokenSymbol, 15000, USDT, 20000, false)]
     // case 33
     [InlineData(5000, 10000, 0, 0, Token1, 1000, Token1, 1000, 600, 100, Token2, 1000, Token2, 1000, 300, 100, 0, 0, 1000, 1000, 0, 8000, 0, 0, 10000, 1, 5, USDT, 2000, NativeTokenSymbol, 0, false)]
+    [InlineData(2000, 0, 0, 0, Token1, 0, NativeTokenSymbol, 0, 0, 10000, Token2, 0, Token2, 0, 0, 10000, 0, 0, 0, 0, 500, 0, 0, 0, 0, 1, 1, NativeTokenSymbol, 1500, USDT, 100, true)]
     public async Task ChargeTransactionFee_MultipleTxFeeTokens_Test(long initialELFBalance, long initialUSDTBalance,
         long initialToken1Balance, long initialToken2Balance, string firstFreeSymbolELF, long firstFreeAmountELF,
         string secondFreeSymbolELF, long secondFreeAmountELF, long refreshSecondsELF, long thresholdELF,
