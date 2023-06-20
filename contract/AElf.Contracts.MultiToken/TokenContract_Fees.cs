@@ -446,12 +446,13 @@ public partial class TokenContract
 
     private SymbolToPayTxSizeFee GetAvailableSymbolToPayTxFee(List<SymbolToPayTxSizeFee> allSymbolToTxFee,
         Address fromAddress, long txSizeFeeAmount, TransactionFeeFreeAllowancesMap transactionFeeFreeAllowancesMap,
-        string symbolChargedForBaseFee, long amountChargedForBaseFee, long amountChargedForBaseAllowance, TransactionFeeDelegations delegations = null)
+        string symbolChargedForBaseFee, long amountChargedForBaseFee, long amountChargedForBaseAllowance,
+        TransactionFeeDelegations delegations = null)
     {
         SymbolToPayTxSizeFee availableSymbol = null;
         SymbolToPayTxSizeFee availableSymbolWithAnything = null;
+        SymbolToPayTxSizeFee availableSymbolWithEnoughBalance = null;
         SymbolToPayTxSizeFee availableSymbolWithEnoughBalancePlusAllowance = null;
-        SymbolToPayTxSizeFee availableSymbolWithBalancePlusAllowanceEnoughToPayTxFeeWithAllowance = null;
 
         // get 1st Allowance > size fee, else, get 1st Balance + Allowance > 0, else get 1st > 0
         foreach (var symbolToPlayTxSizeFee in allSymbolToTxFee)
@@ -463,13 +464,14 @@ public partial class TokenContract
                     txSizeFeeAmount, delegations);
                 if (!delegationEnough) break;
             }
-            
+
             var allowance = GetAllowanceCalculatedBaseOnPrimaryToken(symbolToPlayTxSizeFee,
                 transactionFeeFreeAllowancesMap, symbolChargedForBaseFee, amountChargedForBaseAllowance);
-            var balancePlusAllowance = GetBalancePlusAllowanceCalculatedBaseOnPrimaryToken(fromAddress,
-                symbolToPlayTxSizeFee, symbolChargedForBaseFee, amountChargedForBaseFee,
-                transactionFeeFreeAllowancesMap, amountChargedForBaseAllowance);
+            var balance = GetBalanceCalculatedBaseOnPrimaryToken(fromAddress, symbolToPlayTxSizeFee,
+                symbolChargedForBaseFee, amountChargedForBaseFee);
             
+            var balancePlusAllowance = balance.Add(allowance);
+
             if (allowance >= txSizeFeeAmount)
             {
                 availableSymbol = symbolToPlayTxSizeFee;
@@ -482,14 +484,19 @@ public partial class TokenContract
             }
 
             if (balancePlusAllowance < txSizeFeeAmount) continue;
-            availableSymbolWithEnoughBalancePlusAllowance ??= symbolToPlayTxSizeFee;
 
-            if (allowance <= 0) continue;
-            availableSymbolWithBalancePlusAllowanceEnoughToPayTxFeeWithAllowance ??= symbolToPlayTxSizeFee;
+            if (allowance > 0)
+            {
+                availableSymbolWithEnoughBalancePlusAllowance ??= symbolToPlayTxSizeFee;
+            }
+            else
+            {
+                availableSymbolWithEnoughBalance ??= symbolToPlayTxSizeFee;
+            }
         }
 
-        availableSymbol ??= availableSymbolWithBalancePlusAllowanceEnoughToPayTxFeeWithAllowance ??
-                            availableSymbolWithEnoughBalancePlusAllowance ?? availableSymbolWithAnything;
+        availableSymbol ??= availableSymbolWithEnoughBalancePlusAllowance ??
+                            availableSymbolWithEnoughBalance ?? availableSymbolWithAnything;
 
         return availableSymbol;
     }
@@ -725,13 +732,12 @@ public partial class TokenContract
 
     private bool TryToChargeUserBaseFee(Dictionary<string, long> symbolToAmountMap, Address fromAddress,
         TransactionFeeFreeAllowancesMap transactionFeeFreeAllowancesMap, out long amount,
-        out string symbolOfValidBalance,
-        out long existingBalance, out long existingAllowance)
+        out string symbolOfValidBalance, out long existingBalance, out long existingAllowance)
     {
         symbolOfValidBalance = null;
         string symbolWithAnything = null;
+        string symbolWithEnoughBalance = null;
         string symbolWithEnoughBalancePlusAllowance = null;
-        string symbolWithBalancePlusAllowanceEnoughToPayTxFeeWithAllowance = null;
 
         amount = 0;
         existingBalance = 0;
@@ -755,21 +761,25 @@ public partial class TokenContract
             symbolWithAnything ??= symbol;
 
             if (existingBalance.Add(existingAllowance) < amount) continue;
-            symbolWithEnoughBalancePlusAllowance ??= symbol;
 
-            if (existingAllowance <= 0) continue;
-            symbolWithBalancePlusAllowanceEnoughToPayTxFeeWithAllowance ??= symbol;
+            if (existingAllowance > 0)
+            {
+                symbolWithEnoughBalancePlusAllowance ??= symbol;
+            }
+            else
+            {
+                symbolWithEnoughBalance ??= symbol;
+            }
         }
 
-        if (symbolWithEnoughBalancePlusAllowance == null)
+        if (symbolWithEnoughBalancePlusAllowance == null && symbolWithEnoughBalance == null)
         {
             symbolOfValidBalance = symbolWithAnything;
 
             return false;
         }
 
-        symbolOfValidBalance = symbolWithBalancePlusAllowanceEnoughToPayTxFeeWithAllowance ??
-                               symbolWithEnoughBalancePlusAllowance;
+        symbolOfValidBalance = symbolWithEnoughBalancePlusAllowance ?? symbolWithEnoughBalance;
 
         return true;
     }
@@ -782,8 +792,8 @@ public partial class TokenContract
         amount = 0;
         existingBalance = 0;
         existingAllowance = 0;
-        string symbolWithBalancePlusAllowanceEnoughToPayTxFee = null;
-        string symbolWithBalancePlusAllowanceEnoughToPayTxFeeWithAllowance = null;
+        string symbolWithEnoughBalance = null;
+        string symbolWithEnoughBalancePlusAllowance = null;
         //Find the token that satisfies the delegate limit and satisfies the balance of the fee
         foreach (var (symbol, value) in symbolToAmountMap)
         {
@@ -805,15 +815,20 @@ public partial class TokenContract
 
                 //Find symbol which balance+allowance >= amount
                 if (existingBalance.Add(existingAllowance) < amount) continue;
-                symbolWithBalancePlusAllowanceEnoughToPayTxFee ??= symbol;
-                //If balance+allowance is enough,priority find the symbol which allowance > 0
-                if (existingAllowance <= 0) continue;
-                symbolWithBalancePlusAllowanceEnoughToPayTxFeeWithAllowance ??= symbol;
+
+                if (existingAllowance > 0)
+                {
+                    //If balance+allowance is enough,priority find the symbol which allowance > 0
+                    symbolWithEnoughBalancePlusAllowance ??= symbol;
+                }
+                else
+                {
+                    symbolWithEnoughBalance ??= symbol;
+                }
             }
         }
 
-        symbolOfValidBalance = symbolWithBalancePlusAllowanceEnoughToPayTxFeeWithAllowance ??
-                               symbolWithBalancePlusAllowanceEnoughToPayTxFee;
+        symbolOfValidBalance = symbolWithEnoughBalancePlusAllowance ?? symbolWithEnoughBalance;
 
         return symbolOfValidBalance != null;
     }

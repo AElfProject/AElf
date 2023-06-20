@@ -27,8 +27,7 @@ public partial class TokenContract
                     {
                         GetPath(nameof(TokenContractState.TokenInfos), args.Symbol),
                         GetPath(nameof(TokenContractState.ChainPrimaryTokenSymbol)),
-                        GetPath(nameof(TokenContractState.TransactionFeeFreeAllowancesSymbolList)),
-                        GetPath(nameof(TokenContractState.TransactionFeeFreeAllowancesConfigMap))
+                        GetPath(nameof(TokenContractState.TransactionFeeFreeAllowancesSymbolList))
                     }
                 };
                 AddPathForTransactionFee(resourceInfo, txn.From.ToString());
@@ -55,8 +54,7 @@ public partial class TokenContract
                     {
                         GetPath(nameof(TokenContractState.TokenInfos), args.Symbol),
                         GetPath(nameof(TokenContractState.ChainPrimaryTokenSymbol)),
-                        GetPath(nameof(TokenContractState.TransactionFeeFreeAllowancesSymbolList)),
-                        GetPath(nameof(TokenContractState.TransactionFeeFreeAllowancesConfigMap))
+                        GetPath(nameof(TokenContractState.TransactionFeeFreeAllowancesSymbolList))
                     }
                 };
                 AddPathForTransactionFee(resourceInfo, txn.From.ToString());
@@ -71,7 +69,7 @@ public partial class TokenContract
         }
     }
 
-    private void AddPathForTransactionFee(ResourceInfo resourceInfo, String from)
+    private void AddPathForTransactionFee(ResourceInfo resourceInfo, string from)
     {
         var symbols = GetMethodFeeSymbols();
         var primaryTokenSymbol = GetPrimaryTokenSymbol(new Empty()).Value;
@@ -110,6 +108,7 @@ public partial class TokenContract
                 if (delegations == null) return;
                 var add = Address.FromBase58(delegations).ToString();
                 AddPathForTransactionFee(resourceInfo, add);
+                AddPathForTransactionFeeFreeAllowance(resourceInfo, Address.FromBase58(delegations));
                 resourceInfo.WritePaths.Add(GetPath(nameof(TokenContractState.TransactionFeeFreeAllowances), add, symbol));
                 resourceInfo.WritePaths.Add(GetPath(nameof(TokenContractState.TransactionFeeFreeAllowancesLastRefreshTimes), add, symbol));
             }
@@ -125,6 +124,7 @@ public partial class TokenContract
             {
                 resourceInfo.WritePaths.Add(GetPath(nameof(TokenContractState.TransactionFeeFreeAllowances), from.ToBase58(), symbol));
                 resourceInfo.WritePaths.Add(GetPath(nameof(TokenContractState.TransactionFeeFreeAllowancesLastRefreshTimes), from.ToBase58(), symbol));
+                resourceInfo.ReadPaths.Add(GetPath(nameof(TokenContractState.TransactionFeeFreeAllowancesConfigMap), symbol));
             }
         }
     }
