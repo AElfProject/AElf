@@ -830,6 +830,13 @@ public partial class TokenContract
 
         symbolOfValidBalance = symbolWithEnoughBalancePlusAllowance ?? symbolWithEnoughBalance;
 
+        if (symbolOfValidBalance != null)
+        {
+            existingBalance = GetBalance(fromAddress, symbolOfValidBalance);
+            existingAllowance = GetFreeFeeAllowanceAmount(transactionFeeFreeAllowancesMap, symbolOfValidBalance);
+            amount = symbolToAmountMap[symbolOfValidBalance];
+        }
+         
         return symbolOfValidBalance != null;
     }
 
