@@ -22,6 +22,7 @@ public partial class TokenContract
     /// <returns></returns>
     public override ChargeTransactionFeesOutput ChargeTransactionFees(ChargeTransactionFeesInput input)
     {
+        Context.LogDebug(() => "ChargeTransactionFees Start");
         AssertPermissionAndInput(input);
         // Primary token not created yet.
         if (State.ChainPrimaryTokenSymbol.Value == null)
@@ -83,6 +84,7 @@ public partial class TokenContract
         TransactionFeeBill bill, TransactionFreeFeeAllowanceBill allowanceBill, Dictionary<string, long> fee,
         bool isSizeFeeFree)
     {
+        Context.LogDebug(() => "TryToChargeTransactionFee Start");
         var chargingResult =
             ChargeTransactionFeesToBill(input, fromAddress, ref bill, ref allowanceBill, fee, isSizeFeeFree);
         if (!chargingResult)
@@ -116,6 +118,9 @@ public partial class TokenContract
         var chargingOutput = new ChargeTransactionFeesOutput { Success = chargingResult };
         if (!chargingResult)
             chargingOutput.ChargingInformation = "Transaction fee not enough.";
+        
+        Context.LogDebug(() => "TryToChargeTransactionFee End");
+        Context.LogDebug(() => "ChargeTransactionFees End");
         return chargingOutput;
     }
 
@@ -331,6 +336,7 @@ public partial class TokenContract
         ref TransactionFreeFeeAllowanceBill allowanceBill,
         TransactionFeeDelegations delegations = null)
     {
+        Context.LogDebug(() => "ChargeBaseFee Start");
         // Fail to charge
         if (!ChargeFirstSufficientToken(methodFeeMap, fromAddress, out var symbolToChargeBaseFee,
                 out var amountToChargeBaseFee, out var existingBalance, out var existingAllowance,
@@ -360,6 +366,7 @@ public partial class TokenContract
             bill.FeesMap.Add(symbolToChargeBaseFee, amountToChargeBaseFee.Sub(existingAllowance));
         }
 
+        Context.LogDebug(() => "ChargeBaseFee End");
         return true;
     }
 
@@ -368,6 +375,7 @@ public partial class TokenContract
         ref TransactionFreeFeeAllowanceBill allowanceBill,
         TransactionFeeDelegations delegations = null)
     {
+        Context.LogDebug(() => "ChargeSizeFee Start");
         //If delegation != null,from address->delegateeAddress
         // Size Fee is charged in primary token, elf.
         var symbolToPayTxFee = State.ChainPrimaryTokenSymbol.Value;
@@ -415,6 +423,8 @@ public partial class TokenContract
 
         GenerateBill(txSizeFeeAmount, symbolToPayTxFee, symbolChargedForBaseFee, availableBalance, availableAllowance,
             ref bill, ref allowanceBill);
+        
+        Context.LogDebug(() => "ChargeSizeFee End");
         return chargeResult;
     }
 
