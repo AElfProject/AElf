@@ -265,4 +265,13 @@ public partial class TokenContract
                 NonIndexed = input.ToByteString()
             });
     }
+
+    private Address GetElectionContractAddress()
+    {
+        if (State.ElectionContractAddress.Value == null)
+            State.ElectionContractAddress.Value =
+                Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName);
+        
+        return State.ElectionContractAddress.Value;
+    }
 }

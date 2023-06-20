@@ -1,5 +1,6 @@
 ﻿using AElf.Contracts.Election;
 using AElf.Sdk.CSharp;
+using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.TestContract.TestVote;
@@ -21,9 +22,26 @@ public class Action : TestVoteContractContainer.TestVoteContractBase
         return new Empty();
     }
     
+    public override Empty VirtualAddressWithdraw(Hash input)
+    {
+        Initialize();
+
+        Context.SendVirtualInline(HashHelper.ComputeFrom("test"), State.ElectionContract.Value, "Withdraw", input);
+
+        return new Empty();
+    }
+
+    public override Address GetVirtualAddress(Empty input)
+    {
+        return Context.ConvertVirtualAddressToContractAddress(HashHelper.ComputeFrom("test"));
+    }
+
     private void Initialize()
     {
-        State.ElectionContract.Value =
-            Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName);
+        if (State.ElectionContract.Value == null)
+        {
+            State.ElectionContract.Value =
+                Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName);
+        }
     }
 }

@@ -14,6 +14,11 @@ service TestVoteContract {
   option (aelf.base) = "acs1.proto";
   
   rpc VirtualAddressVote(VirtualAddressVoteInput) returns (google.protobuf.Empty);
+  rpc VirtualAddressWithdraw(aelf.Hash) returns (google.protobuf.Empty);
+  
+  rpc GetVirtualAddress(google.protobuf.Empty) returns (aelf.Address) {
+    option (aelf.is_view) = true;
+  }
 }
 
 message VirtualAddressVoteInput {
