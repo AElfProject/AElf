@@ -706,13 +706,13 @@ public partial class TokenContract
         }
 
         chargeResult = TryToChargeUserBaseFee(symbolToAmountMap, fromAddress, transactionFeeFreeAllowancesMap,
-            out amount,
-            out symbol, out existingBalance, out existingAllowance);
+            out amount, out symbol, out existingBalance, out existingAllowance);
 
         if (symbol != null)
         {
             existingBalance = GetBalance(fromAddress, symbol);
             existingAllowance = GetFreeFeeAllowanceAmount(transactionFeeFreeAllowancesMap, symbol);
+            amount = symbolToAmountMap[symbol];
         }
 
         //For user, if charge failed and delegation is null, priority charge primary token

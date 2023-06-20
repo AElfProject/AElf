@@ -151,9 +151,9 @@ public class ExecutionPluginForUserContractContractMethodFeeTest : ExecutionPlug
     }
 
     [Theory]
-    [InlineData(100000000, 0, 3, 10, 1, 2, "ELF", 20135002, true)]
+    [InlineData(100000000, 0, 3, 10, 1, 2, "ELF", 20135010, true)]
     [InlineData(9, 0, 1, 10, 1, 2, "ELF", 9, false)]
-    [InlineData(100000000, 2, 2, 0, 1, 2, "TSA", 2, true)]
+    [InlineData(100000000, 2, 2, 0, 1, 2, "TSA", 1, true)]
     [InlineData(100000000, 2, 2, 0, 13, 2, "TSB", 2, true)]
     [InlineData(100000000, 2, 2, 0, 20, 20, "TSA", 2, false)]
     [InlineData(1, 0, 1, 0, 1, 2, "TSB", 1, false)]

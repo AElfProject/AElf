@@ -1557,7 +1557,8 @@ public partial class ExecutePluginTransactionDirectlyTest
         await IssueTokenToDefaultSenderAsync(Token2, initialToken2Balance);
 
         await SubmitAndPassProposalOfDefaultParliamentAsync(TokenContractAddress,
-            nameof(TokenContractImplStub.ConfigTransactionFeeFreeAllowances), new ConfigTransactionFeeFreeAllowancesInput
+            nameof(TokenContractImplStub.ConfigTransactionFeeFreeAllowances),
+            new ConfigTransactionFeeFreeAllowancesInput
             {
                 Value =
                 {
@@ -1629,7 +1630,7 @@ public partial class ExecutePluginTransactionDirectlyTest
                 BasicFee = secondBaseFeeAmount
             });
         }
-        
+
         await SubmitAndPassProposalOfDefaultParliamentAsync(TokenContractAddress,
             nameof(TokenContractImplContainer.TokenContractImplStub.SetMethodFee), methodFee);
 
@@ -1673,7 +1674,7 @@ public partial class ExecutePluginTransactionDirectlyTest
             freeAllowances.Map.Values.Last().Map.Keys.First().ShouldBe(firstFreeSymbolUSDT);
             freeAllowances.Map.Values.Last().Map.Values.First().Symbol.ShouldBe(firstFreeSymbolUSDT);
             freeAllowances.Map.Values.Last().Map.Values.First().Amount.ShouldBe(firstFreeAmountUSDT);
-            
+
             freeAllowances.Map.Values.Last().Map.Keys.Last().ShouldBe(secondFreeSymbolUSDT);
             freeAllowances.Map.Values.Last().Map.Values.Last().Symbol.ShouldBe(secondFreeSymbolUSDT);
             freeAllowances.Map.Values.Last().Map.Values.Last().Amount.ShouldBe(secondFreeAmountUSDT);
@@ -1686,7 +1687,7 @@ public partial class ExecutePluginTransactionDirectlyTest
             TransactionSizeFee = sizeFee,
         };
         chargeTransactionFeesInput.SymbolsToPayTxSizeFee.AddRange(sizeFeeSymbolList.SymbolsToPayTxSizeFee);
-        
+
         var chargeFeeRet = await TokenContractStub.ChargeTransactionFees.SendAsync(chargeTransactionFeesInput);
         chargeFeeRet.Output.Success.ShouldBe(chargeFeeResult);
 
@@ -1709,7 +1710,7 @@ public partial class ExecutePluginTransactionDirectlyTest
             freeAllowances.Map.Values.Last().Map.Keys.First().ShouldBe(firstFreeSymbolUSDT);
             freeAllowances.Map.Values.Last().Map.Values.First().Symbol.ShouldBe(firstFreeSymbolUSDT);
             freeAllowances.Map.Values.Last().Map.Values.First().Amount.ShouldBe(newFirstFreeAmountUSDT);
-            
+
             freeAllowances.Map.Values.Last().Map.Keys.Last().ShouldBe(secondFreeSymbolUSDT);
             freeAllowances.Map.Values.Last().Map.Values.Last().Symbol.ShouldBe(secondFreeSymbolUSDT);
             freeAllowances.Map.Values.Last().Map.Values.Last().Amount.ShouldBe(newSecondFreeAmountUSDT);
