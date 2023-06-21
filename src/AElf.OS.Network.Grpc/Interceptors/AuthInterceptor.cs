@@ -72,7 +72,8 @@ public class AuthInterceptor : Interceptor
     private bool IsNeedAuth(string methodName)
     {
         return methodName != GetFullMethodName(nameof(PeerService.PeerServiceBase.Ping)) &&
-               methodName != GetFullMethodName(nameof(PeerService.PeerServiceBase.DoHandshake));
+               methodName != GetFullMethodName(nameof(PeerService.PeerServiceBase.DoHandshake)) &&
+               methodName != GetFullMethodName(nameof(PeerService.PeerServiceBase.RequestByStream));//we can not read stream sessionId here so we auth it in Stream service
     }
 
     private string GetFullMethodName(string methodName)
