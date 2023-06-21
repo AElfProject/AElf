@@ -22,6 +22,15 @@ public partial class TokenContract
         input.IssueChainId = input.IssueChainId == 0 ? nftCollectionInfo.IssueChainId : input.IssueChainId;
         Assert(input.IssueChainId == nftCollectionInfo.IssueChainId, "NFT create ChainId must be collection's issue chainId");
         Assert(Context.Sender == nftCollectionInfo.Issuer && nftCollectionInfo.Issuer == input.Issuer, "NFT issuer must be collection's issuer");
+        if (nftCollectionInfo.Symbol == TokenContractConstants.SeedCollectionId)
+        {
+            input.ExternalInfo.Value.TryGetValue("__seed_owned_symbol",out var ownerSymbol);
+            input.ExternalInfo.Value.TryGetValue("__seed_exp_time",out var expirationTime);
+            Assert(!string.IsNullOrEmpty(ownerSymbol) && State.TokenInfos[ownerSymbol] == null,"seed_owned_symbol is empty ");
+            Assert(!string.IsNullOrEmpty(expirationTime) 
+                   && Context.CurrentBlockTime.Seconds <= long.Parse(expirationTime),"seed_owned_symbol is expired ");
+            State.SymbolSeedMap[input.Symbol] = ownerSymbol;
+        }
         return CreateToken(input, SymbolType.Nft);
     }
 

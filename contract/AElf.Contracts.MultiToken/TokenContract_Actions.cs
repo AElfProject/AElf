@@ -46,6 +46,21 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
     private Empty CreateToken(CreateInput input, SymbolType symbolType = SymbolType.Token)
     {
         AssertValidCreateInput(input, symbolType);
+        if (symbolType == SymbolType.Token || symbolType == SymbolType.NftCollection)
+        {
+            if (!IsAddressInCreateWhiteList(Context.Sender))
+            {
+                var symbolSeed = State.SymbolSeedMap[input.Symbol];
+                CheckSeedNft(symbolSeed, input.Symbol);
+                // seed nft for one-time use only
+                long balance = State.Balances[Context.Sender][symbolSeed];
+                DoTransferFrom(Context.Sender, Context.Self, Context.Self, input.Symbol, balance,"");
+                Burn(new BurnInput {  
+                    Symbol = input.Symbol,
+                    Amount = balance});
+            }
+        }
+
         var tokenInfo = new TokenInfo
         {
             Symbol = input.Symbol,
@@ -85,6 +100,21 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
 
         return new Empty();
     }
+    
+    private void CheckSeedNft(string symbolSeed,String symbol)
+    {
+        Assert(!string.IsNullOrEmpty(symbolSeed),"Seed NFT is not exist");
+        var tokenInfo = State.TokenInfos[symbolSeed];
+        Assert(tokenInfo != null,"Seed NFT is not exist");
+        Assert(State.Balances[Context.Sender][symbolSeed] > 0,"owner doesn't own enough balance");
+        Assert(tokenInfo.ExternalInfo != null  ,"seed_owned_symbol is empty ");
+        tokenInfo.ExternalInfo.Value.TryGetValue("__seed_owned_symbol",out var ownedSymbol);
+        Assert(ownedSymbol == symbol ,"seed_owned_symbol and input_symbol is  inconsistent ");
+        tokenInfo.ExternalInfo.Value.TryGetValue("__seed_exp_time",out var expirationTime);
+        Assert(!string.IsNullOrEmpty(expirationTime) 
+               && Context.CurrentBlockTime.Seconds <= long.Parse(expirationTime),"seed_owned_symbol is expired ");
+    }
+
 
     /// <summary>
     ///     Set primary token symbol.

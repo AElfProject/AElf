@@ -143,13 +143,7 @@ public partial class TokenContract
 
     private void RegisterTokenInfo(TokenInfo tokenInfo)
     {
-        var symbols = tokenInfo.Symbol.Split(TokenContractConstants.NFTSymbolSeparator);
-        var duplicatedToken = State.TokenInfos[symbols.First()];
         var empty = new TokenInfo();
-        Assert( duplicatedToken == null || duplicatedToken.Equals(empty),"Token name prefix can not be duplicated");
-        var duplicatedNftCollection = State.TokenInfos[symbols.First() + TokenContractConstants.NFTSymbolSeparator + TokenContractConstants.CollectionId];
-        Assert( duplicatedNftCollection == null ||duplicatedNftCollection.Equals(empty),"Token name prefix can not be duplicated");
-
         var existing = State.TokenInfos[tokenInfo.Symbol];
         Assert(existing == null || existing.Equals(empty), "Token already exists.");
         Assert(!string.IsNullOrEmpty(tokenInfo.Symbol) && tokenInfo.Symbol.All(IsValidSymbolChar),
@@ -202,10 +196,23 @@ public partial class TokenContract
                && input.Symbol.Length > 0
                && input.Decimals >= 0
                && input.Decimals <= TokenContractConstants.MaxDecimals, "Invalid input.");
+        var symbols = input.Symbol.Split(TokenContractConstants.NFTSymbolSeparator);
+        var empty = new TokenInfo();
         if (symbolType == SymbolType.Token)
+        {
             Assert(input.Symbol.Length <= TokenContractConstants.SymbolMaxLength, "Invalid token symbol length");
+            var duplicatedNftCollection = State.TokenInfos[symbols.First() + TokenContractConstants.NFTSymbolSeparator + TokenContractConstants.CollectionId];
+            Assert( duplicatedNftCollection == null ||duplicatedNftCollection.Equals(empty),"Token name prefix can not be duplicated");
+        }
         if (symbolType == SymbolType.Nft || symbolType == SymbolType.NftCollection)
+        {
             Assert(input.Symbol.Length <= TokenContractConstants.NFTSymbolMaxLength, "Invalid NFT symbol length");
+            var duplicatedToken = State.TokenInfos[symbols.First()];
+            Assert( duplicatedToken == null || duplicatedToken.Equals(empty),"Token name prefix can not be duplicated");
+        }
+
+       
+       
     }
 
     private void CheckCrossChainTokenContractRegistrationControllerAuthority()
