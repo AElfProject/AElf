@@ -21,7 +21,7 @@ public static class GrpcTestPeerHelper
             new PeerConnectionInfo
             {
                 Pubkey = pubkey,
-                SessionId = new byte[] {0, 1, 2},
+                SessionId = new byte[] { 0, 1, 2 },
                 ConnectionTime = TimestampHelper.GetUtcNow(),
                 NodeVersion = NodeVersion
             });
@@ -30,17 +30,19 @@ public static class GrpcTestPeerHelper
     public static GrpcPeer CreatePeerWithInfo(string ip, PeerConnectionInfo info)
     {
         AElfPeerEndpointHelper.TryParse(ip, out var endpoint);
-        var peer = new GrpcPeer(new GrpcClient(CreateMockChannel(), null), endpoint, info);
-        peer.InboundSessionId = new byte[] {0, 1, 2};
+        var client = new GrpcClient(CreateMockChannel(), null);
+        var peer = new GrpcPeer(client, endpoint, info);
+        peer.InboundSessionId = new byte[] { 0, 1, 2 };
         return peer;
     }
 
     public static GrpcPeer CreatePeerWithClient(string ip, string pubkey, PeerService.PeerServiceClient client)
     {
         AElfPeerEndpointHelper.TryParse(ip, out var endpoint);
-        var peer = new GrpcPeer(new GrpcClient(CreateMockChannel(), client), endpoint,
-            new PeerConnectionInfo {Pubkey = pubkey, SessionId = new byte[] {0, 1, 2}, NodeVersion = NodeVersion});
-        peer.InboundSessionId = new byte[] {0, 1, 2};
+        var grpcClient = new GrpcClient(CreateMockChannel(), client);
+        var info = new PeerConnectionInfo { Pubkey = pubkey, SessionId = new byte[] { 0, 1, 2 }, NodeVersion = NodeVersion };
+        var peer = new GrpcPeer(grpcClient, endpoint, info);
+        peer.InboundSessionId = new byte[] { 0, 1, 2 };
         return peer;
     }
 
@@ -66,14 +68,15 @@ public static class GrpcTestPeerHelper
             Pubkey = pubkey,
             ProtocolVersion = KernelConstants.ProtocolVersion,
             ConnectionTime = TimestampHelper.GetUtcNow(),
-            SessionId = new byte[] {0, 1, 2},
+            SessionId = new byte[] { 0, 1, 2 },
             IsInbound = true,
             NodeVersion = NodeVersion
         };
 
         AElfPeerEndpointHelper.TryParse(ipAddress, out var endpoint);
-        var peer = new GrpcPeer(new GrpcClient(channel, client), endpoint, connectionInfo);
-        peer.InboundSessionId = new byte[] {0, 1, 2};
+        var grpcClient = new GrpcClient(channel, client);
+        var peer = new GrpcPeer(grpcClient, endpoint, connectionInfo);
+        peer.InboundSessionId = new byte[] { 0, 1, 2 };
 
         return peer;
     }

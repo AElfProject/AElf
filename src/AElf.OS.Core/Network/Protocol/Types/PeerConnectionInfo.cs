@@ -10,4 +10,9 @@ public class PeerConnectionInfo
     public bool IsInbound { get; set; }
     public byte[] SessionId { get; set; }
     public string NodeVersion { get; set; }
+
+    public override string ToString()
+    {
+        return $"key: {Pubkey.Substring(0, 45)}...";
+    }
 }
