@@ -1,6 +1,4 @@
-﻿using System;
-using System.Data.SqlTypes;
-using System.Linq;
+﻿using System.Linq;
 using AElf.Standards.ACS2;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -68,7 +66,7 @@ public partial class TokenContract
         }
     }
 
-    private void AddPathForTransactionFee(ResourceInfo resourceInfo, String from, string methodName)
+    private void AddPathForTransactionFee(ResourceInfo resourceInfo, string from, string methodName)
     {
         var symbols = GetTransactionFeeSymbols(methodName);
         var primaryTokenSymbol = GetPrimaryTokenSymbol(new Empty()).Value;
