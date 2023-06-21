@@ -7,10 +7,10 @@ import "google/protobuf/empty.proto";
 import "google/protobuf/wrappers.proto";
 import "acs1.proto";
 
-option csharp_namespace = "AElf.Contracts.TestContract.TestVote";
+option csharp_namespace = "AElf.Contracts.TestContract.VirtualFunction";
 
-service TestVoteContract {
-  option (aelf.csharp_state) = "AElf.Contracts.TestContract.TestVote.State";
+service VirtualFunctionContract {
+  option (aelf.csharp_state) = "AElf.Contracts.TestContract.VirtualFunction.State";
   option (aelf.base) = "acs1.proto";
   
   rpc VirtualAddressVote(VirtualAddressVoteInput) returns (google.protobuf.Empty);

@@ -3,9 +3,9 @@ using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.Contracts.TestContract.TestVote;
+namespace AElf.Contracts.TestContract.VirtualFunction;
 
-public class Action : TestVoteContractContainer.TestVoteContractBase
+public class Action : VirtualFunctionContractContainer.VirtualFunctionContractBase
 {
     public override Empty VirtualAddressVote(VirtualAddressVoteInput input)
     {

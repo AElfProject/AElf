@@ -10,7 +10,7 @@ using AElf.Contracts.MultiToken;
 using AElf.Contracts.Parliament;
 using AElf.Contracts.Profit;
 using AElf.Contracts.TestContract.MethodCallThreshold;
-using AElf.Contracts.TestContract.TestVote;
+using AElf.Contracts.TestContract.VirtualFunction;
 using AElf.Contracts.TestContract.TransactionFeeCharging;
 using AElf.Contracts.TokenConverter;
 using AElf.Contracts.Treasury;
@@ -104,8 +104,8 @@ public partial class EconomicContractsTestBase
     protected Address ConfigurationAddress =>
         GetOrDeployContract(Contracts.Configuration, ref _configurationAddress);
     
-    private Address _testVoteContractAddress;
-    protected Address TestVoteContractAddress => GetOrDeployContract(TestContracts.TestVote, ref _testVoteContractAddress);
+    private Address _virtualFunctionContractAddress;
+    protected Address VirtualFunctionContractAddress => GetOrDeployContract(TestContracts.VirtualFunction, ref _virtualFunctionContractAddress);
 
     #endregion
 
@@ -149,8 +149,8 @@ public partial class EconomicContractsTestBase
     internal ConfigurationContainer.ConfigurationStub ConfigurationStub =>
         GetConfigurationContractTester(BootMinerKeyPair);
     
-    internal TestVoteContractContainer.TestVoteContractStub TestVoteContractStub =>
-        GetTestVoteContractTester(BootMinerKeyPair);
+    internal VirtualFunctionContractContainer.VirtualFunctionContractStub VirtualFunctionContractStub =>
+        GetVirtualFunctionContractTester(BootMinerKeyPair);
 
     #endregion
 
@@ -231,9 +231,9 @@ public partial class EconomicContractsTestBase
         return GetTester<ConfigurationContainer.ConfigurationStub>(ConfigurationAddress, keyPair);
     }
     
-    internal TestVoteContractContainer.TestVoteContractStub GetTestVoteContractTester(ECKeyPair keyPair)
+    internal VirtualFunctionContractContainer.VirtualFunctionContractStub GetVirtualFunctionContractTester(ECKeyPair keyPair)
     {
-        return GetTester<TestVoteContractContainer.TestVoteContractStub>(TestVoteContractAddress, keyPair);
+        return GetTester<VirtualFunctionContractContainer.VirtualFunctionContractStub>(VirtualFunctionContractAddress, keyPair);
     }
 
     #endregion
@@ -269,7 +269,7 @@ public partial class EconomicContractsTestBase
 
     private async Task<Address> DeployContract(Contracts contract)
     {
-        var code = Codes.FirstOrDefault(kv => kv.Key.Contains(contract.ToString())).Value;
+        var code = Codes.Single(kv => kv.Key.Contains(contract.ToString())).Value;
         Hash hash;
         switch (contract)
         {
@@ -320,7 +320,7 @@ public partial class EconomicContractsTestBase
         _ = TokenContractAddress;
         _ = TokenHolderContractAddress;
         _ = AssociationContractAddress;
-        _ = TestVoteContractAddress;
+        _ = VirtualFunctionContractAddress;
     }
 
     #endregion

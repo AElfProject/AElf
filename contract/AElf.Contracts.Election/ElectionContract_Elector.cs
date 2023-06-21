@@ -3,12 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Profit;
-using AElf.Contracts.Treasury;
 using AElf.Contracts.Vote;
 using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 using AElf.Types;
-using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Election;
@@ -532,7 +530,7 @@ public partial class ElectionContract
             var publicKey = recoveredPublicKey.ToHex();
 
             voteVotes = State.ElectorVotes[publicKey]?.Clone();
-            
+
             if (voteVotes != null)
             {
                 State.ElectorVotes.Remove(publicKey);
@@ -640,7 +638,7 @@ public partial class ElectionContract
         var claimedLockDays = State.LockTimeMap[input];
         Assert(actualLockedTime >= claimedLockDays,
             $"Still need {claimedLockDays.Sub(actualLockedTime).Div(86400)} days to unlock your token.");
-        
+
         var voterPublicKey = Context.RecoverPublicKey();
 
         var voterVotes = GetElectorVote(voterPublicKey);
@@ -656,7 +654,7 @@ public partial class ElectionContract
         // Update Candidate's Votes information.
         var newestPubkey = GetNewestPubkey(votingRecord.Option);
         var candidateVotes = State.CandidateVotes[newestPubkey];
-        
+
         Assert(candidateVotes != null, $"Newest pubkey {newestPubkey} is invalid. Old pubkey is {votingRecord.Option}");
 
         candidateVotes!.ObtainedActiveVotingRecordIds.Remove(input);

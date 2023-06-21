@@ -99,7 +99,7 @@
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </ProjectReference>
-        <ProjectReference Include="..\AElf.Contracts.TestContract.TestVote\AElf.Contracts.TestContract.TestVote.csproj">
+        <ProjectReference Include="..\AElf.Contracts.TestContract.VirtualFunction\AElf.Contracts.TestContract.VirtualFunction.csproj">
             <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -184,8 +184,8 @@
         <ContractStub Include="..\..\protobuf\parliament_contract_impl.proto">
             <Link>Protobuf\Proto\parliament_contract_impl.proto</Link>
         </ContractStub>
-        <ContractStub Include="..\..\protobuf\test_election_vote_contract.proto">
-            <Link>Protobuf\Proto\test_election_vote_contract.proto</Link>
+        <ContractStub Include="..\..\protobuf\test_virtual_function_contract.proto">
+            <Link>Protobuf\Proto\test_virtual_function_contract.proto</Link>
         </ContractStub>
     </ItemGroup>
 

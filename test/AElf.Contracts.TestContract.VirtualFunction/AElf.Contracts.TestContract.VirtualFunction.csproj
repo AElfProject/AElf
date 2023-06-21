@@ -2,15 +2,15 @@
 
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
-        <PackageId>AElf.Contracts.TestContract.TestVote</PackageId>
-        <RootNamespace>AElf.Contracts.TestContract.TestVote</RootNamespace>
+        <PackageId>AElf.Contracts.TestContract.VirtualFunction</PackageId>
+        <RootNamespace>AElf.Contracts.TestContract.VirtualFunction</RootNamespace>
         <IsPackable>false</IsPackable>
     </PropertyGroup>
 
     <ItemGroup>
         <ProjectReference Include="..\..\src\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj" />
     </ItemGroup>
-    
+
     <ItemGroup>
         <CommonMessage Include="..\..\protobuf\authority_info.proto">
             <Link>Protobuf\Proto\authority_info.proto</Link>
@@ -31,11 +31,11 @@
             <Link>Protobuf\Proto\acs1.proto</Link>
         </ContractBase>
     </ItemGroup>
-    
+
     <ItemGroup>
-        <ContractCode Include="..\..\protobuf\test_election_vote_contract.proto">
-            <Link>Protobuf\Proto\test_election_vote_contract.proto</Link>
+        <ContractCode Include="..\..\protobuf\test_virtual_function_contract.proto">
+            <Link>Protobuf\Proto\test_virtual_function_contract.proto</Link>
         </ContractCode>
     </ItemGroup>
-    
+
 </Project>
