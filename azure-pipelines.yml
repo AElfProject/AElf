@@ -9,7 +9,7 @@ jobs:
     parameters:
       parts: 3
       n: 2
-      codecoverage: true
+      codecoverage: false
   - template: templates/build-template-window.yml
     parameters:
       parts: 3
