@@ -1261,7 +1261,9 @@ public partial class TokenContract
 
     public override GetTransactionFeeFreeAllowancesConfigOutput GetTransactionFeeFreeAllowancesConfig(Empty input)
     {
-        var symbols = State.TransactionFeeFreeAllowancesSymbolList.Value.Symbols;
+        var symbols = State.TransactionFeeFreeAllowancesSymbolList.Value?.Symbols;
+        if (symbols == null) return new GetTransactionFeeFreeAllowancesConfigOutput();
+        
         var output = new GetTransactionFeeFreeAllowancesConfigOutput();
 
         foreach (var symbol in symbols)
