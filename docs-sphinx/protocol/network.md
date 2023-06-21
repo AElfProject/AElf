@@ -55,6 +55,8 @@ AElf.OS.Core.Network is the core module of the network，contains services(servi
 
 The AElf.OS.Network.Grpc layer is the network infrastructure layer that we implement using the gRPC framework.
 - GrpcPeer：implemented the interface IPeer defined by the AElf.OS.Core.Network layer
+- GrpcStreamPeer: implemented the interface IPeer defined by the AElf.OS.Core.Network layer, nodeversion>=1.4.0 will use this impl to replace GrpcPeer for client side
+- GrpcStreamBackPeer: implemented the interface IPeer defined by the AElf.OS.Core.Network layer, nodeversion>=1.4.0 will use this impl to replace GrpcPeer for server side
 - GrpcNetworkServer: implemented the interface IAElfNetworkServer defined by the AElf.OS.Core.Network layer
 - GrpcServerService: implemented network service interfaces, including interfaces between nodes and data exchange.
 - Extra functionality:
@@ -163,7 +165,69 @@ rpc DoHandshake (HandshakeRequest) returns (HandshakeReply) {}
     - INVALID_CONNECTION: connection error, possibly due to network instability, causing the request to fail during the connection.
     - SIGNATURE_TIMEOUT: the signature data has timed out.
     <br/>
+``` Protobuf
+ rpc RequestByStream (stream StreamMessage) returns (stream StreamMessage) {}
+```
+- StreamMessage Message
+   ``` Protobuf
+    message StreamMessage {
+        StreamType stream_type = 1;
+        MessageType message_type = 2;
+        string request_id = 3;
+        bytes message = 4;
+        map<string, string> meta = 5;
+    }
+    ```
+    - stream_type: the message is request or reply.
+    - message_type: message body type.
+    - request_id: id of the request. 
+    - message: message that is encode by protobuf.
+    - meta: meta message of this request.
+      <br/>
+- MessageType Enum
+    ``` Protobuf
+    enum MessageType {
+        ANY = 0;
 
+        HAND_SHAKE = 1;
+        PING = 2;
+        CONFIRM_HAND_SHAKE = 3;
+        HEALTH_CHECK = 4;
+        REQUEST_BLOCK = 5;
+        REQUEST_BLOCKS = 6;
+        GET_NODES = 7;
+
+        BLOCK_BROADCAST = 8;
+        TRANSACTION_BROADCAST = 9;
+        ANNOUNCEMENT_BROADCAST = 10;
+        LIB_ANNOUNCEMENT_BROADCAST = 11;
+        DISCONNECT = 12;
+    }
+    ```
+    - HAND_SHAKE: this message is a handshake request.
+    - PING: this message is a ping request.
+    - CONFIRM_HAND_SHAKE: this message is a confirm handshake reply.
+    - HEALTH_CHECK：this message is a health check request or reply.
+    - REQUEST_BLOCK: this message is a request block request or reply.
+    - REQUEST_BLOCKS: this message is a request blocks request or reply.
+    - GET_NODES: this message is a get nodes request or reply.
+    - BLOCK_BROADCAST: this message is a block broadcast request or reply.
+    - TRANSACTION_BROADCAST: this message is a transaction broadcast request or reply.
+    - ANNOUNCEMENT_BROADCAST: this message is a announcement broadcast request or reply.
+    - LIB_ANNOUNCEMENT_BROADCAST: this message is a lib announcement broadcast request or reply.
+    - DISCONNECT: this message is a disconnect request or reply.
+    <br/>
+- StreamType Enum
+    ``` Protobuf
+    enum StreamType {
+      UNKNOWN = 0;
+      REQUEST = 1;
+      REPLY = 2;
+    }
+   ```
+  - REQUEST: this is a request.
+  - REPLY: this is reply.
+    <br/>
 #### 3.1.2 ConfirmHandshake 
 
 When the target node verifies that it has passed the current node's handshake message, it sends the handshake confirmation message again.
@@ -290,7 +354,7 @@ rpc RequestBlocks (BlocksRequest) returns (BlockList) {}
 
     - previous_block_hash: the previous block hash of the request blocks, and the result does not contain this block.
     - count: the number of blocks you want to request.
-    <br/>
+    <br/>[2023-06-15.log](2023-06-15.log)
 
 - BlockList Message
     ``` Protobuf

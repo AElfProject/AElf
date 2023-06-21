@@ -7,7 +7,7 @@ jump into the guides and tutorials you'll need to install the following
 tools and frameworks. For most of these dependencies we provide
 ready-to-use command line instructions. In case of problems or if you
 have more complex needs, we provide more information in the [Environment
-setup](../../getting_started/development-environment/install.md) section.
+setup](../../getting-started/development-environment/install.md) section.
 
 Summary of the steps to set up a node:
 
@@ -162,6 +162,9 @@ Next add the testnet mainchain nodes as peer (bootnode peers):
     }
 }
 ```
+
+Note: if both side nodeVersion>=1.4.0, nodes will connect
+to each other by grpc stream and will transfer data via grpc stream.
 
 Note: if your infrastructure is behind a firewall you need to open the
 P2P listening port of the node. You also need to configure your
