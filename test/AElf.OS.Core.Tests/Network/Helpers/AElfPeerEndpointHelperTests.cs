@@ -30,4 +30,5 @@ public class AElfPeerEndpointHelperTests : OSCoreNetworkServiceTestBase
         if (isValid)
             endpoint.Port.ShouldBe(expectedPort);
     }
+
 }

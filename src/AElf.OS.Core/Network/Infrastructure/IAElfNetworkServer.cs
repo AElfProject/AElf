@@ -12,4 +12,5 @@ public interface IAElfNetworkServer
     Task StopAsync(bool gracefulDisconnect = true);
     void CheckNtpDrift();
     Task<bool> CheckEndpointAvailableAsync(DnsEndPoint endpoint);
+    Task<bool> BuildStreamForPeerAsync(IPeer peer);
 }

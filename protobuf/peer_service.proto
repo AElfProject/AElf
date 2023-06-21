@@ -7,25 +7,27 @@ import "aelf/core.proto";
 
 service PeerService {
 
-    rpc Ping (PingRequest) returns (PongReply) {}
-    rpc CheckHealth (HealthCheckRequest) returns (HealthCheckReply) {}
-    
-    rpc RequestBlock (BlockRequest) returns (BlockReply) {}
-    rpc RequestBlocks (BlocksRequest) returns (BlockList) {}
+  rpc Ping (PingRequest) returns (PongReply) {}
+  rpc CheckHealth (HealthCheckRequest) returns (HealthCheckReply) {}
 
-    rpc BlockBroadcastStream (stream BlockWithTransactions) returns (VoidReply) {}
-    
-    rpc TransactionBroadcastStream (stream aelf.Transaction) returns (VoidReply) {}
-    rpc AnnouncementBroadcastStream (stream BlockAnnouncement) returns (VoidReply) {}
+  rpc RequestBlock (BlockRequest) returns (BlockReply) {}
+  rpc RequestBlocks (BlocksRequest) returns (BlockList) {}
 
-    rpc LibAnnouncementBroadcastStream (stream LibAnnouncement) returns (VoidReply) {}
+  rpc BlockBroadcastStream (stream BlockWithTransactions) returns (VoidReply) {}
 
-    rpc GetNodes (NodesRequest) returns (NodeList) {}
+  rpc TransactionBroadcastStream (stream aelf.Transaction) returns (VoidReply) {}
+  rpc AnnouncementBroadcastStream (stream BlockAnnouncement) returns (VoidReply) {}
 
-    rpc DoHandshake (HandshakeRequest) returns (HandshakeReply) {}
-    rpc ConfirmHandshake (ConfirmHandshakeRequest) returns (VoidReply) {}
+  rpc LibAnnouncementBroadcastStream (stream LibAnnouncement) returns (VoidReply) {}
 
-    rpc Disconnect (DisconnectReason) returns (VoidReply) {}
+  rpc RequestByStream (stream StreamMessage) returns (stream StreamMessage) {}
+
+  rpc GetNodes (NodesRequest) returns (NodeList) {}
+
+  rpc DoHandshake (HandshakeRequest) returns (HandshakeReply) {}
+  rpc ConfirmHandshake (ConfirmHandshakeRequest) returns (VoidReply) {}
+
+  rpc Disconnect (DisconnectReason) returns (VoidReply) {}
 }
 
 // **** No reply *****
@@ -45,3 +47,34 @@ message HealthCheckRequest {
 message HealthCheckReply {
 }
 
+message StreamMessage {
+  StreamType stream_type = 1;
+  MessageType message_type = 2;
+  string request_id = 3;
+  bytes message = 4;
+  map<string, string> meta = 5;
+}
+
+enum StreamType {
+  UNKNOWN = 0;
+  REQUEST = 1;
+  REPLY = 2;
+}
+
+enum MessageType {
+  ANY = 0;
+
+  HAND_SHAKE = 1;
+  PING = 2;
+  CONFIRM_HAND_SHAKE = 3;
+  HEALTH_CHECK = 4;
+  REQUEST_BLOCK = 5;
+  REQUEST_BLOCKS = 6;
+  GET_NODES = 7;
+
+  BLOCK_BROADCAST = 8;
+  TRANSACTION_BROADCAST = 9;
+  ANNOUNCEMENT_BROADCAST = 10;
+  LIB_ANNOUNCEMENT_BROADCAST = 11;
+  DISCONNECT = 12;
+}
