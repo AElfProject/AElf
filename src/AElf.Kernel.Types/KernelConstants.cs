@@ -1,3 +1,4 @@
+using System;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Kernel;
@@ -16,4 +17,5 @@ public static class KernelConstants
     public const string SignaturePlaceholder = "SignaturePlaceholder";
     public const string BlockExecutedDataKey = "BlockExecutedData";
     public static Duration AllowedFutureBlockTimeSpan = new() { Seconds = 4 };
+    public static string SupportStreamMinVersion = "1.4.0.0";
 }
