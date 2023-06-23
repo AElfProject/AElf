@@ -106,7 +106,7 @@ public class GrpcStreamPeer : GrpcPeer
         var requestId = CommonHelper.GenerateRequestId();
         var grpcRequest = new GrpcRequest { ErrorMessage = $"handshake failed.requestId={requestId}" };
         var reply = await RequestAsync(() => StreamRequestAsync(MessageType.HandShake, request, metadata, requestId, true), grpcRequest);
-        return reply != null ? HandshakeReply.Parser.ParseFrom(reply.Message) : new HandshakeReply();
+        return reply != null ? HandshakeReply.Parser.ParseFrom(reply.Message) : new HandshakeReply() { Error = HandshakeError.InvalidConnection };
     }
 
     public override async Task ConfirmHandshakeAsync()
@@ -218,7 +218,12 @@ public class GrpcStreamPeer : GrpcPeer
         }
         catch (Exception e)
         {
-            var type = e is InvalidOperationException or TimeoutException ? NetworkExceptionType.PeerUnstable : NetworkExceptionType.HandlerException;
+            var type = e switch
+            {
+                InvalidOperationException => NetworkExceptionType.Unrecoverable,
+                TimeoutException => NetworkExceptionType.PeerUnstable,
+                _ => NetworkExceptionType.HandlerException
+            };
             job.SendCallback?.Invoke(
                 new NetworkException($"{job.StreamMessage?.RequestId}{job.StreamMessage?.StreamType}-{job.StreamMessage?.MessageType} size={job.StreamMessage.ToByteArray().Length} queueCount={_sendStreamJobs.InputCount}", e, type));
             await Task.Delay(StreamRecoveryWaitTime);
@@ -240,6 +245,7 @@ public class GrpcStreamPeer : GrpcPeer
 
     protected async Task<StreamMessage> StreamRequestAsync(MessageType messageType, IMessage message, Metadata header = null, string requestId = null, bool graceful = false)
     {
+        if (!IsConnected) return null;
         for (var i = 0; i < TimeOutRetryTimes; i++)
         {
             requestId = requestId == null || i > 0 ? CommonHelper.GenerateRequestId() : requestId;
