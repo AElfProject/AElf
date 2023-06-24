@@ -33,6 +33,7 @@ public class GrpcStreamPeer : GrpcPeer
     private StreamSendCallBack _streamSendCallBack;
 
     protected readonly ActionBlock<StreamJob> _sendStreamJobs;
+    protected bool IsClosed = false;
     public ILogger<GrpcStreamPeer> Logger { get; set; }
 
     public GrpcStreamPeer(GrpcClient client, DnsEndPoint remoteEndpoint, PeerConnectionInfo peerConnectionInfo,
@@ -58,6 +59,7 @@ public class GrpcStreamPeer : GrpcPeer
         var headers = new Metadata { new(GrpcConstants.GrpcRequestCompressKey, GrpcConstants.GrpcGzipConst) };
         _duplexStreamingCall = _client.RequestByStream(new CallOptions().WithHeaders(headers).WithDeadline(DateTime.MaxValue));
         _clientStreamWriter = _duplexStreamingCall.RequestStream;
+        IsClosed = false;
         return _duplexStreamingCall;
     }
 
@@ -77,6 +79,7 @@ public class GrpcStreamPeer : GrpcPeer
         await _duplexStreamingCall?.RequestStream?.CompleteAsync();
         _duplexStreamingCall?.Dispose();
         _streamListenTaskTokenSource?.Cancel();
+        IsClosed = true;
     }
 
     public override async Task DisconnectAsync(bool gracefulDisconnect)
@@ -245,7 +248,7 @@ public class GrpcStreamPeer : GrpcPeer
 
     protected async Task<StreamMessage> StreamRequestAsync(MessageType messageType, IMessage message, Metadata header = null, string requestId = null, bool graceful = false)
     {
-        if (!IsConnected) return null;
+        if (IsClosed) return null;
         for (var i = 0; i < TimeOutRetryTimes; i++)
         {
             requestId = requestId == null || i > 0 ? CommonHelper.GenerateRequestId() : requestId;

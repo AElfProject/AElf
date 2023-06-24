@@ -60,6 +60,7 @@ public class GrpcStreamBackPeer : GrpcStreamPeer
     {
         if (!IsConnected) return;
         IsConnected = false;
+        IsClosed = true;
         _sendStreamJobs.Complete();
         // send disconnect message if the peer is still connected and the connection
         // is stable.
