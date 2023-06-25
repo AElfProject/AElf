@@ -23,8 +23,9 @@ public class RandomProvider : IRandomProvider, ITransientDependency
 
     public async Task<byte[]> GenerateRandomProveAsync(IChainContext chainContext)
     {
-        var previousRandomHash =
-            await _aedPoSInformationProvider.GetRandomHashAsync(chainContext, chainContext.BlockHeight);
+        var previousRandomHash = chainContext.BlockHeight == AElfConstants.GenesisBlockHeight
+            ? Hash.Empty
+            : await _aedPoSInformationProvider.GetRandomHashAsync(chainContext, chainContext.BlockHeight);
         return await _accountService.ECVrfProveAsync(previousRandomHash.ToByteArray());
     }
 }
