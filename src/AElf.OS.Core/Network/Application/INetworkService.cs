@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel;
+using AElf.OS.Network.Infrastructure;
 using AElf.OS.Network.Types;
 using AElf.Types;
 
@@ -28,4 +29,5 @@ public interface INetworkService
     Task CheckPeersHealthAsync();
     void CheckNtpDrift();
     bool IsPeerPoolFull();
+    Task<List<NodeInfo>> GetNodesAsync(IPeer peer);
 }
