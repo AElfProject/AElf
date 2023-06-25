@@ -90,7 +90,7 @@ public class GrpcNetworkTestModule : AElfModule
                         NetworkTestConstants.FakePubkey,
                         mockClient.Object);
 
-                    return Task.FromResult(peer);
+                    return Task.FromResult(peer as GrpcPeer);
                 });
 
             // Incorrect handshake
@@ -116,7 +116,7 @@ public class GrpcNetworkTestModule : AElfModule
                     var peer = GrpcTestPeerHelper.CreatePeerWithClient(NetworkTestConstants.GoodPeerEndpoint,
                         NetworkTestConstants.FakePubkey, mockClient.Object);
 
-                    return Task.FromResult(peer);
+                    return Task.FromResult(peer as GrpcPeer);
                 });
 
             // Incorrect handshake signature

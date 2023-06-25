@@ -10,5 +10,6 @@ public class StreamJob
     public BlockAnnouncement BlockAnnouncement { get; set; }
     public BlockWithTransactions BlockWithTransactions { get; set; }
     public LibAnnouncement LibAnnouncement { get; set; }
+    public StreamMessage StreamMessage { get; set; }
     public Action<NetworkException> SendCallback { get; set; }
 }

@@ -1,5 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
-    <Import Project="..\..\common.props"/>
+    <Import Project="..\..\common.props" />
 
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
@@ -9,13 +9,13 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\AElf.Kernel\AElf.Kernel.csproj"/>
-        <ProjectReference Include="..\AElf.OS.Network.Grpc\AElf.OS.Network.Grpc.csproj"/>
+        <ProjectReference Include="..\AElf.Kernel\AElf.Kernel.csproj" />
+        <ProjectReference Include="..\AElf.OS.Network.Grpc\AElf.OS.Network.Grpc.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Nethereum.KeyStore" Version="4.5.0"/>
-        <PackageReference Include="Volo.Abp.BackgroundWorkers" Version="5.2.2"/>
+        <PackageReference Include="Nethereum.KeyStore" Version="4.5.0" />
+        <PackageReference Include="Volo.Abp.BackgroundWorkers" Version="5.2.2" />
     </ItemGroup>
 
 </Project>

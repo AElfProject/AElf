@@ -9,6 +9,18 @@ public static class GrpcConstants
     public const string RetryCountMetadataKey = "retry-count";
     public const string GrpcRequestCompressKey = "grpc-internal-encoding-request";
 
+    public const string GrpcArgKeepalivePermitWithoutCalls = "grpc.keepalive_permit_without_calls";
+    public const string GrpcArgHttp2MaxPingsWithoutData = "grpc.http2_max_pings_without_data";
+    public const string GrpcArgKeepaliveTimeoutMs = "grpc.keepalive_timeout_ms";
+    public const string GrpcArgKeepaliveTimeMs = "grpc.keepalive_time_ms";
+    // public const string GrpcArgHttp2WriteBufferSize = "grpc.http2.write_buffer_size";
+
+    public const int GrpcArgKeepalivePermitWithoutCallsOpen = 1;
+    public const int GrpcArgHttp2MaxPingsWithoutDataVal = 0;
+    public const int GrpcArgKeepaliveTimeoutMsVal = 60 * 1000;
+    public const int GrpcArgKeepaliveTimeMsVal = 2 * 60 * 60 * 1000;
+    // public const int GrpcArgHttp2WriteBufferSizeVal = 6 * 1024;
+
     public const string GrpcGzipConst = "gzip";
 
     public const int DefaultRequestTimeout = 200;
