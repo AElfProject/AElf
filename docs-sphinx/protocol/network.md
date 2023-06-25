@@ -354,7 +354,7 @@ rpc RequestBlocks (BlocksRequest) returns (BlockList) {}
 
     - previous_block_hash: the previous block hash of the request blocks, and the result does not contain this block.
     - count: the number of blocks you want to request.
-    <br/>[2023-06-15.log](2023-06-15.log)
+    <br/>
 
 - BlockList Message
     ``` Protobuf
