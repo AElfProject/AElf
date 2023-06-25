@@ -521,21 +521,21 @@ public partial class ElectionContract
 
     private ElectorVote GetElectorVote(byte[] recoveredPublicKey)
     {
-        var voteVotes = State.ElectorVotes[Context.Sender.ToBase58()];
-        if (voteVotes != null) return voteVotes;
+        var voterVotes = State.ElectorVotes[Context.Sender.ToBase58()];
+        if (voterVotes != null) return voterVotes;
 
         if (recoveredPublicKey != null)
         {
             var publicKey = recoveredPublicKey.ToHex();
 
-            voteVotes = State.ElectorVotes[publicKey]?.Clone();
+            voterVotes = State.ElectorVotes[publicKey]?.Clone();
 
-            if (voteVotes != null)
+            if (voterVotes != null)
             {
-                voteVotes.Address ??= Context.Sender;
+                voterVotes.Address ??= Context.Sender;
                 
                 State.ElectorVotes.Remove(publicKey);
-                return voteVotes;
+                return voterVotes;
             }
         }
 
