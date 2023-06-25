@@ -191,10 +191,8 @@ public partial class ElectionContract
         
         var voterVotes = State.ElectorVotes[value];
 
-        if (voterVotes == null)
+        if (voterVotes == null && !AddressHelper.VerifyFormattedAddress(value))
         {
-            if (AddressHelper.VerifyFormattedAddress(value)) return new ElectorVote();
-            
             voterVotes = State.ElectorVotes[
                 Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(value)).ToBase58()];
         }
