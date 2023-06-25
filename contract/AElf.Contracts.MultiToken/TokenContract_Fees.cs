@@ -674,13 +674,14 @@ public partial class TokenContract
             var symbol = bill.Key;
             var amount = bill.Value;
             ModifyBalance(Context.Self, symbol, amount);
-            TransferTransactionFeesToFeeReceiver(symbol, amount);
             Context.Fire(new TransactionFeeClaimed
             {
                 Symbol = symbol,
                 Amount = amount,
                 Receiver = Context.Self
             });
+            
+            TransferTransactionFeesToFeeReceiver(symbol, amount);
         }
 
         Context.LogDebug(() => "Finish claim transaction fee.");
