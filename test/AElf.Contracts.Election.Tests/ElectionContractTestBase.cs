@@ -5,7 +5,7 @@ using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Parliament;
 using AElf.Contracts.Profit;
-using AElf.Contracts.TestContract.VirtualFunction;
+using AElf.Contracts.TestContract.VirtualAddress;
 using AElf.Contracts.TokenConverter;
 using AElf.Contracts.Treasury;
 using AElf.Contracts.Vote;
@@ -57,8 +57,8 @@ public class ElectionContractTestBase : EconomicContractsTestBase
     internal EconomicContractImplContainer.EconomicContractImplStub EconomicContractStub =>
         GetEconomicContractTester(BootMinerKeyPair);
 
-    internal VirtualFunctionContractContainer.VirtualFunctionContractStub VirtualFunctionContractStub =>
-        GetVirtualFunctionContractTester(BootMinerKeyPair);
+    internal VirtualAddressContractContainer.VirtualAddressContractStub VirtualAddressContractStub =>
+        GetVirtualAddressContractTester(BootMinerKeyPair);
 
     private new void DeployAllContracts()
     {
@@ -148,8 +148,8 @@ public class ElectionContractTestBase : EconomicContractsTestBase
         return GetTester<EconomicContractImplContainer.EconomicContractImplStub>(EconomicContractAddress, keyPair);
     }
     
-    internal VirtualFunctionContractContainer.VirtualFunctionContractStub GetVirtualFunctionContractTester(ECKeyPair keyPair)
+    internal VirtualAddressContractContainer.VirtualAddressContractStub GetVirtualAddressContractTester(ECKeyPair keyPair)
     {
-        return GetTester<VirtualFunctionContractContainer.VirtualFunctionContractStub>(VirtualFunctionContractAddress, keyPair);
+        return GetTester<VirtualAddressContractContainer.VirtualAddressContractStub>(VirtualAddressContractAddress, keyPair);
     }
 }

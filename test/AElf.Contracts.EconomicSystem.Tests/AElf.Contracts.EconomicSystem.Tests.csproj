@@ -99,7 +99,7 @@
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </ProjectReference>
-        <ProjectReference Include="..\AElf.Contracts.TestContract.VirtualFunction\AElf.Contracts.TestContract.VirtualFunction.csproj">
+        <ProjectReference Include="..\AElf.Contracts.TestContract.VirtualAddress\AElf.Contracts.TestContract.VirtualAddress.csproj">
             <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

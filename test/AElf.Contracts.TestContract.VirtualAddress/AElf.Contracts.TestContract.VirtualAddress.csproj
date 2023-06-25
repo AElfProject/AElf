@@ -2,8 +2,8 @@
 
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
-        <PackageId>AElf.Contracts.TestContract.VirtualFunction</PackageId>
-        <RootNamespace>AElf.Contracts.TestContract.VirtualFunction</RootNamespace>
+        <PackageId>AElf.Contracts.TestContract.VirtualAddress</PackageId>
+        <RootNamespace>AElf.Contracts.TestContract.VirtualAddress</RootNamespace>
         <IsPackable>false</IsPackable>
     </PropertyGroup>
 
@@ -33,8 +33,8 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ContractCode Include="..\..\protobuf\test_virtual_function_contract.proto">
-            <Link>Protobuf\Proto\test_virtual_function_contract.proto</Link>
+        <ContractCode Include="..\..\protobuf\test_virtual_address_contract.proto">
+            <Link>Protobuf\Proto\test_virtual_address_contract.proto</Link>
         </ContractCode>
     </ItemGroup>
 

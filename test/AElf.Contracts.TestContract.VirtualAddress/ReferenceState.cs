@@ -1,6 +1,6 @@
 using AElf.Contracts.Election;
 
-namespace AElf.Contracts.TestContract.VirtualFunction;
+namespace AElf.Contracts.TestContract.VirtualAddress;
 
 public partial class State
 {

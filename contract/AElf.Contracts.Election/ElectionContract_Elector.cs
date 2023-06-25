@@ -514,15 +514,14 @@ public partial class ElectionContract
             voterVotes.ActiveVotingRecordIds.Add(voteId);
             voterVotes.ActiveVotedVotesAmount = voterVotes.ActiveVotedVotesAmount.Add(amount);
             voterVotes.AllVotedVotesAmount = voterVotes.AllVotedVotesAmount.Add(amount);
-            voterVotes.Address ??= Context.Sender;
         }
 
-        State.ElectorVotesByAddress[Context.Sender.ToBase58()] = voterVotes;
+        State.ElectorVotes[Context.Sender.ToBase58()] = voterVotes;
     }
 
     private ElectorVote GetElectorVote(byte[] recoveredPublicKey)
     {
-        var voteVotes = State.ElectorVotesByAddress[Context.Sender.ToBase58()];
+        var voteVotes = State.ElectorVotes[Context.Sender.ToBase58()];
         if (voteVotes != null) return voteVotes;
 
         if (recoveredPublicKey != null)
@@ -533,6 +532,8 @@ public partial class ElectionContract
 
             if (voteVotes != null)
             {
+                voteVotes.Address ??= Context.Sender;
+                
                 State.ElectorVotes.Remove(publicKey);
                 return voteVotes;
             }
@@ -648,8 +649,8 @@ public partial class ElectionContract
         voterVotes!.ActiveVotingRecordIds.Remove(input);
         voterVotes.WithdrawnVotingRecordIds.Add(input);
         voterVotes.ActiveVotedVotesAmount = voterVotes.ActiveVotedVotesAmount.Sub(votingRecord.Amount);
-        voterVotes.Address ??= Context.Sender;
-        State.ElectorVotesByAddress[Context.Sender.ToBase58()] = voterVotes;
+        
+        State.ElectorVotes[Context.Sender.ToBase58()] = voterVotes;
 
         // Update Candidate's Votes information.
         var newestPubkey = GetNewestPubkey(votingRecord.Option);

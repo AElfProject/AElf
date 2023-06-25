@@ -40,7 +40,7 @@
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </ProjectReference>
-        <ProjectReference Include="..\AElf.Contracts.TestContract.VirtualFunction\AElf.Contracts.TestContract.VirtualFunction.csproj">
+        <ProjectReference Include="..\AElf.Contracts.TestContract.VirtualAddress\AElf.Contracts.TestContract.VirtualAddress.csproj">
             <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -59,8 +59,8 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ContractStub Include="..\..\protobuf\test_virtual_function_contract.proto">
-            <Link>Protobuf\Proto\test_virtual_function_contract.proto</Link>
+        <ContractStub Include="..\..\protobuf\test_virtual_address_contract.proto">
+            <Link>Protobuf\Proto\test_virtual_address_contract.proto</Link>
         </ContractStub>
     </ItemGroup>
     

@@ -6,7 +6,7 @@ using AElf.Contracts.Economic.TestBase;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Parliament;
 using AElf.Contracts.Profit;
-using AElf.Contracts.TestContract.VirtualFunction;
+using AElf.Contracts.TestContract.VirtualAddress;
 using AElf.Contracts.Vote;
 using AElf.Cryptography.ECDSA;
 using AElf.CSharp.Core;
@@ -1910,7 +1910,7 @@ public partial class ElectionContractTests : ElectionContractTestBase
         var candidatesKeyPairs = await ElectionContract_AnnounceElection_Test();
         var candidateKeyPair = candidatesKeyPairs[0];
         
-        var address = await VirtualFunctionContractStub.GetVirtualAddress.CallAsync(new Empty());
+        var address = await VirtualAddressContractStub.GetVirtualAddress.CallAsync(new Empty());
         var initBalance = 100000;
 
         await TokenContractStub.Transfer.SendAsync(new TransferInput
@@ -1925,7 +1925,7 @@ public partial class ElectionContractTests : ElectionContractTestBase
         CheckBalance(address, "SHARE", 0);
         CheckBalance(address, "VOTE", 0);
         
-        await VirtualFunctionContractStub.VirtualAddressVote.SendAsync(new VirtualAddressVoteInput
+        await VirtualAddressContractStub.VirtualAddressVote.SendAsync(new VirtualAddressVoteInput
         {
             PubKey = candidateKeyPair.PublicKey.ToHex(),
             Amount = amount,
@@ -1953,7 +1953,7 @@ public partial class ElectionContractTests : ElectionContractTestBase
         CheckBalance(address, "SHARE", amount);
         CheckBalance(address, "VOTE", amount);
         
-        await VirtualFunctionContractStub.VirtualAddressVote.SendAsync(new VirtualAddressVoteInput
+        await VirtualAddressContractStub.VirtualAddressVote.SendAsync(new VirtualAddressVoteInput
         {
             PubKey = candidateKeyPair.PublicKey.ToHex(),
             Amount = amount,
@@ -1990,13 +1990,13 @@ public partial class ElectionContractTests : ElectionContractTestBase
         var amount = 100;
         const int lockTime = 100 * 60 * 60 * 24;
         
-        var address = await VirtualFunctionContractStub.GetVirtualAddress.CallAsync(new Empty());
+        var address = await VirtualAddressContractStub.GetVirtualAddress.CallAsync(new Empty());
         var initBalance = 100000;
         
         var voteId = await VirtualAddress_Vote_Test();
         BlockTimeProvider.SetBlockTime(TimestampHelper.GetUtcNow().AddDays(101));
         
-        await VirtualFunctionContractStub.VirtualAddressWithdraw.SendAsync(new Hash
+        await VirtualAddressContractStub.VirtualAddressWithdraw.SendAsync(new Hash
         {
             Value = voteId.Value
         });

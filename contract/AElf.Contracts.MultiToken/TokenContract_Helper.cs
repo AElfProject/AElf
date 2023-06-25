@@ -268,10 +268,12 @@ public partial class TokenContract
 
     private Address GetElectionContractAddress()
     {
-        if (State.ElectionContractAddress.Value == null)
-            State.ElectionContractAddress.Value =
+        if (State.ElectionContract.Value == null)
+        {
+            State.ElectionContract.Value =
                 Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName);
+        }
         
-        return State.ElectionContractAddress.Value;
+        return State.ElectionContract.Value;
     }
 }

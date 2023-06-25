@@ -369,7 +369,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.CSharp.CodeOps.UnitTes
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContract.ExecutionPluginForUserContractFee.Tests.TestContract", "test\AElf.Kernel.SmartContract.ExecutionPluginForUserContractFee.Tests.TestContract\AElf.Kernel.SmartContract.ExecutionPluginForUserContractFee.Tests.TestContract.csproj", "{AB27298B-E6BE-4ACB-ADF1-64239E2A7A1C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TestContract.VirtualFunction", "test\AElf.Contracts.TestContract.VirtualFunction\AElf.Contracts.TestContract.VirtualFunction.csproj", "{64498F8C-B827-4E1C-B5FB-4B9188C839A8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TestContract.VirtualAddress", "test\AElf.Contracts.TestContract.VirtualAddress\AElf.Contracts.TestContract.VirtualAddress.csproj", "{64498F8C-B827-4E1C-B5FB-4B9188C839A8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

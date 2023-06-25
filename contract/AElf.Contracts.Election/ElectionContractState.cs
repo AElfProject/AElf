@@ -17,9 +17,6 @@ public partial class ElectionContractState : ContractState
 
     // Pubkey -> ElectorVote
     public MappedState<string, ElectorVote> ElectorVotes { get; set; }
-    
-    // Address -> ElectorVote
-    public MappedState<string, ElectorVote> ElectorVotesByAddress { get; set; }
 
     public MappedState<string, CandidateVote> CandidateVotes { get; set; }
 
