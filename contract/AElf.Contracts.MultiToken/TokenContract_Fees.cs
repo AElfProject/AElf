@@ -762,6 +762,8 @@ public partial class TokenContract
             existingBalance = GetBalance(fromAddress, symbol);
             existingAllowance = GetFreeFeeAllowanceAmount(transactionFeeFreeAllowancesMap, symbol);
 
+            var existingBalancePlusAllowance = existingBalance.Add(existingAllowance);
+
             
             // allowance is enough to cover the base fee
             if (existingAllowance >= amount)
@@ -770,12 +772,12 @@ public partial class TokenContract
                 return true;
             }
 
-            if (existingBalance.Add(existingAllowance) <= 0) continue;
+            if (existingBalancePlusAllowance <= 0) continue;
             
             // find symbol: balance + allowance > 0
             symbolWithAnything ??= symbol;
 
-            if (existingBalance.Add(existingAllowance) < amount) continue;
+            if (existingBalancePlusAllowance < amount) continue;
 
             if (existingAllowance > 0)
             {
