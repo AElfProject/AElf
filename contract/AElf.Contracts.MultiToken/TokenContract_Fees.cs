@@ -744,6 +744,7 @@ public partial class TokenContract
         TransactionFeeFreeAllowancesMap transactionFeeFreeAllowancesMap, out long amount,
         out string symbolOfValidBalance, out long existingBalance, out long existingAllowance)
     {
+        // priority: enough allowance -> symbolWithEnoughBalancePlusAllowance -> symbolWithEnoughBalance -> symbolWithAnything
         symbolOfValidBalance = null;
         string symbolWithAnything = null;
         string symbolWithEnoughBalance = null;
@@ -761,6 +762,8 @@ public partial class TokenContract
             existingBalance = GetBalance(fromAddress, symbol);
             existingAllowance = GetFreeFeeAllowanceAmount(transactionFeeFreeAllowancesMap, symbol);
 
+            
+            // allowance is enough to cover the base fee
             if (existingAllowance >= amount)
             {
                 symbolOfValidBalance = symbol;
@@ -768,16 +771,20 @@ public partial class TokenContract
             }
 
             if (existingBalance.Add(existingAllowance) <= 0) continue;
+            
+            // find symbol: balance + allowance > 0
             symbolWithAnything ??= symbol;
 
             if (existingBalance.Add(existingAllowance) < amount) continue;
 
             if (existingAllowance > 0)
             {
+                // find symbol: balance plus allowance is enough to cover the base fee and allowance is greater than 0
                 symbolWithEnoughBalancePlusAllowance ??= symbol;
             }
             else
             {
+                // find symbol: balance is enough to cover the base fee and no allowance 
                 symbolWithEnoughBalance ??= symbol;
             }
         }

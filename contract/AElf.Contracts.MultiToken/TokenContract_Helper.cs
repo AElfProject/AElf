@@ -94,6 +94,7 @@ public partial class TokenContract
                 $"Insufficient amount of {symbol} for free fee allowance. Need amount: {-addAmount}; Current amount: {freeAllowanceAmount}");
         }
 
+        // Sort symbols by expiration time
         var symbolList = GetSymbolListSortedByExpirationTime(transactionFeeFreeAllowancesMap, fromAddress);
 
         foreach (var s in symbolList)
