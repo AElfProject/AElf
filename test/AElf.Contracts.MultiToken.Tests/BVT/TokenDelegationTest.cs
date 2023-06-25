@@ -360,8 +360,8 @@ public partial class MultiTokenContractTests
             DelegateInfoList = { delegateInfo1,delegateInfo2,delegateInfo3 }
         });
         {
-            var delegateInfoOfADelegatee = await TokenContractStub.GetTransactionFeeDelegateInfosOfADelegatee.CallAsync(
-                new GetTransactionFeeDelegateInfosOfADelegateeInput
+            var delegateInfoOfADelegatee = await TokenContractStub.GetTransactionFeeDelegateInfo.CallAsync(
+                new GetTransactionFeeDelegateInfoInput
                 {
                     ContractAddress = BasicFunctionContractAddress,
                     DelegatorAddress = User1Address,
@@ -374,8 +374,8 @@ public partial class MultiTokenContractTests
             delegateInfoOfADelegatee.BlockHeight.ShouldBeGreaterThan(0);
         }
         {
-            var delegateInfoOfADelegatee = await TokenContractStub.GetTransactionFeeDelegateInfosOfADelegatee.CallAsync(
-                new GetTransactionFeeDelegateInfosOfADelegateeInput
+            var delegateInfoOfADelegatee = await TokenContractStub.GetTransactionFeeDelegateInfo.CallAsync(
+                new GetTransactionFeeDelegateInfoInput
                 {
                     ContractAddress = BasicFunctionContractAddress,
                     DelegatorAddress = User1Address,
@@ -387,8 +387,8 @@ public partial class MultiTokenContractTests
             delegateInfoOfADelegatee.BlockHeight.ShouldBeGreaterThan(0);
         }
         {
-            var delegateInfoOfADelegatee = await TokenContractStub.GetTransactionFeeDelegateInfosOfADelegatee.CallAsync(
-                new GetTransactionFeeDelegateInfosOfADelegateeInput
+            var delegateInfoOfADelegatee = await TokenContractStub.GetTransactionFeeDelegateInfo.CallAsync(
+                new GetTransactionFeeDelegateInfoInput
                 {
                     ContractAddress = BasicFunctionContractAddress,
                     DelegatorAddress = User1Address,
@@ -454,8 +454,8 @@ public partial class MultiTokenContractTests
             DelegateInfoList = { delegateInfo1,delegateInfo2 }
         });
         {
-            var delegateInfoOfADelegatee = await TokenContractStub.GetTransactionFeeDelegateInfosOfADelegatee.CallAsync(
-                new GetTransactionFeeDelegateInfosOfADelegateeInput
+            var delegateInfoOfADelegatee = await TokenContractStub.GetTransactionFeeDelegateInfo.CallAsync(
+                new GetTransactionFeeDelegateInfoInput
                 {
                     ContractAddress = BasicContractZeroAddress,
                     DelegatorAddress = User1Address,
@@ -468,8 +468,8 @@ public partial class MultiTokenContractTests
             delegateInfoOfADelegatee.BlockHeight.ShouldBeGreaterThan(0);
         }
         {
-            var delegateInfoOfADelegatee = await TokenContractStub.GetTransactionFeeDelegateInfosOfADelegatee.CallAsync(
-                new GetTransactionFeeDelegateInfosOfADelegateeInput
+            var delegateInfoOfADelegatee = await TokenContractStub.GetTransactionFeeDelegateInfo.CallAsync(
+                new GetTransactionFeeDelegateInfoInput
                 {
                     ContractAddress = BasicFunctionContractAddress,
                     DelegatorAddress = User1Address,
@@ -554,8 +554,8 @@ public partial class MultiTokenContractTests
             DelegateInfoList = { delegateInfo1,delegateInfo2,delegateInfo3,delegateInfo4 }
         });
         {
-            var delegateInfoOfADelegatee = await TokenContractStub.GetTransactionFeeDelegateInfosOfADelegatee.CallAsync(
-                new GetTransactionFeeDelegateInfosOfADelegateeInput
+            var delegateInfoOfADelegatee = await TokenContractStub.GetTransactionFeeDelegateInfo.CallAsync(
+                new GetTransactionFeeDelegateInfoInput
                 {
                     ContractAddress = BasicFunctionContractAddress,
                     DelegatorAddress = User1Address,
@@ -569,8 +569,8 @@ public partial class MultiTokenContractTests
             delegateInfoOfADelegatee.BlockHeight.ShouldBeGreaterThan(0);
         }
         {
-            var delegateInfoOfADelegatee = await TokenContractStub.GetTransactionFeeDelegateInfosOfADelegatee.CallAsync(
-                new GetTransactionFeeDelegateInfosOfADelegateeInput
+            var delegateInfoOfADelegatee = await TokenContractStub.GetTransactionFeeDelegateInfo.CallAsync(
+                new GetTransactionFeeDelegateInfoInput
                 {
                     ContractAddress = BasicFunctionContractAddress,
                     DelegatorAddress = User1Address,
@@ -582,8 +582,8 @@ public partial class MultiTokenContractTests
             delegateInfoOfADelegatee.BlockHeight.ShouldBeGreaterThan(0);
         }
         {
-            var delegateInfoOfADelegatee = await TokenContractStub.GetTransactionFeeDelegateInfosOfADelegatee.CallAsync(
-                new GetTransactionFeeDelegateInfosOfADelegateeInput
+            var delegateInfoOfADelegatee = await TokenContractStub.GetTransactionFeeDelegateInfo.CallAsync(
+                new GetTransactionFeeDelegateInfoInput
                 {
                     ContractAddress = BasicFunctionContractAddress,
                     DelegatorAddress = User1Address,
@@ -596,8 +596,8 @@ public partial class MultiTokenContractTests
             delegateInfoOfADelegatee.BlockHeight.ShouldBeGreaterThan(0);
         }
         {
-            var delegateInfoOfADelegatee = await TokenContractStub.GetTransactionFeeDelegateInfosOfADelegatee.CallAsync(
-                new GetTransactionFeeDelegateInfosOfADelegateeInput
+            var delegateInfoOfADelegatee = await TokenContractStub.GetTransactionFeeDelegateInfo.CallAsync(
+                new GetTransactionFeeDelegateInfoInput
                 {
                     ContractAddress = BasicContractZeroAddress,
                     DelegatorAddress = User1Address,
@@ -665,8 +665,8 @@ public partial class MultiTokenContractTests
             DelegateInfoList = { delegateInfo1,delegateInfo2,delegateInfo3 }
         });
         {
-            var delegateInfoOfADelegatee = await TokenContractStub.GetTransactionFeeDelegateInfosOfADelegatee.CallAsync(
-                new GetTransactionFeeDelegateInfosOfADelegateeInput
+            var delegateInfoOfADelegatee = await TokenContractStub.GetTransactionFeeDelegateInfo.CallAsync(
+                new GetTransactionFeeDelegateInfoInput
                 {
                     ContractAddress = BasicFunctionContractAddress,
                     DelegatorAddress = User1Address,
@@ -680,8 +680,8 @@ public partial class MultiTokenContractTests
             delegateInfoOfADelegatee.BlockHeight.ShouldBeGreaterThan(0);
         }
         {
-            var delegateInfoOfADelegatee = await TokenContractStub.GetTransactionFeeDelegateInfosOfADelegatee.CallAsync(
-                new GetTransactionFeeDelegateInfosOfADelegateeInput
+            var delegateInfoOfADelegatee = await TokenContractStub.GetTransactionFeeDelegateInfo.CallAsync(
+                new GetTransactionFeeDelegateInfoInput
                 {
                     ContractAddress = BasicFunctionContractAddress,
                     DelegatorAddress = User1Address,
@@ -694,8 +694,8 @@ public partial class MultiTokenContractTests
             delegateInfoOfADelegatee.BlockHeight.ShouldBeGreaterThan(0);
         }
         {
-            var delegateInfoOfADelegatee = await TokenContractStub.GetTransactionFeeDelegateInfosOfADelegatee.CallAsync(
-                new GetTransactionFeeDelegateInfosOfADelegateeInput
+            var delegateInfoOfADelegatee = await TokenContractStub.GetTransactionFeeDelegateInfo.CallAsync(
+                new GetTransactionFeeDelegateInfoInput
                 {
                     ContractAddress = BasicContractZeroAddress,
                     DelegatorAddress = User1Address,
@@ -772,8 +772,8 @@ public partial class MultiTokenContractTests
             delegateeAddress.DelegateeAddresses.Count.ShouldBe(0);
         }
         {
-            var delegateInfoOfADelegatee = await TokenContractStub.GetTransactionFeeDelegateInfosOfADelegatee.CallAsync(
-                new GetTransactionFeeDelegateInfosOfADelegateeInput
+            var delegateInfoOfADelegatee = await TokenContractStub.GetTransactionFeeDelegateInfo.CallAsync(
+                new GetTransactionFeeDelegateInfoInput
                 {
                     ContractAddress = BasicFunctionContractAddress,
                     DelegatorAddress = User1Address,
@@ -793,8 +793,8 @@ public partial class MultiTokenContractTests
             delegateeAddress.DelegateeAddresses.Count.ShouldBe(1);
         }
         {
-            var delegateInfoOfADelegatee = await TokenContractStub.GetTransactionFeeDelegateInfosOfADelegatee.CallAsync(
-                new GetTransactionFeeDelegateInfosOfADelegateeInput
+            var delegateInfoOfADelegatee = await TokenContractStub.GetTransactionFeeDelegateInfo.CallAsync(
+                new GetTransactionFeeDelegateInfoInput
                 {
                     ContractAddress = BasicFunctionContractAddress,
                     DelegatorAddress = User1Address,
@@ -877,8 +877,8 @@ public partial class MultiTokenContractTests
             DelegateInfoList = { delegateInfo1,delegateInfo2,delegateInfo4,delegateInfo5 }
         });
         {
-            var delegateInfoOfADelegatee = await TokenContractStub.GetTransactionFeeDelegateInfosOfADelegatee.CallAsync(
-                new GetTransactionFeeDelegateInfosOfADelegateeInput
+            var delegateInfoOfADelegatee = await TokenContractStub.GetTransactionFeeDelegateInfo.CallAsync(
+                new GetTransactionFeeDelegateInfoInput
                 {
                     ContractAddress = BasicFunctionContractAddress,
                     DelegatorAddress = User1Address,
@@ -892,8 +892,8 @@ public partial class MultiTokenContractTests
             delegateInfoOfADelegatee.BlockHeight.ShouldBeGreaterThan(0);
         }
         {
-            var delegateInfoOfADelegatee = await TokenContractStub.GetTransactionFeeDelegateInfosOfADelegatee.CallAsync(
-                new GetTransactionFeeDelegateInfosOfADelegateeInput
+            var delegateInfoOfADelegatee = await TokenContractStub.GetTransactionFeeDelegateInfo.CallAsync(
+                new GetTransactionFeeDelegateInfoInput
                 {
                     ContractAddress = BasicFunctionContractAddress,
                     DelegatorAddress = User1Address,
@@ -905,8 +905,8 @@ public partial class MultiTokenContractTests
             delegateInfoOfADelegatee.BlockHeight.ShouldBeGreaterThan(0);
         }
         {
-            var delegateInfoOfADelegatee = await TokenContractStub.GetTransactionFeeDelegateInfosOfADelegatee.CallAsync(
-                new GetTransactionFeeDelegateInfosOfADelegateeInput
+            var delegateInfoOfADelegatee = await TokenContractStub.GetTransactionFeeDelegateInfo.CallAsync(
+                new GetTransactionFeeDelegateInfoInput
                 {
                     ContractAddress = BasicFunctionContractAddress,
                     DelegatorAddress = User1Address,
@@ -918,8 +918,8 @@ public partial class MultiTokenContractTests
             delegateInfoOfADelegatee.BlockHeight.ShouldBeGreaterThan(0);
         }
         {
-            var delegateInfoOfADelegatee = await TokenContractStub.GetTransactionFeeDelegateInfosOfADelegatee.CallAsync(
-                new GetTransactionFeeDelegateInfosOfADelegateeInput
+            var delegateInfoOfADelegatee = await TokenContractStub.GetTransactionFeeDelegateInfo.CallAsync(
+                new GetTransactionFeeDelegateInfoInput
                 {
                     ContractAddress = BasicContractZeroAddress,
                     DelegatorAddress = User1Address,
@@ -990,8 +990,8 @@ public partial class MultiTokenContractTests
             DelegateInfoList = { delegateInfo1 }
         });
         {
-            var delegateInfoOfADelegatee = await TokenContractStub.GetTransactionFeeDelegateInfosOfADelegatee.CallAsync(
-                new GetTransactionFeeDelegateInfosOfADelegateeInput
+            var delegateInfoOfADelegatee = await TokenContractStub.GetTransactionFeeDelegateInfo.CallAsync(
+                new GetTransactionFeeDelegateInfoInput
                 {
                     ContractAddress = BasicFunctionContractAddress,
                     DelegatorAddress = User1Address,
@@ -1004,8 +1004,8 @@ public partial class MultiTokenContractTests
             delegateInfoOfADelegatee.BlockHeight.ShouldBeGreaterThan(0);
         }
         {
-            var delegateInfoOfADelegatee = await TokenContractStub.GetTransactionFeeDelegateInfosOfADelegatee.CallAsync(
-                new GetTransactionFeeDelegateInfosOfADelegateeInput
+            var delegateInfoOfADelegatee = await TokenContractStub.GetTransactionFeeDelegateInfo.CallAsync(
+                new GetTransactionFeeDelegateInfoInput
                 {
                     ContractAddress = BasicFunctionContractAddress,
                     DelegatorAddress = User1Address,
@@ -1064,8 +1064,8 @@ public partial class MultiTokenContractTests
             DelegateInfoList = { delegateInfo1 }
         });
         {
-            var delegateInfoOfADelegatee = await TokenContractStub.GetTransactionFeeDelegateInfosOfADelegatee.CallAsync(
-                new GetTransactionFeeDelegateInfosOfADelegateeInput
+            var delegateInfoOfADelegatee = await TokenContractStub.GetTransactionFeeDelegateInfo.CallAsync(
+                new GetTransactionFeeDelegateInfoInput
                 {
                     ContractAddress = BasicFunctionContractAddress,
                     DelegatorAddress = User1Address,
@@ -1078,8 +1078,8 @@ public partial class MultiTokenContractTests
             delegateInfoOfADelegatee.BlockHeight.ShouldBeGreaterThan(0);
         }
         {
-            var delegateInfoOfADelegatee = await TokenContractStub.GetTransactionFeeDelegateInfosOfADelegatee.CallAsync(
-                new GetTransactionFeeDelegateInfosOfADelegateeInput
+            var delegateInfoOfADelegatee = await TokenContractStub.GetTransactionFeeDelegateInfo.CallAsync(
+                new GetTransactionFeeDelegateInfoInput
                 {
                     ContractAddress = BasicFunctionContractAddress,
                     DelegatorAddress = User2Address,
@@ -1156,8 +1156,8 @@ public partial class MultiTokenContractTests
             });
         }
         {
-            var transactionFeeDelegation = await TokenContractStub.GetTransactionFeeDelegateInfosOfADelegatee.CallAsync(
-                new GetTransactionFeeDelegateInfosOfADelegateeInput
+            var transactionFeeDelegation = await TokenContractStub.GetTransactionFeeDelegateInfo.CallAsync(
+                new GetTransactionFeeDelegateInfoInput
                 {
                     ContractAddress = BasicFunctionContractAddress,
                     MethodName = "test1",
@@ -1207,64 +1207,7 @@ public partial class MultiTokenContractTests
             executionResult.TransactionResult.Error.ShouldContain("Delegator address and delegate info cannot be null.");
         }
     }
-
-    [Fact]
-    public async Task SetDelegateInfos_InvalidMethodName_Failed_Test()
-    {
-        await Initialize();
-        var delegations1 = new Dictionary<string, long>
-        {
-            [NativeToken] = 1000,
-            [BasicFeeSymbol] = 500,
-            [SizeFeeSymbol] = 100
-        };
-        var delegateInfo = new DelegateInfo
-        {
-            ContractAddress = BasicFunctionContractAddress,
-            MethodName = "test1-0",
-            Delegations = { delegations1 },
-            IsUnlimitedDelegate = false
-        };
-        var delegateInfo1 = new DelegateInfo
-        {
-            ContractAddress = BasicFunctionContractAddress,
-            MethodName = "test1@0",
-            Delegations = { delegations1 },
-            IsUnlimitedDelegate = false
-        };
-        var delegateInfo2 = new DelegateInfo
-        {
-            ContractAddress = BasicFunctionContractAddress,
-            MethodName = "@#￥%Z……",
-            Delegations = { delegations1 },
-            IsUnlimitedDelegate = false
-        };
-        {
-            var executionResult = await TokenContractStub.SetTransactionFeeDelegateInfos.SendWithExceptionAsync(new SetTransactionFeeDelegateInfosInput
-            {
-                DelegatorAddress = User1Address,
-                DelegateInfoList = { delegateInfo }
-            });
-            executionResult.TransactionResult.Error.ShouldContain("Invalid contract address and method name.");
-        }
-        {
-            var executionResult = await TokenContractStub.SetTransactionFeeDelegateInfos.SendWithExceptionAsync(new SetTransactionFeeDelegateInfosInput
-            {
-                DelegatorAddress = User1Address,
-                DelegateInfoList = { delegateInfo1 }
-            });
-            executionResult.TransactionResult.Error.ShouldContain("Invalid contract address and method name.");
-        }
-        {
-            var executionResult = await TokenContractStub.SetTransactionFeeDelegateInfos.SendWithExceptionAsync(new SetTransactionFeeDelegateInfosInput
-            {
-                DelegatorAddress = User1Address,
-                DelegateInfoList = { delegateInfo2 }
-            });
-            executionResult.TransactionResult.Error.ShouldContain("Invalid contract address and method name.");
-        }
-        
-    }
+    
     [Fact]
     public async Task RemoveTransactionFeeDelegateeInfos_Success_Test()
     {
@@ -1290,8 +1233,8 @@ public partial class MultiTokenContractTests
             DelegateInfoList = { delegateInfo1 }
         });
         {
-            var delegateInfoOfADelegatee = await TokenContractStub.GetTransactionFeeDelegateInfosOfADelegatee.CallAsync(
-                new GetTransactionFeeDelegateInfosOfADelegateeInput
+            var delegateInfoOfADelegatee = await TokenContractStub.GetTransactionFeeDelegateInfo.CallAsync(
+                new GetTransactionFeeDelegateInfoInput
                 {
                     ContractAddress = BasicFunctionContractAddress,
                     DelegatorAddress = User1Address,
@@ -1322,8 +1265,8 @@ public partial class MultiTokenContractTests
             DelegateTransactionList = { delegationTransactionList }
         });
         {
-            var delegateInfoOfADelegatee = await TokenContractStub.GetTransactionFeeDelegateInfosOfADelegatee.CallAsync(
-                new GetTransactionFeeDelegateInfosOfADelegateeInput
+            var delegateInfoOfADelegatee = await TokenContractStub.GetTransactionFeeDelegateInfo.CallAsync(
+                new GetTransactionFeeDelegateInfoInput
                 {
                     ContractAddress = BasicFunctionContractAddress,
                     DelegatorAddress = User1Address,
@@ -1333,8 +1276,8 @@ public partial class MultiTokenContractTests
             delegateInfoOfADelegatee.ShouldBe(new TransactionFeeDelegations());
         }
         {
-            var delegateInfoOfADelegatee = await TokenContractStub.GetTransactionFeeDelegateInfosOfADelegatee.CallAsync(
-                new GetTransactionFeeDelegateInfosOfADelegateeInput
+            var delegateInfoOfADelegatee = await TokenContractStub.GetTransactionFeeDelegateInfo.CallAsync(
+                new GetTransactionFeeDelegateInfoInput
                 {
                     ContractAddress = BasicFunctionContractAddress,
                     DelegatorAddress = User1Address,
@@ -1375,8 +1318,8 @@ public partial class MultiTokenContractTests
             DelegateTransactionList = { delegationTransactionList }
         });
         {
-            var transactionDelegatee = await TokenContractStub.GetTransactionFeeDelegateInfosOfADelegatee.CallAsync(
-                new GetTransactionFeeDelegateInfosOfADelegateeInput
+            var transactionDelegatee = await TokenContractStub.GetTransactionFeeDelegateInfo.CallAsync(
+                new GetTransactionFeeDelegateInfoInput
                 {
                     ContractAddress = BasicFunctionContractAddress,
                     MethodName = "test1",
@@ -1428,8 +1371,8 @@ public partial class MultiTokenContractTests
             DelegateTransactionList = { delegationTransactionList }
         });
         {
-            var transactionDelegatee = await TokenContractStub.GetTransactionFeeDelegateInfosOfADelegatee.CallAsync(
-                new GetTransactionFeeDelegateInfosOfADelegateeInput
+            var transactionDelegatee = await TokenContractStub.GetTransactionFeeDelegateInfo.CallAsync(
+                new GetTransactionFeeDelegateInfoInput
                 {
                     ContractAddress = BasicFunctionContractAddress,
                     MethodName = "test1",
@@ -1439,8 +1382,8 @@ public partial class MultiTokenContractTests
             transactionDelegatee.ShouldBe(new TransactionFeeDelegations());
         }
         {
-            var transactionDelegatee = await TokenContractStub.GetTransactionFeeDelegateInfosOfADelegatee.CallAsync(
-                new GetTransactionFeeDelegateInfosOfADelegateeInput
+            var transactionDelegatee = await TokenContractStub.GetTransactionFeeDelegateInfo.CallAsync(
+                new GetTransactionFeeDelegateInfoInput
                 {
                     ContractAddress = BasicContractZeroAddress,
                     MethodName = "test1",
@@ -1504,8 +1447,8 @@ public partial class MultiTokenContractTests
             DelegateTransactionList = { delegationTransactionList }
         });
         {
-            var transactionDelegatee = await TokenContractStub.GetTransactionFeeDelegateInfosOfADelegatee.CallAsync(
-                new GetTransactionFeeDelegateInfosOfADelegateeInput
+            var transactionDelegatee = await TokenContractStub.GetTransactionFeeDelegateInfo.CallAsync(
+                new GetTransactionFeeDelegateInfoInput
                 {
                     ContractAddress = TokenContractAddress,
                     MethodName = "transfer",
@@ -1525,8 +1468,8 @@ public partial class MultiTokenContractTests
             delegateeList.DelegateeAddresses.Count.ShouldBe(0);
         }
         {
-            var transactionDelegatee = await TokenContractStub.GetTransactionFeeDelegateInfosOfADelegatee.CallAsync(
-                new GetTransactionFeeDelegateInfosOfADelegateeInput
+            var transactionDelegatee = await TokenContractStub.GetTransactionFeeDelegateInfo.CallAsync(
+                new GetTransactionFeeDelegateInfoInput
                 {
                     ContractAddress = TokenContractAddress,
                     MethodName = "transfer",
@@ -1616,8 +1559,8 @@ public partial class MultiTokenContractTests
             DelegateTransactionList = { delegationTransactionList }
         });
         {
-            var delegateInfoOfADelegatee = await TokenContractStub.GetTransactionFeeDelegateInfosOfADelegatee.CallAsync(
-                new GetTransactionFeeDelegateInfosOfADelegateeInput
+            var delegateInfoOfADelegatee = await TokenContractStub.GetTransactionFeeDelegateInfo.CallAsync(
+                new GetTransactionFeeDelegateInfoInput
                 {
                     ContractAddress = BasicFunctionContractAddress,
                     DelegatorAddress = User1Address,
@@ -1627,8 +1570,8 @@ public partial class MultiTokenContractTests
             delegateInfoOfADelegatee.ShouldBe(new TransactionFeeDelegations());
         }
         {
-            var delegateInfoOfADelegatee = await TokenContractStub.GetTransactionFeeDelegateInfosOfADelegatee.CallAsync(
-                new GetTransactionFeeDelegateInfosOfADelegateeInput
+            var delegateInfoOfADelegatee = await TokenContractStub.GetTransactionFeeDelegateInfo.CallAsync(
+                new GetTransactionFeeDelegateInfoInput
                 {
                     ContractAddress = BasicFunctionContractAddress,
                     DelegatorAddress = User1Address,
@@ -1668,8 +1611,8 @@ public partial class MultiTokenContractTests
             DelegateTransactionList = { delegationTransactionList }
         });
         {
-            var transactionDelegatee = await TokenContractStub.GetTransactionFeeDelegateInfosOfADelegatee.CallAsync(
-                new GetTransactionFeeDelegateInfosOfADelegateeInput
+            var transactionDelegatee = await TokenContractStub.GetTransactionFeeDelegateInfo.CallAsync(
+                new GetTransactionFeeDelegateInfoInput
                 {
                     ContractAddress = BasicFunctionContractAddress,
                     MethodName = "test1",
@@ -1721,8 +1664,8 @@ public partial class MultiTokenContractTests
             DelegateTransactionList = { delegationTransactionList }
         });
         {
-            var transactionDelegatee = await TokenContractStub.GetTransactionFeeDelegateInfosOfADelegatee.CallAsync(
-                new GetTransactionFeeDelegateInfosOfADelegateeInput
+            var transactionDelegatee = await TokenContractStub.GetTransactionFeeDelegateInfo.CallAsync(
+                new GetTransactionFeeDelegateInfoInput
                 {
                     ContractAddress = BasicFunctionContractAddress,
                     MethodName = "test1",
@@ -1732,8 +1675,8 @@ public partial class MultiTokenContractTests
             transactionDelegatee.ShouldBe(new TransactionFeeDelegations());
         }
         {
-            var transactionDelegatee = await TokenContractStub.GetTransactionFeeDelegateInfosOfADelegatee.CallAsync(
-                new GetTransactionFeeDelegateInfosOfADelegateeInput
+            var transactionDelegatee = await TokenContractStub.GetTransactionFeeDelegateInfo.CallAsync(
+                new GetTransactionFeeDelegateInfoInput
                 {
                     ContractAddress = BasicContractZeroAddress,
                     MethodName = "test1",
@@ -1797,8 +1740,8 @@ public partial class MultiTokenContractTests
             DelegateTransactionList = { delegationTransactionList }
         });
         {
-            var transactionDelegatee = await TokenContractStub.GetTransactionFeeDelegateInfosOfADelegatee.CallAsync(
-                new GetTransactionFeeDelegateInfosOfADelegateeInput
+            var transactionDelegatee = await TokenContractStub.GetTransactionFeeDelegateInfo.CallAsync(
+                new GetTransactionFeeDelegateInfoInput
                 {
                     ContractAddress = TokenContractAddress,
                     MethodName = "transfer",
@@ -1818,8 +1761,8 @@ public partial class MultiTokenContractTests
             delegateeList.DelegateeAddresses.Count.ShouldBe(0);
         }
         {
-            var transactionDelegatee = await TokenContractStub.GetTransactionFeeDelegateInfosOfADelegatee.CallAsync(
-                new GetTransactionFeeDelegateInfosOfADelegateeInput
+            var transactionDelegatee = await TokenContractStub.GetTransactionFeeDelegateInfo.CallAsync(
+                new GetTransactionFeeDelegateInfoInput
                 {
                     ContractAddress = TokenContractAddress,
                     MethodName = "transfer",
