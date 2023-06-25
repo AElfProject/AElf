@@ -146,7 +146,7 @@ service TokenContractImpl {
         option (aelf.is_view) = true;
     }
     // Get delegation according to the delegator,transaction and delegatee.
-    rpc GetTransactionFeeDelegateInfosOfADelegatee(GetTransactionFeeDelegateInfosOfADelegateeInput) returns (token.TransactionFeeDelegations){
+    rpc GetTransactionFeeDelegateInfo(GetTransactionFeeDelegateInfoInput) returns (token.TransactionFeeDelegations){
         option (aelf.is_view) = true;
     }
 }
@@ -302,7 +302,7 @@ message RemoveTransactionFeeDelegateeInfosInput {
     repeated DelegateTransaction delegate_transaction_list = 2;
 }
 
-message GetTransactionFeeDelegateInfosOfADelegateeInput {
+message GetTransactionFeeDelegateInfoInput {
     aelf.Address delegator_address = 1;
     aelf.Address delegatee_address = 2;
     aelf.Address contract_address = 3;

@@ -27,11 +27,6 @@ public partial class TokenContract
     {
         return character >= 'A' && character <= 'Z';
     }
-    
-    private bool IsValidMethodNameChar(char character)
-    {
-        return (character >= 'A' && character <= 'Z') || (character >= 'a' && character <= 'z') || (character >= '0' && character <= '9');
-    }
 
     private TokenInfo AssertValidToken(string symbol, long amount)
     {
