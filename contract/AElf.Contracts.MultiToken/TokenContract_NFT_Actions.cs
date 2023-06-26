@@ -28,9 +28,13 @@ public partial class TokenContract
             Assert(!string.IsNullOrEmpty(expirationTime) 
                    && Context.CurrentBlockTime.Seconds <= long.Parse(expirationTime),"seed_owned_symbol is expired ");
             var oldSymbolSeed = State.SymbolSeedMap[ownerSymbol];
-            State.TokenInfos[oldSymbolSeed].ExternalInfo.Value.TryGetValue("__seed_exp_time",out var oldSymbolSeedExpireTime);
-            Assert(oldSymbolSeed == null ||  string.IsNullOrEmpty(expirationTime) 
-                || Context.CurrentBlockTime.Seconds > long.Parse(expirationTime),"seed_owned_symbol has been created");
+            var oldSymbolSeedExpireTime ="";
+            if (oldSymbolSeed !=null)
+            {
+                State.TokenInfos[oldSymbolSeed].ExternalInfo.Value.TryGetValue("__seed_exp_time",out oldSymbolSeedExpireTime);
+            }
+            Assert(oldSymbolSeed == null ||  string.IsNullOrEmpty(oldSymbolSeedExpireTime) 
+                || Context.CurrentBlockTime.Seconds > long.Parse(oldSymbolSeedExpireTime),"seed_owned_symbol has been created");
             State.SymbolSeedMap[ownerSymbol] = input.Symbol;
         }
         return CreateToken(input, SymbolType.Nft);
