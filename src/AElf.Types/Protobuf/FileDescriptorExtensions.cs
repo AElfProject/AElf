@@ -1,13 +1,14 @@
 using Google.Protobuf.Reflection;
 
-namespace AElf;
-
-public static class FileDescriptorExtensions
+namespace AElf
 {
-    public static string GetIdentity(this FileDescriptor descriptor)
+    
+    public static class FileDescriptorExtensions
     {
-        if (descriptor.CustomOptions.TryGetString(500001, out var id)) return id;
-
-        return "";
-    }
-}
+        public static string GetIdentity(this FileDescriptor descriptor)
+        {
+            if (descriptor.CustomOptions.TryGetString(500001, out var id)) return id;
+    
+            return "";
+        }
+    }}

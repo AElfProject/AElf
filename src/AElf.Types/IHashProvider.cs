@@ -1,8 +1,9 @@
 using AElf.Types;
 
-namespace AElf;
-
-public interface IHashProvider
+namespace AElf
 {
-    Hash GetHash();
-}
+    
+    public interface IHashProvider
+    {
+        Hash GetHash();
+    }}
