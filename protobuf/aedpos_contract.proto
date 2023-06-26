@@ -454,6 +454,7 @@ message RecordCandidateReplacementInput {
     string new_pubkey = 2;
 }
 
+// For compatibility, it is the same as the Round with the addition of the random_number property.
 message NextRoundInput {
     // The round number.
     int64 round_number = 1;
@@ -479,6 +480,7 @@ message NextRoundInput {
     bytes random_number = 11;
 }
 
+// For compatibility, it is the same as the Round with the addition of the random_number property.
 message NextTermInput {
     // The round number.
     int64 round_number = 1;

@@ -106,19 +106,7 @@ public partial class AEDPoSContract
 
     private void ProcessNextRound(NextRoundInput input)
     {
-        var nextRound = new Round
-        {
-            RoundNumber = input.RoundNumber,
-            RealTimeMinersInformation = { input.RealTimeMinersInformation },
-            ExtraBlockProducerOfPreviousRound = input.ExtraBlockProducerOfPreviousRound,
-            BlockchainAge = input.BlockchainAge,
-            TermNumber = input.TermNumber,
-            ConfirmedIrreversibleBlockHeight = input.ConfirmedIrreversibleBlockHeight,
-            ConfirmedIrreversibleBlockRoundNumber = input.ConfirmedIrreversibleBlockRoundNumber,
-            IsMinerListJustChanged = input.IsMinerListJustChanged,
-            RoundIdForValidation = input.RoundIdForValidation,
-            MainChainMinersRoundNumber = input.MainChainMinersRoundNumber
-        };
+        var nextRound = input.ToRound();
         
         RecordMinedMinerListOfCurrentRound();
 
@@ -169,19 +157,7 @@ public partial class AEDPoSContract
 
     private void ProcessNextTerm(NextTermInput input)
     {
-        var nextRound = new Round
-        {
-            RoundNumber = input.RoundNumber,
-            RealTimeMinersInformation = { input.RealTimeMinersInformation },
-            ExtraBlockProducerOfPreviousRound = input.ExtraBlockProducerOfPreviousRound,
-            BlockchainAge = input.BlockchainAge,
-            TermNumber = input.TermNumber,
-            ConfirmedIrreversibleBlockHeight = input.ConfirmedIrreversibleBlockHeight,
-            ConfirmedIrreversibleBlockRoundNumber = input.ConfirmedIrreversibleBlockRoundNumber,
-            IsMinerListJustChanged = input.IsMinerListJustChanged,
-            RoundIdForValidation = input.RoundIdForValidation,
-            MainChainMinersRoundNumber = input.MainChainMinersRoundNumber
-        };
+        var nextRound = input.ToRound();
         
         RecordMinedMinerListOfCurrentRound();
 

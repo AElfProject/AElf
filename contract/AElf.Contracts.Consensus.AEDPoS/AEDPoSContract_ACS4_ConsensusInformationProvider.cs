@@ -166,20 +166,7 @@ public partial class AEDPoSContract
                 {
                     Transactions =
                     {
-                        GenerateTransaction(nameof(NextRound), new NextRoundInput
-                        {
-                            RoundNumber = round.RoundNumber,
-                            RealTimeMinersInformation = { round.RealTimeMinersInformation },
-                            ExtraBlockProducerOfPreviousRound = round.ExtraBlockProducerOfPreviousRound,
-                            BlockchainAge = round.BlockchainAge,
-                            TermNumber = round.TermNumber,
-                            ConfirmedIrreversibleBlockHeight = round.ConfirmedIrreversibleBlockHeight,
-                            ConfirmedIrreversibleBlockRoundNumber = round.ConfirmedIrreversibleBlockRoundNumber,
-                            IsMinerListJustChanged = round.IsMinerListJustChanged,
-                            RoundIdForValidation = round.RoundIdForValidation,
-                            MainChainMinersRoundNumber = round.MainChainMinersRoundNumber,
-                            RandomNumber = randomNumber
-                        })
+                        GenerateTransaction(nameof(NextRound), NextRoundInput.Create(round,randomNumber))
                     }
                 };
             case AElfConsensusBehaviour.NextTerm:
@@ -187,20 +174,7 @@ public partial class AEDPoSContract
                 {
                     Transactions =
                     {
-                        GenerateTransaction(nameof(NextTerm), new NextTermInput
-                        {
-                            RoundNumber = round.RoundNumber,
-                            RealTimeMinersInformation = { round.RealTimeMinersInformation },
-                            ExtraBlockProducerOfPreviousRound = round.ExtraBlockProducerOfPreviousRound,
-                            BlockchainAge = round.BlockchainAge,
-                            TermNumber = round.TermNumber,
-                            ConfirmedIrreversibleBlockHeight = round.ConfirmedIrreversibleBlockHeight,
-                            ConfirmedIrreversibleBlockRoundNumber = round.ConfirmedIrreversibleBlockRoundNumber,
-                            IsMinerListJustChanged = round.IsMinerListJustChanged,
-                            RoundIdForValidation = round.RoundIdForValidation,
-                            MainChainMinersRoundNumber = round.MainChainMinersRoundNumber,
-                            RandomNumber = randomNumber
-                        })
+                        GenerateTransaction(nameof(NextTerm), NextTermInput.Create(round,randomNumber))
                     }
                 };
             default:
