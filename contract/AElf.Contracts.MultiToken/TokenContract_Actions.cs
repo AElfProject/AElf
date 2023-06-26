@@ -108,9 +108,9 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
         Assert(tokenInfo != null,"Seed NFT is not exist");
         Assert(State.Balances[Context.Sender][symbolSeed] > 0,"owner doesn't own enough balance");
         Assert(tokenInfo.ExternalInfo != null  ,"seed_owned_symbol is empty ");
-        tokenInfo.ExternalInfo.Value.TryGetValue("__seed_owned_symbol",out var ownedSymbol);
+        tokenInfo.ExternalInfo.Value.TryGetValue(TokenContractConstants.SeedExternalInfoOwnerSymbol,out var ownedSymbol);
         Assert(ownedSymbol == symbol ,"seed_owned_symbol and input_symbol is  inconsistent ");
-        tokenInfo.ExternalInfo.Value.TryGetValue("__seed_exp_time",out var expirationTime);
+        tokenInfo.ExternalInfo.Value.TryGetValue(TokenContractConstants.SeedExternalInfoExpireTime,out var expirationTime);
         Assert(!string.IsNullOrEmpty(expirationTime) 
                && Context.CurrentBlockTime.Seconds <= long.Parse(expirationTime),"seed_owned_symbol is expired ");
     }

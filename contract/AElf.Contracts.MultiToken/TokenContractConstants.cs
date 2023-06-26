@@ -20,4 +20,6 @@ public static class TokenContractConstants
     public const string UserContractMethodFeeKey = "UserContractMethodFee";
     public const string CollectionId = "0";
     public const string SeedCollectionId = "SEED-0";
+    public const string SeedExternalInfoOwnerSymbol= "__seed_owned_symbol";
+    public const string SeedExternalInfoExpireTime = "__seed_exp_time";
 }

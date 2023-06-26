@@ -22,8 +22,8 @@ public partial class TokenContract
         Assert(Context.Sender == nftCollectionInfo.Issuer && nftCollectionInfo.Issuer == input.Issuer, "NFT issuer must be collection's issuer");
         if (nftCollectionInfo.Symbol == TokenContractConstants.SeedCollectionId)
         {
-            input.ExternalInfo.Value.TryGetValue("__seed_owned_symbol",out var ownerSymbol);
-            input.ExternalInfo.Value.TryGetValue("__seed_exp_time",out var expirationTime);
+            input.ExternalInfo.Value.TryGetValue(TokenContractConstants.SeedExternalInfoOwnerSymbol,out var ownerSymbol);
+            input.ExternalInfo.Value.TryGetValue(TokenContractConstants.SeedExternalInfoExpireTime,out var expirationTime);
             Assert(!string.IsNullOrEmpty(ownerSymbol) && State.TokenInfos[ownerSymbol] == null,"seed_owned_symbol is empty ");
             Assert(!string.IsNullOrEmpty(expirationTime) 
                    && Context.CurrentBlockTime.Seconds <= long.Parse(expirationTime),"seed_owned_symbol is expired ");
@@ -31,7 +31,7 @@ public partial class TokenContract
             var oldSymbolSeedExpireTime ="";
             if (oldSymbolSeed !=null)
             {
-                State.TokenInfos[oldSymbolSeed].ExternalInfo.Value.TryGetValue("__seed_exp_time",out oldSymbolSeedExpireTime);
+                State.TokenInfos[oldSymbolSeed].ExternalInfo.Value.TryGetValue(TokenContractConstants.SeedExternalInfoExpireTime,out oldSymbolSeedExpireTime);
             }
             Assert(oldSymbolSeed == null ||  string.IsNullOrEmpty(oldSymbolSeedExpireTime) 
                 || Context.CurrentBlockTime.Seconds > long.Parse(oldSymbolSeedExpireTime),"seed_owned_symbol has been created");
