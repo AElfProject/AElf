@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using AElf.Standards.ACS2;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -28,6 +28,7 @@ public partial class TokenContract
                         GetPath(nameof(TokenContractState.TransactionFeeFreeAllowancesSymbolList))
                     }
                 };
+
                 AddPathForTransactionFee(resourceInfo, txn.From.ToString(), txn.MethodName);
                 AddPathForDelegatees(resourceInfo, txn.From, args.Symbol, txn.MethodName);
                 AddPathForTransactionFeeFreeAllowance(resourceInfo, txn.From);
@@ -55,9 +56,11 @@ public partial class TokenContract
                         GetPath(nameof(TokenContractState.TransactionFeeFreeAllowancesSymbolList))
                     }
                 };
+
                 AddPathForTransactionFee(resourceInfo, txn.From.ToString(), txn.MethodName);
                 AddPathForDelegatees(resourceInfo, txn.From, args.Symbol, txn.MethodName);
                 AddPathForTransactionFeeFreeAllowance(resourceInfo, txn.From);
+
                 return resourceInfo;
             }
 
@@ -65,6 +68,7 @@ public partial class TokenContract
                 return new ResourceInfo { NonParallelizable = true };
         }
     }
+
 
     private void AddPathForTransactionFee(ResourceInfo resourceInfo, string from, string methodName)
     {
@@ -104,6 +108,7 @@ public partial class TokenContract
             {
                 if (delegations == null) return;
                 var add = Address.FromBase58(delegations).ToString();
+
                 AddPathForTransactionFee(resourceInfo, add, methodName);
                 AddPathForTransactionFeeFreeAllowance(resourceInfo, Address.FromBase58(delegations));
                 resourceInfo.WritePaths.Add(GetPath(nameof(TokenContractState.TransactionFeeFreeAllowances), add,

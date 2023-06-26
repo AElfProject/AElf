@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using AElf.CSharp.Core;
@@ -171,8 +172,7 @@ public partial class TokenContract
         // Try to charge delegatees
         // Get delegatee list according to the delegator
         var delegationInfo =
-            State.TransactionFeeDelegateInfoMap[delegatorAddress][input.ContractAddress][input.MethodName]
-                ?.Delegatees ??
+            State.TransactionFeeDelegateInfoMap[delegatorAddress][input.ContractAddress][input.MethodName]?.Delegatees ?? 
             State.TransactionFeeDelegateesMap[delegatorAddress]?.Delegatees;
 
         if (delegationInfo == null)
@@ -225,6 +225,7 @@ public partial class TokenContract
         foreach (var (symbol, amount) in allowanceBill.FreeFeeAllowancesMap)
         {
             if (amount <= 0) continue;
+
             var delegateInfo =
                 State.TransactionFeeDelegateInfoMap[delegatorAddress][contractAddress][methodName] ??
                 State.TransactionFeeDelegateesMap[delegatorAddress];
@@ -278,6 +279,12 @@ public partial class TokenContract
             // If base fee is set before, charge base fee.
             successToChargeBaseFee =
                 ChargeBaseFee(fee, fromAddress, ref bill, freeAllowancesMap, ref allowanceBill, delegations);
+        }
+
+        //For delegation, if the base fee fails to be charged, the size fee will not be charged
+        if (delegations != null && !successToChargeBaseFee)
+        {
+            return false;
         }
 
         //For delegation, if the base fee fails to be charged, the size fee will not be charged
@@ -375,7 +382,9 @@ public partial class TokenContract
         ref TransactionFreeFeeAllowanceBill allowanceBill,
         TransactionFeeDelegations delegations = null)
     {
+
         Context.LogDebug(() => "ChargeSizeFee Start");
+
         //If delegation != null,from address->delegateeAddress
         // Size Fee is charged in primary token, elf.
         var symbolToPayTxFee = State.ChainPrimaryTokenSymbol.Value;
@@ -425,6 +434,7 @@ public partial class TokenContract
             ref bill, ref allowanceBill);
         
         Context.LogDebug(() => "ChargeSizeFee End");
+
         return chargeResult;
     }
 
@@ -813,6 +823,7 @@ public partial class TokenContract
         existingAllowance = 0;
         string symbolWithEnoughBalance = null;
         string symbolWithEnoughBalancePlusAllowance = null;
+
         //Find the token that satisfies the delegate limit and satisfies the balance of the fee
         foreach (var (symbol, value) in symbolToAmountMap)
         {

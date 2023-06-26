@@ -207,8 +207,9 @@ public partial class TokenContract
             //If isUnlimitedDelegate is false,delegate info list should > 0.
             Assert(delegateInfo.IsUnlimitedDelegate || delegateInfo.Delegations.Count > 0,
                 "Delegation cannot be null.");
-            Assert(delegateInfo.ContractAddress != null && !string.IsNullOrEmpty(delegateInfo.MethodName) &&
-                   delegateInfo.MethodName.All(IsValidMethodNameChar), "Invalid contract address and method name.");
+            Assert(delegateInfo.ContractAddress != null && !string.IsNullOrEmpty(delegateInfo.MethodName),
+                "Invalid contract address and method name.");
+
             var existDelegateeInfoList =
                 State.TransactionFeeDelegateInfoMap[delegatorAddress][delegateInfo.ContractAddress]
                     [delegateInfo.MethodName] ?? new TransactionFeeDelegatees();
@@ -221,7 +222,7 @@ public partial class TokenContract
             } //else,add new delegate info.
             else
             {
-                Assert(existDelegateeList.Count <= TokenContractConstants.DELEGATEE_MAX_COUNT,
+                Assert(existDelegateeList.Count < TokenContractConstants.DELEGATEE_MAX_COUNT,
                     "The quantity of delegatee has reached its limit");
                 existDelegateeList.Add(delegateeAddress, new TransactionFeeDelegations());
                 var transactionFeeDelegations = existDelegateeList[delegateeAddress];
@@ -371,8 +372,9 @@ public partial class TokenContract
         var toCancelTransactionList = new DelegateTransactionList();
         foreach (var delegateTransaction in delegateTransactionList.Distinct())
         {
-            Assert(delegateTransaction.ContractAddress != null && !string.IsNullOrEmpty(delegateTransaction.MethodName) &&
-                   delegateTransaction.MethodName.All(IsValidMethodNameChar), "Invalid contract address and method name.");
+            Assert(delegateTransaction.ContractAddress != null && !string.IsNullOrEmpty(delegateTransaction.MethodName),
+                "Invalid contract address and method name.");
+
             var delegateeInfo =
                 State.TransactionFeeDelegateInfoMap[delegatorAddress][delegateTransaction.ContractAddress][
                     delegateTransaction.MethodName];
@@ -414,8 +416,8 @@ public partial class TokenContract
         };
     }
 
-    public override TransactionFeeDelegations GetTransactionFeeDelegateInfosOfADelegatee(
-        GetTransactionFeeDelegateInfosOfADelegateeInput input)
+    public override TransactionFeeDelegations GetTransactionFeeDelegateInfo(
+        GetTransactionFeeDelegateInfoInput input)
     {
         var allDelegatees =
             State.TransactionFeeDelegateInfoMap[input.DelegatorAddress][input.ContractAddress][input.MethodName];
