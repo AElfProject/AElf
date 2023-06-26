@@ -64,12 +64,7 @@ public class MultiTokenContractTestBase : ContractTestBase<MultiTokenContractTes
 
         ParliamentContractStub = GetTester<ParliamentContractImplContainer.ParliamentContractImplStub>(
             ParliamentContractAddress, DefaultKeyPair);
-       // EconomicContractStub =  GetTester<EconomicContractContainer.EconomicContractStub>(
-       //     SystemContractAddresses[EconomicContractName],
-       //     DefaultKeyPair);
-        
-       // AsyncHelper.RunSync(()=>InitializeEconomicContract()) ;
-       AsyncHelper.RunSync(() => SubmitAndApproveProposalOfDefaultParliament(TokenContractAddress,
+        AsyncHelper.RunSync(() => SubmitAndApproveProposalOfDefaultParliament(TokenContractAddress,
            nameof(TokenContractStub.Create), new CreateInput()
            {
                    Symbol = "ELF",
@@ -171,8 +166,31 @@ public class MultiTokenContractTestBase : ContractTestBase<MultiTokenContractTes
     }
     
 
-    internal async Task CreateSeedNftAsync(TokenContractImplContainer.TokenContractImplStub stub,
+    internal async Task<CreateInput> CreateSeedNftAsync(TokenContractImplContainer.TokenContractImplStub stub,
         CreateInput createInput)
+    {
+        var input = BuildSeedCreateInput(createInput);
+        await stub.Create.SendAsync(input);
+        await stub.Issue.SendAsync(new IssueInput
+        {
+
+            Symbol = input.Symbol,
+            Amount = 1,
+            Memo = "ddd",
+            To = createInput.Issuer
+        });
+        return input;
+    }
+    
+    internal async Task<IExecutionResult<Empty>> CreateSeedNftWithExceptionAsync(TokenContractImplContainer.TokenContractImplStub stub,
+        CreateInput createInput)
+    {
+        var input = BuildSeedCreateInput(createInput);
+       return await stub.Create.SendWithExceptionAsync(input);
+       
+    }
+
+    internal CreateInput BuildSeedCreateInput(CreateInput createInput)
     {
         Interlocked.Increment(ref SeedNum);
         var input = new CreateInput
@@ -182,22 +200,13 @@ public class MultiTokenContractTestBase : ContractTestBase<MultiTokenContractTes
             IsBurnable = true,
             TokenName = "seed token" + SeedNum,
             TotalSupply = 1,
-            Issuer = createInput.Issuer,
+            Issuer = DefaultAddress,
             ExternalInfo = new ExternalInfo(),
             LockWhiteList = { TokenContractAddress }
-            
         };
         input.ExternalInfo.Value["__seed_owned_symbol"] = createInput.Symbol;
         input.ExternalInfo.Value["__seed_exp_time"] = TimestampHelper.GetUtcNow().AddDays(1).Seconds.ToString();
-        await stub.Create.SendAsync(input);
-       var result = await stub.Issue.SendAsync(new IssueInput
-        {
-
-            Symbol = input.Symbol,
-            Amount = 1,
-            Memo = "ddd",
-            To = createInput.Issuer
-        });
+        return input;
     }
 
     internal async Task<IExecutionResult<Empty>> CreateMutiTokenAsync(TokenContractImplContainer.TokenContractImplStub stub,

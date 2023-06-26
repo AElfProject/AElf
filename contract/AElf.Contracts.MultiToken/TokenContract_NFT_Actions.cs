@@ -24,7 +24,9 @@ public partial class TokenContract
         {
             input.ExternalInfo.Value.TryGetValue(TokenContractConstants.SeedExternalInfoOwnerSymbol,out var ownerSymbol);
             input.ExternalInfo.Value.TryGetValue(TokenContractConstants.SeedExternalInfoExpireTime,out var expirationTime);
-            Assert(!string.IsNullOrEmpty(ownerSymbol) && State.TokenInfos[ownerSymbol] == null,"seed_owned_symbol is empty ");
+           
+            Assert(!string.IsNullOrEmpty(ownerSymbol),"seed_owned_symbol is empty ");
+            TokenSymBolNameCheck(ownerSymbol); 
             Assert(!string.IsNullOrEmpty(expirationTime) 
                    && Context.CurrentBlockTime.Seconds <= long.Parse(expirationTime),"seed_owned_symbol is expired ");
             var oldSymbolSeed = State.SymbolSeedMap[ownerSymbol];
