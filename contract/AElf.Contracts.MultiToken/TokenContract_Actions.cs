@@ -48,16 +48,16 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
         AssertValidCreateInput(input, symbolType);
         if (symbolType == SymbolType.Token || symbolType == SymbolType.NftCollection)
         {
-            if (!IsAddressInCreateWhiteList(Context.Sender))
+            if (!IsAddressInCreateWhiteList(Context.Sender) && input.Symbol != TokenContractConstants.SeedCollectionId)
             {
                 var symbolSeed = State.SymbolSeedMap[input.Symbol];
                 CheckSeedNft(symbolSeed, input.Symbol);
                 // seed nft for one-time use only
                 long balance = State.Balances[Context.Sender][symbolSeed];
-                DoTransferFrom(Context.Sender, Context.Self, Context.Self, input.Symbol, balance,"");
-                Burn(new BurnInput {  
-                    Symbol = input.Symbol,
-                    Amount = balance});
+                DoTransferFrom(Context.Sender, Context.Self, Context.Self, symbolSeed, balance,"");
+                BurnWithAddress(new BurnInput {  
+                    Symbol = symbolSeed,
+                    Amount = balance},Context.Self);
             }
         }
 
@@ -265,14 +265,19 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
 
     public override Empty Burn(BurnInput input)
     {
+        return BurnWithAddress(input,Context.Sender);
+    }
+
+    private Empty BurnWithAddress(BurnInput input,Address address)
+    {
         var tokenInfo = AssertValidToken(input.Symbol, input.Amount);
         Assert(tokenInfo.IsBurnable, "The token is not burnable.");
-        ModifyBalance(Context.Sender, input.Symbol, -input.Amount);
+        ModifyBalance(address, input.Symbol, -input.Amount);
         tokenInfo.Supply = tokenInfo.Supply.Sub(input.Amount);
 
         Context.Fire(new Burned
         {
-            Burner = Context.Sender,
+            Burner = address,
             Symbol = input.Symbol,
             Amount = input.Amount
         });

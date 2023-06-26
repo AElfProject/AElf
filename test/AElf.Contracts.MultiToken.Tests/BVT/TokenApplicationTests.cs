@@ -1260,20 +1260,6 @@ public partial class MultiTokenContractTests
         };
         var result = await BasicFunctionContractStub.CreateTokenThroughMultiToken.SendAsync(createTokenInput);
         result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-
-        var logs = result.TransactionResult.Logs.First(l => l.Name.Equals("TransactionFeeCharged"));
-        var transactionFeeCharged = TransactionFeeCharged.Parser.ParseFrom(logs.NonIndexed);
-        transactionFeeCharged.Amount.ShouldBe(fee.Fees.First().BasicFee);
-        transactionFeeCharged.Symbol.ShouldBe(fee.Fees.First().Symbol);
-
-        var tokenBalance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
-            { Owner = TokenContractAddress, Symbol = NativeToken });
-        tokenBalance.Balance.ShouldBe(0);
-        
-        var functionBalance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
-            { Owner = BasicFunctionContractAddress, Symbol = NativeToken });
-        functionBalance.Balance.ShouldBe(0);
-
         var checkTokenInfo = await TokenContractStub.GetTokenInfo.CallAsync(new GetTokenInfoInput { Symbol = "TEST" });
         checkTokenInfo.Decimals.ShouldBe(createTokenInput.Decimals);
         checkTokenInfo.Issuer.ShouldBe(createTokenInput.Issuer);

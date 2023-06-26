@@ -111,7 +111,7 @@ public partial class MultiTokenContractTests : MultiTokenContractTestBase
 
     private async Task CreateNativeTokenAsync()
     {
-        await TokenContractStub.Create.SendAsync(new CreateInput
+        await CreateMutiTokenAsync(TokenContractStub,new CreateInput
         {
             Symbol = NativeTokenInfo.Symbol,
             TokenName = NativeTokenInfo.TokenName,

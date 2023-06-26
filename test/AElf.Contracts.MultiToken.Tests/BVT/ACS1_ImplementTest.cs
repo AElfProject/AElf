@@ -212,7 +212,7 @@ public partial class MultiTokenContractTests
         // token is not profitable
         {
             var tokenNotProfitable = "DLS";
-            await TokenContractStub.Create.SendAsync(new CreateInput
+            await CreateMutiTokenAsync(TokenContractStub,new CreateInput
             {
                 Symbol = tokenNotProfitable,
                 TokenName = "name",

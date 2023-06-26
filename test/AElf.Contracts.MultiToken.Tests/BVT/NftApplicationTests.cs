@@ -113,8 +113,7 @@ public partial class MultiTokenContractTests
 
     private async Task<IExecutionResult<Empty>> CreateNftCollectionAsync(TokenInfo collectionInfo)
     {
-        await CreateNativeTokenAsync();
-        return await TokenContractStub.Create.SendAsync(new CreateInput
+        return await CreateMutiTokenAsync(TokenContractStub, new CreateInput
         {
             Symbol = $"{collectionInfo.Symbol}0",
             TokenName = collectionInfo.TokenName,
@@ -208,11 +207,10 @@ public partial class MultiTokenContractTests
     [Fact(DisplayName = "[MultiToken_Nft] Create nft collection input check")]
     public async Task MultiTokenContract_Create_NFTCollection_Input_Check_Test()
     {
-        await CreateNativeTokenAsync();
         var input = NftCollection721Info;
         // Decimals check
         {
-            var result = await TokenContractStub.Create.SendWithExceptionAsync(new CreateInput
+            var result = await CreateMutiTokenWithExceptionAsync(TokenContractStub, new CreateInput
             {
                 Symbol = $"{input.Symbol}0",
                 TokenName = input.TokenName,
@@ -227,7 +225,7 @@ public partial class MultiTokenContractTests
         }
         // Symbol check
         {
-            var result = await TokenContractStub.Create.SendWithExceptionAsync(new CreateInput
+            var result = await CreateMutiTokenWithExceptionAsync(TokenContractStub, new CreateInput
             {
                 Symbol = "ABC123",
                 TokenName = input.TokenName,
@@ -242,7 +240,7 @@ public partial class MultiTokenContractTests
         }
         // Symbol length check 
         {
-            var result = await TokenContractStub.Create.SendWithExceptionAsync(new CreateInput
+            var result = await CreateMutiTokenWithExceptionAsync(TokenContractStub, new CreateInput
             {
                 Symbol = "ABCDEFGHIJKLMNOPQRSTUVWXYZABC-0",
                 TokenName = input.TokenName,
@@ -257,9 +255,9 @@ public partial class MultiTokenContractTests
         }
         // Issue chain Id check
         {
-            var result = await TokenContractStubUser.Create.SendAsync(new CreateInput
+            var result = await CreateMutiTokenAsync(TokenContractStub, new CreateInput
             {
-                Symbol =  $"{input.Symbol}0",
+                Symbol = $"{input.Symbol}0",
                 TokenName = input.TokenName,
                 TotalSupply = input.TotalSupply,
                 Decimals = input.Decimals,
@@ -267,6 +265,7 @@ public partial class MultiTokenContractTests
                 IssueChainId = ChainHelper.ConvertBase58ToChainId("tDVV"),
                 ExternalInfo = input.ExternalInfo
             });
+            
             result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
     }
@@ -279,7 +278,7 @@ public partial class MultiTokenContractTests
 
         // Decimals check
         {
-            var result = await TokenContractStub.Create.SendWithExceptionAsync(new CreateInput
+            var result = await CreateMutiTokenWithExceptionAsync(TokenContractStub,new CreateInput
             {
                 Symbol = $"{NftCollection721Info.Symbol}{input.Symbol}",
                 TokenName = input.TokenName,
@@ -294,7 +293,7 @@ public partial class MultiTokenContractTests
         }
         // Symbol check
         {
-            var result = await TokenContractStub.Create.SendWithExceptionAsync(new CreateInput
+            var result = await CreateMutiTokenWithExceptionAsync(TokenContractStub,new CreateInput
             {
                 Symbol = "ABC-ABC",
                 TokenName = input.TokenName,
@@ -309,7 +308,7 @@ public partial class MultiTokenContractTests
         }
         // Symbol check
         {
-            var result = await TokenContractStub.Create.SendWithExceptionAsync(new CreateInput
+            var result = await CreateMutiTokenWithExceptionAsync(TokenContractStub,new CreateInput
             {
                 Symbol = "ABC-",
                 TokenName = input.TokenName,
@@ -324,7 +323,7 @@ public partial class MultiTokenContractTests
         }
         // Symbol check
         {
-            var result = await TokenContractStub.Create.SendWithExceptionAsync(new CreateInput
+            var result = await CreateMutiTokenWithExceptionAsync(TokenContractStub,new CreateInput
             {
                 Symbol = "ABC-ABC-1",
                 TokenName = input.TokenName,
@@ -339,7 +338,7 @@ public partial class MultiTokenContractTests
         }
         // Issue check
         {
-            var result = await TokenContractStub.Create.SendWithExceptionAsync(new CreateInput
+            var result = await CreateMutiTokenWithExceptionAsync(TokenContractStub,new CreateInput
             {
                 Symbol = $"{NftCollection721Info.Symbol}{input.Symbol}",
                 TokenName = input.TokenName,
@@ -353,7 +352,7 @@ public partial class MultiTokenContractTests
             result.TransactionResult.Error.ShouldContain("NFT issuer must be collection's issuer");
         }
         {
-            var result = await TokenContractStubUser.Create.SendWithExceptionAsync(new CreateInput
+            var result = await CreateMutiTokenWithExceptionAsync(TokenContractStub,new CreateInput
             {
                 Symbol = $"{NftCollection721Info.Symbol}{input.Symbol}",
                 TokenName = input.TokenName,
@@ -371,9 +370,8 @@ public partial class MultiTokenContractTests
     [Fact(DisplayName = "[MultiToken_Nft] Collection not exist")]
     public async Task MultiTokenContract_Create_NFT_Collection_NotExist()
     {
-        await CreateNativeTokenAsync();
         var input = Nft721Info;
-        var result = await TokenContractStub.Create.SendWithExceptionAsync(new CreateInput
+        var result = await CreateMutiTokenWithExceptionAsync(TokenContractStub,new CreateInput
         {
             Symbol = $"{NftCollection721Info.Symbol}{input.Symbol}",
             TokenName = input.TokenName,
@@ -392,7 +390,7 @@ public partial class MultiTokenContractTests
     {
         await CreateNftCollectionAndNft(false);
         var input = Nft721Info;
-        var result = await TokenContractStub.Create.SendWithExceptionAsync(new CreateInput
+        var result = await CreateMutiTokenWithExceptionAsync(TokenContractStub,new CreateInput
         {
             Symbol = $"{NftCollection721Info.Symbol}{input.Symbol}",
             TokenName = input.TokenName,
