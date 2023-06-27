@@ -159,7 +159,6 @@ public class ExecutionPluginForUserContractMethodFeeTestBase : ContractTestBase<
             ParliamentContractStub =
                 GetTester<ParliamentContractImplContainer.ParliamentContractImplStub>(ParliamentAddress,
                     DefaultSenderKeyPair);
-            
         }
         //Consensus
         {
