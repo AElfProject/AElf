@@ -9,7 +9,7 @@
             <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
         </PackageReference>
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.4.1" />
-        <PackageReference Include="Shouldly" Version="4.0.3"/>
+        <PackageReference Include="Shouldly" Version="4.0.3" />
         <PackageReference Include="xunit" Version="2.4.2" />
         <PackageReference Include="xunit.runner.console" Version="2.4.2">
   <PrivateAssets>all</PrivateAssets>
@@ -21,11 +21,11 @@
 </PackageReference>
     </ItemGroup>
     <ItemGroup>
-        <ProjectReference Include="..\..\src\AElf.ContractTestKit\AElf.ContractTestKit.csproj"/>
-        <ProjectReference Include="..\..\src\AElf.Cryptography\AElf.Cryptography.csproj"/>
-        <ProjectReference Include="..\..\src\AElf.EconomicSystem\AElf.EconomicSystem.csproj"/>
-        <ProjectReference Include="..\..\src\AElf.Kernel.Consensus.AEDPoS\AElf.Kernel.Consensus.AEDPoS.csproj"/>
-        <ProjectReference Include="..\..\src\AElf.Kernel.SmartContract.ExecutionPluginForResourceFee\AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.csproj"/>
+        <ProjectReference Include="..\..\src\AElf.ContractTestKit\AElf.ContractTestKit.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Cryptography\AElf.Cryptography.csproj" />
+        <ProjectReference Include="..\..\src\AElf.EconomicSystem\AElf.EconomicSystem.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Kernel.Consensus.AEDPoS\AElf.Kernel.Consensus.AEDPoS.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Kernel.SmartContract.ExecutionPluginForResourceFee\AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.csproj" />
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests.TestContract\AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests.TestContract.csproj">
@@ -59,6 +59,11 @@
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </ProjectReference>
         <ProjectReference Include="..\..\contract\AElf.Contracts.Consensus.AEDPoS\AElf.Contracts.Consensus.AEDPoS.csproj">
+            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+            <OutputItemType>Contract</OutputItemType>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </ProjectReference>
+        <ProjectReference Include="..\AElf.Contracts.TestContract.MockParliament\AElf.Contracts.TestContract.MockParliament.csproj">
             <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

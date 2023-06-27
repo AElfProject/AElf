@@ -1,18 +1,24 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.ContractDeployer;
 using AElf.Contracts.Genesis;
+using AElf.Contracts.Parliament;
 using AElf.Cryptography.ECDSA;
 using AElf.CSharp.Core;
+using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Infrastructure;
+using AElf.Kernel.Proposal;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Standards.ACS0;
+using AElf.Standards.ACS3;
 using AElf.Types;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using MartinCostello.Logging.XUnit;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp;
@@ -123,4 +129,40 @@ public class ContractTestBase<TModule> : AbpIntegratedTest<TModule>
     //         ? File.ReadAllBytes(path)
     //         : throw new FileNotFoundException("Contract DLL cannot be found. " + path);
     // }
+
+    protected async Task SubmitAndApproveProposalOfDefaultParliament(ECKeyPair senderKeyPair, Address parliamentAddress,
+        Address contractAddress, string methodName, IMessage message)
+    {
+        // var parliamentContractStub =
+        //     GetTester<ParliamentContractImplContainer.ParliamentContractImplStub>(parliamentAddress, senderKeyPair);
+        // // await parliamentContractStub.Initialize.SendAsync(new AElf.Contracts.Parliament.InitializeInput
+        // // {
+        // //     PrivilegedProposer = DefaultAccount.Address,
+        // //     ProposerAuthorityRequired = false
+        // // });
+        // var defaultParliamentAddress =
+        //     await parliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+        //
+        // var proposal = new CreateProposalInput
+        // {
+        //     OrganizationAddress = defaultParliamentAddress,
+        //     ContractMethodName = methodName,
+        //     ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1),
+        //     Params = message.ToByteString(),
+        //     ToAddress = contractAddress
+        // };
+        // var createResult = await parliamentContractStub.CreateProposal.SendAsync(proposal);
+        // var proposalId = createResult.Output;
+        // await ApproveWithMinersAsync(proposalId, parliamentAddress);
+        // await parliamentContractStub.Release.SendAsync(proposalId);
+    }
+
+    private async Task ApproveWithMinersAsync(Hash proposalId, Address parliamentAddress)
+    {
+        // foreach (var bp in InitialCoreDataCenterKeyPairs)
+        // {
+        //     var tester = GetTester<ParliamentContractImplContainer.ParliamentContractImplStub>(parliamentAddress, bp);
+        //     await tester.Approve.SendAsync(proposalId);
+        // }
+    }
 }

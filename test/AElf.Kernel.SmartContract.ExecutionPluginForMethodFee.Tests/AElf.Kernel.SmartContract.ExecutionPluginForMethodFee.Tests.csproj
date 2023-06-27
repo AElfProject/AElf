@@ -85,6 +85,11 @@
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </ProjectReference>
+        <ProjectReference Include="..\AElf.Contracts.TestContract.MockParliament\AElf.Contracts.TestContract.MockParliament.csproj">
+            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+            <OutputItemType>Contract</OutputItemType>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </ProjectReference>
     </ItemGroup>
     <ItemGroup>
         <CommonMessage Include="..\..\protobuf\authority_info.proto">
@@ -106,6 +111,9 @@
         </ContractStub>
         <ContractStub Include="..\..\protobuf\token_contract.proto">
             <Link>Protobuf\Proto\token_contract.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\token_contract_impl.proto">
+            <Link>Protobuf\Proto\token_contract_impl.proto</Link>
         </ContractStub>
         <ContractStub Include="..\..\protobuf\acs1_plugin_test_contract.proto">
             <Link>Protobuf\Proto\acs1_plugin_test_contract.proto</Link>

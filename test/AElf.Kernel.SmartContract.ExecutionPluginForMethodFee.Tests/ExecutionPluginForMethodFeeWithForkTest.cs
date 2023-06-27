@@ -33,19 +33,20 @@ public sealed class ExecutionPluginForMethodFeeWithForkTest : ExecutionPluginFor
     public async Task ChargeFee_With_Fork_Test()
     {
         var amount = 100000;
-
-        await SetMethodFeeWithProposalAsync(new MethodFees
-        {
-            MethodName = nameof(TokenContractContainer.TokenContractStub.Transfer),
-            Fees =
+        
+        var r = await Tester.ExecuteContractWithMiningAsync(TokenContractAddress,
+            nameof(TokenContractImplContainer.TokenContractImplStub.SetMethodFee), new MethodFees
             {
-                new MethodFee
+                MethodName = nameof(TokenContractContainer.TokenContractStub.Transfer),
+                Fees =
                 {
-                    Symbol = "ELF",
-                    BasicFee = 100000
+                    new MethodFee
+                    {
+                        Symbol = "ELF",
+                        BasicFee = 100000
+                    }
                 }
-            }
-        }.ToByteString());
+            });
 
         var result = await Tester.ExecuteContractWithMiningReturnBlockAsync(TokenContractAddress,
             nameof(TokenContractContainer.TokenContractStub.Transfer), new TransferInput
@@ -74,19 +75,20 @@ public sealed class ExecutionPluginForMethodFeeWithForkTest : ExecutionPluginFor
                 BlockHash = branchOneBlock.GetHash(), BlockHeight = branchOneBlock.Height
             });
             transactionFeesMap.ShouldBeNull();
-            await SetMethodFeeWithProposalAsync(new MethodFees
-            {
-                MethodName = nameof(TokenContractContainer.TokenContractStub.Transfer),
-                Fees =
+            await Tester.ExecuteContractWithMiningAsync(TokenContractAddress,
+                nameof(TokenContractImplContainer.TokenContractImplStub.SetMethodFee), new MethodFees
                 {
-                    new MethodFee
+                    MethodName = nameof(TokenContractContainer.TokenContractStub.Transfer),
+                    Fees =
                     {
-                        Symbol = "ELF",
-                        BasicFee = 200000
+                        new MethodFee
+                        {
+                            Symbol = "ELF",
+                            BasicFee = 200000
+                        }
                     }
-                }
-            }.ToByteString());
-
+                });
+            
             result = await Tester.ExecuteContractWithMiningReturnBlockAsync(TokenContractAddress,
                 nameof(TokenContractContainer.TokenContractStub.Transfer), new TransferInput
                 {
@@ -128,18 +130,20 @@ public sealed class ExecutionPluginForMethodFeeWithForkTest : ExecutionPluginFor
     public async Task Claim_Fee_Send_By_User_Fail_Test()
     {
         var amount = 100000;
-        await SetMethodFeeWithProposalAsync(new MethodFees
-        {
-            MethodName = nameof(TokenContractContainer.TokenContractStub.Transfer),
-            Fees =
+        
+        await Tester.ExecuteContractWithMiningAsync(TokenContractAddress,
+            nameof(TokenContractImplContainer.TokenContractImplStub.SetMethodFee), new MethodFees
             {
-                new MethodFee
+                MethodName = nameof(TokenContractContainer.TokenContractStub.Transfer),
+                Fees =
                 {
-                    Symbol = "ELF",
-                    BasicFee = amount
+                    new MethodFee
+                    {
+                        Symbol = "ELF",
+                        BasicFee = amount
+                    }
                 }
-            }
-        }.ToByteString());
+            });
 
         await Tester.ExecuteContractWithMiningReturnBlockAsync(TokenContractAddress,
             nameof(TokenContractContainer.TokenContractStub.Transfer), new TransferInput

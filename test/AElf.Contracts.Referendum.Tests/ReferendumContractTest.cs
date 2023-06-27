@@ -1290,6 +1290,48 @@ public sealed class ReferendumContractTest : ReferendumContractTestBase
     private async Task<Hash> CreateProposalAsync(ECKeyPair proposalKeyPair, Address organizationAddress,
         Timestamp timestamp = null)
     {
+        var defaultParliamentAddress =
+            await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+        await SubmitAndApproveProposalOfDefaultParliament(DefaultSenderKeyPair, ParliamentContractAddress, TokenContractAddress,
+            nameof(TokenContractStub.Create), new CreateInput
+            {
+                Symbol = "SEED-" + "0",
+                Decimals = 0,
+                IsBurnable = true,
+                TokenName = "seed Collection",
+                TotalSupply = 1,
+                Issuer = defaultParliamentAddress,
+                ExternalInfo = new ExternalInfo()
+            });
+        await SubmitAndApproveProposalOfDefaultParliament(DefaultSenderKeyPair, ParliamentContractAddress, TokenContractAddress,
+            nameof(TokenContractStub.Create), new CreateInput
+            {
+                Symbol = "SEED-" + "1",
+                Decimals = 0,
+                IsBurnable = true,
+                TokenName = "seed token" + 1,
+                TotalSupply = 1,
+                Issuer = defaultParliamentAddress,
+                ExternalInfo = new ExternalInfo
+                {
+                    Value =
+                    {
+                        {"__seed_owned_symbol", "NEW"},
+                        {"__seed_exp_time", TimestampHelper.GetUtcNow().AddDays(1).Seconds.ToString()}
+                    }
+                },
+                LockWhiteList = { TokenContractAddress }
+            });
+        
+        await SubmitAndApproveProposalOfDefaultParliament(DefaultSenderKeyPair, ParliamentContractAddress, TokenContractAddress,
+            nameof(TokenContractStub.Issue), new IssueInput
+            {
+                Symbol = "SEED-1",
+                Amount = 1,
+                Memo = "ddd",
+                To = organizationAddress
+            });
+
         var createInput = new CreateInput
         {
             Symbol = "NEW",

@@ -29,6 +29,44 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests;
 
 public class ExecutionPluginForMethodFeeTestBase : ContractTestBase<ExecutionPluginForMethodFeeTestModule>
 {
+    internal Address ParliamentAddress;
+    internal ParliamentContractImplContainer.ParliamentContractImplStub ParliamentContractStub;
+    protected ECKeyPair DefaultSenderKeyPair => Accounts[0].KeyPair;
+    protected Address DefaultAddress => Accounts[0].Address;
+    
+    protected ExecutionPluginForMethodFeeTestBase()
+    {
+        AsyncHelper.RunSync(InitializeContracts);
+    }
+    
+    private async Task InitializeContracts()
+    {
+        await DeployContractsAsync();
+        await InitializedParliament();
+    }
+
+    private async Task DeployContractsAsync()
+    {
+        const int category = KernelConstants.CodeCoverageRunnerCategory;
+        // Parliament
+        {
+            var code = Codes.Single(kv => kv.Key.Contains("MockParliament")).Value;
+            ParliamentAddress = await DeploySystemSmartContract(category, code,
+                ParliamentSmartContractAddressNameProvider.Name, DefaultSenderKeyPair);
+            ParliamentContractStub =
+                GetTester<ParliamentContractImplContainer.ParliamentContractImplStub>(ParliamentAddress,
+                    DefaultSenderKeyPair);
+        }
+    }
+    
+    private async Task InitializedParliament()
+    {
+        await ParliamentContractStub.Initialize.SendAsync(new InitializeInput
+        {
+            ProposerAuthorityRequired = false,
+            PrivilegedProposer = DefaultAddress
+        });
+    }
 }
 
 public class ExecutionPluginForUserContractMethodFeeTestBase : ContractTestBase<ExecutionPluginForUserContractMethodFeeTestModule>
@@ -115,7 +153,7 @@ public class ExecutionPluginForUserContractMethodFeeTestBase : ContractTestBase<
         }
         // Parliament
         {
-            var code = Codes.Single(kv => kv.Key.Contains("Parliament")).Value;
+            var code = Codes.Single(kv => kv.Key.Contains("MockParliament")).Value;
             ParliamentAddress = await DeploySystemSmartContract(category, code,
                 ParliamentSmartContractAddressNameProvider.Name, DefaultSenderKeyPair);
             ParliamentContractStub =
@@ -219,23 +257,23 @@ public class ExecutionPluginForMethodFeeWithForkTestBase : Contracts.TestBase.Co
             });
     }
 
-    protected async Task SetMethodFeeWithProposalAsync(ByteString methodFee)
-    {
-        var proposal = await Tester.ExecuteContractWithMiningAsync(_parliamentAddress,
-            nameof(ParliamentContractImplContainer.ParliamentContractImplStub.CreateProposal),
-            new CreateProposalInput
-            {
-                ContractMethodName =
-                    nameof(MethodFeeProviderContractContainer.MethodFeeProviderContractStub.SetMethodFee),
-                ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
-                Params = methodFee,
-                ToAddress = TokenContractAddress,
-                OrganizationAddress = await GetParliamentDefaultOrganizationAddressAsync()
-            });
-        var proposalId = Hash.Parser.ParseFrom(proposal.ReturnValue);
-        await ApproveWithMinersAsync(proposalId);
-        await ReleaseProposalAsync(proposalId);
-    }
+    // protected async Task SetMethodFeeWithProposalAsync(ByteString methodFee)
+    // {
+    //     var proposal = await Tester.ExecuteContractWithMiningAsync(_parliamentAddress,
+    //         nameof(ParliamentContractImplContainer.ParliamentContractImplStub.CreateProposal),
+    //         new CreateProposalInput
+    //         {
+    //             ContractMethodName =
+    //                 nameof(MethodFeeProviderContractContainer.MethodFeeProviderContractStub.SetMethodFee),
+    //             ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
+    //             Params = methodFee,
+    //             ToAddress = TokenContractAddress,
+    //             OrganizationAddress = await GetParliamentDefaultOrganizationAddressAsync()
+    //         });
+    //     var proposalId = Hash.Parser.ParseFrom(proposal.ReturnValue);
+    //     await ApproveWithMinersAsync(proposalId);
+    //     await ReleaseProposalAsync(proposalId);
+    // }
 
     private async Task<Address> GetParliamentDefaultOrganizationAddressAsync()
     {
@@ -295,6 +333,7 @@ public class ExecutePluginTransactionDirectlyForMethodFeeTestBase : ContractTest
     internal TokenContractContainer.TokenContractStub TokenContractStub { get; set; }
     internal TokenContractContainer.TokenContractStub TokenContractStub2 { get; set; }
     internal TokenContractContainer.TokenContractStub TokenContractStub3 { get; set; }
+    internal TokenContractImplContainer.TokenContractImplStub TokenContractImplStub { get; set; }
     internal ParliamentContractImplContainer.ParliamentContractImplStub ParliamentContractStub { get; set; }
     internal AEDPoSContractContainer.AEDPoSContractStub AEDPoSContractStub { get; set; }
     internal ECKeyPair DefaultSenderKeyPair => Accounts[0].KeyPair;
@@ -349,11 +388,13 @@ public class ExecutePluginTransactionDirectlyForMethodFeeTestBase : ContractTest
                 GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, UserKeyPair);
             TokenContractStubA = 
                 GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, UserKeyPair);
+            TokenContractImplStub =
+                GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, DefaultSenderKeyPair);
         }
 
         // Parliament
         {
-            var code = Codes.Single(kv => kv.Key.Contains("Parliament")).Value;
+            var code = Codes.Single(kv => kv.Key.Contains("MockParliament")).Value;
             var parliamentContractAddress = await DeploySystemSmartContract(category, code,
                 ParliamentSmartContractAddressNameProvider.Name, DefaultSenderKeyPair);
             ParliamentContractStub =

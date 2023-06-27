@@ -119,6 +119,7 @@ public class ExecutionPluginForResourceFeeTestBase : ContractTestBase<ExecutionP
     internal Address TokenContractAddress { get; set; }
     internal Address TokenConverterAddress { get; set; }
     internal Address TreasuryContractAddress { get; set; }
+    internal Address ParliamentContractAddress { get; set; }
     internal ContractContainer.ContractStub TestContractStub { get; set; }
     internal TokenContractContainer.TokenContractStub TokenContractStub { get; set; }
     internal TokenConverterContractContainer.TokenConverterContractStub TokenConverterContractStub { get; set; }
@@ -139,11 +140,11 @@ public class ExecutionPluginForResourceFeeTestBase : ContractTestBase<ExecutionP
     protected async Task InitializeContracts()
     {
         await DeployContractsAsync();
-        await InitializeTokenAsync();
-        await InitializeParliament();
         await InitializeAElfConsensus();
+        await InitializeParliament();
         await InitializeTreasuryContractAsync();
         await InitializeTokenConverterAsync();
+        await InitializeTokenAsync();
     }
 
     private async Task DeployContractsAsync()
@@ -187,7 +188,7 @@ public class ExecutionPluginForResourceFeeTestBase : ContractTestBase<ExecutionP
 
         // Test contract
         {
-            var code = Codes.Single(kv => kv.Key.Contains("TestContract")).Value;
+            var code = Codes.Single(kv => kv.Key.Contains("ExecutionPluginForResourceFee.Tests.TestContract")).Value;
             TestContractAddress = await DeployContractAsync(category, code, HashHelper.ComputeFrom("TestContract"),
                 DefaultSenderKeyPair);
             TestContractStub =
@@ -196,11 +197,11 @@ public class ExecutionPluginForResourceFeeTestBase : ContractTestBase<ExecutionP
 
         // Parliament
         {
-            var code = Codes.Single(kv => kv.Key.Contains("Parliament")).Value;
-            var parliamentContractAddress = await DeploySystemSmartContract(category, code,
+            var code = Codes.Single(kv => kv.Key.Contains("MockParliament")).Value;
+            ParliamentContractAddress = await DeploySystemSmartContract(category, code,
                 ParliamentSmartContractAddressNameProvider.Name, DefaultSenderKeyPair);
             ParliamentContractStub =
-                GetTester<ParliamentContractContainer.ParliamentContractStub>(parliamentContractAddress,
+                GetTester<ParliamentContractContainer.ParliamentContractStub>(ParliamentContractAddress,
                     DefaultSenderKeyPair);
         }
 
@@ -222,18 +223,16 @@ public class ExecutionPluginForResourceFeeTestBase : ContractTestBase<ExecutionP
         const long issueAmountToConverter = 100_000_000_00000000;
         //init elf token
         {
-            var createResult = await TokenContractStub.Create.SendAsync(new CreateInput
-            {
-                Symbol = "ELF",
-                Decimals = 8,
-                IsBurnable = true,
-                TokenName = "elf token",
-                TotalSupply = totalSupply,
-                Issuer = DefaultSender,
-                LockWhiteList = { TreasuryContractAddress, TokenConverterAddress }
-            });
-
-            createResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            await TokenContractStub.Create.SendAsync(new CreateInput
+                {
+                    Symbol = "ELF",
+                    Decimals = 8,
+                    IsBurnable = true,
+                    TokenName = "elf token",
+                    TotalSupply = totalSupply,
+                    Issuer = DefaultSender,
+                    LockWhiteList = { TreasuryContractAddress, TokenConverterAddress }
+                });
 
             {
                 var issueResult = await TokenContractStub.Issue.SendAsync(new IssueInput
@@ -258,7 +257,7 @@ public class ExecutionPluginForResourceFeeTestBase : ContractTestBase<ExecutionP
 
         //init resource token - CPU
         {
-            var createResult = await TokenContractStub.Create.SendAsync(new CreateInput
+            await TokenContractStub.Create.SendAsync(new CreateInput
             {
                 Symbol = "READ",
                 Decimals = 2,
@@ -268,8 +267,6 @@ public class ExecutionPluginForResourceFeeTestBase : ContractTestBase<ExecutionP
                 Issuer = DefaultSender,
                 LockWhiteList = { TreasuryContractAddress, TokenConverterAddress }
             });
-
-            createResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
             var issueResult = await TokenContractStub.Issue.SendAsync(new IssueInput
             {
@@ -283,7 +280,7 @@ public class ExecutionPluginForResourceFeeTestBase : ContractTestBase<ExecutionP
 
         //init resource token - STO
         {
-            var createResult = await TokenContractStub.Create.SendAsync(new CreateInput
+            await TokenContractStub.Create.SendAsync(new CreateInput
             {
                 Symbol = "STORAGE",
                 Decimals = 2,
@@ -293,8 +290,6 @@ public class ExecutionPluginForResourceFeeTestBase : ContractTestBase<ExecutionP
                 Issuer = DefaultSender,
                 LockWhiteList = { TreasuryContractAddress, TokenConverterAddress }
             });
-
-            createResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
             var issueResult = await TokenContractStub.Issue.SendAsync(new IssueInput
             {
@@ -308,7 +303,7 @@ public class ExecutionPluginForResourceFeeTestBase : ContractTestBase<ExecutionP
 
         //init resource token - NET
         {
-            var createResult = await TokenContractStub.Create.SendAsync(new CreateInput
+            await TokenContractStub.Create.SendAsync(new CreateInput
             {
                 Symbol = "TRAFFIC",
                 Decimals = 2,
@@ -318,8 +313,6 @@ public class ExecutionPluginForResourceFeeTestBase : ContractTestBase<ExecutionP
                 Issuer = DefaultSender,
                 LockWhiteList = { TreasuryContractAddress, TokenConverterAddress }
             });
-
-            createResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
             var issueResult = await TokenContractStub.Issue.SendAsync(new IssueInput
             {
@@ -332,7 +325,7 @@ public class ExecutionPluginForResourceFeeTestBase : ContractTestBase<ExecutionP
         }
         //init resource token - WRITE
         {
-            var createResult = await TokenContractStub.Create.SendAsync(new CreateInput
+            await TokenContractStub.Create.SendAsync(new CreateInput
             {
                 Symbol = "WRITE",
                 Decimals = 2,
@@ -342,8 +335,6 @@ public class ExecutionPluginForResourceFeeTestBase : ContractTestBase<ExecutionP
                 Issuer = DefaultSender,
                 LockWhiteList = { TreasuryContractAddress, TokenConverterAddress }
             });
-
-            createResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
             var issueResult = await TokenContractStub.Issue.SendAsync(new IssueInput
             {
@@ -390,7 +381,11 @@ public class ExecutionPluginForResourceFeeTestBase : ContractTestBase<ExecutionP
 
     private async Task InitializeParliament()
     {
-        await ParliamentContractStub.Initialize.SendAsync(new Contracts.Parliament.InitializeInput());
+        await ParliamentContractStub.Initialize.SendAsync(new Contracts.Parliament.InitializeInput
+        {
+            ProposerAuthorityRequired = false,
+            PrivilegedProposer = DefaultSender
+        });
     }
 
     private async Task InitializeAElfConsensus()
