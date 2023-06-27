@@ -54,4 +54,9 @@ public partial class TokenContractState : ContractState
     public MappedState<Address, bool> CreateTokenWhiteListMap { get; set; }
 
     public MappedState<Address, TransactionFeeDelegatees> TransactionFeeDelegateesMap { get; set; }
+    
+    /// <summary>
+    /// delegator address -> contract address -> method name -> delegatee info
+    /// </summary>
+    public MappedState<Address, Address, string,TransactionFeeDelegatees> TransactionFeeDelegateInfoMap { get; set; }
 }
