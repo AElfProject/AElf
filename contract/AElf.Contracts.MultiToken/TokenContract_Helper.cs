@@ -219,9 +219,14 @@ public partial class TokenContract
         if (inputSymbolType == SymbolType.Nft || inputSymbolType == SymbolType.NftCollection)
         {
             Assert(symbol.Length <= TokenContractConstants.NFTSymbolMaxLength, "Invalid NFT symbol length");
+        }
+
+        if (inputSymbolType == SymbolType.NftCollection)
+        {
             var duplicatedToken = State.TokenInfos[symbols.First()];
             Assert(duplicatedToken == null || duplicatedToken.Equals(empty), "Token name prefix can not be duplicated");
         }
+
         var existing = State.TokenInfos[symbol];
         Assert(existing == null || existing.Equals(empty), "Token already exists.");
         Assert(!string.IsNullOrEmpty(symbol) && symbol.All(IsValidSymbolChar),
