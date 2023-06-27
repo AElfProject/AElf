@@ -25,6 +25,10 @@ public class MultiTokenContractTestBase : ContractTestBase<MultiTokenContractTes
     internal TokenContractImplContainer.TokenContractImplStub TokenContractStub;
     internal TokenContractImplContainer.TokenContractImplStub TokenContractStubUser;
     internal TokenContractImplContainer.TokenContractImplStub TokenContractStubDelegate;
+    internal TokenContractImplContainer.TokenContractImplStub TokenContractStubDelegate2;
+    internal TokenContractImplContainer.TokenContractImplStub TokenContractStubDelegate3;
+
+
     internal TokenConverterContractImplContainer.TokenConverterContractImplStub TokenConverterContractStub;
 
     internal TreasuryContractImplContainer.TreasuryContractImplStub TreasuryContractStub;
@@ -37,6 +41,10 @@ public class MultiTokenContractTestBase : ContractTestBase<MultiTokenContractTes
             GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, User1KeyPair);
         TokenContractStubDelegate = 
             GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, User2KeyPair);
+        TokenContractStubDelegate2 = 
+            GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, User3KeyPair);
+        TokenContractStubDelegate3 = 
+            GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, User4KeyPair);
         Acs2BaseStub = GetTester<ACS2BaseContainer.ACS2BaseStub>(TokenContractAddress, DefaultKeyPair);
 
         TreasuryContractStub = GetTester<TreasuryContractImplContainer.TreasuryContractImplStub>(
@@ -67,7 +75,10 @@ public class MultiTokenContractTestBase : ContractTestBase<MultiTokenContractTes
     protected Address User1Address => Accounts[10].Address;
     protected ECKeyPair User2KeyPair => Accounts[11].KeyPair;
     protected Address User2Address => Accounts[11].Address;
-
+    protected ECKeyPair User3KeyPair => Accounts[12].KeyPair;
+    protected Address User3Address => Accounts[12].Address;
+    protected ECKeyPair User4KeyPair => Accounts[13].KeyPair;
+    protected Address User4Address => Accounts[13].Address;
     protected List<ECKeyPair> InitialCoreDataCenterKeyPairs =>
         Accounts.Take(InitialCoreDataCenterCount).Select(a => a.KeyPair).ToList();
 

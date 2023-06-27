@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
@@ -129,7 +130,60 @@ public partial class MultiTokenContractTests
         result1.NonParallelizable.ShouldBeFalse();
         result1.WritePaths.Count.ShouldBeGreaterThan(0);
     }
+    
+    [Fact]
+    public async Task ACS2_GetResourceInfo_TransferFrom_WithDelegate_Test()
+    {
+        await CreateNativeTokenAsync();
+        var delegations1 = new Dictionary<string, long>
+        {
+            [NativeToken] = 1000,
+        };
+        var delegateInfo1 = new DelegateInfo
+        {
+            ContractAddress = TokenContractAddress,
+            MethodName = nameof(TokenContractStub.TransferFrom),
+            Delegations =
+            {
+                delegations1
+            },
+            IsUnlimitedDelegate = false
+        };
+        await TokenContractStubUser.SetTransactionFeeDelegateInfos.SendAsync(new SetTransactionFeeDelegateInfosInput
+        {
+            DelegatorAddress = Accounts[0].Address,
+            DelegateInfoList = { delegateInfo1 }
+        });
+        await TokenContractStubDelegate.SetTransactionFeeDelegateInfos.SendAsync(new SetTransactionFeeDelegateInfosInput
+        {
+            DelegatorAddress = Accounts[0].Address,
+            DelegateInfoList = { delegateInfo1 }
+        });
+        await TokenContractStubDelegate2.SetTransactionFeeDelegateInfos.SendAsync(new SetTransactionFeeDelegateInfosInput
+        {
+            DelegatorAddress = User1Address,
+            DelegateInfoList = { delegateInfo1 }
+        });
+        await TokenContractStubDelegate3.SetTransactionFeeDelegateInfos.SendAsync(new SetTransactionFeeDelegateInfosInput
+        {
+            DelegatorAddress = User2Address,
+            DelegateInfoList = { delegateInfo1 }
+        });
+        var transaction = GenerateTokenTransaction(Accounts[0].Address, nameof(TokenContractStub.TransferFrom),
+            new TransferFromInput
+            {
+                Amount = 100,
+                Symbol = NativeToken,
+                From = Accounts[1].Address,
+                To = Accounts[2].Address,
+                Memo = "Test get resource"
+            });
 
+        var result = await Acs2BaseStub.GetResourceInfo.CallAsync(transaction);
+        result.NonParallelizable.ShouldBeFalse();
+        result.WritePaths.Count.ShouldBe(9);
+
+    }
     [Fact]
     public async Task ACS2_GetResourceInfo_DonateResourceToken_Test()
     {
