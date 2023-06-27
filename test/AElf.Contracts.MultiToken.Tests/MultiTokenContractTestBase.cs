@@ -36,7 +36,7 @@ public class MultiTokenContractTestBase : ContractTestBase<MultiTokenContractTes
     internal TokenConverterContractImplContainer.TokenConverterContractImplStub TokenConverterContractStub;
 
     internal TreasuryContractImplContainer.TreasuryContractImplStub TreasuryContractStub;
-    
+
     public MultiTokenContractTestBase()
     {
         TokenContractStub =
@@ -65,18 +65,18 @@ public class MultiTokenContractTestBase : ContractTestBase<MultiTokenContractTes
         ParliamentContractStub = GetTester<ParliamentContractImplContainer.ParliamentContractImplStub>(
             ParliamentContractAddress, DefaultKeyPair);
         AsyncHelper.RunSync(() => SubmitAndApproveProposalOfDefaultParliament(TokenContractAddress,
-           nameof(TokenContractStub.Create), new CreateInput()
-           {
-                   Symbol = "ELF",
-                   Decimals = 0,
-                   IsBurnable = true,
-                   TokenName = "ELF2",
-                   TotalSupply = 1,
-                   Issuer = DefaultAddress,
-                   ExternalInfo = new ExternalInfo()
-           }));
+            nameof(TokenContractStub.Create), new CreateInput()
+            {
+                Symbol = "ELF",
+                Decimals = 0,
+                IsBurnable = true,
+                TokenName = "ELF2",
+                TotalSupply = 1,
+                Issuer = DefaultAddress,
+                ExternalInfo = new ExternalInfo()
+            }));
 
-        AsyncHelper.RunSync(()=>CreateSeedNftCollection(TokenContractStub)) ;
+        AsyncHelper.RunSync(() => CreateSeedNftCollection(TokenContractStub));
     }
 
     protected long AliceCoinTotalAmount => 1_000_000_000_0000000L;
@@ -99,7 +99,7 @@ public class MultiTokenContractTestBase : ContractTestBase<MultiTokenContractTes
 
     protected Hash OtherBasicFunctionContractName =>
         HashHelper.ComputeFrom("AElf.TestContractNames.OtherBasicFunction");
-    
+
 
     protected Address OtherBasicFunctionContractAddress { get; set; }
     internal BasicFunctionContractContainer.BasicFunctionContractStub OtherBasicFunctionContractStub { get; set; }
@@ -110,7 +110,7 @@ public class MultiTokenContractTestBase : ContractTestBase<MultiTokenContractTes
         return GetTester<ParliamentContractImplContainer.ParliamentContractImplStub>(ParliamentContractAddress,
             keyPair);
     }
-    
+
     private async Task SubmitAndApproveProposalOfDefaultParliament(Address contractAddress, string methodName,
         IMessage message)
     {
@@ -120,9 +120,8 @@ public class MultiTokenContractTestBase : ContractTestBase<MultiTokenContractTes
             defaultParliamentAddress, methodName, message);
         await ApproveWithMinersAsync(proposalId);
         var releaseResult = await ParliamentContractStub.Release.SendAsync(proposalId);
-       
     }
-    
+
     private async Task<Hash> CreateProposalAsync(Address contractAddress, Address organizationAddress,
         string methodName, IMessage input)
     {
@@ -140,7 +139,7 @@ public class MultiTokenContractTestBase : ContractTestBase<MultiTokenContractTes
 
         return proposalId;
     }
-    
+
     private async Task ApproveWithMinersAsync(Hash proposalId)
     {
         foreach (var bp in InitialCoreDataCenterKeyPairs)
@@ -164,7 +163,7 @@ public class MultiTokenContractTestBase : ContractTestBase<MultiTokenContractTes
         };
         await stub.Create.SendAsync(input);
     }
-    
+
 
     internal async Task<CreateInput> CreateSeedNftAsync(TokenContractImplContainer.TokenContractImplStub stub,
         CreateInput createInput)
@@ -173,7 +172,6 @@ public class MultiTokenContractTestBase : ContractTestBase<MultiTokenContractTes
         await stub.Create.SendAsync(input);
         await stub.Issue.SendAsync(new IssueInput
         {
-
             Symbol = input.Symbol,
             Amount = 1,
             Memo = "ddd",
@@ -181,13 +179,13 @@ public class MultiTokenContractTestBase : ContractTestBase<MultiTokenContractTes
         });
         return input;
     }
-    
-    internal async Task<IExecutionResult<Empty>> CreateSeedNftWithExceptionAsync(TokenContractImplContainer.TokenContractImplStub stub,
+
+    internal async Task<IExecutionResult<Empty>> CreateSeedNftWithExceptionAsync(
+        TokenContractImplContainer.TokenContractImplStub stub,
         CreateInput createInput)
     {
         var input = BuildSeedCreateInput(createInput);
-       return await stub.Create.SendWithExceptionAsync(input);
-       
+        return await stub.Create.SendWithExceptionAsync(input);
     }
 
     internal CreateInput BuildSeedCreateInput(CreateInput createInput)
@@ -209,13 +207,14 @@ public class MultiTokenContractTestBase : ContractTestBase<MultiTokenContractTes
         return input;
     }
 
-    internal async Task<IExecutionResult<Empty>> CreateMutiTokenAsync(TokenContractImplContainer.TokenContractImplStub stub,
+    internal async Task<IExecutionResult<Empty>> CreateMutiTokenAsync(
+        TokenContractImplContainer.TokenContractImplStub stub,
         CreateInput createInput)
     {
         await CreateSeedNftAsync(stub, createInput);
         return await stub.Create.SendAsync(createInput);
     }
-    
+
     internal async Task<IExecutionResult<Empty>> CreateMutiTokenWithExceptionAsync(
         TokenContractImplContainer.TokenContractImplStub stub, CreateInput createInput)
     {

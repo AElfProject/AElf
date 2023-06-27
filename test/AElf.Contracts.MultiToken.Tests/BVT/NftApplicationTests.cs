@@ -267,7 +267,7 @@ public partial class MultiTokenContractTests
                 IssueChainId = ChainHelper.ConvertBase58ToChainId("tDVV"),
                 ExternalInfo = input.ExternalInfo
             });
-            
+
             result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
     }
@@ -280,7 +280,7 @@ public partial class MultiTokenContractTests
 
         // Decimals check
         {
-            var result = await CreateMutiTokenWithExceptionAsync(TokenContractStub,new CreateInput
+            var result = await CreateMutiTokenWithExceptionAsync(TokenContractStub, new CreateInput
             {
                 Symbol = $"{NftCollection721Info.Symbol}{input.Symbol}",
                 TokenName = input.TokenName,
@@ -295,7 +295,7 @@ public partial class MultiTokenContractTests
         }
         // Symbol check
         {
-            var result = await CreateMutiTokenWithExceptionAsync(TokenContractStub,new CreateInput
+            var result = await CreateMutiTokenWithExceptionAsync(TokenContractStub, new CreateInput
             {
                 Symbol = "ABC-ABC",
                 TokenName = input.TokenName,
@@ -310,7 +310,7 @@ public partial class MultiTokenContractTests
         }
         // Symbol check
         {
-            var result = await CreateMutiTokenWithExceptionAsync(TokenContractStub,new CreateInput
+            var result = await CreateMutiTokenWithExceptionAsync(TokenContractStub, new CreateInput
             {
                 Symbol = "ABC-",
                 TokenName = input.TokenName,
@@ -325,7 +325,7 @@ public partial class MultiTokenContractTests
         }
         // Symbol check
         {
-            var result = await CreateMutiTokenWithExceptionAsync(TokenContractStub,new CreateInput
+            var result = await CreateMutiTokenWithExceptionAsync(TokenContractStub, new CreateInput
             {
                 Symbol = "ABC-ABC-1",
                 TokenName = input.TokenName,
@@ -340,7 +340,7 @@ public partial class MultiTokenContractTests
         }
         // Issue check
         {
-            var result = await CreateMutiTokenWithExceptionAsync(TokenContractStub,new CreateInput
+            var result = await CreateMutiTokenWithExceptionAsync(TokenContractStub, new CreateInput
             {
                 Symbol = $"{NftCollection721Info.Symbol}{input.Symbol}",
                 TokenName = input.TokenName,
@@ -354,7 +354,7 @@ public partial class MultiTokenContractTests
             result.TransactionResult.Error.ShouldContain("NFT issuer must be collection's issuer");
         }
         {
-            var result = await CreateMutiTokenWithExceptionAsync(TokenContractStub,new CreateInput
+            var result = await CreateMutiTokenWithExceptionAsync(TokenContractStub, new CreateInput
             {
                 Symbol = $"{NftCollection721Info.Symbol}{input.Symbol}",
                 TokenName = input.TokenName,
@@ -373,7 +373,7 @@ public partial class MultiTokenContractTests
     public async Task MultiTokenContract_Create_NFT_Collection_NotExist()
     {
         var input = Nft721Info;
-        var result = await CreateMutiTokenWithExceptionAsync(TokenContractStub,new CreateInput
+        var result = await CreateMutiTokenWithExceptionAsync(TokenContractStub, new CreateInput
         {
             Symbol = $"{NftCollection721Info.Symbol}{input.Symbol}",
             TokenName = input.TokenName,
@@ -392,7 +392,7 @@ public partial class MultiTokenContractTests
     {
         await CreateNftCollectionAndNft(false);
         var input = Nft721Info;
-        var result = await CreateMutiTokenWithExceptionAsync(TokenContractStub,new CreateInput
+        var result = await CreateMutiTokenWithExceptionAsync(TokenContractStub, new CreateInput
         {
             Symbol = $"{NftCollection721Info.Symbol}{input.Symbol}",
             TokenName = input.TokenName,
@@ -669,24 +669,25 @@ public partial class MultiTokenContractTests
         });
         ownerBalanceOutput.Balance.ShouldBe(90);
     }
-    
+
     [Fact(DisplayName = "[seed-nft] ResetExternalInfo Test")]
     public async Task ResetExternalInfoInputTest()
     {
-        var createInput = await CreateSeedNftAsync(TokenContractStub,new CreateInput
+        var createInput = await CreateSeedNftAsync(TokenContractStub, new CreateInput
         {
             Issuer = DefaultAddress,
             Symbol = "XYZ"
         });
-        
+
         var symbol = createInput.Symbol;
         createInput.ExternalInfo.Value["__seed_exp_time"] = "1234";
         // permission check
-        var exceptionRes = await TokenContractStubUser.ResetExternalInfo.SendWithExceptionAsync(new ResetExternalInfoInput
-        {
-            Symbol = createInput.Symbol,
-            ExternalInfo = createInput.ExternalInfo
-        });
+        var exceptionRes = await TokenContractStubUser.ResetExternalInfo.SendWithExceptionAsync(
+            new ResetExternalInfoInput
+            {
+                Symbol = createInput.Symbol,
+                ExternalInfo = createInput.ExternalInfo
+            });
         exceptionRes.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
         exceptionRes.TransactionResult.Error.ShouldContain("No permission to reset external info");
         var result = await TokenContractStub.ResetExternalInfo.SendAsync(new ResetExternalInfoInput()
@@ -699,14 +700,12 @@ public partial class MultiTokenContractTests
             Symbol = symbol,
         });
         tokenInfoRs.Output.ExternalInfo.Value["__seed_exp_time"].ShouldBe("1234");
-        
-
     }
-    
+
     [Fact(DisplayName = "[token] create Test")]
     public async Task CreateTokenTest()
     {
-        var res = await CreateMutiTokenAsync(TokenContractStub,new CreateInput
+        var res = await CreateMutiTokenAsync(TokenContractStub, new CreateInput
         {
             Symbol = "XYZ",
             TokenName = "Trump Digital Trading Cards #1155",
@@ -717,7 +716,7 @@ public partial class MultiTokenContractTests
         });
         res.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
         // check symbol repeat
-        var exceptionRes = await CreateSeedNftWithExceptionAsync(TokenContractStub,new CreateInput
+        var exceptionRes = await CreateSeedNftWithExceptionAsync(TokenContractStub, new CreateInput
         {
             Symbol = "XYZ",
             TokenName = "Trump Digital Trading Cards #1155",
@@ -729,7 +728,7 @@ public partial class MultiTokenContractTests
         exceptionRes.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
         exceptionRes.TransactionResult.Error.ShouldContain("Token already exists");
         // check collection symbol prefix duplicated
-        var failCollection = await CreateSeedNftWithExceptionAsync(TokenContractStub,new CreateInput
+        var failCollection = await CreateSeedNftWithExceptionAsync(TokenContractStub, new CreateInput
         {
             TokenName = "Trump Digital Trading Cards #1155",
             TotalSupply = TotalSupply,
@@ -741,7 +740,7 @@ public partial class MultiTokenContractTests
         failCollection.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
         failCollection.TransactionResult.Error.ShouldContain("Token name prefix can not be duplicated");
 
-        var successCollection = await CreateMutiTokenAsync(TokenContractStub,new CreateInput
+        var successCollection = await CreateMutiTokenAsync(TokenContractStub, new CreateInput
         {
             TokenName = "Trump Digital Trading Cards #1155",
             TotalSupply = TotalSupply,
@@ -752,7 +751,7 @@ public partial class MultiTokenContractTests
         });
         successCollection.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
         // check ft symbol prefix duplicated
-        var fTokenAsync = await CreateSeedNftWithExceptionAsync(TokenContractStub,new CreateInput
+        var fTokenAsync = await CreateSeedNftWithExceptionAsync(TokenContractStub, new CreateInput
         {
             TokenName = "Trump Digital Trading Cards #1155",
             TotalSupply = TotalSupply,
@@ -763,8 +762,24 @@ public partial class MultiTokenContractTests
         });
         fTokenAsync.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
         fTokenAsync.TransactionResult.Error.ShouldContain("Token name prefix can not be duplicated");
-        
-        var nftAsync = await CreateMutiTokenAsync(TokenContractStub,new CreateInput
+
+      
+        var createInput = BuildSeedCreateInput(new CreateInput()
+        {
+            Symbol = "GH"
+        });
+        createInput.ExternalInfo.Value["__seed_owned_symbol"] = "";
+        var ownError = await TokenContractStub.Create.SendWithExceptionAsync(createInput);
+        ownError.TransactionResult.Error.ShouldContain("seed_owned_symbol is empty");
+        var createInputExpire = BuildSeedCreateInput(new CreateInput()
+        {
+            Symbol = "GHT"
+        });
+        createInputExpire.ExternalInfo.Value["__seed_exp_time"] = "1234";
+        var expireError = await TokenContractStub.Create.SendWithExceptionAsync(createInputExpire);
+        expireError.TransactionResult.Error.ShouldContain("seed_owned_symbol is expired");
+        // create nft
+        var nftSuccessAsync = await TokenContractStub.Create.SendAsync(new CreateInput
         {
             TokenName = "Trump Digital Trading Cards #1155",
             TotalSupply = TotalSupply,
@@ -773,21 +788,101 @@ public partial class MultiTokenContractTests
             IssueChainId = _chainId,
             Symbol = "GHJ-1"
         });
-        fTokenAsync.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-        fTokenAsync.TransactionResult.Error.ShouldContain("Token name prefix can not be duplicated");
-        var createInput = BuildSeedCreateInput(new CreateInput()
+        nftSuccessAsync.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+    }
+
+    [Fact(DisplayName = "[feed nft] create Test")]
+    public async Task FeedNftCreateTest()
+    {
+        // symbol expire reCreate success
+        var createInput = await CreateSeedNftAsync(TokenContractStub, new CreateInput
         {
-            Symbol = "GHJ-2"
+            Issuer = DefaultAddress,
+            Symbol = "XYZ"
         });
-        createInput.ExternalInfo.Value["__seed_owned_symbol"] = "";
-        var ownError = await TokenContractStub.Create.SendWithExceptionAsync(createInput);
-        ownError.TransactionResult.Error.ShouldContain("seed_owned_symbol is empty");
-        var createInputExpire = BuildSeedCreateInput(new CreateInput()
+
+        createInput.ExternalInfo.Value["__seed_exp_time"] = "1234";
+        await TokenContractStub.ResetExternalInfo.SendAsync(new ResetExternalInfoInput()
         {
-            Symbol = "GHJ-3"
+            Symbol = createInput.Symbol,
+            ExternalInfo = createInput.ExternalInfo
         });
-        createInputExpire.ExternalInfo.Value["__seed_exp_time"] = "1234";
-        var expireError = await TokenContractStub.Create.SendWithExceptionAsync(createInputExpire);
-        expireError.TransactionResult.Error.ShouldContain("seed_owned_symbol is expired");
+
+        var input = BuildSeedCreateInput(new CreateInput
+        {
+            Issuer = DefaultAddress,
+            Symbol = "XYZ"
+        });
+        var seedRes = await TokenContractStub.Create.SendAsync(input);
+        seedRes.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+        // owner doesn't own enough balance
+        var nftAsync = await TokenContractStub.Create.SendWithExceptionAsync(GetCreateInput());
+        nftAsync.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+        nftAsync.TransactionResult.Error.ShouldContain("owner doesn't own enough balance");
+        // ExternalInfo check  
+        await TokenContractStub.Issue.SendAsync(new IssueInput
+        {
+            Symbol = input.Symbol,
+            Amount = 1,
+            Memo = "ddd",
+            To = DefaultAddress
+        });
+        input.ExternalInfo.Value["__seed_owned_symbol"] = "XYZ-0";
+
+        await TokenContractStub.ResetExternalInfo.SendAsync(new ResetExternalInfoInput()
+        {
+            Symbol = input.Symbol,
+            ExternalInfo = input.ExternalInfo
+        });
+        var inconsistentExceptionAsync = await TokenContractStub.Create.SendWithExceptionAsync(GetCreateInput());
+        inconsistentExceptionAsync.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+        inconsistentExceptionAsync.TransactionResult.Error.ShouldContain(
+            "seed_owned_symbol and input_symbol is inconsistent");
+
+        input.ExternalInfo.Value["__seed_owned_symbol"] = "XYZ";
+        input.ExternalInfo.Value["__seed_exp_time"] = "";
+        await TokenContractStub.ResetExternalInfo.SendAsync(new ResetExternalInfoInput()
+        {
+            Symbol = input.Symbol,
+            ExternalInfo = input.ExternalInfo
+        });
+        var expireExceptionAsync = await TokenContractStub.Create.SendWithExceptionAsync(
+            GetCreateInput());
+        expireExceptionAsync.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+        expireExceptionAsync.TransactionResult.Error.ShouldContain("seed_owned_symbol is expired");
+
+        input.ExternalInfo.Value["__seed_owned_symbol"] = "XYZ";
+        input.ExternalInfo.Value["__seed_exp_time"] = "1234";
+        await TokenContractStub.ResetExternalInfo.SendAsync(new ResetExternalInfoInput()
+        {
+            Symbol = input.Symbol,
+            ExternalInfo = input.ExternalInfo
+        });
+        var expireExceptionAsync1 = await TokenContractStub.Create.SendWithExceptionAsync(GetCreateInput());
+        expireExceptionAsync1.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+        expireExceptionAsync1.TransactionResult.Error.ShouldContain("seed_owned_symbol is expired");
+
+        var s = await TokenContractStub.ResetExternalInfo.SendAsync(new ResetExternalInfoInput()
+        {
+            Symbol = input.Symbol,
+            ExternalInfo = new ExternalInfo()
+        });
+        var emptyExceptionAsync = await TokenContractStub.Create.SendWithExceptionAsync(GetCreateInput());
+        emptyExceptionAsync.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+        emptyExceptionAsync.TransactionResult.Error.ShouldContain("seed_owned_symbol is empty");
+    }
+
+    private CreateInput GetCreateInput()
+    {
+        return new CreateInput
+        {
+            TokenName = "Trump Digital Trading Cards #1155",
+            TotalSupply = TotalSupply,
+            Decimals = 0,
+            Issuer = DefaultAddress,
+            IssueChainId = _chainId,
+            Symbol = "XYZ"
+        };
     }
 }

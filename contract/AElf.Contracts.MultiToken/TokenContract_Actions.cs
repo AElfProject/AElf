@@ -45,7 +45,7 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
 
     private Empty CreateToken(CreateInput input, SymbolType symbolType = SymbolType.Token)
     {
-        AssertValidCreateInput(input, symbolType);
+        AssertValidCreateInput(input);
         if (symbolType == SymbolType.Token || symbolType == SymbolType.NftCollection)
         {
             if (!IsAddressInCreateWhiteList(Context.Sender) && input.Symbol != TokenContractConstants.SeedCollectionId)
@@ -54,10 +54,12 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
                 CheckSeedNft(symbolSeed, input.Symbol);
                 // seed nft for one-time use only
                 long balance = State.Balances[Context.Sender][symbolSeed];
-                DoTransferFrom(Context.Sender, Context.Self, Context.Self, symbolSeed, balance,"");
-                BurnWithAddress(new BurnInput {  
+                DoTransferFrom(Context.Sender, Context.Self, Context.Self, symbolSeed, balance, "");
+                BurnWithAddress(new BurnInput
+                {
                     Symbol = symbolSeed,
-                    Amount = balance},Context.Self);
+                    Amount = balance
+                }, Context.Self);
             }
         }
 
@@ -100,19 +102,22 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
 
         return new Empty();
     }
-    
-    private void CheckSeedNft(string symbolSeed,String symbol)
+
+    private void CheckSeedNft(string symbolSeed, String symbol)
     {
-        Assert(!string.IsNullOrEmpty(symbolSeed),"Seed NFT is not exist");
+        Assert(!string.IsNullOrEmpty(symbolSeed), "Seed NFT is not exist");
         var tokenInfo = State.TokenInfos[symbolSeed];
-        Assert(tokenInfo != null,"Seed NFT is not exist");
-        Assert(State.Balances[Context.Sender][symbolSeed] > 0,"owner doesn't own enough balance");
-        Assert(tokenInfo.ExternalInfo != null  ,"seed_owned_symbol is empty ");
-        tokenInfo.ExternalInfo.Value.TryGetValue(TokenContractConstants.SeedExternalInfoOwnerSymbol,out var ownedSymbol);
-        Assert(ownedSymbol == symbol ,"seed_owned_symbol and input_symbol is  inconsistent ");
-        tokenInfo.ExternalInfo.Value.TryGetValue(TokenContractConstants.SeedExternalInfoExpireTime,out var expirationTime);
-        Assert(!string.IsNullOrEmpty(expirationTime) 
-               && Context.CurrentBlockTime.Seconds <= long.Parse(expirationTime),"seed_owned_symbol is expired ");
+        Assert(tokenInfo != null, "Seed NFT is not exist");
+        Assert(State.Balances[Context.Sender][symbolSeed] > 0, "owner doesn't own enough balance");
+        Assert(tokenInfo.ExternalInfo != null && !tokenInfo.ExternalInfo.Equals(new ExternalInfo()),
+            "seed_owned_symbol is empty ");
+        tokenInfo.ExternalInfo.Value.TryGetValue(TokenContractConstants.SeedExternalInfoOwnerSymbol,
+            out var ownedSymbol);
+        Assert(ownedSymbol == symbol, "seed_owned_symbol and input_symbol is inconsistent ");
+        tokenInfo.ExternalInfo.Value.TryGetValue(TokenContractConstants.SeedExternalInfoExpireTime,
+            out var expirationTime);
+        Assert(!string.IsNullOrEmpty(expirationTime)
+               && Context.CurrentBlockTime.Seconds <= long.Parse(expirationTime), "seed_owned_symbol is expired ");
     }
 
 
@@ -265,10 +270,10 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
 
     public override Empty Burn(BurnInput input)
     {
-        return BurnWithAddress(input,Context.Sender);
+        return BurnWithAddress(input, Context.Sender);
     }
 
-    private Empty BurnWithAddress(BurnInput input,Address address)
+    private Empty BurnWithAddress(BurnInput input, Address address)
     {
         var tokenInfo = AssertValidToken(input.Symbol, input.Amount);
         Assert(tokenInfo.IsBurnable, "The token is not burnable.");

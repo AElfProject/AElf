@@ -190,7 +190,7 @@ public partial class TokenContract
         return tokenInfo.IssueChainId;
     }
 
-    private void AssertValidCreateInput(CreateInput input, SymbolType symbolType)
+    private void AssertValidCreateInput(CreateInput input)
     {
         Assert(input.TokenName.Length <= TokenContractConstants.TokenNameLength
                && input.Symbol.Length > 0
