@@ -28,6 +28,11 @@
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </ProjectReference>
+        <ProjectReference Include="..\AElf.Contracts.TestContract.FakeVote\AElf.Contracts.TestContract.FakeVote.csproj">
+            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+            <OutputItemType>Contract</OutputItemType>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </ProjectReference>
     </ItemGroup>
     <ItemGroup>
         <CommonMessage Include="..\..\protobuf\authority_info.proto">
