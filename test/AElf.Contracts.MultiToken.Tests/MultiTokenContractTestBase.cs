@@ -33,6 +33,7 @@ public class MultiTokenContractTestBase : ContractTestBase<MultiTokenContractTes
 
     internal TokenContractImplContainer.TokenContractImplStub TokenContractStub;
     internal TokenContractImplContainer.TokenContractImplStub TokenContractStubUser;
+    internal TokenContractImplContainer.TokenContractImplStub TokenContractStubDelegate;
     internal TokenConverterContractImplContainer.TokenConverterContractImplStub TokenConverterContractStub;
 
     internal TreasuryContractImplContainer.TreasuryContractImplStub TreasuryContractStub;
@@ -44,6 +45,8 @@ public class MultiTokenContractTestBase : ContractTestBase<MultiTokenContractTes
 
         TokenContractStubUser =
             GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, User1KeyPair);
+        TokenContractStubDelegate = 
+            GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, User2KeyPair);
         Acs2BaseStub = GetTester<ACS2BaseContainer.ACS2BaseStub>(TokenContractAddress, DefaultKeyPair);
 
         TreasuryContractStub = GetTester<TreasuryContractImplContainer.TreasuryContractImplStub>(
@@ -85,6 +88,7 @@ public class MultiTokenContractTestBase : ContractTestBase<MultiTokenContractTes
     protected Address DefaultAddress => Accounts[0].Address;
     protected ECKeyPair User1KeyPair => Accounts[10].KeyPair;
     protected Address User1Address => Accounts[10].Address;
+    protected ECKeyPair User2KeyPair => Accounts[11].KeyPair;
     protected Address User2Address => Accounts[11].Address;
 
     protected int SeedNum = 0;
