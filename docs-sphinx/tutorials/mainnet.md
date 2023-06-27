@@ -7,7 +7,7 @@ jump into the guides and tutorials you'll need to install the following
 tools and frameworks. For most of these dependencies we provide
 ready-to-use command line instructions. In case of problems or if you
 have more complex needs, we provide more information in the [Environment
-setup](../../getting_started/development-environment/install.rst) section.
+setup](../../getting_started/development-environment/install.md) section.
 
 Summary of the steps to set up a node:
 
