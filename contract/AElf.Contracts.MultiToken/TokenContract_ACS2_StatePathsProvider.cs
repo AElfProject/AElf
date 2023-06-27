@@ -105,6 +105,7 @@ public partial class TokenContract
         var delegateeList = new List<string>();
         //get and add first-level delegatee list
         delegateeList.AddRange(GetDelegateeList(from, to, methodName));
+        if (delegateeList.Count <= 0) return;
         var secondDelegateeList = new List<string>();
         //get and add second-level delegatee list
         foreach (var delegateeAddress in delegateeList.Select(Address.FromBase58))
@@ -113,8 +114,7 @@ public partial class TokenContract
             secondDelegateeList.AddRange(GetDelegateeList(delegateeAddress, to, methodName));
         }
         delegateeList.AddRange(secondDelegateeList);
-
-        foreach (var delegatee in delegateeList)
+        foreach (var delegatee in delegateeList.Distinct())
         {
             AddPathForTransactionFee(resourceInfo, delegatee, methodName);
             AddPathForTransactionFeeFreeAllowance(resourceInfo, Address.FromBase58(delegatee));
@@ -124,18 +124,13 @@ public partial class TokenContract
     private List<string> GetDelegateeList(Address delegator, Address to, string methodName)
     {
         var delegateeList = new List<string>();
-        var allDelegatees = State.TransactionFeeDelegateesMap[delegator];
-        var allDelegateInfos = State.TransactionFeeDelegateInfoMap[delegator][to][methodName];
+        var allDelegatees = State.TransactionFeeDelegateInfoMap[delegator][to][methodName] 
+                            ?? State.TransactionFeeDelegateesMap[delegator];
             
         if (allDelegatees != null)
         {
             delegateeList.AddRange(allDelegatees.Delegatees.Keys.ToList());
-        }
-
-        if (allDelegateInfos != null)
-        {
-            delegateeList.AddRange(allDelegateInfos.Delegatees.Keys.ToList());
-        }
+        } 
 
         return delegateeList;
     }
