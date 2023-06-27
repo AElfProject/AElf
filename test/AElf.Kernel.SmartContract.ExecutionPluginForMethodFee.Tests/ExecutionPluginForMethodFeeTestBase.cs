@@ -333,11 +333,39 @@ public class ExecutePluginTransactionDirectlyForMethodFeeTestBase : ContractTest
     internal TokenContractContainer.TokenContractStub TokenContractStub { get; set; }
     internal TokenContractContainer.TokenContractStub TokenContractStub2 { get; set; }
     internal TokenContractContainer.TokenContractStub TokenContractStub3 { get; set; }
+    internal TokenContractContainer.TokenContractStub TokenContractStubDelegator { get; set; }
+
+    internal TokenContractImplContainer.TokenContractImplStub TokenContractStubDelegate1 { get; set; }
+    internal TokenContractImplContainer.TokenContractImplStub TokenContractStubDelegate2 { get; set; }
+    internal TokenContractImplContainer.TokenContractImplStub TokenContractStubDelegate3 { get; set; }
+    internal TokenContractImplContainer.TokenContractImplStub TokenContractStubSecondaryDelegate1 { get; set; }
+    internal TokenContractImplContainer.TokenContractImplStub TokenContractStubSecondaryDelegate2 { get; set; }
+
+    internal TokenContractImplContainer.TokenContractImplStub TokenContractStubSecondaryDelegate3 { get; set; }
+    internal TokenContractImplContainer.TokenContractImplStub TokenContractStubSecondaryDelegate4 { get; set; }
+    internal TokenContractImplContainer.TokenContractImplStub TokenContractStubSecondaryDelegate5 { get; set; }
+    internal TokenContractImplContainer.TokenContractImplStub TokenContractStubSecondaryDelegate6 { get; set; }
+    
+
     internal TokenContractImplContainer.TokenContractImplStub TokenContractImplStub { get; set; }
     internal ParliamentContractImplContainer.ParliamentContractImplStub ParliamentContractStub { get; set; }
     internal AEDPoSContractContainer.AEDPoSContractStub AEDPoSContractStub { get; set; }
     internal ECKeyPair DefaultSenderKeyPair => Accounts[0].KeyPair;
     internal ECKeyPair DelegateeKeyPair => Accounts[1].KeyPair;
+    internal ECKeyPair Delegatee2KeyPair => Accounts[3].KeyPair;
+    internal ECKeyPair Delegatee3KeyPair => Accounts[5].KeyPair;
+    internal ECKeyPair SecondaryDelegatee1KeyPair => Accounts[6].KeyPair;
+    internal ECKeyPair SecondaryDelegatee2KeyPair => Accounts[7].KeyPair;
+
+    internal ECKeyPair SecondaryDelegatee3KeyPair => Accounts[8].KeyPair;
+
+    internal ECKeyPair SecondaryDelegatee4KeyPair => Accounts[9].KeyPair;
+
+    internal ECKeyPair SecondaryDelegatee5KeyPair => Accounts[11].KeyPair;
+
+    internal ECKeyPair SecondaryDelegatee6KeyPair => Accounts[12].KeyPair;
+
+
     internal ECKeyPair UserKeyPair => Accounts[2].KeyPair;
     internal ECKeyPair UserAKeyPair => Accounts[3].KeyPair;
 
@@ -347,7 +375,22 @@ public class ExecutePluginTransactionDirectlyForMethodFeeTestBase : ContractTest
         Accounts.Take(1).Select(a => a.KeyPair).ToList();
 
     internal Address DefaultSender => Accounts[0].Address;
-    internal Address delegateeAddress => Accounts[1].Address;
+    internal Address DelegateeAddress => Accounts[1].Address;
+    internal Address Delegatee2Address => Accounts[3].Address;
+    internal Address Delegatee3Address => Accounts[5].Address;
+    internal Address SecondaryDelegatee1Address => Accounts[6].Address;
+    internal Address SecondaryDelegatee2Address => Accounts[7].Address;
+
+    internal Address SecondaryDelegatee3Address => Accounts[8].Address;
+
+    internal Address SecondaryDelegatee4Address => Accounts[9].Address;
+
+    internal Address SecondaryDelegatee5Address => Accounts[11].Address;
+
+    internal Address SecondaryDelegatee6Address => Accounts[12].Address;
+
+
+
     internal Address userAddress => Accounts[2].Address;
 
     internal TokenContractContainer.TokenContractStub TokenContractStubA { get; set; }
@@ -388,6 +431,27 @@ public class ExecutePluginTransactionDirectlyForMethodFeeTestBase : ContractTest
                 GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, UserKeyPair);
             TokenContractStubA = 
                 GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, UserKeyPair);
+            TokenContractStubDelegator =
+                GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, UserTomSenderKeyPair);
+            TokenContractStubDelegate1 =
+                GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, DelegateeKeyPair);
+            TokenContractStubDelegate2 = 
+                GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, Delegatee2KeyPair);
+            TokenContractStubDelegate3 = 
+                GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, Delegatee3KeyPair);
+            TokenContractStubSecondaryDelegate1 = 
+                GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, SecondaryDelegatee1KeyPair);
+            TokenContractStubSecondaryDelegate2 = 
+                GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, SecondaryDelegatee2KeyPair);
+            TokenContractStubSecondaryDelegate3 = 
+                GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, SecondaryDelegatee3KeyPair);
+            TokenContractStubSecondaryDelegate4 = 
+                GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, SecondaryDelegatee4KeyPair);
+            TokenContractStubSecondaryDelegate5 = 
+                GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, SecondaryDelegatee5KeyPair);
+            TokenContractStubSecondaryDelegate6 = 
+                GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, SecondaryDelegatee6KeyPair);
+            
             TokenContractImplStub =
                 GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, DefaultSenderKeyPair);
         }
