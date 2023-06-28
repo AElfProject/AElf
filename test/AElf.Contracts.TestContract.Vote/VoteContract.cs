@@ -1,8 +1,8 @@
 ﻿using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.Contracts.TestContract.FakeVote;
+namespace AElf.Contracts.TestContract.Vote;
 
-public class FakeVoteContract : FakeVoteContractContainer.FakeVoteContractBase
+public class VoteContract : VoteContractContainer.VoteContractBase
 {
     public override Empty AddOption(AddOptionInput input)
     {

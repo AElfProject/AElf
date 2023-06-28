@@ -67,7 +67,7 @@ public sealed class BlockChainAppServiceTest : WebAppTestBase
 
     private byte[] TestContractCode => Codes.Single(kv => kv.Key.Contains("TestContract.BasicFunction")).Value;
     private byte[] VoteContractCode => Codes.Single(kv => kv.Key.Contains("Contracts.Vote")).Value;
-    private byte[] FakeVoteContractCode => Codes.Single(kv => kv.Key.Contains("TestContract.FakeVote")).Value;
+    private byte[] TestVoteContractCode => Codes.Single(kv => kv.Key.Contains("TestContract.Vote")).Value;
 
     [Fact]
     public async Task Deploy_Contract_Success_Test()
@@ -1795,7 +1795,7 @@ public sealed class BlockChainAppServiceTest : WebAppTestBase
             Params = ByteString.CopyFrom(new ContractUpdateInput
             {
                 Address = address,
-                Code = ByteString.CopyFrom(FakeVoteContractCode)
+                Code = ByteString.CopyFrom(TestVoteContractCode)
             }.ToByteArray()),
             RefBlockNumber = chain.BestChainHeight,
             RefBlockPrefix = BlockHelper.GetRefBlockPrefix(chain.BestChainHash)
