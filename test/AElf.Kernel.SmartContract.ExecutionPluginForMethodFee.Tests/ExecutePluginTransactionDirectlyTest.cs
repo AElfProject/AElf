@@ -43,6 +43,17 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
         // input With Primary Token
         await SetPrimaryTokenSymbolAsync();
         var beforeChargeBalance = await GetBalanceAsync(address, nativeTokenSymbol);
+
+        await TokenContractImplStub.SetMethodFee.SendAsync(new MethodFees
+        {
+            MethodName = methodName,
+            Fees = { new MethodFee
+            {
+                Symbol = NativeTokenSymbol,
+                BasicFee = 1000
+            } }
+        });
+        
         var chargeFeeRet = await TokenContractStub.ChargeTransactionFees.SendAsync(new ChargeTransactionFeesInput
         {
             ContractAddress = TokenContractAddress,
@@ -1119,8 +1130,7 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
             result.Delegations[NativeTokenSymbol].ShouldBe(5);
         }
 
-        await SubmitAndPassProposalOfDefaultParliamentAsync(TokenContractAddress,
-            nameof(TokenContractStub.ConfigMethodFeeFreeAllowances), new MethodFeeFreeAllowancesConfig
+        await TokenContractStub.ConfigMethodFeeFreeAllowances.SendAsync(new MethodFeeFreeAllowancesConfig
             {
                 FreeAllowances = new MethodFeeFreeAllowances
                 {
@@ -2317,8 +2327,7 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
                 }
             }
         };
-        await SubmitAndPassProposalOfDefaultParliamentAsync(TokenContractAddress,
-            nameof(TokenContractImplContainer.TokenContractImplStub.SetMethodFee), methodFee);
+        await TokenContractImplStub.SetMethodFee.SendAsync(methodFee);
 
         var sizeFeeSymbolList = new SymbolListToPayTxSizeFee
         {
@@ -2338,8 +2347,9 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
                 }
             }
         };
-        await SubmitAndPassProposalOfDefaultParliamentAsync(TokenContractAddress,
-            nameof(TokenContractImplContainer.TokenContractImplStub.SetSymbolsToPayTxSizeFee), sizeFeeSymbolList);
+
+        await TokenContractImplStub.SetSymbolsToPayTxSizeFee.SendAsync(sizeFeeSymbolList);
+        
         return sizeFeeSymbolList;
     }
 

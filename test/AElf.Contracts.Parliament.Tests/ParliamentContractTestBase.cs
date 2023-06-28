@@ -37,8 +37,10 @@ public class ParliamentContractTestBase : ContractTestKit.ContractTestBase<Parli
     protected List<ECKeyPair> InitialMinersKeyPairs => Accounts.Take(MinersCount).Select(a => a.KeyPair).ToList();
     protected Address DefaultSender => Accounts[10].Address;
     protected Address Tester => Accounts[MinersCount + 1].Address;
+
     protected List<ECKeyPair> InitialCoreDataCenterKeyPairs =>
-        Accounts.Take(1).Select(a => a.KeyPair).ToList();
+        Accounts.Take(3).Select(a => a.KeyPair).ToList();
+
     protected Address TokenContractAddress { get; set; }
     protected Address ConsensusContractAddress { get; set; }
     protected Address ParliamentContractAddress { get; set; }
@@ -73,6 +75,15 @@ public class ParliamentContractTestBase : ContractTestKit.ContractTestBase<Parli
             ProposerAuthorityRequired = false,
             PrivilegedProposer = DefaultSender
         }));
+
+        ConsensusContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(
+            KernelConstants.CodeCoverageRunnerCategory,
+            DPoSConsensusCode,
+            ConsensusSmartContractAddressNameProvider.Name,
+            DefaultSenderKeyPair));
+        ConsensusContractStub = GetConsensusContractTester(DefaultSenderKeyPair);
+        AsyncHelper.RunSync(async () => await InitializeConsensusAsync());
+        
         //deploy token contract
         TokenContractAddress = AsyncHelper.RunSync(() =>
             DeploySystemSmartContract(
@@ -82,14 +93,6 @@ public class ParliamentContractTestBase : ContractTestKit.ContractTestBase<Parli
                 DefaultSenderKeyPair));
         TokenContractStub = GetTokenContractTester(DefaultSenderKeyPair);
         AsyncHelper.RunSync(async () => await InitializeTokenAsync());
-
-        ConsensusContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(
-            KernelConstants.CodeCoverageRunnerCategory,
-            DPoSConsensusCode,
-            ConsensusSmartContractAddressNameProvider.Name,
-            DefaultSenderKeyPair));
-        ConsensusContractStub = GetConsensusContractTester(DefaultSenderKeyPair);
-        AsyncHelper.RunSync(async () => await InitializeConsensusAsync());
     }
 
 
@@ -119,7 +122,10 @@ public class ParliamentContractTestBase : ContractTestKit.ContractTestBase<Parli
     {
         const string symbol = "ELF";
         const long totalSupply = 100_000_000;
-        await TokenContractStub.Create.SendAsync(new CreateInput
+
+        var organizationAddress =
+            (await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty()));
+        var approveProposalId = await CreateParliamentProposalAsync(nameof(TokenContractStub.Create), organizationAddress, new CreateInput
         {
             Symbol = symbol,
             Decimals = 2,
@@ -127,7 +133,11 @@ public class ParliamentContractTestBase : ContractTestKit.ContractTestBase<Parli
             TokenName = "elf token",
             TotalSupply = totalSupply,
             Issuer = DefaultSender
-        });
+        }, TokenContractAddress);
+        await ApproveWithMinersAsync(approveProposalId);
+        await ParliamentContractStub.Release.SendAsync(approveProposalId);
+
+
         await TokenContractStub.Issue.SendAsync(new IssueInput
         {
             Symbol = symbol,
@@ -156,6 +166,29 @@ public class ParliamentContractTestBase : ContractTestKit.ContractTestBase<Parli
             ProposerAuthorityRequired = false,
             PrivilegedProposer = DefaultSender
         });
+    }
+
+    internal async Task<Hash> CreateParliamentProposalAsync(string method, Address organizationAddress,
+        IMessage input, Address toAddress = null)
+    {
+        var proposal = (await ParliamentContractStub.CreateProposal.SendAsync(new CreateProposalInput
+        {
+            ToAddress = toAddress,
+            ContractMethodName = method,
+            ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
+            OrganizationAddress = organizationAddress,
+            Params = input.ToByteString()
+        })).Output;
+        return proposal;
+    }
+    
+    internal async Task ApproveWithMinersAsync(Hash proposalId)
+    {
+        foreach (var bp in InitialCoreDataCenterKeyPairs)
+        {
+            var tester = GetParliamentContractTester(bp);
+            await tester.Approve.SendAsync(proposalId);
+        }
     }
 }
 

@@ -81,8 +81,17 @@ public class AEDPoSExtensionDemoTestBase : AEDPoSExtensionTestBase
     internal void InitialAcs3Stubs()
     {
         foreach (var initialKeyPair in MissionedECKeyPairs.InitialKeyPairs)
-            ParliamentStubs.Add(GetTester<ParliamentContractImplContainer.ParliamentContractImplStub>(
-                ContractAddresses[ParliamentSmartContractAddressNameProvider.Name], initialKeyPair));
+        {
+            var parliamentStub = GetTester<ParliamentContractImplContainer.ParliamentContractImplStub>(
+                ContractAddresses[ParliamentSmartContractAddressNameProvider.Name], initialKeyPair);
+            parliamentStub.Initialize.SendAsync(new AElf.Contracts.Parliament.InitializeInput
+            {
+                ProposerAuthorityRequired = false,
+                PrivilegedProposer = Address.FromPublicKey(initialKeyPair.PublicKey)
+            });
+            
+            ParliamentStubs.Add(parliamentStub);
+        }
     }
 
     internal async Task<RandomNumberProviderContractContainer.RandomNumberProviderContractStub>
