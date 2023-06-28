@@ -134,7 +134,7 @@ public class BlockMiningService : IBlockMiningService
                 throw new InitializationFailedException("Can't find current round information.");
         }
 
-        var randomNumber = await GenerateRandomProveAsync();
+        var randomNumber = await GenerateRandomProofAsync();
         var triggerInformation = await GetConsensusTriggerInfoAsync(contractStub, pubkey, ByteString.CopyFrom(randomNumber));
         var consensusTransaction = await contractStub.GenerateConsensusTransactions.CallAsync(new BytesValue
         {
@@ -162,7 +162,7 @@ public class BlockMiningService : IBlockMiningService
         _isSkipped = false;
     }
     
-    private async Task<byte[]> GenerateRandomProveAsync()
+    private async Task<byte[]> GenerateRandomProofAsync()
     {
         var blockHeight = (await _blockchainService.GetChainAsync()).BestChainHeight;
         var previousRandomHash =

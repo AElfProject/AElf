@@ -26,7 +26,7 @@ public partial class EconomicContractsTestBase
                 victories.Value
             }
         };
-        var randomNumber = await GenerateRandomProveAsync(keyPair);
+        var randomNumber = await GenerateRandomProofAsync(keyPair);
         var firstRoundOfNextTerm =
             miners.GenerateFirstRoundOfNewTerm(EconomicContractsTestConstants.MiningInterval,
                 randomNumber, BlockTimeProvider.GetBlockTime(), round.RoundNumber, round.TermNumber);
@@ -39,7 +39,7 @@ public partial class EconomicContractsTestBase
     {
         var miner = GetConsensusContractTester(keyPair);
         var round = await miner.GetCurrentRoundInformation.CallAsync(new Empty());
-        var randomNumber = await GenerateRandomProveAsync(keyPair);
+        var randomNumber = await GenerateRandomProofAsync(keyPair);
         round.GenerateNextRoundInformation(
             StartTimestamp.ToDateTime().AddMilliseconds(round.TotalMilliseconds()).ToTimestamp(), StartTimestamp,
             ByteString.CopyFrom(randomNumber), out var nextRound);
@@ -61,7 +61,7 @@ public partial class EconomicContractsTestBase
             ProducedBlocks = minerInRound.ProducedBlocks + 1,
             ActualMiningTime = minerInRound.ExpectedMiningTime,
             SupposedOrderOfNextRound = 1,
-            RandomNumber = ByteString.CopyFrom(await GenerateRandomProveAsync(keyPair))
+            RandomNumber = ByteString.CopyFrom(await GenerateRandomProofAsync(keyPair))
         });
     }
 
@@ -100,7 +100,7 @@ public partial class EconomicContractsTestBase
         return balance;
     }
     
-    protected async Task<byte[]> GenerateRandomProveAsync(ECKeyPair keyPair)
+    protected async Task<byte[]> GenerateRandomProofAsync(ECKeyPair keyPair)
     {
         var consensusContractStub = GetConsensusContractTester(keyPair);
         var blockHeight = (await BlockchainService.GetChainAsync()).BestChainHeight;

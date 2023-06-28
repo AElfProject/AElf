@@ -325,7 +325,7 @@ public class MultiTokenContractCrossChainTestBase : ContractTestBase<MultiTokenC
     {
         if (isMainChain)
         {
-            var randomNumber = await GenerateRandomProveAsync(aedPoSContractStub, DefaultAccount.KeyPair);
+            var randomNumber = await GenerateRandomProofAsync(aedPoSContractStub, DefaultAccount.KeyPair);
             var currentRound = await aedPoSContractStub.GetCurrentRoundInformation.CallAsync(new Empty());
             var expectedStartTime = TimestampHelper.GetUtcNow();
             currentRound.GenerateNextRoundInformation(expectedStartTime, BlockchainStartTimestamp,
@@ -362,7 +362,7 @@ public class MultiTokenContractCrossChainTestBase : ContractTestBase<MultiTokenC
         }
     }
 
-    private async Task<byte[]> GenerateRandomProveAsync(AEDPoSContractContainer.AEDPoSContractStub aedPoSContractStub,
+    private async Task<byte[]> GenerateRandomProofAsync(AEDPoSContractContainer.AEDPoSContractStub aedPoSContractStub,
         ECKeyPair keyPair)
     {
         var blockHeight = (await BlockchainService.GetChainAsync()).BestChainHeight;

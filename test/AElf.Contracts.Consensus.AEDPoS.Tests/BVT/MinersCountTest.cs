@@ -66,7 +66,7 @@ public partial class AEDPoSTest
                 (await AEDPoSContractStub.GetConsensusExtraData.CallAsync(triggers[minerInRound.Pubkey]
                     .ToBytesValue())).ToConsensusHeaderInformation();
 
-            randomNumber = await GenerateRandomProveAsync(currentKeyPair);
+            randomNumber = await GenerateRandomProofAsync(currentKeyPair);
             // Update consensus information.
             var toUpdate =
                 headerInformation.Round.ExtractInformationToUpdateConsensus(minerInRound.Pubkey,
@@ -85,7 +85,7 @@ public partial class AEDPoSTest
             }.ToBytesValue())).ToConsensusHeaderInformation();
 
         var nextRoundInput = NextRoundInput.Parser.ParseFrom(nextTermInformation.Round.ToByteArray());
-        randomNumber = await GenerateRandomProveAsync(BootMinerKeyPair);
+        randomNumber = await GenerateRandomProofAsync(BootMinerKeyPair);
         nextRoundInput.RandomNumber = ByteString.CopyFrom(randomNumber);
         await AEDPoSContractStub.NextRound.SendAsync(nextRoundInput);
         changeTermTime = BlockchainStartTimestamp.ToDateTime().AddMinutes(termIntervalMin).AddSeconds(10);
@@ -99,7 +99,7 @@ public partial class AEDPoSTest
             }.ToBytesValue())).ToConsensusHeaderInformation();
 
         var nextTermInput = NextTermInput.Parser.ParseFrom(nextTermInformation.Round.ToByteArray());
-        randomNumber = await GenerateRandomProveAsync(BootMinerKeyPair);
+        randomNumber = await GenerateRandomProofAsync(BootMinerKeyPair);
         nextTermInput.RandomNumber = ByteString.CopyFrom(randomNumber);
         var transactionResult = await AEDPoSContractStub.NextTerm.SendAsync(nextTermInput);
         transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
@@ -128,7 +128,7 @@ public partial class AEDPoSTest
                         .Pubkey)
                 }.ToBytesValue())).ToConsensusHeaderInformation();
             nextTermInput = NextTermInput.Parser.ParseFrom(nextRoundInformation.Round.ToByteArray());
-            randomNumber = await GenerateRandomProveAsync(keypair);
+            randomNumber = await GenerateRandomProofAsync(keypair);
             nextTermInput.RandomNumber = ByteString.CopyFrom(randomNumber);
             await newMinerStub.NextTerm.SendAsync(nextTermInput);
             termCount++;

@@ -29,7 +29,7 @@ public partial class AEDPoSTest
             }.ToBytesValue())).ToConsensusHeaderInformation();
 
         var nextRoundInput = NextRoundInput.Parser.ParseFrom(nextTermInformation.Round.ToByteArray());
-        var randomNumber = await GenerateRandomProveAsync(BootMinerKeyPair);
+        var randomNumber = await GenerateRandomProofAsync(BootMinerKeyPair);
         nextRoundInput.RandomNumber = ByteString.CopyFrom(randomNumber);
         var transactionResult = await AEDPoSContractStub.NextRound.SendAsync(nextRoundInput);
         transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);

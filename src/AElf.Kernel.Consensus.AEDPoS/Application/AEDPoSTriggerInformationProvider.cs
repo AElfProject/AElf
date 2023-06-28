@@ -76,14 +76,14 @@ internal class AEDPoSTriggerInformationProvider : ITriggerInformationProvider
 
     public BytesValue GetTriggerInformationForConsensusTransactions(IChainContext chainContext, BytesValue consensusCommandBytes)
     {
-        var randomProve = AsyncHelper.RunSync(async ()=> await _randomNumberProvider.GenerateRandomProofAsync(chainContext));
+        var randomProof = AsyncHelper.RunSync(async ()=> await _randomNumberProvider.GenerateRandomProofAsync(chainContext));
         
         if (consensusCommandBytes == null)
             return new AElfConsensusTriggerInformation
             {
                 Pubkey = Pubkey,
                 Behaviour = AElfConsensusBehaviour.UpdateValue,
-                RandomNumber = ByteString.CopyFrom(randomProve)
+                RandomNumber = ByteString.CopyFrom(randomProof)
             }.ToBytesValue();
 
         var command = consensusCommandBytes.ToConsensusCommand();
@@ -98,7 +98,7 @@ internal class AEDPoSTriggerInformationProvider : ITriggerInformationProvider
                 InValue = inValue,
                 PreviousInValue = _inValueCache.GetInValue(hint.PreviousRoundId),
                 Behaviour = hint.Behaviour,
-                RandomNumber = ByteString.CopyFrom(randomProve)
+                RandomNumber = ByteString.CopyFrom(randomProof)
             };
 
             var secretPieces = _secretSharingService.GetEncryptedPieces(hint.RoundId);
@@ -120,7 +120,7 @@ internal class AEDPoSTriggerInformationProvider : ITriggerInformationProvider
         {
             Pubkey = Pubkey,
             Behaviour = hint.Behaviour,
-            RandomNumber = ByteString.CopyFrom(randomProve)
+            RandomNumber = ByteString.CopyFrom(randomProof)
         }.ToBytesValue();
     }
 }

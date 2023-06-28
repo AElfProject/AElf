@@ -59,7 +59,7 @@ public partial class AEDPoSTest
             var headerInformation =
                 (await AEDPoSContractStub.GetConsensusExtraData.CallAsync(triggers[minerInRound.Pubkey]
                     .ToBytesValue())).ToConsensusHeaderInformation();
-            randomNumber = await GenerateRandomProveAsync(currentKeyPair);
+            randomNumber = await GenerateRandomProofAsync(currentKeyPair);
             // Update consensus information.
             var toUpdate = headerInformation.Round.ExtractInformationToUpdateConsensus(minerInRound.Pubkey, ByteString.CopyFrom(randomNumber));
             await tester.UpdateValue.SendAsync(toUpdate);
@@ -76,7 +76,7 @@ public partial class AEDPoSTest
                 Pubkey = ByteString.CopyFrom(BootMinerKeyPair.PublicKey)
             }.ToBytesValue())).ToConsensusHeaderInformation();
         var nextTermInput = NextTermInput.Parser.ParseFrom(nextTermInformation.Round.ToByteArray());
-        randomNumber = await GenerateRandomProveAsync(BootMinerKeyPair);
+        randomNumber = await GenerateRandomProofAsync(BootMinerKeyPair);
         nextTermInput.RandomNumber = ByteString.CopyFrom(randomNumber);
         await AEDPoSContractStub.NextTerm.SendAsync(nextTermInput);
 
@@ -92,7 +92,7 @@ public partial class AEDPoSTest
                 InValue = inValue,
                 Pubkey = ByteString.CopyFrom(ValidationDataCenterKeyPairs[0].PublicKey)
             }.ToBytesValue())).ToConsensusHeaderInformation();
-        randomNumber = await GenerateRandomProveAsync(ValidationDataCenterKeyPairs[0]);
+        randomNumber = await GenerateRandomProofAsync(ValidationDataCenterKeyPairs[0]);
         var updateResult = await oneCandidate.UpdateValue.SendAsync(
             informationOfSecondRound.Round.ExtractInformationToUpdateConsensus(ValidationDataCenterKeyPairs[0]
                 .PublicKey.ToHex(), ByteString.CopyFrom(randomNumber)));
@@ -106,7 +106,7 @@ public partial class AEDPoSTest
                 Pubkey = ByteString.CopyFrom(ValidationDataCenterKeyPairs[0].PublicKey)
             }.ToBytesValue())).ToConsensusHeaderInformation().Round;
         var nextRoundInput = NextRoundInput.Parser.ParseFrom(thirdRound.ToByteArray());
-        randomNumber = await GenerateRandomProveAsync(ValidationDataCenterKeyPairs[0]);
+        randomNumber = await GenerateRandomProofAsync(ValidationDataCenterKeyPairs[0]);
         nextRoundInput.RandomNumber = ByteString.CopyFrom(randomNumber);
         await oneCandidate.NextRound.SendAsync(nextRoundInput);
 
@@ -118,7 +118,7 @@ public partial class AEDPoSTest
                 InValue = HashHelper.ComputeFrom("InValue"), // Don't care this value in current test case.
                 Pubkey = ByteString.CopyFrom(ValidationDataCenterKeyPairs[0].PublicKey)
             }.ToBytesValue())).ToConsensusHeaderInformation();
-        randomNumber = await GenerateRandomProveAsync(ValidationDataCenterKeyPairs[0]);
+        randomNumber = await GenerateRandomProofAsync(ValidationDataCenterKeyPairs[0]);
         await oneCandidate.UpdateValue.SendAsync(
             cheatInformation.Round.ExtractInformationToUpdateConsensus(ValidationDataCenterKeyPairs[0].PublicKey
                 .ToHex(), ByteString.CopyFrom(randomNumber)));
@@ -140,7 +140,7 @@ public partial class AEDPoSTest
             RoundId = roundInfo.RoundId,
             ProducedBlocks = 4,
             ActualMiningTime = BlockTimeProvider.GetBlockTime(),
-            RandomNumber = ByteString.CopyFrom(await GenerateRandomProveAsync(BootMinerKeyPair))
+            RandomNumber = ByteString.CopyFrom(await GenerateRandomProofAsync(BootMinerKeyPair))
         };
         var transactionResult = await AEDPoSContractStub.UpdateTinyBlockInformation.SendAsync(input);
         transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
