@@ -186,7 +186,7 @@ public class ContractTester<TContractTestAElfModule> : ITransientDependency
 
     public byte[] CrossChainContractCode => GetContractCodeByName(SmartContractTestConstants.CrossChain);
 
-    public byte[] ParliamentContractCode => GetContractCodeByName("MockParliament");
+    public byte[] ParliamentContractCode => GetContractCodeByName(SmartContractTestConstants.Parliament);
 
     public byte[] ConfigurationContractCode => GetContractCodeByName(SmartContractTestConstants.Configuration);
 

@@ -8,6 +8,7 @@ using AElf.Contracts.MultiToken;
 using AElf.Contracts.TestBase;
 using AElf.ContractTestKit;
 using AElf.Cryptography.ECDSA;
+using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Proposal;
@@ -36,7 +37,8 @@ public class ParliamentContractTestBase : ContractTestKit.ContractTestBase<Parli
     protected List<ECKeyPair> InitialMinersKeyPairs => Accounts.Take(MinersCount).Select(a => a.KeyPair).ToList();
     protected Address DefaultSender => Accounts[10].Address;
     protected Address Tester => Accounts[MinersCount + 1].Address;
-
+    protected List<ECKeyPair> InitialCoreDataCenterKeyPairs =>
+        Accounts.Take(1).Select(a => a.KeyPair).ToList();
     protected Address TokenContractAddress { get; set; }
     protected Address ConsensusContractAddress { get; set; }
     protected Address ParliamentContractAddress { get; set; }
@@ -66,6 +68,11 @@ public class ParliamentContractTestBase : ContractTestKit.ContractTestBase<Parli
                 DefaultSenderKeyPair
             ));
         ParliamentContractStub = GetParliamentContractTester(DefaultSenderKeyPair);
+        AsyncHelper.RunSync(() => ParliamentContractStub.Initialize.SendAsync(new InitializeInput
+        {
+            ProposerAuthorityRequired = false,
+            PrivilegedProposer = DefaultSender
+        }));
         //deploy token contract
         TokenContractAddress = AsyncHelper.RunSync(() =>
             DeploySystemSmartContract(
@@ -144,7 +151,11 @@ public class ParliamentContractTestBase : ContractTestKit.ContractTestBase<Parli
 
     internal async Task InitializeParliamentContracts()
     {
-        await ParliamentContractStub.Initialize.SendAsync(new InitializeInput());
+        await ParliamentContractStub.Initialize.SendAsync(new InitializeInput
+        {
+            ProposerAuthorityRequired = false,
+            PrivilegedProposer = DefaultSender
+        });
     }
 }
 
