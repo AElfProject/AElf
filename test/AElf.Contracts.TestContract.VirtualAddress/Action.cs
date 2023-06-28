@@ -2,6 +2,7 @@
 using AElf.Contracts.Profit;
 using AElf.Sdk.CSharp;
 using AElf.Types;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.TestContract.VirtualAddress;
@@ -18,7 +19,7 @@ public class Action : VirtualAddressContractContainer.VirtualAddressContractBase
             Amount = input.Amount,
             EndTimestamp = input.EndTimestamp,
             Token = input.Token
-        });
+        }.ToByteString());
 
         return new Empty();
     }
@@ -27,7 +28,7 @@ public class Action : VirtualAddressContractContainer.VirtualAddressContractBase
     {
         Initialize();
 
-        Context.SendVirtualInline(HashHelper.ComputeFrom("test"), State.ElectionContract.Value, "Withdraw", input);
+        Context.SendVirtualInline(HashHelper.ComputeFrom("test"), State.ElectionContract.Value, "Withdraw", input.ToByteString());
 
         return new Empty();
     }
@@ -41,7 +42,7 @@ public class Action : VirtualAddressContractContainer.VirtualAddressContractBase
             CandidatePubkey = input.PubKey,
             VoteId = input.VoteId,
             IsResetVotingTime = input.IsReset
-        });
+        }.ToByteString());
 
         return new Empty();
     }
@@ -54,7 +55,7 @@ public class Action : VirtualAddressContractContainer.VirtualAddressContractBase
         {
             SchemeId = input.SchemeId,
             Beneficiary = input.Beneficiary
-        });
+        }.ToByteString());
 
         return new Empty();
     }
