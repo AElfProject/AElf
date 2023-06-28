@@ -7,7 +7,7 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.TestContract.VirtualAddress;
 
-public class Action : VirtualAddressContractContainer.VirtualAddressContractBase
+public partial class Action : VirtualAddressContractContainer.VirtualAddressContractBase
 {
     public override Empty VirtualAddressVote(VirtualAddressVoteInput input)
     {
