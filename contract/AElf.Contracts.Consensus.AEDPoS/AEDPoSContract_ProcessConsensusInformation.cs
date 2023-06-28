@@ -73,8 +73,9 @@ public partial class AEDPoSContract
                 $"Current round information:\n{currentRound.ToString(_processingBlockMinerPubkey)}");
 
         var previousRandomHash = State.RandomHashes[Context.CurrentHeight.Sub(1)] ?? Hash.Empty;
-        var beta = Context.ECVrfVerify(Context.RecoverPublicKey(), previousRandomHash.ToByteArray(),
-            randomNumber.ToByteArray());
+        Assert(
+            Context.ECVrfVerify(Context.RecoverPublicKey(), previousRandomHash.ToByteArray(),
+                randomNumber.ToByteArray(), out var beta), "Failed to verify random number.");
         var randomHash = Hash.LoadFromByteArray(beta);
         State.RandomHashes[Context.CurrentHeight] = randomHash;
         Context.LogDebug(() => $"New random hash generated: {randomHash} - height {Context.CurrentHeight}");

@@ -32,12 +32,4 @@ internal class AEDPoSInformationProvider : IAEDPoSInformationProvider
                 .Create(contractReaderContext).GetCurrentMinerList.CallAsync(new Empty());
         return minersWithRoundNumber.Pubkeys.Select(k => k.ToHex());
     }
-
-    public async Task<Hash> GetRandomHashAsync(IChainContext chainContext, long blockHeight)
-    {
-        var contractReaderContext =
-            await _consensusReaderContextService.GetContractReaderContextAsync(chainContext);
-        return await _contractReaderFactory
-            .Create(contractReaderContext).GetRandomHash.CallAsync(new Int64Value { Value = blockHeight });
-    }
 }

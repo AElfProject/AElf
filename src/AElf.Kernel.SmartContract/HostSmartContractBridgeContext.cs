@@ -350,8 +350,18 @@ public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, I
         return !cabBeRecovered ? null : publicKey;
     }
 
-    public byte[] ECVrfVerify(byte[] pubKey, byte[] alpha, byte[] pi)
+    public bool ECVrfVerify(byte[] pubKey, byte[] alpha, byte[] pi, out byte[] beta)
     {
-        return CryptoHelper.ECVrfVerify(pubKey, alpha, pi);
+        try
+        {
+            beta = CryptoHelper.ECVrfVerify(pubKey, alpha, pi);
+        }
+        catch
+        {
+            beta = null;
+            return false;
+        }
+
+        return true;
     }
 }

@@ -8,5 +8,4 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application;
 public interface IAEDPoSInformationProvider
 {
     Task<IEnumerable<string>> GetCurrentMinerListAsync(ChainContext chainContext);
-    Task<Hash> GetRandomHashAsync(IChainContext chainContext, long blockHeight);
 }

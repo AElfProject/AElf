@@ -16,15 +16,15 @@ internal class AEDPoSTriggerInformationProvider : ITriggerInformationProvider
     private readonly IAccountService _accountService;
     private readonly IInValueCache _inValueCache;
     private readonly ISecretSharingService _secretSharingService;
-    private readonly IRandomProvider _randomProvider;
+    private readonly IRandomNumberProvider _randomNumberProvider;
 
     public AEDPoSTriggerInformationProvider(IAccountService accountService,
-        ISecretSharingService secretSharingService, IInValueCache inValueCache, IRandomProvider randomProvider)
+        ISecretSharingService secretSharingService, IInValueCache inValueCache, IRandomNumberProvider randomNumberProvider)
     {
         _accountService = accountService;
         _secretSharingService = secretSharingService;
         _inValueCache = inValueCache;
-        _randomProvider = randomProvider;
+        _randomNumberProvider = randomNumberProvider;
 
         Logger = NullLogger<AEDPoSTriggerInformationProvider>.Instance;
     }
@@ -76,7 +76,7 @@ internal class AEDPoSTriggerInformationProvider : ITriggerInformationProvider
 
     public BytesValue GetTriggerInformationForConsensusTransactions(IChainContext chainContext, BytesValue consensusCommandBytes)
     {
-        var randomProve = AsyncHelper.RunSync(async ()=> await _randomProvider.GenerateRandomProveAsync(chainContext));
+        var randomProve = AsyncHelper.RunSync(async ()=> await _randomNumberProvider.GenerateRandomProofAsync(chainContext));
         
         if (consensusCommandBytes == null)
             return new AElfConsensusTriggerInformation
