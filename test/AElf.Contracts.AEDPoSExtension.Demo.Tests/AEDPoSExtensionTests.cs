@@ -23,6 +23,7 @@ public class AEDPoSExtensionTests : AEDPoSExtensionDemoTestBase
     public async Task Demo_Test()
     {
         InitialContracts();
+        InitialAcs3Stubs();
 
         // Check round information after initialization.
         {

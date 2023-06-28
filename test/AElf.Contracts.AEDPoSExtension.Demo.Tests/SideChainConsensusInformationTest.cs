@@ -31,6 +31,7 @@ public class SideChainConsensusInformationTest : AEDPoSExtensionDemoTestBase
     {
         SetToSideChain();
         InitialContracts();
+        InitialAcs3Stubs();
         var mockedCrossChain = SampleAccount.Accounts.Last();
         var mockedCrossChainStub =
             GetTester<AEDPoSContractImplContainer.AEDPoSContractImplStub>(

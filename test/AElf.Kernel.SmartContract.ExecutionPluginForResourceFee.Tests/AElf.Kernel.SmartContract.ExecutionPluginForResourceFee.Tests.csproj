@@ -106,6 +106,9 @@
         <ContractStub Include="..\..\protobuf\aedpos_contract.proto">
             <Link>Protobuf\Proto\aedpos_contract.proto</Link>
         </ContractStub>
+        <ContractStub Include="..\..\protobuf\test_mock_parliament_contract.proto">
+            <Link>Protobuf\Proto\test_mock_parliament_contract.proto</Link>
+        </ContractStub>
     </ItemGroup>
 
 </Project>

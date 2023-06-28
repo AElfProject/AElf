@@ -256,23 +256,23 @@ public class ExecutionPluginForMethodFeeWithForkTestBase : Contracts.TestBase.Co
             });
     }
 
-    // protected async Task SetMethodFeeWithProposalAsync(ByteString methodFee)
-    // {
-    //     var proposal = await Tester.ExecuteContractWithMiningAsync(_parliamentAddress,
-    //         nameof(ParliamentContractImplContainer.ParliamentContractImplStub.CreateProposal),
-    //         new CreateProposalInput
-    //         {
-    //             ContractMethodName =
-    //                 nameof(MethodFeeProviderContractContainer.MethodFeeProviderContractStub.SetMethodFee),
-    //             ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
-    //             Params = methodFee,
-    //             ToAddress = TokenContractAddress,
-    //             OrganizationAddress = await GetParliamentDefaultOrganizationAddressAsync()
-    //         });
-    //     var proposalId = Hash.Parser.ParseFrom(proposal.ReturnValue);
-    //     await ApproveWithMinersAsync(proposalId);
-    //     await ReleaseProposalAsync(proposalId);
-    // }
+    protected async Task SetMethodFeeWithProposalAsync(ByteString methodFee)
+    {
+        var proposal = await Tester.ExecuteContractWithMiningAsync(_parliamentAddress,
+            nameof(ParliamentContractImplContainer.ParliamentContractImplStub.CreateProposal),
+            new CreateProposalInput
+            {
+                ContractMethodName =
+                    nameof(MethodFeeProviderContractContainer.MethodFeeProviderContractStub.SetMethodFee),
+                ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
+                Params = methodFee,
+                ToAddress = TokenContractAddress,
+                OrganizationAddress = await GetParliamentDefaultOrganizationAddressAsync()
+            });
+        var proposalId = Hash.Parser.ParseFrom(proposal.ReturnValue);
+        await ApproveWithMinersAsync(proposalId);
+        await ReleaseProposalAsync(proposalId);
+    }
 
     private async Task<Address> GetParliamentDefaultOrganizationAddressAsync()
     {

@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Parliament;
+using AElf.Contracts.TestContract.MockParliament;
 using AElf.Contracts.TokenConverter;
 using AElf.Contracts.Treasury;
 using AElf.ContractTestKit;
@@ -124,7 +125,7 @@ public class ExecutionPluginForResourceFeeTestBase : ContractTestBase<ExecutionP
     internal TokenContractContainer.TokenContractStub TokenContractStub { get; set; }
     internal TokenConverterContractContainer.TokenConverterContractStub TokenConverterContractStub { get; set; }
     internal TreasuryContractContainer.TreasuryContractStub TreasuryContractStub { get; set; }
-    internal ParliamentContractContainer.ParliamentContractStub ParliamentContractStub { get; set; }
+    internal MockParliamentContractContainer.MockParliamentContractStub ParliamentContractStub { get; set; }
     internal AEDPoSContractContainer.AEDPoSContractStub AEDPoSContractStub { get; set; }
 
     internal ECKeyPair DefaultSenderKeyPair => Accounts[0].KeyPair;
@@ -201,7 +202,7 @@ public class ExecutionPluginForResourceFeeTestBase : ContractTestBase<ExecutionP
             ParliamentContractAddress = await DeploySystemSmartContract(category, code,
                 ParliamentSmartContractAddressNameProvider.Name, DefaultSenderKeyPair);
             ParliamentContractStub =
-                GetTester<ParliamentContractContainer.ParliamentContractStub>(ParliamentContractAddress,
+                GetTester<MockParliamentContractContainer.MockParliamentContractStub>(ParliamentContractAddress,
                     DefaultSenderKeyPair);
         }
 
@@ -381,7 +382,7 @@ public class ExecutionPluginForResourceFeeTestBase : ContractTestBase<ExecutionP
 
     private async Task InitializeParliament()
     {
-        await ParliamentContractStub.Initialize.SendAsync(new Contracts.Parliament.InitializeInput
+        await ParliamentContractStub.Initialize.SendAsync(new AElf.Contracts.TestContract.MockParliament.InitializeInput
         {
             ProposerAuthorityRequired = false,
             PrivilegedProposer = DefaultSender
