@@ -190,47 +190,43 @@ public partial class TokenContract
         return tokenInfo.IssueChainId;
     }
 
-    private void AssertValidCreateInput(CreateInput input)
+    private void AssertValidCreateInput(CreateInput input, SymbolType symbolType)
     {
         Assert(input.TokenName.Length <= TokenContractConstants.TokenNameLength
                && input.Symbol.Length > 0
                && input.Decimals >= 0
                && input.Decimals <= TokenContractConstants.MaxDecimals, "Invalid input.");
-        
-       
-        TokenSymBolNameCheck(input.Symbol);
+    
+        SymbolLengthCheck(input.Symbol, symbolType);
+        SymbolPrefixDuplicatedCheck(input.Symbol, symbolType);
     }
 
-    private void TokenSymBolNameCheck( string symbol)
+    private void SymbolPrefixDuplicatedCheck(string symbol,SymbolType symbolType)
     {
-        var symbols = symbol.Split(TokenContractConstants.NFTSymbolSeparator);
-        var inputSymbolType = GetCreateInputSymbolType(symbol);
         var empty = new TokenInfo();
-        if (inputSymbolType == SymbolType.Token)
+        var existing = State.TokenInfos[symbol];
+        Assert(existing == null || existing.Equals(empty), "Token already exists.");
+        var symbols = symbol.Split(TokenContractConstants.NFTSymbolSeparator);
+        if (symbolType == SymbolType.Token)
         {
-            Assert(symbol.Length <= TokenContractConstants.SymbolMaxLength, "Invalid token symbol length");
             var duplicatedNftCollection =
-                State.TokenInfos[
-                    symbols.First() + TokenContractConstants.NFTSymbolSeparator + TokenContractConstants.CollectionId];
+                State.TokenInfos[symbols.First() + TokenContractConstants.NFTSymbolSeparator + TokenContractConstants.CollectionId];
             Assert(duplicatedNftCollection == null || duplicatedNftCollection.Equals(empty),
                 "Token name prefix can not be duplicated");
         }
-
-        if (inputSymbolType == SymbolType.Nft || inputSymbolType == SymbolType.NftCollection)
-        {
-            Assert(symbol.Length <= TokenContractConstants.NFTSymbolMaxLength, "Invalid NFT symbol length");
-        }
-
-        if (inputSymbolType == SymbolType.NftCollection)
+        if (symbolType == SymbolType.NftCollection)
         {
             var duplicatedToken = State.TokenInfos[symbols.First()];
             Assert(duplicatedToken == null || duplicatedToken.Equals(empty), "Token name prefix can not be duplicated");
         }
+    }
 
-        var existing = State.TokenInfos[symbol];
-        Assert(existing == null || existing.Equals(empty), "Token already exists.");
-        Assert(!string.IsNullOrEmpty(symbol) && symbol.All(IsValidSymbolChar),
-            "Invalid symbol.");
+    private void SymbolLengthCheck(string symbol, SymbolType symbolType)
+    {
+        if (symbolType == SymbolType.Token)
+            Assert(symbol.Length <= TokenContractConstants.SymbolMaxLength, "Invalid token symbol length");
+        if (symbolType == SymbolType.Nft || symbolType == SymbolType.NftCollection)
+            Assert(symbol.Length <= TokenContractConstants.NFTSymbolMaxLength, "Invalid NFT symbol length");
     }
 
     private void CheckCrossChainTokenContractRegistrationControllerAuthority()

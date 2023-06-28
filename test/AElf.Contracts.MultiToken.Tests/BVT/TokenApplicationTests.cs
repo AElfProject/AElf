@@ -5,6 +5,7 @@ using AElf.Contracts.Consensus.DPoS;
 using AElf.Contracts.TestContract.BasicFunction;
 using AElf.CSharp.Core;
 using AElf.CSharp.Core.Extension;
+using AElf.Kernel;
 using AElf.Standards.ACS10;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -1247,6 +1248,7 @@ public partial class MultiTokenContractTests
             TotalSupply = TotalSupply,
             ExternalInfo = new TestContract.BasicFunction.ExternalInfo()
         };
+       
         var result = await BasicFunctionContractStub.CreateTokenThroughMultiToken.SendAsync(createTokenInput);
         result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
         var checkTokenInfo = await TokenContractStub.GetTokenInfo.CallAsync(new GetTokenInfoInput { Symbol = "TEST" });

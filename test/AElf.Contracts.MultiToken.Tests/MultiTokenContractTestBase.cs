@@ -69,10 +69,10 @@ public class MultiTokenContractTestBase : ContractTestBase<MultiTokenContractTes
             nameof(TokenContractStub.Create), new CreateInput()
             {
                 Symbol = "ELF",
-                Decimals = 0,
+                Decimals = 8,
                 IsBurnable = true,
                 TokenName = "ELF2",
-                TotalSupply = 1,
+                TotalSupply = 100_000_000_000_000_000L,
                 Issuer = DefaultAddress,
                 ExternalInfo = new ExternalInfo()
             }));

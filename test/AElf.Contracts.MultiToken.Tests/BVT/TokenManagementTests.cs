@@ -493,7 +493,7 @@ public partial class MultiTokenContractTests : MultiTokenContractTestBase
         createTokenInfoWithInvalidDecimal.Decimals = 100;
         createTokenRet = await CreateMutiTokenWithExceptionAsync(TokenContractStub,createTokenInfoWithInvalidDecimal);
         createTokenRet.TransactionResult.Error.ShouldContain("Invalid input");
-        await CreateMutiTokenAsync(TokenContractStub,createTokenInfo);
+        await  TokenContractStub.Create.SendAsync(createTokenInfo);
         var tokenInfo = await TokenContractStub.GetTokenInfo.CallAsync(new GetTokenInfoInput
         {
             Symbol = AliceCoinTokenInfo.Symbol

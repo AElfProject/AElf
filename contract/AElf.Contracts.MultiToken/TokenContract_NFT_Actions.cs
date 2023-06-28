@@ -18,31 +18,38 @@ public partial class TokenContract
         AssertNFTCreateInput(input);
         var nftCollectionInfo = AssertNftCollectionExist(input.Symbol);
         input.IssueChainId = input.IssueChainId == 0 ? nftCollectionInfo.IssueChainId : input.IssueChainId;
-        Assert(input.IssueChainId == nftCollectionInfo.IssueChainId, "NFT create ChainId must be collection's issue chainId");
-        Assert(Context.Sender == nftCollectionInfo.Issuer && nftCollectionInfo.Issuer == input.Issuer, "NFT issuer must be collection's issuer");
-        if (nftCollectionInfo.Symbol == TokenContractConstants.SeedCollectionId)
+        Assert(input.IssueChainId == nftCollectionInfo.IssueChainId,
+            "NFT create ChainId must be collection's issue chainId");
+        Assert(Context.Sender == nftCollectionInfo.Issuer && nftCollectionInfo.Issuer == input.Issuer,
+            "NFT issuer must be collection's issuer");
+        if (nftCollectionInfo.Symbol == TokenContractConstants.SeedCollectionSymbol)
         {
-            input.ExternalInfo.Value.TryGetValue(TokenContractConstants.SeedExternalInfoOwnerSymbol,out var ownerSymbol);
-            input.ExternalInfo.Value.TryGetValue(TokenContractConstants.SeedExternalInfoExpireTime,out var expirationTime);
-           
-            Assert(!string.IsNullOrEmpty(ownerSymbol),"seed_owned_symbol is empty ");
-            TokenSymBolNameCheck(ownerSymbol); 
-            Assert(!string.IsNullOrEmpty(expirationTime) 
-                   && Context.CurrentBlockTime.Seconds <= long.Parse(expirationTime),"seed_owned_symbol is expired ");
-            var oldSymbolSeed = State.SymbolSeedMap[ownerSymbol];
-            var oldSymbolSeedExpireTime ="";
-            if (oldSymbolSeed !=null)
-            {
-                State.TokenInfos[oldSymbolSeed].ExternalInfo.Value.TryGetValue(TokenContractConstants.SeedExternalInfoExpireTime,out oldSymbolSeedExpireTime);
-            }
-            Assert(oldSymbolSeed == null ||  string.IsNullOrEmpty(oldSymbolSeedExpireTime) 
-                || Context.CurrentBlockTime.Seconds > long.Parse(oldSymbolSeedExpireTime),"seed_owned_symbol has been created");
-            State.SymbolSeedMap[ownerSymbol] = input.Symbol;
+            Assert(
+                input.ExternalInfo.Value.TryGetValue(TokenContractConstants.SeedOwnedSymbolExternalInfoKey,
+                    out var ownedSymbol) && !string.IsNullOrEmpty(ownedSymbol), "seed_owned_symbol is empty");
+            Assert(input.ExternalInfo.Value.TryGetValue(TokenContractConstants.SeedExpireTimeExternalInfoKey,
+                       out var expirationTime)
+                   && !string.IsNullOrEmpty(expirationTime) && Context.CurrentBlockTime.Seconds <= long.Parse(expirationTime), "seed_owned_symbol is expired ");
+            var ownedSymbolType = GetCreateInputSymbolType(ownedSymbol);
+            SymbolLengthCheck(ownedSymbol, ownedSymbolType);
+            SymbolPrefixDuplicatedCheck(ownedSymbol, ownedSymbolType);
+            OriginalSeedSymbolCheck(ownedSymbol);
+            State.SymbolSeedMap[ownedSymbol] = input.Symbol;
         }
+
         return CreateToken(input, SymbolType.Nft);
     }
 
-   
+    private void OriginalSeedSymbolCheck(string ownedSymbol)
+    {
+        var oldSymbolSeed = State.SymbolSeedMap[ownedSymbol];
+        Assert(oldSymbolSeed == null || !State.TokenInfos[oldSymbolSeed].ExternalInfo.Value
+                                         .TryGetValue(TokenContractConstants.SeedExpireTimeExternalInfoKey,
+                                             out var oldSymbolSeedExpireTime) || string.IsNullOrEmpty(oldSymbolSeedExpireTime)
+                                     || Context.CurrentBlockTime.Seconds > long.Parse(oldSymbolSeedExpireTime),
+            "seed_owned_symbol has been created");
+    }
+
 
     private void DoTransferFrom(Address from, Address to, Address spender, string symbol, long amount, string memo)
     {
@@ -53,7 +60,8 @@ public partial class TokenContract
             if (IsInWhiteList(new IsInWhiteListInput { Symbol = symbol, Address = spender }).Value)
             {
                 DoTransfer(from, to, symbol, amount, memo);
-                DealWithExternalInfoDuringTransfer(new TransferFromInput() { From = from, To = to, Symbol = symbol, Amount = amount, Memo = memo });
+                DealWithExternalInfoDuringTransfer(new TransferFromInput()
+                    { From = from, To = to, Symbol = symbol, Amount = amount, Memo = memo });
                 return;
             }
 
@@ -63,11 +71,11 @@ public partial class TokenContract
         }
 
         DoTransfer(from, to, symbol, amount, memo);
-        DealWithExternalInfoDuringTransfer(new TransferFromInput() { From = from, To = to, Symbol = symbol, Amount = amount, Memo = memo });
+        DealWithExternalInfoDuringTransfer(new TransferFromInput()
+            { From = from, To = to, Symbol = symbol, Amount = amount, Memo = memo });
         State.Allowances[from][spender][symbol] = allowance.Sub(amount);
     }
 
-    
 
     private string GetNftCollectionSymbol(string inputSymbol)
     {

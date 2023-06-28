@@ -19,7 +19,7 @@ public static class TokenContractConstants
     public const int NFTSymbolMaxLength = 30;
     public const string UserContractMethodFeeKey = "UserContractMethodFee";
     public const string CollectionId = "0";
-    public const string SeedCollectionId = "SEED-0";
-    public const string SeedExternalInfoOwnerSymbol= "__seed_owned_symbol";
-    public const string SeedExternalInfoExpireTime = "__seed_exp_time";
+    public const string SeedCollectionSymbol = "SEED-0";
+    public const string SeedOwnedSymbolExternalInfoKey= "__seed_owned_symbol";
+    public const string SeedExpireTimeExternalInfoKey = "__seed_exp_time";
 }
