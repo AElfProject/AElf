@@ -1,4 +1,5 @@
 ﻿using AElf.Contracts.Election;
+using AElf.Contracts.Profit;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -30,6 +31,33 @@ public class Action : VirtualAddressContractContainer.VirtualAddressContractBase
 
         return new Empty();
     }
+    
+    public override Empty VirtualAddressChangeVotingOption(VirtualAddressChangeVotingOptionInput input)
+    {
+        Initialize();
+
+        Context.SendVirtualInline(HashHelper.ComputeFrom("test"), State.ElectionContract.Value, "ChangeVotingOption", new ChangeVotingOptionInput
+        {
+            CandidatePubkey = input.PubKey,
+            VoteId = input.VoteId,
+            IsResetVotingTime = input.IsReset
+        });
+
+        return new Empty();
+    }
+
+    public override Empty VirtualAddressClaimProfit(VirtualAddressClaimProfitInput input)
+    {
+        Initialize();
+
+        Context.SendVirtualInline(HashHelper.ComputeFrom("test"), State.ProfitContract.Value, "ClaimProfits", new ClaimProfitsInput
+        {
+            SchemeId = input.SchemeId,
+            Beneficiary = input.Beneficiary
+        });
+
+        return new Empty();
+    }
 
     public override Address GetVirtualAddress(Empty input)
     {
@@ -42,6 +70,12 @@ public class Action : VirtualAddressContractContainer.VirtualAddressContractBase
         {
             State.ElectionContract.Value =
                 Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName);
+        }
+        
+        if (State.ProfitContract.Value == null)
+        {
+            State.ProfitContract.Value =
+                Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName);
         }
     }
 }

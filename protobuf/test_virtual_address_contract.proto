@@ -15,6 +15,8 @@ service VirtualAddressContract {
   
   rpc VirtualAddressVote(VirtualAddressVoteInput) returns (google.protobuf.Empty);
   rpc VirtualAddressWithdraw(aelf.Hash) returns (google.protobuf.Empty);
+  rpc VirtualAddressChangeVotingOption(VirtualAddressChangeVotingOptionInput) returns (google.protobuf.Empty);
+  rpc VirtualAddressClaimProfit(VirtualAddressClaimProfitInput) returns (google.protobuf.Empty);
   
   rpc GetVirtualAddress(google.protobuf.Empty) returns (aelf.Address) {
     option (aelf.is_view) = true;
@@ -27,4 +29,15 @@ message VirtualAddressVoteInput {
   google.protobuf.Timestamp end_timestamp = 3;
   // Used to generate vote id.
   aelf.Hash token = 4;
+}
+
+message VirtualAddressChangeVotingOptionInput {
+  bool is_reset = 1;
+  aelf.Hash vote_id = 2;
+  string pub_key = 3;
+}
+
+message VirtualAddressClaimProfitInput {
+  aelf.Hash scheme_id = 1;
+  aelf.Address beneficiary = 2;
 }
