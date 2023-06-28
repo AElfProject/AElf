@@ -33,6 +33,7 @@ public class GrpcStreamPeer : GrpcPeer
     private StreamSendCallBack _streamSendCallBack;
 
     protected readonly ActionBlock<StreamJob> _sendStreamJobs;
+    protected bool IsClosed = false;
     public ILogger<GrpcStreamPeer> Logger { get; set; }
 
     public GrpcStreamPeer(GrpcClient client, DnsEndPoint remoteEndpoint, PeerConnectionInfo peerConnectionInfo,
@@ -54,8 +55,11 @@ public class GrpcStreamPeer : GrpcPeer
 
     public AsyncDuplexStreamingCall<StreamMessage, StreamMessage> BuildCall()
     {
-        _duplexStreamingCall = _client.RequestByStream(new CallOptions().WithDeadline(DateTime.MaxValue));
+        if (_client == null) return null;
+        var headers = new Metadata { new(GrpcConstants.GrpcRequestCompressKey, GrpcConstants.GrpcGzipConst) };
+        _duplexStreamingCall = _client.RequestByStream(new CallOptions().WithHeaders(headers).WithDeadline(DateTime.MaxValue));
         _clientStreamWriter = _duplexStreamingCall.RequestStream;
+        IsClosed = false;
         return _duplexStreamingCall;
     }
 
@@ -75,6 +79,7 @@ public class GrpcStreamPeer : GrpcPeer
         await _duplexStreamingCall?.RequestStream?.CompleteAsync();
         _duplexStreamingCall?.Dispose();
         _streamListenTaskTokenSource?.Cancel();
+        IsClosed = true;
     }
 
     public override async Task DisconnectAsync(bool gracefulDisconnect)
@@ -104,7 +109,7 @@ public class GrpcStreamPeer : GrpcPeer
         var requestId = CommonHelper.GenerateRequestId();
         var grpcRequest = new GrpcRequest { ErrorMessage = $"handshake failed.requestId={requestId}" };
         var reply = await RequestAsync(() => StreamRequestAsync(MessageType.HandShake, request, metadata, requestId, true), grpcRequest);
-        return reply != null ? HandshakeReply.Parser.ParseFrom(reply.Message) : new HandshakeReply();
+        return reply != null ? HandshakeReply.Parser.ParseFrom(reply.Message) : new HandshakeReply() { Error = HandshakeError.InvalidConnection };
     }
 
     public override async Task ConfirmHandshakeAsync()
@@ -205,7 +210,8 @@ public class GrpcStreamPeer : GrpcPeer
         {
             if (job.StreamMessage == null) return;
             Logger.LogDebug("write request={requestId} {streamType}-{messageType}", job.StreamMessage.RequestId, job.StreamMessage.StreamType, job.StreamMessage.MessageType);
-
+            if (!(job.StreamMessage.StreamType == StreamType.Reply && job.StreamMessage.MessageType == MessageType.RequestBlocks))
+                _clientStreamWriter.WriteOptions = new WriteOptions(WriteFlags.NoCompress);
             await _clientStreamWriter.WriteAsync(job.StreamMessage);
         }
         catch (RpcException ex)
@@ -215,7 +221,12 @@ public class GrpcStreamPeer : GrpcPeer
         }
         catch (Exception e)
         {
-            var type = e is InvalidOperationException or TimeoutException ? NetworkExceptionType.PeerUnstable : NetworkExceptionType.HandlerException;
+            var type = e switch
+            {
+                InvalidOperationException => NetworkExceptionType.Unrecoverable,
+                TimeoutException => NetworkExceptionType.PeerUnstable,
+                _ => NetworkExceptionType.HandlerException
+            };
             job.SendCallback?.Invoke(
                 new NetworkException($"{job.StreamMessage?.RequestId}{job.StreamMessage?.StreamType}-{job.StreamMessage?.MessageType} size={job.StreamMessage.ToByteArray().Length} queueCount={_sendStreamJobs.InputCount}", e, type));
             await Task.Delay(StreamRecoveryWaitTime);
@@ -237,6 +248,7 @@ public class GrpcStreamPeer : GrpcPeer
 
     protected async Task<StreamMessage> StreamRequestAsync(MessageType messageType, IMessage message, Metadata header = null, string requestId = null, bool graceful = false)
     {
+        if (IsClosed) return null;
         for (var i = 0; i < TimeOutRetryTimes; i++)
         {
             requestId = requestId == null || i > 0 ? CommonHelper.GenerateRequestId() : requestId;
@@ -351,5 +363,10 @@ public class GrpcStreamPeer : GrpcPeer
         }
 
         return new NetworkException(message, exception, type);
+    }
+
+    public override string ToString()
+    {
+        return $"{{ streamPeer listening-port: {RemoteEndpoint}, key: {Info.Pubkey.Substring(0, 45)}... }}";
     }
 }
