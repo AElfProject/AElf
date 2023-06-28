@@ -60,7 +60,6 @@ public partial class MultiTokenContractTests
     {
         var theDefaultController = await GetDefaultParliamentAddressAsync();
         var newSymbolList = new SymbolListToPayTxSizeFee();
-        await CreateNativeTokenAsync();
         await CreateTokenAsync(DefaultAddress, "CPU");
         await CreateTokenAsync(DefaultAddress, "NET");
         var methodName = "Transfer";

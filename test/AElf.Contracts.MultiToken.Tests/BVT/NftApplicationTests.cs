@@ -227,7 +227,7 @@ public partial class MultiTokenContractTests
         }
         // Symbol check
         {
-            var result = await CreateMutiTokenWithExceptionAsync(TokenContractStub, new CreateInput
+            var seedInput = BuildSeedCreateInput( new CreateInput
             {
                 Symbol = "ABC123",
                 TokenName = input.TokenName,
@@ -237,12 +237,14 @@ public partial class MultiTokenContractTests
                 IssueChainId = input.IssueChainId,
                 ExternalInfo = input.ExternalInfo
             });
+            
+            var result = await TokenContractStub.Create.SendWithExceptionAsync(seedInput);;
             result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             result.TransactionResult.Error.ShouldContain("Invalid Symbol input");
         }
         // Symbol length check 
         {
-            var result = await CreateMutiTokenWithExceptionAsync(TokenContractStub, new CreateInput
+            var seedInput = BuildSeedCreateInput( new CreateInput
             {
                 Symbol = "ABCDEFGHIJKLMNOPQRSTUVWXYZABC-0",
                 TokenName = input.TokenName,
@@ -252,6 +254,7 @@ public partial class MultiTokenContractTests
                 IssueChainId = input.IssueChainId,
                 ExternalInfo = input.ExternalInfo
             });
+            var result = await TokenContractStub.Create.SendWithExceptionAsync(seedInput);;
             result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             result.TransactionResult.Error.ShouldContain("Invalid NFT symbol length");
         }
@@ -259,7 +262,7 @@ public partial class MultiTokenContractTests
         {
             var result = await CreateMutiTokenAsync(TokenContractStub, new CreateInput
             {
-                Symbol = $"{input.Symbol}0",
+                Symbol = AliceCoinTokenInfo.Symbol,
                 TokenName = input.TokenName,
                 TotalSupply = input.TotalSupply,
                 Decimals = input.Decimals,
@@ -282,7 +285,7 @@ public partial class MultiTokenContractTests
         {
             var result = await CreateMutiTokenWithExceptionAsync(TokenContractStub, new CreateInput
             {
-                Symbol = $"{NftCollection721Info.Symbol}{input.Symbol}",
+                Symbol = "GHJ-0",
                 TokenName = input.TokenName,
                 TotalSupply = input.TotalSupply,
                 Decimals = 8,
@@ -295,7 +298,7 @@ public partial class MultiTokenContractTests
         }
         // Symbol check
         {
-            var result = await CreateMutiTokenWithExceptionAsync(TokenContractStub, new CreateInput
+            var result = await CreateSeedNftWithExceptionAsync(TokenContractStub, new CreateInput
             {
                 Symbol = "ABC-ABC",
                 TokenName = input.TokenName,
@@ -310,7 +313,7 @@ public partial class MultiTokenContractTests
         }
         // Symbol check
         {
-            var result = await CreateMutiTokenWithExceptionAsync(TokenContractStub, new CreateInput
+            var result = await CreateSeedNftWithExceptionAsync(TokenContractStub, new CreateInput
             {
                 Symbol = "ABC-",
                 TokenName = input.TokenName,
@@ -325,7 +328,7 @@ public partial class MultiTokenContractTests
         }
         // Symbol check
         {
-            var result = await CreateMutiTokenWithExceptionAsync(TokenContractStub, new CreateInput
+            var result = await CreateSeedNftWithExceptionAsync(TokenContractStub, new CreateInput
             {
                 Symbol = "ABC-ABC-1",
                 TokenName = input.TokenName,
@@ -340,7 +343,7 @@ public partial class MultiTokenContractTests
         }
         // Issue check
         {
-            var result = await CreateMutiTokenWithExceptionAsync(TokenContractStub, new CreateInput
+            var result = await TokenContractStub.Create.SendWithExceptionAsync(new CreateInput
             {
                 Symbol = $"{NftCollection721Info.Symbol}{input.Symbol}",
                 TokenName = input.TokenName,
@@ -392,7 +395,7 @@ public partial class MultiTokenContractTests
     {
         await CreateNftCollectionAndNft(false);
         var input = Nft721Info;
-        var result = await CreateMutiTokenWithExceptionAsync(TokenContractStub, new CreateInput
+        var result = await CreateSeedNftWithExceptionAsync(TokenContractStub, new CreateInput
         {
             Symbol = $"{NftCollection721Info.Symbol}{input.Symbol}",
             TokenName = input.TokenName,

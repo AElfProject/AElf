@@ -15,6 +15,7 @@ namespace AElf.Contracts.MultiToken;
 
 public partial class MultiTokenContractTests
 {
+    protected const string SymbolForTest = "GHJ";
     [Fact(DisplayName = "[MultiToken] Transfer token test")]
     public async Task MultiTokenContract_Transfer_Test()
     {
@@ -372,7 +373,7 @@ public partial class MultiTokenContractTests
                 OtherBasicFunctionContractAddress,
                 TreasuryContractAddress
             };
-        await TokenContractStub.Create.SendAsync(new CreateInput
+        await CreateMutiTokenAsync(TokenContractStub,new CreateInput
         {
             Symbol = SymbolForTest,
             Decimals = 2,
@@ -811,7 +812,7 @@ public partial class MultiTokenContractTests
     {
         await CreateAndIssueMultiTokensAsync();
         var unburnedTokenSymbol = "UNBURNED";
-        await TokenContractStub.Create.SendAsync(new CreateInput
+        await CreateMutiTokenAsync(TokenContractStub,new CreateInput
         {
             Symbol = unburnedTokenSymbol,
             TokenName = "Name",
@@ -944,8 +945,7 @@ public partial class MultiTokenContractTests
     public async Task ChangeTokenIssuer_Test()
     {
         const string tokenSymbol = "PO";
-        await CreateAndIssueMultiTokensAsync();
-        await TokenContractStub.Create.SendAsync(new CreateInput
+        await CreateMutiTokenAsync(TokenContractStub,new CreateInput
         {
             Symbol = tokenSymbol,
             TokenName = "Name",
@@ -984,8 +984,7 @@ public partial class MultiTokenContractTests
     public async Task ChangeTokenIssuer_Without_Authorization_Test()
     {
         const string tokenSymbol = "PO";
-        await CreateAndIssueMultiTokensAsync();
-        await TokenContractStub.Create.SendAsync(new CreateInput
+        await CreateMutiTokenAsync(TokenContractStub,new CreateInput
         {
             Symbol = tokenSymbol,
             TokenName = "Name",
@@ -1078,7 +1077,6 @@ public partial class MultiTokenContractTests
     public async Task CheckThreshold_With_One_Token_Test(long totalSupply, long issueAmount, long ApproveAmount,
         long checkAmount, bool isCheckAllowance, bool isThrowException)
     {
-        await CreateNativeTokenAsync();
         var tokenA = "AITA";
         await CreateAndIssueCustomizeTokenAsync(DefaultAddress, tokenA, totalSupply, issueAmount);
         if (ApproveAmount > 0)
@@ -1122,7 +1120,6 @@ public partial class MultiTokenContractTests
     public async Task CheckThreshold_With_Multiple_Token_Test(long tokenACheckAmount, long tokenAApporveAmount,
         long tokenBCheckAmount, long tokenBApporveAmount, bool isCheckAllowance, bool isThrowException)
     {
-        await CreateNativeTokenAsync();
         var tokenA = "AITA";
         await CreateAndIssueCustomizeTokenAsync(DefaultAddress, tokenA, 10000, 1000);
         var tokenB = "AITB";
@@ -1170,7 +1167,7 @@ public partial class MultiTokenContractTests
         long issueAmount,
         Address to = null, params string[] otherParameters)
     {
-        await TokenContractStub.Create.SendAsync(new CreateInput
+        await CreateMutiTokenAsync(TokenContractStub,new CreateInput
         {
             Symbol = symbol,
             Issuer = creator,
@@ -1189,8 +1186,7 @@ public partial class MultiTokenContractTests
     [Fact]
     public async Task ValidateTokenInfoExists_ExternalInfo_Test()
     {
-        await CreateNativeTokenAsync();
-        await TokenContractStub.Create.SendAsync(new CreateInput
+        await CreateMutiTokenAsync(TokenContractStub,new CreateInput
         {
             Symbol = AliceCoinTokenInfo.Symbol,
             TokenName = AliceCoinTokenInfo.TokenName,
@@ -1239,13 +1235,6 @@ public partial class MultiTokenContractTests
     [Fact]
     public async Task CrossContractCreateToken_Test()
     {
-        await CreateNativeTokenAsync();
-        await TokenContractStub.Issue.SendAsync(new IssueInput
-        {
-            Symbol = NativeToken,
-            To = BasicFunctionContractAddress,
-            Amount = 10000_00000000
-        });
 
         var fee = await TokenContractStub.GetMethodFee.CallAsync(new StringValue { Value = "Create" });
         var createTokenInput = new CreateTokenThroughMultiTokenInput

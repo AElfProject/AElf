@@ -13,7 +13,7 @@ public partial class MultiTokenContractTests
     [Fact(DisplayName = "[MultiToken] advance token not exist in resource token")]
     public async Task AdvancedResourceToken_Test()
     {
-        await CreateNativeTokenAsync();
+       // await CreateNativeTokenAsync();
         long advanceAmount = 1000;
         {
             var tokenNotResrouce = "NORESOURCE";
@@ -51,7 +51,6 @@ public partial class MultiTokenContractTests
     [Fact(DisplayName = "[MultiToken] take more token than that of the contract address's balance")]
     public async Task TakeResourceTokenBack_Test()
     {
-        await CreateNativeTokenAsync();
         var trafficToken = "TRAFFIC";
         var advanceAmount = 1000;
         await CreateAndIssueCustomizeTokenAsync(DefaultAddress, trafficToken, 10000, 10000);

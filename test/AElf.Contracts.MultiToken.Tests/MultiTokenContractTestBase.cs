@@ -24,8 +24,6 @@ public class MultiTokenContractTestBase : ContractTestBase<MultiTokenContractTes
 {
     protected const string DefaultSymbol = "ELF";
 
-    protected const string SymbolForTest = "ELF";
-
     protected const long Amount = 100;
     internal ACS2BaseContainer.ACS2BaseStub Acs2BaseStub;
 
@@ -179,10 +177,12 @@ public class MultiTokenContractTestBase : ContractTestBase<MultiTokenContractTes
             Symbol = input.Symbol,
             Amount = 1,
             Memo = "ddd",
-            To = createInput.Issuer
+            To = DefaultAddress
         });
         return input;
     }
+    
+    
 
     internal async Task<IExecutionResult<Empty>> CreateSeedNftWithExceptionAsync(
         TokenContractImplContainer.TokenContractImplStub stub,
