@@ -367,8 +367,10 @@ public class MultiTokenContractCrossChainTestBase : ContractTestBase<MultiTokenC
     {
         var blockHeight = (await BlockchainService.GetChainAsync()).BestChainHeight;
         var previousRandomHash =
-            await aedPoSContractStub.GetRandomHash.CallAsync(new Int64Value
-                { Value = blockHeight == 0 ? 1 : blockHeight });
+            blockHeight <= 1
+                ? Hash.Empty
+                : await aedPoSContractStub.GetRandomHash.CallAsync(new Int64Value
+                    { Value = blockHeight });
         return CryptoHelper.ECVrfProve(keyPair, previousRandomHash.ToByteArray());
     }
 

@@ -99,14 +99,16 @@ public partial class EconomicContractsTestBase
 
         return balance;
     }
-    
+
     protected async Task<byte[]> GenerateRandomProofAsync(ECKeyPair keyPair)
     {
         var consensusContractStub = GetConsensusContractTester(keyPair);
         var blockHeight = (await BlockchainService.GetChainAsync()).BestChainHeight;
         var previousRandomHash =
-            await consensusContractStub.GetRandomHash.CallAsync(new Int64Value
-                { Value = blockHeight == 0 ? 1 : blockHeight });
+            blockHeight <= 1
+                ? Hash.Empty
+                : await consensusContractStub.GetRandomHash.CallAsync(new Int64Value
+                    { Value = blockHeight });
         return CryptoHelper.ECVrfProve(keyPair, previousRandomHash.ToByteArray());
     }
 

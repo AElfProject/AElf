@@ -161,13 +161,15 @@ public class BlockMiningService : IBlockMiningService
 
         _isSkipped = false;
     }
-    
+
     private async Task<byte[]> GenerateRandomProofAsync()
     {
         var blockHeight = (await _blockchainService.GetChainAsync()).BestChainHeight;
         var previousRandomHash =
-            await _contractStubs.First().GetRandomHash.CallAsync(new Int64Value
-                { Value = blockHeight == 0 ? 1 : blockHeight });
+            blockHeight <= 1
+                ? Hash.Empty
+                : await _contractStubs.First().GetRandomHash.CallAsync(new Int64Value
+                    { Value = blockHeight });
         return CryptoHelper.ECVrfProve((ECKeyPair)_testDataProvider.GetKeyPair(), previousRandomHash.ToByteArray());
     }
 
