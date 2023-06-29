@@ -10,6 +10,7 @@ using AElf.Contracts.MultiToken;
 using AElf.Contracts.Parliament;
 using AElf.Contracts.Profit;
 using AElf.Contracts.TestContract.MethodCallThreshold;
+using AElf.Contracts.TestContract.VirtualAddress;
 using AElf.Contracts.TestContract.TransactionFeeCharging;
 using AElf.Contracts.TokenConverter;
 using AElf.Contracts.Treasury;
@@ -102,6 +103,9 @@ public partial class EconomicContractsTestBase
 
     protected Address ConfigurationAddress =>
         GetOrDeployContract(Contracts.Configuration, ref _configurationAddress);
+    
+    private Address _virtualAddressContractAddress;
+    protected Address VirtualAddressContractAddress => GetOrDeployContract(TestContracts.VirtualAddress, ref _virtualAddressContractAddress);
 
     #endregion
 
@@ -144,6 +148,9 @@ public partial class EconomicContractsTestBase
 
     internal ConfigurationContainer.ConfigurationStub ConfigurationStub =>
         GetConfigurationContractTester(BootMinerKeyPair);
+    
+    internal VirtualAddressContractContainer.VirtualAddressContractStub VirtualAddressContractStub =>
+        GetVirtualAddressContractTester(BootMinerKeyPair);
 
     #endregion
 
@@ -222,6 +229,11 @@ public partial class EconomicContractsTestBase
     internal ConfigurationContainer.ConfigurationStub GetConfigurationContractTester(ECKeyPair keyPair)
     {
         return GetTester<ConfigurationContainer.ConfigurationStub>(ConfigurationAddress, keyPair);
+    }
+    
+    internal VirtualAddressContractContainer.VirtualAddressContractStub GetVirtualAddressContractTester(ECKeyPair keyPair)
+    {
+        return GetTester<VirtualAddressContractContainer.VirtualAddressContractStub>(VirtualAddressContractAddress, keyPair);
     }
 
     #endregion
@@ -308,6 +320,7 @@ public partial class EconomicContractsTestBase
         _ = TokenContractAddress;
         _ = TokenHolderContractAddress;
         _ = AssociationContractAddress;
+        _ = VirtualAddressContractAddress;
     }
 
     #endregion

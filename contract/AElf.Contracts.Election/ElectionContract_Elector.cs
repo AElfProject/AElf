@@ -3,12 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Profit;
-using AElf.Contracts.Treasury;
 using AElf.Contracts.Vote;
 using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 using AElf.Types;
-using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Election;
@@ -129,7 +127,7 @@ public partial class ElectionContract
     {
         var treasury = State.ProfitContract.GetScheme.Call(State.TreasuryHash.Value);
         var electionVotingRecord = GetElectionVotingRecordByVoteId(voteId);
-        
+
         // Extend endPeriod from now no, so the lockTime will *NOT* be changed.
         var lockTime = State.LockTimeMap[voteId];
         var lockPeriod = lockTime.Div(State.TimeEachTerm.Value);
@@ -182,7 +180,7 @@ public partial class ElectionContract
         {
             profitDetail = profitDetails.Details.LastOrDefault(d => d.Shares == electionVotingRecord.Weight);
         }
-        
+
         return profitDetail;
     }
 
@@ -499,14 +497,13 @@ public partial class ElectionContract
     /// <param name="voteId"></param>
     private void UpdateElectorInformation(byte[] recoveredPublicKey, long amount, Hash voteId)
     {
-        var voterPublicKey = recoveredPublicKey.ToHex();
-        var voterPublicKeyByteString = ByteString.CopyFrom(recoveredPublicKey);
-        var voterVotes = State.ElectorVotes[voterPublicKey];
+        var voterVotes = GetElectorVote(recoveredPublicKey);
+
         if (voterVotes == null)
         {
             voterVotes = new ElectorVote
             {
-                Pubkey = voterPublicKeyByteString,
+                Address = Context.Sender,
                 ActiveVotingRecordIds = { voteId },
                 ActiveVotedVotesAmount = amount,
                 AllVotedVotesAmount = amount
@@ -519,7 +516,25 @@ public partial class ElectionContract
             voterVotes.AllVotedVotesAmount = voterVotes.AllVotedVotesAmount.Add(amount);
         }
 
-        State.ElectorVotes[voterPublicKey] = voterVotes;
+        State.ElectorVotes[Context.Sender.ToBase58()] = voterVotes;
+    }
+
+    private ElectorVote GetElectorVote(byte[] recoveredPublicKey)
+    {
+        var voterVotes = State.ElectorVotes[Context.Sender.ToBase58()];
+        if (voterVotes != null) return voterVotes;
+
+        if (recoveredPublicKey == null) return null;
+
+        var publicKey = recoveredPublicKey.ToHex();
+
+        voterVotes = State.ElectorVotes[publicKey]?.Clone();
+
+        if (voterVotes == null) return null;
+        voterVotes.Address ??= Context.Sender;
+
+        State.ElectorVotes.Remove(publicKey);
+        return voterVotes;
     }
 
     /// <summary>
@@ -620,22 +635,23 @@ public partial class ElectionContract
         Assert(actualLockedTime >= claimedLockDays,
             $"Still need {claimedLockDays.Sub(actualLockedTime).Div(86400)} days to unlock your token.");
 
-        // Update Elector's Votes information.
-        var voterPublicKey = Context.RecoverPublicKey().ToHex();
-        var voterVotes = State.ElectorVotes[voterPublicKey];
-        if (voterVotes == null) throw new AssertionException($"Voter {voterPublicKey} never votes before.");
+        var voterPublicKey = Context.RecoverPublicKey();
+
+        var voterVotes = GetElectorVote(voterPublicKey);
+
+        Assert(voterVotes != null, $"Voter {Context.Sender.ToBase58()} never votes before");
 
         voterVotes.ActiveVotingRecordIds.Remove(input);
         voterVotes.WithdrawnVotingRecordIds.Add(input);
         voterVotes.ActiveVotedVotesAmount = voterVotes.ActiveVotedVotesAmount.Sub(votingRecord.Amount);
-        State.ElectorVotes[voterPublicKey] = voterVotes;
+
+        State.ElectorVotes[Context.Sender.ToBase58()] = voterVotes;
 
         // Update Candidate's Votes information.
         var newestPubkey = GetNewestPubkey(votingRecord.Option);
         var candidateVotes = State.CandidateVotes[newestPubkey];
-        if (candidateVotes == null)
-            throw new AssertionException(
-                $"Newest pubkey {newestPubkey} is invalid. Old pubkey is {votingRecord.Option}");
+
+        Assert(candidateVotes != null, $"Newest pubkey {newestPubkey} is invalid. Old pubkey is {votingRecord.Option}");
 
         candidateVotes.ObtainedActiveVotingRecordIds.Remove(input);
         candidateVotes.ObtainedWithdrawnVotingRecordIds.Add(input);
@@ -744,12 +760,12 @@ public partial class ElectionContract
 
     #region subsidy helper
 
-    private Hash GenerateSubsidyId(string pubkey,Address beneficiaryAddress)
+    private Hash GenerateSubsidyId(string pubkey, Address beneficiaryAddress)
     {
         return HashHelper.ConcatAndCompute(HashHelper.ComputeFrom(pubkey), HashHelper.ComputeFrom(beneficiaryAddress),
             HashHelper.ComputeFrom(Context.Self));
     }
-    
+
     private Address GetProfitsReceiverOrDefault(string pubkey)
     {
         if (State.TreasuryContract.Value == null)
@@ -765,7 +781,7 @@ public partial class ElectionContract
     private void AddBeneficiary(string candidatePubkey, Address profitsReceiver = null)
     {
         var beneficiaryAddress = GetBeneficiaryAddress(candidatePubkey, profitsReceiver);
-        var subsidyId = GenerateSubsidyId(candidatePubkey,beneficiaryAddress);
+        var subsidyId = GenerateSubsidyId(candidatePubkey, beneficiaryAddress);
         State.ProfitContract.AddBeneficiary.Send(new AddBeneficiaryInput
         {
             SchemeId = State.SubsidyHash.Value,
@@ -778,10 +794,10 @@ public partial class ElectionContract
         });
     }
 
-    private void RemoveBeneficiary(string candidatePubkey,Address profitsReceiver = null)
+    private void RemoveBeneficiary(string candidatePubkey, Address profitsReceiver = null)
     {
         var beneficiaryAddress = GetBeneficiaryAddress(candidatePubkey, profitsReceiver);
-        var previousSubsidyId = GenerateSubsidyId(candidatePubkey,beneficiaryAddress);
+        var previousSubsidyId = GenerateSubsidyId(candidatePubkey, beneficiaryAddress);
         State.ProfitContract.RemoveBeneficiary.Send(new RemoveBeneficiaryInput
         {
             SchemeId = State.SubsidyHash.Value,
@@ -798,6 +814,6 @@ public partial class ElectionContract
             : Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(candidatePubkey));
         return beneficiaryAddress;
     }
-    
+
     #endregion
 }
