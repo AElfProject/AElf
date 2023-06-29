@@ -780,7 +780,7 @@ public partial class MultiTokenContractTests
         });
         createInputExpire.ExternalInfo.Value["__seed_exp_time"] = "1234";
         var expireError = await TokenContractStub.Create.SendWithExceptionAsync(createInputExpire);
-        expireError.TransactionResult.Error.ShouldContain("seed_owned_symbol is expired");
+        expireError.TransactionResult.Error.ShouldContain("Invalid ownedSymbol.");
         // create nft
         var nftSuccessAsync = await TokenContractStub.Create.SendAsync(new CreateInput
         {
@@ -822,7 +822,7 @@ public partial class MultiTokenContractTests
         // owner doesn't own enough balance
         var nftAsync = await TokenContractStub.Create.SendWithExceptionAsync(GetCreateInput());
         nftAsync.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-        nftAsync.TransactionResult.Error.ShouldContain("owner doesn't own enough balance");
+        nftAsync.TransactionResult.Error.ShouldContain("Seed NFT balance is not enough");
         // ExternalInfo check  
         await TokenContractStub.Issue.SendAsync(new IssueInput
         {
@@ -841,7 +841,7 @@ public partial class MultiTokenContractTests
         var inconsistentExceptionAsync = await TokenContractStub.Create.SendWithExceptionAsync(GetCreateInput());
         inconsistentExceptionAsync.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
         inconsistentExceptionAsync.TransactionResult.Error.ShouldContain(
-            "seed_owned_symbol and input_symbol is inconsistent");
+            "Invalid OwnedSymbol");
 
         input.ExternalInfo.Value["__seed_owned_symbol"] = "XYZ-0";
         input.ExternalInfo.Value["__seed_exp_time"] = "";
@@ -853,7 +853,7 @@ public partial class MultiTokenContractTests
         var expireExceptionAsync = await TokenContractStub.Create.SendWithExceptionAsync(
             GetCreateInput());
         expireExceptionAsync.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-        expireExceptionAsync.TransactionResult.Error.ShouldContain("seed_owned_symbol is expired");
+        expireExceptionAsync.TransactionResult.Error.ShouldContain("OwnedSymbol is expired");
 
         input.ExternalInfo.Value["__seed_owned_symbol"] = "XYZ-0";
         input.ExternalInfo.Value["__seed_exp_time"] = "1234";
@@ -864,16 +864,37 @@ public partial class MultiTokenContractTests
         });
         var expireExceptionAsync1 = await TokenContractStub.Create.SendWithExceptionAsync(GetCreateInput());
         expireExceptionAsync1.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-        expireExceptionAsync1.TransactionResult.Error.ShouldContain("seed_owned_symbol is expired");
-
-        var s = await TokenContractStub.ResetExternalInfo.SendAsync(new ResetExternalInfoInput()
+        expireExceptionAsync1.TransactionResult.Error.ShouldContain("OwnedSymbol is expired");
+        await TokenContractStub.ResetExternalInfo.SendAsync(new ResetExternalInfoInput
         {
             Symbol = input.Symbol,
             ExternalInfo = new ExternalInfo()
         });
         var emptyExceptionAsync = await TokenContractStub.Create.SendWithExceptionAsync(GetCreateInput());
         emptyExceptionAsync.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-        emptyExceptionAsync.TransactionResult.Error.ShouldContain("seed_owned_symbol is not exists");
+        emptyExceptionAsync.TransactionResult.Error.ShouldContain("Invalid OwnedSymbol");
+        input.ExternalInfo.Value["__seed_owned_symbol"] = "XYZ-0";
+        input.ExternalInfo.Value["__seed_exp_time"] = TimestampHelper.GetUtcNow().AddDays(1).Seconds.ToString();
+        await TokenContractStub.ResetExternalInfo.SendAsync(new ResetExternalInfoInput
+        {
+            Symbol = input.Symbol,
+            ExternalInfo = input.ExternalInfo
+        });
+        var re = await SubmitAndApproveProposalOfDefaultParliamentWithException(TokenContractAddress,
+            nameof(TokenContractStub.Create), new CreateInput
+            {
+                Symbol = "XYZ-0",
+                Decimals = 0,
+                IsBurnable = true,
+                TokenName = "ELF2",
+                TotalSupply = 100_000_000_000_000_000L,
+                Issuer = DefaultAddress,
+                ExternalInfo = new ExternalInfo()
+            });
+        re.TransactionResult.Error.ShouldContain("OwnedSymbol has been created");
+        re.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+        
+        
     }
 
     private CreateInput GetCreateInput()

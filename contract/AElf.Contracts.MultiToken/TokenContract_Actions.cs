@@ -102,18 +102,17 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
 
     private void CheckSeedNFT(string symbolSeed, String symbol)
     {
-        Assert(!string.IsNullOrEmpty(symbolSeed), "seed NFT is not exist");
+        Assert(!string.IsNullOrEmpty(symbolSeed), "Seed NFT does not exist.");
         var tokenInfo = State.TokenInfos[symbolSeed];
-        Assert(tokenInfo != null, "seed NFT is not exist");
-        Assert(State.Balances[Context.Sender][symbolSeed] > 0, "owner doesn't own enough balance");
-        Assert(tokenInfo.ExternalInfo != null, "seed_owned_symbol is not exists");
-        Assert(tokenInfo.ExternalInfo.Value.TryGetValue(TokenContractConstants.SeedOwnedSymbolExternalInfoKey,
-            out var ownedSymbol), "seed_owned_symbol is not exists");
-        Assert(ownedSymbol == symbol, "seed_owned_symbol and input_symbol is inconsistent");
+        Assert(tokenInfo != null, "Seed NFT does not exist.");
+        Assert(State.Balances[Context.Sender][symbolSeed] > 0, "Seed NFT balance is not enough.");
+        Assert(tokenInfo.ExternalInfo != null && tokenInfo.ExternalInfo.Value.TryGetValue(
+                TokenContractConstants.SeedOwnedSymbolExternalInfoKey, out var ownedSymbol) && ownedSymbol == symbol,
+            "Invalid OwnedSymbol.");
         Assert(tokenInfo.ExternalInfo.Value.TryGetValue(TokenContractConstants.SeedExpireTimeExternalInfoKey,
                    out var expirationTime)
                && long.TryParse(expirationTime, out var expirationTimeLong) &&
-               Context.CurrentBlockTime.Seconds <= expirationTimeLong, "seed_owned_symbol is expired");
+               Context.CurrentBlockTime.Seconds <= expirationTimeLong, "OwnedSymbol is expired.");
     }
 
 

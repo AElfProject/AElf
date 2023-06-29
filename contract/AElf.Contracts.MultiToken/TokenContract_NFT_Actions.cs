@@ -26,13 +26,13 @@ public partial class TokenContract
         {
             Assert(
                 input.ExternalInfo.Value.TryGetValue(TokenContractConstants.SeedOwnedSymbolExternalInfoKey,
-                    out var ownedSymbol), "seed_owned_symbol is not exists");
+                    out var ownedSymbol), "OwnedSymbol does not exists.");
             Assert(input.ExternalInfo.Value.TryGetValue(TokenContractConstants.SeedExpireTimeExternalInfoKey,
                        out var expirationTime)
                    && long.TryParse(expirationTime, out var expirationTimeLong) &&
-                   Context.CurrentBlockTime.Seconds <= expirationTimeLong, "seed_owned_symbol is expired ");
+                   Context.CurrentBlockTime.Seconds <= expirationTimeLong, "Invalid ownedSymbol.");
             var ownedSymbolType = GetCreateInputSymbolType(ownedSymbol);
-            Assert(ownedSymbolType != SymbolType.Nft, "seed_owned_symbol can not be NFT");
+            Assert(ownedSymbolType != SymbolType.Nft, "Invalid OwnedSymbol.");
             CheckSymbolLength(ownedSymbol, ownedSymbolType);
             CheckTokenAndCollectionExists(ownedSymbol);
             CheckSymbolSeed(ownedSymbol);
@@ -51,7 +51,7 @@ public partial class TokenContract
                        out var oldSymbolSeedExpireTime) ||
                !long.TryParse(oldSymbolSeedExpireTime, out var symbolSeedExpireTime)
                || Context.CurrentBlockTime.Seconds > symbolSeedExpireTime,
-            "seed_owned_symbol has been created");
+            "OwnedSymbol has been created");
     }
 
 
