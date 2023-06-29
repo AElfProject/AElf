@@ -333,7 +333,6 @@ public class MultiTokenContractCrossChainTest : MultiTokenContractCrossChainTest
         var blockExecutedSet = await MineAsync(new List<Transaction> { createTransaction });
         var createResult = blockExecutedSet.TransactionResultMap[createTransaction.GetHash()];
         Assert.True(createResult.Status == TransactionResultStatus.Mined, createResult.Error);
-
         var sideCreateTransaction =await CreateTransactionForTokenCreation(SideChainTokenContractStub,
             SideChainTestKit.DefaultAccount.Address, SymbolForTesting,SideTokenContractAddress);
         blockExecutedSet = await SideChainTestKit.MineAsync(new List<Transaction> { sideCreateTransaction });

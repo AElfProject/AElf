@@ -111,7 +111,7 @@ public partial class MultiTokenContractTests : MultiTokenContractTestBase
 
     private async Task CreateNativeTokenAsync()
     {
-        await CreateMutiTokenAsync(TokenContractStub,new CreateInput
+        await CreateMutiTokenAsync(TokenContractStub, new CreateInput
         {
             Symbol = NativeTokenInfo.Symbol,
             TokenName = NativeTokenInfo.TokenName,
@@ -130,8 +130,7 @@ public partial class MultiTokenContractTests : MultiTokenContractTestBase
 
     private async Task CreatePrimaryTokenAsync()
     {
-
-        await CreateMutiTokenAsync(TokenContractStub,new CreateInput
+        await CreateMutiTokenAsync(TokenContractStub, new CreateInput
         {
             Decimals = PrimaryTokenInfo.Decimals,
             IsBurnable = PrimaryTokenInfo.IsBurnable,
@@ -160,7 +159,7 @@ public partial class MultiTokenContractTests : MultiTokenContractTestBase
             tokenInfo.ShouldBe(new TokenInfo());
         }
 
-        await CreateMutiTokenAsync(TokenContractStub,new CreateInput
+        await CreateMutiTokenAsync(TokenContractStub, new CreateInput
         {
             Symbol = AliceCoinTokenInfo.Symbol,
             TokenName = AliceCoinTokenInfo.TokenName,
@@ -227,7 +226,7 @@ public partial class MultiTokenContractTests : MultiTokenContractTestBase
     {
         await CreateAndIssueMultiTokensAsync();
 
-        await CreateMutiTokenAsync(TokenContractStub,new CreateInput
+        await CreateMutiTokenAsync(TokenContractStub, new CreateInput
         {
             Symbol = BobCoinTokenInfo.Symbol,
             TokenName = BobCoinTokenInfo.TokenName,
@@ -250,7 +249,7 @@ public partial class MultiTokenContractTests : MultiTokenContractTestBase
     [Fact(DisplayName = "[MultiToken] Create Token use custom address")]
     public async Task MultiTokenContract_Create_UseCustomAddress_Test()
     {
-        var transactionResult = (await CreateMutiTokenWithExceptionAsync(TokenContractStub,new CreateInput
+        var transactionResult = (await CreateMutiTokenWithExceptionAsync(TokenContractStub, new CreateInput
         {
             Symbol = BobCoinTokenInfo.Symbol,
             Decimals = 2,
@@ -390,7 +389,7 @@ public partial class MultiTokenContractTests : MultiTokenContractTestBase
         //invalid chain id
         {
             var chainTokenSymbol = "CHAIN";
-            await CreateMutiTokenAsync(TokenContractStub ,new CreateInput
+            await CreateMutiTokenAsync(TokenContractStub, new CreateInput
             {
                 Symbol = chainTokenSymbol,
                 TokenName = "chain token",
@@ -414,7 +413,7 @@ public partial class MultiTokenContractTests : MultiTokenContractTestBase
     public async Task IssueToken_Test()
     {
         var newTokenSymbol = "AIN";
-        await CreateMutiTokenAsync(TokenContractStub,new CreateInput
+        await CreateMutiTokenAsync(TokenContractStub, new CreateInput
         {
             Symbol = newTokenSymbol,
             TokenName = "ain token",
@@ -486,14 +485,15 @@ public partial class MultiTokenContractTests : MultiTokenContractTestBase
         var createTokenInfoWithInvalidTokenName = new CreateInput();
         createTokenInfoWithInvalidTokenName.MergeFrom(createTokenInfo);
         createTokenInfoWithInvalidTokenName.Symbol = "ITISAVERYLONGSYMBOLNAME";
-       var createTokenRet = await CreateSeedNftWithExceptionAsync(TokenContractStub,createTokenInfoWithInvalidTokenName);
+        var createTokenRet =
+            await CreateSeedNftWithExceptionAsync(TokenContractStub, createTokenInfoWithInvalidTokenName);
         createTokenRet.TransactionResult.Error.ShouldContain("Invalid token symbol length");
         var createTokenInfoWithInvalidDecimal = new CreateInput();
         createTokenInfoWithInvalidDecimal.MergeFrom(createTokenInfo);
         createTokenInfoWithInvalidDecimal.Decimals = 100;
-        createTokenRet = await CreateMutiTokenWithExceptionAsync(TokenContractStub,createTokenInfoWithInvalidDecimal);
+        createTokenRet = await CreateMutiTokenWithExceptionAsync(TokenContractStub, createTokenInfoWithInvalidDecimal);
         createTokenRet.TransactionResult.Error.ShouldContain("Invalid input");
-        await  TokenContractStub.Create.SendAsync(createTokenInfo);
+        await TokenContractStub.Create.SendAsync(createTokenInfo);
         var tokenInfo = await TokenContractStub.GetTokenInfo.CallAsync(new GetTokenInfoInput
         {
             Symbol = AliceCoinTokenInfo.Symbol
