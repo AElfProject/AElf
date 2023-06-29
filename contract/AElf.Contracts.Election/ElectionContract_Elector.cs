@@ -524,22 +524,17 @@ public partial class ElectionContract
         var voterVotes = State.ElectorVotes[Context.Sender.ToBase58()];
         if (voterVotes != null) return voterVotes;
 
-        if (recoveredPublicKey != null)
-        {
-            var publicKey = recoveredPublicKey.ToHex();
+        if (recoveredPublicKey == null) return null;
 
-            voterVotes = State.ElectorVotes[publicKey]?.Clone();
+        var publicKey = recoveredPublicKey.ToHex();
 
-            if (voterVotes != null)
-            {
-                voterVotes.Address ??= Context.Sender;
-                
-                State.ElectorVotes.Remove(publicKey);
-                return voterVotes;
-            }
-        }
+        voterVotes = State.ElectorVotes[publicKey]?.Clone();
 
-        return null;
+        if (voterVotes == null) return null;
+        voterVotes.Address ??= Context.Sender;
+
+        State.ElectorVotes.Remove(publicKey);
+        return voterVotes;
     }
 
     /// <summary>
@@ -646,10 +641,10 @@ public partial class ElectionContract
 
         Assert(voterVotes != null, $"Voter {Context.Sender.ToBase58()} never votes before");
 
-        voterVotes!.ActiveVotingRecordIds.Remove(input);
+        voterVotes.ActiveVotingRecordIds.Remove(input);
         voterVotes.WithdrawnVotingRecordIds.Add(input);
         voterVotes.ActiveVotedVotesAmount = voterVotes.ActiveVotedVotesAmount.Sub(votingRecord.Amount);
-        
+
         State.ElectorVotes[Context.Sender.ToBase58()] = voterVotes;
 
         // Update Candidate's Votes information.
@@ -658,7 +653,7 @@ public partial class ElectionContract
 
         Assert(candidateVotes != null, $"Newest pubkey {newestPubkey} is invalid. Old pubkey is {votingRecord.Option}");
 
-        candidateVotes!.ObtainedActiveVotingRecordIds.Remove(input);
+        candidateVotes.ObtainedActiveVotingRecordIds.Remove(input);
         candidateVotes.ObtainedWithdrawnVotingRecordIds.Add(input);
         candidateVotes.ObtainedActiveVotedVotesAmount =
             candidateVotes.ObtainedActiveVotedVotesAmount.Sub(votingRecord.Amount);
