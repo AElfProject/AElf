@@ -26,7 +26,7 @@ public partial class TokenContract
         {
             Assert(
                 input.ExternalInfo.Value.TryGetValue(TokenContractConstants.SeedOwnedSymbolExternalInfoKey,
-                    out var ownedSymbol), "OwnedSymbol does not exists.");
+                    out var ownedSymbol), "OwnedSymbol does not exist.");
             Assert(input.ExternalInfo.Value.TryGetValue(TokenContractConstants.SeedExpireTimeExternalInfoKey,
                        out var expirationTime)
                    && long.TryParse(expirationTime, out var expirationTimeLong) &&
