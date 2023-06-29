@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.MultiToken;
+using AElf.Contracts.Parliament;
 using AElf.ContractTestKit;
 using AElf.ContractTestKit.AEDPoSExtension;
 using AElf.CSharp.Core.Extension;
@@ -46,6 +47,11 @@ public class AEDPoSExtensionTests : AEDPoSExtensionDemoTestBase
 
         // And this will produce one block with one transaction.
         // This transaction will call Create method of Token Contract.
+        await ParliamentStubs.First().Initialize.SendAsync(new InitializeInput
+        {
+            ProposerAuthorityRequired = false,
+            PrivilegedProposer = Address.FromPublicKey(MissionedECKeyPairs.InitialKeyPairs.First().PublicKey)
+        });
         var defaultOrganizationAddress =
             await ParliamentStubs.First().GetDefaultOrganizationAddress.CallAsync(new Empty());
         await ParliamentReachAnAgreementAsync(new CreateProposalInput
