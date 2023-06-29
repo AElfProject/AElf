@@ -381,7 +381,7 @@ public class MultiTokenContractCrossChainTestBase : ContractTestBase<MultiTokenC
     {
         var input = new CreateInput
         {
-            Symbol = SeedNFTSymbolPre + SeedNum,
+            Symbol = SeedNFTSymbolPre + 0,
             Decimals = 0,
             IsBurnable = true,
             TokenName = "seed Collection",
