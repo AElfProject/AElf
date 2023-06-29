@@ -768,6 +768,10 @@ message RentalCharged {
     string symbol = 1;
     // The amount of rental fee charged.
     int64 amount = 2;
+    // The payer of rental fee.
+    aelf.Address payer = 3;
+    // The receiver of rental fee.
+    aelf.Address receiver = 4;
 }
 
 message RentalAccountBalanceInsufficient {
