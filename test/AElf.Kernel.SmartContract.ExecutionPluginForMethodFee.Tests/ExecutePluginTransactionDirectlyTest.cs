@@ -228,8 +228,10 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
             });
         }
 
-        await TokenContractStub.DonateResourceToken.SendAsync(feeMap);
-
+        var result = await TokenContractStub.DonateResourceToken.SendAsync(feeMap);
+        var transactionFeeClaimedDic = result.TransactionResult.Logs.Where(o => o.Name == nameof(ResourceTokenClaimed))
+            .Select(o => ResourceTokenClaimed.Parser.ParseFrom(o.NonIndexed)).ToDictionary(o => o.Symbol, o => o);
+        
         for (var i = 0; i < symbolList.Length; i++)
         {
             var balance = await GetBalanceAsync(DefaultSender, symbolList[i]);
@@ -239,6 +241,12 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
                 var consensusBalance = await GetBalanceAsync(ConsensusContractAddress, symbolList[i]);
                 consensusBalance.ShouldBe(initialBalances[i] - lastBalances[i]);
             }
+
+            var transactionFeeClaimed = transactionFeeClaimedDic[symbolList[i]];
+            transactionFeeClaimed.Symbol.ShouldBe(symbolList[i]);
+            transactionFeeClaimed.Amount.ShouldBe(tokenFee[i] > initialBalances[i] ? initialBalances[i] : tokenFee[i]);
+            transactionFeeClaimed.Payer.ShouldBe(DefaultSender);
+            transactionFeeClaimed.Receiver.ShouldBe(ConsensusContractAddress);
         }
     }
 
@@ -256,7 +264,14 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
                 { tokenSymbol, feeAmount }
             }
         };
-        await TokenContractStub.ClaimTransactionFees.SendAsync(claimFeeInput);
+        var result = await TokenContractStub.ClaimTransactionFees.SendAsync(claimFeeInput);
+        
+        var transactionFeeClaimed = TransactionFeeClaimed.Parser.ParseFrom(result.TransactionResult.Logs
+            .First(l => l.Name.Contains(nameof(TransactionFeeClaimed))).NonIndexed);
+        transactionFeeClaimed.Symbol.ShouldBe(tokenSymbol);
+        transactionFeeClaimed.Amount.ShouldBe(feeAmount);
+        transactionFeeClaimed.Receiver.ShouldBe(TokenContractAddress);
+        
         var afterBurned = await GetTokenSupplyAmount(tokenSymbol);
         (beforeBurned - afterBurned).ShouldBe(feeAmount);
     }
@@ -283,7 +298,14 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
                 { tokenSymbol, feeAmount }
             }
         };
-        await TokenContractStub.ClaimTransactionFees.SendAsync(claimFeeInput);
+        var result = await TokenContractStub.ClaimTransactionFees.SendAsync(claimFeeInput);
+        
+        var transactionFeeClaimed = TransactionFeeClaimed.Parser.ParseFrom(result.TransactionResult.Logs
+            .First(l => l.Name.Contains(nameof(TransactionFeeClaimed))).NonIndexed);
+        transactionFeeClaimed.Symbol.ShouldBe(tokenSymbol);
+        transactionFeeClaimed.Amount.ShouldBe(feeAmount);
+        transactionFeeClaimed.Receiver.ShouldBe(TokenContractAddress);
+        
         var afterBurned = await GetTokenSupplyAmount(tokenSymbol);
         var afterBalance = await GetBalanceAsync(receiver, tokenSymbol);
         var shouldBurned = feeAmount.Div(10);
