@@ -1248,7 +1248,29 @@ public partial class MultiTokenContractTests
             TotalSupply = TotalSupply,
             ExternalInfo = new TestContract.BasicFunction.ExternalInfo()
         };
-       
+        var input = new CreateInput
+        {
+            Symbol = SeedNFTSymbolPre + 100,
+            Decimals = 0,
+            IsBurnable = true,
+            TokenName = "seed token" + 100,
+            TotalSupply = 1,
+            Issuer = DefaultAddress,
+            ExternalInfo = new ExternalInfo(),
+            LockWhiteList = { TokenContractAddress }
+        };
+        input.ExternalInfo.Value["__seed_owned_symbol"] = createTokenInput.Symbol;
+        input.ExternalInfo.Value["__seed_exp_time"] = TimestampHelper.GetUtcNow().AddDays(1).Seconds.ToString();
+        await TokenContractStub.Create.SendAsync(input);
+        await TokenContractStub.Issue.SendAsync(new IssueInput
+        {
+            Symbol = input.Symbol,
+            Amount = 1,
+            Memo = "ddd",
+            To = BasicFunctionContractAddress
+
+        });
+
         var result = await BasicFunctionContractStub.CreateTokenThroughMultiToken.SendAsync(createTokenInput);
         result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
         var checkTokenInfo = await TokenContractStub.GetTokenInfo.CallAsync(new GetTokenInfoInput { Symbol = "TEST" });

@@ -199,6 +199,7 @@ public partial class TokenContract
     
         SymbolLengthCheck(input.Symbol, symbolType);
         SymbolPrefixDuplicatedCheck(input.Symbol, symbolType);
+        OriginalSeedSymbolCheck(input.Symbol);
     }
 
     private void SymbolPrefixDuplicatedCheck(string symbol,SymbolType symbolType)

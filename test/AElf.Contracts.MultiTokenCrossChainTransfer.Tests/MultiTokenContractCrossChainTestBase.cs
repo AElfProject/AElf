@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.CrossChain;
@@ -73,6 +74,9 @@ public class MultiTokenContractCrossChainTestBase : ContractTestBase<MultiTokenC
     internal TokenContractImplContainer.TokenContractImplStub TokenContractStub;
 
     protected long TotalSupply;
+    
+    protected int SeedNum = 0;
+    protected string SeedNFTSymbolPre = "SEED-";
 
     public MultiTokenContractCrossChainTestBase()
     {
@@ -372,4 +376,55 @@ public class MultiTokenContractCrossChainTestBase : ContractTestBase<MultiTokenC
             CreationHeightOnParentChain = parentChainHeightOfCreation
         });
     }
+    
+    internal async Task CreateSeedNftCollection(TokenContractImplContainer.TokenContractImplStub stub, Address address)
+    {
+        var input = new CreateInput
+        {
+            Symbol = SeedNFTSymbolPre + SeedNum,
+            Decimals = 0,
+            IsBurnable = true,
+            TokenName = "seed Collection",
+            TotalSupply = 1,
+            Issuer = address,
+            ExternalInfo = new ExternalInfo()
+        };
+        var re= await stub.Create.SendAsync(input);
+    }
+
+
+    internal async Task<CreateInput> CreateSeedNftAsync(TokenContractImplContainer.TokenContractImplStub stub,
+        CreateInput createInput,Address lockWhiteAddress)
+    {
+        var input = BuildSeedCreateInput(createInput,lockWhiteAddress);
+        await stub.Create.SendAsync(input);
+        await stub.Issue.SendAsync(new IssueInput
+        {
+            Symbol = input.Symbol,
+            Amount = 1,
+            Memo = "ddd",
+            To = input.Issuer
+        });
+        return input;
+    }
+    
+    internal CreateInput BuildSeedCreateInput(CreateInput createInput,Address lockWhiteAddress)
+    {
+        Interlocked.Increment(ref SeedNum);
+        var input = new CreateInput
+        {
+            Symbol = SeedNFTSymbolPre + SeedNum,
+            Decimals = 0,
+            IsBurnable = true,
+            TokenName = "seed token" + SeedNum,
+            TotalSupply = 1,
+            Issuer = createInput.Issuer,
+            ExternalInfo = new ExternalInfo(),
+            LockWhiteList = { lockWhiteAddress }
+        };
+        input.ExternalInfo.Value["__seed_owned_symbol"] = createInput.Symbol;
+        input.ExternalInfo.Value["__seed_exp_time"] = TimestampHelper.GetUtcNow().AddDays(1).Seconds.ToString();
+        return input;
+    }
+
 }
