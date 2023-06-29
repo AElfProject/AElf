@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
+using AElf.Contracts.Parliament;
 using AElf.Cryptography.ECDSA;
 using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
@@ -1292,10 +1293,11 @@ public sealed class ReferendumContractTest : ReferendumContractTestBase
     {
         var defaultParliamentAddress =
             await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+        
         await SubmitAndApproveProposalOfDefaultParliament(DefaultSenderKeyPair, ParliamentContractAddress, TokenContractAddress,
             nameof(TokenContractStub.Create), new CreateInput
             {
-                Symbol = "SEED-" + "0",
+                Symbol = "SEED-0",
                 Decimals = 0,
                 IsBurnable = true,
                 TokenName = "seed Collection",
@@ -1306,7 +1308,7 @@ public sealed class ReferendumContractTest : ReferendumContractTestBase
         await SubmitAndApproveProposalOfDefaultParliament(DefaultSenderKeyPair, ParliamentContractAddress, TokenContractAddress,
             nameof(TokenContractStub.Create), new CreateInput
             {
-                Symbol = "SEED-" + "1",
+                Symbol = "SEED-1",
                 Decimals = 0,
                 IsBurnable = true,
                 TokenName = "seed token" + 1,
@@ -1331,7 +1333,7 @@ public sealed class ReferendumContractTest : ReferendumContractTestBase
                 Memo = "ddd",
                 To = organizationAddress
             });
-
+        
         var createInput = new CreateInput
         {
             Symbol = "NEW",
@@ -1538,5 +1540,34 @@ public sealed class ReferendumContractTest : ReferendumContractTestBase
                 }
             }
         };
+    }
+    
+    private async Task SubmitAndApproveProposalOfDefaultParliament(ECKeyPair senderKeyPair, Address parliamentAddress,
+        Address contractAddress, string methodName, IMessage message)
+    {
+        var defaultParliamentAddress =
+            await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+        
+        var proposal = new CreateProposalInput
+        {
+            OrganizationAddress = defaultParliamentAddress,
+            ContractMethodName = methodName,
+            ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1),
+            Params = message.ToByteString(),
+            ToAddress = contractAddress
+        };
+        var createResult = await ParliamentContractStub.CreateProposal.SendAsync(proposal);
+        var proposalId = createResult.Output;
+        await ApproveWithMinersAsync(proposalId, parliamentAddress);
+        await ParliamentContractStub.Release.SendAsync(proposalId);
+    }
+
+    private async Task ApproveWithMinersAsync(Hash proposalId, Address parliamentAddress)
+    {
+        foreach (var bp in InitialCoreDataCenterKeyPairs)
+        {
+            var tester = GetTester<ParliamentContractImplContainer.ParliamentContractImplStub>(parliamentAddress, bp);
+            await tester.Approve.SendAsync(proposalId);
+        }
     }
 }

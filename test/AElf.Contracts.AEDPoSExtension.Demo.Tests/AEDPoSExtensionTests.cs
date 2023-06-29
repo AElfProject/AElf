@@ -6,8 +6,11 @@ using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.MultiToken;
 using AElf.ContractTestKit;
 using AElf.ContractTestKit.AEDPoSExtension;
+using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
+using AElf.Kernel.Token;
+using AElf.Standards.ACS3;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -43,15 +46,25 @@ public class AEDPoSExtensionTests : AEDPoSExtensionDemoTestBase
 
         // And this will produce one block with one transaction.
         // This transaction will call Create method of Token Contract.
-        var createTokenTransaction = TokenStub.Create.GetTransaction(new CreateInput
+        var defaultOrganizationAddress =
+            await ParliamentStubs.First().GetDefaultOrganizationAddress.CallAsync(new Empty());
+        await ParliamentReachAnAgreementAsync(new CreateProposalInput
         {
-            Symbol = "ELF",
-            Decimals = 8,
-            TokenName = "Test",
-            Issuer = Accounts[0].Address,
-            IsBurnable = true,
-            TotalSupply = 1_000_000_000_00000000
+            ToAddress = ContractAddresses[TokenSmartContractAddressNameProvider.Name],
+            ContractMethodName = nameof(TokenStub.Create),
+            Params = new CreateInput
+            {
+                Symbol = "ELF",
+                Decimals = 8,
+                TokenName = "Test",
+                Issuer = Accounts[0].Address,
+                IsBurnable = true,
+                TotalSupply = 1_000_000_000_00000000
+            }.ToByteString(),
+            ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
+            OrganizationAddress = defaultOrganizationAddress
         });
+        
         const long issueTokenAmount = 10_0000_00000000;
         var issueToAddress = Address.FromPublicKey(MissionedECKeyPairs.InitialKeyPairs.First().PublicKey);
         var issueTokenTransaction = TokenStub.Issue.GetTransaction(new IssueInput
@@ -62,12 +75,11 @@ public class AEDPoSExtensionTests : AEDPoSExtensionDemoTestBase
         });
         await BlockMiningService.MineBlockAsync(new List<Transaction>
         {
-            createTokenTransaction,
             issueTokenTransaction
         });
 
         var createTokenTransactionTrace =
-            TransactionTraceProvider.GetTransactionTrace(createTokenTransaction.GetHash());
+            TransactionTraceProvider.GetTransactionTrace(issueTokenTransaction.GetHash());
         createTokenTransactionTrace.ExecutionStatus.ShouldBe(ExecutionStatus.Executed);
 
         // Check whether previous Create transaction successfully executed.

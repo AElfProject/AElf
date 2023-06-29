@@ -129,40 +129,4 @@ public class ContractTestBase<TModule> : AbpIntegratedTest<TModule>
     //         ? File.ReadAllBytes(path)
     //         : throw new FileNotFoundException("Contract DLL cannot be found. " + path);
     // }
-
-    protected async Task SubmitAndApproveProposalOfDefaultParliament(ECKeyPair senderKeyPair, Address parliamentAddress,
-        Address contractAddress, string methodName, IMessage message)
-    {
-        // var parliamentContractStub =
-        //     GetTester<ParliamentContractImplContainer.ParliamentContractImplStub>(parliamentAddress, senderKeyPair);
-        // // await parliamentContractStub.Initialize.SendAsync(new AElf.Contracts.Parliament.InitializeInput
-        // // {
-        // //     PrivilegedProposer = DefaultAccount.Address,
-        // //     ProposerAuthorityRequired = false
-        // // });
-        // var defaultParliamentAddress =
-        //     await parliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
-        //
-        // var proposal = new CreateProposalInput
-        // {
-        //     OrganizationAddress = defaultParliamentAddress,
-        //     ContractMethodName = methodName,
-        //     ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1),
-        //     Params = message.ToByteString(),
-        //     ToAddress = contractAddress
-        // };
-        // var createResult = await parliamentContractStub.CreateProposal.SendAsync(proposal);
-        // var proposalId = createResult.Output;
-        // await ApproveWithMinersAsync(proposalId, parliamentAddress);
-        // await parliamentContractStub.Release.SendAsync(proposalId);
-    }
-
-    private async Task ApproveWithMinersAsync(Hash proposalId, Address parliamentAddress)
-    {
-        // foreach (var bp in InitialCoreDataCenterKeyPairs)
-        // {
-        //     var tester = GetTester<ParliamentContractImplContainer.ParliamentContractImplStub>(parliamentAddress, bp);
-        //     await tester.Approve.SendAsync(proposalId);
-        // }
-    }
 }

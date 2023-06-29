@@ -84,12 +84,7 @@ public class AEDPoSExtensionDemoTestBase : AEDPoSExtensionTestBase
         {
             var parliamentStub = GetTester<ParliamentContractImplContainer.ParliamentContractImplStub>(
                 ContractAddresses[ParliamentSmartContractAddressNameProvider.Name], initialKeyPair);
-            parliamentStub.Initialize.SendAsync(new AElf.Contracts.Parliament.InitializeInput
-            {
-                ProposerAuthorityRequired = false,
-                PrivilegedProposer = Address.FromPublicKey(initialKeyPair.PublicKey)
-            });
-            
+
             ParliamentStubs.Add(parliamentStub);
         }
     }
