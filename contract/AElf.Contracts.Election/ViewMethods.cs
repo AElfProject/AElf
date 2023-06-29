@@ -161,20 +161,16 @@ public partial class ElectionContract
 
     public override ElectorVote GetElectorVote(StringValue input)
     {
-        return State.ElectorVotes[input.Value] ?? new ElectorVote
-        {
-            Pubkey = ByteStringHelper.FromHexString(input.Value)
-        };
+        return GetElectorVote(input.Value);
     }
 
     public override ElectorVote GetElectorVoteWithRecords(StringValue input)
     {
-        var votes = State.ElectorVotes[input.Value];
-        if (votes == null)
-            return new ElectorVote
-            {
-                Pubkey = ByteStringHelper.FromHexString(input.Value)
-            };
+        var votes = GetElectorVote(input.Value);
+        
+        if (votes.Address == null && votes.Pubkey == null)
+            return votes;
+        
         var votedRecords = State.VoteContract.GetVotingRecords.Call(new GetVotingRecordsInput
         {
             Ids = { votes.ActiveVotingRecordIds }
@@ -187,6 +183,21 @@ public partial class ElectionContract
         }
 
         return votes;
+    }
+
+    private ElectorVote GetElectorVote(string value)
+    {
+        Assert(value != null && value.Length > 1, "Invalid input.");
+        
+        var voterVotes = State.ElectorVotes[value];
+
+        if (voterVotes == null && !AddressHelper.VerifyFormattedAddress(value))
+        {
+            voterVotes = State.ElectorVotes[
+                Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(value)).ToBase58()];
+        }
+
+        return voterVotes ?? new ElectorVote();
     }
 
     public override ElectorVote GetElectorVoteWithAllRecords(StringValue input)
