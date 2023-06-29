@@ -26,12 +26,13 @@ public partial class TokenContract
         {
             Assert(
                 input.ExternalInfo.Value.TryGetValue(TokenContractConstants.SeedOwnedSymbolExternalInfoKey,
-                    out var ownedSymbol) , "seed_owned_symbol is not exists");
+                    out var ownedSymbol), "seed_owned_symbol is not exists");
             Assert(input.ExternalInfo.Value.TryGetValue(TokenContractConstants.SeedExpireTimeExternalInfoKey,
                        out var expirationTime)
-                   && long.TryParse(expirationTime, out var expirationTimeLong ) && Context.CurrentBlockTime.Seconds <= expirationTimeLong, "seed_owned_symbol is expired ");
+                   && long.TryParse(expirationTime, out var expirationTimeLong) &&
+                   Context.CurrentBlockTime.Seconds <= expirationTimeLong, "seed_owned_symbol is expired ");
             var ownedSymbolType = GetCreateInputSymbolType(ownedSymbol);
-            Assert(ownedSymbolType != SymbolType.Nft,"seed_owned_symbol can not be NFT");
+            Assert(ownedSymbolType != SymbolType.Nft, "seed_owned_symbol can not be NFT");
             CheckSymbolLength(ownedSymbol, ownedSymbolType);
             CheckTokenAndCollectionExists(ownedSymbol);
             CheckSymbolSeed(ownedSymbol);
@@ -44,11 +45,12 @@ public partial class TokenContract
     private void CheckSymbolSeed(string ownedSymbol)
     {
         var oldSymbolSeed = State.SymbolSeedMap[ownedSymbol];
-        
+
         Assert(oldSymbolSeed == null || !State.TokenInfos[oldSymbolSeed].ExternalInfo.Value
-                                         .TryGetValue(TokenContractConstants.SeedExpireTimeExternalInfoKey,
-                                             out var oldSymbolSeedExpireTime) ||  !long.TryParse(oldSymbolSeedExpireTime,out var symbolSeedExpireTime)
-                                     || Context.CurrentBlockTime.Seconds > symbolSeedExpireTime,
+                   .TryGetValue(TokenContractConstants.SeedExpireTimeExternalInfoKey,
+                       out var oldSymbolSeedExpireTime) ||
+               !long.TryParse(oldSymbolSeedExpireTime, out var symbolSeedExpireTime)
+               || Context.CurrentBlockTime.Seconds > symbolSeedExpireTime,
             "seed_owned_symbol has been created");
     }
 

@@ -15,7 +15,8 @@ public partial class TokenContract
 {
     private static bool IsValidSymbolChar(char character)
     {
-        return (character >= 'A' && character <= 'Z') || (character >= '0' && character <= '9') || character == TokenContractConstants.NFTSymbolSeparator;
+        return (character >= 'A' && character <= 'Z') || (character >= '0' && character <= '9') ||
+               character == TokenContractConstants.NFTSymbolSeparator;
     }
 
     private bool IsValidItemIdChar(char character)
@@ -194,11 +195,11 @@ public partial class TokenContract
                && input.Symbol.Length > 0
                && input.Decimals >= 0
                && input.Decimals <= TokenContractConstants.MaxDecimals, "Invalid input.");
-    
+
         CheckSymbolLength(input.Symbol, symbolType);
         if (symbolType == SymbolType.Nft) return;
         CheckTokenAndCollectionExists(input.Symbol);
-        if(IsAddressInCreateWhiteList(Context.Sender))CheckSymbolSeed(input.Symbol);
+        if (IsAddressInCreateWhiteList(Context.Sender)) CheckSymbolSeed(input.Symbol);
     }
 
     private void CheckTokenAndCollectionExists(string symbol)
@@ -206,7 +207,8 @@ public partial class TokenContract
         var symbols = symbol.Split(TokenContractConstants.NFTSymbolSeparator);
         var tokenSymbol = symbols.First();
         CheckTokenExists(tokenSymbol);
-        var collectionSymbol = symbols.First() + TokenContractConstants.NFTSymbolSeparator + TokenContractConstants.CollectionSymbolSuffix;
+        var collectionSymbol = symbols.First() + TokenContractConstants.NFTSymbolSeparator +
+                               TokenContractConstants.CollectionSymbolSuffix;
         CheckTokenExists(collectionSymbol);
     }
 
