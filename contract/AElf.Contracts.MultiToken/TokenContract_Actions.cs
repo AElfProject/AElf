@@ -151,7 +151,12 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
     public override Empty Lock(LockInput input)
     {
         AssertSystemContractOrLockWhiteListAddress(input.Symbol);
-        Assert(Context.Origin == input.Address, "Lock behaviour should be initialed by origin address.");
+
+        // For Election Contract
+        var electionContractAddress = GetElectionContractAddress();
+        Assert(Context.Sender == electionContractAddress || Context.Origin == input.Address,
+            "Lock behaviour should be initialed by origin address.");
+
         var allowance = State.Allowances[input.Address][Context.Sender][input.Symbol];
         if (allowance >= input.Amount)
             State.Allowances[input.Address][Context.Sender][input.Symbol] = allowance.Sub(input.Amount);
@@ -175,7 +180,12 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
     public override Empty Unlock(UnlockInput input)
     {
         AssertSystemContractOrLockWhiteListAddress(input.Symbol);
-        Assert(Context.Origin == input.Address, "Unlock behaviour should be initialed by origin address.");
+
+        // For Election Contract
+        var electionContractAddress = GetElectionContractAddress();
+        Assert(Context.Sender == electionContractAddress || Context.Origin == input.Address,
+            "Unlock behaviour should be initialed by origin address.");
+
         AssertValidToken(input.Symbol, input.Amount);
         var fromVirtualAddress = HashHelper.ComputeFrom(Context.Sender.Value.Concat(input.Address.Value)
             .Concat(input.LockId.Value).ToArray());

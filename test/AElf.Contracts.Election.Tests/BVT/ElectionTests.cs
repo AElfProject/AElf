@@ -6,6 +6,7 @@ using AElf.Contracts.Economic.TestBase;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Parliament;
 using AElf.Contracts.Profit;
+using AElf.Contracts.TestContract.VirtualAddress;
 using AElf.Contracts.Vote;
 using AElf.Cryptography.ECDSA;
 using AElf.CSharp.Core;
@@ -299,7 +300,7 @@ public partial class ElectionContractTests : ElectionContractTestBase
             {
                 Value = voterKeyPair.PublicKey.ToHex()
             });
-            voterVotes.Pubkey.ShouldBe(ByteString.CopyFrom(voterKeyPair.PublicKey));
+            voterVotes.Address.ShouldBe(Address.FromPublicKey(voterKeyPair.PublicKey));
             voterVotes.ActiveVotingRecordIds.Count.ShouldBe(19);
             voterVotes.AllVotedVotesAmount.ShouldBe(actualVotedAmount);
             voterVotes.ActiveVotedVotesAmount.ShouldBe(actualVotedAmount);
@@ -1900,4 +1901,224 @@ public partial class ElectionContractTests : ElectionContractTestBase
     }
 
     #endregion
+    
+    [Fact]
+    public async Task<Hash> VirtualAddress_Vote_Test()
+    {
+        var amount = 100;
+        const int lockTime = 100 * 60 * 60 * 24;
+        var candidatesKeyPairs = await ElectionContract_AnnounceElection_Test();
+        var candidateKeyPair = candidatesKeyPairs[0];
+        
+        var address = await VirtualAddressContractStub.GetVirtualAddress.CallAsync(new Empty());
+        var initBalance = 100000;
+
+        await TokenContractStub.Transfer.SendAsync(new TransferInput
+        {
+            Amount = initBalance,
+            Symbol = "ELF",
+            To = address,
+            Memo = "test"
+        });
+        
+        CheckBalance(address, "ELF", initBalance);
+        CheckBalance(address, "SHARE", 0);
+        CheckBalance(address, "VOTE", 0);
+        
+        await VirtualAddressContractStub.VirtualAddressVote.SendAsync(new VirtualAddressVoteInput
+        {
+            PubKey = candidateKeyPair.PublicKey.ToHex(),
+            Amount = amount,
+            EndTimestamp = TimestampHelper.GetUtcNow().AddSeconds(lockTime),
+            Token = HashHelper.ComputeFrom("token A")
+        });
+        
+        var result = await ElectionContractStub.GetElectorVote.CallAsync(new StringValue
+        {
+            Value = address.ToBase58()
+        });
+        result.ActiveVotedVotesAmount.ShouldBe(amount);
+        result = await ElectionContractStub.GetElectorVoteWithRecords.CallAsync(new StringValue
+        {
+            Value = address.ToBase58()
+        });
+        result.ActiveVotedVotesAmount.ShouldBe(amount);
+        result = await ElectionContractStub.GetElectorVoteWithAllRecords.CallAsync(new StringValue
+        {
+            Value = address.ToBase58()
+        });
+        result.AllVotedVotesAmount.ShouldBe(amount);
+        
+        CheckBalance(address, "ELF", initBalance - amount);
+        CheckBalance(address, "SHARE", amount);
+        CheckBalance(address, "VOTE", amount);
+        
+        await VirtualAddressContractStub.VirtualAddressVote.SendAsync(new VirtualAddressVoteInput
+        {
+            PubKey = candidateKeyPair.PublicKey.ToHex(),
+            Amount = amount,
+            EndTimestamp = TimestampHelper.GetUtcNow().AddSeconds(lockTime),
+            Token = HashHelper.ComputeFrom("token A")
+        });
+        
+        result = await ElectionContractStub.GetElectorVote.CallAsync(new StringValue
+        {
+            Value = address.ToBase58()
+        });
+        result.ActiveVotedVotesAmount.ShouldBe(amount + amount);
+        result = await ElectionContractStub.GetElectorVoteWithRecords.CallAsync(new StringValue
+        {
+            Value = address.ToBase58()
+        });
+        result.ActiveVotedVotesAmount.ShouldBe(amount + amount);
+        result = await ElectionContractStub.GetElectorVoteWithAllRecords.CallAsync(new StringValue
+        {
+            Value = address.ToBase58()
+        });
+        result.AllVotedVotesAmount.ShouldBe(amount + amount);
+        
+        CheckBalance(address, "ELF", initBalance - amount - amount);
+        CheckBalance(address, "SHARE", amount + amount);
+        CheckBalance(address, "VOTE", amount + amount);
+        
+        return result.ActiveVotingRecords.First().VoteId;
+    }
+
+    [Fact]
+    public async Task VirtualAddress_Withdraw_Test()
+    {
+        var amount = 100;
+        const int lockTime = 100 * 60 * 60 * 24;
+        
+        var address = await VirtualAddressContractStub.GetVirtualAddress.CallAsync(new Empty());
+        var initBalance = 100000;
+        
+        var voteId = await VirtualAddress_Vote_Test();
+        BlockTimeProvider.SetBlockTime(TimestampHelper.GetUtcNow().AddDays(101));
+        
+        await VirtualAddressContractStub.VirtualAddressWithdraw.SendAsync(new Hash
+        {
+            Value = voteId.Value
+        });
+        
+        var result = await ElectionContractStub.GetElectorVote.CallAsync(new StringValue
+        {
+            Value = address.ToBase58()
+        });
+        result.ActiveVotedVotesAmount.ShouldBe(amount);
+        result = await ElectionContractStub.GetElectorVoteWithRecords.CallAsync(new StringValue
+        {
+            Value = address.ToBase58()
+        });
+        result.ActiveVotedVotesAmount.ShouldBe(amount);
+        result = await ElectionContractStub.GetElectorVoteWithAllRecords.CallAsync(new StringValue
+        {
+            Value = address.ToBase58()
+        });
+
+        result.ActiveVotedVotesAmount.ShouldBe(amount);
+        result.WithdrawnVotesRecords.Count().ShouldBe(1);
+        result.AllVotedVotesAmount.ShouldBe(amount + amount);
+
+        CheckBalance(address, "ELF", initBalance - amount);
+        CheckBalance(address, "SHARE", amount);
+        CheckBalance(address, "VOTE", amount);
+    }
+
+    [Fact]
+    public async Task<Hash> Vote_Test()
+    {
+        var amount = 100;
+        const int lockTime = 100 * 60 * 60 * 24;
+        var candidatesKeyPairs = await ElectionContract_AnnounceElection_Test();
+        var candidateKeyPair = candidatesKeyPairs[0];
+        
+        var address = Address.FromPublicKey(BootMinerKeyPair.PublicKey);
+        var initBalance = 100000000000000;
+        
+        CheckBalance(address, "ELF", initBalance);
+        CheckBalance(address, "SHARE", 0);
+        CheckBalance(address, "VOTE", 0);
+        
+        var voteRet = await ElectionContractStub.Vote.SendAsync(new VoteMinerInput
+        {
+            CandidatePubkey = candidateKeyPair.PublicKey.ToHex(),
+            Amount = amount,
+            EndTimestamp = TimestampHelper.GetUtcNow().AddSeconds(lockTime),
+            Token = HashHelper.ComputeFrom("token A")
+        });
+        voteRet.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+        var result = await ElectionContractStub.GetElectorVote.CallAsync(new StringValue
+        {
+            Value = BootMinerKeyPair.PublicKey.ToHex()
+        });
+        result.ActiveVotedVotesAmount.ShouldBe(amount);
+        result = await ElectionContractStub.GetElectorVoteWithRecords.CallAsync(new StringValue
+        {
+            Value = BootMinerKeyPair.PublicKey.ToHex()
+        });
+        result.ActiveVotedVotesAmount.ShouldBe(amount);
+        result = await ElectionContractStub.GetElectorVoteWithAllRecords.CallAsync(new StringValue
+        {
+            Value = BootMinerKeyPair.PublicKey.ToHex()
+        });
+        result.AllVotedVotesAmount.ShouldBe(amount);
+
+        CheckBalance(address, "ELF", initBalance - amount);
+        CheckBalance(address, "SHARE", amount);
+        CheckBalance(address, "VOTE", amount);
+
+        return result.ActiveVotingRecords.First().VoteId;
+    }
+
+    [Fact]
+    public async Task Withdraw_Test()
+    {
+        var voteId = await Vote_Test();
+
+        BlockTimeProvider.SetBlockTime(TimestampHelper.GetUtcNow().AddDays(101));
+        
+        await ElectionContractStub.Withdraw.SendAsync(new Hash
+        {
+            Value = voteId.Value
+        });
+        
+        var result = await ElectionContractStub.GetElectorVote.CallAsync(new StringValue
+        {
+            Value = BootMinerKeyPair.PublicKey.ToHex()
+        });
+        result.ActiveVotedVotesAmount.ShouldBe(0);
+        result = await ElectionContractStub.GetElectorVoteWithRecords.CallAsync(new StringValue
+        {
+            Value = BootMinerKeyPair.PublicKey.ToHex()
+        });
+        result.ActiveVotedVotesAmount.ShouldBe(0);
+        result = await ElectionContractStub.GetElectorVoteWithAllRecords.CallAsync(new StringValue
+        {
+            Value = BootMinerKeyPair.PublicKey.ToHex()
+        });
+
+        result.ActiveVotedVotesAmount.ShouldBe(0);
+        result.WithdrawnVotesRecords.Count().ShouldBe(1);
+        result.AllVotedVotesAmount.ShouldBe(100);
+        
+        var address = Address.FromPublicKey(BootMinerKeyPair.PublicKey);
+        var initBalance = 100000000000000;
+        
+        CheckBalance(address, "ELF", initBalance);
+        CheckBalance(address, "SHARE", 0);
+        CheckBalance(address, "VOTE", 0);
+    }
+
+    private void CheckBalance(Address address, string symbol, long amount)
+    {
+        var balance = TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+        {
+            Owner = address,
+            Symbol = symbol
+        }).Result;
+        
+        balance.Balance.ShouldBe(amount);
+    }
 }
