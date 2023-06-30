@@ -111,7 +111,7 @@ public partial class MultiTokenContractTests : MultiTokenContractTestBase
 
     private async Task CreateNativeTokenAsync()
     {
-        await TokenContractStub.Create.SendAsync(new CreateInput
+        await CreateMutiTokenAsync(TokenContractStub, new CreateInput
         {
             Symbol = NativeTokenInfo.Symbol,
             TokenName = NativeTokenInfo.TokenName,
@@ -130,17 +130,7 @@ public partial class MultiTokenContractTests : MultiTokenContractTestBase
 
     private async Task CreatePrimaryTokenAsync()
     {
-        await TokenContractStub.Create.SendAsync(new CreateInput
-        {
-            Symbol = NativeTokenInfo.Symbol,
-            TokenName = NativeTokenInfo.TokenName,
-            TotalSupply = NativeTokenInfo.TotalSupply,
-            Decimals = NativeTokenInfo.Decimals,
-            Issuer = NativeTokenInfo.Issuer,
-            IsBurnable = NativeTokenInfo.IsBurnable
-        });
-
-        await TokenContractStub.Create.SendAsync(new CreateInput
+        await CreateMutiTokenAsync(TokenContractStub, new CreateInput
         {
             Decimals = PrimaryTokenInfo.Decimals,
             IsBurnable = PrimaryTokenInfo.IsBurnable,
@@ -169,7 +159,7 @@ public partial class MultiTokenContractTests : MultiTokenContractTestBase
             tokenInfo.ShouldBe(new TokenInfo());
         }
 
-        await TokenContractStub.Create.SendAsync(new CreateInput
+        await CreateMutiTokenAsync(TokenContractStub, new CreateInput
         {
             Symbol = AliceCoinTokenInfo.Symbol,
             TokenName = AliceCoinTokenInfo.TokenName,
@@ -236,7 +226,7 @@ public partial class MultiTokenContractTests : MultiTokenContractTestBase
     {
         await CreateAndIssueMultiTokensAsync();
 
-        await TokenContractStub.Create.SendAsync(new CreateInput
+        await CreateMutiTokenAsync(TokenContractStub, new CreateInput
         {
             Symbol = BobCoinTokenInfo.Symbol,
             TokenName = BobCoinTokenInfo.TokenName,
@@ -259,13 +249,13 @@ public partial class MultiTokenContractTests : MultiTokenContractTestBase
     [Fact(DisplayName = "[MultiToken] Create Token use custom address")]
     public async Task MultiTokenContract_Create_UseCustomAddress_Test()
     {
-        var transactionResult = (await TokenContractStub.Create.SendWithExceptionAsync(new CreateInput
+        var transactionResult = (await CreateMutiTokenWithExceptionAsync(TokenContractStub, new CreateInput
         {
-            Symbol = NativeTokenInfo.Symbol,
+            Symbol = BobCoinTokenInfo.Symbol,
             Decimals = 2,
             IsBurnable = true,
             Issuer = DefaultAddress,
-            TokenName = NativeTokenInfo.TokenName,
+            TokenName = BobCoinTokenInfo.TokenName,
             TotalSupply = AliceCoinTotalAmount,
             LockWhiteList =
             {
@@ -278,7 +268,6 @@ public partial class MultiTokenContractTests : MultiTokenContractTestBase
 
     private async Task CreateAndIssueMultiTokensAsync()
     {
-        await CreateNativeTokenAsync();
         await CreateNormalTokenAsync();
         //issue AliceToken amount of 1000_00L to DefaultAddress 
         {
@@ -295,25 +284,6 @@ public partial class MultiTokenContractTests : MultiTokenContractTestBase
             {
                 Owner = DefaultAddress,
                 Symbol = AliceCoinTokenInfo.Symbol
-            })).Balance;
-            balance.ShouldBe(AliceCoinTotalAmount);
-        }
-
-        //issue ELF amount of 1000_00L to DefaultAddress 
-        {
-            var result = await TokenContractStub.Issue.SendAsync(new IssueInput
-            {
-                Symbol = "ELF",
-                Amount = AliceCoinTotalAmount,
-                To = DefaultAddress,
-                Memo = "first issue token."
-            });
-            result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-
-            var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
-            {
-                Owner = DefaultAddress,
-                Symbol = "ELF"
             })).Balance;
             balance.ShouldBe(AliceCoinTotalAmount);
         }
@@ -375,7 +345,6 @@ public partial class MultiTokenContractTests : MultiTokenContractTestBase
     [Fact]
     public async Task IssueToken_With_Invalid_Input()
     {
-        await CreateNativeTokenAsync();
         await CreateNormalTokenAsync();
         // to is null
         {
@@ -420,7 +389,7 @@ public partial class MultiTokenContractTests : MultiTokenContractTestBase
         //invalid chain id
         {
             var chainTokenSymbol = "CHAIN";
-            await TokenContractStub.Create.SendAsync(new CreateInput
+            await CreateMutiTokenAsync(TokenContractStub, new CreateInput
             {
                 Symbol = chainTokenSymbol,
                 TokenName = "chain token",
@@ -443,9 +412,8 @@ public partial class MultiTokenContractTests : MultiTokenContractTestBase
     [Fact]
     public async Task IssueToken_Test()
     {
-        await CreateNativeTokenAsync();
         var newTokenSymbol = "AIN";
-        await TokenContractStub.Create.SendAsync(new CreateInput
+        await CreateMutiTokenAsync(TokenContractStub, new CreateInput
         {
             Symbol = newTokenSymbol,
             TokenName = "ain token",
@@ -514,19 +482,17 @@ public partial class MultiTokenContractTests : MultiTokenContractTestBase
                 TreasuryContractAddress
             }
         };
-        var createTokenRet = await TokenContractStub.Create.SendWithExceptionAsync(createTokenInfo);
-        createTokenRet.TransactionResult.Error.ShouldContain("Invalid native token input");
         var createTokenInfoWithInvalidTokenName = new CreateInput();
         createTokenInfoWithInvalidTokenName.MergeFrom(createTokenInfo);
         createTokenInfoWithInvalidTokenName.Symbol = "ITISAVERYLONGSYMBOLNAME";
-        createTokenRet = await TokenContractStub.Create.SendWithExceptionAsync(createTokenInfoWithInvalidTokenName);
+        var createTokenRet =
+            await CreateSeedNftWithExceptionAsync(TokenContractStub, createTokenInfoWithInvalidTokenName);
         createTokenRet.TransactionResult.Error.ShouldContain("Invalid token symbol length");
         var createTokenInfoWithInvalidDecimal = new CreateInput();
         createTokenInfoWithInvalidDecimal.MergeFrom(createTokenInfo);
         createTokenInfoWithInvalidDecimal.Decimals = 100;
-        createTokenRet = await TokenContractStub.Create.SendWithExceptionAsync(createTokenInfoWithInvalidDecimal);
+        createTokenRet = await CreateMutiTokenWithExceptionAsync(TokenContractStub, createTokenInfoWithInvalidDecimal);
         createTokenRet.TransactionResult.Error.ShouldContain("Invalid input");
-        await CreateNativeTokenAsync();
         await TokenContractStub.Create.SendAsync(createTokenInfo);
         var tokenInfo = await TokenContractStub.GetTokenInfo.CallAsync(new GetTokenInfoInput
         {
@@ -544,7 +510,6 @@ public partial class MultiTokenContractTests : MultiTokenContractTestBase
                 Symbol = "NOTEXISTED"
             });
         setPrimaryTokenRet.TransactionResult.Error.ShouldContain("Invalid input");
-        await CreateNativeTokenAsync();
         await TokenContractStub.SetPrimaryTokenSymbol.SendAsync(new SetPrimaryTokenSymbolInput
         {
             Symbol = NativeTokenInfo.Symbol
@@ -562,7 +527,6 @@ public partial class MultiTokenContractTests : MultiTokenContractTestBase
     [Fact]
     public async Task GetNativeToken_Test()
     {
-        await CreateNativeTokenAsync();
         var tokenInfo = await TokenContractStub.GetNativeTokenInfo.CallAsync(new Empty());
         tokenInfo.Symbol.ShouldBe(NativeTokenInfo.Symbol);
     }

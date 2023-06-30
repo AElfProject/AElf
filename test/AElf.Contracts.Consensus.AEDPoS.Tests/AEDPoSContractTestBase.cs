@@ -168,7 +168,7 @@ public class AEDPoSContractTestBase : EconomicContractsTestBase
             ContractMethodName = methodName,
             ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1),
             Params = input.ToByteString(),
-            ToAddress = ConsensusContractAddress
+            ToAddress = contractAddress
         };
 
         var createResult = await ParliamentContractStub.CreateProposal.SendAsync(proposal);

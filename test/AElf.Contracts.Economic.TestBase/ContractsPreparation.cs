@@ -522,12 +522,34 @@ public partial class EconomicContractsTestBase
     {
         await ExecuteProposalForParliamentTransaction(TokenContractAddress,
             nameof(TokenContractStub.AddAddressToCreateTokenWhiteList), TransactionFeeChargingContractAddress);
-        var result = await TransactionFeeChargingContractStub.InitializeTransactionFeeChargingContract.SendAsync(
-            new InitializeTransactionFeeChargingContractInput
+        
+        await ExecuteProposalForParliamentTransaction(TokenContractAddress, nameof(TokenContractStub.Create), new CreateInput
+        {
+            Symbol = EconomicContractsTestConstants.TransactionFeeChargingContractTokenSymbol,
+            TokenName = "Token of Transaction Fee Charging Contract",
+            Decimals = 2,
+            Issuer = BootMinerAddress,
+            IsBurnable = true,
+            TotalSupply = 1_000_000_000,
+            LockWhiteList =
             {
-                Symbol = EconomicContractsTestConstants.TransactionFeeChargingContractTokenSymbol
-            });
-        CheckResult(result.TransactionResult);
+                TokenConverterContractAddress,
+                TreasuryContractAddress
+            }
+        });
+        await TokenContractStub.Issue.SendAsync(new IssueInput
+        {
+            Symbol = EconomicContractsTestConstants.TransactionFeeChargingContractTokenSymbol,
+            Amount = 100_000,
+            To = TokenConverterContractAddress
+        });
+        
+        // var result = await TransactionFeeChargingContractStub.InitializeTransactionFeeChargingContract.SendAsync(
+        //     new InitializeTransactionFeeChargingContractInput
+        //     {
+        //         Symbol = EconomicContractsTestConstants.TransactionFeeChargingContractTokenSymbol
+        //     });
+        // CheckResult(result.TransactionResult);
 
         {
             var approveResult = await TokenContractStub.Approve.SendAsync(new ApproveInput

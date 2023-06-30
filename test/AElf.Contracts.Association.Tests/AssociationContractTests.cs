@@ -943,13 +943,21 @@ public class AssociationContractTests : AssociationContractTestBase<AssociationC
             var tokenSymbol = "DLS";
             var invalidMethodFees = GetValidMethodFees();
             invalidMethodFees.Fees[0].Symbol = tokenSymbol;
-            await TokenContractStub.Create.SendAsync(new CreateInput
-            {
-                Symbol = tokenSymbol,
-                TokenName = "name",
-                Issuer = DefaultSender,
-                TotalSupply = 1000_000
-            });
+            
+            var defaultOrganization = await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+
+            var proposalId = await CreateFeeProposalAsync(TokenContractAddress,
+                defaultOrganization, nameof(TokenContractStub.Create), new CreateInput
+                {
+                    Symbol = tokenSymbol,
+                    TokenName = "name",
+                    Issuer = DefaultSender,
+                    TotalSupply = 1000_000
+                });
+
+            await ApproveWithMinersAsync(proposalId);
+            await ParliamentContractStub.Release.SendAsync(proposalId);
+            
             var ret = await AssociationContractStub.SetMethodFee.SendWithExceptionAsync(invalidMethodFees);
             ret.TransactionResult.Error.ShouldContain($"Token {tokenSymbol} cannot set as method fee.");
         }

@@ -15,11 +15,6 @@ namespace AElf.Contracts.TokenConverter;
 
 public partial class TokenConverterContractTests
 {
-    public TokenConverterContractTests()
-    {
-        AsyncHelper.RunSync(InitializeParliamentContractAsync);
-    }
-
     [Fact]
     public async Task DefaultController_Test()
     {
@@ -295,15 +290,7 @@ public partial class TokenConverterContractTests
         var tokenSymbol = "TRA";
         //with authority user
         {
-            var createTokenRet = (await TokenContractStub.Create.SendAsync(new CreateInput
-            {
-                Symbol = tokenSymbol,
-                TokenName = "NET name",
-                TotalSupply = 100_0000_0000,
-                Issuer = DefaultSender,
-                IsBurnable = true
-            })).TransactionResult;
-            createTokenRet.Status.ShouldBe(TransactionResultStatus.Mined);
+            await CreateTokenAsync(tokenSymbol);
             var pairConnector = new PairConnectorParam
             {
                 ResourceConnectorSymbol = tokenSymbol,
@@ -328,16 +315,7 @@ public partial class TokenConverterContractTests
     public async Task Update_Connector_Success_Test()
     {
         var token = "NETT";
-        var createTokenRet = (await TokenContractStub.Create.SendAsync(new CreateInput
-        {
-            Symbol = token,
-            TokenName = "NETT name",
-            TotalSupply = 100_0000_0000,
-            Issuer = DefaultSender,
-            IsBurnable = true,
-            LockWhiteList = { TokenConverterContractAddress }
-        })).TransactionResult;
-        createTokenRet.Status.ShouldBe(TransactionResultStatus.Mined);
+        await CreateTokenAsync(token);
         var pairConnector = new PairConnectorParam
         {
             ResourceConnectorSymbol = token,
@@ -526,15 +504,16 @@ public partial class TokenConverterContractTests
 
     private async Task CreateTokenAsync(string symbol, long totalSupply = 100_0000_0000)
     {
-        await TokenContractStub.Create.SendAsync(new CreateInput
-        {
-            Symbol = symbol,
-            TokenName = symbol + " name",
-            TotalSupply = totalSupply,
-            Issuer = DefaultSender,
-            IsBurnable = true,
-            LockWhiteList = { TokenConverterContractAddress }
-        });
+        await ExecuteProposalForParliamentTransaction(TokenContractAddress, nameof(TokenContractStub.Create),
+            new CreateInput
+            {
+                Symbol = symbol,
+                TokenName = symbol + " name",
+                TotalSupply = totalSupply,
+                Issuer = DefaultSender,
+                IsBurnable = true,
+                LockWhiteList = { TokenContractAddress, TokenConverterContractAddress }
+            });
     }
 
     private async Task AddPairConnectorAsync(string tokenSymbol)
@@ -544,60 +523,5 @@ public partial class TokenConverterContractTests
             TokenConverterContractAddress,
             nameof(TokenConverterContractImplContainer.TokenConverterContractImplStub.AddPairConnector),
             pairConnector);
-    }
-
-    private async Task ApproveByParliamentMembers(Hash proposalId)
-    {
-        foreach (var bp in InitialCoreDataCenterKeyPairs)
-        {
-            var tester = GetParliamentContractTester(bp);
-            await tester.Approve.SendAsync(proposalId);
-        }
-    }
-
-    private async Task<Hash> CreateAndApproveProposalForParliament(Address contract,
-        string method, IMessage input, Address parliamentOrganization = null)
-    {
-        if (parliamentOrganization == null)
-            parliamentOrganization =
-                await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
-        var proposal = new CreateProposalInput
-        {
-            OrganizationAddress = parliamentOrganization,
-            ContractMethodName = method,
-            ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1),
-            Params = input.ToByteString(),
-            ToAddress = contract
-        };
-        var createResult = await ParliamentContractStub.CreateProposal.SendAsync(proposal);
-        var proposalHash = createResult.Output;
-        await ApproveByParliamentMembers(proposalHash);
-        return proposalHash;
-    }
-
-    private async Task<TransactionResult> ExecuteProposalForParliamentTransactionWithException(
-        Address contract,
-        string method, IMessage input, Address parliamentOrganization = null)
-    {
-        if (parliamentOrganization == null)
-            parliamentOrganization =
-                await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
-        var proposalHash =
-            await CreateAndApproveProposalForParliament(contract, method, input,
-                parliamentOrganization);
-        var releaseResult = await ParliamentContractStub.Release.SendWithExceptionAsync(proposalHash);
-        return releaseResult.TransactionResult;
-    }
-
-    private async Task ExecuteProposalForParliamentTransaction(Address contract,
-        string method, IMessage input, Address parliamentOrganization = null)
-    {
-        if (parliamentOrganization == null)
-            parliamentOrganization =
-                await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
-        var proposalHash =
-            await CreateAndApproveProposalForParliament(contract, method, input,
-                parliamentOrganization);
-        await ParliamentContractStub.Release.SendAsync(proposalHash);
     }
 }
