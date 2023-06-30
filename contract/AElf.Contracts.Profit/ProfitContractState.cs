@@ -17,6 +17,4 @@ public partial class ProfitContractState : ContractState
     public MappedState<string, MethodFees> TransactionFees { get; set; }
 
     public SingletonState<AuthorityInfo> MethodFeeController { get; set; }
-    
-    public BoolState BackupSubsidyTotalShareIncreased { get; set; }
 }

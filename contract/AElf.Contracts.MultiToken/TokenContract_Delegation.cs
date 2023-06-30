@@ -209,6 +209,7 @@ public partial class TokenContract
                 "Delegation cannot be null.");
             Assert(delegateInfo.ContractAddress != null && !string.IsNullOrEmpty(delegateInfo.MethodName),
                 "Invalid contract address and method name.");
+
             var existDelegateeInfoList =
                 State.TransactionFeeDelegateInfoMap[delegatorAddress][delegateInfo.ContractAddress]
                     [delegateInfo.MethodName] ?? new TransactionFeeDelegatees();
@@ -373,6 +374,7 @@ public partial class TokenContract
         {
             Assert(delegateTransaction.ContractAddress != null && !string.IsNullOrEmpty(delegateTransaction.MethodName),
                 "Invalid contract address and method name.");
+
             var delegateeInfo =
                 State.TransactionFeeDelegateInfoMap[delegatorAddress][delegateTransaction.ContractAddress][
                     delegateTransaction.MethodName];

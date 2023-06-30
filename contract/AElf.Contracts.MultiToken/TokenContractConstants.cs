@@ -14,7 +14,7 @@ public static class TokenContractConstants
     public const string LockCallbackExternalInfoKey = "aelf_lock_callback";
     public const string UnlockCallbackExternalInfoKey = "aelf_unlock_callback";
     public const string LogEventExternalInfoKey = "aelf_log_event";
-    public const int DELEGATEE_MAX_COUNT = 128;
+    public const int DELEGATEE_MAX_COUNT = 24;
     public const char NFTSymbolSeparator = '-';
     public const int NFTSymbolMaxLength = 30;
     public const string UserContractMethodFeeKey = "UserContractMethodFee";

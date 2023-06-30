@@ -719,16 +719,6 @@ public partial class ProfitContract : ProfitContractImplContainer.ProfitContract
 
         return new Empty();
     }
-    
-    public override Empty IncreaseBackupSubsidyTotalShare(Hash schemeId)
-    {
-        Assert(!State.BackupSubsidyTotalShareIncreased.Value, "Already increased");
-        State.BackupSubsidyTotalShareIncreased.Value = true;
-        var scheme = State.SchemeInfos[schemeId];
-        scheme.TotalShares = scheme.TotalShares.Add(1);
-        State.SchemeInfos[schemeId] = scheme;
-        return new Empty();
-    }
 
     public override Empty ResetManager(ResetManagerInput input)
     {

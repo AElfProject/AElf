@@ -59,5 +59,5 @@ public partial class TokenContractState : ContractState
     /// <summary>
     /// delegator address -> contract address -> method name -> delegatee info
     /// </summary>
-    public MappedState<Address, Address, string,TransactionFeeDelegatees> TransactionFeeDelegateInfoMap { get; set; }
+    public MappedState<Address, Address, string, TransactionFeeDelegatees> TransactionFeeDelegateInfoMap { get; set; }
 }
