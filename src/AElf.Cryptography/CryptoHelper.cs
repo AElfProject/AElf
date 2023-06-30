@@ -2,10 +2,13 @@
 using System.Linq;
 using System.Security.Cryptography;
 using System.Threading;
+using AElf.Cryptography.Core;
 using AElf.Cryptography.ECDSA;
+using AElf.Cryptography.ECVRF;
 using AElf.Cryptography.Exceptions;
 using Secp256k1Net;
 using Virgil.Crypto;
+using ECParameters = AElf.Cryptography.ECDSA.ECParameters;
 
 namespace AElf.Cryptography;
 
@@ -15,6 +18,8 @@ public static class CryptoHelper
 
     // ReaderWriterLock for thread-safe with Secp256k1 APIs
     private static readonly ReaderWriterLock Lock = new();
+
+    private static readonly Vrf<Secp256k1Curve, Sha256HasherFactory> Vrf = new(new VrfConfig(0xfe, ECParameters.Curve));
 
     static CryptoHelper()
     {
@@ -154,6 +159,32 @@ public static class CryptoHelper
             if (!Secp256K1.Ecdh(ecdhKey, usablePublicKey, privateKey))
                 throw new EcdhOperationException("Compute EC Diffie- secret failed.");
             return ecdhKey;
+        }
+        finally
+        {
+            Lock.ReleaseWriterLock();
+        }
+    }
+
+    public static byte[] ECVrfProve(ECKeyPair keyPair, byte[] alpha)
+    {
+        try
+        {
+            Lock.AcquireWriterLock(Timeout.Infinite);
+            return Vrf.Prove(keyPair, alpha);
+        }
+        finally
+        {
+            Lock.ReleaseWriterLock();
+        }
+    }
+
+    public static byte[] ECVrfVerify(byte[] publicKey, byte[] alpha, byte[] pi)
+    {
+        try
+        {
+            Lock.AcquireWriterLock(Timeout.Infinite);
+            return Vrf.Verify(publicKey, alpha, pi);
         }
         finally
         {

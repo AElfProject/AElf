@@ -59,4 +59,15 @@ public sealed class AccountServiceTests : AccountTestBase
 
         decryptMessage.ShouldBe(plainMessage);
     }
+    
+    [Fact]
+    public async Task Vrf_Test()
+    {
+        var alpha = "5cf8151010716e40e5349ad02821da605df22e9ac95450c7e35f04c720fd4db5";
+        var alphaBytes = Hash.LoadFromHex(alpha).ToByteArray();
+        var pi = await _accountService.ECVrfProveAsync(alphaBytes);
+        var pubkey = await _accountService.GetPublicKeyAsync();
+        var beta = CryptoHelper.ECVrfVerify(pubkey, alphaBytes, pi);
+        beta.ShouldNotBeEmpty();
+    }
 }

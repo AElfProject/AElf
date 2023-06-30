@@ -26,7 +26,8 @@ public enum TestContracts
     BasicSecurity,
     BasicUpdate,
     MethodCallThreshold,
-    ResourceSpender
+    ResourceSpender,
+    VirtualAddress
 }
 
 public enum ProfitType

@@ -40,6 +40,11 @@
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </ProjectReference>
+        <ProjectReference Include="..\AElf.Contracts.TestContract.VirtualAddress\AElf.Contracts.TestContract.VirtualAddress.csproj">
+            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+            <OutputItemType>Contract</OutputItemType>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </ProjectReference>
         <ProjectReference Include="..\..\src\AElf.Kernel.Consensus.AEDPoS\AElf.Kernel.Consensus.AEDPoS.csproj" />
         <ProjectReference Include="..\..\src\AElf.Kernel.Token\AElf.Kernel.Token.csproj" />
         <ProjectReference Include="..\..\test\AElf.Contracts.Economic.TestBase\AElf.Contracts.Economic.TestBase.csproj" />
@@ -52,6 +57,13 @@
             <Link>Protobuf\Proto\transaction_fee.proto</Link>
         </CommonMessage>
     </ItemGroup>
+
+    <ItemGroup>
+        <ContractStub Include="..\..\protobuf\test_virtual_address_contract.proto">
+            <Link>Protobuf\Proto\test_virtual_address_contract.proto</Link>
+        </ContractStub>
+    </ItemGroup>
+    
     <Import Project="..\..\test\AllProto.props" />
     <Import Project="..\..\test\AllContracts.props" />
 </Project>

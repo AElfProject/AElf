@@ -410,7 +410,7 @@ public class ConnectionServiceTests : GrpcNetworkTestBase
         eventData.ShouldNotBeNull();
     }
 
-    private Handshake CreateHandshake(ECKeyPair initiatorPeer = null, int port = 0)
+    private Handshake CreateHandshake(ECKeyPair initiatorPeer = null, int port = 0, string nodeversion = "1.3.0.0")
     {
         if (initiatorPeer == null)
             initiatorPeer = CryptoHelper.GenerateKeyPair();
@@ -421,6 +421,7 @@ public class ConnectionServiceTests : GrpcNetworkTestBase
             Version = KernelConstants.ProtocolVersion,
             Pubkey = ByteString.CopyFrom(initiatorPeer.PublicKey),
             Time = TimestampHelper.GetUtcNow(),
+            NodeVersion = nodeversion,
             ListeningPort = port
         };
 

@@ -153,8 +153,9 @@ public class AEDPoSContractTestBase : EconomicContractsTestBase
             .AddMilliseconds(
                 ((long)currentRound.TotalMilliseconds(AEDPoSContractTestConstants.MiningInterval)).Mul(
                     nextRoundNumber.Sub(1)));
+        var randomNumber = await GenerateRandomProofAsync(BootMinerKeyPair);
         currentRound.GenerateNextRoundInformation(expectedStartTime.ToTimestamp(), BlockchainStartTimestamp,
-            out var nextRound);
+            ByteString.CopyFrom(randomNumber), out var nextRound);
         await AEDPoSContractStub.NextRound.SendAsync(nextRound);
     }
 
@@ -167,7 +168,7 @@ public class AEDPoSContractTestBase : EconomicContractsTestBase
             ContractMethodName = methodName,
             ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1),
             Params = input.ToByteString(),
-            ToAddress = ConsensusContractAddress
+            ToAddress = contractAddress
         };
 
         var createResult = await ParliamentContractStub.CreateProposal.SendAsync(proposal);

@@ -293,12 +293,13 @@ public class SideChainSideChainRentFeeTest : SideChainRentFeeTestBase<SideChainR
 
     private async Task InitialTokenContractAsync(bool issueToken = true)
     {
-        await CreateTokenAsync("CPU", ResourceSupply, issueToken);
-        await CreateTokenAsync("RAM", ResourceSupply, issueToken);
-        await CreateTokenAsync("DISK", ResourceSupply, issueToken);
-        await CreateTokenAsync("NET", ResourceSupply, issueToken);
         var defaultParliamentOrganization =
             await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+        await CreateTokenAsync("ELF", ResourceSupply, issueToken, defaultParliamentOrganization);
+        await CreateTokenAsync("CPU", ResourceSupply, issueToken, defaultParliamentOrganization);
+        await CreateTokenAsync("RAM", ResourceSupply, issueToken, defaultParliamentOrganization);
+        await CreateTokenAsync("DISK", ResourceSupply, issueToken, defaultParliamentOrganization);
+        await CreateTokenAsync("NET", ResourceSupply, issueToken, defaultParliamentOrganization);
         var setSideChainCreatorProposalInput = new InitializeFromParentChainInput
         {
             ResourceAmount =
@@ -331,18 +332,19 @@ public class SideChainSideChainRentFeeTest : SideChainRentFeeTestBase<SideChainR
             nameof(TokenContractImplContainer.TokenContractImplStub.UpdateRental), updateRentalInput);
     }
 
-    private async Task CreateTokenAsync(string symbol, long supply, bool issueToken)
+    private async Task CreateTokenAsync(string symbol, long supply, bool issueToken, Address organizationAddress)
     {
-        await TokenContractStub.Create.SendAsync(new CreateInput
-        {
-            Decimals = 8,
-            Issuer = Creator,
-            Symbol = symbol,
-            TotalSupply = supply,
-            IsBurnable = true,
-            TokenName = $"{symbol} token."
-        });
-
+        await ParliamentReachAnAgreementAsync(TokenContractAddress, organizationAddress,
+            nameof(TokenContractStub.Create), new CreateInput
+            {
+                Decimals = 8,
+                Issuer = Creator,
+                Symbol = symbol,
+                TotalSupply = supply,
+                IsBurnable = true,
+                TokenName = $"{symbol} token."
+            });
+        
         if (!issueToken) return;
 
         await TokenContractStub.Issue.SendAsync(new IssueInput

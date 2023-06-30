@@ -5,9 +5,11 @@ using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Parliament;
 using AElf.Contracts.Profit;
+using AElf.Contracts.TestContract.VirtualAddress;
 using AElf.Contracts.TokenConverter;
 using AElf.Contracts.Treasury;
 using AElf.Contracts.Vote;
+using AElf.ContractTestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -17,6 +19,13 @@ namespace AElf.Contracts.Election;
 
 public class ElectionContractTestBase : EconomicContractsTestBase
 {
+    protected readonly IBlockTimeProvider BlockTimeProvider;
+
+    protected ElectionContractTestBase()
+    {
+        BlockTimeProvider = GetRequiredService<IBlockTimeProvider>();
+    }
+    
     protected Hash MinerElectionVotingItemId;
 
     internal BasicContractZeroImplContainer.BasicContractZeroImplStub BasicContractZeroStub =>
@@ -47,6 +56,9 @@ public class ElectionContractTestBase : EconomicContractsTestBase
 
     internal EconomicContractImplContainer.EconomicContractImplStub EconomicContractStub =>
         GetEconomicContractTester(BootMinerKeyPair);
+
+    internal VirtualAddressContractContainer.VirtualAddressContractStub VirtualAddressContractStub =>
+        GetVirtualAddressContractTester(BootMinerKeyPair);
 
     private new void DeployAllContracts()
     {
@@ -134,5 +146,10 @@ public class ElectionContractTestBase : EconomicContractsTestBase
     internal EconomicContractImplContainer.EconomicContractImplStub GetEconomicContractTester(ECKeyPair keyPair)
     {
         return GetTester<EconomicContractImplContainer.EconomicContractImplStub>(EconomicContractAddress, keyPair);
+    }
+    
+    internal VirtualAddressContractContainer.VirtualAddressContractStub GetVirtualAddressContractTester(ECKeyPair keyPair)
+    {
+        return GetTester<VirtualAddressContractContainer.VirtualAddressContractStub>(VirtualAddressContractAddress, keyPair);
     }
 }

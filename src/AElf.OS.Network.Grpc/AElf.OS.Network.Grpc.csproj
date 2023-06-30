@@ -1,5 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
-    <Import Project="..\..\common.props"/>
+    <Import Project="..\..\common.props" />
 
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
@@ -9,14 +9,14 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Grpc" Version="2.46.3"/>
-        <PackageReference Include="Grpc.Tools" Version="2.46.3"/>
-        <PackageReference Include="Contrib.Grpc.Core.M1" Version="2.41.0"/>
-        <PackageReference Include="GuerrillaNtp" Version="2.0.1"/>
+        <PackageReference Include="Grpc" Version="2.46.3" />
+        <PackageReference Include="Grpc.Tools" Version="2.46.3" />
+        <PackageReference Include="Contrib.Grpc.Core.M1" Version="2.41.0" />
+        <PackageReference Include="GuerrillaNtp" Version="2.0.1" />
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\AElf.OS.Core\AElf.OS.Core.csproj"/>
+        <ProjectReference Include="..\AElf.OS.Core\AElf.OS.Core.csproj" />
     </ItemGroup>
 
     <ItemGroup>
@@ -26,13 +26,13 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Folder Include="Protobuf"/>
-        <Folder Include="Protobuf\Generated"/>
+        <Folder Include="Protobuf" />
+        <Folder Include="Protobuf\Generated" />
     </ItemGroup>
 
     <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
         <ItemGroup>
-            <Protobuf ProtoRoot="../../protobuf" Include="peer_service.proto" OutputDir="./Protobuf/Generated"/>
+            <Protobuf ProtoRoot="../../protobuf" Include="peer_service.proto" OutputDir="./Protobuf/Generated" />
         </ItemGroup>
     </Target>
 

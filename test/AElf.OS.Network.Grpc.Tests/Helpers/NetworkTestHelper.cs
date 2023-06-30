@@ -9,7 +9,7 @@ namespace AElf.OS.Network.Grpc;
 public static class NetworkTestHelper
 {
     public static Handshake CreateValidHandshake(ECKeyPair producer, long bestChainHeight,
-        int chainId = NetworkTestConstants.DefaultChainId, int port = 0)
+        int chainId = NetworkTestConstants.DefaultChainId, int port = 0, string nodeVersion= "1.3.0.0")
     {
         var data = new HandshakeData
         {
@@ -21,7 +21,8 @@ public static class NetworkTestHelper
             BestChainHeight = bestChainHeight,
             LastIrreversibleBlockHash = HashHelper.ComputeFrom("LastIrreversibleBlockHash"),
             LastIrreversibleBlockHeight = 1,
-            Time = TimestampHelper.GetUtcNow()
+            Time = TimestampHelper.GetUtcNow(),
+            NodeVersion = nodeVersion
         };
 
         var signature =

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using AElf.Kernel;
 
 namespace AElf.OS.Network;
 
@@ -75,6 +76,8 @@ public class NetworkOptions
     public int PeerInvalidTransactionTimeout { get; set; } = NetworkConstants.DefaultPeerInvalidTransactionTimeout;
 
     public int PeerInvalidTransactionLimit { get; set; } = NetworkConstants.DefaultPeerInvalidTransactionLimit;
+
+    public string SupportStreamMinVersion { get; set; } = KernelConstants.SupportStreamMinVersion;
 }
 
 [Flags]

@@ -70,13 +70,13 @@ public class HandshakeProvider : IHandshakeProvider
         var chainId = _blockchainService.GetChainId();
         if (handshake.HandshakeData.ChainId != chainId)
         {
-            Logger.LogDebug($"Chain is is incorrect: {handshake.HandshakeData.ChainId}.");
+            Logger.LogDebug($"Chain is incorrect: {handshake.HandshakeData.ChainId}.");
             return HandshakeValidationResult.InvalidChainId;
         }
 
         if (handshake.HandshakeData.Version != KernelConstants.ProtocolVersion)
         {
-            Logger.LogDebug($"Version is is incorrect: {handshake.HandshakeData.Version}.");
+            Logger.LogDebug($"Version is incorrect: {handshake.HandshakeData.Version}.");
             return HandshakeValidationResult.InvalidVersion;
         }
 

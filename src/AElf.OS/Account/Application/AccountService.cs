@@ -2,6 +2,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
+using AElf.Cryptography.ECVRF;
 using AElf.Kernel.Account.Application;
 using AElf.OS.Account.Infrastructure;
 using AElf.Types;
@@ -41,6 +42,12 @@ public class AccountService : IAccountService
     {
         return CryptoHelper.DecryptMessage(senderPublicKey, (await GetAccountKeyPairAsync()).PrivateKey,
             cipherMessage);
+    }
+
+    public async Task<byte[]> ECVrfProveAsync(byte[] message)
+    {
+        var keyPair = await GetAccountKeyPairAsync();
+        return CryptoHelper.ECVrfProve(keyPair, message);
     }
 
     public async Task<Address> GetAccountAsync()

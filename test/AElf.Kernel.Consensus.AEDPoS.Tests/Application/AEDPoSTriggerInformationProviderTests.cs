@@ -4,6 +4,7 @@ using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Kernel.Consensus.AEDPoS.Application;
 using AElf.Kernel.Consensus.Application;
 using AElf.Standards.ACS4;
+using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
@@ -43,7 +44,7 @@ public class AEDPoSTriggerInformationProviderTests : AEDPoSTestBase
     [Fact]
     public async Task GetCurrentMinerList_Test()
     {
-        var result = await _aedpoSInformationProvider.GetCurrentMinerList(new ChainContext());
+        var result = await _aedpoSInformationProvider.GetCurrentMinerListAsync(new ChainContext());
         result.Count().ShouldBe(3);
     }
 
@@ -60,7 +61,7 @@ public class AEDPoSTriggerInformationProviderTests : AEDPoSTestBase
     public void GetTriggerInformationForConsensusTransactions_CommandIsNull_Test()
     {
         var result =
-            _triggerInformationProvider.GetTriggerInformationForConsensusTransactions(null);
+            _triggerInformationProvider.GetTriggerInformationForConsensusTransactions(new ChainContext(), null);
         var triggerInformation = AElfConsensusTriggerInformation.Parser.ParseFrom(result.Value);
         triggerInformation.Behaviour.ShouldBe(AElfConsensusBehaviour.UpdateValue);
     }

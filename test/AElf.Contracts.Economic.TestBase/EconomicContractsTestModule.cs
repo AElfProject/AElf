@@ -26,6 +26,7 @@ public class EconomicContractsTestModule : ContractTestModule
         // context.Services.AddSingleton<IPostExecutionPlugin, ResourceConsumptionPostExecutionPlugin>();
         context.Services.AddSingleton<ISecretSharingService, SecretSharingService>();
         context.Services.AddSingleton<IInValueCache, InValueCache>();
+        context.Services.AddTransient<IRandomNumberProvider, MockRandomNumberProvider>();
         context.Services.RemoveAll<IPreExecutionPlugin>();
     }
 }

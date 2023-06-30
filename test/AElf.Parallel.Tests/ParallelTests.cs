@@ -224,7 +224,7 @@ public sealed class ParallelTests : AElfIntegratedTest<ParallelTestAElfModule>
         var symbol = "TELF";
         var keyPair = CryptoHelper.GenerateKeyPair();
         var address = Address.FromPublicKey(keyPair.PublicKey);
-        await _parallelTestHelper.CreateAndIssueTokenAsync(symbol, address);
+        await _parallelTestHelper.TransferTokenAsync(symbol, address);
 
         var transactionList = new List<Transaction>();
         var accountAddress = await _accountService.GetAccountAsync();
