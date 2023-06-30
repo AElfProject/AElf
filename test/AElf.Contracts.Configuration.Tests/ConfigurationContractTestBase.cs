@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Contracts.Configuration;
+using AElf.Contracts.MultiToken;
 using AElf.Contracts.Parliament;
 using AElf.Contracts.TestBase;
 using AElf.Cryptography.ECDSA;
@@ -167,5 +168,51 @@ public class ConfigurationContractTestBase : ContractTestBase<ConfigurationContr
             nameof(MethodFeeProviderContractContainer.MethodFeeProviderContractStub.GetMethodFeeController),
             new Empty());
         return AuthorityInfo.Parser.ParseFrom(methodFeeControllerByteString);
+    }
+
+    protected async Task CreateTokenAsync(string symbol)
+    {
+        await Tester.ExecuteContractWithMiningAsync(TokenContractAddress,
+            nameof(TokenContractContainer.TokenContractStub.Create),
+            new CreateInput
+            {
+                Symbol = "SEED-0",
+                Decimals = 0,
+                IsBurnable = true,
+                TokenName = "seed Collection",
+                TotalSupply = 1,
+                Issuer = Tester.GetCallOwnerAddress(),
+                ExternalInfo = new ExternalInfo()
+            });
+        await Tester.ExecuteContractWithMiningAsync(TokenContractAddress,
+            nameof(TokenContractContainer.TokenContractStub.Create),
+            new CreateInput
+            {
+                Symbol = "SEED-1",
+                Decimals = 0,
+                IsBurnable = true,
+                TokenName = "seed",
+                TotalSupply = 1,
+                Issuer = Tester.GetCallOwnerAddress(),
+                ExternalInfo = new ExternalInfo
+                {
+                    Value =
+                    {
+                        { "__seed_owned_symbol", symbol },
+                        { "__seed_exp_time", TimestampHelper.GetUtcNow().AddDays(1).Seconds.ToString() }
+                    }
+                },
+                LockWhiteList = { TokenContractAddress }
+            });
+
+        await Tester.ExecuteContractWithMiningAsync(TokenContractAddress,
+            nameof(TokenContractContainer.TokenContractStub.Issue),
+            new IssueInput
+            {
+                Symbol = "SEED-1",
+                Amount = 1,
+                To = Tester.GetCallOwnerAddress(),
+                Memo = "test"
+            });
     }
 }

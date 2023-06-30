@@ -195,8 +195,8 @@ public class MultiTokenContractCrossChainTest : MultiTokenContractCrossChainTest
 
         // Side chain create token
         var createTransaction =
-            CreateTransactionForTokenCreation(SideChainTokenContractStub, SideChainTestKit.DefaultAccount.Address,
-                SymbolForTesting);
+            await CreateTransactionForTokenCreation(SideChainTokenContractStub, SideChainTestKit.DefaultAccount.Address,
+                SymbolForTesting, SideTokenContractAddress);
         var executedSet = await SideChainTestKit.MineAsync(new List<Transaction> { createTransaction });
         var createResult = executedSet.TransactionResultMap[createTransaction.GetHash()];
         Assert.True(createResult.Status == TransactionResultStatus.Mined, createResult.Error);
@@ -236,8 +236,8 @@ public class MultiTokenContractCrossChainTest : MultiTokenContractCrossChainTest
 
         // Main chain create token
         await BootMinerChangeRoundAsync(AEDPoSContractStub, true);
-        var createTransaction = CreateTransactionForTokenCreation(TokenContractStub,
-            DefaultAccount.Address, SymbolForTesting);
+        var createTransaction = await CreateTransactionForTokenCreation(TokenContractStub,
+            DefaultAccount.Address, SymbolForTesting, TokenContractAddress);
         var blockExecutedSet = await MineAsync(new List<Transaction> { createTransaction });
         var createResult = blockExecutedSet.TransactionResultMap[createTransaction.GetHash()];
         Assert.True(createResult.Status == TransactionResultStatus.Mined, createResult.Error);
@@ -328,14 +328,13 @@ public class MultiTokenContractCrossChainTest : MultiTokenContractCrossChainTest
         await RegisterSideChainContractAddressOnMainChainAsync();
 
         await BootMinerChangeRoundAsync(AEDPoSContractStub, true);
-        var createTransaction = CreateTransactionForTokenCreation(TokenContractStub,
-            DefaultAccount.Address, SymbolForTesting);
+        var createTransaction = await CreateTransactionForTokenCreation(TokenContractStub,
+            DefaultAccount.Address, SymbolForTesting, TokenContractAddress);
         var blockExecutedSet = await MineAsync(new List<Transaction> { createTransaction });
         var createResult = blockExecutedSet.TransactionResultMap[createTransaction.GetHash()];
         Assert.True(createResult.Status == TransactionResultStatus.Mined, createResult.Error);
-
-        var sideCreateTransaction = CreateTransactionForTokenCreation(SideChainTokenContractStub,
-            SideChainTestKit.DefaultAccount.Address, SymbolForTesting);
+        var sideCreateTransaction = await CreateTransactionForTokenCreation(SideChainTokenContractStub,
+            SideChainTestKit.DefaultAccount.Address, SymbolForTesting, SideTokenContractAddress);
         blockExecutedSet = await SideChainTestKit.MineAsync(new List<Transaction> { sideCreateTransaction });
         var sideCreateResult = blockExecutedSet.TransactionResultMap[sideCreateTransaction.GetHash()];
         Assert.True(sideCreateResult.Status == TransactionResultStatus.Mined, sideCreateResult.Error);
@@ -437,8 +436,8 @@ public class MultiTokenContractCrossChainTest : MultiTokenContractCrossChainTest
     [Fact]
     public async Task MainChain_CrossChainTransfer_Without_Burnable_Token_Test()
     {
-        var createTransaction = CreateTransactionForTokenCreation(TokenContractStub,
-            DefaultAccount.Address, SymbolForTesting, false);
+        var createTransaction = await CreateTransactionForTokenCreation(TokenContractStub,
+            DefaultAccount.Address, SymbolForTesting, TokenContractAddress, false);
         var blockExecutedSet = await MineAsync(new List<Transaction> { createTransaction });
         var createResult = blockExecutedSet.TransactionResultMap[createTransaction.GetHash()];
         Assert.True(createResult.Status == TransactionResultStatus.Mined, createResult.Error);
@@ -471,8 +470,8 @@ public class MultiTokenContractCrossChainTest : MultiTokenContractCrossChainTest
 
         // Main chain create token
         await BootMinerChangeRoundAsync(AEDPoSContractStub, true);
-        var createTransaction = CreateTransactionForTokenCreation(TokenContractStub,
-            DefaultAccount.Address, SymbolForTesting);
+        var createTransaction = await CreateTransactionForTokenCreation(TokenContractStub,
+            DefaultAccount.Address, SymbolForTesting, TokenContractAddress);
         var executedSet = await MineAsync(new List<Transaction> { createTransaction });
         var createResult = executedSet.TransactionResultMap[createTransaction.GetHash()];
         Assert.True(createResult.Status == TransactionResultStatus.Mined, createResult.Error);
@@ -648,10 +647,11 @@ public class MultiTokenContractCrossChainTest : MultiTokenContractCrossChainTest
             TransferTransactionBytes = crossChainTransferTransaction.ToByteString(),
             MerklePath = transferMerKlePath
         };
-        var receiveResult = await SideChainTokenContractStub.CrossChainReceiveToken.SendAsync(crossChainReceiveTokenInput);
-        
+        var receiveResult =
+            await SideChainTokenContractStub.CrossChainReceiveToken.SendAsync(crossChainReceiveTokenInput);
+
         var logEvent = receiveResult.TransactionResult.Logs.First(l => l.Name == nameof(CrossChainReceived));
-        var receivedEvent =new CrossChainReceived();
+        var receivedEvent = new CrossChainReceived();
         receivedEvent.MergeFrom(logEvent.NonIndexed);
         receivedEvent.From.ShouldBe(SideChainTestKit.DefaultAccount.Address);
         receivedEvent.To.ShouldBe(SideChainTestKit.DefaultAccount.Address);
@@ -723,8 +723,8 @@ public class MultiTokenContractCrossChainTest : MultiTokenContractCrossChainTest
         await RegisterMainChainTokenContractAddressOnSideChainAsync(sideChainId);
         var transferAmount = 1000;
 
-        var createTransaction = CreateTransactionForTokenCreation(TokenContractStub,
-            DefaultAccount.Address, SymbolForTesting);
+        var createTransaction = await CreateTransactionForTokenCreation(TokenContractStub,
+            DefaultAccount.Address, SymbolForTesting, TokenContractAddress);
         var executedSet = await MineAsync(new List<Transaction> { createTransaction });
         var createResult = executedSet.TransactionResultMap[createTransaction.GetHash()];
         createResult.Status.ShouldBe(TransactionResultStatus.Mined, createResult.Error);
@@ -809,8 +809,8 @@ public class MultiTokenContractCrossChainTest : MultiTokenContractCrossChainTest
     public async Task CrossChainCreateToken_WithoutRegister_Test()
     {
         await GenerateSideChainAsync(false);
-        var createTransaction = CreateTransactionForTokenCreation(TokenContractStub,
-            DefaultAccount.Address, SymbolForTesting);
+        var createTransaction = await CreateTransactionForTokenCreation(TokenContractStub,
+            DefaultAccount.Address, SymbolForTesting, TokenContractAddress);
         var blockExecutedSet = await MineAsync(new List<Transaction> { createTransaction });
         var createResult = blockExecutedSet.TransactionResultMap[createTransaction.GetHash()];
         Assert.True(createResult.Status == TransactionResultStatus.Mined, createResult.Error);
@@ -871,12 +871,13 @@ public class MultiTokenContractCrossChainTest : MultiTokenContractCrossChainTest
     }
 
 
-    private Transaction CreateTransactionForTokenCreation(
+    private async Task<Transaction> CreateTransactionForTokenCreation(
         TokenContractImplContainer.TokenContractImplStub tokenContractImplStub,
-        Address issuer, string symbol, bool isBurnable = true)
+        Address issuer, string symbol, Address lockWhiteAddress, bool isBurnable = true)
     {
+        await CreateSeedNftCollection(tokenContractImplStub, issuer);
         var tokenInfo = GetTokenInfo(symbol, issuer, isBurnable);
-        return tokenContractImplStub.Create.GetTransaction(new CreateInput
+        var input = new CreateInput
         {
             Symbol = tokenInfo.Symbol,
             Decimals = tokenInfo.Decimals,
@@ -884,8 +885,11 @@ public class MultiTokenContractCrossChainTest : MultiTokenContractCrossChainTest
             IsBurnable = tokenInfo.IsBurnable,
             TokenName = tokenInfo.TokenName,
             TotalSupply = tokenInfo.TotalSupply
-        });
+        };
+        await CreateSeedNftAsync(tokenContractImplStub, input, lockWhiteAddress);
+        return tokenContractImplStub.Create.GetTransaction(input);
     }
+
 
     private Transaction CreateTokenInfoValidationTransaction(TokenInfo createdTokenInfo,
         TokenContractImplContainer.TokenContractImplStub tokenContractImplStub)

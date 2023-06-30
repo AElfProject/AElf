@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Contracts.Parliament;
 using AElf.CrossChain;
 using AElf.Cryptography.ECDSA;
 using AElf.CSharp.Core;
@@ -16,7 +17,9 @@ using AElf.Kernel.Proposal;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Token;
 using AElf.Standards.ACS0;
+using AElf.Standards.ACS3;
 using AElf.Types;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp;
@@ -45,6 +48,9 @@ public class ContractTestBase<TModule> : AbpIntegratedTest<TModule> where TModul
     protected IReadOnlyList<Account> Accounts => SampleAccount.Accounts;
 
     protected int InitialCoreDataCenterCount => 5;
+    
+    protected List<ECKeyPair> InitialCoreDataCenterKeyPairs =>
+        Accounts.Take(InitialCoreDataCenterCount).Select(a => a.KeyPair).ToList();
 
     protected Dictionary<Hash, Address> SystemContractAddresses { get; } = new();
 
@@ -154,5 +160,35 @@ public class ContractTestBase<TModule> : AbpIntegratedTest<TModule> where TModul
 
         application.Initialize();
         return application;
+    }
+    
+    protected async Task SubmitAndApproveProposalOfDefaultParliament(Address contractAddress, string methodName,
+        IMessage message)
+    {
+        var parliamentContractStub = GetTester<ParliamentContractImplContainer.ParliamentContractImplStub>(ParliamentContractAddress, DefaultAccount.KeyPair);
+        var defaultParliamentAddress =
+            await parliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+        
+        var proposal = new CreateProposalInput
+        {
+            OrganizationAddress = defaultParliamentAddress,
+            ContractMethodName = methodName,
+            ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1),
+            Params = message.ToByteString(),
+            ToAddress = contractAddress
+        };
+        var createResult = await parliamentContractStub.CreateProposal.SendAsync(proposal);
+        var proposalId = createResult.Output;
+        await ApproveWithMinersAsync(proposalId);
+        await parliamentContractStub.Release.SendAsync(proposalId);
+    }
+
+    private async Task ApproveWithMinersAsync(Hash proposalId)
+    {
+        foreach (var bp in InitialCoreDataCenterKeyPairs)
+        {
+            var tester = GetTester<ParliamentContractImplContainer.ParliamentContractImplStub>(ParliamentContractAddress, bp);
+            await tester.Approve.SendAsync(proposalId);
+        }
     }
 }

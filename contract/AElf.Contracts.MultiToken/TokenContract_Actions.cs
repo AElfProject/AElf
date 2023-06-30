@@ -35,7 +35,6 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
         // can not call create on side chain
         Assert(State.SideChainCreator.Value == null, "Failed to create token if side chain creator already set.");
         var inputSymbolType = GetCreateInputSymbolType(input.Symbol);
-        ChargeCreateFees();
         return inputSymbolType switch
         {
             SymbolType.NftCollection => CreateNFTCollection(input),
@@ -47,6 +46,20 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
     private Empty CreateToken(CreateInput input, SymbolType symbolType = SymbolType.Token)
     {
         AssertValidCreateInput(input, symbolType);
+        if (symbolType == SymbolType.Token || symbolType == SymbolType.NftCollection)
+        {
+            if (!IsAddressInCreateWhiteList(Context.Sender) &&
+                input.Symbol != TokenContractConstants.SeedCollectionSymbol)
+            {
+                var symbolSeed = State.SymbolSeedMap[input.Symbol];
+                CheckSeedNFT(symbolSeed, input.Symbol);
+                // seed nft for one-time use only
+                long balance = State.Balances[Context.Sender][symbolSeed];
+                DoTransferFrom(Context.Sender, Context.Self, Context.Self, symbolSeed, balance, "");
+                Burn(Context.Self, symbolSeed, balance);
+            }
+        }
+
         var tokenInfo = new TokenInfo
         {
             Symbol = input.Symbol,
@@ -86,6 +99,22 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
 
         return new Empty();
     }
+
+    private void CheckSeedNFT(string symbolSeed, String symbol)
+    {
+        Assert(!string.IsNullOrEmpty(symbolSeed), "Seed NFT does not exist.");
+        var tokenInfo = State.TokenInfos[symbolSeed];
+        Assert(tokenInfo != null, "Seed NFT does not exist.");
+        Assert(State.Balances[Context.Sender][symbolSeed] > 0, "Seed NFT balance is not enough.");
+        Assert(tokenInfo.ExternalInfo != null && tokenInfo.ExternalInfo.Value.TryGetValue(
+                TokenContractConstants.SeedOwnedSymbolExternalInfoKey, out var ownedSymbol) && ownedSymbol == symbol,
+            "Invalid OwnedSymbol.");
+        Assert(tokenInfo.ExternalInfo.Value.TryGetValue(TokenContractConstants.SeedExpireTimeExternalInfoKey,
+                   out var expirationTime)
+               && long.TryParse(expirationTime, out var expirationTimeLong) &&
+               Context.CurrentBlockTime.Seconds <= expirationTimeLong, "OwnedSymbol is expired.");
+    }
+
 
     /// <summary>
     ///     Set primary token symbol.
@@ -151,7 +180,12 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
     public override Empty Lock(LockInput input)
     {
         AssertSystemContractOrLockWhiteListAddress(input.Symbol);
-        Assert(Context.Origin == input.Address, "Lock behaviour should be initialed by origin address.");
+
+        // For Election Contract
+        var electionContractAddress = GetElectionContractAddress();
+        Assert(Context.Sender == electionContractAddress || Context.Origin == input.Address,
+            "Lock behaviour should be initialed by origin address.");
+
         var allowance = State.Allowances[input.Address][Context.Sender][input.Symbol];
         if (allowance >= input.Amount)
             State.Allowances[input.Address][Context.Sender][input.Symbol] = allowance.Sub(input.Amount);
@@ -175,7 +209,12 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
     public override Empty Unlock(UnlockInput input)
     {
         AssertSystemContractOrLockWhiteListAddress(input.Symbol);
-        Assert(Context.Origin == input.Address, "Unlock behaviour should be initialed by origin address.");
+
+        // For Election Contract
+        var electionContractAddress = GetElectionContractAddress();
+        Assert(Context.Sender == electionContractAddress || Context.Origin == input.Address,
+            "Unlock behaviour should be initialed by origin address.");
+
         AssertValidToken(input.Symbol, input.Amount);
         var fromVirtualAddress = HashHelper.ComputeFrom(Context.Sender.Value.Concat(input.Address.Value)
             .Concat(input.LockId.Value).ToArray());
@@ -236,16 +275,21 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
 
     public override Empty Burn(BurnInput input)
     {
-        var tokenInfo = AssertValidToken(input.Symbol, input.Amount);
+        return Burn(Context.Sender, input.Symbol, input.Amount);
+    }
+
+    private Empty Burn(Address address, string symbol, long amount)
+    {
+        var tokenInfo = AssertValidToken(symbol, amount);
         Assert(tokenInfo.IsBurnable, "The token is not burnable.");
-        ModifyBalance(Context.Sender, input.Symbol, -input.Amount);
-        tokenInfo.Supply = tokenInfo.Supply.Sub(input.Amount);
+        ModifyBalance(address, symbol, -amount);
+        tokenInfo.Supply = tokenInfo.Supply.Sub(amount);
 
         Context.Fire(new Burned
         {
-            Burner = Context.Sender,
-            Symbol = input.Symbol,
-            Amount = input.Amount
+            Burner = address,
+            Symbol = symbol,
+            Amount = amount
         });
         return new Empty();
     }

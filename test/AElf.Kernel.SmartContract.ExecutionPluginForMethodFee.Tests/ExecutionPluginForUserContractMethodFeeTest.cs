@@ -155,7 +155,7 @@ public class ExecutionPluginForUserContractContractMethodFeeTest : ExecutionPlug
     [InlineData(9, 0, 1, 10, 1, 2, "ELF", 9, false)]
     [InlineData(100000000, 2, 2, 0, 1, 2, "TSA", 1, true)]
     [InlineData(100000000, 2, 2, 0, 13, 2, "TSB", 2, true)]
-    [InlineData(100000000, 2, 2, 0, 20, 20, "TSB", 2, false)]
+    [InlineData(100000000, 2, 2, 0, 20, 20, "TSA", 2, false)]
     [InlineData(1, 0, 1, 0, 1, 2, "TSB", 1, false)]
     [InlineData(10, 0, 0, 0, 1, 2, "ELF", 10, false)] // Charge 10 ELFs tx size fee.
     public async Task ChargeFee_SetConfiguration_Tests(long balance1, long balance2, long balance3, long fee1,
@@ -184,14 +184,8 @@ public class ExecutionPluginForUserContractContractMethodFeeTest : ExecutionPlug
             Key = ConfigurationKey,
             Value = transactionFee.ToByteString()
         };
-        {
-            var organizationAddress = await GetParliamentDefaultOrganizationAddressAsync();
-            var proposalId =
-                await CreateProposalAsync(organizationAddress, createProposalInput, "SetConfiguration");
-            await ParliamentContractStub.Approve.SendAsync(proposalId);
-            var releaseRet = await ParliamentContractStub.Release.SendAsync(proposalId);
-            releaseRet.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-        }
+
+        await ConfigurationStub.SetConfiguration.SendAsync(createProposalInput);
 
         var originBalance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
         {
@@ -250,14 +244,7 @@ public class ExecutionPluginForUserContractContractMethodFeeTest : ExecutionPlug
             Key = ConfigurationKey,
             Value = transactionFee.ToByteString()
         };
-        {
-            var organizationAddress = await GetParliamentDefaultOrganizationAddressAsync();
-            var proposalId =
-                await CreateProposalAsync(organizationAddress, createProposalInput, "SetConfiguration");
-            await ParliamentContractStub.Approve.SendAsync(proposalId);
-            var releaseRet = await ParliamentContractStub.Release.SendAsync(proposalId);
-            releaseRet.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-        }
+        await ConfigurationStub.SetConfiguration.SendAsync(createProposalInput);
         var beforeBalance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
         {
             Owner = DefaultAddress,
@@ -298,14 +285,7 @@ public class ExecutionPluginForUserContractContractMethodFeeTest : ExecutionPlug
             Key = $"{ConfigurationKey}_{_testContractAddress}_{nameof(TestContractContainer.TestContractStub.TestMethod)}",
             Value = transactionFee.ToByteString()
         };
-        {
-            var organizationAddress = await GetParliamentDefaultOrganizationAddressAsync();
-            var proposalId =
-                await CreateProposalAsync(organizationAddress, createProposalInput, "SetConfiguration");
-            await ParliamentContractStub.Approve.SendAsync(proposalId);
-            var releaseRet = await ParliamentContractStub.Release.SendAsync(proposalId);
-            releaseRet.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-        }
+        await ConfigurationStub.SetConfiguration.SendAsync(createProposalInput);
         var beforeBalance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
         {
             Owner = DefaultAddress,
@@ -363,10 +343,7 @@ public class ExecutionPluginForUserContractContractMethodFeeTest : ExecutionPlug
         await DeployTestContractAsync();
 
         {
-            var proposalId = await SetUserContractFeeAsync(1_00000000);
-            await ParliamentContractStub.Approve.SendAsync(proposalId);
-            var releaseRet = await ParliamentContractStub.Release.SendAsync(proposalId);
-            releaseRet.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            await SetUserContractFeeAsync(1_00000000);
             var configuration = await ConfigurationStub.GetConfiguration.CallAsync(new StringValue
             {
                 Value = ConfigurationKey
@@ -390,13 +367,10 @@ public class ExecutionPluginForUserContractContractMethodFeeTest : ExecutionPlug
             transactionFeesMap.Value[transactionFee.Key].ShouldBe(transactionFee.Value);
     }
 
-    private async Task<Hash> SetUserContractFeeAsync(int amount)
+    private async Task SetUserContractFeeAsync(int amount)
     {
         var createProposalInput = SetUserContractFee(amount);
-        var organizationAddress = await GetParliamentDefaultOrganizationAddressAsync();
-        var proposalId =
-            await CreateProposalAsync(organizationAddress, createProposalInput, "SetConfiguration");
-        return proposalId;
+        await ConfigurationStub.SetConfiguration.SendAsync(createProposalInput);
     }
 
     private async Task<Address> GetParliamentDefaultOrganizationAddressAsync()

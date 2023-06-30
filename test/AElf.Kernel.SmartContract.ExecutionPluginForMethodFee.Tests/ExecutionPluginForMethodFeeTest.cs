@@ -339,7 +339,7 @@ public sealed class ExecutionPluginForMethodFeeTest : ExecutionPluginForMethodFe
     [InlineData(9, 0, 1, 10, 1, 2, "ELF", 9, false)]
     [InlineData(100000000, 2, 2, 0, 1, 2, "TSA", 1, true)]
     [InlineData(100000000, 2, 2, 0, 13, 2, "TSB", 2, true)]
-    [InlineData(100000000, 2, 2, 0, 20, 20, "TSB", 2, false)]
+    [InlineData(100000000, 2, 2, 0, 20, 20, "TSA", 2, false)]
     [InlineData(1, 0, 1, 0, 1, 2, "TSB", 1, false)]
     [InlineData(10, 0, 0, 0, 1, 2, "ELF", 10, false)] // Charge 10 ELFs tx size fee.
     public async Task ChargeFee_Set_Method_Fees_Tests(long balance1, long balance2, long balance3, long fee1, long fee2,

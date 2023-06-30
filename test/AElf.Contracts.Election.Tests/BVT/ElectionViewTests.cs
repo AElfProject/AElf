@@ -47,10 +47,7 @@ public partial class ElectionContractTests : ElectionContractTestBase
         {
             Value = ValidationDataCenterKeyPairs.Last().PublicKey.ToHex()
         });
-        voteRecords.ShouldBe(new ElectorVote
-        {
-            Pubkey = ByteString.CopyFrom(ValidationDataCenterKeyPairs.Last().PublicKey)
-        });
+        voteRecords.ShouldBe(new ElectorVote());
     }
 
     [Fact]
@@ -305,7 +302,7 @@ public partial class ElectionContractTests : ElectionContractTestBase
         {
             Value = key
         });
-        ret.ShouldBe(new ElectorVote { Pubkey = ByteStringHelper.FromHexString(key) });
+        ret.ShouldBe(new ElectorVote());
     }
 
     [Fact]

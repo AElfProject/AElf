@@ -496,14 +496,17 @@ public class MultiTokenContractReferenceFeeTest : MultiTokenContractCrossChainTe
         var theDefaultController = await GetDefaultParliamentAddressAsync();
         var primaryTokenSymbol = await GetThePrimaryTokenAsync();
         var feeToken = "FEETOKEN";
-        await TokenContractStub.Create.SendAsync(new CreateInput
+        await CreateSeedNftCollection(TokenContractStub, DefaultAccount.Address);
+        var input = new CreateInput
         {
             Symbol = feeToken,
             TokenName = "name",
-            Issuer = TokenContractAddress,
+            Issuer = DefaultAccount.Address,
             TotalSupply = 100_000,
             IsBurnable = true
-        });
+        };
+        await CreateSeedNftAsync(TokenContractStub, input, TokenContractAddress);
+        await TokenContractStub.Create.SendAsync(input);
         var newSymbolList = new SymbolListToPayTxSizeFee();
         newSymbolList.SymbolsToPayTxSizeFee.Add(new SymbolToPayTxSizeFee
         {
@@ -531,13 +534,16 @@ public class MultiTokenContractReferenceFeeTest : MultiTokenContractCrossChainTe
         var theDefaultController = await GetDefaultParliamentAddressAsync();
         var primaryTokenSymbol = await GetThePrimaryTokenAsync();
         var feeToken = "FEETOKEN";
-        await TokenContractStub.Create.SendAsync(new CreateInput
+        await CreateSeedNftCollection(TokenContractStub, DefaultAccount.Address);
+        var input = new CreateInput
         {
             Symbol = feeToken,
             TokenName = "name",
-            Issuer = TokenContractAddress,
+            Issuer = DefaultAccount.Address,
             TotalSupply = 100_000
-        });
+        };
+        await CreateSeedNftAsync(TokenContractStub, input, TokenContractAddress);
+        await TokenContractStub.Create.SendAsync(input);
         var newSymbolList = new SymbolListToPayTxSizeFee
         {
             SymbolsToPayTxSizeFee =
@@ -572,13 +578,16 @@ public class MultiTokenContractReferenceFeeTest : MultiTokenContractCrossChainTe
     {
         var theDefaultController = await GetDefaultParliamentAddressAsync();
         var feeToken = "FEETOKEN";
-        await TokenContractStub.Create.SendAsync(new CreateInput
+        await CreateSeedNftCollection(TokenContractStub, DefaultAccount.Address);
+        var input = new CreateInput
         {
             Symbol = feeToken,
             TokenName = "name",
-            Issuer = TokenContractAddress,
+            Issuer = DefaultAccount.Address,
             TotalSupply = 100_000
-        });
+        };
+        await CreateSeedNftAsync(TokenContractStub, input, TokenContractAddress);
+        await TokenContractStub.Create.SendAsync(input);
         var newSymbolList = new SymbolListToPayTxSizeFee();
         newSymbolList.SymbolsToPayTxSizeFee.Add(new SymbolToPayTxSizeFee
         {
@@ -596,13 +605,16 @@ public class MultiTokenContractReferenceFeeTest : MultiTokenContractCrossChainTe
         var theDefaultController = await GetDefaultParliamentAddressAsync();
         var primaryTokenSymbol = await GetThePrimaryTokenAsync();
         const string feeToken = "FEETOKEN";
-        await TokenContractStub.Create.SendAsync(new CreateInput
+        await CreateSeedNftCollection(TokenContractStub, DefaultAccount.Address);
+        var input = new CreateInput
         {
             Symbol = feeToken,
             TokenName = "name",
-            Issuer = TokenContractAddress,
+            Issuer = DefaultAccount.Address,
             TotalSupply = 100_000
-        });
+        };
+        await CreateSeedNftAsync(TokenContractStub, input, TokenContractAddress);
+        await TokenContractStub.Create.SendAsync(input);
         var newSymbolList = new SymbolListToPayTxSizeFee
         {
             SymbolsToPayTxSizeFee =
@@ -695,14 +707,17 @@ public class MultiTokenContractReferenceFeeTest : MultiTokenContractCrossChainTe
         var theDefaultController = await GetDefaultParliamentAddressAsync();
         var primaryTokenSymbol = await GetThePrimaryTokenAsync();
         const string feeToken = "FEETOKEN";
-        await TokenContractStub.Create.SendAsync(new CreateInput
+        await CreateSeedNftCollection(TokenContractStub, DefaultAccount.Address);
+        var input = new CreateInput
         {
             Symbol = feeToken,
             TokenName = "name",
-            Issuer = TokenContractAddress,
+            Issuer = DefaultAccount.Address,
             TotalSupply = 100_000,
             IsBurnable = true
-        });
+        };
+        await CreateSeedNftAsync(TokenContractStub, input, TokenContractAddress);
+        await TokenContractStub.Create.SendAsync(input);
         var newSymbolList = new SymbolListToPayTxSizeFee
         {
             SymbolsToPayTxSizeFee =

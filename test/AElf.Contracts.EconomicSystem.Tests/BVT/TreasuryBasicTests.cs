@@ -283,8 +283,8 @@ public partial class EconomicSystemTest : EconomicSystemTestBase
             Issuer = BootMinerAddress,
             IsBurnable = true
         };
-        var createTokenRet = await TokenContractStub.Create.SendAsync(tokenCreateInput);
-        createTokenRet.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        await ExecuteProposalForParliamentTransactionWithException(Tester, TokenContractAddress, nameof(TokenContractStub.Create),
+            tokenCreateInput);
         // without native token
         {
             var newSymbolList = new SymbolList
@@ -330,7 +330,8 @@ public partial class EconomicSystemTest : EconomicSystemTestBase
             Issuer = BootMinerAddress,
             IsBurnable = true
         };
-        await TokenContractStub.Create.SendAsync(tokenCreateInput);
+        await ExecuteProposalForParliamentTransaction(TokenContractAddress, nameof(TokenContractStub.Create),
+            tokenCreateInput);
         var newSymbolList = new SymbolList
         {
             Value =

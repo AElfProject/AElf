@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using AElf.Contracts.Parliament;
@@ -15,7 +16,8 @@ public partial class TokenContract
 {
     private static bool IsValidSymbolChar(char character)
     {
-        return (character >= 'A' && character <= 'Z') || (character >= '0' && character <= '9') || character == TokenContractConstants.NFTSymbolSeparator;
+        return (character >= 'A' && character <= 'Z') || (character >= '0' && character <= '9') ||
+               character == TokenContractConstants.NFTSymbolSeparator;
     }
 
     private bool IsValidItemIdChar(char character)
@@ -76,41 +78,71 @@ public partial class TokenContract
         State.Balances[address][symbol] = target;
     }
 
-    private void ModifyFreeFeeAllowanceAmount(MethodFeeFreeAllowances freeAllowances, string symbol, long addAmount)
+    private void ModifyFreeFeeAllowanceAmount(Address fromAddress,
+        TransactionFeeFreeAllowancesMap transactionFeeFreeAllowancesMap, string symbol,
+        long addAmount)
     {
-        var freeAllowance = GetFreeFeeAllowance(freeAllowances, symbol);
-        if (freeAllowance != null)
+        var freeAllowanceAmount = GetFreeFeeAllowanceAmount(transactionFeeFreeAllowancesMap, symbol);
+        if (addAmount < 0 && freeAllowanceAmount < -addAmount)
         {
-            var before = freeAllowance.Amount;
-            if (addAmount < 0 && before < -addAmount)
-                Assert(false,
-                    $"Insufficient amount of {symbol} for free fee allowance. Need amount: {-addAmount}; Current amount: {before}");
+            Assert(false,
+                $"Insufficient amount of {symbol} for free fee allowance. Need amount: {-addAmount}; Current amount: {freeAllowanceAmount}");
+        }
 
-            var target = before.Add(addAmount);
-            freeAllowance.Amount = target;
+        // Sort symbols by expiration time
+        var symbolList = GetSymbolListSortedByExpirationTime(transactionFeeFreeAllowancesMap, fromAddress);
+
+        foreach (var s in symbolList)
+        {
+            if (addAmount >= 0) break;
+            
+            if (!transactionFeeFreeAllowancesMap.Map[s].Map.ContainsKey(symbol)) continue;
+            
+            var currentAllowance = transactionFeeFreeAllowancesMap.Map[s].Map[symbol].Amount;
+
+            if (currentAllowance == 0) continue;
+
+            addAmount += currentAllowance;
+
+            transactionFeeFreeAllowancesMap.Map[s].Map[symbol].Amount = addAmount >= 0 ? addAmount : 0;
         }
     }
+
+    private List<string> GetSymbolListSortedByExpirationTime(TransactionFeeFreeAllowancesMap transactionFeeFreeAllowancesMap,
+        Address fromAddress)
+    {
+        return transactionFeeFreeAllowancesMap.Map.Keys.OrderBy(t =>
+            State.TransactionFeeFreeAllowancesConfigMap[t].RefreshSeconds - (Context.CurrentBlockTime -
+                                                                        State.TransactionFeeFreeAllowancesLastRefreshTimes[
+                                                                            fromAddress][t]).Seconds).ToList();
+    }
+
 
     private long GetBalance(Address address, string symbol)
     {
         return State.Balances[address][symbol];
     }
 
-    private MethodFeeFreeAllowance GetFreeFeeAllowance(MethodFeeFreeAllowances freeAllowances, string symbol)
-    {
-        return freeAllowances?.Value.FirstOrDefault(a => a.Symbol == symbol);
-    }
+    // private MethodFeeFreeAllowance GetFreeFeeAllowance(MethodFeeFreeAllowances freeAllowances, string symbol)
+    // {
+    //     return freeAllowances?.Value.FirstOrDefault(a => a.Symbol == symbol);
+    // }
 
-    private long GetFreeFeeAllowanceAmount(MethodFeeFreeAllowances freeAllowances, string symbol)
+    private long GetFreeFeeAllowanceAmount(TransactionFeeFreeAllowancesMap transactionFeeFreeAllowancesMap, string symbol)
     {
-        var existingAllowance = 0L;
-        var freeAllowance = GetFreeFeeAllowance(freeAllowances, symbol);
-        if (freeAllowance != null)
+        var allowance = 0L;
+        var map = transactionFeeFreeAllowancesMap.Map;
+
+        if (map == null) return allowance;
+
+        foreach (var freeAllowances in map.Values)
         {
-            existingAllowance = freeAllowance.Amount;
+            freeAllowances.Map.TryGetValue(symbol, out var freeAllowance);
+
+            allowance = allowance.Add(freeAllowance?.Amount ?? 0L);
         }
 
-        return existingAllowance;
+        return allowance;
     }
 
     private void AssertSystemContractOrLockWhiteListAddress(string symbol)
@@ -143,8 +175,7 @@ public partial class TokenContract
 
     private void RegisterTokenInfo(TokenInfo tokenInfo)
     {
-        var existing = State.TokenInfos[tokenInfo.Symbol];
-        Assert(existing == null || existing.Equals(new TokenInfo()), "Token already exists.");
+        CheckTokenExists(tokenInfo.Symbol);
         Assert(!string.IsNullOrEmpty(tokenInfo.Symbol) && tokenInfo.Symbol.All(IsValidSymbolChar),
             "Invalid symbol.");
         Assert(!string.IsNullOrEmpty(tokenInfo.TokenName), "Token name can neither be null nor empty.");
@@ -195,10 +226,36 @@ public partial class TokenContract
                && input.Symbol.Length > 0
                && input.Decimals >= 0
                && input.Decimals <= TokenContractConstants.MaxDecimals, "Invalid input.");
+
+        CheckSymbolLength(input.Symbol, symbolType);
+        if (symbolType == SymbolType.Nft) return;
+        CheckTokenAndCollectionExists(input.Symbol);
+        if (IsAddressInCreateWhiteList(Context.Sender)) CheckSymbolSeed(input.Symbol);
+    }
+
+    private void CheckTokenAndCollectionExists(string symbol)
+    {
+        var symbols = symbol.Split(TokenContractConstants.NFTSymbolSeparator);
+        var tokenSymbol = symbols.First();
+        CheckTokenExists(tokenSymbol);
+        var collectionSymbol = symbols.First() + TokenContractConstants.NFTSymbolSeparator +
+                               TokenContractConstants.CollectionSymbolSuffix;
+        CheckTokenExists(collectionSymbol);
+    }
+
+    private void CheckTokenExists(string symbol)
+    {
+        var empty = new TokenInfo();
+        var existing = State.TokenInfos[symbol];
+        Assert(existing == null || existing.Equals(empty), "Token already exists.");
+    }
+
+    private void CheckSymbolLength(string symbol, SymbolType symbolType)
+    {
         if (symbolType == SymbolType.Token)
-            Assert(input.Symbol.Length <= TokenContractConstants.SymbolMaxLength, "Invalid token symbol length");
+            Assert(symbol.Length <= TokenContractConstants.SymbolMaxLength, "Invalid token symbol length");
         if (symbolType == SymbolType.Nft || symbolType == SymbolType.NftCollection)
-            Assert(input.Symbol.Length <= TokenContractConstants.NFTSymbolMaxLength, "Invalid NFT symbol length");
+            Assert(symbol.Length <= TokenContractConstants.NFTSymbolMaxLength, "Invalid NFT symbol length");
     }
 
     private void CheckCrossChainTokenContractRegistrationControllerAuthority()
@@ -264,5 +321,16 @@ public partial class TokenContract
                 Address = Context.Self,
                 NonIndexed = input.ToByteString()
             });
+    }
+
+    private Address GetElectionContractAddress()
+    {
+        if (State.ElectionContract.Value == null)
+        {
+            State.ElectionContract.Value =
+                Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName);
+        }
+        
+        return State.ElectionContract.Value;
     }
 }
