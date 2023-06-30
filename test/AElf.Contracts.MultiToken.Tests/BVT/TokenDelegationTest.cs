@@ -158,14 +158,13 @@ public partial class MultiTokenContractTests
 
     private async Task Initialize()
     {
-        await CreateBaseNativeTokenAsync();
         await CreateTokenAsync(DefaultAddress, BasicFeeSymbol);
         await CreateTokenAsync(DefaultAddress, SizeFeeSymbol);
     }
 
     private async Task CreateTokenAsync(Address creator, string tokenSymbol, bool isBurned = true)
     {
-        await TokenContractStub.Create.SendAsync(new CreateInput
+        await CreateMutiTokenAsync(TokenContractStub,new CreateInput
         {
             Symbol = tokenSymbol,
             TokenName = tokenSymbol + " name",

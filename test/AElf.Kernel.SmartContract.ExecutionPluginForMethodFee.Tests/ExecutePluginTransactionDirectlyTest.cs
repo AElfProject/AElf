@@ -43,6 +43,17 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
         // input With Primary Token
         await SetPrimaryTokenSymbolAsync();
         var beforeChargeBalance = await GetBalanceAsync(address, nativeTokenSymbol);
+
+        await TokenContractImplStub.SetMethodFee.SendAsync(new MethodFees
+        {
+            MethodName = methodName,
+            Fees = { new MethodFee
+            {
+                Symbol = NativeTokenSymbol,
+                BasicFee = 1000
+            } }
+        });
+        
         var chargeFeeRet = await TokenContractStub.ChargeTransactionFees.SendAsync(new ChargeTransactionFeesInput
         {
             ContractAddress = TokenContractAddress,
@@ -79,8 +90,7 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
             }
         };
         var sizeFee = 0;
-        await SubmitAndPassProposalOfDefaultParliamentAsync(TokenContractAddress,
-            nameof(TokenContractImplContainer.TokenContractImplStub.SetMethodFee), methodFee);
+        await TokenContractImplStub.SetMethodFee.SendAsync(methodFee);
         var beforeChargeBalance = await GetBalanceAsync(address, NativeTokenSymbol);
         var chargeTransactionFeesInput = new ChargeTransactionFeesInput
         {
@@ -129,8 +139,7 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
                 }
             }
         };
-        await SubmitAndPassProposalOfDefaultParliamentAsync(TokenContractAddress,
-            nameof(TokenContractImplContainer.TokenContractImplStub.SetMethodFee), methodFee);
+        await TokenContractImplStub.SetMethodFee.SendAsync(methodFee);
         var tokenSymbolList = new[] { NativeTokenSymbol, "CWJ", "YPA" };
         var tokenCount = 3;
         var orderedSymbolList = new string[tokenCount];
@@ -155,9 +164,8 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
                 BaseTokenWeight = baseWeight[i]
             });
         }
-
-        await SubmitAndPassProposalOfDefaultParliamentAsync(TokenContractAddress,
-            nameof(TokenContractImplContainer.TokenContractImplStub.SetSymbolsToPayTxSizeFee), sizeFeeSymbolList);
+        
+        await TokenContractImplStub.SetSymbolsToPayTxSizeFee.SendAsync(sizeFeeSymbolList);
 
         var beforeBalanceList = await GetDefaultBalancesAsync(orderedSymbolList);
         var chargeTransactionFeesInput = new ChargeTransactionFeesInput
@@ -214,12 +222,10 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
         if (!isMainChain)
         {
             var defaultParliament = await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
-            await SubmitAndPassProposalOfDefaultParliamentAsync(TokenContractAddress,
-                nameof(TokenContractContainer.TokenContractStub.InitializeFromParentChain),
-                new InitializeFromParentChainInput
-                {
-                    Creator = defaultParliament
-                });
+            await TokenContractStub.InitializeFromParentChain.SendAsync(new InitializeFromParentChainInput
+            {
+                Creator = defaultParliament
+            });
         }
 
         var result = await TokenContractStub.DonateResourceToken.SendAsync(feeMap);
@@ -281,10 +287,8 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
         {
             Creator = receiver
         };
-        await SubmitAndPassProposalOfDefaultParliamentAsync(TokenContractAddress,
-            nameof(TokenContractImplContainer.TokenContractImplStub.InitializeFromParentChain), input);
-        await SubmitAndPassProposalOfDefaultParliamentAsync(TokenContractAddress,
-            nameof(TokenContractImplContainer.TokenContractImplStub.SetFeeReceiver), receiver);
+        await TokenContractImplStub.InitializeFromParentChain.SendAsync(input);
+        await TokenContractImplStub.SetFeeReceiver.SendAsync(receiver);
         var beforeBurned = await GetTokenSupplyAmount(tokenSymbol);
         var beforeBalance = await GetBalanceAsync(receiver, tokenSymbol);
         var claimFeeInput = new TotalTransactionFeesMap
@@ -323,8 +327,7 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
         await SetPrimaryTokenSymbolAsync();
         await IssueTokenToDefaultSenderAsync(NativeTokenSymbol, initialBalance);
 
-        await SubmitAndPassProposalOfDefaultParliamentAsync(TokenContractAddress,
-            nameof(TokenContractStub.ConfigMethodFeeFreeAllowances), new MethodFeeFreeAllowancesConfig
+        await TokenContractStub.ConfigMethodFeeFreeAllowances.SendAsync(new MethodFeeFreeAllowancesConfig
             {
                 FreeAllowances = new MethodFeeFreeAllowances
                 {
@@ -353,8 +356,7 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
                 }
             }
         };
-        await SubmitAndPassProposalOfDefaultParliamentAsync(TokenContractAddress,
-            nameof(TokenContractImplContainer.TokenContractImplStub.SetMethodFee), methodFee);
+        await TokenContractImplStub.SetMethodFee.SendAsync(methodFee);
 
         {
             var freeAllowances = await TokenContractStub.GetMethodFeeFreeAllowances.CallAsync(DefaultSender);
@@ -381,8 +383,7 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
                 }
             }
         };
-        await SubmitAndPassProposalOfDefaultParliamentAsync(TokenContractAddress,
-            nameof(TokenContractImplContainer.TokenContractImplStub.SetSymbolsToPayTxSizeFee), sizeFeeSymbolList);
+        await TokenContractImplStub.SetSymbolsToPayTxSizeFee.SendAsync(sizeFeeSymbolList);
 
         var chargeTransactionFeesInput = new ChargeTransactionFeesInput
         {
@@ -447,8 +448,7 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
             await IssueTokenToDefaultSenderAsync(sizeFeeSymbol, sizeFeeBalance);
         }
 
-        await SubmitAndPassProposalOfDefaultParliamentAsync(TokenContractAddress,
-            nameof(TokenContractStub.ConfigMethodFeeFreeAllowances), new MethodFeeFreeAllowancesConfig
+        await TokenContractStub.ConfigMethodFeeFreeAllowances.SendAsync(new MethodFeeFreeAllowancesConfig
             {
                 FreeAllowances = new MethodFeeFreeAllowances
                 {
@@ -483,8 +483,7 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
                 }
             }
         };
-        await SubmitAndPassProposalOfDefaultParliamentAsync(TokenContractAddress,
-            nameof(TokenContractImplContainer.TokenContractImplStub.SetMethodFee), methodFee);
+        await TokenContractImplStub.SetMethodFee.SendAsync(methodFee);
 
         var sizeFeeSymbolList = new SymbolListToPayTxSizeFee
         {
@@ -504,8 +503,7 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
                 }
             }
         };
-        await SubmitAndPassProposalOfDefaultParliamentAsync(TokenContractAddress,
-            nameof(TokenContractImplContainer.TokenContractImplStub.SetSymbolsToPayTxSizeFee), sizeFeeSymbolList);
+        await TokenContractImplStub.SetSymbolsToPayTxSizeFee.SendAsync(sizeFeeSymbolList);
 
         {
             var freeAllowances = await TokenContractStub.GetMethodFeeFreeAllowances.CallAsync(DefaultSender);
@@ -631,28 +629,28 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
             await IssueTokenToUserAsync(sizeFeeSymbol, sizeFeeUserBalance, userAddress);
         }
 
-        await SubmitAndPassProposalOfDefaultParliamentAsync(TokenContractAddress,
-            nameof(TokenContractStub.ConfigMethodFeeFreeAllowances), new MethodFeeFreeAllowancesConfig
+        await TokenContractStub.ConfigMethodFeeFreeAllowances.SendAsync(new MethodFeeFreeAllowancesConfig
+        {
+            FreeAllowances = new MethodFeeFreeAllowances
             {
-                FreeAllowances = new MethodFeeFreeAllowances
+                Value =
                 {
-                    Value =
+                    new MethodFeeFreeAllowance
                     {
-                        new MethodFeeFreeAllowance
-                        {
-                            Symbol = basicFeeSymbol,
-                            Amount = baseFeeFreeAmount
-                        },
-                        new MethodFeeFreeAllowance
-                        {
-                            Symbol = sizeFeeSymbol,
-                            Amount = sizeFeeFreeAmount
-                        }
+                        Symbol = basicFeeSymbol,
+                        Amount = baseFeeFreeAmount
+                    },
+                    new MethodFeeFreeAllowance
+                    {
+                        Symbol = sizeFeeSymbol,
+                        Amount = sizeFeeFreeAmount
                     }
-                },
-                RefreshSeconds = 100,
-                Threshold = threshold
-            });
+                }
+            },
+            RefreshSeconds = 100,
+            Threshold = threshold
+        });
+        
         {
             var freeAllowances = await TokenContractStub.GetMethodFeeFreeAllowances.CallAsync(userAddress);
             if (threshold <= initialBalance)
@@ -680,8 +678,8 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
                 }
             }
         };
-        await SubmitAndPassProposalOfDefaultParliamentAsync(TokenContractAddress,
-            nameof(TokenContractImplContainer.TokenContractImplStub.SetMethodFee), methodFee);
+        
+        await TokenContractImplStub.SetMethodFee.SendAsync(methodFee);
 
         var sizeFeeSymbolList = new SymbolListToPayTxSizeFee
         {
@@ -701,10 +699,9 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
                 }
             }
         };
-        await SubmitAndPassProposalOfDefaultParliamentAsync(TokenContractAddress,
-            nameof(TokenContractImplContainer.TokenContractImplStub.SetSymbolsToPayTxSizeFee), sizeFeeSymbolList);
 
-
+        await TokenContractImplStub.SetSymbolsToPayTxSizeFee.SendAsync(sizeFeeSymbolList);
+        
         var chargeTransactionFeesInput = new ChargeTransactionFeesInput
         {
             MethodName = nameof(TokenContractContainer.TokenContractStub.Transfer),
@@ -828,9 +825,8 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
             await IssueTokenToUserAsync(basicFeeSymbol, baseFeeDelegateBalance, DelegateeAddress);
             await IssueTokenToUserAsync(sizeFeeSymbol, sizeFeeDelegateBalance, DelegateeAddress);
         }
-
-        await SubmitAndPassProposalOfDefaultParliamentAsync(TokenContractAddress,
-            nameof(TokenContractStub.ConfigMethodFeeFreeAllowances), new MethodFeeFreeAllowancesConfig
+        
+        await TokenContractStub.ConfigMethodFeeFreeAllowances.SendAsync(new MethodFeeFreeAllowancesConfig
             {
                 FreeAllowances = new MethodFeeFreeAllowances
                 {
@@ -864,8 +860,7 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
                 }
             }
         };
-        await SubmitAndPassProposalOfDefaultParliamentAsync(TokenContractAddress,
-            nameof(TokenContractImplContainer.TokenContractImplStub.SetMethodFee), methodFee);
+       await TokenContractImplStub.SetMethodFee.SendAsync(methodFee);
 
         var sizeFeeSymbolList = new SymbolListToPayTxSizeFee
         {
@@ -885,8 +880,7 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
                 }
             }
         };
-        await SubmitAndPassProposalOfDefaultParliamentAsync(TokenContractAddress,
-            nameof(TokenContractImplContainer.TokenContractImplStub.SetSymbolsToPayTxSizeFee), sizeFeeSymbolList);
+        await TokenContractImplStub.SetSymbolsToPayTxSizeFee.SendAsync(sizeFeeSymbolList);
 
 
         var chargeTransactionFeesInput = new ChargeTransactionFeesInput
@@ -974,8 +968,7 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
                 }
             }
         };
-        await SubmitAndPassProposalOfDefaultParliamentAsync(TokenContractAddress,
-            nameof(TokenContractImplContainer.TokenContractImplStub.SetMethodFee), methodFee);
+        await TokenContractImplStub.SetMethodFee.SendAsync(methodFee);
 
         var chargeTransactionFeesInput = new ChargeTransactionFeesInput
         {
@@ -1159,8 +1152,7 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
             result.Delegations[NativeTokenSymbol].ShouldBe(5);
         }
 
-        await SubmitAndPassProposalOfDefaultParliamentAsync(TokenContractAddress,
-            nameof(TokenContractStub.ConfigMethodFeeFreeAllowances), new MethodFeeFreeAllowancesConfig
+        await TokenContractStub.ConfigMethodFeeFreeAllowances.SendAsync(new MethodFeeFreeAllowancesConfig
             {
                 FreeAllowances = new MethodFeeFreeAllowances
                 {
@@ -2357,8 +2349,7 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
                 }
             }
         };
-        await SubmitAndPassProposalOfDefaultParliamentAsync(TokenContractAddress,
-            nameof(TokenContractImplContainer.TokenContractImplStub.SetMethodFee), methodFee);
+        await TokenContractImplStub.SetMethodFee.SendAsync(methodFee);
 
         var sizeFeeSymbolList = new SymbolListToPayTxSizeFee
         {
@@ -2378,8 +2369,9 @@ public class ExecutePluginTransactionDirectlyTest : ExecutePluginTransactionDire
                 }
             }
         };
-        await SubmitAndPassProposalOfDefaultParliamentAsync(TokenContractAddress,
-            nameof(TokenContractImplContainer.TokenContractImplStub.SetSymbolsToPayTxSizeFee), sizeFeeSymbolList);
+
+        await TokenContractImplStub.SetSymbolsToPayTxSizeFee.SendAsync(sizeFeeSymbolList);
+        
         return sizeFeeSymbolList;
     }
 
