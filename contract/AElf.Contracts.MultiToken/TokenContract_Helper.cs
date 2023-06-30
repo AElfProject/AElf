@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using AElf.Contracts.Parliament;
@@ -77,41 +78,71 @@ public partial class TokenContract
         State.Balances[address][symbol] = target;
     }
 
-    private void ModifyFreeFeeAllowanceAmount(MethodFeeFreeAllowances freeAllowances, string symbol, long addAmount)
+    private void ModifyFreeFeeAllowanceAmount(Address fromAddress,
+        TransactionFeeFreeAllowancesMap transactionFeeFreeAllowancesMap, string symbol,
+        long addAmount)
     {
-        var freeAllowance = GetFreeFeeAllowance(freeAllowances, symbol);
-        if (freeAllowance != null)
+        var freeAllowanceAmount = GetFreeFeeAllowanceAmount(transactionFeeFreeAllowancesMap, symbol);
+        if (addAmount < 0 && freeAllowanceAmount < -addAmount)
         {
-            var before = freeAllowance.Amount;
-            if (addAmount < 0 && before < -addAmount)
-                Assert(false,
-                    $"Insufficient amount of {symbol} for free fee allowance. Need amount: {-addAmount}; Current amount: {before}");
+            Assert(false,
+                $"Insufficient amount of {symbol} for free fee allowance. Need amount: {-addAmount}; Current amount: {freeAllowanceAmount}");
+        }
 
-            var target = before.Add(addAmount);
-            freeAllowance.Amount = target;
+        // Sort symbols by expiration time
+        var symbolList = GetSymbolListSortedByExpirationTime(transactionFeeFreeAllowancesMap, fromAddress);
+
+        foreach (var s in symbolList)
+        {
+            if (addAmount >= 0) break;
+            
+            if (!transactionFeeFreeAllowancesMap.Map[s].Map.ContainsKey(symbol)) continue;
+            
+            var currentAllowance = transactionFeeFreeAllowancesMap.Map[s].Map[symbol].Amount;
+
+            if (currentAllowance == 0) continue;
+
+            addAmount += currentAllowance;
+
+            transactionFeeFreeAllowancesMap.Map[s].Map[symbol].Amount = addAmount >= 0 ? addAmount : 0;
         }
     }
+
+    private List<string> GetSymbolListSortedByExpirationTime(TransactionFeeFreeAllowancesMap transactionFeeFreeAllowancesMap,
+        Address fromAddress)
+    {
+        return transactionFeeFreeAllowancesMap.Map.Keys.OrderBy(t =>
+            State.TransactionFeeFreeAllowancesConfigMap[t].RefreshSeconds - (Context.CurrentBlockTime -
+                                                                        State.TransactionFeeFreeAllowancesLastRefreshTimes[
+                                                                            fromAddress][t]).Seconds).ToList();
+    }
+
 
     private long GetBalance(Address address, string symbol)
     {
         return State.Balances[address][symbol];
     }
 
-    private MethodFeeFreeAllowance GetFreeFeeAllowance(MethodFeeFreeAllowances freeAllowances, string symbol)
-    {
-        return freeAllowances?.Value.FirstOrDefault(a => a.Symbol == symbol);
-    }
+    // private MethodFeeFreeAllowance GetFreeFeeAllowance(MethodFeeFreeAllowances freeAllowances, string symbol)
+    // {
+    //     return freeAllowances?.Value.FirstOrDefault(a => a.Symbol == symbol);
+    // }
 
-    private long GetFreeFeeAllowanceAmount(MethodFeeFreeAllowances freeAllowances, string symbol)
+    private long GetFreeFeeAllowanceAmount(TransactionFeeFreeAllowancesMap transactionFeeFreeAllowancesMap, string symbol)
     {
-        var existingAllowance = 0L;
-        var freeAllowance = GetFreeFeeAllowance(freeAllowances, symbol);
-        if (freeAllowance != null)
+        var allowance = 0L;
+        var map = transactionFeeFreeAllowancesMap.Map;
+
+        if (map == null) return allowance;
+
+        foreach (var freeAllowances in map.Values)
         {
-            existingAllowance = freeAllowance.Amount;
+            freeAllowances.Map.TryGetValue(symbol, out var freeAllowance);
+
+            allowance = allowance.Add(freeAllowance?.Amount ?? 0L);
         }
 
-        return existingAllowance;
+        return allowance;
     }
 
     private void AssertSystemContractOrLockWhiteListAddress(string symbol)

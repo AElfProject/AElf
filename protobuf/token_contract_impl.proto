@@ -77,6 +77,12 @@ service TokenContractImpl {
     rpc ChangeDeveloperController (AuthorityInfo) returns (google.protobuf.Empty) {
     }
 
+    rpc ConfigTransactionFeeFreeAllowances (ConfigTransactionFeeFreeAllowancesInput) returns (google.protobuf.Empty) {
+    }
+
+    rpc RemoveTransactionFeeFreeAllowancesConfig (RemoveTransactionFeeFreeAllowancesConfigInput) returns (google.protobuf.Empty) {
+    }
+
     // Delegatee sets the delegation and related information of the delegator based on a transaction.
     rpc SetTransactionFeeDelegateInfos (SetTransactionFeeDelegateInfosInput) returns (google.protobuf.Empty){
     }
@@ -138,6 +144,14 @@ service TokenContractImpl {
     // Query the unit price of the side chain resource cost, resource cost = unit price * quantity, 
     // the quantity can be queried through GetResourceUsage.
     rpc GetOwningRentalUnitValue (google.protobuf.Empty) returns (OwningRentalUnitValue) {
+        option (aelf.is_view) = true;
+    }
+
+    // Query
+    rpc GetTransactionFeeFreeAllowances (aelf.Address) returns (TransactionFeeFreeAllowancesMap) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetTransactionFeeFreeAllowancesConfig (google.protobuf.Empty) returns (GetTransactionFeeFreeAllowancesConfigOutput) {
         option (aelf.is_view) = true;
     }
     
@@ -264,6 +278,68 @@ enum SymbolType {
     TOKEN = 0;
     NFT = 1;
     NFT_COLLECTION = 2;
+}
+
+message MethodFeeFreeAllowancesConfig {
+    MethodFeeFreeAllowances free_allowances = 1;
+    int64 refresh_seconds = 2;
+    int64 threshold = 3;
+}
+
+message MethodFeeFreeAllowances{
+    repeated MethodFeeFreeAllowance value = 1;
+}
+
+message MethodFeeFreeAllowance {
+    string symbol = 1;
+    int64 amount = 2;
+}
+
+message TransactionFeeFreeAllowances{
+    repeated TransactionFeeFreeAllowance value = 1;
+}
+
+message TransactionFeeFreeAllowance {
+    string symbol = 1;
+    int64 amount = 2;
+}
+
+message TransactionFeeFreeAllowancesSymbolList {
+    repeated string symbols = 1;
+}
+
+message ConfigTransactionFeeFreeAllowancesInput {
+    repeated ConfigTransactionFeeFreeAllowance value = 1;
+}
+
+message ConfigTransactionFeeFreeAllowance {
+    string symbol = 1;
+    TransactionFeeFreeAllowances transaction_fee_free_allowances = 2;
+    int64 refresh_seconds = 3;
+    int64 threshold = 4;
+}
+
+message RemoveTransactionFeeFreeAllowancesConfigInput {
+    repeated string symbols = 1;
+}
+
+message GetTransactionFeeFreeAllowancesConfigOutput {
+    repeated TransactionFeeFreeAllowanceConfig value = 1;
+}
+
+message TransactionFeeFreeAllowanceConfig {
+    string symbol = 1;
+    TransactionFeeFreeAllowanceMap free_allowances = 2;
+    int64 refresh_seconds = 3;
+    int64 threshold = 4;
+}
+
+message TransactionFeeFreeAllowanceMap {
+    map<string, TransactionFeeFreeAllowance> map = 1;
+}
+
+message TransactionFeeFreeAllowancesMap {
+    map<string, TransactionFeeFreeAllowanceMap> map = 1;
 }
 
 message SetTransactionFeeDelegateInfosInput{
