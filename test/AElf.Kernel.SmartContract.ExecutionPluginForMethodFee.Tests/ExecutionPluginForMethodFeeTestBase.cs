@@ -341,6 +341,7 @@ public class ExecutePluginTransactionDirectlyForMethodFeeTestBase : ContractTest
     internal Address ConsensusContractAddress { get; set; }
     internal TokenContractContainer.TokenContractStub TokenContractStub { get; set; }
     internal TokenContractImplContainer.TokenContractImplStub TokenContractImplStub { get; set; }
+    internal TokenContractImplContainer.TokenContractImplStub TokenContractImplStub2 { get; set; }
     internal TokenContractContainer.TokenContractStub TokenContractStub2 { get; set; }
     internal TokenContractContainer.TokenContractStub TokenContractStub3 { get; set; }
     internal TokenContractContainer.TokenContractStub TokenContractStubDelegator { get; set; }
@@ -356,8 +357,6 @@ public class ExecutePluginTransactionDirectlyForMethodFeeTestBase : ContractTest
     internal TokenContractImplContainer.TokenContractImplStub TokenContractStubSecondaryDelegate5 { get; set; }
     internal TokenContractImplContainer.TokenContractImplStub TokenContractStubSecondaryDelegate6 { get; set; }
     
-
-    internal TokenContractImplContainer.TokenContractImplStub TokenContractImplStub { get; set; }
     internal ParliamentContractImplContainer.ParliamentContractImplStub ParliamentContractStub { get; set; }
     internal AEDPoSContractContainer.AEDPoSContractStub AEDPoSContractStub { get; set; }
     internal ECKeyPair DefaultSenderKeyPair => Accounts[0].KeyPair;
@@ -468,6 +467,8 @@ public class ExecutePluginTransactionDirectlyForMethodFeeTestBase : ContractTest
             
             TokenContractImplStub =
                 GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, DefaultSenderKeyPair);
+            TokenContractImplStub2 =
+                GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, UserKeyPair);
         }
 
         // Parliament

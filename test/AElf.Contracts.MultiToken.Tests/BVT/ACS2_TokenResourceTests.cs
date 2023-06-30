@@ -133,7 +133,6 @@ public partial class MultiTokenContractTests
     [Fact]
     public async Task ACS2_GetResourceInfo_TransferFrom_WithDelegate_Test()
     {
-        await CreateNativeTokenAsync();
         var delegations1 = new Dictionary<string, long>
         {
             [NativeToken] = 1000,
