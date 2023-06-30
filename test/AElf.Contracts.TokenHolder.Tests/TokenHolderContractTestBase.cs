@@ -91,18 +91,6 @@ public class TokenHolderContractTestBase : ContractTestBase<TokenHolderContractT
                 })).Output;
         TokenHolderContractStub = GetTokenHolderContractTester(StarterKeyPair);
 
-        //deploy token contract
-        TokenContractAddress = AsyncHelper.RunSync(() => GetContractZeroTester(StarterKeyPair)
-            .DeploySystemSmartContract.SendAsync(
-                new SystemContractDeploymentInput
-                {
-                    Category = KernelConstants.CodeCoverageRunnerCategory,
-                    Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(TokenContract).Assembly.Location)),
-                    Name = TokenSmartContractAddressNameProvider.Name,
-                    TransactionMethodCallList = GenerateTokenInitializationCallList()
-                })).Output;
-        TokenContractStub = GetTokenContractTester(StarterKeyPair);
-
         //deploy parliament auth contract
         ParliamentContractAddress = AsyncHelper.RunSync(() => GetContractZeroTester(StarterKeyPair)
             .DeploySystemSmartContract.SendAsync(
@@ -115,6 +103,119 @@ public class TokenHolderContractTestBase : ContractTestBase<TokenHolderContractT
                 })).Output;
         ParliamentContractStub = GetParliamentContractTester(StarterKeyPair);
 
+        //deploy DApp contract
+        DAppContractAddress = AsyncHelper.RunSync(() => GetContractZeroTester(StarterKeyPair)
+            .DeploySystemSmartContract.SendAsync(
+                new SystemContractDeploymentInput
+                {
+                    Category = KernelConstants.CodeCoverageRunnerCategory,
+                    Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(DAppContract).Assembly.Location)),
+                    Name = DappSmartContractAddressNameProvider.Name
+                })).Output;
+        DAppContractStub = GetTester<DAppContainer.DAppStub>(DAppContractAddress, UserKeyPairs.First());
+        
+        //deploy token contract
+        TokenContractAddress = AsyncHelper.RunSync(() => GetContractZeroTester(StarterKeyPair)
+            .DeploySystemSmartContract.SendAsync(
+                new SystemContractDeploymentInput
+                {
+                    Category = KernelConstants.CodeCoverageRunnerCategory,
+                    Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(TokenContract).Assembly.Location)),
+                    Name = TokenSmartContractAddressNameProvider.Name,
+                    TransactionMethodCallList = GenerateTokenInitializationCallList()
+                })).Output;
+        TokenContractStub = GetTokenContractTester(StarterKeyPair);
+        
+        AsyncHelper.RunSync(() => TokenContractStub.Create.SendAsync(new CreateInput
+        {
+            Symbol = "SEED-1",
+            Decimals = 0,
+            IsBurnable = true,
+            TokenName = "collection",
+            TotalSupply = 1,
+            Issuer = Starter,
+            LockWhiteList =
+            {
+                TokenContractAddress
+            },
+            ExternalInfo = new ExternalInfo
+            {
+                Value =
+                {
+                    { "__seed_owned_symbol", "APP" },
+                    { "__seed_exp_time", TimestampHelper.GetUtcNow().AddDays(1).Seconds.ToString() }
+                }
+            }
+        }));
+        
+        AsyncHelper.RunSync(() => TokenContractStub.Create.SendAsync(new CreateInput
+        {
+            Symbol = "SEED-2",
+            Decimals = 0,
+            IsBurnable = true,
+            TokenName = "collection",
+            TotalSupply = 1,
+            Issuer = Starter,
+            LockWhiteList =
+            {
+                TokenContractAddress
+            },
+            ExternalInfo = new ExternalInfo
+            {
+                Value =
+                {
+                    { "__seed_owned_symbol", "AUG" },
+                    { "__seed_exp_time", TimestampHelper.GetUtcNow().AddDays(1).Seconds.ToString() }
+                }
+            }
+        }));
+        
+        AsyncHelper.RunSync(() => TokenContractStub.Create.SendAsync(new CreateInput
+        {
+            Symbol = "SEED-3",
+            Decimals = 0,
+            IsBurnable = true,
+            TokenName = "collection",
+            TotalSupply = 1,
+            Issuer = Starter,
+            LockWhiteList =
+            {
+                TokenContractAddress
+            },
+            ExternalInfo = new ExternalInfo
+            {
+                Value =
+                {
+                    { "__seed_owned_symbol", "JUN" },
+                    { "__seed_exp_time", TimestampHelper.GetUtcNow().AddDays(1).Seconds.ToString() }
+                }
+            }
+        }));
+        
+        AsyncHelper.RunSync(() => TokenContractStub.Issue.SendAsync(new IssueInput
+        {
+            Amount = 1,
+            Memo = "test",
+            Symbol = "SEED-1",
+            To = DAppContractAddress
+        }));
+        
+        AsyncHelper.RunSync(() => TokenContractStub.Issue.SendAsync(new IssueInput
+        {
+            Amount = 1,
+            Memo = "test",
+            Symbol = "SEED-2",
+            To = Starter
+        }));
+        
+        AsyncHelper.RunSync(() => TokenContractStub.Issue.SendAsync(new IssueInput
+        {
+            Amount = 1,
+            Memo = "test",
+            Symbol = "SEED-3",
+            To = Starter
+        }));
+
         ConsensusContractAddress = AsyncHelper.RunSync(() => GetContractZeroTester(StarterKeyPair)
             .DeploySystemSmartContract.SendAsync(
                 new SystemContractDeploymentInput
@@ -126,16 +227,6 @@ public class TokenHolderContractTestBase : ContractTestBase<TokenHolderContractT
                 })).Output;
         AEDPoSContractStub = GetConsensusContractTester(StarterKeyPair);
         
-        //deploy DApp contract
-        DAppContractAddress = AsyncHelper.RunSync(() => GetContractZeroTester(StarterKeyPair)
-            .DeploySystemSmartContract.SendAsync(
-                new SystemContractDeploymentInput
-                {
-                    Category = KernelConstants.CodeCoverageRunnerCategory,
-                    Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(DAppContract).Assembly.Location)),
-                    Name = DappSmartContractAddressNameProvider.Name
-                })).Output;
-        DAppContractStub = GetTester<DAppContainer.DAppStub>(DAppContractAddress, UserKeyPairs.First());
         AsyncHelper.RunSync(TransferToContract);
         AsyncHelper.RunSync(async () =>
         {
@@ -222,6 +313,16 @@ public class TokenHolderContractTestBase : ContractTestBase<TokenHolderContractT
                 To = Address.FromPublicKey(creatorKeyPair.PublicKey),
                 Memo = "set voters few amount for voting."
             }));
+        
+        tokenContractCallList.Add(nameof(TokenContract.Create), new CreateInput
+        {
+            Symbol = "SEED-0",
+            Decimals = 0,
+            IsBurnable = true,
+            TokenName = "collection",
+            TotalSupply = 1,
+            Issuer = Starter
+        });
 
         return tokenContractCallList;
     }
@@ -286,7 +387,7 @@ public class TokenHolderContractTestBase : ContractTestBase<TokenHolderContractT
             approveResult.TransactionResult.Error.ShouldBeNullOrEmpty();
         }
     }
-    
+
     private async Task TransferToContract()
     {
         await TokenContractStub.Transfer.SendAsync(new TransferInput

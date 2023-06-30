@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.CSharp.Core;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -13,7 +14,7 @@ public partial class MultiTokenContractTests
     [Fact(DisplayName = "[MultiToken] advance token not exist in resource token")]
     public async Task AdvancedResourceToken_Test()
     {
-        await CreateNativeTokenAsync();
+       // await CreateNativeTokenAsync();
         long advanceAmount = 1000;
         {
             var tokenNotResrouce = "NORESOURCE";
@@ -51,7 +52,6 @@ public partial class MultiTokenContractTests
     [Fact(DisplayName = "[MultiToken] take more token than that of the contract address's balance")]
     public async Task TakeResourceTokenBack_Test()
     {
-        await CreateNativeTokenAsync();
         var trafficToken = "TRAFFIC";
         var advanceAmount = 1000;
         await CreateAndIssueCustomizeTokenAsync(DefaultAddress, trafficToken, 10000, 10000);
@@ -222,12 +222,25 @@ public partial class MultiTokenContractTests
     {
         var defaultParliamentAddress =
             await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
-        var proposalId = await CreateProposalAsync(TokenContractAddress,
+        var proposalId = await CreateProposalAsync(contractAddress,
             defaultParliamentAddress, methodName, message);
         await ApproveWithMinersAsync(proposalId);
         var releaseResult = await ParliamentContractStub.Release.SendAsync(proposalId);
         releaseResult.TransactionResult.Error.ShouldBeNullOrEmpty();
         releaseResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+    }
+
+    private async Task<IExecutionResult<Empty>> SubmitAndApproveProposalOfDefaultParliamentWithException(
+        Address contractAddress,
+        string methodName,
+        IMessage message)
+    {
+        var defaultParliamentAddress =
+            await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+        var proposalId = await CreateProposalAsync(contractAddress,
+            defaultParliamentAddress, methodName, message);
+        await ApproveWithMinersAsync(proposalId);
+        return await ParliamentContractStub.Release.SendWithExceptionAsync(proposalId);
     }
 
     private Transaction GenerateTokenTransaction(Address from, string method, IMessage input)

@@ -129,7 +129,6 @@ public partial class MultiTokenContractTests
     [Fact]
     public async Task SetMethodFee_Success_Test()
     {
-        await CreateNativeTokenAsync();
         var methodName = "Transfer";
         var tokenSymbol = NativeTokenInfo.Symbol;
         var basicFee = 100;
@@ -161,7 +160,6 @@ public partial class MultiTokenContractTests
     [Fact]
     public async Task SetMethodFee_Fail_Test()
     {
-        await CreateNativeTokenAsync();
         var tokenSymbol = NativeTokenInfo.Symbol;
         var methodName = "Transfer";
         // unauthorized
@@ -212,7 +210,7 @@ public partial class MultiTokenContractTests
         // token is not profitable
         {
             var tokenNotProfitable = "DLS";
-            await TokenContractStub.Create.SendAsync(new CreateInput
+            await CreateMutiTokenAsync(TokenContractStub,new CreateInput
             {
                 Symbol = tokenNotProfitable,
                 TokenName = "name",
@@ -239,7 +237,6 @@ public partial class MultiTokenContractTests
     {
         var methodFeeController = await TokenContractStub.GetMethodFeeController.CallAsync(new Empty());
         var proposalMethodName = nameof(TokenContractStub.SetMethodFee);
-        await CreateNativeTokenAsync();
         var tokenSymbol = NativeTokenInfo.Symbol;
         var basicFee = 100;
         foreach (var methodName in defaultSetMethodNames)
@@ -271,7 +268,6 @@ public partial class MultiTokenContractTests
     {
         var methodFeeController = await TokenContractStub.GetMethodFeeController.CallAsync(new Empty());
         var proposalMethodName = nameof(TokenContractStub.SetMethodFee);
-        await CreateNativeTokenAsync();
         var tokenSymbol = NativeTokenInfo.Symbol;
         var basicFee = 100;
         foreach (var methodName in defaultSetMethodNames)

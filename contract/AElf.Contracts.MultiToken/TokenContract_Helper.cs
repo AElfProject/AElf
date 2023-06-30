@@ -175,8 +175,7 @@ public partial class TokenContract
 
     private void RegisterTokenInfo(TokenInfo tokenInfo)
     {
-        var existing = State.TokenInfos[tokenInfo.Symbol];
-        Assert(existing == null || existing.Equals(new TokenInfo()), "Token already exists.");
+        CheckTokenExists(tokenInfo.Symbol);
         Assert(!string.IsNullOrEmpty(tokenInfo.Symbol) && tokenInfo.Symbol.All(IsValidSymbolChar),
             "Invalid symbol.");
         Assert(!string.IsNullOrEmpty(tokenInfo.TokenName), "Token name can neither be null nor empty.");
@@ -227,10 +226,36 @@ public partial class TokenContract
                && input.Symbol.Length > 0
                && input.Decimals >= 0
                && input.Decimals <= TokenContractConstants.MaxDecimals, "Invalid input.");
+
+        CheckSymbolLength(input.Symbol, symbolType);
+        if (symbolType == SymbolType.Nft) return;
+        CheckTokenAndCollectionExists(input.Symbol);
+        if (IsAddressInCreateWhiteList(Context.Sender)) CheckSymbolSeed(input.Symbol);
+    }
+
+    private void CheckTokenAndCollectionExists(string symbol)
+    {
+        var symbols = symbol.Split(TokenContractConstants.NFTSymbolSeparator);
+        var tokenSymbol = symbols.First();
+        CheckTokenExists(tokenSymbol);
+        var collectionSymbol = symbols.First() + TokenContractConstants.NFTSymbolSeparator +
+                               TokenContractConstants.CollectionSymbolSuffix;
+        CheckTokenExists(collectionSymbol);
+    }
+
+    private void CheckTokenExists(string symbol)
+    {
+        var empty = new TokenInfo();
+        var existing = State.TokenInfos[symbol];
+        Assert(existing == null || existing.Equals(empty), "Token already exists.");
+    }
+
+    private void CheckSymbolLength(string symbol, SymbolType symbolType)
+    {
         if (symbolType == SymbolType.Token)
-            Assert(input.Symbol.Length <= TokenContractConstants.SymbolMaxLength, "Invalid token symbol length");
+            Assert(symbol.Length <= TokenContractConstants.SymbolMaxLength, "Invalid token symbol length");
         if (symbolType == SymbolType.Nft || symbolType == SymbolType.NftCollection)
-            Assert(input.Symbol.Length <= TokenContractConstants.NFTSymbolMaxLength, "Invalid NFT symbol length");
+            Assert(symbol.Length <= TokenContractConstants.NFTSymbolMaxLength, "Invalid NFT symbol length");
     }
 
     private void CheckCrossChainTokenContractRegistrationControllerAuthority()
