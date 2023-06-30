@@ -435,6 +435,20 @@ public class OSTestHelper
                     IsBurnable = true
                 }.ToByteString()
             });
+        
+        tokenContractDto
+            .AddGenesisTransactionMethodCall(new ContractInitializationMethodCall
+            {
+                MethodName = nameof(TokenContractContainer.TokenContractStub.Create), Params = new CreateInput
+                {
+                    Symbol = "TELF",
+                    TokenName = "ELF_Token",
+                    TotalSupply = TokenTotalSupply,
+                    Decimals = 2,
+                    Issuer = ownAddress,
+                    IsBurnable = true
+                }.ToByteString()
+            });
 
         tokenContractDto.AddGenesisTransactionMethodCall(new ContractInitializationMethodCall
         {
@@ -447,6 +461,16 @@ public class OSTestHelper
             MethodName = nameof(TokenContractContainer.TokenContractStub.Issue), Params = new IssueInput
             {
                 Symbol = "ELF",
+                Amount = TokenTotalSupply,
+                To = ownAddress,
+                Memo = "Issue"
+            }.ToByteString()
+        });
+        tokenContractDto.AddGenesisTransactionMethodCall(new ContractInitializationMethodCall
+        {
+            MethodName = nameof(TokenContractContainer.TokenContractStub.Issue), Params = new IssueInput
+            {
+                Symbol = "TELF",
                 Amount = TokenTotalSupply,
                 To = ownAddress,
                 Memo = "Issue"

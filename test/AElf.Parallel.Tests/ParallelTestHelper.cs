@@ -173,37 +173,22 @@ public class ParallelTestHelper : OSTestHelper
         return GetBalanceOutput.Parser.ParseFrom(returnValue).Balance;
     }
 
-    public async Task CreateAndIssueTokenAsync(string symbol, Address issueAddress)
+    public async Task TransferTokenAsync(string symbol, Address issueAddress)
     {
         var ownAddress = await _accountService.GetAccountAsync();
         var tokenContractAddress =
             await _smartContractAddressService.GetAddressByContractNameAsync(await GetChainContextAsync(),
                 TokenSmartContractAddressNameProvider.StringName);
-        var createTokenTransaction = GenerateTransaction(ownAddress, tokenContractAddress,
-            nameof(TokenContractContainer.TokenContractStub.Create),
-            new CreateInput
-            {
-                Symbol = symbol,
-                TokenName = $"{symbol}_Token",
-                TotalSupply = TokenTotalSupply,
-                Decimals = 2,
-                Issuer = ownAddress,
-                IsBurnable = true
-            });
-        var signature = await _accountService.SignAsync(createTokenTransaction.GetHash().ToByteArray());
-        createTokenTransaction.Signature = ByteString.CopyFrom(signature);
-        await BroadcastTransactions(new List<Transaction> { createTokenTransaction });
-        await MinedOneBlock();
-
+        
         var issueTokenTransaction = GenerateTransaction(ownAddress, tokenContractAddress,
-            nameof(TokenContractContainer.TokenContractStub.Issue), new IssueInput
+            nameof(TokenContractContainer.TokenContractStub.Transfer), new TransferInput
             {
                 Symbol = symbol,
-                Amount = TokenTotalSupply,
+                Amount = 100_000000,
                 To = issueAddress,
-                Memo = "Issue"
+                Memo = "Transfer"
             });
-        signature = await _accountService.SignAsync(issueTokenTransaction.GetHash().ToByteArray());
+        var signature = await _accountService.SignAsync(issueTokenTransaction.GetHash().ToByteArray());
         issueTokenTransaction.Signature = ByteString.CopyFrom(signature);
         await BroadcastTransactions(new List<Transaction> { issueTokenTransaction });
         await MinedOneBlock();

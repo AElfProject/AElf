@@ -1,4 +1,5 @@
 using AElf.ContractTestKit;
+using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.FeeCalculation;
 using AElf.Kernel.FeeCalculation.Infrastructure;
 using AElf.Kernel.SmartContract.Application;

@@ -1,7 +1,5 @@
 using System.Linq;
 using AElf.CSharp.Core;
-using AElf.Sdk.CSharp;
-using AElf.Standards.ACS1;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 
@@ -20,28 +18,42 @@ public partial class TokenContract
         AssertNFTCreateInput(input);
         var nftCollectionInfo = AssertNftCollectionExist(input.Symbol);
         input.IssueChainId = input.IssueChainId == 0 ? nftCollectionInfo.IssueChainId : input.IssueChainId;
-        Assert(input.IssueChainId == nftCollectionInfo.IssueChainId, "NFT create ChainId must be collection's issue chainId");
-        Assert(Context.Sender == nftCollectionInfo.Issuer && nftCollectionInfo.Issuer == input.Issuer, "NFT issuer must be collection's issuer");
+        Assert(input.IssueChainId == nftCollectionInfo.IssueChainId,
+            "NFT create ChainId must be collection's issue chainId");
+        Assert(Context.Sender == nftCollectionInfo.Issuer && nftCollectionInfo.Issuer == input.Issuer,
+            "NFT issuer must be collection's issuer");
+        if (nftCollectionInfo.Symbol == TokenContractConstants.SeedCollectionSymbol)
+        {
+            Assert(
+                input.ExternalInfo.Value.TryGetValue(TokenContractConstants.SeedOwnedSymbolExternalInfoKey,
+                    out var ownedSymbol), "OwnedSymbol does not exist.");
+            Assert(input.ExternalInfo.Value.TryGetValue(TokenContractConstants.SeedExpireTimeExternalInfoKey,
+                       out var expirationTime)
+                   && long.TryParse(expirationTime, out var expirationTimeLong) &&
+                   Context.CurrentBlockTime.Seconds <= expirationTimeLong, "Invalid ownedSymbol.");
+            var ownedSymbolType = GetCreateInputSymbolType(ownedSymbol);
+            Assert(ownedSymbolType != SymbolType.Nft, "Invalid OwnedSymbol.");
+            CheckSymbolLength(ownedSymbol, ownedSymbolType);
+            CheckTokenAndCollectionExists(ownedSymbol);
+            CheckSymbolSeed(ownedSymbol);
+            State.SymbolSeedMap[ownedSymbol] = input.Symbol;
+        }
+
         return CreateToken(input, SymbolType.Nft);
     }
 
-    private void ChargeCreateFees()
+    private void CheckSymbolSeed(string ownedSymbol)
     {
-        if (Context.Sender == Context.Origin) return;
-        if (IsAddressInCreateWhiteList(Context.Sender)) return;
+        var oldSymbolSeed = State.SymbolSeedMap[ownedSymbol];
 
-        var fee = GetCreateMethodFee();
-        Assert(fee != null, "not enough balance for create");
-        DoTransferFrom(Context.Sender, Context.Self, Context.Self, fee.Symbol, fee.BasicFee, "");
-
-        ModifyBalance(Context.Self, fee.Symbol, -fee.BasicFee);
-        Context.Fire(new TransactionFeeCharged()
-        {
-            Symbol = fee.Symbol,
-            Amount = fee.BasicFee,
-            ChargingAddress = Context.Self
-        });
+        Assert(oldSymbolSeed == null || !State.TokenInfos[oldSymbolSeed].ExternalInfo.Value
+                   .TryGetValue(TokenContractConstants.SeedExpireTimeExternalInfoKey,
+                       out var oldSymbolSeedExpireTime) ||
+               !long.TryParse(oldSymbolSeedExpireTime, out var symbolSeedExpireTime)
+               || Context.CurrentBlockTime.Seconds > symbolSeedExpireTime,
+            "OwnedSymbol has been created");
     }
+
 
     private void DoTransferFrom(Address from, Address to, Address spender, string symbol, long amount, string memo)
     {
@@ -52,7 +64,8 @@ public partial class TokenContract
             if (IsInWhiteList(new IsInWhiteListInput { Symbol = symbol, Address = spender }).Value)
             {
                 DoTransfer(from, to, symbol, amount, memo);
-                DealWithExternalInfoDuringTransfer(new TransferFromInput() { From = from, To = to, Symbol = symbol, Amount = amount, Memo = memo });
+                DealWithExternalInfoDuringTransfer(new TransferFromInput()
+                    { From = from, To = to, Symbol = symbol, Amount = amount, Memo = memo });
                 return;
             }
 
@@ -62,16 +75,11 @@ public partial class TokenContract
         }
 
         DoTransfer(from, to, symbol, amount, memo);
-        DealWithExternalInfoDuringTransfer(new TransferFromInput() { From = from, To = to, Symbol = symbol, Amount = amount, Memo = memo });
+        DealWithExternalInfoDuringTransfer(new TransferFromInput()
+            { From = from, To = to, Symbol = symbol, Amount = amount, Memo = memo });
         State.Allowances[from][spender][symbol] = allowance.Sub(amount);
     }
 
-    private MethodFee GetCreateMethodFee()
-    {
-        var fee = State.TransactionFees[nameof(Create)];
-        if (fee == null || fee.Fees.Count <= 0) return new MethodFee { Symbol = Context.Variables.NativeSymbol, BasicFee = 10000_00000000 };
-        return fee.Fees.FirstOrDefault(f => GetBalance(Context.Sender, f.Symbol) >= f.BasicFee);
-    }
 
     private string GetNftCollectionSymbol(string inputSymbol)
     {

@@ -20,15 +20,6 @@ public class MultiTokenContractWithCustomSystemTransactionTest : MultiTokenContr
 
     private async Task InitializeAsync()
     {
-        await TokenContractStub.Create.SendAsync(new CreateInput
-        {
-            Symbol = DefaultSymbol,
-            Decimals = 2,
-            IsBurnable = true,
-            TokenName = "elf token",
-            TotalSupply = _totalSupply,
-            Issuer = DefaultAddress
-        });
         await TokenContractStub.SetPrimaryTokenSymbol.SendAsync(new SetPrimaryTokenSymbolInput
         {
             Symbol = DefaultSymbol

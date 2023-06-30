@@ -31,7 +31,7 @@ public partial class AEDPoSTest
 
         const string proposalCreationMethodName =
             nameof(AEDPoSContractImplContainer.AEDPoSContractImplStub.ChangeMethodFeeController);
-        var proposalId = await CreateProposalAsync(methodFeeController.ContractAddress,
+        var proposalId = await CreateProposalAsync(ConsensusContractAddress,
             methodFeeController.OwnerAddress, proposalCreationMethodName, new AuthorityInfo
             {
                 OwnerAddress = organizationAddress,

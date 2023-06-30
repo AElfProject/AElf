@@ -118,13 +118,14 @@ public partial class EconomicSystemTest
             TokenSymbol = symbol,
             AmountToTokenConvert = 0
         };
-        var issueRet = (await TransactionFeeChargingContractStub.IssueToTokenConvert.SendAsync(
-            new IssueAmount
+        await TokenContractStub.Issue.SendAsync(
+            new IssueInput
             {
                 Symbol = symbol,
-                Amount = token.TotalSupply - token.Supply
-            })).TransactionResult;
-        issueRet.Status.ShouldBe(TransactionResultStatus.Mined);
+                Amount = token.TotalSupply - token.Supply,
+                To = TokenConverterContractAddress,
+                Memo = "test"
+            });
         var buildConnector = (await TokenConverterContractStub.EnableConnector.SendAsync(tokenInfo)).TransactionResult;
         buildConnector.Status.ShouldBe(TransactionResultStatus.Mined);
     }
