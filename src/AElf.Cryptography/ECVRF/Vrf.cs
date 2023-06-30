@@ -179,7 +179,7 @@ public class Vrf<TCurve, THasherFactory> : IVrf where TCurve : IECCurve, new()
         }
 
         var gammaCofBytes = curve.SerializePoint(gammaCof, true);
-        using var hasher = SHA256.Create();
+        using var hasher = _hasherFactory.Create();
         using var stream = new MemoryStream();
         stream.WriteByte(_config.SuiteString);
         stream.WriteByte(0x03);
