@@ -9,9 +9,12 @@ using AElf.Contracts.Parliament;
 using AElf.Contracts.Referendum;
 using AElf.ContractTestBase.ContractTestKit;
 using AElf.CrossChain;
+using AElf.Cryptography;
+using AElf.Cryptography.ECDSA;
 using AElf.CSharp.Core;
 using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
+using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Proposal;
 using AElf.Kernel.SmartContract;
@@ -62,6 +65,8 @@ public class MultiTokenContractCrossChainTestBase : ContractTestBase<MultiTokenC
 
     protected ContractTestKit<MultiTokenContractSideChainTestAElfModule> SideChainTestKit;
     internal TokenContractImplContainer.TokenContractImplStub SideChainTokenContractStub;
+    protected readonly IBlockchainService BlockchainService;
+
 
     protected Address SideConsensusAddress;
 
@@ -107,6 +112,8 @@ public class MultiTokenContractCrossChainTestBase : ContractTestBase<MultiTokenC
         ResourceTokenSymbolList = Application.ServiceProvider
             .GetRequiredService<IOptionsSnapshot<HostSmartContractBridgeContextOptions>>()
             .Value.ContextVariables["SymbolListToPayRental"].Split(",").ToList();
+        
+        BlockchainService = Application.ServiceProvider.GetRequiredService<IBlockchainService>();
     }
 
     protected Timestamp BlockchainStartTimestamp => TimestampHelper.GetUtcNow();
@@ -322,10 +329,11 @@ public class MultiTokenContractCrossChainTestBase : ContractTestBase<MultiTokenC
     {
         if (isMainChain)
         {
+            var randomNumber = await GenerateRandomProofAsync(aedPoSContractStub, DefaultAccount.KeyPair);
             var currentRound = await aedPoSContractStub.GetCurrentRoundInformation.CallAsync(new Empty());
             var expectedStartTime = TimestampHelper.GetUtcNow();
             currentRound.GenerateNextRoundInformation(expectedStartTime, BlockchainStartTimestamp,
-                out var nextRound);
+                ByteString.CopyFrom(randomNumber), out var nextRound);
             nextRound.RealTimeMinersInformation[DefaultAccount.KeyPair.PublicKey.ToHex()]
                 .ExpectedMiningTime = expectedStartTime;
             await aedPoSContractStub.NextRound.SendAsync(nextRound);
@@ -333,13 +341,14 @@ public class MultiTokenContractCrossChainTestBase : ContractTestBase<MultiTokenC
 
         if (!isMainChain)
         {
+            var randomNumber = CryptoHelper.ECVrfProve(DefaultAccount.KeyPair, Hash.Empty.ToByteArray());
             var currentRound = await aedPoSContractStub.GetCurrentRoundInformation.CallAsync(new Empty());
             var expectedStartTime = BlockchainStartTimestamp.ToDateTime()
                 .AddMilliseconds(
                     ((long)currentRound.TotalMilliseconds(4000)).Mul(
                         nextRoundNumber.Sub(1)));
             currentRound.GenerateNextRoundInformation(expectedStartTime.ToTimestamp(), BlockchainStartTimestamp,
-                out var nextRound);
+                ByteString.CopyFrom(randomNumber), out var nextRound);
 
             if (currentRound.RoundNumber >= 3)
             {
@@ -355,6 +364,18 @@ public class MultiTokenContractCrossChainTestBase : ContractTestBase<MultiTokenC
                 await aedPoSContractStub.NextRound.SendAsync(nextRound);
             }
         }
+    }
+
+    private async Task<byte[]> GenerateRandomProofAsync(AEDPoSContractContainer.AEDPoSContractStub aedPoSContractStub,
+        ECKeyPair keyPair)
+    {
+        var blockHeight = (await BlockchainService.GetChainAsync()).BestChainHeight;
+        var previousRandomHash =
+            blockHeight <= 1
+                ? Hash.Empty
+                : await aedPoSContractStub.GetRandomHash.CallAsync(new Int64Value
+                    { Value = blockHeight });
+        return CryptoHelper.ECVrfProve(keyPair, previousRandomHash.ToByteArray());
     }
 
     private async Task ApproveBalanceAsync(long amount)

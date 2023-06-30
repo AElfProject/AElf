@@ -1,8 +1,10 @@
 using System.Threading.Tasks;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.MultiToken;
+using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Types;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 
@@ -24,9 +26,10 @@ public partial class EconomicContractsTestBase
                 victories.Value
             }
         };
+        var randomNumber = await GenerateRandomProofAsync(keyPair);
         var firstRoundOfNextTerm =
             miners.GenerateFirstRoundOfNewTerm(EconomicContractsTestConstants.MiningInterval,
-                BlockTimeProvider.GetBlockTime(), round.RoundNumber, round.TermNumber);
+                randomNumber, BlockTimeProvider.GetBlockTime(), round.RoundNumber, round.TermNumber);
         var executionResult = (await miner.NextTerm.SendAsync(firstRoundOfNextTerm)).TransactionResult;
         executionResult.Error.ShouldBeNullOrEmpty();
         executionResult.Status.ShouldBe(TransactionResultStatus.Mined);
@@ -36,9 +39,10 @@ public partial class EconomicContractsTestBase
     {
         var miner = GetConsensusContractTester(keyPair);
         var round = await miner.GetCurrentRoundInformation.CallAsync(new Empty());
+        var randomNumber = await GenerateRandomProofAsync(keyPair);
         round.GenerateNextRoundInformation(
             StartTimestamp.ToDateTime().AddMilliseconds(round.TotalMilliseconds()).ToTimestamp(), StartTimestamp,
-            out var nextRound);
+            ByteString.CopyFrom(randomNumber), out var nextRound);
         await miner.NextRound.SendAsync(nextRound);
     }
 
@@ -56,7 +60,8 @@ public partial class EconomicContractsTestBase
             RoundId = round.RoundId,
             ProducedBlocks = minerInRound.ProducedBlocks + 1,
             ActualMiningTime = minerInRound.ExpectedMiningTime,
-            SupposedOrderOfNextRound = 1
+            SupposedOrderOfNextRound = 1,
+            RandomNumber = ByteString.CopyFrom(await GenerateRandomProofAsync(keyPair))
         });
     }
 
@@ -93,6 +98,18 @@ public partial class EconomicContractsTestBase
         })).Balance;
 
         return balance;
+    }
+
+    protected async Task<byte[]> GenerateRandomProofAsync(ECKeyPair keyPair)
+    {
+        var consensusContractStub = GetConsensusContractTester(keyPair);
+        var blockHeight = (await BlockchainService.GetChainAsync()).BestChainHeight;
+        var previousRandomHash =
+            blockHeight <= 1
+                ? Hash.Empty
+                : await consensusContractStub.GetRandomHash.CallAsync(new Int64Value
+                    { Value = blockHeight });
+        return CryptoHelper.ECVrfProve(keyPair, previousRandomHash.ToByteArray());
     }
 
     #endregion

@@ -1,4 +1,6 @@
 using AElf.Cryptography;
+using AElf.Cryptography.ECDSA;
+using AElf.Cryptography.ECVRF;
 using AElf.Kernel.Account.Infrastructure;
 
 namespace AElf.Kernel.Account.Application;
@@ -9,6 +11,7 @@ public interface IAccountService
     Task<byte[]> GetPublicKeyAsync();
     Task<byte[]> EncryptMessageAsync(byte[] receiverPublicKey, byte[] plainMessage);
     Task<byte[]> DecryptMessageAsync(byte[] senderPublicKey, byte[] cipherMessage);
+    Task<byte[]> ECVrfProveAsync(byte[] message);
 }
 
 public static class AccountServiceExtensions
@@ -52,5 +55,10 @@ public class AccountService : IAccountService, ISingletonDependency
     {
         return Task.FromResult(CryptoHelper.DecryptMessage(senderPublicKey,
             _ecKeyPairProvider.GetKeyPair().PrivateKey, cipherMessage));
+    }
+
+    public Task<byte[]> ECVrfProveAsync(byte[] message)
+    {
+        return Task.FromResult(CryptoHelper.ECVrfProve((ECKeyPair)_ecKeyPairProvider.GetKeyPair(), message));
     }
 }

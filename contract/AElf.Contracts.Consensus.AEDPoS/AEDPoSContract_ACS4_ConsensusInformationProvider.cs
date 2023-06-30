@@ -1,5 +1,6 @@
 using System.Linq;
 using AElf.Standards.ACS4;
+using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
@@ -66,9 +67,10 @@ public partial class AEDPoSContract
             "Data to request consensus information should contain pubkey.");
 
         var pubkey = triggerInformation.Pubkey;
+        var randomNumber = triggerInformation.RandomNumber;
         var consensusInformation = new AElfConsensusHeaderInformation();
         consensusInformation.MergeFrom(GetConsensusBlockExtraData(input, true).Value);
-        var transactionList = GenerateTransactionListByExtraData(consensusInformation, pubkey);
+        var transactionList = GenerateTransactionListByExtraData(consensusInformation, pubkey, randomNumber);
         return transactionList;
     }
 
@@ -126,7 +128,7 @@ public partial class AEDPoSContract
     }
 
     private TransactionList GenerateTransactionListByExtraData(AElfConsensusHeaderInformation consensusInformation,
-        ByteString pubkey)
+        ByteString pubkey, ByteString randomNumber)
     {
         var round = consensusInformation.Round;
         var behaviour = consensusInformation.Behaviour;
@@ -140,7 +142,7 @@ public partial class AEDPoSContract
                     Transactions =
                     {
                         GenerateTransaction(nameof(UpdateValue),
-                            round.ExtractInformationToUpdateConsensus(pubkey.ToHex()))
+                            round.ExtractInformationToUpdateConsensus(pubkey.ToHex(), randomNumber))
                     }
                 };
             case AElfConsensusBehaviour.TinyBlock:
@@ -154,7 +156,8 @@ public partial class AEDPoSContract
                             {
                                 ActualMiningTime = minerInRound.ActualMiningTimes.Last(),
                                 ProducedBlocks = minerInRound.ProducedBlocks,
-                                RoundId = round.RoundIdForValidation
+                                RoundId = round.RoundIdForValidation,
+                                RandomNumber = randomNumber
                             })
                     }
                 };
@@ -163,7 +166,7 @@ public partial class AEDPoSContract
                 {
                     Transactions =
                     {
-                        GenerateTransaction(nameof(NextRound), round)
+                        GenerateTransaction(nameof(NextRound), NextRoundInput.Create(round,randomNumber))
                     }
                 };
             case AElfConsensusBehaviour.NextTerm:
@@ -171,7 +174,7 @@ public partial class AEDPoSContract
                 {
                     Transactions =
                     {
-                        GenerateTransaction(nameof(NextTerm), round)
+                        GenerateTransaction(nameof(NextTerm), NextTermInput.Create(round,randomNumber))
                     }
                 };
             default:

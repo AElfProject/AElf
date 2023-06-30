@@ -38,7 +38,7 @@ public class ConsensusTestAElfModule : AElfModule
                 .Returns(new BytesValue());
             mockService.Setup(m => m.GetTriggerInformationForBlockHeaderExtraData(It.IsAny<BytesValue>()))
                 .Returns(new BytesValue());
-            mockService.Setup(m => m.GetTriggerInformationForConsensusTransactions(It.IsAny<BytesValue>()))
+            mockService.Setup(m => m.GetTriggerInformationForConsensusTransactions(It.IsAny<IChainContext>(), It.IsAny<BytesValue>()))
                 .Returns(new BytesValue());
 
             return mockService.Object;
