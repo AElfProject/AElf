@@ -88,6 +88,8 @@ public interface ISmartContractBridgeContext
     long ConvertHashToInt64(Hash hash, long start = 0, long end = long.MaxValue);
 
     object ValidateStateSize(object obj);
+
+    bool ECVrfVerify(byte[] pubKey, byte[] alpha, byte[] pi, out byte[] beta);
 }
 
 [Serializable]

@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Cryptography;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -27,7 +28,10 @@ public partial class AEDPoSTest
                 Pubkey = ByteString.CopyFrom(BootMinerKeyPair.PublicKey)
             }.ToBytesValue())).ToConsensusHeaderInformation();
 
-        var transactionResult = await AEDPoSContractStub.NextRound.SendAsync(nextTermInformation.Round);
+        var nextRoundInput = NextRoundInput.Parser.ParseFrom(nextTermInformation.Round.ToByteArray());
+        var randomNumber = await GenerateRandomProofAsync(BootMinerKeyPair);
+        nextRoundInput.RandomNumber = ByteString.CopyFrom(randomNumber);
+        var transactionResult = await AEDPoSContractStub.NextRound.SendAsync(nextRoundInput);
         transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
         roundNumber = await AEDPoSContractStub.GetCurrentRoundNumber.CallAsync(new Empty());

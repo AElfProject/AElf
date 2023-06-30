@@ -3,11 +3,13 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.Parliament;
 using AElf.ContractTestKit;
+using AElf.ContractTestKit.AEDPoSExtension;
 using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Proposal;
 using AElf.Standards.ACS3;
+using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
@@ -30,7 +32,11 @@ public class MaximumMinersCountTests : AEDPoSExtensionDemoTestBase
         await BlockMiningService.MineBlockToNextTermAsync();
 
         InitialAcs3Stubs();
-        await ParliamentStubs.First().Initialize.SendAsync(new InitializeInput());
+        await ParliamentStubs.First().Initialize.SendAsync(new InitializeInput
+        {
+            ProposerAuthorityRequired = false,
+            PrivilegedProposer = Address.FromPublicKey(MissionedECKeyPairs.InitialKeyPairs.First().PublicKey)
+        });
         var defaultOrganizationAddress =
             await ParliamentStubs.First().GetDefaultOrganizationAddress.CallAsync(new Empty());
         await ParliamentReachAnAgreementAsync(new CreateProposalInput

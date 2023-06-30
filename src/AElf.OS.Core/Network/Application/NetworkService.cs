@@ -142,7 +142,7 @@ public class NetworkService : INetworkService, ISingletonDependency
                         Logger.LogInformation(ex, $"Could not broadcast announcement to {peer} " +
                                                   $"- status {peer.ConnectionStatus}.");
 
-                        await HandleNetworkException(peer, ex);
+                        await HandleNetworkExceptionAsync(peer, ex);
                     }
                 });
             }
@@ -171,7 +171,7 @@ public class NetworkService : INetworkService, ISingletonDependency
                         Logger.LogWarning(ex, $"Could not broadcast transaction to {peer} " +
                                               $"- status {peer.ConnectionStatus}.");
 
-                        await HandleNetworkException(peer, ex);
+                        await HandleNetworkExceptionAsync(peer, ex);
                     }
                 });
             }
@@ -201,7 +201,7 @@ public class NetworkService : INetworkService, ISingletonDependency
                     {
                         Logger.LogWarning(ex, $"Could not broadcast lib announcement to {peer} " +
                                               $"- status {peer.ConnectionStatus}.");
-                        await HandleNetworkException(peer, ex);
+                        await HandleNetworkExceptionAsync(peer, ex);
                     }
                 });
             }
@@ -256,7 +256,6 @@ public class NetworkService : INetworkService, ISingletonDependency
 
         if (peer == null)
             throw new InvalidOperationException($"Could not find peer {peerPubkey}.");
-
         var response = await Request(peer, p => p.GetBlocksAsync(previousBlock, count));
 
         if (response.Success && response.Payload != null
@@ -343,7 +342,7 @@ public class NetworkService : INetworkService, ISingletonDependency
                 if (ex != null)
                 {
                     Logger.LogWarning(ex, $"Could not broadcast block to {peer} - status {peer.ConnectionStatus}.");
-                    await HandleNetworkException(peer, ex);
+                    await HandleNetworkExceptionAsync(peer, ex);
                 }
             });
         }
@@ -372,13 +371,33 @@ public class NetworkService : INetworkService, ISingletonDependency
             if (ex.ExceptionType == NetworkExceptionType.HandlerException)
                 return new Response<T>(default);
 
-            await HandleNetworkException(peer, ex);
+            await HandleNetworkExceptionAsync(peer, ex);
         }
 
         return new Response<T>();
     }
 
-    private async Task HandleNetworkException(IPeer peer, NetworkException exception)
+    public async Task<List<NodeInfo>> GetNodesAsync(IPeer peer)
+    {
+        try
+        {
+            var nodeList = await peer.GetNodesAsync();
+
+            if (nodeList?.Nodes == null)
+                return new List<NodeInfo>();
+
+            Logger.LogDebug("get nodes: {nodeList} from peer: {peer}.", nodeList, peer);
+            return nodeList.Nodes.ToList();
+        }
+        catch (Exception e)
+        {
+            if (e is NetworkException exception) await HandleNetworkExceptionAsync(peer, exception);
+            Logger.LogWarning(e, "get nodes failed. peer={peer}", peer);
+            return new List<NodeInfo>();
+        }
+    }
+
+    private async Task HandleNetworkExceptionAsync(IPeer peer, NetworkException exception)
     {
         if (exception.ExceptionType == NetworkExceptionType.Unrecoverable)
         {
@@ -398,8 +417,9 @@ public class NetworkService : INetworkService, ISingletonDependency
             return;
 
         var success = await peer.TryRecoverAsync();
-
-        if (!success)
+        if (success)
+            await _networkServer.BuildStreamForPeerAsync(peer);
+        else
             await _networkServer.TrySchedulePeerReconnectionAsync(peer);
     }
 

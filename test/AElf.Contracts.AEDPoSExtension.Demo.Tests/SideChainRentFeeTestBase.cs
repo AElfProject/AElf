@@ -76,7 +76,7 @@ public class SideChainRentFeeTestBase<T> : ContractTestBase<T> where T : Contrac
                 TokenSmartContractAddressNameProvider.Name,
                 DefaultSenderKeyPair));
         TokenContractStub = GetTokenContractTester(DefaultSenderKeyPair);
-        AsyncHelper.RunSync(async () => await InitializeTokenAsync());
+        // AsyncHelper.RunSync(async () => await InitializeTokenAsync());
 
         ParliamentContractAddress = AsyncHelper.RunSync(() =>
             DeploySystemSmartContract(
@@ -139,27 +139,6 @@ public class SideChainRentFeeTestBase<T> : ContractTestBase<T> where T : Contrac
     internal AEDPoSContractImplContainer.AEDPoSContractImplStub GetConsensusContractTester(ECKeyPair keyPair)
     {
         return GetTester<AEDPoSContractImplContainer.AEDPoSContractImplStub>(ConsensusContractAddress, keyPair);
-    }
-
-    private async Task InitializeTokenAsync()
-    {
-        const long totalSupply = 100_000_000;
-        await TokenContractStub.Create.SendAsync(new CreateInput
-        {
-            Symbol = NativeTokenSymbol,
-            Decimals = 2,
-            IsBurnable = true,
-            TokenName = "elf token",
-            TotalSupply = totalSupply,
-            Issuer = DefaultSender
-        });
-        await TokenContractStub.Issue.SendAsync(new IssueInput
-        {
-            Symbol = NativeTokenSymbol,
-            Amount = totalSupply - 20 * 100_000L,
-            To = DefaultSender,
-            Memo = "Issue token to default user."
-        });
     }
 
     private async Task InitializeParliamentContract()

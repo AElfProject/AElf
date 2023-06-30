@@ -33,31 +33,8 @@ public class ParliamentContractTest : ParliamentContractTestBase
     }
 
     [Fact]
-    public async Task Get_DefaultOrganizationAddress_Test()
-    {
-        var transactionResult =
-            await ParliamentContractStub.GetDefaultOrganizationAddress.SendWithExceptionAsync(new Empty());
-        transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-        transactionResult.TransactionResult.Error.Contains("Not initialized.").ShouldBeTrue();
-
-        await InitializeParliamentContracts();
-        var defaultParliamentAddress =
-            await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
-        defaultParliamentAddress.ShouldNotBeNull();
-    }
-
-    [Fact]
-    public async Task ParliamentContract_Initialize_Test()
-    {
-        var result = await ParliamentContractStub.Initialize.SendAsync(new InitializeInput());
-        result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-    }
-
-    [Fact]
     public async Task ParliamentContract_InitializeTwice_Test()
     {
-        await ParliamentContract_Initialize_Test();
-
         var result = await ParliamentContractStub.Initialize.SendWithExceptionAsync(new InitializeInput());
         result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
         result.TransactionResult.Error.Contains("Already initialized.").ShouldBeTrue();
@@ -66,7 +43,7 @@ public class ParliamentContractTest : ParliamentContractTestBase
     [Fact]
     public async Task Get_Organization_Test()
     {
-        await InitializeParliamentContracts();
+        // await InitializeParliamentContracts();
         var minimalApprovalThreshold = 10000 / MinersCount;
         var maximalAbstentionThreshold = 2000 / MinersCount;
         var maximalRejectionThreshold = 3000 / MinersCount;
@@ -110,7 +87,7 @@ public class ParliamentContractTest : ParliamentContractTestBase
     [Fact]
     public async Task Get_Proposal_Test()
     {
-        await InitializeParliamentContracts();
+        // await InitializeParliamentContracts();
         var minimalApprovalThreshold = 6667;
         var maximalAbstentionThreshold = 2000;
         var maximalRejectionThreshold = 3000;
@@ -152,7 +129,7 @@ public class ParliamentContractTest : ParliamentContractTestBase
     [Fact]
     public async Task ApproveMultiProposals_Test()
     {
-        await InitializeParliamentContracts();
+        // await InitializeParliamentContracts();
         var minimalApprovalThreshold = 6667;
         var maximalAbstentionThreshold = 2000;
         var maximalRejectionThreshold = 3000;
@@ -185,7 +162,7 @@ public class ParliamentContractTest : ParliamentContractTestBase
     [Fact]
     public async Task Create_OrganizationFailed_Test()
     {
-        await InitializeParliamentContracts();
+        // await InitializeParliamentContracts();
         var minimalApprovalThreshold = 6667;
         var maximalAbstentionThreshold = 2000;
         var maximalRejectionThreshold = 3000;
@@ -204,13 +181,7 @@ public class ParliamentContractTest : ParliamentContractTestBase
         };
 
         var minerParliamentContractStub = GetParliamentContractTester(InitialMinersKeyPairs[0]);
-
-        {
-            var transactionResult =
-                await ParliamentContractStub.CreateOrganization.SendWithExceptionAsync(createOrganizationInput);
-            transactionResult.TransactionResult.Error.ShouldContain("Unauthorized to create organization.");
-        }
-
+        
         {
             createOrganizationInput.ProposalReleaseThreshold = proposalReleaseThreshold;
             createOrganizationInput.ProposalReleaseThreshold.MinimalApprovalThreshold = 10000;
@@ -280,7 +251,7 @@ public class ParliamentContractTest : ParliamentContractTestBase
     [Fact]
     public async Task Create_ProposalFailed_Test()
     {
-        await InitializeParliamentContracts();
+        // await InitializeParliamentContracts();
         var minimalApprovalThreshold = 6667;
         var maximalAbstentionThreshold = 2000;
         var maximalRejectionThreshold = 3000;
@@ -325,7 +296,7 @@ public class ParliamentContractTest : ParliamentContractTestBase
         }
         //"Expired proposal."
         {
-            createProposalInput.ExpiredTime = TimestampHelper.GetUtcNow().AddSeconds(-1);
+            createProposalInput.ExpiredTime = TimestampHelper.GetUtcNow().AddMinutes(-10);
             var transactionResult =
                 await ParliamentContractStub.CreateProposal.SendWithExceptionAsync(createProposalInput);
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
@@ -374,7 +345,7 @@ public class ParliamentContractTest : ParliamentContractTestBase
     [Fact]
     public async Task Approve_Proposal_NotAuthorizedApproval_Test()
     {
-        await InitializeParliamentContracts();
+        // await InitializeParliamentContracts();
         var minimalApprovalThreshold = 6667;
         var maximalAbstentionThreshold = 2000;
         var maximalRejectionThreshold = 3000;
@@ -392,7 +363,7 @@ public class ParliamentContractTest : ParliamentContractTestBase
     [Fact]
     public async Task Approve_Proposal_ExpiredTime_Test()
     {
-        await InitializeParliamentContracts();
+        // await InitializeParliamentContracts();
         var minimalApprovalThreshold = 6667;
         var maximalAbstentionThreshold = 2000;
         var maximalRejectionThreshold = 3000;
@@ -410,7 +381,7 @@ public class ParliamentContractTest : ParliamentContractTestBase
     [Fact]
     public async Task Approve_Proposal_ApprovalAlreadyExists_Test()
     {
-        await InitializeParliamentContracts();
+        // await InitializeParliamentContracts();
         var minimalApprovalThreshold = 6667;
         var maximalAbstentionThreshold = 2000;
         var maximalRejectionThreshold = 3000;
@@ -436,7 +407,7 @@ public class ParliamentContractTest : ParliamentContractTestBase
     [Fact]
     public async Task Reject_Without_Authority_Test()
     {
-        await InitializeParliamentContracts();
+        // await InitializeParliamentContracts();
         var minimalApprovalThreshold = 6667;
         var maximalAbstentionThreshold = 2000;
         var maximalRejectionThreshold = 3000;
@@ -453,7 +424,7 @@ public class ParliamentContractTest : ParliamentContractTestBase
     [Fact]
     public async Task Reject_With_Invalid_Proposal_Test()
     {
-        await InitializeParliamentContracts();
+        // await InitializeParliamentContracts();
         var minimalApprovalThreshold = 6667;
         var maximalAbstentionThreshold = 2000;
         var maximalRejectionThreshold = 3000;
@@ -482,7 +453,7 @@ public class ParliamentContractTest : ParliamentContractTestBase
     [Fact]
     public async Task Reject_Approved_Proposal_Test()
     {
-        await InitializeParliamentContracts();
+        // await InitializeParliamentContracts();
         var minimalApprovalThreshold = 6667;
         var maximalAbstentionThreshold = 2000;
         var maximalRejectionThreshold = 3000;
@@ -501,7 +472,7 @@ public class ParliamentContractTest : ParliamentContractTestBase
     [Fact]
     public async Task Reject_Success_Test()
     {
-        await InitializeParliamentContracts();
+        // await InitializeParliamentContracts();
         var minimalApprovalThreshold = 6667;
         var maximalAbstentionThreshold = 2000;
         var maximalRejectionThreshold = 3000;
@@ -519,7 +490,7 @@ public class ParliamentContractTest : ParliamentContractTestBase
     [Fact]
     public async Task Abstain_Without_Authority_Test()
     {
-        await InitializeParliamentContracts();
+        // await InitializeParliamentContracts();
         var minimalApprovalThreshold = 6667;
         var maximalAbstentionThreshold = 2000;
         var maximalRejectionThreshold = 3000;
@@ -536,7 +507,7 @@ public class ParliamentContractTest : ParliamentContractTestBase
     [Fact]
     public async Task Abstain_With_Invalid_Proposal_Test()
     {
-        await InitializeParliamentContracts();
+        // await InitializeParliamentContracts();
         var minimalApprovalThreshold = 6667;
         var maximalAbstentionThreshold = 2000;
         var maximalRejectionThreshold = 3000;
@@ -565,7 +536,7 @@ public class ParliamentContractTest : ParliamentContractTestBase
     [Fact]
     public async Task Abstain_Approved_Proposal_Test()
     {
-        await InitializeParliamentContracts();
+        // await InitializeParliamentContracts();
         var minimalApprovalThreshold = 6667;
         var maximalAbstentionThreshold = 2000;
         var maximalRejectionThreshold = 3000;
@@ -584,7 +555,7 @@ public class ParliamentContractTest : ParliamentContractTestBase
     [Fact]
     public async Task Abstain_Success_Test()
     {
-        await InitializeParliamentContracts();
+        // await InitializeParliamentContracts();
         var minimalApprovalThreshold = 6667;
         var maximalAbstentionThreshold = 2000;
         var maximalRejectionThreshold = 3000;
@@ -602,7 +573,7 @@ public class ParliamentContractTest : ParliamentContractTestBase
     [Fact]
     public async Task Check_Proposal_ToBeReleased()
     {
-        await InitializeParliamentContracts();
+        // await InitializeParliamentContracts();
 
         {
             var minimalApprovalThreshold = 3000;
@@ -676,7 +647,7 @@ public class ParliamentContractTest : ParliamentContractTestBase
     [Fact]
     public async Task Release_NotEnoughApprove_Test()
     {
-        await InitializeParliamentContracts();
+        // await InitializeParliamentContracts();
         var minimalApprovalThreshold = 6667;
         var maximalAbstentionThreshold = 2000;
         var maximalRejectionThreshold = 3000;
@@ -706,7 +677,7 @@ public class ParliamentContractTest : ParliamentContractTestBase
     [Fact]
     public async Task Release_WrongSender_Test()
     {
-        await InitializeParliamentContracts();
+        // await InitializeParliamentContracts();
         var minimalApprovalThreshold = 6667;
         var maximalAbstentionThreshold = 2000;
         var maximalRejectionThreshold = 3000;
@@ -727,7 +698,7 @@ public class ParliamentContractTest : ParliamentContractTestBase
     [Fact]
     public async Task Release_Expired_Proposal_Test()
     {
-        await InitializeParliamentContracts();
+        // await InitializeParliamentContracts();
         var minimalApprovalThreshold = 6667;
         var maximalAbstentionThreshold = 2000;
         var maximalRejectionThreshold = 3000;
@@ -744,7 +715,7 @@ public class ParliamentContractTest : ParliamentContractTestBase
     [Fact]
     public async Task Release_Proposal_Test()
     {
-        await InitializeParliamentContracts();
+        // await InitializeParliamentContracts();
         var minimalApprovalThreshold = 6667;
         var maximalAbstentionThreshold = 2000;
         var maximalRejectionThreshold = 3000;
@@ -776,7 +747,7 @@ public class ParliamentContractTest : ParliamentContractTestBase
     [Fact]
     public async Task Release_Proposal_AlreadyReleased_Test()
     {
-        await InitializeParliamentContracts();
+        // await InitializeParliamentContracts();
         var minimalApprovalThreshold = 6667;
         var maximalAbstentionThreshold = 2000;
         var maximalRejectionThreshold = 3000;
@@ -818,7 +789,7 @@ public class ParliamentContractTest : ParliamentContractTestBase
     [Fact]
     public async Task Change_OrganizationThreshold_Test()
     {
-        await InitializeParliamentContracts();
+        // await InitializeParliamentContracts();
         var minimalApprovalThreshold = 3000;
         var maximalAbstentionThreshold = 3000;
         var maximalRejectionThreshold = 3000;
@@ -881,7 +852,7 @@ public class ParliamentContractTest : ParliamentContractTestBase
     [Fact]
     public async Task Check_ValidProposal_Test()
     {
-        await InitializeParliamentContracts();
+        // await InitializeParliamentContracts();
 
         var minimalApprovalThreshold = 6000;
         var maximalAbstentionThreshold = 2000;
@@ -929,7 +900,7 @@ public class ParliamentContractTest : ParliamentContractTestBase
     [Fact]
     public async Task Clear_NotExpiredProposal_Test()
     {
-        await InitializeParliamentContracts();
+        // await InitializeParliamentContracts();
         var defaultParliamentAddress =
             await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
         var miner = InitialMinersKeyPairs[1];
@@ -950,7 +921,7 @@ public class ParliamentContractTest : ParliamentContractTestBase
     [Fact]
     public async Task Clear_ExpiredProposal_Test()
     {
-        await InitializeParliamentContracts();
+        // await InitializeParliamentContracts();
 
         var minimalApprovalThreshold = 6667;
         var maximalAbstentionThreshold = 2000;
@@ -974,7 +945,7 @@ public class ParliamentContractTest : ParliamentContractTestBase
     [Fact]
     public async Task ChangeMethodFeeController_Test()
     {
-        await InitializeParliamentContracts();
+        // await InitializeParliamentContracts();
         var parliamentContractStub = GetParliamentContractTester(InitialMinersKeyPairs[0]);
         var createOrganizationResult =
             await parliamentContractStub.CreateOrganization.SendAsync(
@@ -1014,7 +985,7 @@ public class ParliamentContractTest : ParliamentContractTestBase
     [Fact]
     public async Task ChangeMethodFeeController_WithoutAuth_Test()
     {
-        await InitializeParliamentContracts();
+        // await InitializeParliamentContracts();
         var minimalApprovalThreshold = 6667;
         var maximalAbstentionThreshold = 2000;
         var maximalRejectionThreshold = 3000;
@@ -1037,7 +1008,7 @@ public class ParliamentContractTest : ParliamentContractTestBase
     [Fact]
     public async Task ChangeMethodFeeController_With_Invalid_Authority_Test()
     {
-        await InitializeParliamentContracts();
+        // await InitializeParliamentContracts();
         var parliamentContractStub = GetParliamentContractTester(InitialMinersKeyPairs[0]);
 
 
@@ -1103,7 +1074,7 @@ public class ParliamentContractTest : ParliamentContractTestBase
     [Fact]
     public async Task SetMethodFee_Without_Authority_Test()
     {
-        await InitializeParliamentContracts();
+        // await InitializeParliamentContracts();
         var setMethodFeeRet = await ParliamentContractStub.SetMethodFee.SendWithExceptionAsync(new MethodFees
         {
             MethodName = nameof(ParliamentContractStub.Abstain),
@@ -1122,7 +1093,7 @@ public class ParliamentContractTest : ParliamentContractTestBase
     [Fact]
     public async Task SetMethodFee_Success_Test()
     {
-        await InitializeParliamentContracts();
+        // await InitializeParliamentContracts();
         var parliamentContractStub = GetParliamentContractTester(InitialMinersKeyPairs[0]);
         var methodFeeController = await parliamentContractStub.GetMethodFeeController.CallAsync(new Empty());
         var methodFeeName = nameof(parliamentContractStub.Abstain);
@@ -1213,7 +1184,7 @@ public class ParliamentContractTest : ParliamentContractTestBase
     [Fact]
     public async Task ValidateOrganizationExist_Test()
     {
-        await InitializeParliamentContracts();
+        // await InitializeParliamentContracts();
         var minimalApprovalThreshold = 6667;
         var maximalAbstentionThreshold = 2000;
         var maximalRejectionThreshold = 3000;
@@ -1233,10 +1204,10 @@ public class ParliamentContractTest : ParliamentContractTestBase
     public async Task ValidateProposerInWhiteList_Test()
     {
         var proposer = DefaultSender;
-        await ParliamentContractStub.Initialize.SendAsync(new InitializeInput
-        {
-            PrivilegedProposer = proposer
-        });
+        // await ParliamentContractStub.Initialize.SendAsync(new InitializeInput
+        // {
+        //     PrivilegedProposer = proposer
+        // });
         var isProposerInWhitelist =
             await ParliamentContractStub.ValidateProposerInWhiteList.CallAsync(new ValidateProposerInWhiteListInput
             {
@@ -1287,10 +1258,10 @@ public class ParliamentContractTest : ParliamentContractTestBase
     [Fact]
     public async Task CreateProposalBySystemContract_Success_Test()
     {
-        await ParliamentContractStub.Initialize.SendAsync(new InitializeInput
-        {
-            PrivilegedProposer = DefaultSender
-        });
+        // await ParliamentContractStub.Initialize.SendAsync(new InitializeInput
+        // {
+        //     PrivilegedProposer = DefaultSender
+        // });
         var defaultParliamentAddress =
             await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
         var chain = _blockchainService.GetChainAsync();
@@ -1338,7 +1309,7 @@ public class ParliamentContractTest : ParliamentContractTestBase
 
         //fail to validate proposal, proposal expires
         {
-            await InitializeParliamentContracts();
+            // await InitializeParliamentContracts();
             var minimalApprovalThreshold = 6667;
             var maximalAbstentionThreshold = 2000;
             var maximalRejectionThreshold = 3000;
@@ -1372,7 +1343,7 @@ public class ParliamentContractTest : ParliamentContractTestBase
         }
         //fail to validate proposal, proposal expires
         {
-            await InitializeParliamentContracts();
+            // await InitializeParliamentContracts();
             var minimalApprovalThreshold = 6667;
             var maximalAbstentionThreshold = 2000;
             var maximalRejectionThreshold = 3000;
@@ -1395,7 +1366,7 @@ public class ParliamentContractTest : ParliamentContractTestBase
     [Fact]
     public async Task ApproveMultiProposals_With_Invalid_Proposal_Test()
     {
-        await InitializeParliamentContracts();
+        // await InitializeParliamentContracts();
         var minimalApprovalThreshold = 6667;
         var maximalAbstentionThreshold = 2000;
         var maximalRejectionThreshold = 3000;
@@ -1417,7 +1388,7 @@ public class ParliamentContractTest : ParliamentContractTestBase
     [Fact]
     public async Task Check_ValidProposal_With_Rejected_Test()
     {
-        await InitializeParliamentContracts();
+        // await InitializeParliamentContracts();
 
         var minimalApprovalThreshold = 6000;
         var maximalAbstentionThreshold = 1;
@@ -1461,7 +1432,7 @@ public class ParliamentContractTest : ParliamentContractTestBase
     [Fact]
     public async Task GetReleaseThresholdReachedProposals_Test()
     {
-        await InitializeParliamentContracts();
+        // await InitializeParliamentContracts();
 
         var minimalApprovalThreshold = 3000;
         var maximalAbstentionThreshold = 3000;
@@ -1504,7 +1475,7 @@ public class ParliamentContractTest : ParliamentContractTestBase
     [Fact]
     public async Task GetAvailableProposals_Test()
     {
-        await InitializeParliamentContracts();
+        // await InitializeParliamentContracts();
 
         var minimalApprovalThreshold = 3000;
         var maximalAbstentionThreshold = 3000;

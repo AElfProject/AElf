@@ -35,7 +35,7 @@ public partial class BlockHeader : IBlockHeader
     private byte[] GetSignatureData()
     {
         if (!VerifyFields())
-            throw new InvalidOperationException($"Invalid block header: {this}.");
+            throw new InvalidOperationException($"Invalid block header: PreviousBlockHash={PreviousBlockHash?.ToHex()}, mtr={MerkleTreeRootOfTransactions?.ToHex()}, ChainId={ChainId}, Height={Height}, Time={Time}.");
 
         if (Signature.IsEmpty)
             return this.ToByteArray();

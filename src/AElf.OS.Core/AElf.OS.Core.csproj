@@ -1,5 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
-    <Import Project="..\..\common.props"/>
+    <Import Project="..\..\common.props" />
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
         <RootNamespace>AElf.OS</RootNamespace>
@@ -8,8 +8,8 @@
         <Description>Core module for the OS layer.</Description>
     </PropertyGroup>
     <ItemGroup>
-        <ProjectReference Include="..\AElf.Kernel.Node\AElf.Kernel.Node.csproj"/>
-        <ProjectReference Include="..\AElf.Kernel.Token\AElf.Kernel.Token.csproj"/>
+        <ProjectReference Include="..\AElf.Kernel.Node\AElf.Kernel.Node.csproj" />
+        <ProjectReference Include="..\AElf.Kernel.Token\AElf.Kernel.Token.csproj" />
     </ItemGroup>
     <ItemGroup>
         <CommonMessage Include="..\..\protobuf\network_types.proto">

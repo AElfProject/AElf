@@ -10,6 +10,7 @@ using AElf.Contracts.MultiToken;
 using AElf.Contracts.Parliament;
 using AElf.Contracts.Profit;
 using AElf.Contracts.TestContract.MethodCallThreshold;
+using AElf.Contracts.TestContract.VirtualAddress;
 using AElf.Contracts.TestContract.TransactionFeeCharging;
 using AElf.Contracts.TokenConverter;
 using AElf.Contracts.Treasury;
@@ -102,6 +103,9 @@ public partial class EconomicContractsTestBase
 
     protected Address ConfigurationAddress =>
         GetOrDeployContract(Contracts.Configuration, ref _configurationAddress);
+    
+    private Address _virtualAddressContractAddress;
+    protected Address VirtualAddressContractAddress => GetOrDeployContract(TestContracts.VirtualAddress, ref _virtualAddressContractAddress);
 
     #endregion
 
@@ -144,6 +148,9 @@ public partial class EconomicContractsTestBase
 
     internal ConfigurationContainer.ConfigurationStub ConfigurationStub =>
         GetConfigurationContractTester(BootMinerKeyPair);
+    
+    internal VirtualAddressContractContainer.VirtualAddressContractStub VirtualAddressContractStub =>
+        GetVirtualAddressContractTester(BootMinerKeyPair);
 
     #endregion
 
@@ -222,6 +229,11 @@ public partial class EconomicContractsTestBase
     internal ConfigurationContainer.ConfigurationStub GetConfigurationContractTester(ECKeyPair keyPair)
     {
         return GetTester<ConfigurationContainer.ConfigurationStub>(ConfigurationAddress, keyPair);
+    }
+    
+    internal VirtualAddressContractContainer.VirtualAddressContractStub GetVirtualAddressContractTester(ECKeyPair keyPair)
+    {
+        return GetTester<VirtualAddressContractContainer.VirtualAddressContractStub>(VirtualAddressContractAddress, keyPair);
     }
 
     #endregion
@@ -308,6 +320,7 @@ public partial class EconomicContractsTestBase
         _ = TokenContractAddress;
         _ = TokenHolderContractAddress;
         _ = AssociationContractAddress;
+        _ = VirtualAddressContractAddress;
     }
 
     #endregion
@@ -500,7 +513,7 @@ public partial class EconomicContractsTestBase
                 new MinerList
                 {
                     Pubkeys = { InitialCoreDataCenterKeyPairs.Select(p => ByteString.CopyFrom(p.PublicKey)) }
-                }.GenerateFirstRoundOfNewTerm(EconomicContractsTestConstants.MiningInterval, StartTimestamp));
+                }.GenerateFirstRound(EconomicContractsTestConstants.MiningInterval, StartTimestamp));
             CheckResult(result.TransactionResult);
         }
     }
@@ -509,12 +522,34 @@ public partial class EconomicContractsTestBase
     {
         await ExecuteProposalForParliamentTransaction(TokenContractAddress,
             nameof(TokenContractStub.AddAddressToCreateTokenWhiteList), TransactionFeeChargingContractAddress);
-        var result = await TransactionFeeChargingContractStub.InitializeTransactionFeeChargingContract.SendAsync(
-            new InitializeTransactionFeeChargingContractInput
+        
+        await ExecuteProposalForParliamentTransaction(TokenContractAddress, nameof(TokenContractStub.Create), new CreateInput
+        {
+            Symbol = EconomicContractsTestConstants.TransactionFeeChargingContractTokenSymbol,
+            TokenName = "Token of Transaction Fee Charging Contract",
+            Decimals = 2,
+            Issuer = BootMinerAddress,
+            IsBurnable = true,
+            TotalSupply = 1_000_000_000,
+            LockWhiteList =
             {
-                Symbol = EconomicContractsTestConstants.TransactionFeeChargingContractTokenSymbol
-            });
-        CheckResult(result.TransactionResult);
+                TokenConverterContractAddress,
+                TreasuryContractAddress
+            }
+        });
+        await TokenContractStub.Issue.SendAsync(new IssueInput
+        {
+            Symbol = EconomicContractsTestConstants.TransactionFeeChargingContractTokenSymbol,
+            Amount = 100_000,
+            To = TokenConverterContractAddress
+        });
+        
+        // var result = await TransactionFeeChargingContractStub.InitializeTransactionFeeChargingContract.SendAsync(
+        //     new InitializeTransactionFeeChargingContractInput
+        //     {
+        //         Symbol = EconomicContractsTestConstants.TransactionFeeChargingContractTokenSymbol
+        //     });
+        // CheckResult(result.TransactionResult);
 
         {
             var approveResult = await TokenContractStub.Approve.SendAsync(new ApproveInput

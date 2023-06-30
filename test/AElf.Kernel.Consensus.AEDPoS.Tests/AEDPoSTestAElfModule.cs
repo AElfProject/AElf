@@ -170,6 +170,17 @@ public class AEDPoSTestAElfModule : AElfModule
                         }
                     }.ToByteArray())
                 }));
+            
+            mockService.Setup(m =>
+                    m.ExecuteAsync(It.IsAny<ChainContext>(),
+                        It.Is<Transaction>(tx =>
+                            tx.MethodName == "GetRandomHash"),
+                        It.IsAny<Timestamp>()))
+                .Returns(Task.FromResult(new TransactionTrace
+                {
+                    ExecutionStatus = ExecutionStatus.Executed,
+                    ReturnValue = Hash.Empty.ToByteString()
+                }));
 
             return mockService.Object;
         });

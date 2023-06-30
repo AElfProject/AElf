@@ -77,6 +77,24 @@ service TokenContractImpl {
     rpc ChangeDeveloperController (AuthorityInfo) returns (google.protobuf.Empty) {
     }
 
+    rpc ConfigTransactionFeeFreeAllowances (ConfigTransactionFeeFreeAllowancesInput) returns (google.protobuf.Empty) {
+    }
+
+    rpc RemoveTransactionFeeFreeAllowancesConfig (RemoveTransactionFeeFreeAllowancesConfigInput) returns (google.protobuf.Empty) {
+    }
+
+    // Delegatee sets the delegation and related information of the delegator based on a transaction.
+    rpc SetTransactionFeeDelegateInfos (SetTransactionFeeDelegateInfosInput) returns (google.protobuf.Empty){
+    }
+    
+    // Delegatee remove delegator info based on a transaction.
+    rpc RemoveTransactionFeeDelegatorInfos (RemoveTransactionFeeDelegatorInfosInput) returns (google.protobuf.Empty){
+    }
+    
+    // Delegator remove delegatee info based on a transaction.
+    rpc RemoveTransactionFeeDelegateeInfos (RemoveTransactionFeeDelegateeInfosInput) returns (google.protobuf.Empty){
+    }
+
     // Get the address of fee receiver.
     rpc GetFeeReceiver (google.protobuf.Empty) returns (aelf.Address){
         option (aelf.is_view) = true;
@@ -126,6 +144,23 @@ service TokenContractImpl {
     // Query the unit price of the side chain resource cost, resource cost = unit price * quantity, 
     // the quantity can be queried through GetResourceUsage.
     rpc GetOwningRentalUnitValue (google.protobuf.Empty) returns (OwningRentalUnitValue) {
+        option (aelf.is_view) = true;
+    }
+
+    // Query
+    rpc GetTransactionFeeFreeAllowances (aelf.Address) returns (TransactionFeeFreeAllowancesMap) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetTransactionFeeFreeAllowancesConfig (google.protobuf.Empty) returns (GetTransactionFeeFreeAllowancesConfigOutput) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Get delegatee info list according to the delegator and transaction.
+    rpc GetTransactionFeeDelegateeList (GetTransactionFeeDelegateeListInput) returns (GetTransactionFeeDelegateeListOutput) {
+        option (aelf.is_view) = true;
+    }
+    // Get delegation according to the delegator,transaction and delegatee.
+    rpc GetTransactionFeeDelegateInfo(GetTransactionFeeDelegateInfoInput) returns (token.TransactionFeeDelegations){
         option (aelf.is_view) = true;
     }
 }
@@ -243,4 +278,139 @@ enum SymbolType {
     TOKEN = 0;
     NFT = 1;
     NFT_COLLECTION = 2;
+}
+
+message MethodFeeFreeAllowancesConfig {
+    MethodFeeFreeAllowances free_allowances = 1;
+    int64 refresh_seconds = 2;
+    int64 threshold = 3;
+}
+
+message MethodFeeFreeAllowances{
+    repeated MethodFeeFreeAllowance value = 1;
+}
+
+message MethodFeeFreeAllowance {
+    string symbol = 1;
+    int64 amount = 2;
+}
+
+message TransactionFeeFreeAllowances{
+    repeated TransactionFeeFreeAllowance value = 1;
+}
+
+message TransactionFeeFreeAllowance {
+    string symbol = 1;
+    int64 amount = 2;
+}
+
+message TransactionFeeFreeAllowancesSymbolList {
+    repeated string symbols = 1;
+}
+
+message ConfigTransactionFeeFreeAllowancesInput {
+    repeated ConfigTransactionFeeFreeAllowance value = 1;
+}
+
+message ConfigTransactionFeeFreeAllowance {
+    string symbol = 1;
+    TransactionFeeFreeAllowances transaction_fee_free_allowances = 2;
+    int64 refresh_seconds = 3;
+    int64 threshold = 4;
+}
+
+message RemoveTransactionFeeFreeAllowancesConfigInput {
+    repeated string symbols = 1;
+}
+
+message GetTransactionFeeFreeAllowancesConfigOutput {
+    repeated TransactionFeeFreeAllowanceConfig value = 1;
+}
+
+message TransactionFeeFreeAllowanceConfig {
+    string symbol = 1;
+    TransactionFeeFreeAllowanceMap free_allowances = 2;
+    int64 refresh_seconds = 3;
+    int64 threshold = 4;
+}
+
+message TransactionFeeFreeAllowanceMap {
+    map<string, TransactionFeeFreeAllowance> map = 1;
+}
+
+message TransactionFeeFreeAllowancesMap {
+    map<string, TransactionFeeFreeAllowanceMap> map = 1;
+}
+
+message SetTransactionFeeDelegateInfosInput{
+    // the delegator address
+    aelf.Address delegator_address = 1;
+    //delegate info list (support batch)
+    repeated DelegateInfo delegate_info_list = 2;
+}
+message DelegateInfo{
+    //symbol->amount
+    map<string, int64> delegations = 1;
+    aelf.Address contract_address = 2;
+    string method_name = 3;
+    //Whether to pay transaction fee continuously
+    bool isUnlimitedDelegate = 4;
+}
+
+message RemoveTransactionFeeDelegatorInfosInput{
+    // the delegator address
+    aelf.Address delegator_address = 1;
+    // delegate transaction info (support batch)
+    repeated DelegateTransaction delegate_transaction_list = 2;
+}
+message DelegateTransaction{
+    aelf.Address contract_address = 1;
+    string method_name = 2;
+}
+message DelegateTransactionList{
+    repeated DelegateTransaction value = 1;
+}
+
+message RemoveTransactionFeeDelegateeInfosInput {
+    // the delegatee address
+    aelf.Address delegatee_address = 1;
+    // delegate transaction info (support batch)
+    repeated DelegateTransaction delegate_transaction_list = 2;
+}
+
+message GetTransactionFeeDelegateInfoInput {
+    aelf.Address delegator_address = 1;
+    aelf.Address delegatee_address = 2;
+    aelf.Address contract_address = 3;
+    string method_name = 4;
+}
+message GetTransactionFeeDelegateeListInput {
+    aelf.Address delegator_address = 1;
+    aelf.Address contract_address = 2;
+    string method_name = 3;
+}
+message GetTransactionFeeDelegateeListOutput {
+    repeated aelf.Address delegatee_addresses = 1;
+}
+message TransactionFeeDelegateInfoAdded {
+    option (aelf.is_event) = true;
+    aelf.Address delegator = 1;
+    aelf.Address delegatee = 2;
+    aelf.Address caller = 3;
+    DelegateTransactionList delegate_transaction_list = 4;
+}
+message TransactionFeeDelegateInfoUpdated {
+    option (aelf.is_event) = true;
+    aelf.Address delegator = 1 ;
+    aelf.Address delegatee = 2 ;
+    aelf.Address caller = 3 ;
+    DelegateTransactionList delegate_transaction_list = 4;
+}
+
+message TransactionFeeDelegateInfoCancelled {
+    option (aelf.is_event) = true;
+    aelf.Address delegator = 1 ;
+    aelf.Address delegatee = 2 ;
+    aelf.Address caller = 3 ;
+    DelegateTransactionList delegate_transaction_list = 4;
 }

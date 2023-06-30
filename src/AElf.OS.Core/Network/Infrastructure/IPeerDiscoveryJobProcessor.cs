@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 using AElf.Kernel.Account.Application;
+using AElf.OS.Network.Application;
 using AElf.OS.Network.Domain;
 using AElf.OS.Network.Extensions;
 using Microsoft.Extensions.Logging;
@@ -28,18 +28,20 @@ public class PeerDiscoveryJobProcessor : IPeerDiscoveryJobProcessor, ISingletonD
     private readonly IDiscoveredNodeCacheProvider _discoveredNodeCacheProvider;
     private readonly IAElfNetworkServer _networkServer;
     private readonly INodeManager _nodeManager;
+    private readonly INetworkService _networkService;
 
     private TransformManyBlock<IPeer, NodeInfo> _discoverNodesDataflow;
     private ActionBlock<NodeInfo> _processNodeDataflow;
 
     public PeerDiscoveryJobProcessor(INodeManager nodeManager,
         IDiscoveredNodeCacheProvider discoveredNodeCacheProvider, IAElfNetworkServer networkServer,
-        IAccountService accountService)
+        IAccountService accountService, INetworkService networkService)
     {
         _nodeManager = nodeManager;
         _discoveredNodeCacheProvider = discoveredNodeCacheProvider;
         _networkServer = networkServer;
         _accountService = accountService;
+        _networkService = networkService;
         CreatePeerDiscoveryDataflow();
 
         Logger = NullLogger<PeerDiscoveryJobProcessor>.Instance;
@@ -80,21 +82,7 @@ public class PeerDiscoveryJobProcessor : IPeerDiscoveryJobProcessor, ISingletonD
 
     private async Task<List<NodeInfo>> DiscoverNodesAsync(IPeer peer)
     {
-        try
-        {
-            var nodeList = await peer.GetNodesAsync();
-
-            if (nodeList?.Nodes == null)
-                return new List<NodeInfo>();
-
-            Logger.LogDebug($"Discover nodes: {nodeList} from peer: {peer}.");
-            return nodeList.Nodes.ToList();
-        }
-        catch (Exception e)
-        {
-            Logger.LogWarning(e, "Discover nodes failed.");
-            return new List<NodeInfo>();
-        }
+        return await _networkService.GetNodesAsync(peer);
     }
 
     private async Task ProcessNodeAsync(NodeInfo node)

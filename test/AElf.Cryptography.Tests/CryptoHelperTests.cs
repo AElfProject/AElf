@@ -1,6 +1,8 @@
 using System;
 using System.Text;
 using AElf.Cryptography.Exceptions;
+using AElf.Types;
+using Org.BouncyCastle.Utilities.Encoders;
 using Shouldly;
 using Virgil.Crypto;
 using Xunit;
@@ -131,5 +133,17 @@ public class CryptoHelperTests
         Should.Throw<EcdhOperationException>(() => throw new EcdhOperationException(message));
         Should.Throw<SignatureOperationException>(() => throw new SignatureOperationException(message));
         Should.Throw<InvalidKeyPairException>(() => throw new InvalidKeyPairException(message, new Exception()));
+    }
+
+    [Fact]
+    public void VrfTest()
+    {
+        var key = CryptoHelper.FromPrivateKey(
+            ByteArrayHelper.HexStringToByteArray("5945c176c4269dc2aa7daf7078bc63b952832e880da66e5f2237cdf79bc59c5f"));
+        var alpha = "5cf8151010716e40e5349ad02821da605df22e9ac95450c7e35f04c720fd4db5";
+        var alphaBytes = Hash.LoadFromHex(alpha).ToByteArray();
+        var pi = CryptoHelper.ECVrfProve(key, alphaBytes);
+        var beta = CryptoHelper.ECVrfVerify(key.PublicKey, alphaBytes, pi);
+        beta.ToHex().ShouldBe("43765915e86c205f0c28b4d22e157b8474add7faf890a3aa2a88df756651523f");
     }
 }

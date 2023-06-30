@@ -215,7 +215,7 @@ internal class ConsensusService : IConsensusService, ISingletonDependency
                 .Create(contractReaderContext)
                 .GenerateConsensusTransactions
                 .CallAsync(_triggerInformationProvider.GetTriggerInformationForConsensusTransactions(
-                    _consensusCommand.ToBytesValue())))
+                    chainContext, _consensusCommand.ToBytesValue())))
             .Transactions
             .ToList();
 
