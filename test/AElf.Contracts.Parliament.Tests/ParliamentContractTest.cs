@@ -296,7 +296,7 @@ public class ParliamentContractTest : ParliamentContractTestBase
         }
         //"Expired proposal."
         {
-            createProposalInput.ExpiredTime = TimestampHelper.GetUtcNow().AddSeconds(-1);
+            createProposalInput.ExpiredTime = TimestampHelper.GetUtcNow().AddMinutes(-10);
             var transactionResult =
                 await ParliamentContractStub.CreateProposal.SendWithExceptionAsync(createProposalInput);
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);

@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.CSharp.Core;
+using AElf.Kernel;
 using AElf.Standards.ACS4;
 using AElf.TestBase;
 using AElf.Types;
@@ -74,10 +75,12 @@ public partial class AEDPoSTest : AEDPoSContractTestBase
         });
 
         var triggerForCommand =
-            TriggerInformationProvider.GetTriggerInformationForConsensusTransactions(
+            TriggerInformationProvider.GetTriggerInformationForConsensusTransactions(new ChainContext(),
                 consensusCommand.ToBytesValue());
+        var trigger = AElfConsensusTriggerInformation.Parser.ParseFrom(triggerForCommand.Value);
+        trigger.RandomNumber = ByteString.CopyFrom(await GenerateRandomProofAsync(BootMinerKeyPair));
 
-        var transactionList = await AEDPoSContractStub.GenerateConsensusTransactions.CallAsync(triggerForCommand);
+        var transactionList = await AEDPoSContractStub.GenerateConsensusTransactions.CallAsync(trigger.ToBytesValue());
 
         transactionList.Transactions.Count.ShouldBe(1);
         transactionList.Transactions[0].MethodName.ShouldBe(nameof(AEDPoSContractStub.UpdateValue));
@@ -175,9 +178,11 @@ public partial class AEDPoSTest : AEDPoSContractTestBase
         });
 
         var triggerForCommand = TriggerInformationProvider
-            .GetTriggerInformationForConsensusTransactions(consensusCommand.ToBytesValue());
+            .GetTriggerInformationForConsensusTransactions(new ChainContext(), consensusCommand.ToBytesValue());
+        var trigger = AElfConsensusTriggerInformation.Parser.ParseFrom(triggerForCommand.Value);
+        trigger.RandomNumber = ByteString.CopyFrom(await GenerateRandomProofAsync(usingKeyPair));
 
-        var transactionList = await AEDPoSContractStub.GenerateConsensusTransactions.CallAsync(triggerForCommand);
+        var transactionList = await AEDPoSContractStub.GenerateConsensusTransactions.CallAsync(trigger.ToBytesValue());
 
         transactionList.Transactions.Count.ShouldBe(1);
         transactionList.Transactions[0].MethodName.ShouldBe(nameof(AEDPoSContractStub.UpdateValue));
@@ -252,8 +257,10 @@ public partial class AEDPoSTest : AEDPoSContractTestBase
 
         var triggerForCommand = TriggerInformationProvider
             .GetTriggerInformationForBlockHeaderExtraData(consensusCommand.ToBytesValue());
+        var trigger = AElfConsensusTriggerInformation.Parser.ParseFrom(triggerForCommand.Value);
+        trigger.RandomNumber = ByteString.CopyFrom(await GenerateRandomProofAsync(usingKeyPair));
 
-        var extraDataBytes = await AEDPoSContractStub.GetConsensusExtraData.CallAsync(triggerForCommand);
+        var extraDataBytes = await AEDPoSContractStub.GetConsensusExtraData.CallAsync(trigger.ToBytesValue());
 
         var extraData = extraDataBytes.ToConsensusHeaderInformation();
 
@@ -275,9 +282,11 @@ public partial class AEDPoSTest : AEDPoSContractTestBase
         });
 
         var triggerForCommand = TriggerInformationProvider
-            .GetTriggerInformationForConsensusTransactions(consensusCommand.ToBytesValue());
-
-        var transactionList = await AEDPoSContractStub.GenerateConsensusTransactions.CallAsync(triggerForCommand);
+            .GetTriggerInformationForConsensusTransactions(new ChainContext(), consensusCommand.ToBytesValue());
+        var trigger = AElfConsensusTriggerInformation.Parser.ParseFrom(triggerForCommand.Value);
+        trigger.RandomNumber = ByteString.CopyFrom(await GenerateRandomProofAsync(usingKeyPair));
+        
+        var transactionList = await AEDPoSContractStub.GenerateConsensusTransactions.CallAsync(trigger.ToBytesValue());
 
         transactionList.Transactions.Count.ShouldBe(1);
         transactionList.Transactions[0].MethodName.ShouldBe(nameof(AEDPoSContractStub.NextRound));
@@ -298,7 +307,7 @@ public partial class AEDPoSTest : AEDPoSContractTestBase
                 .Div(1000)
         });
 
-        var nextRound = new Round();
+        var nextRound = new NextRoundInput();
         nextRound.MergeFrom(transaction.Params);
 
         await AEDPoSContractStub.NextRound.SendAsync(nextRound);
@@ -323,10 +332,13 @@ public partial class AEDPoSTest : AEDPoSContractTestBase
         validateBeforeResult.Success.ShouldBeTrue();
 
         var roundInfo = await AEDPoSContractStub.GetCurrentRoundInformation.CallAsync(new Empty());
-        roundInfo.RoundNumber++;
-        roundInfo.IsMinerListJustChanged = false;
-        roundInfo.TermNumber++;
-        var transactionResult = await AEDPoSContractStub.NextRound.SendAsync(roundInfo);
+        var nextRoundInput = NextRoundInput.Parser.ParseFrom(roundInfo.ToByteArray());
+        nextRoundInput.RoundNumber++;
+        nextRoundInput.IsMinerListJustChanged = false;
+        nextRoundInput.TermNumber++;
+        var randomNumber = await GenerateRandomProofAsync(BootMinerKeyPair);
+        nextRoundInput.RandomNumber = ByteString.CopyFrom(randomNumber);
+        var transactionResult = await AEDPoSContractStub.NextRound.SendAsync(nextRoundInput);
         transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
         var validateAfterResult =
@@ -402,10 +414,12 @@ public partial class AEDPoSTest : AEDPoSContractTestBase
             });
 
             var triggerForCommand = TriggerInformationProvider
-                .GetTriggerInformationForConsensusTransactions(consensusCommand.ToBytesValue());
+                .GetTriggerInformationForConsensusTransactions(new ChainContext(), consensusCommand.ToBytesValue());
+            var trigger = AElfConsensusTriggerInformation.Parser.ParseFrom(triggerForCommand.Value);
+            trigger.RandomNumber = ByteString.CopyFrom(await GenerateRandomProofAsync(usingKeyPair));
 
             var transactionList =
-                await AEDPoSContractStub.GenerateConsensusTransactions.CallAsync(triggerForCommand);
+                await AEDPoSContractStub.GenerateConsensusTransactions.CallAsync(trigger.ToBytesValue());
 
             transactionList.Transactions.Count.ShouldBe(1);
             transactionList.Transactions[0].MethodName
@@ -433,10 +447,12 @@ public partial class AEDPoSTest : AEDPoSContractTestBase
             });
 
             var triggerForCommand = TriggerInformationProvider
-                .GetTriggerInformationForConsensusTransactions(consensusCommand.ToBytesValue());
+                .GetTriggerInformationForConsensusTransactions(new ChainContext(), consensusCommand.ToBytesValue());
+            var trigger = AElfConsensusTriggerInformation.Parser.ParseFrom(triggerForCommand.Value);
+            trigger.RandomNumber = ByteString.CopyFrom(await GenerateRandomProofAsync(usingKeyPair));
 
             var transactionList =
-                await AEDPoSContractStub.GenerateConsensusTransactions.CallAsync(triggerForCommand);
+                await AEDPoSContractStub.GenerateConsensusTransactions.CallAsync(trigger.ToBytesValue());
 
             transactionList.Transactions.Count.ShouldBe(1);
             transactionList.Transactions[0].MethodName.ShouldBe(nameof(AEDPoSContractStub.NextTerm));

@@ -513,7 +513,7 @@ public partial class EconomicContractsTestBase
                 new MinerList
                 {
                     Pubkeys = { InitialCoreDataCenterKeyPairs.Select(p => ByteString.CopyFrom(p.PublicKey)) }
-                }.GenerateFirstRoundOfNewTerm(EconomicContractsTestConstants.MiningInterval, StartTimestamp));
+                }.GenerateFirstRound(EconomicContractsTestConstants.MiningInterval, StartTimestamp));
             CheckResult(result.TransactionResult);
         }
     }

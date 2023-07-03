@@ -7,6 +7,8 @@ using System.Reflection;
 using System.Threading.Tasks;
 using AElf.ContractDeployer;
 using AElf.Contracts.Consensus.AEDPoS;
+using AElf.Cryptography;
+using AElf.Cryptography.ECDSA;
 using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
@@ -34,6 +36,7 @@ public class BlockMiningService : IBlockMiningService
     private readonly ISmartContractAddressService _smartContractAddressService;
     private readonly ITestDataProvider _testDataProvider;
     private readonly ITransactionResultService _transactionResultService;
+    private readonly IBlockchainService _blockchainService;
 
     private Address _consensusContractAddress;
 
@@ -52,6 +55,7 @@ public class BlockMiningService : IBlockMiningService
         _testDataProvider = serviceProvider.GetRequiredService<ITestDataProvider>();
         _transactionResultService = serviceProvider.GetRequiredService<ITransactionResultService>();
         _chainTypeProvider = serviceProvider.GetRequiredService<IChainTypeProvider>();
+        _blockchainService = serviceProvider.GetRequiredService<IBlockchainService>();
     }
 
     /// <summary>
@@ -130,7 +134,8 @@ public class BlockMiningService : IBlockMiningService
                 throw new InitializationFailedException("Can't find current round information.");
         }
 
-        var triggerInformation = await GetConsensusTriggerInfoAsync(contractStub, pubkey);
+        var randomNumber = await GenerateRandomProofAsync();
+        var triggerInformation = await GetConsensusTriggerInfoAsync(contractStub, pubkey, ByteString.CopyFrom(randomNumber));
         var consensusTransaction = await contractStub.GenerateConsensusTransactions.CallAsync(new BytesValue
         {
             Value = triggerInformation.ToByteString()
@@ -155,6 +160,17 @@ public class BlockMiningService : IBlockMiningService
         await _testDataProvider.ResetAsync();
 
         _isSkipped = false;
+    }
+
+    private async Task<byte[]> GenerateRandomProofAsync()
+    {
+        var blockHeight = (await _blockchainService.GetChainAsync()).BestChainHeight;
+        var previousRandomHash =
+            blockHeight <= 1
+                ? Hash.Empty
+                : await _contractStubs.First().GetRandomHash.CallAsync(new Int64Value
+                    { Value = blockHeight });
+        return CryptoHelper.ECVrfProve((ECKeyPair)_testDataProvider.GetKeyPair(), previousRandomHash.ToByteArray());
     }
 
     public async Task<long> MineBlockToNextRoundAsync()
@@ -294,16 +310,16 @@ public class BlockMiningService : IBlockMiningService
                 break;
             case nameof(AEDPoSContractImplContainer.AEDPoSContractImplStub.NextRound):
                 if (withException)
-                    await contractStub.NextRound.SendWithExceptionAsync(Round.Parser.ParseFrom(transaction.Params));
+                    await contractStub.NextRound.SendWithExceptionAsync(NextRoundInput.Parser.ParseFrom(transaction.Params));
                 else
-                    await contractStub.NextRound.SendAsync(Round.Parser.ParseFrom(transaction.Params));
+                    await contractStub.NextRound.SendAsync(NextRoundInput.Parser.ParseFrom(transaction.Params));
 
                 break;
             case nameof(AEDPoSContractImplContainer.AEDPoSContractImplStub.NextTerm):
                 if (withException)
-                    await contractStub.NextTerm.SendWithExceptionAsync(Round.Parser.ParseFrom(transaction.Params));
+                    await contractStub.NextTerm.SendWithExceptionAsync(NextTermInput.Parser.ParseFrom(transaction.Params));
                 else
-                    await contractStub.NextTerm.SendAsync(Round.Parser.ParseFrom(transaction.Params));
+                    await contractStub.NextTerm.SendAsync(NextTermInput.Parser.ParseFrom(transaction.Params));
 
                 break;
         }
@@ -378,7 +394,7 @@ public class BlockMiningService : IBlockMiningService
     }
 
     private async Task<AElfConsensusTriggerInformation> GetConsensusTriggerInfoAsync(
-        AEDPoSContractImplContainer.AEDPoSContractImplStub contractStub, BytesValue pubkey)
+        AEDPoSContractImplContainer.AEDPoSContractImplStub contractStub, BytesValue pubkey, ByteString randomNumber)
     {
         var command = await contractStub.GetConsensusCommand.CallAsync(pubkey);
         var hint = AElfConsensusHint.Parser.ParseFrom(command.Hint);
@@ -388,7 +404,8 @@ public class BlockMiningService : IBlockMiningService
             // It doesn't matter for testing.
             InValue = HashHelper.ComputeFrom($"InValueOf{pubkey}"),
             PreviousInValue = HashHelper.ComputeFrom($"InValueOf{pubkey}"),
-            Pubkey = pubkey.Value
+            Pubkey = pubkey.Value,
+            RandomNumber = randomNumber
         };
 
         var consensusExtraData = await contractStub.GetConsensusExtraData.CallAsync(new BytesValue

@@ -158,7 +158,7 @@ public partial class AEDPoSContract : AEDPoSContractImplContainer.AEDPoSContract
 
     #region NextRound
 
-    public override Empty NextRound(Round input)
+    public override Empty NextRound(NextRoundInput input)
     {
         SupplyCurrentRoundInformation();
         ProcessConsensusInformation(input);
