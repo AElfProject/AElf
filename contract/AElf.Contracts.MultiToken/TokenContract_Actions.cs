@@ -124,7 +124,7 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
     public override Empty SetPrimaryTokenSymbol(SetPrimaryTokenSymbolInput input)
     {
         Assert(State.ChainPrimaryTokenSymbol.Value == null, "Failed to set primary token symbol.");
-        Assert(State.TokenInfos[input.Symbol] != null, "Invalid input.");
+        Assert(!string.IsNullOrWhiteSpace(input.Symbol) && State.TokenInfos[input.Symbol] != null, "Invalid input symbol.");
 
         State.ChainPrimaryTokenSymbol.Value = input.Symbol;
         Context.Fire(new ChainPrimaryTokenSymbolSet { TokenSymbol = input.Symbol });
@@ -179,6 +179,8 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
 
     public override Empty Lock(LockInput input)
     {
+        Assert(!string.IsNullOrWhiteSpace(input.Symbol), "Invalid input symbol.");
+        AssertValidInputAddress(input.Address);
         AssertSystemContractOrLockWhiteListAddress(input.Symbol);
 
         // For Election Contract
@@ -208,6 +210,8 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
 
     public override Empty Unlock(UnlockInput input)
     {
+        Assert(!string.IsNullOrWhiteSpace(input.Symbol), "Invalid input symbol.");
+        AssertValidInputAddress(input.Address);
         AssertSystemContractOrLockWhiteListAddress(input.Symbol);
 
         // For Election Contract
@@ -245,6 +249,7 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
 
     public override Empty Approve(ApproveInput input)
     {
+        AssertValidInputAddress(input.Spender);
         AssertValidToken(input.Symbol, input.Amount);
         State.Allowances[Context.Sender][input.Spender][input.Symbol] = input.Amount;
         Context.Fire(new Approved
@@ -259,6 +264,7 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
 
     public override Empty UnApprove(UnApproveInput input)
     {
+        AssertValidInputAddress(input.Spender);
         AssertValidToken(input.Symbol, input.Amount);
         var oldAllowance = State.Allowances[Context.Sender][input.Spender][input.Symbol];
         var amountOrAll = Math.Min(input.Amount, oldAllowance);
@@ -296,6 +302,7 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
 
     public override Empty CheckThreshold(CheckThresholdInput input)
     {
+        AssertValidInputAddress(input.Sender);
         var meetThreshold = false;
         var meetBalanceSymbolList = new List<string>();
         foreach (var symbolToThreshold in input.SymbolToThreshold)
@@ -367,6 +374,7 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
 
     public override Empty AdvanceResourceToken(AdvanceResourceTokenInput input)
     {
+        AssertValidInputAddress(input.ContractAddress);
         Assert(
             Context.Variables.GetStringArray(TokenContractConstants.PayTxFeeSymbolListName)
                 .Contains(input.ResourceTokenSymbol),
@@ -380,6 +388,8 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
 
     public override Empty TakeResourceTokenBack(TakeResourceTokenBackInput input)
     {
+        Assert(!string.IsNullOrWhiteSpace(input.ResourceTokenSymbol), "Invalid input resource token symbol.");
+        AssertValidInputAddress(input.ContractAddress);
         var advancedAmount =
             State.AdvancedResourceToken[input.ContractAddress][Context.Sender][input.ResourceTokenSymbol];
         Assert(advancedAmount >= input.Amount, "Can't take back that more.");
@@ -391,6 +401,7 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
 
     public override Empty ValidateTokenInfoExists(ValidateTokenInfoExistsInput input)
     {
+        Assert(!string.IsNullOrWhiteSpace(input.Symbol), "Invalid input symbol.");
         var tokenInfo = State.TokenInfos[input.Symbol];
         if (tokenInfo == null) throw new AssertionException("Token validation failed.");
 
@@ -414,6 +425,9 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
 
     public override Empty ChangeTokenIssuer(ChangeTokenIssuerInput input)
     {
+        Assert(!string.IsNullOrWhiteSpace(input.Symbol), "Invalid input symbol.");
+        AssertValidInputAddress(input.NewTokenIssuer);
+        
         var tokenInfo = State.TokenInfos[input.Symbol];
         Assert(tokenInfo != null, $"invalid token symbol: {input.Symbol}");
         // ReSharper disable once PossibleNullReferenceException
@@ -426,6 +440,7 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
 
     public override Empty ResetExternalInfo(ResetExternalInfoInput input)
     {
+        Assert(!string.IsNullOrWhiteSpace(input.Symbol), "Invalid input symbol.");
         var tokenInfo = State.TokenInfos[input.Symbol];
         Assert(tokenInfo.Issuer == Context.Sender, "No permission to reset external info.");
         tokenInfo.ExternalInfo = input.ExternalInfo;

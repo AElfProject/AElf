@@ -51,6 +51,11 @@ public partial class TokenContract
             "Invalid memo size.");
     }
 
+    private void AssertValidInputAddress(Address input)
+    {
+        Assert(input != null && !input.Value.IsNullOrEmpty(), "Invalid input address.");
+    }
+
     private void DoTransfer(Address from, Address to, string symbol, long amount, string memo = null)
     {
         Assert(from != to, "Can't do transfer to sender itself.");
@@ -120,6 +125,9 @@ public partial class TokenContract
 
     private long GetBalance(Address address, string symbol)
     {
+        AssertValidInputAddress(address);
+        Assert(!string.IsNullOrWhiteSpace(symbol), "Invalid symbol.");
+        
         return State.Balances[address][symbol];
     }
 

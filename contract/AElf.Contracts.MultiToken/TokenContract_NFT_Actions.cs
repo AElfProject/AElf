@@ -57,6 +57,9 @@ public partial class TokenContract
 
     private void DoTransferFrom(Address from, Address to, Address spender, string symbol, long amount, string memo)
     {
+        AssertValidInputAddress(from);
+        AssertValidInputAddress(to);
+        
         // First check allowance.
         var allowance = State.Allowances[from][spender][symbol];
         if (allowance < amount)
