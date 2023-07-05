@@ -309,28 +309,11 @@ public class TransactionResultAppService : AElfAppService, ITransactionResultApp
         try
         {
             var parameters = methodDescriptor.InputType.Parser.ParseFrom(@params);
-            if (!TryFormatToJsonString(parameters, out var paramsJson))
-                throw new UserFriendlyException(Error.Message[Error.InvalidParams], Error.InvalidParams.ToString());
-            transaction.Params = paramsJson;
+            transaction.Params = JsonFormatter.ToDiagnosticString(parameters);;
         }
-        catch (Exception exception) when (exception is not UserFriendlyException)
+        catch (Exception exception)
         {
             Logger.LogError(exception, "Failed to parse transaction params: {params}", transaction.Params);
         }
-    }
-    
-    private bool TryFormatToJsonString(IMessage message, out string json)
-    {
-        try
-        {
-            json = JsonFormatter.ToDiagnosticString(message);
-        }
-        catch
-        {
-            json = string.Empty;
-            return false;
-        }
-
-        return true;
     }
 }
