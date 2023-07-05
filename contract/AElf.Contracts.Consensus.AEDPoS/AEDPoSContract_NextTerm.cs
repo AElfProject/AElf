@@ -10,7 +10,7 @@ namespace AElf.Contracts.Consensus.AEDPoS;
 // ReSharper disable once InconsistentNaming
 public partial class AEDPoSContract
 {
-    public override Empty NextTerm(Round input)
+    public override Empty NextTerm(NextTermInput input)
     {
         SupplyCurrentRoundInformation();
         ProcessConsensusInformation(input);

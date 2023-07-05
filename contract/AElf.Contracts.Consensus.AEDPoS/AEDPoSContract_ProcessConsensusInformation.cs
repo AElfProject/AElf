@@ -5,6 +5,7 @@ using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 using AElf.Standards.ACS10;
 using AElf.Types;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.AEDPoS;
@@ -28,19 +29,25 @@ public partial class AEDPoSContract
 
         State.RoundBeforeLatestExecution.Value = GetCurrentRoundInformation(new Empty());
 
+        ByteString randomNumber = null;
+
         // The only difference.
         switch (input)
         {
-            case Round round when callerMethodName == nameof(NextRound):
-                ProcessNextRound(round);
+            case NextRoundInput nextRoundInput:
+                randomNumber = nextRoundInput.RandomNumber;
+                ProcessNextRound(nextRoundInput);
                 break;
-            case Round round when callerMethodName == nameof(NextTerm):
-                ProcessNextTerm(round);
+            case NextTermInput nextTermInput:
+                randomNumber = nextTermInput.RandomNumber;
+                ProcessNextTerm(nextTermInput);
                 break;
             case UpdateValueInput updateValueInput:
+                randomNumber = updateValueInput.RandomNumber;
                 ProcessUpdateValue(updateValueInput);
                 break;
             case TinyBlockInput tinyBlockInput:
+                randomNumber = tinyBlockInput.RandomNumber;
                 ProcessTinyBlock(tinyBlockInput);
                 break;
         }
@@ -65,14 +72,12 @@ public partial class AEDPoSContract
             Context.LogDebug(() =>
                 $"Current round information:\n{currentRound.ToString(_processingBlockMinerPubkey)}");
 
-        var latestSignature = GetLatestSignature(currentRound);
-        var previousRandomHash = State.RandomHashes[Context.CurrentHeight.Sub(1)];
-        var randomHash = previousRandomHash == null
-            ? latestSignature
-            : HashHelper.XorAndCompute(previousRandomHash, latestSignature);
-
+        var previousRandomHash = State.RandomHashes[Context.CurrentHeight.Sub(1)] ?? Hash.Empty;
+        Assert(
+            Context.ECVrfVerify(Context.RecoverPublicKey(), previousRandomHash.ToByteArray(),
+                randomNumber.ToByteArray(), out var beta), "Failed to verify random number.");
+        var randomHash = Hash.LoadFromByteArray(beta);
         State.RandomHashes[Context.CurrentHeight] = randomHash;
-
         Context.LogDebug(() => $"New random hash generated: {randomHash} - height {Context.CurrentHeight}");
 
         if (!State.IsMainChain.Value && currentRound.RoundNumber > 1) Release();
@@ -100,8 +105,10 @@ public partial class AEDPoSContract
         return latestSignature;
     }
 
-    private void ProcessNextRound(Round nextRound)
+    private void ProcessNextRound(NextRoundInput input)
     {
+        var nextRound = input.ToRound();
+        
         RecordMinedMinerListOfCurrentRound();
 
         TryToGetCurrentRoundInformation(out var currentRound);
@@ -149,8 +156,10 @@ public partial class AEDPoSContract
         Assert(TryToUpdateRoundNumber(nextRound.RoundNumber), "Failed to update round number.");
     }
 
-    private void ProcessNextTerm(Round nextRound)
+    private void ProcessNextTerm(NextTermInput input)
     {
+        var nextRound = input.ToRound();
+        
         RecordMinedMinerListOfCurrentRound();
 
         // Count missed time slot of current round.
