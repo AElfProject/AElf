@@ -287,12 +287,6 @@ public partial class TokenContract
             return false;
         }
 
-        //For delegation, if the base fee fails to be charged, the size fee will not be charged
-        if (delegations != null && !successToChargeBaseFee)
-        {
-            return false;
-        }
-
         var successToChargeSizeFee = true;
         if (!isSizeFeeFree)
         {
