@@ -69,7 +69,8 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
             Issuer = input.Issuer,
             IsBurnable = input.IsBurnable,
             IssueChainId = input.IssueChainId == 0 ? Context.ChainId : input.IssueChainId,
-            ExternalInfo = input.ExternalInfo ?? new ExternalInfo()
+            ExternalInfo = input.ExternalInfo ?? new ExternalInfo(),
+            Owner = input.Owner
         };
         RegisterTokenInfo(tokenInfo);
         if (string.IsNullOrEmpty(State.NativeTokenSymbol.Value))
@@ -94,7 +95,8 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
             Issuer = tokenInfo.Issuer,
             IsBurnable = tokenInfo.IsBurnable,
             IssueChainId = tokenInfo.IssueChainId,
-            ExternalInfo = tokenInfo.ExternalInfo
+            ExternalInfo = tokenInfo.ExternalInfo,
+            Owner = tokenInfo.Owner
         });
 
         return new Empty();
@@ -408,7 +410,7 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
         var validationResult = tokenInfo.TokenName == input.TokenName &&
                                tokenInfo.IsBurnable == input.IsBurnable && tokenInfo.Decimals == input.Decimals &&
                                tokenInfo.Issuer == input.Issuer && tokenInfo.TotalSupply == input.TotalSupply &&
-                               tokenInfo.IssueChainId == input.IssueChainId;
+                               tokenInfo.IssueChainId == input.IssueChainId && tokenInfo.Owner == input.Owner;
 
         if (tokenInfo.ExternalInfo != null && tokenInfo.ExternalInfo.Value.Count > 0 ||
             input.ExternalInfo != null && input.ExternalInfo.Count > 0)
@@ -420,36 +422,6 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
         }
 
         Assert(validationResult, "Token validation failed.");
-        return new Empty();
-    }
-
-    public override Empty ChangeTokenIssuer(ChangeTokenIssuerInput input)
-    {
-        Assert(!string.IsNullOrWhiteSpace(input.Symbol), "Invalid input symbol.");
-        AssertValidInputAddress(input.NewTokenIssuer);
-        
-        var tokenInfo = State.TokenInfos[input.Symbol];
-        Assert(tokenInfo != null, $"invalid token symbol: {input.Symbol}");
-        // ReSharper disable once PossibleNullReferenceException
-        Assert(tokenInfo.Issuer == Context.Sender && tokenInfo.IssueChainId == Context.ChainId,
-            "Permission denied");
-        tokenInfo.Issuer = input.NewTokenIssuer;
-        State.TokenInfos[input.Symbol] = tokenInfo;
-        return new Empty();
-    }
-
-    public override Empty ResetExternalInfo(ResetExternalInfoInput input)
-    {
-        Assert(!string.IsNullOrWhiteSpace(input.Symbol), "Invalid input symbol.");
-        var tokenInfo = State.TokenInfos[input.Symbol];
-        Assert(tokenInfo.Issuer == Context.Sender, "No permission to reset external info.");
-        tokenInfo.ExternalInfo = input.ExternalInfo;
-        State.TokenInfos[input.Symbol] = tokenInfo;
-        Context.Fire(new ExternalInfoChanged
-        {
-            Symbol = input.Symbol,
-            ExternalInfo = input.ExternalInfo
-        });
         return new Empty();
     }
 
@@ -492,7 +464,8 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
             Issuer = validateTokenInfoExistsInput.Issuer,
             IsBurnable = validateTokenInfoExistsInput.IsBurnable,
             IssueChainId = validateTokenInfoExistsInput.IssueChainId,
-            ExternalInfo = new ExternalInfo { Value = { validateTokenInfoExistsInput.ExternalInfo } }
+            ExternalInfo = new ExternalInfo { Value = { validateTokenInfoExistsInput.ExternalInfo } },
+            Owner = validateTokenInfoExistsInput.Owner
         };
         RegisterTokenInfo(tokenInfo);
 
@@ -505,7 +478,8 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
             Issuer = validateTokenInfoExistsInput.Issuer,
             IsBurnable = validateTokenInfoExistsInput.IsBurnable,
             IssueChainId = validateTokenInfoExistsInput.IssueChainId,
-            ExternalInfo = new ExternalInfo { Value = { validateTokenInfoExistsInput.ExternalInfo } }
+            ExternalInfo = new ExternalInfo { Value = { validateTokenInfoExistsInput.ExternalInfo } },
+            Owner = validateTokenInfoExistsInput.Owner
         });
 
         return new Empty();

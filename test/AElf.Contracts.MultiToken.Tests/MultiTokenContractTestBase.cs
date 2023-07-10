@@ -82,7 +82,8 @@ public class MultiTokenContractTestBase : ContractTestBase<MultiTokenContractTes
                 TokenName = "ELF2",
                 TotalSupply = 100_000_000_000_000_000L,
                 Issuer = DefaultAddress,
-                ExternalInfo = new ExternalInfo()
+                ExternalInfo = new ExternalInfo(),
+                Owner = DefaultAddress
             }));
 
         AsyncHelper.RunSync(() => CreateSeedNftCollection(TokenContractStub));

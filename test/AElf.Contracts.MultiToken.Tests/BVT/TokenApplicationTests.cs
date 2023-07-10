@@ -942,67 +942,6 @@ public partial class MultiTokenContractTests
         afterBalance.Balance.ShouldBe(beforeBalance.Balance.Add(transferAmount));
     }
 
-    [Fact(DisplayName = "[MultiToken] ChangeTokenIssuer test")]
-    public async Task ChangeTokenIssuer_Test()
-    {
-        const string tokenSymbol = "PO";
-        await CreateMutiTokenAsync(TokenContractStub, new CreateInput
-        {
-            Symbol = tokenSymbol,
-            TokenName = "Name",
-            TotalSupply = 100_000_000_000L,
-            Decimals = 10,
-            IsBurnable = true,
-            Issuer = Accounts[1].Address
-        });
-        var tokenIssuerStub =
-            GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, Accounts[1].KeyPair);
-
-        {
-            var issueNotExistTokenRet = await tokenIssuerStub.ChangeTokenIssuer.SendWithExceptionAsync(
-                new ChangeTokenIssuerInput
-                {
-                    Symbol = "NOTEXIST",
-                    NewTokenIssuer = Accounts[2].Address
-                });
-            issueNotExistTokenRet.TransactionResult.Error.ShouldContain("invalid token symbol");
-        }
-        {
-            await tokenIssuerStub.ChangeTokenIssuer.SendAsync(new ChangeTokenIssuerInput
-            {
-                Symbol = tokenSymbol,
-                NewTokenIssuer = Accounts[2].Address
-            });
-            var tokenInfo = await tokenIssuerStub.GetTokenInfo.CallAsync(new GetTokenInfoInput
-            {
-                Symbol = tokenSymbol
-            });
-            tokenInfo.Issuer.ShouldBe(Accounts[2].Address);
-        }
-    }
-
-    [Fact(DisplayName = "[MultiToken] sender is not the token issuer")]
-    public async Task ChangeTokenIssuer_Without_Authorization_Test()
-    {
-        const string tokenSymbol = "PO";
-        await CreateMutiTokenAsync(TokenContractStub, new CreateInput
-        {
-            Symbol = tokenSymbol,
-            TokenName = "Name",
-            TotalSupply = 100_000_000_000L,
-            Decimals = 10,
-            IsBurnable = true,
-            Issuer = Accounts[1].Address
-        });
-        var changeIssuerRet = await TokenContractStub.ChangeTokenIssuer.SendWithExceptionAsync(
-            new ChangeTokenIssuerInput
-            {
-                Symbol = tokenSymbol,
-                NewTokenIssuer = Accounts[2].Address
-            });
-        changeIssuerRet.TransactionResult.Error.ShouldContain("permission denied");
-    }
-
     [Fact(DisplayName = "[MultiToken] Token initialize from parent chain test")]
     public async Task InitializeFromParent_Test()
     {
@@ -1064,7 +1003,8 @@ public partial class MultiTokenContractTests
             TokenName = "Ali",
             Decimals = 4,
             TotalSupply = 100_000,
-            Issuer = DefaultAddress
+            Issuer = DefaultAddress,
+            Owner = DefaultAddress
         });
         createTokenRet.TransactionResult.Error.ShouldContain(
             "Failed to create token if side chain creator already set.");
@@ -1256,7 +1196,8 @@ public partial class MultiTokenContractTests
             TotalSupply = 1,
             Issuer = DefaultAddress,
             ExternalInfo = new ExternalInfo(),
-            LockWhiteList = { TokenContractAddress }
+            LockWhiteList = { TokenContractAddress },
+            Owner = DefaultAddress
         };
         input.ExternalInfo.Value["__seed_owned_symbol"] = createTokenInput.Symbol;
         input.ExternalInfo.Value["__seed_exp_time"] = TimestampHelper.GetUtcNow().AddDays(1).Seconds.ToString();

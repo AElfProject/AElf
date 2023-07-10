@@ -50,7 +50,8 @@ public partial class MultiTokenContractTests : MultiTokenContractTestBase
         IsBurnable = true,
         Issuer = Accounts[0].Address,
         Supply = 0,
-        IssueChainId = _chainId
+        IssueChainId = _chainId,
+        Owner = Accounts[0].Address
     };
 
     private TokenInfo PrimaryTokenInfo => new()
@@ -78,7 +79,8 @@ public partial class MultiTokenContractTests : MultiTokenContractTestBase
         Issuer = Accounts[0].Address,
         Supply = 0,
         IssueChainId = _chainId,
-        ExternalInfo = new ExternalInfo()
+        ExternalInfo = new ExternalInfo(),
+        Owner = Accounts[0].Address
     };
 
     /// <summary>
@@ -480,7 +482,8 @@ public partial class MultiTokenContractTests : MultiTokenContractTestBase
                 OtherBasicFunctionContractAddress,
                 TokenConverterContractAddress,
                 TreasuryContractAddress
-            }
+            },
+            Owner = AliceCoinTokenInfo.Owner
         };
         var createTokenInfoWithInvalidTokenName = new CreateInput();
         createTokenInfoWithInvalidTokenName.MergeFrom(createTokenInfo);

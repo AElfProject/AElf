@@ -2424,23 +2424,6 @@ public partial class ExecutePluginTransactionDirectlyTest : ExecutePluginTransac
         }
         {
             var result =
-                await TokenContractImplStub.ChangeTokenIssuer.SendWithExceptionAsync(new ChangeTokenIssuerInput());
-            result.TransactionResult.Error.ShouldContain("Invalid input symbol.");
-        }
-        {
-            var result = await TokenContractImplStub.ChangeTokenIssuer.SendWithExceptionAsync(new ChangeTokenIssuerInput
-            {
-                Symbol = NativeTokenSymbol
-            });
-            result.TransactionResult.Error.ShouldContain("Invalid input address.");
-        }
-        {
-            var result =
-                await TokenContractImplStub.ResetExternalInfo.SendWithExceptionAsync(new ResetExternalInfoInput());
-            result.TransactionResult.Error.ShouldContain("Invalid input symbol.");
-        }
-        {
-            var result =
                 await TokenContractImplStub.SetTransactionFeeDelegations.SendWithExceptionAsync(
                     new SetTransactionFeeDelegationsInput());
             result.TransactionResult.Error.ShouldContain("Invalid input address.");
@@ -2572,6 +2555,7 @@ public partial class ExecutePluginTransactionDirectlyTest : ExecutePluginTransac
             TotalSupply = 1000_00000000,
             IsBurnable = isBurned,
             Issuer = creator,
+            Owner = creator
         });
     }
 

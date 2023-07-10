@@ -352,7 +352,8 @@ public class ConfigurationContractTest : ConfigurationContractTestBase
                     Symbol = tokenSymbol,
                     TokenName = "name",
                     Issuer = TokenContractAddress,
-                    TotalSupply = 1000_000
+                    TotalSupply = 1000_000,
+                    Owner = TokenContractAddress
                 });
 
             var result = await Tester.ExecuteContractWithMiningAsync(ConfigurationContractAddress,

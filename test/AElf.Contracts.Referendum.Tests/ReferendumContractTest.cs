@@ -1344,7 +1344,8 @@ public sealed class ReferendumContractTest : ReferendumContractTestBase
                 TokenName = "seed Collection",
                 TotalSupply = 1,
                 Issuer = defaultParliamentAddress,
-                ExternalInfo = new ExternalInfo()
+                ExternalInfo = new ExternalInfo(),
+                Owner = defaultParliamentAddress
             });
 
         await SubmitAndApproveProposalOfDefaultParliament(DefaultSenderKeyPair, ParliamentContractAddress,
@@ -1365,7 +1366,8 @@ public sealed class ReferendumContractTest : ReferendumContractTestBase
                         { "__seed_exp_time", TimestampHelper.GetUtcNow().AddDays(1).Seconds.ToString() }
                     }
                 },
-                LockWhiteList = { TokenContractAddress }
+                LockWhiteList = { TokenContractAddress },
+                Owner = defaultParliamentAddress
             });
 
         await SubmitAndApproveProposalOfDefaultParliament(DefaultSenderKeyPair, ParliamentContractAddress,

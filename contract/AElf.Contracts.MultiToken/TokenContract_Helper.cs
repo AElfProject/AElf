@@ -189,6 +189,7 @@ public partial class TokenContract
         Assert(!string.IsNullOrEmpty(tokenInfo.TokenName), "Token name can neither be null nor empty.");
         Assert(tokenInfo.TotalSupply > 0, "Invalid total supply.");
         Assert(tokenInfo.Issuer != null, "Invalid issuer address.");
+        Assert(tokenInfo.Owner != null, "Invalid owner address.");
         State.TokenInfos[tokenInfo.Symbol] = tokenInfo;
     }
 

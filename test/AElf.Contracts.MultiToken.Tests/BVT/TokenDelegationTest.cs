@@ -275,6 +275,7 @@ public partial class MultiTokenContractTests
             Decimals = NativeTokenInfo.Decimals,
             Issuer = NativeTokenInfo.Issuer,
             IsBurnable = NativeTokenInfo.IsBurnable,
+            Owner = NativeTokenInfo.Owner
         });
     }
     

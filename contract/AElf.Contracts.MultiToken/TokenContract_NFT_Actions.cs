@@ -20,12 +20,20 @@ public partial class TokenContract
         input.IssueChainId = input.IssueChainId == 0 ? nftCollectionInfo.IssueChainId : input.IssueChainId;
         Assert(input.IssueChainId == nftCollectionInfo.IssueChainId,
             "NFT create ChainId must be collection's issue chainId");
-        Assert(Context.Sender == nftCollectionInfo.Issuer && nftCollectionInfo.Issuer == input.Issuer,
-            "NFT issuer must be collection's issuer");
+        if (nftCollectionInfo.Owner == null)
+        {
+            Assert(Context.Sender == nftCollectionInfo.Issuer && nftCollectionInfo.Issuer == input.Issuer,
+                "NFT issuer must be collection's issuer");
+        }
+        else
+        {
+            Assert(Context.Sender == nftCollectionInfo.Owner && nftCollectionInfo.Owner == input.Owner,
+                "NFT owner must be collection's owner");
+        }
+       
         if (nftCollectionInfo.Symbol == TokenContractConstants.SeedCollectionSymbol)
         {
-            Assert(
-                input.ExternalInfo.Value.TryGetValue(TokenContractConstants.SeedOwnedSymbolExternalInfoKey,
+            Assert(input.ExternalInfo.Value.TryGetValue(TokenContractConstants.SeedOwnedSymbolExternalInfoKey,
                     out var ownedSymbol), "OwnedSymbol does not exist.");
             Assert(input.ExternalInfo.Value.TryGetValue(TokenContractConstants.SeedExpireTimeExternalInfoKey,
                        out var expirationTime)
