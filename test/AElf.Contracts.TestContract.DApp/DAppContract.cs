@@ -197,6 +197,7 @@ public partial class DAppContract : DAppContainer.DAppBase
             TokenName = "DApp Token",
             Decimals = DAppConstants.Decimal,
             Issuer = Context.Self,
+            Owner = Context.Self,
             IsBurnable = true,
             TotalSupply = DAppConstants.TotalSupply,
             LockWhiteList =

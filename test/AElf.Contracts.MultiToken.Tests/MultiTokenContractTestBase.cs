@@ -174,6 +174,7 @@ public class MultiTokenContractTestBase : ContractTestBase<MultiTokenContractTes
             TokenName = "seed Collection",
             TotalSupply = 1,
             Issuer = DefaultAddress,
+            Owner = DefaultAddress,
             ExternalInfo = new ExternalInfo()
         };
         await stub.Create.SendAsync(input);
@@ -216,6 +217,7 @@ public class MultiTokenContractTestBase : ContractTestBase<MultiTokenContractTes
             TokenName = "seed token" + SeedNum,
             TotalSupply = 1,
             Issuer = DefaultAddress,
+            Owner = DefaultAddress,
             ExternalInfo = new ExternalInfo(),
             LockWhiteList = { TokenContractAddress }
         };

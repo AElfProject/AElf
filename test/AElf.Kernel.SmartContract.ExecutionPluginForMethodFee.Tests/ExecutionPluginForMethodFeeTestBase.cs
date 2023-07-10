@@ -510,7 +510,8 @@ public class ExecutePluginTransactionDirectlyForMethodFeeTestBase : ContractTest
             IsBurnable = true,
             TokenName = "elf token",
             TotalSupply = totalSupply,
-            Issuer = DefaultSender
+            Issuer = DefaultSender,
+            Owner = DefaultSender
         });
         createResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
     }

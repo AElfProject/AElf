@@ -953,7 +953,7 @@ public class AssociationContractTests : AssociationContractTestBase<AssociationC
                     TokenName = "name",
                     Issuer = DefaultSender,
                     TotalSupply = 1000_000,
-                    Owner = DefaultSender
+                    Owner = DefaultSender,
                 });
 
             await ApproveWithMinersAsync(proposalId);

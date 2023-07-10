@@ -78,6 +78,7 @@ public partial class MultiTokenContractTests
         TotalSupply = 1,
         Decimals = 0,
         Issuer = Accounts[0].Address,
+        Owner = Accounts[0].Address,
         IssueChainId = _chainId,
         IsBurnable = true,
         ExternalInfo = new ExternalInfo()
@@ -123,6 +124,7 @@ public partial class MultiTokenContractTests
             TotalSupply = collectionInfo.TotalSupply,
             Decimals = collectionInfo.Decimals,
             Issuer = collectionInfo.Issuer,
+            Owner = collectionInfo.Issuer,
             IssueChainId = collectionInfo.IssueChainId,
             ExternalInfo = collectionInfo.ExternalInfo
         });
@@ -272,6 +274,7 @@ public partial class MultiTokenContractTests
                 TotalSupply = input.TotalSupply,
                 Decimals = input.Decimals,
                 Issuer = NftCollection721Info.Issuer,
+                Owner = NftCollection721Info.Issuer,
                 IssueChainId = ChainHelper.ConvertBase58ToChainId("tDVV"),
                 ExternalInfo = input.ExternalInfo
             });
@@ -692,6 +695,7 @@ public partial class MultiTokenContractTests
             TotalSupply = TotalSupply,
             Decimals = 0,
             Issuer = DefaultAddress,
+            Owner = DefaultAddress,
             IssueChainId = _chainId,
         });
         res.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);

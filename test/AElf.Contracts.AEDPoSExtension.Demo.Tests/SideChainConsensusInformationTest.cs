@@ -101,6 +101,7 @@ public class SideChainConsensusInformationTest : AEDPoSExtensionDemoTestBase
                 Decimals = 8,
                 TokenName = "Test",
                 Issuer = Accounts[0].Address,
+                Owner = Accounts[0].Address,
                 IsBurnable = true,
                 TotalSupply = 1_000_000_000_00000000
             }.ToByteString(),

@@ -171,6 +171,7 @@ public partial class MultiTokenContractTests
             TotalSupply = 1000_00000000,
             IsBurnable = isBurned,
             Issuer = creator,
+            Owner = creator,
         });
     }
 

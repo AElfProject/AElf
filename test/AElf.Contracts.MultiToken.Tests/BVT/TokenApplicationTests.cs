@@ -380,6 +380,7 @@ public partial class MultiTokenContractTests
             Decimals = 2,
             IsBurnable = true,
             Issuer = DefaultAddress,
+            Owner = DefaultAddress,
             TokenName = "elf test token",
             TotalSupply = DPoSContractConsts.LockTokenForElection * 1000000,
             LockWhiteList =
@@ -820,7 +821,8 @@ public partial class MultiTokenContractTests
             TotalSupply = 100_000_000_000L,
             Decimals = 10,
             IsBurnable = false,
-            Issuer = DefaultAddress
+            Issuer = DefaultAddress,
+            Owner = DefaultAddress,
         });
         var burnRet = await TokenContractStub.Burn.SendWithExceptionAsync(new BurnInput
         {
@@ -1112,6 +1114,7 @@ public partial class MultiTokenContractTests
         {
             Symbol = symbol,
             Issuer = creator,
+            Owner = creator,
             TokenName = symbol + "name",
             TotalSupply = totalSupply,
             Decimals = 4
@@ -1134,6 +1137,7 @@ public partial class MultiTokenContractTests
             TotalSupply = AliceCoinTokenInfo.TotalSupply,
             Decimals = AliceCoinTokenInfo.Decimals,
             Issuer = AliceCoinTokenInfo.Issuer,
+            Owner = AliceCoinTokenInfo.Issuer,
             IsBurnable = AliceCoinTokenInfo.IsBurnable,
             LockWhiteList =
             {
@@ -1152,6 +1156,7 @@ public partial class MultiTokenContractTests
                 TotalSupply = AliceCoinTokenInfo.TotalSupply,
                 Decimals = AliceCoinTokenInfo.Decimals,
                 Issuer = AliceCoinTokenInfo.Issuer,
+                Owner = AliceCoinTokenInfo.Issuer,
                 IsBurnable = AliceCoinTokenInfo.IsBurnable,
                 IssueChainId = _chainId
             });
@@ -1166,6 +1171,7 @@ public partial class MultiTokenContractTests
                 TotalSupply = AliceCoinTokenInfo.TotalSupply,
                 Decimals = AliceCoinTokenInfo.Decimals,
                 Issuer = AliceCoinTokenInfo.Issuer,
+                Owner = AliceCoinTokenInfo.Issuer,
                 IsBurnable = AliceCoinTokenInfo.IsBurnable,
                 ExternalInfo = { { "key", "value" } }
             });

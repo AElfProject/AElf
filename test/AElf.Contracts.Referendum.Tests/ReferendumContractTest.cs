@@ -1310,6 +1310,7 @@ public sealed class ReferendumContractTest : ReferendumContractTestBase
             TotalSupply = 10_0000,
             TokenName = "new token",
             Issuer = organizationAddress,
+            Owner = organizationAddress,
             IsBurnable = true
         };
         var createProposalInput = new CreateProposalInput
