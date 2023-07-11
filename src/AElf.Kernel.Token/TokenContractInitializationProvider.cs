@@ -138,8 +138,7 @@ public class TokenContractInitializationProvider : IContractInitializationProvid
             IsBurnable = tokenInfo.IsBurnable,
             Symbol = tokenInfo.Symbol,
             TokenName = tokenInfo.TokenName,
-            TotalSupply = tokenInfo.TotalSupply,
-            Owner = issuer ?? tokenInfo.Issuer
+            TotalSupply = tokenInfo.TotalSupply
         };
     }
 }

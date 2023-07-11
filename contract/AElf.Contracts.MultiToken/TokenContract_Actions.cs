@@ -35,6 +35,10 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
         // can not call create on side chain
         Assert(State.SideChainCreator.Value == null, "Failed to create token if side chain creator already set.");
         var inputSymbolType = GetCreateInputSymbolType(input.Symbol);
+        if (input.Owner == null)
+        {
+            input.Owner = input.Issuer;
+        }
         return inputSymbolType switch
         {
             SymbolType.NftCollection => CreateNFTCollection(input),
