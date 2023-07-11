@@ -9,7 +9,7 @@
             <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
         </PackageReference>
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.4.1" />
-        <PackageReference Include="Shouldly" Version="4.0.3"/>
+        <PackageReference Include="Shouldly" Version="4.0.3" />
         <PackageReference Include="xunit" Version="2.4.2" />
         <PackageReference Include="xunit.runner.console" Version="2.4.2">
   <PrivateAssets>all</PrivateAssets>
@@ -20,10 +20,15 @@
   <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
 </PackageReference>
     </ItemGroup>
-    <Import Project="..\AllContracts.props"/>
+    <Import Project="..\AllContracts.props" />
     <ItemGroup>
-        <ProjectReference Include="..\AElf.WebApp.Application.TestBase\AElf.WebApp.Application.TestBase.csproj"/>
+        <ProjectReference Include="..\AElf.WebApp.Application.TestBase\AElf.WebApp.Application.TestBase.csproj" />
         <ProjectReference Include="..\AElf.Contracts.TestContract.BasicFunction\AElf.Contracts.TestContract.BasicFunction.csproj">
+            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+            <OutputItemType>Contract</OutputItemType>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </ProjectReference>
+        <ProjectReference Include="..\AElf.Contracts.TestContract.Vote\AElf.Contracts.TestContract.Vote.csproj">
             <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
