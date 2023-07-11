@@ -127,6 +127,7 @@ public class SideChainUnitTestTokenContractInitializationProvider : TokenContrac
             Decimals = tokenInfo.Decimals,
             IssueChainId = tokenInfo.IssueChainId,
             Issuer = tokenInfo.Issuer,
+            Owner = tokenInfo.Issuer,
             IsBurnable = tokenInfo.IsBurnable,
             Symbol = tokenInfo.Symbol,
             TokenName = tokenInfo.TokenName,

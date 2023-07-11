@@ -147,7 +147,8 @@ public class ExecutionPluginForCallThresholdTestBase : ContractTestBase<Executio
                 IsBurnable = true,
                 TokenName = "WRITE token",
                 TotalSupply = 1000_0000L,
-                Issuer = DefaultSender
+                Issuer = DefaultSender,
+                Owner = DefaultSender
             });
 
             createResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);

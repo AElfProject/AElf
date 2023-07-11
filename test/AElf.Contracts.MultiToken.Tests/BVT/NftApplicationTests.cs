@@ -360,10 +360,10 @@ public partial class MultiTokenContractTests
                 Issuer = Accounts.Last().Address,
                 IssueChainId = input.IssueChainId,
                 ExternalInfo = input.ExternalInfo,
-                Owner = input.Owner
+                Owner = Accounts.Last().Address
             });
             result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            result.TransactionResult.Error.ShouldContain("NFT issuer must be collection's issuer");
+            result.TransactionResult.Error.ShouldContain("NFT owner must be collection's owner");
         }
         {
             var result = await TokenContractStub.Create.SendWithExceptionAsync( new CreateInput
@@ -730,6 +730,7 @@ public partial class MultiTokenContractTests
             TotalSupply = TotalSupply,
             Decimals = 0,
             Issuer = DefaultAddress,
+            Owner = DefaultAddress,
             IssueChainId = _chainId,
             Symbol = "GHJ-0"
         });
@@ -769,6 +770,7 @@ public partial class MultiTokenContractTests
             TotalSupply = TotalSupply,
             Decimals = 0,
             Issuer = DefaultAddress,
+            Owner = DefaultAddress,
             IssueChainId = _chainId,
             Symbol = "GHJ-1"
         });
