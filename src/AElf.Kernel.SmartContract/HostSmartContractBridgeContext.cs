@@ -121,7 +121,7 @@ public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, I
     {
 #if DEBUG
         _smartContractBridgeService.LogDebug(() =>
-            $"TX = {Transaction?.GetHash().ToHex()}, Method = {Transaction?.MethodName}, {func()}, Hello World");
+            $"TX = {Transaction?.GetHash().ToHex()}, Method = {Transaction?.MethodName}, {func()}");
 #endif
     }
 
