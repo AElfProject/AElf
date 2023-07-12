@@ -59,6 +59,12 @@ public partial class Action : VirtualAddressContractContainer.VirtualAddressCont
 
         return new Empty();
     }
+    
+    public override Empty ForwardCall(ForwardCallInput input)
+    {
+        Context.SendVirtualInline(input.VirtualAddress, input.ContractAddress, input.MethodName, input.Args);
+        return new Empty();
+    }
 
     public override Address GetVirtualAddress(Empty input)
     {

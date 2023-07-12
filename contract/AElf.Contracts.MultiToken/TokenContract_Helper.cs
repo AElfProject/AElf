@@ -322,15 +322,31 @@ public partial class TokenContract
                 NonIndexed = input.ToByteString()
             });
     }
+    
+    private bool IsInLockWhiteList(Address address)
+    {
+        return address == GetElectionContractAddress() || address == GetVoteContractAddress();
+    }
 
     private Address GetElectionContractAddress()
     {
-        if (State.ElectionContract.Value == null)
+        if (State.ElectionContractAddress.Value == null)
         {
-            State.ElectionContract.Value =
+            State.ElectionContractAddress.Value =
                 Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName);
         }
         
-        return State.ElectionContract.Value;
+        return State.ElectionContractAddress.Value;
+    }
+    
+    private Address GetVoteContractAddress()
+    {
+        if (State.VoteContractAddress.Value == null)
+        {
+            State.VoteContractAddress.Value =
+                Context.GetContractAddressByName(SmartContractConstants.VoteContractSystemName);
+        }
+        
+        return State.VoteContractAddress.Value;
     }
 }
