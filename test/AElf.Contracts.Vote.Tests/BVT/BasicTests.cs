@@ -714,5 +714,27 @@ public partial class VoteTests
         beforeVoteBalance.Balance.Sub(afterVoteBalance.Balance).ShouldBe(voteAmount);
         var voteItems = await VoteContractStub.GetVotedItems.CallAsync(voter);
         voteItems.VotedItemVoteIds.Count.ShouldBe(1);
+        
+        var votingIds = await VoteContractStub.GetVotingIds.CallAsync(new GetVotingIdsInput
+        {
+            Voter = voter,
+            VotingItemId = voteItemId
+        });
+        var currentVoteId = votingIds.ActiveVotes.First();
+        
+        sendResult = await VirtualAddressContractStub.ForwardCall.SendAsync(new ForwardCallInput
+        {
+            ContractAddress = VoteContractAddress,
+            MethodName = "Withdraw",
+            VirtualAddress = HashHelper.ComputeFrom("test"),
+            Args = (new WithdrawInput
+            {
+                VoteId = currentVoteId
+            }).ToByteString()
+        });
+        sendResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+        var afterWithdrawBalance = GetUserBalance(voter);
+        afterWithdrawBalance.ShouldBe(beforeVoteBalance.Balance);
     }
 }
