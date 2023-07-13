@@ -359,6 +359,16 @@ public partial class BasicContractZero
     {
         Assert(State.SmartContractRegistrations[codeHash] == null, "contract code has already been deployed before.");
     }
+
+    private void AssertInlineDeployOrUpdateUserContract()
+    {
+        Assert(Context.Origin == Context.Sender || !IsMainChain(), "Deploy or update contracts using inline transactions is not allowed.");
+    }
+
+    private bool IsMainChain()
+    {
+        return Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName) != null;
+    }
 }
 
 public static class AddressHelper
