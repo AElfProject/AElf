@@ -1,0 +1,20 @@
+version: '3'
+services:
+  redis:
+    image: redis
+    ports:
+      - 6379:6379
+
+  aelf-node:
+    depends_on:
+      - redis
+    working_dir: /app
+    image: aelf/node
+#    command: dotnet /app/AElf.Launcher.dll --environment Docker --config.path /app
+    command: ./docker-start-chain.sh
+    ports:
+      - 6801:6800
+      - 8001:8000
+    volumes:
+      - ~/.local/share/aelf/:/root/.local/share/aelf/
+

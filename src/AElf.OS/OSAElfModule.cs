@@ -1,4 +1,5 @@
-﻿using AElf.Kernel;
+﻿using System;
+using AElf.Kernel;
 using AElf.Modularity;
 using AElf.OS.BlockSync;
 using AElf.OS.BlockSync.Worker;
@@ -25,7 +26,20 @@ public class OSAElfModule : AElfModule
     {
         var configuration = context.Services.GetConfiguration();
 
-        Configure<AccountOptions>(configuration.GetSection("Account"));
+        var address = Environment.GetEnvironmentVariable("AELF_ADDRESS");
+        var password = Environment.GetEnvironmentVariable("AELF_PASSWORD"); 
+        if (string.IsNullOrEmpty(address)) 
+        { 
+            Configure<AccountOptions>(configuration.GetSection("Account"));
+        }
+        else 
+        { 
+            Configure<AccountOptions>(option => 
+            { 
+                option.NodeAccount = address; 
+                option.NodeAccountPassword = password;
+            });
+        }
         Configure<BlockSyncOptions>(configuration.GetSection("BlockSync"));
     }
 
