@@ -365,6 +365,7 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
     
     public override DeployUserSmartContractOutput DeployUserSmartContract(ContractDeploymentInput input)
     {
+        AssertInlineDeployOrUpdateUserContract();
         AssertUserDeployContract();
         
         var codeHash = HashHelper.ComputeFrom(input.Code.ToByteArray());
@@ -395,6 +396,8 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
 
     public override Empty UpdateUserSmartContract(ContractUpdateInput input)
     {
+        AssertInlineDeployOrUpdateUserContract();
+        
         var info = State.ContractInfos[input.Address];
         Assert(info != null, "Contract not found.");
         Assert(Context.Sender == info.Author, "No permission.");

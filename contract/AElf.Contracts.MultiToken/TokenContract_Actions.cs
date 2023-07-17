@@ -188,10 +188,8 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
         Assert(!string.IsNullOrWhiteSpace(input.Symbol), "Invalid input symbol.");
         AssertValidInputAddress(input.Address);
         AssertSystemContractOrLockWhiteListAddress(input.Symbol);
-
-        // For Election Contract
-        var electionContractAddress = GetElectionContractAddress();
-        Assert(Context.Sender == electionContractAddress || Context.Origin == input.Address,
+        
+        Assert(IsInLockWhiteList(Context.Sender) || Context.Origin == input.Address,
             "Lock behaviour should be initialed by origin address.");
 
         var allowance = State.Allowances[input.Address][Context.Sender][input.Symbol];
@@ -219,10 +217,8 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
         Assert(!string.IsNullOrWhiteSpace(input.Symbol), "Invalid input symbol.");
         AssertValidInputAddress(input.Address);
         AssertSystemContractOrLockWhiteListAddress(input.Symbol);
-
-        // For Election Contract
-        var electionContractAddress = GetElectionContractAddress();
-        Assert(Context.Sender == electionContractAddress || Context.Origin == input.Address,
+        
+        Assert(IsInLockWhiteList(Context.Sender) || Context.Origin == input.Address,
             "Unlock behaviour should be initialed by origin address.");
 
         AssertValidToken(input.Symbol, input.Amount);

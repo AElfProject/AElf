@@ -34,6 +34,11 @@
         <ProjectReference Include="..\..\src\AElf.GovernmentSystem\AElf.GovernmentSystem.csproj"/>
         <ProjectReference Include="..\..\src\AElf.Kernel.Token\AElf.Kernel.Token.csproj"/>
         <ProjectReference Include="..\..\contract\AElf.Contracts.Consensus.AEDPoS\AElf.Contracts.Consensus.AEDPoS.csproj"/>
+        <ProjectReference Include="..\AElf.Contracts.TestContract.VirtualAddress\AElf.Contracts.TestContract.VirtualAddress.csproj">
+            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+            <OutputItemType>Contract</OutputItemType>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </ProjectReference>
     </ItemGroup>
 
     <ItemGroup>
@@ -80,6 +85,9 @@
         </ContractStub>
         <ContractStub Include="..\..\protobuf\aedpos_contract_impl.proto">
             <Link>Protobuf\Proto\aedpos_contract_impl.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\test_virtual_address_contract.proto">
+            <Link>Protobuf\Proto\test_virtual_address_contract.proto</Link>
         </ContractStub>
     </ItemGroup>
 </Project>

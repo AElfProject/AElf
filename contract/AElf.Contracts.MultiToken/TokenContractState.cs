@@ -60,4 +60,7 @@ public partial class TokenContractState : ContractState
     /// delegator address -> contract address -> method name -> delegatee info
     /// </summary>
     public MappedState<Address, Address, string, TransactionFeeDelegatees> TransactionFeeDelegateInfoMap { get; set; }
+    
+    public SingletonState<Address> ElectionContractAddress { get; set; }
+    public SingletonState<Address> VoteContractAddress { get; set; }
 }
