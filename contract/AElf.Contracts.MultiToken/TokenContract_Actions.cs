@@ -465,7 +465,7 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
             IsBurnable = validateTokenInfoExistsInput.IsBurnable,
             IssueChainId = validateTokenInfoExistsInput.IssueChainId,
             ExternalInfo = new ExternalInfo { Value = { validateTokenInfoExistsInput.ExternalInfo } },
-            Owner = validateTokenInfoExistsInput.Owner
+            Owner = validateTokenInfoExistsInput.Owner ?? validateTokenInfoExistsInput.Issuer
         };
         RegisterTokenInfo(tokenInfo);
 
@@ -479,7 +479,7 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
             IsBurnable = validateTokenInfoExistsInput.IsBurnable,
             IssueChainId = validateTokenInfoExistsInput.IssueChainId,
             ExternalInfo = new ExternalInfo { Value = { validateTokenInfoExistsInput.ExternalInfo } },
-            Owner = validateTokenInfoExistsInput.Owner
+            Owner = tokenInfo.Owner
         });
 
         return new Empty();
