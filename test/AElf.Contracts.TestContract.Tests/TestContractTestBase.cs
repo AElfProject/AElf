@@ -329,7 +329,8 @@ public class TestFeesContractTestBase : ContractTestBase<TestFeesContractAElfMod
                 {
                     TokenConverterContractAddress,
                     TreasuryContractAddress
-                }
+                },
+                Owner = DefaultSender
             });
             CheckResult(createResult.TransactionResult);
 
@@ -356,7 +357,8 @@ public class TestFeesContractTestBase : ContractTestBase<TestFeesContractAElfMod
                     {
                         TokenConverterContractAddress,
                         TreasuryContractAddress
-                    }
+                    },
+                    Owner = DefaultSender
                 });
                 CheckResult(createResult.TransactionResult);
                 issueResult = await TokenContractStub.Issue.SendAsync(new IssueInput

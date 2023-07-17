@@ -503,7 +503,8 @@ public class MultiTokenContractReferenceFeeTest : MultiTokenContractCrossChainTe
             TokenName = "name",
             Issuer = DefaultAccount.Address,
             TotalSupply = 100_000,
-            IsBurnable = true
+            IsBurnable = true,
+            Owner = DefaultAccount.Address
         };
         await CreateSeedNftAsync(TokenContractStub, input, TokenContractAddress);
         await TokenContractStub.Create.SendAsync(input);
@@ -540,7 +541,8 @@ public class MultiTokenContractReferenceFeeTest : MultiTokenContractCrossChainTe
             Symbol = feeToken,
             TokenName = "name",
             Issuer = DefaultAccount.Address,
-            TotalSupply = 100_000
+            TotalSupply = 100_000,
+            Owner = DefaultAccount.Address
         };
         await CreateSeedNftAsync(TokenContractStub, input, TokenContractAddress);
         await TokenContractStub.Create.SendAsync(input);
@@ -584,7 +586,8 @@ public class MultiTokenContractReferenceFeeTest : MultiTokenContractCrossChainTe
             Symbol = feeToken,
             TokenName = "name",
             Issuer = DefaultAccount.Address,
-            TotalSupply = 100_000
+            TotalSupply = 100_000,
+            Owner = DefaultAccount.Address
         };
         await CreateSeedNftAsync(TokenContractStub, input, TokenContractAddress);
         await TokenContractStub.Create.SendAsync(input);
@@ -611,7 +614,8 @@ public class MultiTokenContractReferenceFeeTest : MultiTokenContractCrossChainTe
             Symbol = feeToken,
             TokenName = "name",
             Issuer = DefaultAccount.Address,
-            TotalSupply = 100_000
+            TotalSupply = 100_000,
+            Owner = DefaultAccount.Address
         };
         await CreateSeedNftAsync(TokenContractStub, input, TokenContractAddress);
         await TokenContractStub.Create.SendAsync(input);
@@ -660,7 +664,8 @@ public class MultiTokenContractReferenceFeeTest : MultiTokenContractCrossChainTe
             TokenName = "name",
             Issuer = TokenContractAddress,
             TotalSupply = newTokenTotalSupply,
-            IsBurnable = true
+            IsBurnable = true,
+            Owner = TokenContractAddress
         });
         var invalidBaseTokenWeight = (int)long.MaxValue.Div(newTokenTotalSupply).Add(1);
         newSymbolList.SymbolsToPayTxSizeFee.Add(new SymbolToPayTxSizeFee
@@ -714,7 +719,8 @@ public class MultiTokenContractReferenceFeeTest : MultiTokenContractCrossChainTe
             TokenName = "name",
             Issuer = DefaultAccount.Address,
             TotalSupply = 100_000,
-            IsBurnable = true
+            IsBurnable = true,
+            Owner = DefaultAccount.Address
         };
         await CreateSeedNftAsync(TokenContractStub, input, TokenContractAddress);
         await TokenContractStub.Create.SendAsync(input);

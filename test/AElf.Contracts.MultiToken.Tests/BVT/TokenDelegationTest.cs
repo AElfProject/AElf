@@ -171,6 +171,7 @@ public partial class MultiTokenContractTests
             TotalSupply = 1000_00000000,
             IsBurnable = isBurned,
             Issuer = creator,
+            Owner = creator,
         });
     }
 
@@ -275,6 +276,7 @@ public partial class MultiTokenContractTests
             Decimals = NativeTokenInfo.Decimals,
             Issuer = NativeTokenInfo.Issuer,
             IsBurnable = NativeTokenInfo.IsBurnable,
+            Owner = NativeTokenInfo.Owner
         });
     }
     

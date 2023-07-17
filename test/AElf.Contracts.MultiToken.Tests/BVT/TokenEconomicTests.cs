@@ -18,7 +18,8 @@ public partial class MultiTokenContractTests
                 TokenName = "elf token",
                 TotalSupply = totalSupply,
                 Issuer = DefaultAddress,
-                LockWhiteList = { TreasuryContractAddress }
+                LockWhiteList = { TreasuryContractAddress },
+                Owner = DefaultAddress
             });
             await TokenContractStub.Issue.SendAsync(new IssueInput
             {
@@ -51,7 +52,8 @@ public partial class MultiTokenContractTests
                 {
                     ParliamentContractAddress,
                     TreasuryContractAddress
-                }
+                },
+                Owner = DefaultAddress
             })).TransactionResult;
         }
 

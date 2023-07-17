@@ -952,7 +952,8 @@ public class AssociationContractTests : AssociationContractTestBase<AssociationC
                     Symbol = tokenSymbol,
                     TokenName = "name",
                     Issuer = DefaultSender,
-                    TotalSupply = 1000_000
+                    TotalSupply = 1000_000,
+                    Owner = DefaultSender,
                 });
 
             await ApproveWithMinersAsync(proposalId);

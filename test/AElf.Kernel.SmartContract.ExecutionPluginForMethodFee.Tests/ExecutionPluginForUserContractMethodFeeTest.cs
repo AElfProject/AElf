@@ -314,7 +314,8 @@ public class ExecutionPluginForUserContractContractMethodFeeTest : ExecutionPlug
             IsBurnable = true,
             TokenName = "test token",
             TotalSupply = 1_000_000_00000000L,
-            Issuer = DefaultAddress
+            Issuer = DefaultAddress,
+            Owner = DefaultAddress,
         });
 
         if (issueAmount != 0)

@@ -38,6 +38,7 @@ public class UnitTestTokenContractInitializationProvider : TokenContractInitiali
                 {
                     Decimals = _economicOptions.Decimals,
                     Issuer = address,
+                    Owner = address,
                     IsBurnable = _economicOptions.IsBurnable,
                     Symbol = _economicOptions.Symbol,
                     TokenName = _economicOptions.TokenName,

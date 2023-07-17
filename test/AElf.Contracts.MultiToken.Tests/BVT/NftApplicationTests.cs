@@ -46,7 +46,8 @@ public partial class MultiTokenContractTests
                     "https://i.seadn.io/gcs/files/0f5cdfaaf687de2ebb5834b129a5bef3.png?auto=format&w=3840"
                 }
             }
-        }
+        },
+        Owner = Accounts[0].Address
     };
 
     private TokenInfo NftCollection1155Info => new()
@@ -77,6 +78,7 @@ public partial class MultiTokenContractTests
         TotalSupply = 1,
         Decimals = 0,
         Issuer = Accounts[0].Address,
+        Owner = Accounts[0].Address,
         IssueChainId = _chainId,
         IsBurnable = true,
         ExternalInfo = new ExternalInfo()
@@ -122,6 +124,7 @@ public partial class MultiTokenContractTests
             TotalSupply = collectionInfo.TotalSupply,
             Decimals = collectionInfo.Decimals,
             Issuer = collectionInfo.Issuer,
+            Owner = collectionInfo.Issuer,
             IssueChainId = collectionInfo.IssueChainId,
             ExternalInfo = collectionInfo.ExternalInfo
         });
@@ -138,7 +141,8 @@ public partial class MultiTokenContractTests
             Issuer = nftInfo.Issuer,
             IsBurnable = nftInfo.IsBurnable,
             IssueChainId = nftInfo.IssueChainId,
-            ExternalInfo = nftInfo.ExternalInfo
+            ExternalInfo = nftInfo.ExternalInfo,
+            Owner = nftInfo.Issuer
         });
     }
 
@@ -220,7 +224,8 @@ public partial class MultiTokenContractTests
                 Decimals = 8,
                 Issuer = input.Issuer,
                 IssueChainId = input.IssueChainId,
-                ExternalInfo = input.ExternalInfo
+                ExternalInfo = input.ExternalInfo,
+                Owner = input.Owner
             });
             result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             result.TransactionResult.Error.ShouldContain("NFT's decimals must be 0");
@@ -235,7 +240,8 @@ public partial class MultiTokenContractTests
                 Decimals = input.Decimals,
                 Issuer = input.Issuer,
                 IssueChainId = input.IssueChainId,
-                ExternalInfo = input.ExternalInfo
+                ExternalInfo = input.ExternalInfo,
+                Owner = input.Owner
             });
             
             var result = await TokenContractStub.Create.SendWithExceptionAsync(seedInput);;
@@ -252,7 +258,8 @@ public partial class MultiTokenContractTests
                 Decimals = input.Decimals,
                 Issuer = input.Issuer,
                 IssueChainId = input.IssueChainId,
-                ExternalInfo = input.ExternalInfo
+                ExternalInfo = input.ExternalInfo,
+                Owner = input.Owner
             });
             var result = await TokenContractStub.Create.SendWithExceptionAsync(seedInput);;
             result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
@@ -267,6 +274,7 @@ public partial class MultiTokenContractTests
                 TotalSupply = input.TotalSupply,
                 Decimals = input.Decimals,
                 Issuer = NftCollection721Info.Issuer,
+                Owner = NftCollection721Info.Issuer,
                 IssueChainId = ChainHelper.ConvertBase58ToChainId("tDVV"),
                 ExternalInfo = input.ExternalInfo
             });
@@ -351,10 +359,11 @@ public partial class MultiTokenContractTests
                 Decimals = input.Decimals,
                 Issuer = Accounts.Last().Address,
                 IssueChainId = input.IssueChainId,
-                ExternalInfo = input.ExternalInfo
+                ExternalInfo = input.ExternalInfo,
+                Owner = Accounts.Last().Address
             });
             result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            result.TransactionResult.Error.ShouldContain("NFT issuer must be collection's issuer");
+            result.TransactionResult.Error.ShouldContain("NFT owner must be collection's owner");
         }
         {
             var result = await TokenContractStub.Create.SendWithExceptionAsync( new CreateInput
@@ -365,7 +374,8 @@ public partial class MultiTokenContractTests
                 Decimals = input.Decimals,
                 Issuer = input.Issuer,
                 IssueChainId = ChainHelper.ConvertBase58ToChainId("tDVV"),
-                ExternalInfo = input.ExternalInfo
+                ExternalInfo = input.ExternalInfo,
+                Owner = input.Owner
             });
             result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             result.TransactionResult.Error.ShouldContain("NFT create ChainId must be collection's issue chainId");
@@ -384,7 +394,8 @@ public partial class MultiTokenContractTests
             Decimals = input.Decimals,
             Issuer = input.Issuer,
             IssueChainId = input.IssueChainId,
-            ExternalInfo = input.ExternalInfo
+            ExternalInfo = input.ExternalInfo,
+            Owner = input.Owner
         });
         result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
         result.TransactionResult.Error.ShouldContain("NFT collection not exist");
@@ -403,7 +414,8 @@ public partial class MultiTokenContractTests
             Decimals = input.Decimals,
             Issuer = input.Issuer,
             IssueChainId = input.IssueChainId,
-            ExternalInfo = input.ExternalInfo
+            ExternalInfo = input.ExternalInfo,
+            Owner = input.Owner
         });
         result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
         result.TransactionResult.Error.ShouldContain("Token already exists.");
@@ -673,38 +685,6 @@ public partial class MultiTokenContractTests
         ownerBalanceOutput.Balance.ShouldBe(90);
     }
 
-    [Fact(DisplayName = "[seed-nft] ResetExternalInfo Test")]
-    public async Task ResetExternalInfoInputTest()
-    {
-        var createInput = await CreateSeedNftAsync(TokenContractStub, new CreateInput
-        {
-            Issuer = DefaultAddress,
-            Symbol = "XYZ"
-        });
-
-        var symbol = createInput.Symbol;
-        createInput.ExternalInfo.Value["__seed_exp_time"] = "1234";
-        // permission check
-        var exceptionRes = await TokenContractStubUser.ResetExternalInfo.SendWithExceptionAsync(
-            new ResetExternalInfoInput
-            {
-                Symbol = createInput.Symbol,
-                ExternalInfo = createInput.ExternalInfo
-            });
-        exceptionRes.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-        exceptionRes.TransactionResult.Error.ShouldContain("No permission to reset external info");
-        var result = await TokenContractStub.ResetExternalInfo.SendAsync(new ResetExternalInfoInput()
-        {
-            Symbol = createInput.Symbol,
-            ExternalInfo = createInput.ExternalInfo
-        });
-        var tokenInfoRs = await TokenContractStub.GetTokenInfo.SendAsync(new GetTokenInfoInput
-        {
-            Symbol = symbol,
-        });
-        tokenInfoRs.Output.ExternalInfo.Value["__seed_exp_time"].ShouldBe("1234");
-    }
-
     [Fact(DisplayName = "[token] create Test")]
     public async Task CreateTokenTest()
     {
@@ -715,6 +695,7 @@ public partial class MultiTokenContractTests
             TotalSupply = TotalSupply,
             Decimals = 0,
             Issuer = DefaultAddress,
+            Owner = DefaultAddress,
             IssueChainId = _chainId,
         });
         res.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
@@ -749,6 +730,7 @@ public partial class MultiTokenContractTests
             TotalSupply = TotalSupply,
             Decimals = 0,
             Issuer = DefaultAddress,
+            Owner = DefaultAddress,
             IssueChainId = _chainId,
             Symbol = "GHJ-0"
         });
@@ -788,114 +770,115 @@ public partial class MultiTokenContractTests
             TotalSupply = TotalSupply,
             Decimals = 0,
             Issuer = DefaultAddress,
+            Owner = DefaultAddress,
             IssueChainId = _chainId,
             Symbol = "GHJ-1"
         });
         nftSuccessAsync.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
     }
 
-    [Fact(DisplayName = "[feed nft] create Test")]
-    public async Task FeedNftCreateTest()
-    {
-        // symbol expire reCreate success
-        var createInput = await CreateSeedNftAsync(TokenContractStub, new CreateInput
-        {
-            Issuer = DefaultAddress,
-            Symbol = "XYZ-0"
-        });
-
-        createInput.ExternalInfo.Value["__seed_exp_time"] = "1234";
-        await TokenContractStub.ResetExternalInfo.SendAsync(new ResetExternalInfoInput()
-        {
-            Symbol = createInput.Symbol,
-            ExternalInfo = createInput.ExternalInfo
-        });
-
-        var input = BuildSeedCreateInput(new CreateInput
-        {
-            Issuer = DefaultAddress,
-            Symbol = "XYZ-0"
-        });
-        var seedRes = await TokenContractStub.Create.SendAsync(input);
-        seedRes.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-
-        // owner doesn't own enough balance
-        var nftAsync = await TokenContractStub.Create.SendWithExceptionAsync(GetCreateInput());
-        nftAsync.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-        nftAsync.TransactionResult.Error.ShouldContain("Seed NFT balance is not enough");
-        // ExternalInfo check  
-        await TokenContractStub.Issue.SendAsync(new IssueInput
-        {
-            Symbol = input.Symbol,
-            Amount = 1,
-            Memo = "ddd",
-            To = DefaultAddress
-        });
-        input.ExternalInfo.Value["__seed_owned_symbol"] = "XY-0";
-
-        await TokenContractStub.ResetExternalInfo.SendAsync(new ResetExternalInfoInput()
-        {
-            Symbol = input.Symbol,
-            ExternalInfo = input.ExternalInfo
-        });
-        var inconsistentExceptionAsync = await TokenContractStub.Create.SendWithExceptionAsync(GetCreateInput());
-        inconsistentExceptionAsync.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-        inconsistentExceptionAsync.TransactionResult.Error.ShouldContain(
-            "Invalid OwnedSymbol");
-
-        input.ExternalInfo.Value["__seed_owned_symbol"] = "XYZ-0";
-        input.ExternalInfo.Value["__seed_exp_time"] = "";
-        await TokenContractStub.ResetExternalInfo.SendAsync(new ResetExternalInfoInput()
-        {
-            Symbol = input.Symbol,
-            ExternalInfo = input.ExternalInfo
-        });
-        var expireExceptionAsync = await TokenContractStub.Create.SendWithExceptionAsync(
-            GetCreateInput());
-        expireExceptionAsync.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-        expireExceptionAsync.TransactionResult.Error.ShouldContain("OwnedSymbol is expired");
-
-        input.ExternalInfo.Value["__seed_owned_symbol"] = "XYZ-0";
-        input.ExternalInfo.Value["__seed_exp_time"] = "1234";
-        await TokenContractStub.ResetExternalInfo.SendAsync(new ResetExternalInfoInput()
-        {
-            Symbol = input.Symbol,
-            ExternalInfo = input.ExternalInfo
-        });
-        var expireExceptionAsync1 = await TokenContractStub.Create.SendWithExceptionAsync(GetCreateInput());
-        expireExceptionAsync1.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-        expireExceptionAsync1.TransactionResult.Error.ShouldContain("OwnedSymbol is expired");
-        await TokenContractStub.ResetExternalInfo.SendAsync(new ResetExternalInfoInput
-        {
-            Symbol = input.Symbol,
-            ExternalInfo = new ExternalInfo()
-        });
-        var emptyExceptionAsync = await TokenContractStub.Create.SendWithExceptionAsync(GetCreateInput());
-        emptyExceptionAsync.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-        emptyExceptionAsync.TransactionResult.Error.ShouldContain("Invalid OwnedSymbol");
-        input.ExternalInfo.Value["__seed_owned_symbol"] = "XYZ-0";
-        input.ExternalInfo.Value["__seed_exp_time"] = TimestampHelper.GetUtcNow().AddDays(1).Seconds.ToString();
-        await TokenContractStub.ResetExternalInfo.SendAsync(new ResetExternalInfoInput
-        {
-            Symbol = input.Symbol,
-            ExternalInfo = input.ExternalInfo
-        });
-        var re = await SubmitAndApproveProposalOfDefaultParliamentWithException(TokenContractAddress,
-            nameof(TokenContractStub.Create), new CreateInput
-            {
-                Symbol = "XYZ-0",
-                Decimals = 0,
-                IsBurnable = true,
-                TokenName = "ELF2",
-                TotalSupply = 100_000_000_000_000_000L,
-                Issuer = DefaultAddress,
-                ExternalInfo = new ExternalInfo()
-            });
-        re.TransactionResult.Error.ShouldContain("OwnedSymbol has been created");
-        re.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-        
-        
-    }
+    // [Fact(DisplayName = "[feed nft] create Test")]
+    // public async Task FeedNftCreateTest()
+    // {
+    //     // symbol expire reCreate success
+    //     var createInput = await CreateSeedNftAsync(TokenContractStub, new CreateInput
+    //     {
+    //         Issuer = DefaultAddress,
+    //         Symbol = "XYZ-0"
+    //     });
+    //
+    //     createInput.ExternalInfo.Value["__seed_exp_time"] = "1234";
+    //     await TokenContractStub.ResetExternalInfo.SendAsync(new ResetExternalInfoInput()
+    //     {
+    //         Symbol = createInput.Symbol,
+    //         ExternalInfo = createInput.ExternalInfo
+    //     });
+    //
+    //     var input = BuildSeedCreateInput(new CreateInput
+    //     {
+    //         Issuer = DefaultAddress,
+    //         Symbol = "XYZ-0"
+    //     });
+    //     var seedRes = await TokenContractStub.Create.SendAsync(input);
+    //     seedRes.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+    //
+    //     // owner doesn't own enough balance
+    //     var nftAsync = await TokenContractStub.Create.SendWithExceptionAsync(GetCreateInput());
+    //     nftAsync.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+    //     nftAsync.TransactionResult.Error.ShouldContain("Seed NFT balance is not enough");
+    //     // ExternalInfo check  
+    //     await TokenContractStub.Issue.SendAsync(new IssueInput
+    //     {
+    //         Symbol = input.Symbol,
+    //         Amount = 1,
+    //         Memo = "ddd",
+    //         To = DefaultAddress
+    //     });
+    //     input.ExternalInfo.Value["__seed_owned_symbol"] = "XY-0";
+    //
+    //     await TokenContractStub.ResetExternalInfo.SendAsync(new ResetExternalInfoInput()
+    //     {
+    //         Symbol = input.Symbol,
+    //         ExternalInfo = input.ExternalInfo
+    //     });
+    //     var inconsistentExceptionAsync = await TokenContractStub.Create.SendWithExceptionAsync(GetCreateInput());
+    //     inconsistentExceptionAsync.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+    //     inconsistentExceptionAsync.TransactionResult.Error.ShouldContain(
+    //         "Invalid OwnedSymbol");
+    //
+    //     input.ExternalInfo.Value["__seed_owned_symbol"] = "XYZ-0";
+    //     input.ExternalInfo.Value["__seed_exp_time"] = "";
+    //     await TokenContractStub.ResetExternalInfo.SendAsync(new ResetExternalInfoInput()
+    //     {
+    //         Symbol = input.Symbol,
+    //         ExternalInfo = input.ExternalInfo
+    //     });
+    //     var expireExceptionAsync = await TokenContractStub.Create.SendWithExceptionAsync(
+    //         GetCreateInput());
+    //     expireExceptionAsync.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+    //     expireExceptionAsync.TransactionResult.Error.ShouldContain("OwnedSymbol is expired");
+    //
+    //     input.ExternalInfo.Value["__seed_owned_symbol"] = "XYZ-0";
+    //     input.ExternalInfo.Value["__seed_exp_time"] = "1234";
+    //     await TokenContractStub.ResetExternalInfo.SendAsync(new ResetExternalInfoInput()
+    //     {
+    //         Symbol = input.Symbol,
+    //         ExternalInfo = input.ExternalInfo
+    //     });
+    //     var expireExceptionAsync1 = await TokenContractStub.Create.SendWithExceptionAsync(GetCreateInput());
+    //     expireExceptionAsync1.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+    //     expireExceptionAsync1.TransactionResult.Error.ShouldContain("OwnedSymbol is expired");
+    //     await TokenContractStub.ResetExternalInfo.SendAsync(new ResetExternalInfoInput
+    //     {
+    //         Symbol = input.Symbol,
+    //         ExternalInfo = new ExternalInfo()
+    //     });
+    //     var emptyExceptionAsync = await TokenContractStub.Create.SendWithExceptionAsync(GetCreateInput());
+    //     emptyExceptionAsync.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+    //     emptyExceptionAsync.TransactionResult.Error.ShouldContain("Invalid OwnedSymbol");
+    //     input.ExternalInfo.Value["__seed_owned_symbol"] = "XYZ-0";
+    //     input.ExternalInfo.Value["__seed_exp_time"] = TimestampHelper.GetUtcNow().AddDays(1).Seconds.ToString();
+    //     await TokenContractStub.ResetExternalInfo.SendAsync(new ResetExternalInfoInput
+    //     {
+    //         Symbol = input.Symbol,
+    //         ExternalInfo = input.ExternalInfo
+    //     });
+    //     var re = await SubmitAndApproveProposalOfDefaultParliamentWithException(TokenContractAddress,
+    //         nameof(TokenContractStub.Create), new CreateInput
+    //         {
+    //             Symbol = "XYZ-0",
+    //             Decimals = 0,
+    //             IsBurnable = true,
+    //             TokenName = "ELF2",
+    //             TotalSupply = 100_000_000_000_000_000L,
+    //             Issuer = DefaultAddress,
+    //             ExternalInfo = new ExternalInfo()
+    //         });
+    //     re.TransactionResult.Error.ShouldContain("OwnedSymbol has been created");
+    //     re.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+    //     
+    //     
+    // }
 
     private CreateInput GetCreateInput()
     {

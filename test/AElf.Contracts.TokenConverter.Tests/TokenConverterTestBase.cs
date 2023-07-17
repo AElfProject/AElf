@@ -60,6 +60,7 @@ public class TokenConverterTestBase : AEDPoSExtensionTestBase
                 TokenName = "elf token",
                 TotalSupply = 1000_0000_0000L,
                 Issuer = DefaultSender,
+                Owner = DefaultSender,
                 LockWhiteList = { TokenContractAddress, TokenConverterContractAddress }
             });
         await TokenContractStub.Issue.SendAsync(new IssueInput

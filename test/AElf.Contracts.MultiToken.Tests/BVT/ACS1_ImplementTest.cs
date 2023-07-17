@@ -215,6 +215,7 @@ public partial class MultiTokenContractTests
                 Symbol = tokenNotProfitable,
                 TokenName = "name",
                 Issuer = DefaultAddress,
+                Owner = DefaultAddress,
                 TotalSupply = 1000_000
             });
             var methodFees = new MethodFees
