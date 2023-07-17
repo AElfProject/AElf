@@ -342,7 +342,8 @@ public class SideChainSideChainRentFeeTest : SideChainRentFeeTestBase<SideChainR
                 Symbol = symbol,
                 TotalSupply = supply,
                 IsBurnable = true,
-                TokenName = $"{symbol} token."
+                TokenName = $"{symbol} token.",
+                Owner = Creator
             });
         
         if (!issueToken) return;

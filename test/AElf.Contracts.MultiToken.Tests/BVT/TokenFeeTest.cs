@@ -134,7 +134,13 @@ public partial class MultiTokenContractTests
         initializeControllerRet.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
         var updateRet =
             await TokenContractStub.UpdateCoefficientsForSender.SendWithExceptionAsync(
-                new UpdateCoefficientsInput());
+                new UpdateCoefficientsInput
+                {
+                    Coefficients = new CalculateFeeCoefficients
+                    {
+                        FeeTokenType = 0
+                    }
+                });
         updateRet.TransactionResult.Error.ShouldContain("no permission");
     }
 

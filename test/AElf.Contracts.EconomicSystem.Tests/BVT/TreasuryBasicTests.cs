@@ -281,7 +281,8 @@ public partial class EconomicSystemTest : EconomicSystemTestBase
             TokenName = "TEST name",
             TotalSupply = 1_0000_0000,
             Issuer = BootMinerAddress,
-            IsBurnable = true
+            IsBurnable = true,
+            Owner = BootMinerAddress
         };
         await ExecuteProposalForParliamentTransactionWithException(Tester, TokenContractAddress, nameof(TokenContractStub.Create),
             tokenCreateInput);
@@ -328,7 +329,8 @@ public partial class EconomicSystemTest : EconomicSystemTestBase
             TokenName = "CWJ name",
             TotalSupply = 1_0000_0000,
             Issuer = BootMinerAddress,
-            IsBurnable = true
+            IsBurnable = true,
+            Owner = BootMinerAddress
         };
         await ExecuteProposalForParliamentTransaction(TokenContractAddress, nameof(TokenContractStub.Create),
             tokenCreateInput);

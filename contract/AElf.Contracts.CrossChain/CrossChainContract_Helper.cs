@@ -189,7 +189,8 @@ public partial class CrossChainContract
             Issuer = creator,
             IssueChainId = chainId,
             Symbol = sideChainCreationRequest.SideChainTokenCreationRequest.SideChainTokenSymbol,
-            TotalSupply = sideChainCreationRequest.SideChainTokenCreationRequest.SideChainTokenTotalSupply
+            TotalSupply = sideChainCreationRequest.SideChainTokenCreationRequest.SideChainTokenTotalSupply,
+            Owner = creator
         });
     }
 

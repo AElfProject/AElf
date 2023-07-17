@@ -145,6 +145,7 @@ public class VoteContractTestBase : ContractTestBase<VoteContractTestAElfModule>
             TokenName = "elf token for testing",
             TotalSupply = totalSupply,
             Issuer = DefaultSender,
+            Owner = DefaultSender,
             LockWhiteList =
             {
                 VoteContractAddress

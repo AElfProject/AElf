@@ -12,6 +12,7 @@ public partial class TokenContract
     public override SetTransactionFeeDelegationsOutput SetTransactionFeeDelegations(
         SetTransactionFeeDelegationsInput input)
     {
+        AssertValidInputAddress(input.DelegatorAddress);
         Assert(input.Delegations != null, "Delegations cannot be null!");
 
         // get all delegatees, init it if null.

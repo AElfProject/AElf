@@ -56,7 +56,8 @@ public partial class AEDPoSTest
                 Symbol = symbol,
                 TokenName = "name",
                 TotalSupply = 1000_000_000,
-                Issuer = BootMinerAddress
+                Issuer = BootMinerAddress,
+                Owner = BootMinerAddress
             });
         await ApproveWithMinersAsync(proposalId);
         var result = await ParliamentContractStub.Release.SendAsync(proposalId);

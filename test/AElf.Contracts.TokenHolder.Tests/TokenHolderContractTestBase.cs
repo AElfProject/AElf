@@ -134,6 +134,7 @@ public class TokenHolderContractTestBase : ContractTestBase<TokenHolderContractT
             TokenName = "collection",
             TotalSupply = 1,
             Issuer = Starter,
+            Owner = Starter,
             LockWhiteList =
             {
                 TokenContractAddress
@@ -156,6 +157,7 @@ public class TokenHolderContractTestBase : ContractTestBase<TokenHolderContractT
             TokenName = "collection",
             TotalSupply = 1,
             Issuer = Starter,
+            Owner = Starter,
             LockWhiteList =
             {
                 TokenContractAddress
@@ -178,6 +180,7 @@ public class TokenHolderContractTestBase : ContractTestBase<TokenHolderContractT
             TokenName = "collection",
             TotalSupply = 1,
             Issuer = Starter,
+            Owner = Starter,
             LockWhiteList =
             {
                 TokenContractAddress
@@ -289,6 +292,7 @@ public class TokenHolderContractTestBase : ContractTestBase<TokenHolderContractT
             TokenName = "elf token",
             TotalSupply = TokenHolderContractTestConstants.NativeTokenTotalSupply,
             Issuer = Starter,
+            Owner = Starter,
             LockWhiteList =
             {
                 ProfitContractAddress,
@@ -321,7 +325,8 @@ public class TokenHolderContractTestBase : ContractTestBase<TokenHolderContractT
             IsBurnable = true,
             TokenName = "collection",
             TotalSupply = 1,
-            Issuer = Starter
+            Issuer = Starter,
+            Owner = Starter,
         });
 
         return tokenContractCallList;

@@ -59,7 +59,8 @@ public partial class EconomicContract : EconomicContractImplContainer.EconomicCo
             Decimals = input.NativeTokenDecimals,
             IsBurnable = input.IsNativeTokenBurnable,
             Issuer = Context.Self,
-            LockWhiteList = { lockWhiteList }
+            LockWhiteList = { lockWhiteList },
+            Owner = Context.Self
         });
 
         State.TokenContract.SetPrimaryTokenSymbol.Send(new SetPrimaryTokenSymbolInput
@@ -88,7 +89,8 @@ public partial class EconomicContract : EconomicContractImplContainer.EconomicCo
                 Decimals = EconomicContractConstants.ResourceTokenDecimals,
                 Issuer = Context.Self,
                 LockWhiteList = { lockWhiteList },
-                IsBurnable = true
+                IsBurnable = true,
+                Owner = Context.Self
             });
 
             State.TokenContract.Issue.Send(new IssueInput
@@ -120,7 +122,8 @@ public partial class EconomicContract : EconomicContractImplContainer.EconomicCo
                 Decimals = EconomicContractConstants.ElectionTokenDecimals,
                 Issuer = Context.Self,
                 IsBurnable = true,
-                LockWhiteList = { lockWhiteList }
+                LockWhiteList = { lockWhiteList },
+                Owner = Context.Self
             });
             State.TokenContract.Issue.Send(new IssueInput
             {

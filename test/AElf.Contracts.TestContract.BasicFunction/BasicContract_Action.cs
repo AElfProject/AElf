@@ -185,6 +185,7 @@ public partial class BasicFunctionContract : BasicFunctionContractContainer.Basi
             Symbol = input.Symbol,
             Decimals = input.Decimals,
             Issuer = input.Issuer,
+            Owner = input.Issuer,
             IsBurnable = input.IsBurnable,
             IssueChainId = input.IssueChainId,
             TokenName = input.TokenName,

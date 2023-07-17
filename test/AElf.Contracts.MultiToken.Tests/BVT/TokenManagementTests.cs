@@ -50,7 +50,8 @@ public partial class MultiTokenContractTests : MultiTokenContractTestBase
         IsBurnable = true,
         Issuer = Accounts[0].Address,
         Supply = 0,
-        IssueChainId = _chainId
+        IssueChainId = _chainId,
+        Owner = Accounts[0].Address
     };
 
     private TokenInfo PrimaryTokenInfo => new()
@@ -78,7 +79,8 @@ public partial class MultiTokenContractTests : MultiTokenContractTestBase
         Issuer = Accounts[0].Address,
         Supply = 0,
         IssueChainId = _chainId,
-        ExternalInfo = new ExternalInfo()
+        ExternalInfo = new ExternalInfo(),
+        Owner = Accounts[0].Address
     };
 
     /// <summary>
@@ -135,6 +137,7 @@ public partial class MultiTokenContractTests : MultiTokenContractTestBase
             Decimals = PrimaryTokenInfo.Decimals,
             IsBurnable = PrimaryTokenInfo.IsBurnable,
             Issuer = PrimaryTokenInfo.Issuer,
+            Owner = PrimaryTokenInfo.Issuer,
             TotalSupply = PrimaryTokenInfo.TotalSupply,
             Symbol = PrimaryTokenInfo.Symbol,
             TokenName = PrimaryTokenInfo.TokenName,
@@ -166,6 +169,7 @@ public partial class MultiTokenContractTests : MultiTokenContractTestBase
             TotalSupply = AliceCoinTokenInfo.TotalSupply,
             Decimals = AliceCoinTokenInfo.Decimals,
             Issuer = AliceCoinTokenInfo.Issuer,
+            Owner = AliceCoinTokenInfo.Issuer,
             IsBurnable = AliceCoinTokenInfo.IsBurnable,
             LockWhiteList =
             {
@@ -233,6 +237,7 @@ public partial class MultiTokenContractTests : MultiTokenContractTestBase
             TotalSupply = BobCoinTokenInfo.TotalSupply,
             Decimals = BobCoinTokenInfo.Decimals,
             Issuer = BobCoinTokenInfo.Issuer,
+            Owner = BobCoinTokenInfo.Issuer,
             IsBurnable = BobCoinTokenInfo.IsBurnable
         });
 
@@ -255,6 +260,7 @@ public partial class MultiTokenContractTests : MultiTokenContractTestBase
             Decimals = 2,
             IsBurnable = true,
             Issuer = DefaultAddress,
+            Owner = DefaultAddress,
             TokenName = BobCoinTokenInfo.TokenName,
             TotalSupply = AliceCoinTotalAmount,
             LockWhiteList =
@@ -394,6 +400,7 @@ public partial class MultiTokenContractTests : MultiTokenContractTestBase
                 Symbol = chainTokenSymbol,
                 TokenName = "chain token",
                 Issuer = DefaultAddress,
+                Owner = DefaultAddress,
                 IssueChainId = 10,
                 TotalSupply = 1000_000,
                 Decimals = 8
@@ -418,6 +425,7 @@ public partial class MultiTokenContractTests : MultiTokenContractTestBase
             Symbol = newTokenSymbol,
             TokenName = "ain token",
             Issuer = DefaultAddress,
+            Owner = DefaultAddress,
             TotalSupply = 1000_000,
             Decimals = 8
         });
@@ -480,7 +488,8 @@ public partial class MultiTokenContractTests : MultiTokenContractTestBase
                 OtherBasicFunctionContractAddress,
                 TokenConverterContractAddress,
                 TreasuryContractAddress
-            }
+            },
+            Owner = AliceCoinTokenInfo.Owner
         };
         var createTokenInfoWithInvalidTokenName = new CreateInput();
         createTokenInfoWithInvalidTokenName.MergeFrom(createTokenInfo);
