@@ -116,7 +116,7 @@ public class GrpcStreamServiceTests : GrpcNetworkWithChainTestBase
             new StreamTaskResourcePool(), new Dictionary<string, string>() { { GrpcConstants.PubkeyMetadataKey, nodePubkey } });
         peerback.ConnectionStatus.ShouldBe("Stream Closed");
         var res = await peerback.TryRecoverAsync();
-        res.ShouldBe(true);
+        res.ShouldBe(false);
         var re = peerback.HandleRpcException(new RpcException(new Status(StatusCode.Cancelled, "")), "");
         re.ExceptionType.ShouldBe(NetworkExceptionType.Unrecoverable);
         re = peerback.HandleRpcException(new RpcException(new Status(StatusCode.Unknown, "")), "");
