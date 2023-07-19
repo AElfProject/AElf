@@ -535,7 +535,8 @@ public partial class EconomicContractsTestBase
             {
                 TokenConverterContractAddress,
                 TreasuryContractAddress
-            }
+            },
+            Owner = BootMinerAddress
         });
         await TokenContractStub.Issue.SendAsync(new IssueInput
         {

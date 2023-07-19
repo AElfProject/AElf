@@ -2,10 +2,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
+using AElf.Contracts.TestContract.VirtualAddress;
 using AElf.CSharp.Core;
 using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using AElf.Types;
+using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
 
@@ -660,5 +663,78 @@ public partial class VoteTests
             VotingItemId = registerItem.VotingItemId
         });
         voteIds.ActiveVotes.Count.ShouldBe(1);
+    }
+    
+    [Fact]
+    public async Task Vote_VirtualAddress_Success()
+    {
+        var registerItem = await RegisterVotingItemAsync(100, 3, true, DefaultSender, 1);
+        var voteItemId = registerItem.VotingItemId;
+        var voter = await VirtualAddressContractStub.GetVirtualAddress.CallAsync(new Empty());
+        var voteAmount = 100;
+        await TokenContractStub.Transfer.SendAsync(new TransferInput
+        {
+            Symbol = TestTokenSymbol,
+            Amount = 1000,
+            To = voter,
+            Memo = "transfer token to voter"
+        });
+        var beforeVoteBalance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+        {
+            Symbol = TestTokenSymbol,
+            Owner = voter
+        });
+        var sendResult = await VirtualAddressContractStub.ForwardCall.SendAsync(new ForwardCallInput
+        {
+            ContractAddress = VoteContractAddress,
+            MethodName = "Vote",
+            VirtualAddress = HashHelper.ComputeFrom("test"),
+            Args = (new VoteInput
+            {
+                VotingItemId = voteItemId,
+                Option = registerItem.Options[1],
+                Amount = voteAmount
+            }).ToByteString()
+        });
+
+        sendResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        var voteResult = await VoteContractStub.GetVotingResult.CallAsync(new GetVotingResultInput
+        {
+            SnapshotNumber = 1,
+            VotingItemId = voteItemId
+        });
+        voteResult.Results[registerItem.Options[1]].ShouldBe(voteAmount);
+        voteResult.VotesAmount.ShouldBe(voteAmount);
+        voteResult.VotersCount.ShouldBe(1);
+        var afterVoteBalance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+        {
+            Symbol = TestTokenSymbol,
+            Owner = voter
+        });
+        beforeVoteBalance.Balance.Sub(afterVoteBalance.Balance).ShouldBe(voteAmount);
+        var voteItems = await VoteContractStub.GetVotedItems.CallAsync(voter);
+        voteItems.VotedItemVoteIds.Count.ShouldBe(1);
+        
+        var votingIds = await VoteContractStub.GetVotingIds.CallAsync(new GetVotingIdsInput
+        {
+            Voter = voter,
+            VotingItemId = voteItemId
+        });
+        var currentVoteId = votingIds.ActiveVotes.First();
+        
+        sendResult = await VirtualAddressContractStub.ForwardCall.SendAsync(new ForwardCallInput
+        {
+            ContractAddress = VoteContractAddress,
+            MethodName = "Withdraw",
+            VirtualAddress = HashHelper.ComputeFrom("test"),
+            Args = (new WithdrawInput
+            {
+                VoteId = currentVoteId
+            }).ToByteString()
+        });
+        sendResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+        var afterWithdrawBalance = GetUserBalance(voter);
+        afterWithdrawBalance.ShouldBe(beforeVoteBalance.Balance);
     }
 }

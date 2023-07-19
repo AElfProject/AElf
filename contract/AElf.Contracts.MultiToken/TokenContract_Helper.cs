@@ -51,6 +51,11 @@ public partial class TokenContract
             "Invalid memo size.");
     }
 
+    private void AssertValidInputAddress(Address input)
+    {
+        Assert(input != null && !input.Value.IsNullOrEmpty(), "Invalid input address.");
+    }
+
     private void DoTransfer(Address from, Address to, string symbol, long amount, string memo = null)
     {
         Assert(from != to, "Can't do transfer to sender itself.");
@@ -120,6 +125,9 @@ public partial class TokenContract
 
     private long GetBalance(Address address, string symbol)
     {
+        AssertValidInputAddress(address);
+        Assert(!string.IsNullOrWhiteSpace(symbol), "Invalid symbol.");
+        
         return State.Balances[address][symbol];
     }
 
@@ -181,6 +189,7 @@ public partial class TokenContract
         Assert(!string.IsNullOrEmpty(tokenInfo.TokenName), "Token name can neither be null nor empty.");
         Assert(tokenInfo.TotalSupply > 0, "Invalid total supply.");
         Assert(tokenInfo.Issuer != null, "Invalid issuer address.");
+        Assert(tokenInfo.Owner != null, "Invalid owner address.");
         State.TokenInfos[tokenInfo.Symbol] = tokenInfo;
     }
 
@@ -322,15 +331,31 @@ public partial class TokenContract
                 NonIndexed = input.ToByteString()
             });
     }
+    
+    private bool IsInLockWhiteList(Address address)
+    {
+        return address == GetElectionContractAddress() || address == GetVoteContractAddress();
+    }
 
     private Address GetElectionContractAddress()
     {
-        if (State.ElectionContract.Value == null)
+        if (State.ElectionContractAddress.Value == null)
         {
-            State.ElectionContract.Value =
+            State.ElectionContractAddress.Value =
                 Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName);
         }
         
-        return State.ElectionContract.Value;
+        return State.ElectionContractAddress.Value;
+    }
+    
+    private Address GetVoteContractAddress()
+    {
+        if (State.VoteContractAddress.Value == null)
+        {
+            State.VoteContractAddress.Value =
+                Context.GetContractAddressByName(SmartContractConstants.VoteContractSystemName);
+        }
+        
+        return State.VoteContractAddress.Value;
     }
 }

@@ -20,12 +20,13 @@ public partial class TokenContract
         input.IssueChainId = input.IssueChainId == 0 ? nftCollectionInfo.IssueChainId : input.IssueChainId;
         Assert(input.IssueChainId == nftCollectionInfo.IssueChainId,
             "NFT create ChainId must be collection's issue chainId");
-        Assert(Context.Sender == nftCollectionInfo.Issuer && nftCollectionInfo.Issuer == input.Issuer,
-            "NFT issuer must be collection's issuer");
+
+        var owner = nftCollectionInfo.Owner ?? nftCollectionInfo.Issuer;
+        Assert(Context.Sender == owner && owner == input.Owner, "NFT owner must be collection's owner");
+
         if (nftCollectionInfo.Symbol == TokenContractConstants.SeedCollectionSymbol)
         {
-            Assert(
-                input.ExternalInfo.Value.TryGetValue(TokenContractConstants.SeedOwnedSymbolExternalInfoKey,
+            Assert(input.ExternalInfo.Value.TryGetValue(TokenContractConstants.SeedOwnedSymbolExternalInfoKey,
                     out var ownedSymbol), "OwnedSymbol does not exist.");
             Assert(input.ExternalInfo.Value.TryGetValue(TokenContractConstants.SeedExpireTimeExternalInfoKey,
                        out var expirationTime)
@@ -57,6 +58,9 @@ public partial class TokenContract
 
     private void DoTransferFrom(Address from, Address to, Address spender, string symbol, long amount, string memo)
     {
+        AssertValidInputAddress(from);
+        AssertValidInputAddress(to);
+        
         // First check allowance.
         var allowance = State.Allowances[from][spender][symbol];
         if (allowance < amount)

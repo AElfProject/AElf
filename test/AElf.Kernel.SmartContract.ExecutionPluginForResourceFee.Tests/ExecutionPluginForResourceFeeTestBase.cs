@@ -232,6 +232,7 @@ public class ExecutionPluginForResourceFeeTestBase : ContractTestBase<ExecutionP
                     TokenName = "elf token",
                     TotalSupply = totalSupply,
                     Issuer = DefaultSender,
+                    Owner = DefaultSender,
                     LockWhiteList = { TreasuryContractAddress, TokenConverterAddress }
                 });
 
@@ -266,6 +267,7 @@ public class ExecutionPluginForResourceFeeTestBase : ContractTestBase<ExecutionP
                 TokenName = "read token",
                 TotalSupply = totalSupply,
                 Issuer = DefaultSender,
+                Owner = DefaultSender,
                 LockWhiteList = { TreasuryContractAddress, TokenConverterAddress }
             });
 
@@ -289,6 +291,7 @@ public class ExecutionPluginForResourceFeeTestBase : ContractTestBase<ExecutionP
                 TokenName = "sto token",
                 TotalSupply = totalSupply,
                 Issuer = DefaultSender,
+                Owner = DefaultSender,
                 LockWhiteList = { TreasuryContractAddress, TokenConverterAddress }
             });
 
@@ -312,6 +315,7 @@ public class ExecutionPluginForResourceFeeTestBase : ContractTestBase<ExecutionP
                 TokenName = "net token",
                 TotalSupply = totalSupply,
                 Issuer = DefaultSender,
+                Owner = DefaultSender,
                 LockWhiteList = { TreasuryContractAddress, TokenConverterAddress }
             });
 
@@ -334,6 +338,7 @@ public class ExecutionPluginForResourceFeeTestBase : ContractTestBase<ExecutionP
                 TokenName = "WRITE token",
                 TotalSupply = totalSupply,
                 Issuer = DefaultSender,
+                Owner = DefaultSender,
                 LockWhiteList = { TreasuryContractAddress, TokenConverterAddress }
             });
 

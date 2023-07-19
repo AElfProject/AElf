@@ -132,7 +132,8 @@ public class ParliamentContractTestBase : ContractTestKit.ContractTestBase<Parli
             IsBurnable = true,
             TokenName = "elf token",
             TotalSupply = totalSupply,
-            Issuer = DefaultSender
+            Issuer = DefaultSender,
+            Owner = DefaultSender
         }, TokenContractAddress);
         await ApproveWithMinersAsync(approveProposalId);
         await ParliamentContractStub.Release.SendAsync(approveProposalId);

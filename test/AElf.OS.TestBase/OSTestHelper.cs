@@ -432,7 +432,8 @@ public class OSTestHelper
                     TotalSupply = TokenTotalSupply,
                     Decimals = 2,
                     Issuer = ownAddress,
-                    IsBurnable = true
+                    IsBurnable = true,
+                    Owner = ownAddress
                 }.ToByteString()
             });
         
@@ -446,7 +447,8 @@ public class OSTestHelper
                     TotalSupply = TokenTotalSupply,
                     Decimals = 2,
                     Issuer = ownAddress,
-                    IsBurnable = true
+                    IsBurnable = true,
+                    Owner = ownAddress
                 }.ToByteString()
             });
 

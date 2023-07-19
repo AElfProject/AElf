@@ -240,7 +240,8 @@ public class PeerDialer : IPeerDialer
         try
         {
             var nodePubkey = (await _accountService.GetPublicKeyAsync()).ToHex();
-            var call = client.Client.RequestByStream(new CallOptions().WithDeadline(DateTime.MaxValue));
+            var headers = new Metadata { new(GrpcConstants.GrpcRequestCompressKey, GrpcConstants.GrpcGzipConst) };
+            var call = client.Client.RequestByStream(new CallOptions().WithHeaders(headers).WithDeadline(DateTime.MaxValue));
             var streamPeer = new GrpcStreamPeer(client, remoteEndpoint, connectionInfo, call, null, _streamTaskResourcePool,
                 new Dictionary<string, string>()
                 {

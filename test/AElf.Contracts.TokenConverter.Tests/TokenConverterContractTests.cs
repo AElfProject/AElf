@@ -370,6 +370,7 @@ public partial class TokenConverterContractTests : TokenConverterTestBase
                 Decimals = 2,
                 IsBurnable = true,
                 Issuer = DefaultSender,
+                Owner = DefaultSender,
                 TokenName = "Write Resource",
                 TotalSupply = 100_0000L,
                 LockWhiteList = { TokenContractAddress, TokenConverterContractAddress }
