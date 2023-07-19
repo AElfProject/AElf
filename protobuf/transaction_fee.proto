@@ -44,3 +44,18 @@ message ResourceTokenOwned {
     int64 amount = 2;
     aelf.Address contract_address = 3;
 }
+
+message TransactionFeeClaimed {
+    option (aelf.is_event) = true;
+    string symbol = 1;
+    int64 amount = 2;
+    aelf.Address receiver = 3;
+}
+
+message ResourceTokenClaimed {
+    option (aelf.is_event) = true;
+    string symbol = 1;
+    int64 amount = 2;
+    aelf.Address payer = 3;
+    aelf.Address receiver = 4;
+}

@@ -63,17 +63,18 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.4.1" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.4.1"/>
         <PackageReference Include="Shouldly" Version="4.0.3"/>
-        <PackageReference Include="xunit" Version="2.4.2" />
+        <PackageReference Include="xunit" Version="2.4.2"/>
+
         <PackageReference Include="xunit.runner.console" Version="2.4.2">
-  <PrivateAssets>all</PrivateAssets>
-  <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-</PackageReference>
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+        </PackageReference>
         <PackageReference Include="xunit.runner.visualstudio" Version="2.4.5">
-  <PrivateAssets>all</PrivateAssets>
-  <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-</PackageReference>
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+        </PackageReference>
     </ItemGroup>
 
     <ItemGroup>
@@ -134,6 +135,6 @@
             <Link>Protobuf\Proto\base\acs11.proto</Link>
         </ContractBase>
     </ItemGroup>
-    <Import Project="..\..\test\AllProto.props"/>
-    <Import Project="..\..\test\AllContracts.props"/>
+    <Import Project="..\..\test\AllProto.props" />
+    <Import Project="..\..\test\AllContracts.props" />
 </Project>

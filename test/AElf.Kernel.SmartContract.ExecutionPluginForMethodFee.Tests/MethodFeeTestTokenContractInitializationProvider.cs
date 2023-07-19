@@ -28,7 +28,8 @@ public class MethodFeeTestTokenContractInitializationProvider : TokenContractIni
                 IsBurnable = true,
                 TokenName = "elf token",
                 TotalSupply = 1_000_000_00000000L,
-                Issuer = SampleAccount.Accounts[0].Address
+                Issuer = SampleAccount.Accounts[0].Address,
+                Owner = SampleAccount.Accounts[0].Address
             }.ToByteString()
         });
 

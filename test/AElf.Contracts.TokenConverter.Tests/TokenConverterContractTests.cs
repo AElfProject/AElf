@@ -363,17 +363,18 @@ public partial class TokenConverterContractTests : TokenConverterTestBase
 
     private async Task CreateRamToken()
     {
-        var createResult = (await TokenContractStub.Create.SendAsync(
+        await ExecuteProposalForParliamentTransaction(TokenContractAddress, nameof(TokenContractStub.Create),
             new CreateInput
             {
                 Symbol = WriteConnector.Symbol,
                 Decimals = 2,
                 IsBurnable = true,
                 Issuer = DefaultSender,
+                Owner = DefaultSender,
                 TokenName = "Write Resource",
-                TotalSupply = 100_0000L
-            })).TransactionResult;
-        createResult.Status.ShouldBe(TransactionResultStatus.Mined);
+                TotalSupply = 100_0000L,
+                LockWhiteList = { TokenContractAddress, TokenConverterContractAddress }
+            });
 
         var issueResult = (await TokenContractStub.Issue.SendAsync(
             new IssueInput

@@ -81,8 +81,12 @@ public class AEDPoSExtensionDemoTestBase : AEDPoSExtensionTestBase
     internal void InitialAcs3Stubs()
     {
         foreach (var initialKeyPair in MissionedECKeyPairs.InitialKeyPairs)
-            ParliamentStubs.Add(GetTester<ParliamentContractImplContainer.ParliamentContractImplStub>(
-                ContractAddresses[ParliamentSmartContractAddressNameProvider.Name], initialKeyPair));
+        {
+            var parliamentStub = GetTester<ParliamentContractImplContainer.ParliamentContractImplStub>(
+                ContractAddresses[ParliamentSmartContractAddressNameProvider.Name], initialKeyPair);
+
+            ParliamentStubs.Add(parliamentStub);
+        }
     }
 
     internal async Task<RandomNumberProviderContractContainer.RandomNumberProviderContractStub>

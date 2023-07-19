@@ -504,6 +504,7 @@ public partial class TokenHolderTests : TokenHolderContractTestBase
             TokenName = symbol + " name",
             TotalSupply = totalSupply,
             Issuer = Starter,
+            Owner = Starter,
             LockWhiteList = { ProfitContractAddress }
         });
         await TokenContractStub.Issue.SendAsync(new IssueInput

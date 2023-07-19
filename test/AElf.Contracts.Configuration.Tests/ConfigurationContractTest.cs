@@ -345,13 +345,15 @@ public class ConfigurationContractTest : ConfigurationContractTestBase
         // token is not profitable
         {
             var tokenSymbol = "DLS";
+            await CreateTokenAsync(tokenSymbol);
             await Tester.ExecuteContractWithMiningAsync(TokenContractAddress,
                 nameof(TokenContractContainer.TokenContractStub.Create), new CreateInput
                 {
                     Symbol = tokenSymbol,
                     TokenName = "name",
                     Issuer = TokenContractAddress,
-                    TotalSupply = 1000_000
+                    TotalSupply = 1000_000,
+                    Owner = TokenContractAddress
                 });
 
             var result = await Tester.ExecuteContractWithMiningAsync(ConfigurationContractAddress,

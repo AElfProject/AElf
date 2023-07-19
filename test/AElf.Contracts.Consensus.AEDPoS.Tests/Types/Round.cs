@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using AElf.Types;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.AEDPoS;
@@ -85,8 +86,9 @@ internal partial class Round
     ///     will record this purpose to their FinalOrderOfNextRound field.
     /// </summary>
     /// <param name="pubkey"></param>
+    /// <param name="randomNumber"></param>
     /// <returns></returns>
-    public UpdateValueInput ExtractInformationToUpdateConsensus(string pubkey)
+    public UpdateValueInput ExtractInformationToUpdateConsensus(string pubkey, ByteString randomNumber)
     {
         if (!RealTimeMinersInformation.ContainsKey(pubkey)) return null;
 
@@ -117,7 +119,8 @@ internal partial class Round
             TuneOrderInformation = { tuneOrderInformation },
             EncryptedPieces = { minerInRound.EncryptedPieces },
             DecryptedPieces = { decryptedPreviousInValues },
-            MinersPreviousInValues = { minersPreviousInValues }
+            MinersPreviousInValues = { minersPreviousInValues },
+            RandomNumber = randomNumber
         };
     }
 

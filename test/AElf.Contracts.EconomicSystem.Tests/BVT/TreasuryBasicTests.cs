@@ -281,10 +281,11 @@ public partial class EconomicSystemTest : EconomicSystemTestBase
             TokenName = "TEST name",
             TotalSupply = 1_0000_0000,
             Issuer = BootMinerAddress,
-            IsBurnable = true
+            IsBurnable = true,
+            Owner = BootMinerAddress
         };
-        var createTokenRet = await TokenContractStub.Create.SendAsync(tokenCreateInput);
-        createTokenRet.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        await ExecuteProposalForParliamentTransactionWithException(Tester, TokenContractAddress, nameof(TokenContractStub.Create),
+            tokenCreateInput);
         // without native token
         {
             var newSymbolList = new SymbolList
@@ -328,9 +329,11 @@ public partial class EconomicSystemTest : EconomicSystemTestBase
             TokenName = "CWJ name",
             TotalSupply = 1_0000_0000,
             Issuer = BootMinerAddress,
-            IsBurnable = true
+            IsBurnable = true,
+            Owner = BootMinerAddress
         };
-        await TokenContractStub.Create.SendAsync(tokenCreateInput);
+        await ExecuteProposalForParliamentTransaction(TokenContractAddress, nameof(TokenContractStub.Create),
+            tokenCreateInput);
         var newSymbolList = new SymbolList
         {
             Value =

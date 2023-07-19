@@ -618,6 +618,41 @@ public partial class ElectionContractTests
         }
     }
 
+    [Fact]
+    public async Task SetProfitsReceiver_Wrong_Admin_Test()
+    {
+        var announceElectionKeyPair = ValidationDataCenterKeyPairs.First();
+        var candidateAdmin = ValidationDataCenterKeyPairs.Last();
+        var profitReceiver = candidateAdmin;
+        var candidateAdminAddress = Address.FromPublicKey(candidateAdmin.PublicKey);
+        await AnnounceElectionAsync(announceElectionKeyPair, candidateAdminAddress);
+
+        var candidateAdminStub =
+            GetTester<TreasuryContractImplContainer.TreasuryContractImplStub>(TreasuryContractAddress,
+                candidateAdmin);
+        await candidateAdminStub.SetProfitsReceiver.SendAsync(
+            new Treasury.SetProfitsReceiverInput
+            {
+                Pubkey = announceElectionKeyPair.PublicKey.ToHex(),
+                ProfitsReceiverAddress = Address.FromPublicKey(profitReceiver.PublicKey)
+            });
+        var getProfitReceiver = await GetProfitReceiver(announceElectionKeyPair.PublicKey.ToHex());
+        getProfitReceiver.ShouldBe(Address.FromPublicKey(profitReceiver.PublicKey));
+
+        var wrongAdminStub =
+            GetTester<TreasuryContractImplContainer.TreasuryContractImplStub>(TreasuryContractAddress,
+                announceElectionKeyPair);
+        var setResult = await wrongAdminStub.SetProfitsReceiver.SendWithExceptionAsync(
+            new Treasury.SetProfitsReceiverInput(new Treasury.SetProfitsReceiverInput
+            {
+                Pubkey = announceElectionKeyPair.PublicKey.ToHex(),
+                ProfitsReceiverAddress = Address.FromPublicKey(profitReceiver.PublicKey)
+            }));
+        
+        setResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+        setResult.TransactionResult.Error.ShouldContain("No permission.");
+    }
+
     private async Task<ProfitDetails> GetBackupSubsidyProfitDetails(Address address)
     {
         return await ProfitContractStub.GetProfitDetails.CallAsync(new GetProfitDetailsInput

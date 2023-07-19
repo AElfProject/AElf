@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.Standards.ACS10;
 using AElf.Types;
+using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
 
@@ -14,14 +15,9 @@ public partial class AEDPoSTest
     {
         var tokenSymbol = "SEP";
 
+        await CreateTokenAsync(tokenSymbol);
+
         // Donate with token which is not profitable will fail
-        await TokenContractStub.Create.SendAsync(new CreateInput
-        {
-            Symbol = tokenSymbol,
-            TokenName = "name",
-            TotalSupply = 1000_000_000,
-            Issuer = BootMinerAddress
-        });
         var issueAmount = 1000_000;
         await TokenContractStub.Issue.SendAsync(new IssueInput
         {
@@ -47,5 +43,24 @@ public partial class AEDPoSTest
             Symbol = tokenSymbol
         });
         balanceAfterDonate.Balance.ShouldBe(issueAmount);
+    }
+
+    private async Task CreateTokenAsync(string symbol)
+    {
+        var defaultOrganization = await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+
+        const string proposalCreationMethodName = nameof(TokenContractStub.Create);
+        var proposalId = await CreateProposalAsync(TokenContractAddress, defaultOrganization,
+            proposalCreationMethodName, new CreateInput
+            {
+                Symbol = symbol,
+                TokenName = "name",
+                TotalSupply = 1000_000_000,
+                Issuer = BootMinerAddress,
+                Owner = BootMinerAddress
+            });
+        await ApproveWithMinersAsync(proposalId);
+        var result = await ParliamentContractStub.Release.SendAsync(proposalId);
+        var t = "t";
     }
 }

@@ -7,5 +7,5 @@ public interface ITriggerInformationProvider
 {
     BytesValue GetTriggerInformationForConsensusCommand(BytesValue consensusCommandBytes);
     BytesValue GetTriggerInformationForBlockHeaderExtraData(BytesValue consensusCommandBytes);
-    BytesValue GetTriggerInformationForConsensusTransactions(BytesValue consensusCommandBytes);
+    BytesValue GetTriggerInformationForConsensusTransactions(IChainContext chainContext, BytesValue consensusCommandBytes);
 }

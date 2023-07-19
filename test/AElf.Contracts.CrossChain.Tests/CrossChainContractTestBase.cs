@@ -160,17 +160,25 @@ public class CrossChainContractTestBase<T> : ContractTestBase<T> where T : AbpMo
     {
         const string symbol = "ELF";
         const long totalSupply = 100_000_000;
-        await MineAsync(new List<Transaction>
-        {
-            TokenContractStub.Create.GetTransaction(new CreateInput
+        
+        var parliamentOrganizationAddress =
+            (await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty()));
+        var approveProposalId = await CreateParliamentProposalAsync(nameof(TokenContractStub.Create),
+            parliamentOrganizationAddress, new CreateInput
             {
                 Symbol = symbol,
                 Decimals = 2,
                 IsBurnable = true,
                 TokenName = "elf token",
                 TotalSupply = totalSupply,
-                Issuer = DefaultSender
-            }),
+                Issuer = DefaultSender,
+                Owner = DefaultSender
+            }, TokenContractAddress);
+        await ApproveWithMinersAsync(approveProposalId);
+        await ParliamentContractStub.Release.SendAsync(approveProposalId);
+
+        await MineAsync(new List<Transaction>
+        {
             TokenContractStub.Issue.GetTransaction(new IssueInput
             {
                 Symbol = symbol,

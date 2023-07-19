@@ -15,6 +15,7 @@ public partial class TokenContract
     /// <returns></returns>
     public override Empty UpdateCoefficientsForContract(UpdateCoefficientsInput input)
     {
+        Assert(input.Coefficients != null, "Invalid input coefficients.");
         Assert(input.Coefficients.FeeTokenType != (int)FeeTypeEnum.Tx, "Invalid fee type.");
         AssertDeveloperFeeController();
         UpdateCoefficients(input);
@@ -23,6 +24,7 @@ public partial class TokenContract
 
     public override Empty UpdateCoefficientsForSender(UpdateCoefficientsInput input)
     {
+        Assert(input.Coefficients != null, "Invalid input coefficients.");
         AssertUserFeeController();
         input.Coefficients.FeeTokenType = (int)FeeTypeEnum.Tx; // The only possible for now.
         UpdateCoefficients(input);

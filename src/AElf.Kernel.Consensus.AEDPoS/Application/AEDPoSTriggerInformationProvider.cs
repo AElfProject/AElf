@@ -1,6 +1,8 @@
+using System.Threading.Tasks;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Consensus.Application;
+using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
@@ -14,13 +16,15 @@ internal class AEDPoSTriggerInformationProvider : ITriggerInformationProvider
     private readonly IAccountService _accountService;
     private readonly IInValueCache _inValueCache;
     private readonly ISecretSharingService _secretSharingService;
+    private readonly IRandomNumberProvider _randomNumberProvider;
 
     public AEDPoSTriggerInformationProvider(IAccountService accountService,
-        ISecretSharingService secretSharingService, IInValueCache inValueCache)
+        ISecretSharingService secretSharingService, IInValueCache inValueCache, IRandomNumberProvider randomNumberProvider)
     {
         _accountService = accountService;
         _secretSharingService = secretSharingService;
         _inValueCache = inValueCache;
+        _randomNumberProvider = randomNumberProvider;
 
         Logger = NullLogger<AEDPoSTriggerInformationProvider>.Instance;
     }
@@ -70,13 +74,16 @@ internal class AEDPoSTriggerInformationProvider : ITriggerInformationProvider
         }.ToBytesValue();
     }
 
-    public BytesValue GetTriggerInformationForConsensusTransactions(BytesValue consensusCommandBytes)
+    public BytesValue GetTriggerInformationForConsensusTransactions(IChainContext chainContext, BytesValue consensusCommandBytes)
     {
+        var randomProof = AsyncHelper.RunSync(async ()=> await _randomNumberProvider.GenerateRandomProofAsync(chainContext));
+        
         if (consensusCommandBytes == null)
             return new AElfConsensusTriggerInformation
             {
                 Pubkey = Pubkey,
-                Behaviour = AElfConsensusBehaviour.UpdateValue
+                Behaviour = AElfConsensusBehaviour.UpdateValue,
+                RandomNumber = ByteString.CopyFrom(randomProof)
             }.ToBytesValue();
 
         var command = consensusCommandBytes.ToConsensusCommand();
@@ -90,7 +97,8 @@ internal class AEDPoSTriggerInformationProvider : ITriggerInformationProvider
                 Pubkey = Pubkey,
                 InValue = inValue,
                 PreviousInValue = _inValueCache.GetInValue(hint.PreviousRoundId),
-                Behaviour = hint.Behaviour
+                Behaviour = hint.Behaviour,
+                RandomNumber = ByteString.CopyFrom(randomProof)
             };
 
             var secretPieces = _secretSharingService.GetEncryptedPieces(hint.RoundId);
@@ -111,7 +119,8 @@ internal class AEDPoSTriggerInformationProvider : ITriggerInformationProvider
         return new AElfConsensusTriggerInformation
         {
             Pubkey = Pubkey,
-            Behaviour = hint.Behaviour
+            Behaviour = hint.Behaviour,
+            RandomNumber = ByteString.CopyFrom(randomProof)
         }.ToBytesValue();
     }
 }

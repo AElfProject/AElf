@@ -1,14 +1,17 @@
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
+using AElf.Contracts.Parliament;
 using AElf.Contracts.TokenConverter;
 using AElf.ContractTestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.EconomicSystem;
+using AElf.Kernel.Proposal;
 using AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold.Tests.TestContract;
 using AElf.Kernel.Token;
 using AElf.Types;
 using Shouldly;
+using InitializeInput = AElf.Contracts.TokenConverter.InitializeInput;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold.Tests;
 
@@ -39,6 +42,8 @@ public class ExecutionPluginForCallThresholdTestBase : ContractTestBase<Executio
     internal ContractContainer.ContractStub DefaultTester { get; set; }
     internal TokenContractContainer.TokenContractStub TokenContractStub { get; set; }
     internal TokenConverterContractContainer.TokenConverterContractStub TokenConverterContractStub { get; set; }
+    internal Address ParliamentAddress;
+    internal ParliamentContractImplContainer.ParliamentContractImplStub ParliamentContractStub;
 
     internal ECKeyPair DefaultSenderKeyPair => Accounts[0].KeyPair;
     internal ECKeyPair OtherTester => Accounts[1].KeyPair;
@@ -51,6 +56,7 @@ public class ExecutionPluginForCallThresholdTestBase : ContractTestBase<Executio
     protected async Task InitializeContracts()
     {
         await DeployContractsAsync();
+        await InitializedParliament();
         await InitializeTokenAsync();
         await InitializeTokenConverterAsync();
     }
@@ -79,12 +85,30 @@ public class ExecutionPluginForCallThresholdTestBase : ContractTestBase<Executio
 
         //Test contract
         {
-            var code = Codes.Single(kv => kv.Key.Contains("TestContract")).Value;
+            var code = Codes.Single(kv => kv.Key.Contains("ExecutionPluginForCallThreshold.Tests.TestContract")).Value;
             TestContractAddress = await DeployContractAsync(category, code, HashHelper.ComputeFrom("TestContract"),
                 DefaultSenderKeyPair);
             DefaultTester =
                 GetTester<ContractContainer.ContractStub>(TestContractAddress, DefaultSenderKeyPair);
         }
+        // Parliament
+        {
+            var code = Codes.Single(kv => kv.Key.Contains("MockParliament")).Value;
+            ParliamentAddress = await DeploySystemSmartContract(category, code,
+                ParliamentSmartContractAddressNameProvider.Name, DefaultSenderKeyPair);
+            ParliamentContractStub =
+                GetTester<ParliamentContractImplContainer.ParliamentContractImplStub>(ParliamentAddress,
+                    DefaultSenderKeyPair);
+        }
+    }
+    
+    private async Task InitializedParliament()
+    {
+        await ParliamentContractStub.Initialize.SendAsync(new AElf.Contracts.Parliament.InitializeInput
+        {
+            ProposerAuthorityRequired = false,
+            PrivilegedProposer = DefaultSender
+        });
     }
 
     private async Task InitializeTokenAsync()
@@ -98,7 +122,8 @@ public class ExecutionPluginForCallThresholdTestBase : ContractTestBase<Executio
                 IsBurnable = true,
                 TokenName = "elf token",
                 TotalSupply = 1000_00000000L,
-                Issuer = DefaultSender
+                Issuer = DefaultSender,
+                Owner = DefaultSender
             });
 
             createResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
@@ -122,7 +147,8 @@ public class ExecutionPluginForCallThresholdTestBase : ContractTestBase<Executio
                 IsBurnable = true,
                 TokenName = "WRITE token",
                 TotalSupply = 1000_0000L,
-                Issuer = DefaultSender
+                Issuer = DefaultSender,
+                Owner = DefaultSender
             });
 
             createResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);

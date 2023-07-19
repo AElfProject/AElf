@@ -101,19 +101,9 @@ public class TransactionResultAppService : AElfAppService, ITransactionResultApp
 
             return output;
         }
-
-        var methodDescriptor =
-            await GetContractMethodDescriptorAsync(transaction!.To, transaction.MethodName, false);
-
-        if (methodDescriptor != null)
-        {
-            var parameters = methodDescriptor.InputType.Parser.ParseFrom(transaction.Params);
-            if (!IsValidMessage(parameters))
-                throw new UserFriendlyException(Error.Message[Error.InvalidParams], Error.InvalidParams.ToString());
-
-            output.Transaction.Params = JsonFormatter.ToDiagnosticString(parameters);
-        }
-
+        
+        await FormatTransactionParamsAsync(output.Transaction, transaction.Params);
+        
         return output;
     }
 
@@ -244,17 +234,7 @@ public class TransactionResultAppService : AElfAppService, ITransactionResultApp
         transactionResultDto.Transaction = _objectMapper.Map<Transaction, TransactionDto>(transaction);
         transactionResultDto.TransactionSize = transaction.CalculateSize();
 
-        var methodDescriptor =
-            await GetContractMethodDescriptorAsync(transaction.To, transaction.MethodName, false);
-
-        if (methodDescriptor != null)
-        {
-            var parameters = methodDescriptor.InputType.Parser.ParseFrom(transaction.Params);
-            if (!IsValidMessage(parameters))
-                throw new UserFriendlyException(Error.Message[Error.InvalidParams], Error.InvalidParams.ToString());
-
-            transactionResultDto.Transaction.Params = JsonFormatter.ToDiagnosticString(parameters);
-        }
+        await FormatTransactionParamsAsync(transactionResultDto.Transaction, transaction.Params);
 
         return transactionResultDto;
     }
@@ -304,20 +284,6 @@ public class TransactionResultAppService : AElfAppService, ITransactionResultApp
         return HashHelper.ComputeFrom(rawBytes);
     }
 
-    private bool IsValidMessage(IMessage message)
-    {
-        try
-        {
-            JsonFormatter.ToDiagnosticString(message);
-        }
-        catch
-        {
-            return false;
-        }
-
-        return true;
-    }
-
     private async Task<MethodDescriptor> GetContractMethodDescriptorAsync(Address contractAddress,
         string methodName, bool throwException = true)
     {
@@ -330,5 +296,24 @@ public class TransactionResultAppService : AElfAppService, ITransactionResultApp
 
         return await _transactionReadOnlyExecutionService.GetContractMethodDescriptorAsync(chainContext,
             contractAddress, methodName, throwException);
+    }
+
+    private async Task FormatTransactionParamsAsync(TransactionDto transaction, ByteString @params)
+    {
+        var methodDescriptor =
+            await GetContractMethodDescriptorAsync(Address.FromBase58(transaction.To), transaction.MethodName, false);
+
+        if (methodDescriptor == null)
+            return;
+
+        try
+        {
+            var parameters = methodDescriptor.InputType.Parser.ParseFrom(@params);
+            transaction.Params = JsonFormatter.ToDiagnosticString(parameters);;
+        }
+        catch (Exception exception)
+        {
+            Logger.LogError(exception, "Failed to parse transaction params: {params}", transaction.Params);
+        }
     }
 }

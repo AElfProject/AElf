@@ -3,10 +3,15 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.MultiToken;
+using AElf.Contracts.Parliament;
 using AElf.ContractTestKit;
 using AElf.ContractTestKit.AEDPoSExtension;
+using AElf.CSharp.Core.Extension;
+using AElf.Kernel;
 using AElf.Kernel.Consensus;
+using AElf.Kernel.Token;
 using AElf.Standards.ACS10;
+using AElf.Standards.ACS3;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -31,6 +36,7 @@ public class SideChainConsensusInformationTest : AEDPoSExtensionDemoTestBase
     {
         SetToSideChain();
         InitialContracts();
+        InitialAcs3Stubs();
         var mockedCrossChain = SampleAccount.Accounts.Last();
         var mockedCrossChainStub =
             GetTester<AEDPoSContractImplContainer.AEDPoSContractImplStub>(
@@ -51,6 +57,11 @@ public class SideChainConsensusInformationTest : AEDPoSExtensionDemoTestBase
             }
         };
 
+        await ParliamentStubs.First().Initialize.SendAsync(new InitializeInput
+        {
+            ProposerAuthorityRequired = false,
+            PrivilegedProposer = Address.FromPublicKey(MissionedECKeyPairs.InitialKeyPairs.First().PublicKey)
+        });
         await CreateAndIssueToken("ELF");
         await CreateAndIssueToken("READ");
         await TokenStub.Transfer.SendAsync(new TransferInput
@@ -78,15 +89,26 @@ public class SideChainConsensusInformationTest : AEDPoSExtensionDemoTestBase
 
     private async Task CreateAndIssueToken(string symbol)
     {
-        var createTokenTransaction = TokenStub.Create.GetTransaction(new CreateInput
+        var defaultOrganizationAddress =
+            await ParliamentStubs.First().GetDefaultOrganizationAddress.CallAsync(new Empty());
+        await ParliamentReachAnAgreementAsync(new CreateProposalInput
         {
-            Symbol = symbol,
-            Decimals = 8,
-            TokenName = "Test",
-            Issuer = Accounts[0].Address,
-            IsBurnable = true,
-            TotalSupply = 1_000_000_000_00000000
+            ToAddress = ContractAddresses[TokenSmartContractAddressNameProvider.Name],
+            ContractMethodName = nameof(TokenStub.Create),
+            Params = new CreateInput
+            {
+                Symbol = symbol,
+                Decimals = 8,
+                TokenName = "Test",
+                Issuer = Accounts[0].Address,
+                Owner = Accounts[0].Address,
+                IsBurnable = true,
+                TotalSupply = 1_000_000_000_00000000
+            }.ToByteString(),
+            ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
+            OrganizationAddress = defaultOrganizationAddress
         });
+        
         const long issueTokenAmount = 10_0000_00000000;
         var issueToAddress = Address.FromPublicKey(MissionedECKeyPairs.InitialKeyPairs.First().PublicKey);
         var issueTokenTransaction = TokenStub.Issue.GetTransaction(new IssueInput
@@ -97,7 +119,7 @@ public class SideChainConsensusInformationTest : AEDPoSExtensionDemoTestBase
         });
         await BlockMiningService.MineBlockAsync(new List<Transaction>
         {
-            createTokenTransaction,
+            // createTokenTransaction,
             issueTokenTransaction
         });
     }
