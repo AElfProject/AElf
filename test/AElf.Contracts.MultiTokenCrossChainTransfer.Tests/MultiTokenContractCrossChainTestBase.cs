@@ -408,6 +408,7 @@ public class MultiTokenContractCrossChainTestBase : ContractTestBase<MultiTokenC
             TokenName = "seed Collection",
             TotalSupply = 1,
             Issuer = address,
+            Owner = address,
             ExternalInfo = new ExternalInfo()
         };
         var re= await stub.Create.SendAsync(input);
@@ -440,6 +441,7 @@ public class MultiTokenContractCrossChainTestBase : ContractTestBase<MultiTokenC
             TokenName = "seed token" + SeedNum,
             TotalSupply = 1,
             Issuer = createInput.Issuer,
+            Owner = createInput.Issuer,
             ExternalInfo = new ExternalInfo(),
             LockWhiteList = { lockWhiteAddress }
         };

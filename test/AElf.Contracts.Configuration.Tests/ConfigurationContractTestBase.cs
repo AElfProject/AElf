@@ -182,7 +182,8 @@ public class ConfigurationContractTestBase : ContractTestBase<ConfigurationContr
                 TokenName = "seed Collection",
                 TotalSupply = 1,
                 Issuer = Tester.GetCallOwnerAddress(),
-                ExternalInfo = new ExternalInfo()
+                ExternalInfo = new ExternalInfo(),
+                Owner = Tester.GetCallOwnerAddress()
             });
         await Tester.ExecuteContractWithMiningAsync(TokenContractAddress,
             nameof(TokenContractContainer.TokenContractStub.Create),
@@ -202,7 +203,8 @@ public class ConfigurationContractTestBase : ContractTestBase<ConfigurationContr
                         { "__seed_exp_time", TimestampHelper.GetUtcNow().AddDays(1).Seconds.ToString() }
                     }
                 },
-                LockWhiteList = { TokenContractAddress }
+                LockWhiteList = { TokenContractAddress },
+                Owner = Tester.GetCallOwnerAddress()
             });
 
         await Tester.ExecuteContractWithMiningAsync(TokenContractAddress,

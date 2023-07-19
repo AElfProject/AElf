@@ -3,11 +3,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.CSharp.Core;
-using AElf.CSharp.Core.Extension;
 using AElf.Standards.ACS1;
-using AElf.Standards.ACS3;
 using AElf.Types;
-using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
@@ -2331,6 +2328,126 @@ public partial class ExecutePluginTransactionDirectlyTest : ExecutePluginTransac
         }
     }
 
+    [Fact]
+    public async Task SetPrimaryTokenSymbol_InvalidInput_Test()
+    {
+        {
+            var result =
+                await TokenContractStub.SetPrimaryTokenSymbol.SendWithExceptionAsync(new SetPrimaryTokenSymbolInput());
+            result.TransactionResult.Error.ShouldContain("Invalid input symbol.");
+        }
+        {
+            await IssueTokenToDefaultSenderAsync(NativeTokenSymbol, 1000000);
+            var result = await TokenContractStub.Transfer.SendWithExceptionAsync(new TransferInput
+            {
+                Symbol = NativeTokenSymbol,
+                Amount = 100
+            });
+            result.TransactionResult.Error.ShouldContain("Invalid input address.");
+        }
+        {
+            var result = await TokenContractStub.Lock.SendWithExceptionAsync(new LockInput());
+            result.TransactionResult.Error.ShouldContain("Invalid input symbol.");
+        }
+        {
+            var result = await TokenContractStub.Lock.SendWithExceptionAsync(new LockInput
+            {
+                Symbol = NativeTokenSymbol
+            });
+            result.TransactionResult.Error.ShouldContain("Invalid input address.");
+        }
+        {
+            var result = await TokenContractStub.Unlock.SendWithExceptionAsync(new UnlockInput());
+            result.TransactionResult.Error.ShouldContain("Invalid input symbol.");
+        }
+        {
+            var result = await TokenContractStub.Unlock.SendWithExceptionAsync(new UnlockInput
+            {
+                Symbol = NativeTokenSymbol
+            });
+            result.TransactionResult.Error.ShouldContain("Invalid input address.");
+        }
+        {
+            var result = await TokenContractStub.TransferFrom.SendWithExceptionAsync(new TransferFromInput
+            {
+                Symbol = NativeTokenSymbol,
+                Amount = 100
+            });
+            result.TransactionResult.Error.ShouldContain("Invalid input address.");
+        }
+        {
+            var result = await TokenContractStub.TransferFrom.SendWithExceptionAsync(new TransferFromInput
+            {
+                Symbol = NativeTokenSymbol,
+                Amount = 100,
+                From = DefaultSender
+            });
+            result.TransactionResult.Error.ShouldContain("Invalid input address.");
+        }
+        {
+            var result = await TokenContractStub.Approve.SendWithExceptionAsync(new ApproveInput());
+            result.TransactionResult.Error.ShouldContain("Invalid input address.");
+        }
+        {
+            var result = await TokenContractStub.UnApprove.SendWithExceptionAsync(new UnApproveInput());
+            result.TransactionResult.Error.ShouldContain("Invalid input address.");
+        }
+        {
+            var result = await TokenContractStub.CheckThreshold.SendWithExceptionAsync(new CheckThresholdInput());
+            result.TransactionResult.Error.ShouldContain("Invalid input address.");
+        }
+        {
+            var result =
+                await TokenContractImplStub.AdvanceResourceToken
+                    .SendWithExceptionAsync(new AdvanceResourceTokenInput());
+            result.TransactionResult.Error.ShouldContain("Invalid input address.");
+        }
+        {
+            var result =
+                await TokenContractImplStub.TakeResourceTokenBack.SendWithExceptionAsync(
+                    new TakeResourceTokenBackInput());
+            result.TransactionResult.Error.ShouldContain("Invalid input resource token symbol.");
+        }
+        {
+            var result = await TokenContractImplStub.TakeResourceTokenBack.SendWithExceptionAsync(
+                new TakeResourceTokenBackInput
+                {
+                    ResourceTokenSymbol = NativeTokenSymbol
+                });
+            result.TransactionResult.Error.ShouldContain("Invalid input address.");
+        }
+        {
+            var result =
+                await TokenContractImplStub.ValidateTokenInfoExists.SendWithExceptionAsync(
+                    new ValidateTokenInfoExistsInput());
+            result.TransactionResult.Error.ShouldContain("Invalid input symbol.");
+        }
+        {
+            var result =
+                await TokenContractImplStub.SetTransactionFeeDelegations.SendWithExceptionAsync(
+                    new SetTransactionFeeDelegationsInput());
+            result.TransactionResult.Error.ShouldContain("Invalid input address.");
+        }
+        {
+            var result =
+                await TokenContractImplStub.SetTransactionFeeDelegations.SendWithExceptionAsync(
+                    new SetTransactionFeeDelegationsInput());
+            result.TransactionResult.Error.ShouldContain("Invalid input address.");
+        }
+        {
+            var result =
+                await TokenContractImplStub.UpdateCoefficientsForContract.SendWithExceptionAsync(
+                    new UpdateCoefficientsInput());
+            result.TransactionResult.Error.ShouldContain("Invalid input coefficients.");
+        }
+        {
+            var result =
+                await TokenContractImplStub.UpdateCoefficientsForSender.SendWithExceptionAsync(
+                    new UpdateCoefficientsInput());
+            result.TransactionResult.Error.ShouldContain("Invalid input coefficients.");
+        }
+    }
+
     private async Task IssueTokenListToUserAsync(List<string> symbols, long amount, Address address)
     {
         foreach (var symbol in symbols)
@@ -2438,6 +2555,7 @@ public partial class ExecutePluginTransactionDirectlyTest : ExecutePluginTransac
             TotalSupply = 1000_00000000,
             IsBurnable = isBurned,
             Issuer = creator,
+            Owner = creator
         });
     }
 
@@ -2462,47 +2580,6 @@ public partial class ExecutePluginTransactionDirectlyTest : ExecutePluginTransac
             To = to,
         });
         issueResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-    }
-
-// single node
-    private async Task SubmitAndPassProposalOfDefaultParliamentAsync(Address contractAddress, string methodName,
-        IMessage input)
-    {
-        var defaultParliament = await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
-        var proposal = new CreateProposalInput
-        {
-            OrganizationAddress = defaultParliament,
-            ToAddress = contractAddress,
-            Params = input.ToByteString(),
-            ContractMethodName = methodName,
-            ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
-        };
-        var createProposalRet = await ParliamentContractStub.CreateProposal.SendAsync(proposal);
-        createProposalRet.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-        var proposalId = createProposalRet.Output;
-        await ParliamentContractStub.Approve.SendAsync(proposalId);
-        var releaseRet = await ParliamentContractStub.Release.SendAsync(proposalId);
-        releaseRet.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-    }
-
-    private async Task<string> SubmitProposalOfDefaultParliamentAsync(Address contractAddress, string methodName,
-        IMessage input)
-    {
-        var defaultParliament = await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
-        var proposal = new CreateProposalInput
-        {
-            OrganizationAddress = defaultParliament,
-            ToAddress = contractAddress,
-            Params = input.ToByteString(),
-            ContractMethodName = methodName,
-            ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
-        };
-        var createProposalRet = await ParliamentContractStub.CreateProposal.SendAsync(proposal);
-        createProposalRet.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-        var proposalId = createProposalRet.Output;
-        await ParliamentContractStub.Approve.SendAsync(proposalId);
-        var releaseRet = await ParliamentContractStub.Release.SendWithExceptionAsync(proposalId);
-        return releaseRet.TransactionResult.Error;
     }
 
     private async Task<long> GetBalanceAsync(Address address, string tokenSymbol)

@@ -141,7 +141,8 @@ public class ReferendumContractTestBase : ContractTestBase<ReferendumContractTes
             IsBurnable = true,
             TokenName = "elf token",
             TotalSupply = totalSupply,
-            Issuer = DefaultSender
+            Issuer = DefaultSender,
+            Owner = DefaultSender,
         });
 
         //issue default user

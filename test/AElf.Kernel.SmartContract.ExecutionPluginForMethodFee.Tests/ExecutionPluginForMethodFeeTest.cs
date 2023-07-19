@@ -61,7 +61,8 @@ public sealed class ExecutionPluginForMethodFeeTest : ExecutionPluginForMethodFe
             IsBurnable = true,
             TokenName = "test token",
             TotalSupply = 1_000_000_00000000L,
-            Issuer = DefaultSender
+            Issuer = DefaultSender,
+            Owner = DefaultSender
         });
 
         if (issueAmount != 0)

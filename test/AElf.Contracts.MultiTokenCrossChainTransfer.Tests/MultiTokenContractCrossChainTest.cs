@@ -487,6 +487,7 @@ public class MultiTokenContractCrossChainTest : MultiTokenContractCrossChainTest
                 Symbol = createdTokenInfo.Symbol,
                 Decimals = createdTokenInfo.Decimals,
                 Issuer = createdTokenInfo.Issuer,
+                Owner = createdTokenInfo.Issuer,
                 IsBurnable = createdTokenInfo.IsBurnable,
                 TotalSupply = createdTokenInfo.TotalSupply,
                 IssueChainId = createdTokenInfo.IssueChainId
@@ -882,6 +883,7 @@ public class MultiTokenContractCrossChainTest : MultiTokenContractCrossChainTest
             Symbol = tokenInfo.Symbol,
             Decimals = tokenInfo.Decimals,
             Issuer = tokenInfo.Issuer,
+            Owner = tokenInfo.Issuer,
             IsBurnable = tokenInfo.IsBurnable,
             TokenName = tokenInfo.TokenName,
             TotalSupply = tokenInfo.TotalSupply
@@ -900,6 +902,7 @@ public class MultiTokenContractCrossChainTest : MultiTokenContractCrossChainTest
             Symbol = createdTokenInfo.Symbol,
             Decimals = createdTokenInfo.Decimals,
             Issuer = createdTokenInfo.Issuer,
+            Owner = createdTokenInfo.Issuer,
             IsBurnable = createdTokenInfo.IsBurnable,
             TotalSupply = createdTokenInfo.TotalSupply,
             IssueChainId = createdTokenInfo.IssueChainId

@@ -511,6 +511,7 @@ public partial class TokenConverterContractTests
                 TokenName = symbol + " name",
                 TotalSupply = totalSupply,
                 Issuer = DefaultSender,
+                Owner = DefaultSender,
                 IsBurnable = true,
                 LockWhiteList = { TokenContractAddress, TokenConverterContractAddress }
             });

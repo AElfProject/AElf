@@ -4,6 +4,7 @@ using System.Linq;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Parliament;
+using AElf.Contracts.TestContract.VirtualAddress;
 using AElf.ContractTestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.GovernmentSystem;
@@ -32,11 +33,13 @@ public class VoteContractTestBase : ContractTestBase<VoteContractTestAElfModule>
     protected Address ParliamentContractAddress { get; set; }
     protected new Address ContractZeroAddress => ContractAddressService.GetZeroSmartContractAddress();
     protected Address ConsensusContractAddress { get; set; }
+    protected Address VirtualAddressContractAddress { get; set; }
     internal ACS0Container.ACS0Stub BasicContractZeroStub { get; set; }
     internal TokenContractContainer.TokenContractStub TokenContractStub { get; set; }
     internal VoteContractImplContainer.VoteContractImplStub VoteContractStub { get; set; }
     internal ParliamentContractImplContainer.ParliamentContractImplStub ParliamentContractStub { get; set; }
     internal AEDPoSContractImplContainer.AEDPoSContractImplStub AEDPoSContractStub { get; set; }
+    internal VirtualAddressContractContainer.VirtualAddressContractStub VirtualAddressContractStub { get; set; }
 
     protected void InitializeContracts()
     {
@@ -88,6 +91,14 @@ public class VoteContractTestBase : ContractTestBase<VoteContractTestAElfModule>
                     TransactionMethodCallList = GenerateConsensusInitializationCallList()
                 })).Output;
         AEDPoSContractStub = GetConsensusContractTester(DefaultSenderKeyPair);
+        
+        VirtualAddressContractAddress = AsyncHelper.RunSync(async () =>
+            await DeployContractAsync(
+                KernelConstants.CodeCoverageRunnerCategory,
+                Codes.Single(kv => kv.Key.EndsWith("VirtualAddress")).Value,
+                HashHelper.ComputeFrom("AElf.Contracts.TestContract.VirtualAddress"),
+                DefaultSenderKeyPair));
+        VirtualAddressContractStub = GetTester<VirtualAddressContractContainer.VirtualAddressContractStub>(VirtualAddressContractAddress, DefaultSenderKeyPair);
     }
 
     internal ACS0Container.ACS0Stub GetContractZeroTester(ECKeyPair keyPair)
@@ -134,6 +145,7 @@ public class VoteContractTestBase : ContractTestBase<VoteContractTestAElfModule>
             TokenName = "elf token for testing",
             TotalSupply = totalSupply,
             Issuer = DefaultSender,
+            Owner = DefaultSender,
             LockWhiteList =
             {
                 VoteContractAddress

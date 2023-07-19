@@ -171,7 +171,8 @@ public class CrossChainContractTestBase<T> : ContractTestBase<T> where T : AbpMo
                 IsBurnable = true,
                 TokenName = "elf token",
                 TotalSupply = totalSupply,
-                Issuer = DefaultSender
+                Issuer = DefaultSender,
+                Owner = DefaultSender
             }, TokenContractAddress);
         await ApproveWithMinersAsync(approveProposalId);
         await ParliamentContractStub.Release.SendAsync(approveProposalId);

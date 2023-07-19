@@ -205,7 +205,7 @@ message ValidateTokenInfoExistsInput{
     int64 total_supply = 3;
     // The precision of the token.
     int32 decimals = 4;
-    // The address that created the token.
+    // The address that has permission to issue the token.
     aelf.Address issuer = 5;
     // A flag indicating if this token is burnable.
     bool is_burnable = 6;
@@ -213,6 +213,8 @@ message ValidateTokenInfoExistsInput{
     int32 issue_chain_id = 7;
     // The external information of the token.
     map<string, string> external_info = 8;
+    // The address that owns the token.
+    aelf.Address owner = 9;
 }
 
 message UpdateRentalInput {

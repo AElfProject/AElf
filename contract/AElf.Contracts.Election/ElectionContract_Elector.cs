@@ -324,7 +324,7 @@ public partial class ElectionContract
         Assert(lockSeconds <= State.MaximumLockTime.Value,
             $"Invalid lock time. At most {State.MaximumLockTime.Value.Div(60).Div(60).Div(24)} days");
     }
-
+    
     private void LockTokensOfVoter(long amount, Hash voteId)
     {
         State.TokenContract.Lock.Send(new LockInput

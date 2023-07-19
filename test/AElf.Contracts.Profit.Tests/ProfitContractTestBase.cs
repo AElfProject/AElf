@@ -158,6 +158,7 @@ public class ProfitContractTestBase : ContractTestBase<ProfitContractTestAElfMod
             TokenName = "elf token",
             TotalSupply = ProfitContractTestConstants.NativeTokenTotalSupply,
             Issuer = Starter,
+            Owner = Starter,
             LockWhiteList =
             {
                 ProfitContractAddress

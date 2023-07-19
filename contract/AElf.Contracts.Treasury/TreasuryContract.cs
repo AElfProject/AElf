@@ -606,7 +606,7 @@ public partial class TreasuryContract : TreasuryContractImplContainer.TreasuryCo
         var pubkey = ByteString.CopyFrom(ByteArrayHelper.HexStringToByteArray(input.Pubkey));
         
         var admin = State.ElectionContract.GetCandidateAdmin.Call(new StringValue {Value = input.Pubkey});
-        Assert(Context.Origin == admin , "No permission.");
+        Assert(Context.Sender == admin , "No permission.");
         
         var candidateList = State.ElectionContract.GetCandidates.Call(new Empty());
         Assert(candidateList.Value.Contains(pubkey),"Pubkey is not a candidate.");

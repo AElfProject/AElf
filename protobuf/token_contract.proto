@@ -57,10 +57,6 @@ service TokenContract {
     rpc Burn (BurnInput) returns (google.protobuf.Empty) {
     }
 
-    // Change the issuer of the specified token. Only the original issuer can change it.
-    rpc ChangeTokenIssuer (ChangeTokenIssuerInput) returns (google.protobuf.Empty) {
-    }
-
     // Set the primary token of side chain.
     rpc SetPrimaryTokenSymbol (SetPrimaryTokenSymbolInput) returns (google.protobuf.Empty) {
     }
@@ -129,9 +125,6 @@ service TokenContract {
     // including: the coefficient of the user transaction fee calculation formula, 
     // the coefficient of the contract developer resource fee calculation formula, and the side chain rental fee.
     rpc InitializeAuthorizedController (google.protobuf.Empty) returns (google.protobuf.Empty){
-    }
-
-    rpc ResetExternalInfo (ResetExternalInfoInput) returns (google.protobuf.Empty){
     }
 
     rpc AddAddressToCreateTokenWhiteList (aelf.Address) returns (google.protobuf.Empty) {
@@ -246,7 +239,7 @@ message TokenInfo {
     int64 total_supply = 4;
     // The precision of the token.
     int32 decimals = 5;
-    // The address that created the token.
+    // The address that has permission to issue the token.
     aelf.Address issuer = 6;
     // A flag indicating if this token is burnable.
     bool is_burnable = 7;
@@ -256,6 +249,8 @@ message TokenInfo {
     int64 issued = 9;
     // The external information of the token.
     ExternalInfo external_info = 10;
+    // The address that owns the token.
+    aelf.Address owner = 11;
 }
 
 message ExternalInfo {
@@ -271,7 +266,7 @@ message CreateInput {
     int64 total_supply = 3;
     // The precision of the token
     int32 decimals = 4;
-    // The address that created the token.
+    // The address that has permission to issue the token.
     aelf.Address issuer = 5;
     // A flag indicating if this token is burnable.
     bool is_burnable = 6;
@@ -281,6 +276,8 @@ message CreateInput {
     int32 issue_chain_id = 8;
     // The external information of the token.
     ExternalInfo external_info = 9;
+    // The address that owns the token.
+    aelf.Address owner = 10;
 }
 
 message SetPrimaryTokenSymbolInput {
@@ -792,7 +789,7 @@ message TokenCreated {
     int64 total_supply = 3;
     // The precision of the token.
     int32 decimals = 4;
-    // The address that created the token.
+    // The address that has permission to issue the token.
     aelf.Address issuer = 5;
     // A flag indicating if this token is burnable.
     bool is_burnable = 6;
@@ -800,6 +797,8 @@ message TokenCreated {
     int32 issue_chain_id = 7;
     // The external information of the token.
     ExternalInfo external_info = 8;
+    // The address that owns the token.
+    aelf.Address owner = 9;
 }
 
 message Issued {
