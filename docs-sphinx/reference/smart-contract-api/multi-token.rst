@@ -1719,7 +1719,7 @@ token.RentalCharged
 +----------+----------------------------------------+-------------------------------------+---------+
 | payer    | `aelf.Address <#aelf.Address>`__       | The payer of rental fee.            |         |
 +----------+----------------------------------------+-------------------------------------+---------+
-| receiver |   `aelf.Address <#aelf.Address>`__     | The receiver of rental fee.         |         |
+| receiver | `aelf.Address <#aelf.Address>`__       | The receiver of rental fee.         |         |
 +----------+----------------------------------------+-------------------------------------+---------+
 
 .. raw:: html
