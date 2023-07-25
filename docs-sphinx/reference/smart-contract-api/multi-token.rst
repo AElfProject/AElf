@@ -1453,7 +1453,7 @@ token.GetTransactionFeeFreeAllowancesConfigOutput
 +-----------+------------------------------------------------------------------------------------------+--------------------------------------------------------------+----------+
 | Field     | Type                                                                                     | Description                                                  | Label    |
 +===========+==========================================================================================+==============================================================+==========+
-| value     | `token.TransactionFeeFreeAllowanceConfig <#token.TransactionFeeFreeAllowanceConfig>`__  | The configuration of transaction fee free allowance.         | repeated |
+| value     | `token.TransactionFeeFreeAllowanceConfig <#token.TransactionFeeFreeAllowanceConfig>`__   | The configuration of transaction fee free allowance.         | repeated |
 +-----------+------------------------------------------------------------------------------------------+--------------------------------------------------------------+----------+
 
 .. raw:: html
