@@ -740,25 +740,6 @@ token.ChainPrimaryTokenSymbolSet
 
 .. raw:: html
 
-   <div id="token.ChangeTokenIssuerInput">
-
-.. raw:: html
-
-   </div>
-
-token.ChangeTokenIssuerInput
-''''''''''''''''''''''''''''
-
-+----------------------+------------------------------------+------------------------------------+---------+
-| Field                | Type                               | Description                        | Label   |
-+======================+====================================+====================================+=========+
-| symbol               | `string <#string>`__               | The token symbol.                  |         |
-+----------------------+------------------------------------+------------------------------------+---------+
-| new\_token\_Issuer   | `aelf.Address <#aelf.Address>`__   | The new token issuer for change.   |         |
-+----------------------+------------------------------------+------------------------------------+---------+
-
-.. raw:: html
-
    <div id="token.ChargeResourceTokenInput">
 
 .. raw:: html
