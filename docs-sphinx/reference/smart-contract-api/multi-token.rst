@@ -990,7 +990,7 @@ token.TransactionFeeFreeAllowanceMap
 +----------------------+--------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------+----------+
 | Field                | Type                                                                                                   | Description                                                        | Label    |
 +======================+========================================================================================================+====================================================================+==========+
-| map                  | `map<string, token.TransactionFeeFreeAllowance> <#map<string, token.TransactionFeeFreeAllowance>>`__   | <free allowance symbol, free allowance>                            |          |
+| map                  | `map<string, token.TransactionFeeFreeAllowance> <#google.protobuf.Empty>`__                            | <free allowance symbol, free allowance>                            |          |
 +----------------------+--------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------+----------+
 
 .. raw:: html
@@ -1042,7 +1042,7 @@ token.CreateInput
 +-------------------+-------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+----------+
 | issue\_chain\_id  | `int32 <#int32>`__                              | The chain id of the token/collection/nft.                                                                                                                                                                                                       |          |
 +-------------------+-------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+----------+
-| external\_info    | `map<string,string> <#google.protobuf.Empty>`_  | Attributes or description of the token/collcection/nft. There is no mandatory constraint on the naming of the key. But it is recommended to use __nft as the prefix key to set the nft attribute, such as__nft_image_url and __nft_type.        |          |
+| external\_info    | `map<string,string> <#google.protobuf.Empty>`__ | Attributes or description of the token/collcection/nft. There is no mandatory constraint on the naming of the key. But it is recommended to use __nft as the prefix key to set the nft attribute, such as__nft_image_url and __nft_type.        |          |
 +-------------------+-------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+----------+
 
 .. raw:: html
