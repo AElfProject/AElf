@@ -891,9 +891,9 @@ token.ConfigTransactionFeeFreeAllowance
 +====================================+===================================================================================+=======================================================================================================+==========+
 | symbol                             | `string <#string>`__                                                              | The symbol of threshold token.                                                                        |          |
 +------------------------------------+-----------------------------------------------------------------------------------+-------------------------------------------------------------------------------------------------------+----------+
-| transaction/_fee/_free/_allowances | `token.TransactionFeeFreeAllowances <#token.TransactionFeeFreeAllowances>`__      | The allowance of each token when a user gets his allowance of the full amount.                        |          |
+| transaction\_fee\_free\_allowances | `token.TransactionFeeFreeAllowances <#token.TransactionFeeFreeAllowances>`__      | The allowance of each token when a user gets his allowance of the full amount.                        |          |
 +------------------------------------+-----------------------------------------------------------------------------------+-------------------------------------------------------------------------------------------------------+----------+
-| refresh/_seconds                   | `int64 <#int64>`__                                                                | The time needed for a user’s allowance to be refreshed back to the full amount. Unit: second          |          |
+| refresh\_seconds                   | `int64 <#int64>`__                                                                | The time needed for a user’s allowance to be refreshed back to the full amount. Unit: second          |          |
 +------------------------------------+-----------------------------------------------------------------------------------+-------------------------------------------------------------------------------------------------------+----------+
 | threshold                          | `int64 <#int64>`__                                                                | The required amount of Token in possession for a user to be eligible for transaction fee exemption.   |          |
 +------------------------------------+-----------------------------------------------------------------------------------+-------------------------------------------------------------------------------------------------------+----------+
@@ -1391,11 +1391,11 @@ token.GetTransactionFeeDelegateeListInput
 token.GetTransactionFeeDelegateeListOutput
 ''''''''''''''''''''''''''''''''''''''''''
 
-+---------------------+-----------------------------------+-----------------------------------+----------+
-| Field               | Type                              | Description                       | Label    |
-+=====================+===================================+===================================+==========+
-| delegatee\_address  | `aelf.Address <#aelf.Address>`__  | The address of delegatee.         | repeated |
-+---------------------+-----------------------------------+-----------------------------------+----------+
++----------------------+-----------------------------------+-----------------------------------+----------+
+| Field                | Type                              | Description                       | Label    |
++======================+===================================+===================================+==========+
+| delegatee\_addresses | `aelf.Address <#aelf.Address>`__  | The address list of delegatee.    | repeated |
++----------------------+-----------------------------------+-----------------------------------+----------+
 
 .. raw:: html
 
