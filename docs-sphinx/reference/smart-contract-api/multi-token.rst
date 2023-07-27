@@ -1399,23 +1399,6 @@ token.GetTransactionFeeDelegateeListOutput
 
 .. raw:: html
 
-   <div id="token.GetTransactionFeeDelegateeListOutput">
-
-.. raw:: html
-
-   </div>
-
-token.GetTransactionFeeDelegateeListOutput
-''''''''''''''''''''''''''''''''''''''''''
-
-+---------------------+-----------------------------------+-----------------------------------+----------+
-| Field               | Type                              | Description                       | Label    |
-+=====================+===================================+===================================+==========+
-| delegatee\_address  | `aelf.Address <#aelf.Address>`__  | The address of delegatee.         | repeated |
-+---------------------+-----------------------------------+-----------------------------------+----------+
-
-.. raw:: html
-
    <div id="token.GetTransactionFeeDelegateInfoInput">
 
 .. raw:: html
