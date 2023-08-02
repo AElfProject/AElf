@@ -47,6 +47,7 @@ Contents
    -  :ref:`CheckContractVersion(previousContractVersion,registration) <AElf-Sdk-CSharp-CSharpCheckContractVersion>`
    -  :ref:`DeploySmartContract(address,registration,name) <AElf-Sdk-CSharp-CSharpDeploySmartContract>`
    -  :ref:`UpdateSmartContract(address,registration,name,previousContractVersion) <AElf-Sdk-CSharp-CSharpUpdateSmartContract>`
+   -  :ref:`ECVrfVerify(pubKey, alpha, pi, beta) <AElf-Sdk-CSharp-CSharpECVrfVerify>`
 
 -  :ref:`CSharpSmartContract <AElf-Sdk-CSharp-CSharpSmartContract>`
 
@@ -1003,6 +1004,36 @@ Parameters
 | registration               | AElf.Types.SmartContractRegistration  | The registration of the smart contract to update.        |
 +----------------------------+---------------------------------------+----------------------------------------------------------+
 | previousContractVersion    | System.String                         | The previous contract version.                           |
++----------------------------+---------------------------------------+----------------------------------------------------------+
+
+.. _AElf-Sdk-CSharp-CSharpECVrfVerify:
+
+ECVrfVerify(pubKey,alpha,pi,beta) ``method``
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+Summary
+'''''''
+
+Verify the ECVrf proof.
+
+Returns
+'''''''
+
+The verified result and the VRF hash output.
+
+Parameters
+''''''''''
+
++----------------------------+---------------------------------------+----------------------------------------------------------+
+| Name                       | Type                                  | Description                                              |
++============================+=======================================+==========================================================+
+| pubKey                     | byte[]                                | The public key.                                          |
++----------------------------+---------------------------------------+----------------------------------------------------------+
+| alpha                      | byte[]                                | The VRF hash input.                                      |
++----------------------------+---------------------------------------+----------------------------------------------------------+
+| pi                         | byte[]                                | The proof to be verified.                                |
++----------------------------+---------------------------------------+----------------------------------------------------------+
+| beta                       | byte[]                                | The VRF hash output.                                     |
 +----------------------------+---------------------------------------+----------------------------------------------------------+
 
 
