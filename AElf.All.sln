@@ -375,6 +375,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TestContract
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TestContract.VirtualAddress", "test\AElf.Contracts.TestContract.VirtualAddress\AElf.Contracts.TestContract.VirtualAddress.csproj", "{64498F8C-B827-4E1C-B5FB-4B9188C839A8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Runtime.WebAssembly", "src\AElf.Runtime.WebAssembly\AElf.Runtime.WebAssembly.csproj", "{DAE6520E-B07F-401D-9DDD-DE802AF59B5B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Runtime.WebAssembly.Tests", "test\AElf.Runtime.WebAssembly.Tests\AElf.Runtime.WebAssembly.Tests.csproj", "{3E2C148D-02BC-46B7-91CF-7F93AA4A20F9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Solang.Net", "src\Solang.Net\Solang.Net.csproj", "{FF2B654E-AE79-4A33-A201-73C537D5439C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -1077,6 +1083,18 @@ Global
 		{64498F8C-B827-4E1C-B5FB-4B9188C839A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{64498F8C-B827-4E1C-B5FB-4B9188C839A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{64498F8C-B827-4E1C-B5FB-4B9188C839A8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DAE6520E-B07F-401D-9DDD-DE802AF59B5B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DAE6520E-B07F-401D-9DDD-DE802AF59B5B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DAE6520E-B07F-401D-9DDD-DE802AF59B5B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DAE6520E-B07F-401D-9DDD-DE802AF59B5B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3E2C148D-02BC-46B7-91CF-7F93AA4A20F9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3E2C148D-02BC-46B7-91CF-7F93AA4A20F9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3E2C148D-02BC-46B7-91CF-7F93AA4A20F9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3E2C148D-02BC-46B7-91CF-7F93AA4A20F9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FF2B654E-AE79-4A33-A201-73C537D5439C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FF2B654E-AE79-4A33-A201-73C537D5439C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FF2B654E-AE79-4A33-A201-73C537D5439C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FF2B654E-AE79-4A33-A201-73C537D5439C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1266,5 +1284,8 @@ Global
 		{860947CF-F081-4A3B-BE65-199ECE793616} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
 		{C7EDD0EB-CCE7-4B06-BF1E-F9CA7F149097} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
 		{64498F8C-B827-4E1C-B5FB-4B9188C839A8} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
+		{DAE6520E-B07F-401D-9DDD-DE802AF59B5B} = {798BAA50-825B-4DD9-83E2-77A9EE6EBE09}
+		{3E2C148D-02BC-46B7-91CF-7F93AA4A20F9} = {4E54480A-D155-43ED-9736-1A5BE7957211}
+		{FF2B654E-AE79-4A33-A201-73C537D5439C} = {798BAA50-825B-4DD9-83E2-77A9EE6EBE09}
 	EndGlobalSection
 EndGlobal

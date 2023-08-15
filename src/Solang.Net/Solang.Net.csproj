@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.1</TargetFramework>
+        <Nullable>enable</Nullable>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <None Include="./native/**/*.dylib;./native/**/*.so;./native/**/*.dll;">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Google.Protobuf" Version="3.23.3" />
+    </ItemGroup>
+    <Target Name="PrintBinaries" AfterTargets="AfterBuild">
+        <Message Text="Binaries = @(NativeBinary)" />
+    </Target>
+    <Target Name="PackTaskDependencies" BeforeTargets="GenerateNuspec">
+        <ItemGroup>
+            <_PackageFiles Include="$(OutputPath)/native/**/*">
+                <BuildAction>Content</BuildAction>
+                <PackagePath>content/native/</PackagePath>
+                <!--<CopyToOutput>true</CopyToOutput>-->
+                <!--<PackageCopyToOutput>true</PackageCopyToOutput>-->
+            </_PackageFiles>
+        </ItemGroup>
+    </Target>
+    <ItemGroup>
+        <_PackageFiles Include="Solang.Net.targets">
+            <BuildAction>None</BuildAction>
+            <PackagePath>build/</PackagePath>
+        </_PackageFiles>
+    </ItemGroup>
+</Project>

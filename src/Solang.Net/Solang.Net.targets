@@ -1,0 +1,14 @@
+﻿<Project>
+
+  <PropertyGroup>
+    <SolangNativeLibDirectory>$(MSBuildThisFileDirectory)/../content/native</SolangNativeLibDirectory>
+  </PropertyGroup>
+
+  <Target Name="SolangPublishNativeLibs" AfterTargets="Publish">
+    <ItemGroup>
+      <Secp256k1NativeLibs Include="$(SolangNativeLibDirectory)/**/*.*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(Secp256k1NativeLibs)" DestinationFolder="$(PublishDir)/native/%(RecursiveDir)" />
+  </Target>
+
+</Project>
