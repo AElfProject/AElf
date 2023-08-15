@@ -14,7 +14,7 @@ public class Runtime : IDisposable
     public readonly List<string> DebugMessages = new();
     public byte[] Input { get; set; } = Array.Empty<byte>();
 
-    public Runtime(IExternalEnvironment externalEnvironment, byte[] wasmCode, bool withFuelConsumption = true, long memoryMin = 16, long memoryMax = 16)
+    public Runtime(IExternalEnvironment externalEnvironment, byte[] wasmCode, bool withFuelConsumption = false, long memoryMin = 16, long memoryMax = 16)
     {
         _externalEnvironment = externalEnvironment;
         _engine = new Engine(new Config().WithFuelConsumption(withFuelConsumption));
@@ -25,7 +25,7 @@ public class Runtime : IDisposable
         DefineImportFunctions();
     }
 
-    public Runtime(IExternalEnvironment externalEnvironment, string watFilePath, bool withFuelConsumption = true, long memoryMin = 16, long memoryMax = 16)
+    public Runtime(IExternalEnvironment externalEnvironment, string watFilePath, bool withFuelConsumption = false, long memoryMin = 16, long memoryMax = 16)
     {
         _externalEnvironment = externalEnvironment;
         _engine = new Engine(new Config().WithFuelConsumption(withFuelConsumption));
@@ -103,7 +103,7 @@ public class Runtime : IDisposable
         _linker.DefineFunction("seal0", "terminate", (Action<int, int>)TerminateV0);
         _linker.DefineFunction("seal1", "terminate", (Action<int>)TerminateV1);
 
-        _linker.DefineFunction("seal0", "seal_input", (Action<int, int>)SealInputV0);
+        _linker.DefineFunction("seal0", "input", (Action<int, int>)InputV0);
 
         _linker.DefineFunction("seal0", "seal_return", (Action<int, int, int>)SealReturnV0);
 
@@ -149,7 +149,7 @@ public class Runtime : IDisposable
 
         _linker.DefineFunction("seal0", "call_chain_extension", (Action<int, int, int, int, int>)CallChainExtension);
 
-        _linker.DefineFunction("seal0", "seal_debug_message", (Func<int, int, int>)SealDebugMessage);
+        _linker.DefineFunction("seal0", "debug_message", (Func<int, int, int>)DebugMessage);
 
         _linker.DefineFunction("seal0", "call_runtime", (Func<int, int, int>)CallRuntime);
 
@@ -629,7 +629,7 @@ public class Runtime : IDisposable
     /// </summary>
     /// <param name="outPtr"></param>
     /// <param name="outLenPtr"></param>
-    private void SealInputV0(int outPtr, int outLenPtr)
+    private void InputV0(int outPtr, int outLenPtr)
     {
         WriteBytes(outPtr, Input);
         WriteUInt32(outLenPtr, Convert.ToUInt32(Input.Length));
@@ -1139,7 +1139,7 @@ public class Runtime : IDisposable
     /// <param name="strPtr"></param>
     /// <param name="strLen"></param>
     /// <returns></returns>
-    private int SealDebugMessage(int strPtr, int strLen)
+    private int DebugMessage(int strPtr, int strLen)
     {
         DebugMessages.Add(_memory.ReadString(strPtr, strLen));
         return 0;

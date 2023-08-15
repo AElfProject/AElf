@@ -6,6 +6,7 @@ using Google.Protobuf.Reflection;
 using Google.Protobuf.WellKnownTypes;
 using NBitcoin.DataEncoders;
 using Nethereum.ABI;
+using Org.BouncyCastle.Utilities.Encoders;
 using Wasmtime;
 
 namespace AElf.Runtime.WebAssembly;
@@ -55,6 +56,7 @@ public class Executive : IExecutive
         }
 
         transactionContext.Trace.ReturnValue = ByteString.CopyFrom(_runtime.ReturnBuffer);
+
         return Task.CompletedTask;
     }
 
@@ -66,9 +68,11 @@ public class Executive : IExecutive
     /// <returns></returns>
     private string GetParameters(string methodName, ByteString param)
     {
-        // var abiEncode = new ABIEncode();
-        // abiEncode.GetABIEncoded(new ABIValue("uint256", values[0])).ToHex();
-        return string.Empty;
+        var abiEncode = new ABIEncode();
+        var input = new UInt64Value();
+        input.MergeFrom(param);
+        return abiEncode.GetABIEncoded(new ABIValue("uint256", input.Value)).ToHex();
+        //return string.Empty;
     }
 
     public string GetJsonStringOfParameters(string methodName, byte[] paramsBytes)

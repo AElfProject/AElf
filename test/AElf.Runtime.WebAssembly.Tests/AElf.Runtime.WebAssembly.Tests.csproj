@@ -32,7 +32,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\src\AElf.CSharp.CodeOps\AElf.CSharp.CodeOps.csproj" />
       <ProjectReference Include="..\..\src\AElf.Runtime.WebAssembly\AElf.Runtime.WebAssembly.csproj" />
       <ProjectReference Include="..\AElf.Kernel.SmartContract.Tests\AElf.Kernel.SmartContract.Tests.csproj" />
     </ItemGroup>
