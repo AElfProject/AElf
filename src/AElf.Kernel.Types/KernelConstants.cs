@@ -9,6 +9,7 @@ public static class KernelConstants
     public const int ProtocolVersion = 1;
     public const int DefaultRunnerCategory = 0;
     public const int CodeCoverageRunnerCategory = 30;
+    public const int WebAssemblyRunnerCategory = 50;
     public const string MergeBlockStateQueueName = "MergeBlockStateQueue";
     public const string UpdateChainQueueName = "UpdateChainQueue";
     public const string ConsensusRequestMiningQueueName = "ConsensusRequestMiningQueue";

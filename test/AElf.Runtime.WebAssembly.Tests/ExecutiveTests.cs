@@ -43,7 +43,7 @@ public class ExecutiveTests : WebAssemblyRuntimeTestBase
         hexReturn.ShouldBe("02000000");
     }
 
-    [Fact]
+    [Fact(DisplayName = "GetStorage / SetStorage works.")]
     public async Task BarTest()
     {
         const string solFilePath = "solFiles/simple.sol";
@@ -52,6 +52,12 @@ public class ExecutiveTests : WebAssemblyRuntimeTestBase
         var txContext = MockTransactionContext(functionName);
         await executive.ApplyAsync(txContext);
         txContext.Trace.ReturnValue.ToHex().ShouldBe("02000000");
+    }
+
+    public async Task StorageTest()
+    {
+        const string solFilePath = "solFiles/Srorage.sol";
+        
     }
 
     private IExecutive CreateExecutive(string solFilePath)

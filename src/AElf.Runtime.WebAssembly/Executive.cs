@@ -1,4 +1,5 @@
-﻿using AElf.Kernel.SmartContract;
+﻿using AElf.Kernel;
+using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Types;
 using Google.Protobuf;
@@ -14,9 +15,9 @@ namespace AElf.Runtime.WebAssembly;
 public class Executive : IExecutive
 {
     public IReadOnlyList<ServiceDescriptor> Descriptors { get; }
-    public Hash ContractHash { get; }
+    public Hash ContractHash { get; set; }
     public Timestamp LastUsedTime { get; set; }
-    public string ContractVersion { get; }
+    public string ContractVersion { get; set; }
 
     private readonly Runtime _runtime;
 
@@ -27,7 +28,7 @@ public class Executive : IExecutive
 
     public IExecutive SetHostSmartContractBridgeContext(IHostSmartContractBridgeContext smartContractBridgeContext)
     {
-        throw new NotImplementedException();
+        return this;
     }
 
     public Task ApplyAsync(ITransactionContext transactionContext)
@@ -56,7 +57,7 @@ public class Executive : IExecutive
         }
 
         transactionContext.Trace.ReturnValue = ByteString.CopyFrom(_runtime.ReturnBuffer);
-
+        transactionContext.Trace.ExecutionStatus = ExecutionStatus.Executed;
         return Task.CompletedTask;
     }
 

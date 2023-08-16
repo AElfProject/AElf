@@ -1,3 +1,4 @@
+using AElf.Kernel;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Types;
 using Solang;
@@ -15,6 +16,7 @@ public class WebAssemblySmartContractRunner : ISmartContractRunner
     public WebAssemblySmartContractRunner()
     {
         ExternalEnvironment = new ExternalEnvironment();
+        Category = KernelConstants.WebAssemblyRunnerCategory;
     }
 
     public async Task<IExecutive> RunAsync(SmartContractRegistration reg)
@@ -22,7 +24,11 @@ public class WebAssemblySmartContractRunner : ISmartContractRunner
         var code = reg.Code.ToByteArray();
         var output = new Compiler().BuildWasm(code);
         var wasmCode = output.Contracts.First().WasmCode.ToByteArray();
-        var executive = new Executive(ExternalEnvironment, wasmCode);
+        var executive = new Executive(ExternalEnvironment, wasmCode)
+        {
+            ContractHash = HashHelper.ComputeFrom(wasmCode),
+            ContractVersion = "Unknown solidity version."
+        };
         return await Task.FromResult(executive);
     }
 }
