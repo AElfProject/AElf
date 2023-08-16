@@ -1,5 +1,6 @@
 using AElf.Kernel;
 using AElf.Kernel.SmartContract;
+using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Runtime.WebAssembly.Extensions;
 using AElf.Types;
 using Google.Protobuf;
@@ -20,22 +21,58 @@ public class ExecutiveTests : WebAssemblyRuntimeTestBase
     {
         const string solFilePath = "solFiles/simple.sol";
         const string functionName = "is_power_of_2(uint256)";
-        var code = await File.ReadAllBytesAsync(solFilePath);
-        var wasmCode = new Compiler().BuildWasm(code).Contracts.First().WasmCode.ToByteArray();
-        var executive = new Executive(new UnitTestExternalEnvironment(), wasmCode);
 
-        var txContext = new TransactionContext
-        {
-            Transaction = new Transaction
-            {
-                MethodName = functionName.ToSelector(),
-                Params = new UInt64Value { Value = input }.ToByteString()
-            },
-            Trace = new TransactionTrace()
-        };
+        var executive = CreateExecutive(solFilePath);
+        var txContext = MockTransactionContext(functionName, new UInt64Value { Value = input }.ToByteString());
         await executive.ApplyAsync(txContext);
+
         var returnValue = txContext.Trace.ReturnValue;
         returnValue.ShouldNotBeNull();
-        Convert.ToHexString(returnValue.ToByteArray()).ShouldBe(output);
+        returnValue.ToHex().ShouldBe(output);
+    }
+
+    [Fact(DisplayName = "Input / SealReturn works.")]
+    public async Task FooTest()
+    {
+        const string solFilePath = "solFiles/simple.sol";
+        const string functionName = "foo()";
+        var executive = CreateExecutive(solFilePath);
+        var txContext = MockTransactionContext(functionName);
+        await executive.ApplyAsync(txContext);
+        var hexReturn = txContext.Trace.ReturnValue.ToHex();
+        hexReturn.ShouldBe("02000000");
+    }
+
+    [Fact]
+    public async Task BarTest()
+    {
+        const string solFilePath = "solFiles/simple.sol";
+        const string functionName = "bar()";
+        var executive = CreateExecutive(solFilePath);
+        var txContext = MockTransactionContext(functionName);
+        await executive.ApplyAsync(txContext);
+        txContext.Trace.ReturnValue.ToHex().ShouldBe("02000000");
+    }
+
+    private IExecutive CreateExecutive(string solFilePath)
+    {
+        var code = File.ReadAllBytes(solFilePath);
+        var wasmCode = new Compiler().BuildWasm(code).Contracts.First().WasmCode.ToByteArray();
+        var executive = new Executive(new UnitTestExternalEnvironment(), wasmCode);
+        return executive;
+    }
+
+    private TransactionContext MockTransactionContext(string functionName, ByteString? param = null)
+    {
+        var tx = new Transaction
+        {
+            MethodName = functionName.ToSelector(),
+            Params = param ?? ByteString.Empty
+        };
+        return new TransactionContext
+        {
+            Transaction = tx,
+            Trace = new TransactionTrace()
+        };
     }
 }

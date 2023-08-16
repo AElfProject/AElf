@@ -58,7 +58,7 @@ public class WebAssemblyRuntimeTests : WebAssemblyRuntimeTestBase
             }
 
             runtime.SetStorage(key, new byte[] { 42 }, false);
-            runtime.Input = ConstructInput(64, ConstructByteArray(64, 1));
+            runtime.Input = ConstructKeyWithLengthInput(64, ConstructByteArray(64, 1));
 
             var instance = runtime.Instantiate();
             InvokeCall(instance.GetAction("call"));
@@ -70,14 +70,81 @@ public class WebAssemblyRuntimeTests : WebAssemblyRuntimeTestBase
             var key = ConstructByteArray(19, 2);
 
             runtime.SetStorage(key, new byte[] { }, false);
-            runtime.Input = ConstructInput(19, ConstructByteArray(19, 2));
+            runtime.Input = ConstructKeyWithLengthInput(19, ConstructByteArray(19, 2));
             var instance = runtime.Instantiate();
             InvokeCall(instance.GetAction("call"));
             Convert.ToInt32(runtime.ReturnBuffer[0]).ShouldBe((int)ReturnCode.Success);
         }
     }
 
-    private byte[] ConstructInput(byte length, byte[] inputKey)
+    [Fact]
+    public void SetStorageWorks()
+    {
+        const string watFilePath = "watFiles/set_storage_works.wat";
+        var context = new ExternalEnvironment();
+        var runtime = new Runtime(context, watFilePath, false, 1, 1);
+
+        // value did not exist before -> sentinel returned
+        {
+            var key = ConstructByteArray(32, 1);
+            var keyWithLength = ConstructKeyWithLengthInput(32, key);
+
+            var input = new byte[38];
+            Array.Copy(keyWithLength, input, 36);
+            input[36] = 42;
+            input[37] = 48;
+            runtime.Input = input;
+
+            var instance = runtime.Instantiate();
+            InvokeCall(instance.GetAction("call"));
+            var hexReturn = runtime.ReturnBuffer.ToHex();
+            hexReturn.ShouldBe("00000000");
+
+            context.TryGetStorage(key, out var value).ShouldBeTrue();
+            value[0].ShouldBe((byte)42);
+            value[1].ShouldBe((byte)48);
+        }
+
+        // value do exist -> length of old value returned
+        {
+            var key = ConstructByteArray(32, 1);
+            var keyWithLength = ConstructKeyWithLengthInput(32, key);
+
+            var input = new byte[37];
+            Array.Copy(keyWithLength, input, 36);
+            input[36] = 0;
+            runtime.Input = input;
+
+            var instance = runtime.Instantiate();
+            InvokeCall(instance.GetAction("call"));
+            var hexReturn = runtime.ReturnBuffer.ToHex();
+            hexReturn.ShouldBe("02000000");
+
+            context.TryGetStorage(key, out var value).ShouldBeTrue();
+            value[0].ShouldBe((byte)0);
+        }
+
+        // value do exist -> length of old value returned (test for zero sized val)
+        {
+            var key = ConstructByteArray(32, 1);
+            var keyWithLength = ConstructKeyWithLengthInput(32, key);
+
+            var input = new byte[37];
+            Array.Copy(keyWithLength, input, 36);
+            input[36] = 99;
+            runtime.Input = input;
+
+            var instance = runtime.Instantiate();
+            InvokeCall(instance.GetAction("call"));
+            var hexReturn = runtime.ReturnBuffer.ToHex();
+            hexReturn.ShouldBe("00000000");
+
+            context.TryGetStorage(key, out var value).ShouldBeTrue();
+            value[0].ShouldBe((byte)99);
+        }
+    }
+
+    private byte[] ConstructKeyWithLengthInput(byte length, byte[] inputKey)
     {
         var input = new byte[length + 4];
         input[0] = length;

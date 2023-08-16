@@ -4,8 +4,9 @@ contract simple {
     function foo() public returns (uint32) {
         return 2;
     }
-    
-    function bar() public view returns (uint32) {
+
+    function bar() public returns (uint32) {
+        number = 2;
         return number;
     }
 

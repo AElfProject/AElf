@@ -184,7 +184,7 @@ public class Runtime : IDisposable
     /// <param name="valueLen">the length of the value in bytes.</param>
     private void SetStorageV0(int keyPtr, int valuePtr, int valueLen)
     {
-        throw new NotImplementedException();
+        SetStorage(new Key { KeyType = KeyType.Fix }, keyPtr, valuePtr, valueLen);
     }
 
     /// <summary>
@@ -205,7 +205,7 @@ public class Runtime : IDisposable
     /// </returns>
     private int SetStorageV1(int keyPtr, int valuePtr, int valueLen)
     {
-        throw new NotImplementedException();
+        return SetStorage(new Key { KeyType = KeyType.Fix }, keyPtr, valuePtr, valueLen);
     }
 
     /// <summary>
@@ -225,35 +225,26 @@ public class Runtime : IDisposable
     private int SetStorageV2(int keyPtr, int keyLen, int valuePtr, int valueLen)
     {
         Console.WriteLine($"SetStorage: {keyPtr}, {keyLen}, {valuePtr}, {valueLen}");
-
-        return 0;
-        /*
-        fn set_storage(
-			&mut self,
-			key: &Key<Self::T>,
-			value: Option<Vec<u8>>,
-			take_old: bool,
-		) -> Result<WriteOutcome, DispatchError> {
-			let key = key.to_vec();
-			let entry = self.storage.entry(key.clone());
-			let result = match (entry, take_old) {
-				(Entry::Vacant(_), _) => WriteOutcome::New,
-				(Entry::Occupied(entry), false) =>
-					WriteOutcome::Overwritten(entry.remove().len() as u32),
-				(Entry::Occupied(entry), true) => WriteOutcome::Taken(entry.remove()),
-			};
-			if let Some(value) = value {
-				self.storage.insert(key, value);
-			}
-			Ok(result)
-		}
-         */
+        var key = new Key { KeyType = KeyType.Var, KeyValue = new byte[keyLen] };
+        return SetStorage(key, keyPtr, valuePtr, valueLen);
     }
 
-    public string SetStorage(byte[] key, byte[] value, bool takeOld)
+    private byte[] DecodeKey(Key key, int keyPtr)
     {
-        _externalEnvironment.SetStorage(key, value, takeOld);
-        return string.Empty;
+        return ReadBytes(keyPtr, key.KeyType == KeyType.Fix ? 32 : key.KeyValue.Length);
+    }
+
+    private int SetStorage(Key key, int keyPtr, int valuePtr, int valueLen)
+    {
+        var keyBytes = DecodeKey(key, keyPtr);
+        var value = ReadBytes(valuePtr, valueLen);
+        var writeOutcome = _externalEnvironment.SetStorage(keyBytes, value, false);
+        return writeOutcome.OldLenWithSentinel();
+    }
+
+    public WriteOutcome SetStorage(byte[] key, byte[] value, bool takeOld)
+    {
+        return _externalEnvironment.SetStorage(key, value, takeOld);
     }
 
     /// <summary>
