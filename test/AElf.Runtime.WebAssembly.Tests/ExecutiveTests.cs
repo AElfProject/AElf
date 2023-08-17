@@ -1,5 +1,6 @@
 using AElf.Kernel;
 using AElf.Kernel.SmartContract;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Runtime.WebAssembly.Extensions;
 using AElf.Types;
@@ -13,6 +14,13 @@ namespace AElf.Runtime.WebAssembly.Tests;
 
 public class ExecutiveTests : WebAssemblyRuntimeTestBase
 {
+    private readonly IHostSmartContractBridgeContextService _hostSmartContractBridgeContextService;
+
+    public ExecutiveTests()
+    {
+        _hostSmartContractBridgeContextService = GetRequiredService<IHostSmartContractBridgeContextService>();
+    }
+
     [Theory]
     [InlineData(1023, "00")]
     [InlineData(1024, "01")]
@@ -26,6 +34,9 @@ public class ExecutiveTests : WebAssemblyRuntimeTestBase
         var executive = CreateExecutive(solFilePath);
         var parameter = new ABIEncode().GetABIEncoded(new ABIValue("uint256", input));
         var txContext = MockTransactionContext(functionName, ByteString.CopyFrom(parameter));
+
+        var hostSmartContractBridgeContext = _hostSmartContractBridgeContextService.Create();
+        executive.SetHostSmartContractBridgeContext(hostSmartContractBridgeContext);
         await executive.ApplyAsync(txContext);
 
         var returnValue = txContext.Trace.ReturnValue;
@@ -40,6 +51,10 @@ public class ExecutiveTests : WebAssemblyRuntimeTestBase
         const string functionName = "foo()";
         var executive = CreateExecutive(solFilePath);
         var txContext = MockTransactionContext(functionName);
+
+        var hostSmartContractBridgeContext = _hostSmartContractBridgeContextService.Create();
+        executive.SetHostSmartContractBridgeContext(hostSmartContractBridgeContext);
+
         await executive.ApplyAsync(txContext);
         var hexReturn = txContext.Trace.ReturnValue.ToHex();
         hexReturn.ShouldBe("02000000");
@@ -52,6 +67,10 @@ public class ExecutiveTests : WebAssemblyRuntimeTestBase
         const string functionName = "bar()";
         var executive = CreateExecutive(solFilePath);
         var txContext = MockTransactionContext(functionName);
+
+        var hostSmartContractBridgeContext = _hostSmartContractBridgeContextService.Create();
+        executive.SetHostSmartContractBridgeContext(hostSmartContractBridgeContext);
+
         await executive.ApplyAsync(txContext);
         txContext.Trace.ReturnValue.ToHex().ShouldBe("02000000");
     }

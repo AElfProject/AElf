@@ -73,8 +73,17 @@ public class Executive : IExecutive
         }
 
         InvokeAction(call);
-        transactionContext.Trace.ReturnValue = ByteString.CopyFrom(_webAssemblyRuntime.ReturnBuffer);
-        transactionContext.Trace.ExecutionStatus = ExecutionStatus.Executed;
+
+        if (_webAssemblyRuntime.DebugMessages.Count > 0)
+        {
+            transactionContext.Trace.ExecutionStatus = ExecutionStatus.ContractError;
+            transactionContext.Trace.Error = _webAssemblyRuntime.DebugMessages.First();
+        }
+        else
+        {
+            transactionContext.Trace.ReturnValue = ByteString.CopyFrom(_webAssemblyRuntime.ReturnBuffer);
+            transactionContext.Trace.ExecutionStatus = ExecutionStatus.Executed;
+        }
 
         var changes = _webAssemblyRuntime.GetChanges();
         CurrentTransactionContext.Trace.StateSet = changes;

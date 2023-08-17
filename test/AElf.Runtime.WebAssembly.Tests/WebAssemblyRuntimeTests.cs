@@ -1,3 +1,4 @@
+using AElf.Kernel.SmartContract.Application;
 using NBitcoin.DataEncoders;
 using Shouldly;
 
@@ -9,7 +10,7 @@ public class WebAssemblyRuntimeTests : WebAssemblyRuntimeTestBase
     public void SealReturnWithSuccessStatus()
     {
         const string watFilePath = "watFiles/code_return_with_data.wat";
-        var runtime = new WebAssemblyRuntime(new ExternalEnvironment(), watFilePath, false, 1, 1);
+        var runtime = new WebAssemblyRuntime(new UnitTestExternalEnvironment(), watFilePath, false, 1, 1);
         runtime.Input = Encoders.Hex.DecodeData("00000000445566778899");
         var instance = runtime.Instantiate();
         InvokeCall(instance.GetAction("call"));
@@ -21,7 +22,7 @@ public class WebAssemblyRuntimeTests : WebAssemblyRuntimeTestBase
     public void DebugMessageWorks()
     {
         const string watFilePath = "watFiles/code_debug_message.wat";
-        var runtime = new WebAssemblyRuntime(new ExternalEnvironment(), watFilePath, false, 1, 1);
+        var runtime = new WebAssemblyRuntime(new UnitTestExternalEnvironment(), watFilePath, false, 1, 1);
         var instance = runtime.Instantiate();
         InvokeCall(instance.GetAction("call"));
         runtime.DebugMessages.Count.ShouldBe(1);
@@ -32,7 +33,7 @@ public class WebAssemblyRuntimeTests : WebAssemblyRuntimeTestBase
     public void GetStorageWorks()
     {
         const string watFilePath = "watFiles/get_storage_works.wat";
-        var context = new ExternalEnvironment();
+        var context = new UnitTestExternalEnvironment();
         var runtime = new WebAssemblyRuntime(context, watFilePath, false, 1, 1);
 
         // value does not exist
@@ -81,7 +82,7 @@ public class WebAssemblyRuntimeTests : WebAssemblyRuntimeTestBase
     public async Task SetStorageWorks()
     {
         const string watFilePath = "watFiles/set_storage_works.wat";
-        var context = new ExternalEnvironment();
+        var context = new UnitTestExternalEnvironment();
         var runtime = new WebAssemblyRuntime(context, watFilePath, false, 1, 1);
 
         // value did not exist before -> sentinel returned
@@ -100,7 +101,8 @@ public class WebAssemblyRuntimeTests : WebAssemblyRuntimeTestBase
             var hexReturn = runtime.ReturnBuffer.ToHex();
             hexReturn.ShouldBe("00000000");
 
-            (await context.GetStorageAsync(key, out var value)).ShouldBeTrue();
+            var value = await context.GetStorageAsync(key);
+            value.ShouldNotBeNull();
             value[0].ShouldBe((byte)42);
             value[1].ShouldBe((byte)48);
         }
@@ -120,7 +122,8 @@ public class WebAssemblyRuntimeTests : WebAssemblyRuntimeTestBase
             var hexReturn = runtime.ReturnBuffer.ToHex();
             hexReturn.ShouldBe("02000000");
 
-            (await context.GetStorageAsync(key, out var value)).ShouldBeTrue();
+            var value = await context.GetStorageAsync(key);
+            value.ShouldNotBeNull();
             value[0].ShouldBe((byte)0);
         }
 
@@ -139,7 +142,8 @@ public class WebAssemblyRuntimeTests : WebAssemblyRuntimeTestBase
             var hexReturn = runtime.ReturnBuffer.ToHex();
             hexReturn.ShouldBe("00000000");
 
-            (await context.GetStorageAsync(key, out var value)).ShouldBeTrue();
+            var value = await context.GetStorageAsync(key);
+            value.ShouldNotBeNull();
             value[0].ShouldBe((byte)99);
         }
     }

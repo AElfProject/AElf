@@ -13,6 +13,8 @@ public class WebAssemblyRuntimeTestBase : AElfIntegratedTest<WebAssemblyRuntimeT
     {
         var tx = new Transaction
         {
+            From = SampleAddress.AddressList[0],
+            To = SampleAddress.AddressList[1],
             MethodName = functionName.ToSelector(),
             Params = param ?? ByteString.Empty
         };

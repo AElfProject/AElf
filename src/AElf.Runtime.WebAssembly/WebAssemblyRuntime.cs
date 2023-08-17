@@ -913,7 +913,7 @@ public class WebAssemblyRuntime : IDisposable
     /// <param name="valueLengthPtr"></param>
     private void ValueTransferred(int valuePtr, int valueLengthPtr)
     {
-        WriteUInt32(valuePtr, (uint)valueLengthPtr);
+        //WriteUInt32(valuePtr, (uint)valueLengthPtr);
     }
 
     /// <summary>

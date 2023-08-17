@@ -52,6 +52,7 @@ public class ExternalEnvironment : IExternalEnvironment
         {
             if (Writes.TryGetValue(stateKey, out var byteStringValue))
             {
+                Reads.TryAdd(stateKey, true);
                 return byteStringValue.ToByteArray();
             }
         }

@@ -1,3 +1,4 @@
+using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
 using Google.Protobuf;
 using Nethereum.ABI;
@@ -7,6 +8,13 @@ namespace AElf.Runtime.WebAssembly.Tests;
 
 public class WebAssemblySmartContractRunnerTests : WebAssemblyRuntimeTestBase
 {
+    private readonly IHostSmartContractBridgeContextService _hostSmartContractBridgeContextService;
+
+    public WebAssemblySmartContractRunnerTests()
+    {
+        _hostSmartContractBridgeContextService = GetRequiredService<IHostSmartContractBridgeContextService>();
+    }
+
     [Fact]
     public async Task Run_Test()
     {
@@ -27,6 +35,10 @@ public class WebAssemblySmartContractRunnerTests : WebAssemblyRuntimeTestBase
         const string functionName = "is_power_of_2(uint256)";
         var parameter = new ABIEncode().GetABIEncoded(new ABIValue("uint256", 1024));
         var txContext = MockTransactionContext(functionName, ByteString.CopyFrom(parameter));
+
+        var hostSmartContractBridgeContext = _hostSmartContractBridgeContextService.Create();
+        executive.SetHostSmartContractBridgeContext(hostSmartContractBridgeContext);
+        
         await executive.ApplyAsync(txContext);
         var returnValue = txContext.Trace.ReturnValue;
         returnValue.ToHex().ShouldBe("01");
