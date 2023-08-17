@@ -7,7 +7,6 @@ using Google.Protobuf.Reflection;
 using Google.Protobuf.WellKnownTypes;
 using NBitcoin.DataEncoders;
 using Nethereum.ABI;
-using Org.BouncyCastle.Utilities.Encoders;
 using Wasmtime;
 
 namespace AElf.Runtime.WebAssembly;
@@ -35,9 +34,7 @@ public class Executive : IExecutive
     {
         var tx = transactionContext.Transaction;
         var selector = tx.MethodName;
-        var parameters = !tx.Params.Any()
-            ? string.Empty
-            : GetParameters(selector, tx.Params);
+        var parameters = tx.Params.ToHex();
         _runtime.Input = Encoders.Hex.DecodeData(selector + parameters);
         var instance = _runtime.Instantiate();
         var call = instance.GetAction("call");
@@ -59,21 +56,6 @@ public class Executive : IExecutive
         transactionContext.Trace.ReturnValue = ByteString.CopyFrom(_runtime.ReturnBuffer);
         transactionContext.Trace.ExecutionStatus = ExecutionStatus.Executed;
         return Task.CompletedTask;
-    }
-
-    /// <summary>
-    /// TODO: Analysis selector & tx.Params
-    /// </summary>
-    /// <param name="methodName"></param>
-    /// <param name="param"></param>
-    /// <returns></returns>
-    private string GetParameters(string methodName, ByteString param)
-    {
-        var abiEncode = new ABIEncode();
-        var input = new UInt64Value();
-        input.MergeFrom(param);
-        return abiEncode.GetABIEncoded(new ABIValue("uint256", input.Value)).ToHex();
-        //return string.Empty;
     }
 
     public string GetJsonStringOfParameters(string methodName, byte[] paramsBytes)

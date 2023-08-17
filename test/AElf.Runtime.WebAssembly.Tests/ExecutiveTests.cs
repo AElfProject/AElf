@@ -5,6 +5,7 @@ using AElf.Runtime.WebAssembly.Extensions;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using Nethereum.ABI;
 using Shouldly;
 using Solang;
 
@@ -23,7 +24,8 @@ public class ExecutiveTests : WebAssemblyRuntimeTestBase
         const string functionName = "is_power_of_2(uint256)";
 
         var executive = CreateExecutive(solFilePath);
-        var txContext = MockTransactionContext(functionName, new UInt64Value { Value = input }.ToByteString());
+        var parameter = new ABIEncode().GetABIEncoded(new ABIValue("uint256", input));
+        var txContext = MockTransactionContext(functionName, ByteString.CopyFrom(parameter));
         await executive.ApplyAsync(txContext);
 
         var returnValue = txContext.Trace.ReturnValue;
@@ -66,19 +68,5 @@ public class ExecutiveTests : WebAssemblyRuntimeTestBase
         var wasmCode = new Compiler().BuildWasm(code).Contracts.First().WasmCode.ToByteArray();
         var executive = new Executive(new UnitTestExternalEnvironment(), wasmCode);
         return executive;
-    }
-
-    private TransactionContext MockTransactionContext(string functionName, ByteString? param = null)
-    {
-        var tx = new Transaction
-        {
-            MethodName = functionName.ToSelector(),
-            Params = param ?? ByteString.Empty
-        };
-        return new TransactionContext
-        {
-            Transaction = tx,
-            Trace = new TransactionTrace()
-        };
     }
 }

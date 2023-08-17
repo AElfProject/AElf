@@ -3,8 +3,8 @@ using System.Threading.Tasks;
 using AElf.Runtime.WebAssembly.Extensions;
 using AElf.Types;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 using NBitcoin.DataEncoders;
+using Nethereum.ABI;
 using Shouldly;
 
 namespace AElf.Contracts.SolidityContract;
@@ -17,8 +17,9 @@ public class StorageContractTests : SolidityContractTestBase
         const string solFilePath = "contracts/Storage.sol";
         var executionResult = await DeployWebAssemblyContractAsync(await File.ReadAllBytesAsync(solFilePath));
         var contractAddress = executionResult.Output;
+        var parameter = new ABIEncode().GetABIEncoded(new ABIValue("uint256", 100));
         var tx = GetTransaction(DefaultSenderKeyPair, contractAddress, "store(uint256)".ToSelector(),
-            new UInt32Value { Value = 100 }.ToByteString());
+            ByteString.CopyFrom(parameter));
         var txResult = await TestTransactionExecutor.ExecuteAsync(tx);
         txResult.Status.ShouldBe(TransactionResultStatus.Mined);
         return contractAddress;
