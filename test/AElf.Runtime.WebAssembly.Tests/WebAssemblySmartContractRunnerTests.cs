@@ -1,6 +1,5 @@
 using AElf.Types;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 using Nethereum.ABI;
 using Shouldly;
 
@@ -20,7 +19,7 @@ public class WebAssemblySmartContractRunnerTests : WebAssemblyRuntimeTestBase
             CodeHash = HashHelper.ComputeFrom(contractCode)
         };
 
-        var smartContractRunner = new UnitTestWebAssemblySmartContractRunner();
+        var smartContractRunner = new UnitTestWebAssemblySmartContractRunner(new UnitTestExternalEnvironment());
         var executive = await smartContractRunner.RunAsync(smartContractRegistration);
         executive.ContractHash.ShouldNotBeNull();
 

@@ -1,12 +1,12 @@
 ﻿using AElf.Kernel;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Infrastructure;
+using AElf.Runtime.WebAssembly.Extensions;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.Reflection;
 using Google.Protobuf.WellKnownTypes;
 using NBitcoin.DataEncoders;
-using Nethereum.ABI;
 using Wasmtime;
 
 namespace AElf.Runtime.WebAssembly;
@@ -18,44 +18,107 @@ public class Executive : IExecutive
     public Timestamp LastUsedTime { get; set; }
     public string ContractVersion { get; set; }
 
-    private readonly Runtime _runtime;
+    private readonly WebAssemblyRuntime _webAssemblyRuntime;
+
+    private IHostSmartContractBridgeContext _hostSmartContractBridgeContext;
+    private ITransactionContext CurrentTransactionContext => _hostSmartContractBridgeContext.TransactionContext;
 
     public Executive(IExternalEnvironment ext, byte[] wasmCode)
     {
-        _runtime = new Runtime(ext, wasmCode);
+        _webAssemblyRuntime = new WebAssemblyRuntime(ext, wasmCode);
     }
 
     public IExecutive SetHostSmartContractBridgeContext(IHostSmartContractBridgeContext smartContractBridgeContext)
     {
+        _hostSmartContractBridgeContext = smartContractBridgeContext;
+        _webAssemblyRuntime.SetHostSmartContractBridgeContext(smartContractBridgeContext);
         return this;
     }
 
     public Task ApplyAsync(ITransactionContext transactionContext)
     {
-        var tx = transactionContext.Transaction;
-        var selector = tx.MethodName;
-        var parameters = tx.Params.ToHex();
-        _runtime.Input = Encoders.Hex.DecodeData(selector + parameters);
-        var instance = _runtime.Instantiate();
+        _hostSmartContractBridgeContext.TransactionContext = transactionContext;
+        Execute();
+        return Task.CompletedTask;
+    }
+
+    private void Execute()
+    {
+        var s = CurrentTransactionContext.Trace.StartTime = TimestampHelper.GetUtcNow().ToDateTime();
+
+        var transactionContext = _hostSmartContractBridgeContext.TransactionContext;
+        var transaction = transactionContext.Transaction;
+        if (transaction.MethodName == "deploy")
+        {
+            // TODO: Call deploy after deployment.
+            var deploy = _webAssemblyRuntime.Instantiate().GetAction(transaction.MethodName);
+            if (deploy is null)
+            {
+                throw new WebAssemblyRuntimeException("error: deploy export is missing");
+            }
+            InvokeAction(deploy);
+            transactionContext.Trace.ExecutionStatus = ExecutionStatus.Executed;
+            transactionContext.Trace.ReturnValue = ByteString.CopyFrom(_webAssemblyRuntime.ReturnBuffer);
+            return;
+        }
+
+        var selector = transaction.MethodName;
+        var parameters = transaction.Params.ToHex();
+        _webAssemblyRuntime.Input = Encoders.Hex.DecodeData(selector + parameters);
+        var instance = _webAssemblyRuntime.Instantiate();
         var call = instance.GetAction("call");
         if (call is null)
         {
-            Console.WriteLine("error: call export is missing");
-            return Task.CompletedTask;
+            throw new WebAssemblyRuntimeException("error: call export is missing");
         }
 
+        InvokeAction(call);
+        transactionContext.Trace.ReturnValue = ByteString.CopyFrom(_webAssemblyRuntime.ReturnBuffer);
+        transactionContext.Trace.ExecutionStatus = ExecutionStatus.Executed;
+
+        var changes = _webAssemblyRuntime.GetChanges();
+        CurrentTransactionContext.Trace.StateSet = changes;
+
+        var e = CurrentTransactionContext.Trace.EndTime = TimestampHelper.GetUtcNow().ToDateTime();
+        CurrentTransactionContext.Trace.Elapsed = (e - s).Ticks;
+    }
+
+    private void InvokeAction(Action? action)
+    {
         try
         {
-            call.Invoke();
+            action?.Invoke();
         }
         catch (TrapException ex)
         {
-            //Console.WriteLine("got exception " + ex.Message);
+            if (ex.Message.Contains("wasm `unreachable` instruction executed"))
+            {
+                // Ignored.
+            }
+            else
+            {
+                Console.WriteLine("got exception " + ex.Message);
+            }
         }
+    }
 
-        transactionContext.Trace.ReturnValue = ByteString.CopyFrom(_runtime.ReturnBuffer);
-        transactionContext.Trace.ExecutionStatus = ExecutionStatus.Executed;
-        return Task.CompletedTask;
+    private void InvokeFunc(Func<int> function)
+    {
+        try
+        {
+            function?.Invoke();
+        }
+        catch (TrapException ex)
+        {
+            if (ex.Message.Contains("wasm `unreachable` instruction executed"))
+            {
+                // Ignored.
+            }
+            else
+            {
+                Console.WriteLine("got exception " + ex.Message);
+            }
+        }
     }
 
     public string GetJsonStringOfParameters(string methodName, byte[] paramsBytes)

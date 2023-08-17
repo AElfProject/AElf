@@ -1,8 +1,13 @@
+using AElf.Cryptography;
+using AElf.Kernel.SmartContract;
+using AElf.Types;
+using NBitcoin.DataEncoders;
+using Volo.Abp.Threading;
 using Wasmtime;
 
 namespace AElf.Runtime.WebAssembly;
 
-public class Runtime : IDisposable
+public class WebAssemblyRuntime : IDisposable
 {
     private readonly IExternalEnvironment _externalEnvironment;
     private readonly Store _store;
@@ -12,9 +17,13 @@ public class Runtime : IDisposable
     private readonly Module _module;
     public byte[] ReturnBuffer = Array.Empty<byte>();
     public readonly List<string> DebugMessages = new();
+    public readonly Dictionary<Hash, byte[]> Events = new();
     public byte[] Input { get; set; } = Array.Empty<byte>();
 
-    public Runtime(IExternalEnvironment externalEnvironment, byte[] wasmCode, bool withFuelConsumption = false, long memoryMin = 16, long memoryMax = 16)
+    private IHostSmartContractBridgeContext _hostSmartContractBridgeContext;
+
+    public WebAssemblyRuntime(IExternalEnvironment externalEnvironment, byte[] wasmCode,
+        bool withFuelConsumption = false, long memoryMin = 16, long memoryMax = 16)
     {
         _externalEnvironment = externalEnvironment;
         _engine = new Engine(new Config().WithFuelConsumption(withFuelConsumption));
@@ -25,7 +34,8 @@ public class Runtime : IDisposable
         DefineImportFunctions();
     }
 
-    public Runtime(IExternalEnvironment externalEnvironment, string watFilePath, bool withFuelConsumption = false, long memoryMin = 16, long memoryMax = 16)
+    public WebAssemblyRuntime(IExternalEnvironment externalEnvironment, string watFilePath,
+        bool withFuelConsumption = false, long memoryMin = 16, long memoryMax = 16)
     {
         _externalEnvironment = externalEnvironment;
         _engine = new Engine(new Config().WithFuelConsumption(withFuelConsumption));
@@ -39,6 +49,22 @@ public class Runtime : IDisposable
     public Instance Instantiate()
     {
         return _linker.Instantiate(_store, _module);
+    }
+
+    public TransactionExecutingStateSet GetChanges()
+    {
+        return new TransactionExecutingStateSet
+        {
+            Writes = { _externalEnvironment.Writes },
+            Reads = { _externalEnvironment.Reads },
+            Deletes = { _externalEnvironment.Deletes }
+        };
+    }
+
+    public void SetHostSmartContractBridgeContext(IHostSmartContractBridgeContext smartContractBridgeContext)
+    {
+        _externalEnvironment.SetHostSmartContractBridgeContext(smartContractBridgeContext);
+        _hostSmartContractBridgeContext = smartContractBridgeContext;
     }
 
     public void AddFuel(ulong fuel)
@@ -309,7 +335,8 @@ public class Runtime : IDisposable
     {
         Console.WriteLine($"{keyPtr}, {keyLen}, {outPtr}, {outLenPtr}");
         var key = ReadBytes(keyPtr, keyLen);
-        if (_externalEnvironment.TryGetStorage(key, out var outcome))
+        var outcome = AsyncHelper.RunSync(() => _externalEnvironment.GetStorageAsync(key));
+        if (outcome != null)
         {
             Console.WriteLine($"GetStorage Success: \nKey: {key} \nValue: {outcome}");
             WriteBytes(outPtr, outcome);
@@ -678,7 +705,9 @@ public class Runtime : IDisposable
     /// <param name="outLenPtr"></param>
     private void Caller(int outPtr, int outLenPtr)
     {
-        throw new NotImplementedException();
+        var sender = _hostSmartContractBridgeContext.Sender.ToByteArray();
+        WriteBytes(outPtr, sender);
+        WriteUInt32(outLenPtr, Convert.ToUInt32(sender.Length));
     }
 
     /// <summary>
@@ -884,7 +913,7 @@ public class Runtime : IDisposable
     /// <param name="valueLengthPtr"></param>
     private void ValueTransferred(int valuePtr, int valueLengthPtr)
     {
-        WriteUInt32(valueLengthPtr, 0);
+        WriteUInt32(valuePtr, (uint)valueLengthPtr);
     }
 
     /// <summary>
@@ -980,7 +1009,9 @@ public class Runtime : IDisposable
     /// <param name="dataLen">the length of the data buffer.</param>
     private void DepositEvent(int topicsPtr, int topicsLen, int dataPtr, int dataLen)
     {
-        throw new NotImplementedException();
+        var topics = ReadBytes(topicsPtr, topicsLen);
+        var data = ReadBytes(dataPtr, dataLen);
+        Events[HashHelper.ComputeFrom(topics)] = data;
     }
 
     /// <summary>
@@ -1064,7 +1095,7 @@ public class Runtime : IDisposable
     /// </param>
     private void HashBlake2_256(int inputPtr, int inputLen, int outputPtr)
     {
-        throw new NotImplementedException();
+        var input = ReadBytes(inputPtr, inputLen);
     }
 
     /// <summary>
@@ -1133,7 +1164,7 @@ public class Runtime : IDisposable
     private int DebugMessage(int strPtr, int strLen)
     {
         DebugMessages.Add(_memory.ReadString(strPtr, strLen));
-        return 0;
+        return (int)ReturnCode.Success;
     }
 
     /// <summary>

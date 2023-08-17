@@ -1,8 +1,14 @@
+using AElf.Kernel.SmartContract;
+using Google.Protobuf;
+
 namespace AElf.Runtime.WebAssembly;
 
 public interface IExternalEnvironment
 {
-    Dictionary<string, byte[]> Storage { get; set; }
+    Dictionary<string, ByteString> Writes { get; set; }
+    Dictionary<string, bool> Reads { get; set; }
+    Dictionary<string, bool> Deletes { get; set; }
     WriteOutcome SetStorage(byte[] key, byte[] value, bool takeOld);
-    bool TryGetStorage(byte[] key, out byte[] value);
+    Task<byte[]?> GetStorageAsync(byte[] key);
+    void SetHostSmartContractBridgeContext(IHostSmartContractBridgeContext smartContractBridgeContext);
 }

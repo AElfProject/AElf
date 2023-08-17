@@ -17,10 +17,10 @@ public class WebAssemblyRuntimeAElfModule : AElfModule
     public override void ConfigureServices(ServiceConfigurationContext context)
     {
         context.Services.AddSingleton<ISmartContractRunner, WebAssemblySmartContractRunner>(_ =>
-            new WebAssemblySmartContractRunner());
+            new WebAssemblySmartContractRunner(new ExternalEnvironment()));
 #if DEBUG
         context.Services.AddSingleton<ISmartContractRunner, UnitTestWebAssemblySmartContractRunner>(_ =>
-            new UnitTestWebAssemblySmartContractRunner());
+            new UnitTestWebAssemblySmartContractRunner(new UnitTestExternalEnvironment()));
 #endif
     }
 }

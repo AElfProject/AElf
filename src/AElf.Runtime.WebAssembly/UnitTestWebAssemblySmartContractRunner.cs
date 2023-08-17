@@ -2,8 +2,7 @@ namespace AElf.Runtime.WebAssembly;
 
 public class UnitTestWebAssemblySmartContractRunner : WebAssemblySmartContractRunner
 {
-    public UnitTestWebAssemblySmartContractRunner()
+    public UnitTestWebAssemblySmartContractRunner(IExternalEnvironment externalEnvironment) : base(externalEnvironment)
     {
-        ExternalEnvironment = new UnitTestExternalEnvironment();
     }
 }

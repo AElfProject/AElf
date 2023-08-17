@@ -9,13 +9,13 @@ public class WebAssemblySmartContractRunner : ISmartContractRunner
 {
     public int Category { get; protected set; }
 
-    public string ContractVersion { get; protected set; }
+    public string ContractVersion { get; protected set; } = string.Empty;
 
     protected IExternalEnvironment ExternalEnvironment { get; set; }
 
-    public WebAssemblySmartContractRunner()
+    public WebAssemblySmartContractRunner(IExternalEnvironment externalEnvironment)
     {
-        ExternalEnvironment = new ExternalEnvironment();
+        ExternalEnvironment = externalEnvironment;
         Category = KernelConstants.WebAssemblyRunnerCategory;
     }
 

@@ -1,21 +1,28 @@
+using AElf.Kernel.SmartContract;
+using AElf.Types;
+using Google.Protobuf;
 using NBitcoin.DataEncoders;
 
 namespace AElf.Runtime.WebAssembly;
 
 public class ExternalEnvironment : IExternalEnvironment
 {
-    public Dictionary<string, byte[]> Storage { get; set; } = new();
+    public Dictionary<string, ByteString> Writes { get; set; } = new();
+    public Dictionary<string, bool> Reads { get; set; } = new();
+    public Dictionary<string, bool> Deletes { get; set; } = new();
+
+    private IHostSmartContractBridgeContext _hostSmartContractBridgeContext;
 
     public WriteOutcome SetStorage(byte[] key, byte[] value, bool takeOld)
     {
-        var realKey = Encoders.Base58.EncodeData(key);
+        var stateKey = GetStateKey(key);
         WriteOutcome writeOutcome;
-        if (Storage.TryGetValue(realKey, out var oldValue))
+        if (Writes.TryGetValue(stateKey, out var oldValue))
         {
             if (takeOld)
             {
                 writeOutcome = new WriteOutcome
-                    { WriteOutcomeType = WriteOutcomeType.Taken, Value = Encoders.Hex.EncodeData(oldValue) };
+                    { WriteOutcomeType = WriteOutcomeType.Taken, Value = Encoders.Hex.EncodeData(oldValue.ToByteArray()) };
             }
             else
             {
@@ -34,22 +41,41 @@ public class ExternalEnvironment : IExternalEnvironment
             writeOutcome = new WriteOutcome { WriteOutcomeType = WriteOutcomeType.New };
         }
 
-        Storage[realKey] = value;
+        Writes[stateKey] = ByteString.CopyFrom(value);
         return writeOutcome;
     }
 
-    public bool TryGetStorage(byte[] key, out byte[] value)
+    public async Task<byte[]?> GetStorageAsync(byte[] key)
     {
-        var keyStr = Encoders.Base58.EncodeData(key);
-        if (Storage.ContainsKey(keyStr))
+        var stateKey = GetStateKey(key);
+        if (Writes.ContainsKey(stateKey))
         {
-            if (Storage.TryGetValue(keyStr, out value!))
+            if (Writes.TryGetValue(stateKey, out var byteStringValue))
             {
-                return true;
+                return byteStringValue.ToByteArray();
             }
         }
 
-        value = Array.Empty<byte>();
-        return false;
+        var value = await _hostSmartContractBridgeContext.GetStateAsync(stateKey);
+        var byteArrayValue = value?.ToByteArray();
+        Reads.TryAdd(stateKey, value != null);
+        return byteArrayValue;
+    }
+
+    private string GetStateKey(byte[] key)
+    {
+        return new ScopedStatePath
+        {
+            Address = _hostSmartContractBridgeContext.Self,
+            Path = new StatePath
+            {
+                Parts = { key.ToPlainBase58() }
+            }
+        }.ToStateKey();
+    }
+
+    public void SetHostSmartContractBridgeContext(IHostSmartContractBridgeContext smartContractBridgeContext)
+    {
+        _hostSmartContractBridgeContext = smartContractBridgeContext;
     }
 }
