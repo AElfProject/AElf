@@ -1,6 +1,7 @@
 using AElf.Cryptography;
 using AElf.Kernel.SmartContract;
 using AElf.Types;
+using Epoche;
 using NBitcoin.DataEncoders;
 using Volo.Abp.Threading;
 using Wasmtime;
@@ -1072,7 +1073,8 @@ public class WebAssemblyRuntime : IDisposable
     /// </param>
     private void HashKeccak256(int inputPtr, int inputLen, int outputPtr)
     {
-        throw new NotImplementedException();
+        var input = ReadBytes(inputPtr, inputLen);
+        WriteBytes(outputPtr, Keccak256.ComputeHash(input));
     }
 
     /// <summary>

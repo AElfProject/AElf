@@ -56,6 +56,8 @@ public class Executive : IExecutive
             {
                 throw new WebAssemblyRuntimeException("error: deploy export is missing");
             }
+
+            _webAssemblyRuntime.Input = Encoders.Hex.DecodeData(WebAssemblyRuntimeConstants.ConstructorSelector);
             InvokeAction(deploy);
             transactionContext.Trace.ExecutionStatus = ExecutionStatus.Executed;
             transactionContext.Trace.ReturnValue = ByteString.CopyFrom(_webAssemblyRuntime.ReturnBuffer);
