@@ -48,33 +48,23 @@ public class Executive : IExecutive
 
         var transactionContext = _hostSmartContractBridgeContext.TransactionContext;
         var transaction = transactionContext.Transaction;
-        if (transaction.MethodName == "deploy")
-        {
-            // TODO: Call deploy after deployment.
-            var deploy = _webAssemblyRuntime.Instantiate().GetAction(transaction.MethodName);
-            if (deploy is null)
-            {
-                throw new WebAssemblyRuntimeException("error: deploy export is missing");
-            }
 
-            _webAssemblyRuntime.Input = Encoders.Hex.DecodeData(WebAssemblyRuntimeConstants.ConstructorSelector);
-            InvokeAction(deploy);
-            transactionContext.Trace.ExecutionStatus = ExecutionStatus.Executed;
-            transactionContext.Trace.ReturnValue = ByteString.CopyFrom(_webAssemblyRuntime.ReturnBuffer);
-            return;
-        }
+        var isCallConstructor = transaction.MethodName == "deploy";
 
-        var selector = transaction.MethodName;
-        var parameters = transaction.Params.ToHex();
-        _webAssemblyRuntime.Input = Encoders.Hex.DecodeData(selector + parameters);
+        var selector = isCallConstructor
+            ? WebAssemblyRuntimeConstants.ConstructorSelector
+            : transaction.MethodName;
+        var parameter = transaction.Params.ToHex();
+        _webAssemblyRuntime.Input = Encoders.Hex.DecodeData(selector + parameter);
         var instance = _webAssemblyRuntime.Instantiate();
-        var call = instance.GetAction("call");
-        if (call is null)
+        var actionName = isCallConstructor ? "deploy" : "call";
+        var action = instance.GetAction(actionName);
+        if (action is null)
         {
-            throw new WebAssemblyRuntimeException("error: call export is missing");
+            throw new WebAssemblyRuntimeException($"error: {actionName} export is missing");
         }
 
-        InvokeAction(call);
+        InvokeAction(action);
 
         if (_webAssemblyRuntime.DebugMessages.Count > 0)
         {
@@ -108,26 +98,7 @@ public class Executive : IExecutive
             }
             else
             {
-                Console.WriteLine("got exception " + ex.Message);
-            }
-        }
-    }
-
-    private void InvokeFunc(Func<int> function)
-    {
-        try
-        {
-            function?.Invoke();
-        }
-        catch (TrapException ex)
-        {
-            if (ex.Message.Contains("wasm `unreachable` instruction executed"))
-            {
-                // Ignored.
-            }
-            else
-            {
-                Console.WriteLine("got exception " + ex.Message);
+                throw new WebAssemblyRuntimeException("got exception " + ex.Message);
             }
         }
     }

@@ -328,6 +328,14 @@ public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, I
             _smartContractBridgeService.DeployContractAsync(registration));
     }
 
+    public void ExecuteContractConstructor(Address contractAddress, SmartContractRegistration registration,
+        Address author, ByteString constructorInput)
+    {
+        AsyncHelper.RunSync(() =>
+            _smartContractBridgeService.ExecuteConstructorAsync(registration, author, contractAddress,
+                constructorInput));
+    }
+
     public ContractInfoDto UpdateSmartContract(Address address, SmartContractRegistration registration, Hash name, string previousContractVersion)
     {
         if (!Self.Equals(_smartContractBridgeService.GetZeroSmartContractAddress())) throw new NoPermissionException();

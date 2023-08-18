@@ -9,7 +9,6 @@ pragma solidity >=0.7.0 <0.9.0;
 contract Owner {
 
     address private owner;
-    uint256 foo;
 
     // event for EVM logging
     event OwnerSet(address indexed oldOwner, address indexed newOwner);
@@ -30,7 +29,6 @@ contract Owner {
      */
     constructor() {
         owner = msg.sender; // 'msg.sender' is sender of current call, contract deployer for a constructor
-        foo = 1;
         emit OwnerSet(address(0), owner);
     }
 

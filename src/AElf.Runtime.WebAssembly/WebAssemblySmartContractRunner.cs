@@ -16,7 +16,7 @@ public class WebAssemblySmartContractRunner : ISmartContractRunner
     public WebAssemblySmartContractRunner(IExternalEnvironment externalEnvironment)
     {
         ExternalEnvironment = externalEnvironment;
-        Category = KernelConstants.WebAssemblyRunnerCategory;
+        Category = KernelConstants.SolidityRunnerCategory;
     }
 
     public async Task<IExecutive> RunAsync(SmartContractRegistration reg)

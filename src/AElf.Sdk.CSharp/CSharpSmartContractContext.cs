@@ -164,6 +164,14 @@ public class CSharpSmartContractContext : ISmartContractBridgeContext
     {
         return SmartContractBridgeContextImplementation.DeploySmartContract(address,registration,name);
     }
+
+    public void ExecuteContractConstructor(Address contractAddress, SmartContractRegistration registration, Address author,
+        ByteString constructorInput)
+    {
+        SmartContractBridgeContextImplementation.ExecuteContractConstructor(contractAddress, registration,
+            author, constructorInput);
+    }
+
     public ContractInfoDto UpdateSmartContract(Address address, SmartContractRegistration registration, Hash name,string previousContractVersion)
     {
         return SmartContractBridgeContextImplementation.UpdateSmartContract(address,registration,name,previousContractVersion);

@@ -46,17 +46,16 @@ public class SolidityContractTestBase : ContractTestBase<SolidityContractTestAEl
         return GetTester<BasicContractZeroImplContainer.BasicContractZeroImplStub>(ContractZeroAddress, keyPair);
     }
 
-    internal async Task<IExecutionResult<Address>> DeployWebAssemblyContractAsync(byte[] codeBytes)
+    internal async Task<IExecutionResult<Address>> DeployWebAssemblyContractAsync(byte[] codeBytes,
+        ByteString constructorInput = null)
     {
         var executionResult = await BasicContractZeroStub.DeploySmartContract.SendAsync(new ContractDeploymentInput
         {
-            Category = KernelConstants.WebAssemblyRunnerCategory,
-            Code = ByteString.CopyFrom(codeBytes)
+            Category = KernelConstants.SolidityRunnerCategory,
+            Code = ByteString.CopyFrom(codeBytes),
+            Parameter = constructorInput ?? ByteString.Empty
         });
 
-        // Need to call the contract constructor manually.
-        var tx = GetTransaction(DefaultSenderKeyPair, executionResult.Output, "deploy");
-        await TestTransactionExecutor.ExecuteAsync(tx);
         return executionResult;
     }
 

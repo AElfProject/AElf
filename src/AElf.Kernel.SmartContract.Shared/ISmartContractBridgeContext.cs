@@ -53,6 +53,9 @@ public interface ISmartContractBridgeContext
     
     ContractInfoDto DeploySmartContract(Address address, SmartContractRegistration registration,Hash name);
 
+    void ExecuteContractConstructor(Address contractAddress, SmartContractRegistration registration,
+        Address author, ByteString constructorInput);
+
     ContractInfoDto UpdateSmartContract(Address address, SmartContractRegistration registration, Hash name, string previousContractVersion);
 
     ContractVersionCheckDto CheckContractVersion(string previousContractVersion, SmartContractRegistration registration);

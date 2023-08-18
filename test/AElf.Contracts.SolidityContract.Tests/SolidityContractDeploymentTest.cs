@@ -18,7 +18,7 @@ public class SolidityContractDeploymentTest : SolidityContractTestBase
         executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
         var contractAddress = executionResult.Output;
         var registration = await BasicContractZeroStub.GetSmartContractRegistrationByAddress.CallAsync(contractAddress);
-        registration.Category.ShouldBe(KernelConstants.WebAssemblyRunnerCategory);
+        registration.Category.ShouldBe(KernelConstants.SolidityRunnerCategory);
         registration.Code.ShouldBe(ByteString.CopyFrom(codeBytes));
         return contractAddress;
     }

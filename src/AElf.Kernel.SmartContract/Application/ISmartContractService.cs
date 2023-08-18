@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 using AElf.Types;
-using Volo.Abp;
+using Google.Protobuf;
 
 namespace AElf.Kernel.SmartContract.Application;
 
@@ -14,10 +14,14 @@ public interface ISmartContractService
     Task DeployContractAsync(ContractDto contractDto);
 
     Task UpdateContractAsync(ContractDto contractDto);
-    
+
     Task<ContractInfoDto> DeployContractAsync(SmartContractRegistration registration);
 
     Task<ContractInfoDto> UpdateContractAsync(string previousContractVersion, SmartContractRegistration registration);
 
-    Task<ContractVersionCheckDto> CheckContractVersionAsync(string previousContractVersion, SmartContractRegistration registration);
+    Task<ContractVersionCheckDto> CheckContractVersionAsync(string previousContractVersion,
+        SmartContractRegistration registration);
+
+    Task ExecuteConstructorAsync(SmartContractRegistration registration, Address author, Address contractAddress,
+        ByteString constructorInput);
 }

@@ -1,9 +1,8 @@
 ﻿using System;
-using System.Reflection;
 using System.Threading.Tasks;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Types;
-using Org.BouncyCastle.Security;
+using Google.Protobuf;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.Application;
@@ -11,11 +10,14 @@ namespace AElf.Kernel.SmartContract.Application;
 public class SmartContractService : ISmartContractService, ITransientDependency
 {
     private readonly ISmartContractRunnerContainer _smartContractRunnerContainer;
+    private readonly IHostSmartContractBridgeContextService _hostSmartContractBridgeContextService;
 
     public SmartContractService(
-        ISmartContractRunnerContainer smartContractRunnerContainer)
+        ISmartContractRunnerContainer smartContractRunnerContainer,
+        IHostSmartContractBridgeContextService hostSmartContractBridgeContextService)
     {
         _smartContractRunnerContainer = smartContractRunnerContainer;
+        _hostSmartContractBridgeContextService = hostSmartContractBridgeContextService;
     }
 
     /// <inheritdoc />
@@ -29,7 +31,7 @@ public class SmartContractService : ISmartContractService, ITransientDependency
     {
         return Task.CompletedTask;
     }
-    
+
     public async Task<ContractInfoDto> DeployContractAsync(SmartContractRegistration registration)
     {
         var contractVersion = await GetVersion(registration);
@@ -39,10 +41,11 @@ public class SmartContractService : ISmartContractService, ITransientDependency
         };
     }
 
-    public async Task<ContractInfoDto> UpdateContractAsync(string previousContractVersion,SmartContractRegistration registration)
+    public async Task<ContractInfoDto> UpdateContractAsync(string previousContractVersion,
+        SmartContractRegistration registration)
     {
         var newContractVersion = await GetVersion(registration);
-        var isSubsequentVersion = CheckVersion(previousContractVersion,newContractVersion);
+        var isSubsequentVersion = CheckVersion(previousContractVersion, newContractVersion);
         return new ContractInfoDto
         {
             ContractVersion = newContractVersion,
@@ -50,14 +53,24 @@ public class SmartContractService : ISmartContractService, ITransientDependency
         };
     }
 
-    public async Task<ContractVersionCheckDto> CheckContractVersionAsync(string previousContractVersion,SmartContractRegistration registration)
+    public async Task<ContractVersionCheckDto> CheckContractVersionAsync(string previousContractVersion,
+        SmartContractRegistration registration)
     {
         var newContractVersion = await GetVersion(registration);
-        var isSubsequentVersion = CheckVersion(previousContractVersion,newContractVersion);
+        var isSubsequentVersion = CheckVersion(previousContractVersion, newContractVersion);
         return new ContractVersionCheckDto
         {
             IsSubsequentVersion = isSubsequentVersion
         };
+    }
+
+    public async Task ExecuteConstructorAsync(SmartContractRegistration registration, Address author,
+        Address contractAddress, ByteString constructorInput)
+    {
+        if (registration.Category == KernelConstants.SolidityRunnerCategory)
+        {
+            await ExecuteSolidityContractConstructorAsync(registration, author, contractAddress, constructorInput);
+        }
     }
 
     private void CheckRunner(int category)
@@ -72,9 +85,8 @@ public class SmartContractService : ISmartContractService, ITransientDependency
         var contractVersion = executive.ContractVersion;
         return contractVersion;
     }
-    
-    
-    private bool CheckVersion(string previousContractVersion,string newContractVersion)
+
+    private bool CheckVersion(string previousContractVersion, string newContractVersion)
     {
         if (newContractVersion.IsNullOrEmpty())
         {
@@ -86,6 +98,26 @@ public class SmartContractService : ISmartContractService, ITransientDependency
             return true;
         }
 
-        return  new Version(previousContractVersion) < new Version(newContractVersion);
+        return new Version(previousContractVersion) < new Version(newContractVersion);
+    }
+
+    private async Task ExecuteSolidityContractConstructorAsync(SmartContractRegistration registration, Address author,
+        Address contractAddress, ByteString constructorInput)
+    {
+        var wasmRunner = _smartContractRunnerContainer.GetRunner(KernelConstants.SolidityRunnerCategory);
+        var wasmExecutive = await wasmRunner.RunAsync(registration);
+        var context = _hostSmartContractBridgeContextService.Create();
+        wasmExecutive.SetHostSmartContractBridgeContext(context);
+        await wasmExecutive.ApplyAsync(new TransactionContext
+        {
+            Transaction = new Transaction
+            {
+                From = author,
+                To = contractAddress,
+                MethodName = "deploy",
+                Params = constructorInput
+            },
+            Trace = new TransactionTrace()
+        });
     }
 }
