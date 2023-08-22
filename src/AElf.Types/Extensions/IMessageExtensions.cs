@@ -1,12 +1,14 @@
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
-namespace AElf;
-
-public static class IMessageExtensions
+namespace AElf
 {
-    public static BytesValue ToBytesValue(this IMessage message)
+
+    public static class IMessageExtensions
     {
-        return new BytesValue { Value = message.ToByteString() };
+        public static BytesValue ToBytesValue(this IMessage message)
+        {
+            return new BytesValue { Value = message.ToByteString() };
+        }
     }
 }

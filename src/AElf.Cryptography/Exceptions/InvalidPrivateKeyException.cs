@@ -1,10 +1,12 @@
 using System;
 
-namespace AElf.Cryptography.Exceptions;
-
-public class InvalidPrivateKeyException : Exception
+namespace AElf.Cryptography.Exceptions
 {
-    public InvalidPrivateKeyException(string message) : base(message)
+
+    public class InvalidPrivateKeyException : Exception
     {
+        public InvalidPrivateKeyException(string message) : base(message)
+        {
+        }
     }
 }

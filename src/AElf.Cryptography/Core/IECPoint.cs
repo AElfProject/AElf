@@ -1,6 +1,8 @@
-namespace AElf.Cryptography.Core;
-
-public interface IECPoint
+namespace AElf.Cryptography.Core
 {
-    byte[] Representation { get; }
+
+    public interface IECPoint
+    {
+        byte[] Representation { get; }
+    }
 }

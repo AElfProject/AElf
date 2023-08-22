@@ -4,35 +4,37 @@ using AElf.Cryptography.ECDSA;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Math;
 
-namespace AElf.Cryptography.ECVRF;
-
-public struct ProofInput
+namespace AElf.Cryptography.ECVRF
 {
-    public IECPoint Gamma { get; set; }
-    public BigInteger C { get; set; }
-    public BigInteger S { get; set; }
-}
 
-public struct VrfConfig
-{
-    public byte SuiteString { get; private set; }
-
-    public X9ECParameters EcParameters { get; private set; }
-
-    public VrfConfig(byte suiteString, X9ECParameters ecParameters)
+    public struct ProofInput
     {
-        SuiteString = suiteString;
-        EcParameters = ecParameters;
+        public IECPoint Gamma { get; set; }
+        public BigInteger C { get; set; }
+        public BigInteger S { get; set; }
     }
-}
 
-public interface IHasherFactory
-{
-    HashAlgorithm Create();
-}
+    public struct VrfConfig
+    {
+        public byte SuiteString { get; private set; }
 
-public interface IVrf
-{
-    byte[] Prove(ECKeyPair keyPair, byte[] alpha);
-    byte[] Verify(byte[] publicKey, byte[] alpha, byte[] pi);
+        public X9ECParameters EcParameters { get; private set; }
+
+        public VrfConfig(byte suiteString, X9ECParameters ecParameters)
+        {
+            SuiteString = suiteString;
+            EcParameters = ecParameters;
+        }
+    }
+
+    public interface IHasherFactory
+    {
+        HashAlgorithm Create();
+    }
+
+    public interface IVrf
+    {
+        byte[] Prove(ECKeyPair keyPair, byte[] alpha);
+        byte[] Verify(byte[] publicKey, byte[] alpha, byte[] pi);
+    }
 }
