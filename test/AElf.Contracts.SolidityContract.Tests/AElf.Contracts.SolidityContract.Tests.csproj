@@ -78,8 +78,11 @@
         </ContractBase>
     </ItemGroup>
     <ItemGroup>
-      <None Update="contracts\*.sol">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </None>
+        <None Update="contracts\*.sol">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+        <None Update="contracts\*\*.sol">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
     </ItemGroup>
 </Project>

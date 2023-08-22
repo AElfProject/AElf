@@ -1,5 +1,6 @@
 using System.IO;
 using System.Threading.Tasks;
+using AElf.ContractTestKit;
 using AElf.Runtime.WebAssembly.Extensions;
 using AElf.Types;
 using Google.Protobuf;
@@ -17,14 +18,25 @@ public class OwnerContractTests : SolidityContractTestBase
         const string solFilePath = "contracts/Owner.sol";
         var executionResult = await DeployWebAssemblyContractAsync(await File.ReadAllBytesAsync(solFilePath));
         executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        executionResult.TransactionResult.Logs.Count.ShouldBePositive();
         return executionResult.Output;
+    }
+
+    [Fact]
+    public async Task CallConstructorTwice()
+    {
+        var contractAddress = await DeployOwnerContractTest();
+        var tx = GetTransaction(DefaultSenderKeyPair, contractAddress, "deploy");
+        var txResult = await TestTransactionExecutor.ExecuteAsync(tx);
+        // Should be failed: Constructor cannot be executed more than once.
+        txResult.Status.ShouldNotBe(TransactionResultStatus.Mined);
     }
 
     [Fact]
     public async Task<Address> GetOwnerTest()
     {
         var contractAddress = await DeployOwnerContractTest();
-        var tx = GetTransaction(DefaultSenderKeyPair, contractAddress, "getOwner()".ToSelector());
+        var tx = GetTransaction(DefaultSenderKeyPair, contractAddress, "getOwner");
         var txResult = await TestTransactionExecutor.ExecuteAsync(tx);
         txResult.Status.ShouldBe(TransactionResultStatus.Mined);
         txResult.ReturnValue.ShouldBe(DefaultSender.ToByteArray());
@@ -36,9 +48,9 @@ public class OwnerContractTests : SolidityContractTestBase
     {
         var contractAddress = await DeployOwnerContractTest();
 
-        const string newAddress = "0x0000000000000000000000000000000000000000";
+        var newAddress = SampleAccount.Accounts[1].KeyPair.ToEthECKey().GetPublicAddress();
         {
-            var tx = GetTransaction(DefaultSenderKeyPair, contractAddress, "changeOwner(address)".ToSelector(),
+            var tx = GetTransaction(DefaultSenderKeyPair, contractAddress, "changeOwner",
                 ByteString.CopyFrom(
                     new ABIEncode().GetABIEncoded(new ABIValue("address", newAddress))));
             var txResult = await TestTransactionExecutor.ExecuteAsync(tx);
@@ -46,9 +58,9 @@ public class OwnerContractTests : SolidityContractTestBase
         }
 
         {
-            var tx = GetTransaction(DefaultSenderKeyPair, contractAddress, "getOwner()".ToSelector());
+            var tx = GetTransaction(DefaultSenderKeyPair, contractAddress, "getOwner");
             var txResult = await TestTransactionExecutor.ExecuteAsync(tx);
-            txResult.ReturnValue.ToHex(true).ShouldContain(newAddress);
+            txResult.ReturnValue.ToHex().ShouldContain(newAddress.RemoveHexPrefix().ToLower());
         }
     }
 }

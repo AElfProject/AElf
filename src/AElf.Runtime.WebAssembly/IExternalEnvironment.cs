@@ -5,6 +5,7 @@ namespace AElf.Runtime.WebAssembly;
 
 public interface IExternalEnvironment
 {
+    IHostSmartContractBridgeContext? HostSmartContractBridgeContext { get; set; }
     Dictionary<string, ByteString> Writes { get; set; }
     Dictionary<string, bool> Reads { get; set; }
     Dictionary<string, bool> Deletes { get; set; }

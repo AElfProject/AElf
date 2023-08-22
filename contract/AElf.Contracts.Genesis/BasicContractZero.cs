@@ -282,7 +282,8 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
 
         var address =
             DeploySmartContract(null, input.Category, input.Code.ToByteArray(), false,
-                DecideNonSystemContractAuthor(contractProposingInput?.Proposer, Context.Sender), false);
+                DecideNonSystemContractAuthor(contractProposingInput?.Proposer, Context.Sender), false,
+                input.Parameter);
         return address;
     }
 

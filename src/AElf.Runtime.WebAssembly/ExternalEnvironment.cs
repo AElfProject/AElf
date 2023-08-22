@@ -11,7 +11,7 @@ public class ExternalEnvironment : IExternalEnvironment
     public Dictionary<string, bool> Reads { get; set; } = new();
     public Dictionary<string, bool> Deletes { get; set; } = new();
 
-    private IHostSmartContractBridgeContext _hostSmartContractBridgeContext;
+    public IHostSmartContractBridgeContext? HostSmartContractBridgeContext { get; set; }
 
     public WriteOutcome SetStorage(byte[] key, byte[] value, bool takeOld)
     {
@@ -57,7 +57,7 @@ public class ExternalEnvironment : IExternalEnvironment
             }
         }
 
-        var value = await _hostSmartContractBridgeContext.GetStateAsync(stateKey);
+        var value = await HostSmartContractBridgeContext!.GetStateAsync(stateKey);
         var byteArrayValue = value?.ToByteArray();
         Reads.TryAdd(stateKey, value != null);
         return byteArrayValue;
@@ -67,7 +67,7 @@ public class ExternalEnvironment : IExternalEnvironment
     {
         return new ScopedStatePath
         {
-            Address = _hostSmartContractBridgeContext.Self,
+            Address = HostSmartContractBridgeContext!.Self,
             Path = new StatePath
             {
                 Parts = { key.ToPlainBase58() }
@@ -77,6 +77,6 @@ public class ExternalEnvironment : IExternalEnvironment
 
     public void SetHostSmartContractBridgeContext(IHostSmartContractBridgeContext smartContractBridgeContext)
     {
-        _hostSmartContractBridgeContext = smartContractBridgeContext;
+        HostSmartContractBridgeContext = smartContractBridgeContext;
     }
 }

@@ -7,6 +7,7 @@ namespace AElf.Runtime.WebAssembly;
 
 public class UnitTestExternalEnvironment : IExternalEnvironment
 {
+    public IHostSmartContractBridgeContext? HostSmartContractBridgeContext { get; set; }
     public Dictionary<string, ByteString> Writes { get; set; } = new();
     public Dictionary<string, bool> Reads { get; set; } = new();
     public Dictionary<string, bool> Deletes { get; set; } = new();

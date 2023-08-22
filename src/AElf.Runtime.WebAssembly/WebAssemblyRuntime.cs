@@ -1,14 +1,12 @@
-using AElf.Cryptography;
 using AElf.Kernel.SmartContract;
 using AElf.Types;
 using Epoche;
-using NBitcoin.DataEncoders;
-using Volo.Abp.Threading;
+using Google.Protobuf;
 using Wasmtime;
 
 namespace AElf.Runtime.WebAssembly;
 
-public class WebAssemblyRuntime : IDisposable
+public partial class WebAssemblyRuntime : IDisposable
 {
     private readonly IExternalEnvironment _externalEnvironment;
     private readonly Store _store;
@@ -198,203 +196,6 @@ public class WebAssemblyRuntime : IDisposable
     }
 
     #region API functions
-
-    /// <summary>
-    /// Set the value at the given key in the contract storage.
-    ///
-    /// Equivalent to the newer [`seal1`][`super::api_doc::Version1::set_storage`] version with the
-    /// exception of the return type. Still a valid thing to call when not interested in the return
-    /// value.
-    /// </summary>
-    /// <param name="keyPtr">pointer into the linear memory where the location to store the value is placed.</param>
-    /// <param name="valuePtr">pointer into the linear memory where the value to set is placed.</param>
-    /// <param name="valueLen">the length of the value in bytes.</param>
-    private void SetStorageV0(int keyPtr, int valuePtr, int valueLen)
-    {
-        SetStorage(new Key { KeyType = KeyType.Fix }, keyPtr, valuePtr, valueLen);
-    }
-
-    /// <summary>
-    /// Set the value at the given key in the contract storage.
-    ///
-    /// This version is to be used with a fixed sized storage key. For runtimes supporting
-    /// transparent hashing, please use the newer version of this function.
-    ///
-    /// The value length must not exceed the maximum defined by the contracts module parameters.
-    /// Specifying a `valueLen` of zero will store an empty value.
-    /// </summary>
-    /// <param name="keyPtr">pointer into the linear memory where the location to store the value is placed.</param>
-    /// <param name="valuePtr">pointer into the linear memory where the value to set is placed.</param>
-    /// <param name="valueLen">the length of the value in bytes.</param>
-    /// <returns>
-    /// Returns the size of the pre-existing value at the specified key if any. Otherwise
-    /// `SENTINEL` is returned as a sentinel value.
-    /// </returns>
-    private int SetStorageV1(int keyPtr, int valuePtr, int valueLen)
-    {
-        return SetStorage(new Key { KeyType = KeyType.Fix }, keyPtr, valuePtr, valueLen);
-    }
-
-    /// <summary>
-    /// Set the value at the given key in the contract storage.
-    ///
-    /// The key and value lengths must not exceed the maximums defined by the contracts module
-    /// parameters. Specifying a `valueLen` of zero will store an empty value.
-    /// </summary>
-    /// <param name="keyPtr">pointer into the linear memory where the location to store the value is placed.</param>
-    /// <param name="keyLen">the length of the key in bytes.</param>
-    /// <param name="valuePtr">pointer into the linear memory where the value to set is placed.</param>
-    /// <param name="valueLen">the length of the value in bytes.</param>
-    /// <returns>
-    /// Returns the size of the pre-existing value at the specified key if any. Otherwise
-    /// `SENTINEL` is returned as a sentinel value.
-    /// </returns>
-    private int SetStorageV2(int keyPtr, int keyLen, int valuePtr, int valueLen)
-    {
-        Console.WriteLine($"SetStorage: {keyPtr}, {keyLen}, {valuePtr}, {valueLen}");
-        var key = new Key { KeyType = KeyType.Var, KeyValue = new byte[keyLen] };
-        return SetStorage(key, keyPtr, valuePtr, valueLen);
-    }
-
-    private byte[] DecodeKey(Key key, int keyPtr)
-    {
-        return ReadBytes(keyPtr, key.KeyType == KeyType.Fix ? 32 : key.KeyValue.Length);
-    }
-
-    private int SetStorage(Key key, int keyPtr, int valuePtr, int valueLen)
-    {
-        var keyBytes = DecodeKey(key, keyPtr);
-        var value = ReadBytes(valuePtr, valueLen);
-        var writeOutcome = _externalEnvironment.SetStorage(keyBytes, value, false);
-        return writeOutcome.OldLenWithSentinel();
-    }
-
-    public WriteOutcome SetStorage(byte[] key, byte[] value, bool takeOld)
-    {
-        return _externalEnvironment.SetStorage(key, value, takeOld);
-    }
-
-    /// <summary>
-    /// Clear the value at the given key in the contract storage.
-    ///
-    /// Equivalent to the newer [`seal1`][`super::api_doc::Version1::clear_storage`] version with
-    /// the exception of the return type. Still a valid thing to call when not interested in the
-    /// return value.
-    /// </summary>
-    /// <param name="keyPtr"></param>
-    private void ClearStorageV0(int keyPtr)
-    {
-        throw new NotImplementedException();
-    }
-
-    /// <summary>
-    /// Clear the value at the given key in the contract storage.
-    /// </summary>
-    /// <param name="keyPtr">pointer into the linear memory where the key is placed.</param>
-    /// <param name="keyLen">the length of the key in bytes.</param>
-    /// <returns></returns>
-    private int ClearStorageV1(int keyPtr, int keyLen)
-    {
-        throw new NotImplementedException();
-    }
-
-    /// <summary>
-    /// Retrieve the value under the given key from storage.
-    ///
-    /// This version is to be used with a fixed sized storage key. For runtimes supporting
-    /// transparent hashing, please use the newer version of this function.
-    /// </summary>
-    /// <param name="keyPtr">pointer into the linear memory where the key of the requested value is placed.</param>
-    /// <param name="outPtr">pointer to the linear memory where the value is written to.</param>
-    /// <param name="outLenPtr">
-    /// in-out pointer into linear memory where the buffer length is read from and
-    /// the value length is written to.
-    /// </param>
-    /// <returns>ReturnCode</returns>
-    private int GetStorageV0(int keyPtr, int outPtr, int outLenPtr)
-    {
-        throw new NotImplementedException();
-    }
-
-    /// <summary>
-    /// Retrieve the value under the given key from storage.
-    ///
-    /// This version is to be used with a fixed sized storage key. For runtimes supporting
-    /// transparent hashing, please use the newer version of this function.
-    ///
-    /// The key length must not exceed the maximum defined by the contracts module parameter.
-    /// </summary>
-    /// <param name="keyPtr">pointer into the linear memory where the key of the requested value is placed.</param>
-    /// <param name="keyLen">the length of the key in bytes.</param>
-    /// <param name="outPtr">pointer to the linear memory where the value is written to.</param>
-    /// <param name="outLenPtr">
-    /// in-out pointer into linear memory where the buffer length is read from and
-    /// the value length is written to.
-    /// </param>
-    /// <returns>ReturnCode</returns>
-    private int GetStorageV1(int keyPtr, int keyLen, int outPtr, int outLenPtr)
-    {
-        Console.WriteLine($"{keyPtr}, {keyLen}, {outPtr}, {outLenPtr}");
-        var key = ReadBytes(keyPtr, keyLen);
-        var outcome = AsyncHelper.RunSync(() => _externalEnvironment.GetStorageAsync(key));
-        if (outcome != null)
-        {
-            Console.WriteLine($"GetStorage Success: \nKey: {key} \nValue: {outcome}");
-            WriteBytes(outPtr, outcome);
-            WriteUInt32(outLenPtr, Convert.ToUInt32(outcome?.Length));
-            return (int)ReturnCode.Success;
-        }
-
-        return (int)ReturnCode.KeyNotFound;
-    }
-
-    /// <summary>
-    /// Checks whether there is a value stored under the given key.
-    ///
-    /// This version is to be used with a fixed sized storage key. For runtimes supporting
-    /// transparent hashing, please use the newer version of this function.
-    /// </summary>
-    /// <param name="keyPtr">pointer into the linear memory where the key of the requested value is placed.</param>
-    /// <returns>
-    /// Returns the size of the pre-existing value at the specified key if any. Otherwise
-    /// `SENTINEL` is returned as a sentinel value.
-    /// </returns>
-    private int ContainsStorageV0(int keyPtr)
-    {
-        throw new NotImplementedException();
-    }
-
-    /// <summary>
-    /// Checks whether there is a value stored under the given key.
-    ///
-    /// The key length must not exceed the maximum defined by the contracts module parameter.
-    /// </summary>
-    /// <param name="keyPtr">pointer into the linear memory where the key of the requested value is placed.</param>
-    /// <param name="keyLen">the length of the key in bytes.</param>
-    /// <returns>
-    /// Returns the size of the pre-existing value at the specified key if any. Otherwise
-    /// `SENTINEL` is returned as a sentinel value.
-    /// </returns>
-    private int ContainsStorageV1(int keyPtr, int keyLen)
-    {
-        throw new NotImplementedException();
-    }
-
-    /// <summary>
-    /// Retrieve and remove the value under the given key from storage.
-    /// </summary>
-    /// <param name="keyPtr">pointer into the linear memory where the key of the requested value is placed.</param>
-    /// <param name="keyLen">the length of the key in bytes.</param>
-    /// <param name="outPtr">pointer to the linear memory where the value is written to.</param>
-    /// <param name="outLenPtr">
-    /// in-out pointer into linear memory where the buffer length is read from and
-    /// the value length is written to.
-    /// </param>
-    /// <returns>ReturnCode</returns>
-    private int TakeStorageV0(int keyPtr, int keyLen, int outPtr, int outLenPtr)
-    {
-        throw new NotImplementedException();
-    }
 
     /// <summary>
     /// Transfer some value to another account.
@@ -632,83 +433,6 @@ public class WebAssemblyRuntime : IDisposable
     private void TerminateV1(int beneficiaryPtr)
     {
         throw new NotImplementedException();
-    }
-
-    /// <summary>
-    /// Stores the input passed by the caller into the supplied buffer.
-    ///
-    /// The value is stored to linear memory at the address pointed to by `out_ptr`.
-    /// `out_len_ptr` must point to a u32 value that describes the available space at
-    /// `out_ptr`. This call overwrites it with the size of the value. If the available
-    /// space at `out_ptr` is less than the size of the value a trap is triggered.
-    /// <br/>
-    /// <b>Note</b>
-    /// <br/>
-    /// This function traps if the input was previously forwarded by a [`call()`][`Self::call()`].
-    /// </summary>
-    /// <param name="outPtr"></param>
-    /// <param name="outLenPtr"></param>
-    private void InputV0(int outPtr, int outLenPtr)
-    {
-        WriteBytes(outPtr, Input);
-        WriteUInt32(outLenPtr, Convert.ToUInt32(Input.Length));
-    }
-
-    /// <summary>
-    /// Cease contract execution and save a data buffer as a result of the execution.
-    ///
-    /// This function never returns as it stops execution of the caller.
-    /// This is the only way to return a data buffer to the caller. Returning from
-    /// execution without calling this function is equivalent to calling:
-    /// <code>
-    /// nocompile
-    /// seal_return(0, 0, 0);
-    /// </code>>
-    ///
-    /// The flags argument is a bitfield that can be used to signal special return
-    /// conditions to the supervisor:
-    /// --- lsb ---
-    /// bit 0      : REVERT - Revert all storage changes made by the caller.
-    /// bit [1, 31]: Reserved for future use.
-    /// --- msb ---
-    ///
-    /// Using a reserved bit triggers a trap.
-    /// </summary>
-    /// <param name="flags"></param>
-    /// <param name="dataPtr"></param>
-    /// <param name="dataLen"></param>
-    private void SealReturnV0(int flags, int dataPtr, int dataLen)
-    {
-        Console.WriteLine($"SealReturn: {flags}, {dataPtr}, {dataLen}");
-        ReturnBuffer = new byte[dataLen];
-        for (var offset = dataLen - 1; offset >= 0; offset--)
-        {
-            ReturnBuffer[offset] = _memory.ReadByte(dataPtr + offset);
-        }
-    }
-
-    /// <summary>
-    /// Stores the address of the caller into the supplied buffer.
-    ///
-    /// The value is stored to linear memory at the address pointed to by `out_ptr`.
-    /// `out_len_ptr` must point to a u32 value that describes the available space at
-    /// `out_ptr`. This call overwrites it with the size of the value. If the available
-    /// space at `out_ptr` is less than the size of the value a trap is triggered.
-    ///
-    /// If this is a top-level call (i.e. initiated by an extrinsic) the origin address of the
-    /// extrinsic will be returned. Otherwise, if this call is initiated by another contract then
-    /// the address of the contract will be returned. The value is encoded as T::AccountId.
-    ///
-    /// If there is no address associated with the caller (e.g. because the caller is root) then
-    /// it traps with `BadOrigin`.
-    /// </summary>
-    /// <param name="outPtr"></param>
-    /// <param name="outLenPtr"></param>
-    private void Caller(int outPtr, int outLenPtr)
-    {
-        var sender = _hostSmartContractBridgeContext.Sender.ToByteArray();
-        WriteBytes(outPtr, sender);
-        WriteUInt32(outLenPtr, Convert.ToUInt32(sender.Length));
     }
 
     /// <summary>
@@ -982,7 +706,10 @@ public class WebAssemblyRuntime : IDisposable
     /// <param name="outLenPtr"></param>
     private void Now(int outPtr, int outLenPtr)
     {
-        throw new NotImplementedException();
+        // TODO: May not correct.
+        var blockTime = _externalEnvironment.HostSmartContractBridgeContext?.CurrentBlockTime.ToByteArray()!;
+        WriteBytes(outPtr, blockTime);
+        WriteUInt32(outLenPtr, (uint)blockTime.Length);
     }
 
     /// <summary>
@@ -995,24 +722,6 @@ public class WebAssemblyRuntime : IDisposable
     private void MinimumBalance(int outPtr, int outLenPtr)
     {
         throw new NotImplementedException();
-    }
-
-    /// <summary>
-    /// Deposit a contract event with the data buffer and optional list of topics. There is a limit
-    /// on the maximum number of topics specified by `event_topics`.
-    /// </summary>
-    /// <param name="topicsPtr">
-    /// a pointer to the buffer of topics encoded as `Vec T::Hash`. The value of
-    /// this is ignored if `topics_len` is set to `0`. The topics list can't contain duplicates.
-    /// </param>
-    /// <param name="topicsLen">the length of the topics buffer. Pass 0 if you want to pass an empty vector.</param>
-    /// <param name="dataPtr">a pointer to a raw data buffer which will saved along the event.</param>
-    /// <param name="dataLen">the length of the data buffer.</param>
-    private void DepositEvent(int topicsPtr, int topicsLen, int dataPtr, int dataLen)
-    {
-        var topics = ReadBytes(topicsPtr, topicsLen);
-        var data = ReadBytes(dataPtr, dataLen);
-        Events[HashHelper.ComputeFrom(topics)] = data;
     }
 
     /// <summary>
@@ -1139,34 +848,6 @@ public class WebAssemblyRuntime : IDisposable
     private void CallChainExtension(int id, int inputPtr, int inputLen, int outputPtr, int outputLenPtr)
     {
         throw new NotImplementedException();
-    }
-
-    /// <summary>
-    /// Emit a custom debug message.
-    ///
-    /// No newlines are added to the supplied message.
-    /// Specifying invalid UTF-8 just drops the message with no trap.
-    ///
-    /// This is a no-op if debug message recording is disabled which is always the case
-    /// when the code is executing on-chain. The message is interpreted as UTF-8 and
-    /// appended to the debug buffer which is then supplied to the calling RPC client.
-    ///
-    /// # Note
-    ///
-    /// Even though no action is taken when debug message recording is disabled there is still
-    /// a non trivial overhead (and weight cost) associated with calling this function. Contract
-    /// languages should remove calls to this function (either at runtime or compile time) when
-    /// not being executed as an RPC. For example, they could allow users to disable logging
-    /// through compile time flags (cargo features) for on-chain deployment. Additionally, the
-    /// return value of this function can be cached in order to prevent further calls at runtime.
-    /// </summary>
-    /// <param name="strPtr"></param>
-    /// <param name="strLen"></param>
-    /// <returns></returns>
-    private int DebugMessage(int strPtr, int strLen)
-    {
-        DebugMessages.Add(_memory.ReadString(strPtr, strLen));
-        return (int)ReturnCode.Success;
     }
 
     /// <summary>

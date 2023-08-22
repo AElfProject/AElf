@@ -32,7 +32,7 @@ public class WebAssemblySmartContractRunnerTests : WebAssemblyRuntimeTestBase
         executive.ContractHash.ShouldNotBeNull();
 
         // executive should works.
-        const string functionName = "is_power_of_2(uint256)";
+        const string functionName = "is_power_of_2";
         var parameter = new ABIEncode().GetABIEncoded(new ABIValue("uint256", 1024));
         var txContext = MockTransactionContext(functionName, ByteString.CopyFrom(parameter));
 

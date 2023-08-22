@@ -7,6 +7,7 @@ using AElf.CSharp.Core;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Runtime.WebAssembly.Extensions;
 using AElf.Standards.ACS0;
 using AElf.Types;
 using Google.Protobuf;
@@ -64,6 +65,9 @@ public class SolidityContractTestBase : ContractTestBase<SolidityContractTestAEl
     {
         var refBlockInfo = RefBlockInfoProvider.GetRefBlockInfo();
         var transaction =
+            // TODO: Convert aelf address to eth address when call solidity contract method.
+            // GetTransactionWithoutSignature(keyPair.ToEthECKey().GetPublicAddress().EthAddressToAElfAddress(), to,
+            //     methodName, parameter);
             GetTransactionWithoutSignature(Address.FromPublicKey(keyPair.PublicKey), to, methodName, parameter);
         transaction.RefBlockNumber = refBlockInfo.Height;
         transaction.RefBlockPrefix = refBlockInfo.Prefix;

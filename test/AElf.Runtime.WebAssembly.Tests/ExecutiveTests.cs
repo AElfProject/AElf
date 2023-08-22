@@ -1,11 +1,7 @@
-using AElf.Kernel;
-using AElf.Kernel.SmartContract;
+using System.Text;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
-using AElf.Runtime.WebAssembly.Extensions;
-using AElf.Types;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 using Nethereum.ABI;
 using Shouldly;
 using Solang;
@@ -29,7 +25,7 @@ public class ExecutiveTests : WebAssemblyRuntimeTestBase
     public async Task IsPowerOf2Test(ulong input, string output)
     {
         const string solFilePath = "solFiles/simple.sol";
-        const string functionName = "is_power_of_2(uint256)";
+        const string functionName = "is_power_of_2";
 
         var executive = CreateExecutive(solFilePath);
         var parameter = new ABIEncode().GetABIEncoded(new ABIValue("uint256", input));
@@ -48,7 +44,7 @@ public class ExecutiveTests : WebAssemblyRuntimeTestBase
     public async Task FooTest()
     {
         const string solFilePath = "solFiles/simple.sol";
-        const string functionName = "foo()";
+        const string functionName = "foo";
         var executive = CreateExecutive(solFilePath);
         var txContext = MockTransactionContext(functionName);
 
@@ -64,7 +60,7 @@ public class ExecutiveTests : WebAssemblyRuntimeTestBase
     public async Task BarTest()
     {
         const string solFilePath = "solFiles/simple.sol";
-        const string functionName = "bar()";
+        const string functionName = "bar";
         var executive = CreateExecutive(solFilePath);
         var txContext = MockTransactionContext(functionName);
 
@@ -75,17 +71,30 @@ public class ExecutiveTests : WebAssemblyRuntimeTestBase
         txContext.Trace.ReturnValue.ToHex().ShouldBe("02000000");
     }
 
-    public async Task StorageTest()
+    [Fact]
+    public async Task ConstructorTest()
     {
-        const string solFilePath = "solFiles/Srorage.sol";
-        
+        const string solFilePath = "solFiles/Ballot.sol";
+        var proposals = new List<byte[]>(new[]
+        {
+            Encoding.UTF8.GetBytes("Proposal #1"),
+            Encoding.UTF8.GetBytes("Proposal #2")
+        });
+        var executive = CreateExecutive(solFilePath);
+        var txContext = MockTransactionContext("deploy",
+            ByteString.CopyFrom(new ABIEncode().GetABIEncoded(
+                new ABIValue("bytes32[2]", proposals)
+            )));
+
+        var hostSmartContractBridgeContext = _hostSmartContractBridgeContextService.Create();
+        executive.SetHostSmartContractBridgeContext(hostSmartContractBridgeContext);
+        await executive.ApplyAsync(txContext);
     }
 
     private IExecutive CreateExecutive(string solFilePath)
     {
         var code = File.ReadAllBytes(solFilePath);
-        var wasmCode = new Compiler().BuildWasm(code).Contracts.First().WasmCode.ToByteArray();
-        var executive = new Executive(new UnitTestExternalEnvironment(), wasmCode);
-        return executive;
+        return new Executive(new UnitTestExternalEnvironment(),
+            new Compiler().BuildWasm(code).Contracts.First());
     }
 }

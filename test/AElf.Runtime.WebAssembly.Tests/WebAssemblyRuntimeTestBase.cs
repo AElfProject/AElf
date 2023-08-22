@@ -15,7 +15,7 @@ public class WebAssemblyRuntimeTestBase : AElfIntegratedTest<WebAssemblyRuntimeT
         {
             From = SampleAddress.AddressList[0],
             To = SampleAddress.AddressList[1],
-            MethodName = functionName.ToSelector(),
+            MethodName = functionName,
             Params = param ?? ByteString.Empty
         };
         return new TransactionContext

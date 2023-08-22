@@ -23,12 +23,7 @@ public class WebAssemblySmartContractRunner : ISmartContractRunner
     {
         var code = reg.Code.ToByteArray();
         var output = new Compiler().BuildWasm(code);
-        var wasmCode = output.Contracts.First().WasmCode.ToByteArray();
-        var executive = new Executive(ExternalEnvironment, wasmCode)
-        {
-            ContractHash = HashHelper.ComputeFrom(wasmCode),
-            ContractVersion = "Unknown solidity version."
-        };
+        var executive = new Executive(ExternalEnvironment, output.Contracts.First());
         return await Task.FromResult(executive);
     }
 }

@@ -1,4 +1,5 @@
-﻿using AElf.Kernel;
+﻿using System.Text.Json;
+using AElf.Kernel;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Runtime.WebAssembly.Extensions;
@@ -7,6 +8,8 @@ using Google.Protobuf;
 using Google.Protobuf.Reflection;
 using Google.Protobuf.WellKnownTypes;
 using NBitcoin.DataEncoders;
+using Solang;
+using Solang.Extensions;
 using Wasmtime;
 
 namespace AElf.Runtime.WebAssembly;
@@ -19,13 +22,18 @@ public class Executive : IExecutive
     public string ContractVersion { get; set; }
 
     private readonly WebAssemblyRuntime _webAssemblyRuntime;
+    private readonly SolangABI _solangAbi;
 
     private IHostSmartContractBridgeContext _hostSmartContractBridgeContext;
     private ITransactionContext CurrentTransactionContext => _hostSmartContractBridgeContext.TransactionContext;
 
-    public Executive(IExternalEnvironment ext, byte[] wasmCode)
+    public Executive(IExternalEnvironment ext, CompiledContract compiledContract)
     {
+        var wasmCode = compiledContract.WasmCode.ToByteArray();
+        _solangAbi = JsonSerializer.Deserialize<SolangABI>(compiledContract.Abi)!;
         _webAssemblyRuntime = new WebAssemblyRuntime(ext, wasmCode);
+        ContractHash = HashHelper.ComputeFrom(wasmCode);
+        ContractVersion = "Unknown solidity version.";
     }
 
     public IExecutive SetHostSmartContractBridgeContext(IHostSmartContractBridgeContext smartContractBridgeContext)
@@ -51,9 +59,7 @@ public class Executive : IExecutive
 
         var isCallConstructor = transaction.MethodName == "deploy";
 
-        var selector = isCallConstructor
-            ? WebAssemblyRuntimeConstants.ConstructorSelector
-            : transaction.MethodName;
+        var selector = _solangAbi.GetSelector(transaction.MethodName);
         var parameter = transaction.Params.ToHex();
         _webAssemblyRuntime.Input = Encoders.Hex.DecodeData(selector + parameter);
         var instance = _webAssemblyRuntime.Instantiate();
@@ -75,6 +81,15 @@ public class Executive : IExecutive
         {
             transactionContext.Trace.ReturnValue = ByteString.CopyFrom(_webAssemblyRuntime.ReturnBuffer);
             transactionContext.Trace.ExecutionStatus = ExecutionStatus.Executed;
+            foreach (var depositedEvent in _webAssemblyRuntime.Events)
+            {
+                transactionContext.Trace.Logs.Add(new LogEvent
+                {
+                    Address = transaction.To,
+                    Name = depositedEvent.Key.ToHex(),
+                    NonIndexed = ByteString.CopyFrom(depositedEvent.Value)
+                });
+            }
         }
 
         var changes = _webAssemblyRuntime.GetChanges();

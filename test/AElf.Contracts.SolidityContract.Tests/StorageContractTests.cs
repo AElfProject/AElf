@@ -18,7 +18,7 @@ public class StorageContractTests : SolidityContractTestBase
         var executionResult = await DeployWebAssemblyContractAsync(await File.ReadAllBytesAsync(solFilePath));
         var contractAddress = executionResult.Output;
         var parameter = new ABIEncode().GetABIEncoded(new ABIValue("uint256", 100));
-        var tx = GetTransaction(DefaultSenderKeyPair, contractAddress, "store(uint256)".ToSelector(),
+        var tx = GetTransaction(DefaultSenderKeyPair, contractAddress, "store",
             ByteString.CopyFrom(parameter));
         var txResult = await TestTransactionExecutor.ExecuteAsync(tx);
         txResult.Status.ShouldBe(TransactionResultStatus.Mined);
@@ -29,7 +29,7 @@ public class StorageContractTests : SolidityContractTestBase
     public async Task RetrieveTest()
     {
         var contractAddress = await StoreTest();
-        var tx = GetTransaction(DefaultSenderKeyPair, contractAddress, "retrieve()".ToSelector());
+        var tx = GetTransaction(DefaultSenderKeyPair, contractAddress, "retrieve");
         var txResult = await TestTransactionExecutor.ExecuteAsync(tx);
         txResult.Status.ShouldBe(TransactionResultStatus.Mined);
         var hexReturn = txResult.ReturnValue.ToHex();
