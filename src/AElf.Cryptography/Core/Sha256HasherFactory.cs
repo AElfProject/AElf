@@ -1,12 +1,14 @@
 using System.Security.Cryptography;
 using AElf.Cryptography.ECVRF;
 
-namespace AElf.Cryptography.Core;
-
-public class Sha256HasherFactory:IHasherFactory
+namespace AElf.Cryptography.Core
 {
-    public HashAlgorithm Create()
+
+    public class Sha256HasherFactory : IHasherFactory
     {
-        return SHA256.Create();
+        public HashAlgorithm Create()
+        {
+            return SHA256.Create();
+        }
     }
 }

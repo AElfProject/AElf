@@ -1,11 +1,13 @@
-namespace AElf;
-
-public static class AddressHelper
+namespace AElf
 {
-    public static bool VerifyFormattedAddress(string formattedAddress)
+
+    public static class AddressHelper
     {
-        if (string.IsNullOrEmpty(formattedAddress))
-            return false;
-        return Base58CheckEncoding.Verify(formattedAddress);
+        public static bool VerifyFormattedAddress(string formattedAddress)
+        {
+            if (string.IsNullOrEmpty(formattedAddress))
+                return false;
+            return Base58CheckEncoding.Verify(formattedAddress);
+        }
     }
 }
