@@ -18,6 +18,11 @@ public partial class WebAssemblyRuntime
     /// <param name="outLenPtr"></param>
     private void InputV0(int outPtr, int outLenPtr)
     {
+        if (Input == null)
+        {
+            Error(WebAssemblyError.InputForwarded);
+        }
+
         WriteSandboxOutput(outPtr, outLenPtr, Input);
     }
 

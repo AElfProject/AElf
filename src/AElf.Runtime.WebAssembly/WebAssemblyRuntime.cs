@@ -1,4 +1,5 @@
 using AElf.Kernel.SmartContract;
+using AElf.Runtime.WebAssembly.Extensions;
 using AElf.Types;
 using Epoche;
 using Google.Protobuf;
@@ -17,7 +18,7 @@ public partial class WebAssemblyRuntime : IDisposable
     public byte[] ReturnBuffer = Array.Empty<byte>();
     public readonly List<string> DebugMessages = new();
     public Dictionary<Hash, byte[]> Events => _externalEnvironment.Events;
-    public byte[] Input { get; set; } = Array.Empty<byte>();
+    public byte[]? Input { get; set; } = Array.Empty<byte>();
 
     private IHostSmartContractBridgeContext _hostSmartContractBridgeContext;
 
@@ -88,7 +89,7 @@ public partial class WebAssemblyRuntime : IDisposable
         _linker.DefineFunction("seal0", "transfer", (Func<int, int, int, int, int>)TransferV0);
 
         _linker.DefineFunction("seal0", "call", (Func<int, int, long, int, int, int, int, int, int, int>)CallV0);
-        _linker.DefineFunction("seal1", "call", (Func<int, int, long, int, int, int, int, int, int, int>)CallV1);
+        _linker.DefineFunction("seal1", "call", (Func<int, int, long, int, int, int, int, int, int>)CallV1);
         _linker.DefineFunction("seal2", "call", (Func<int, int, long, long, int, int, int, int, int, int, int>)CallV2);
 
         _linker.DefineFunction("seal0", "delegate_call", (Func<int, int, int, int, int, int, int>)DelegateCallV0);
@@ -208,108 +209,11 @@ public partial class WebAssemblyRuntime : IDisposable
     /// <returns>ReturnCode</returns>
     private int TransferV0(int accountPtr, int accountLen, int valuePtr, int valueLen)
     {
-        var account = new Address { Value = ByteString.CopyFrom(ReadSandboxMemory(accountPtr, accountLen)) };
+        var account = ReadSandboxMemory(accountPtr, accountLen).ToAddress();
         var valueBytes = ReadSandboxMemory(valuePtr, valueLen);
         var value = valueBytes.ToInt64(false);
         _externalEnvironment.Transfer(account, value);
         return (int)ReturnCode.Success;
-    }
-
-    /// <summary>
-    /// Make a call to another contract.
-    /// <br/>
-    /// New version available
-    /// <br/>
-    /// This is equivalent to calling the newer version of this function with
-    /// `flags` set to `ALLOW_REENTRY`. See the newer version for documentation.
-    /// <br/>
-    /// Note
-    /// <br/>
-    /// The values `_callee_len` and `_value_len` are ignored because the encoded sizes
-    /// of those types are fixed through
-    /// [`codec::MaxEncodedLen`]. The fields exist
-    /// for backwards compatibility. Consider switching to the newest version of this function.
-    /// </summary>
-    /// <returns>ReturnCode</returns>
-    private int CallV0(int calleePtr, int calleeLen, long gas, int valuePtr, int valueLen, int inputDataPtr,
-        int inputDataLen, int outputPtr, int outputLenPtr)
-    {
-        throw new NotImplementedException();
-    }
-
-    /// <summary>
-    /// Make a call to another contract.
-    ///
-    /// Equivalent to the newer [`seal2`][`super::api_doc::Version2::call`] version but works with
-    /// <b>ref_time</b> Weight only. It is recommended to switch to the latest version, once it's
-    /// stabilized.
-    /// </summary>
-    /// <returns>ReturnCode</returns>
-    private int CallV1(int flags, int calleePtr, long gas, int valuePtr, int valueLen, int inputDataPtr,
-        int inputDataLen, int outputPtr, int outputLenPtr)
-    {
-        throw new NotImplementedException();
-    }
-
-    /// <summary>
-    /// Make a call to another contract.
-    ///
-    /// The callees output buffer is copied to `output_ptr` and its length to `output_len_ptr`.
-    /// The copy of the output buffer can be skipped by supplying the sentinel value
-    /// of `SENTINEL` to `output_ptr`.
-    /// </summary>
-    /// <param name="flags">See "T:SolidityWasmRuntime.CallFlags" for a documentation of the supported flags.</param>
-    /// <param name="calleePtr">
-    /// a pointer to the address of the callee contract. Should be decodable as an
-    /// `T::AccountId`. Traps otherwise.
-    /// </param>
-    /// <param name="refTimeLimit">how much <b>ref_time</b> Weight to devote to the execution.</param>
-    /// <param name="proofSizeLimit">how much <b>proof_size</b> Weight to devote to the execution.</param>
-    /// <param name="depositPtr">
-    /// a pointer to the buffer with value of the storage deposit limit for the
-    /// call. Should be decodable as a `T::Balance`. Traps otherwise. Passing `SENTINEL` means
-    /// setting no specific limit for the call, which implies storage usage up to the limit of the
-    /// parent call.
-    /// </param>
-    /// <param name="valuePtr">
-    /// a pointer to the buffer with value, how much value to send. Should be
-    /// decodable as a `T::Balance`. Traps otherwise.
-    /// </param>
-    /// <param name="inputDataPtr">a pointer to a buffer to be used as input data to the callee.</param>
-    /// <param name="inputDataLen">length of the input data buffer.</param>
-    /// <param name="outputPtr">a pointer where the output buffer is copied to.</param>
-    /// <param name="outputLenPtr">
-    /// in-out pointer to where the length of the buffer is read from and the
-    /// actual length is written to.
-    /// </param>
-    /// <returns>ReturnCode</returns>
-    private int CallV2(int flags, int calleePtr, long refTimeLimit, long proofSizeLimit, int depositPtr, int valuePtr,
-        int inputDataPtr, int inputDataLen, int outputPtr, int outputLenPtr)
-    {
-        throw new NotImplementedException();
-    }
-
-    /// <summary>
-    /// Execute code in the context (storage, caller, value) of the current contract.
-    ///
-    /// Reentrancy protection is always disabled since the callee is allowed
-    /// to modify the callers storage. This makes going through a reentrancy attack
-    /// unnecessary for the callee when it wants to exploit the caller.
-    /// </summary>
-    /// <param name="flags">See "T:SolidityWasmRuntime.CallFlags" for a documentation of the supported flags.</param>
-    /// <param name="codeHashPtr">a pointer to the hash of the code to be called.</param>
-    /// <param name="inputDataPtr">a pointer to a buffer to be used as input data to the callee.</param>
-    /// <param name="inputDataLen">length of the input data buffer.</param>
-    /// <param name="outputPtr">a pointer where the output buffer is copied to.</param>
-    /// <param name="outputLenPtr">
-    /// in-out pointer to where the length of the buffer is read from and the
-    /// actual length is written to.
-    /// </param>
-    /// <returns></returns>
-    private int DelegateCallV0(int flags, int codeHashPtr, int inputDataPtr, int inputDataLen, int outputPtr,
-        int outputLenPtr)
-    {
-        throw new NotImplementedException();
     }
 
     /// <summary>
@@ -1031,23 +935,23 @@ public partial class WebAssemblyRuntime : IDisposable
 
     #region Helper functions
 
-    private void WriteSandboxOutput(int? outPtr, int outLenPtr, byte[] buf, bool allowSkip = false)
+    private void WriteSandboxOutput(int outPtr, int outLenPtr, byte[] buf, bool allowSkip = false)
     {
-        if (allowSkip && outPtr == null)
+        if (allowSkip && outPtr == -1)
         {
             return;
         }
 
         var bufLen = (uint)buf.Length;
         var lenBytes = ReadSandboxMemory(outLenPtr, 4);
-        var len = Convert.ToUInt32(lenBytes);
+        var len = lenBytes.ToInt32(false);
 
         if (len < bufLen)
         {
             throw new OutputBufferTooSmallException();
         }
 
-        WriteSandboxMemory((int)outPtr!, buf);
+        WriteSandboxMemory(outPtr, buf);
         WriteSandboxMemory(outLenPtr, bufLen);
     }
 
@@ -1089,5 +993,11 @@ public partial class WebAssemblyRuntime : IDisposable
         _linker.Dispose();
         _store.Dispose();
         _engine.Dispose();
+    }
+
+    private void Error(WebAssemblyError error)
+    {
+        _externalEnvironment.AppendDebugBuffer(error.ToString());
+        throw new WebAssemblyRuntimeException(error.ToString());
     }
 }

@@ -16,6 +16,11 @@ public interface IExternalEnvironment
 
     Dictionary<Hash, byte[]> Events { get; }
 
+    ExecuteReturnValue Call(Weight gasLimit, long depositLimit, Address to, long value, byte[] inputData,
+        bool allowReentry);
+
+    ExecuteReturnValue DelegateCall(Hash codeHash, byte[] data);
+
     void Transfer(Address to, long value);
     WriteOutcome SetStorage(byte[] key, byte[] value, bool takeOld);
     Task<byte[]?> GetStorageAsync(byte[] key);

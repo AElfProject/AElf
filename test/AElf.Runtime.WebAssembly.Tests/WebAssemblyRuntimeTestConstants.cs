@@ -3,7 +3,7 @@ using Google.Protobuf;
 
 namespace AElf.Runtime.WebAssembly.Tests;
 
-public static class TestAccounts
+public static class WebAssemblyRuntimeTestConstants
 {
     public static Address Alice = new()
     {
@@ -40,4 +40,6 @@ public static class TestAccounts
             4, 4, 4, 4, 4, 4, 4, 4,
             4, 4, 4, 4, 4, 4, 4, 4)
     };
+
+    public static byte[] CallReturnData = { 0xDE, 0xAD, 0xBE, 0xEF };
 }

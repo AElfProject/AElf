@@ -1,4 +1,3 @@
-using AElf.Kernel.SmartContract.Application;
 using NBitcoin.DataEncoders;
 using Shouldly;
 
@@ -16,7 +15,82 @@ public class WebAssemblyRuntimeTests : WebAssemblyRuntimeTestBase
         InvokeCall(instance.GetAction("call"));
         externalEnvironment.Transfers.Count.ShouldBe(1);
         externalEnvironment.Transfers[0].Value.ShouldBe(153);
-        externalEnvironment.Transfers[0].To.ShouldBe(TestAccounts.Alice);
+        externalEnvironment.Transfers[0].To.ShouldBe(WebAssemblyRuntimeTestConstants.Alice);
+    }
+
+    [Fact]
+    public void ContractCallTest()
+    {
+        var (externalEnvironment, _) = ExecuteWatFile("watFiles/contract_call.wat");
+        externalEnvironment.Calls.Count.ShouldBe(1);
+        externalEnvironment.Calls[0].To.ShouldBe(WebAssemblyRuntimeTestConstants.Alice);
+        externalEnvironment.Calls[0].Value.ShouldBe(6);
+        externalEnvironment.Calls[0].Data.ShouldBe(new byte[] { 1, 2, 3, 4 });
+    }
+
+    [Fact]
+    public void ContractDelegateCallTest()
+    {
+        var (externalEnvironment, _) = ExecuteWatFile("watFiles/contract_delegate_call.wat");
+        externalEnvironment.DelegateCalls.Count.ShouldBe(1);
+        externalEnvironment.DelegateCalls[0].CodeHash.Value.ShouldAllBe(b => b == 0x11);
+        externalEnvironment.DelegateCalls[0].Data.ShouldBe(new byte[] { 1, 2, 3, 4 });
+    }
+
+    [Fact]
+    public void ContractCallInputForwardTest()
+    {
+        var input = new byte[] { 0xff, 0x2a, 0x99, 0x88 };
+        var (externalEnvironment, _) = ExecuteWatFile("watFiles/contract_call_input_forward.wat",
+            input);
+        externalEnvironment.DebugMessages.Count.ShouldBe(1);
+        externalEnvironment.DebugMessages[0].ShouldContain("InputForwarded");
+        externalEnvironment.Calls.Count.ShouldBe(1);
+        externalEnvironment.Calls[0].Data.ShouldBe(input);
+        externalEnvironment.Calls[0].To.ShouldBe(WebAssemblyRuntimeTestConstants.Alice);
+        externalEnvironment.Calls[0].Value.ShouldBe(0x2a);
+        externalEnvironment.Calls[0].AllowReentry.ShouldBeFalse();
+    }
+
+    [Fact]
+    public void ContractCallCloneInputTest()
+    {
+        var input = new byte[] { 0xff, 0x2a, 0x99, 0x88 };
+        var (externalEnvironment, runtime) = ExecuteWatFile("watFiles/contract_call_clone_input.wat",
+            input);
+        runtime.ReturnBuffer.ShouldBe(input);
+        externalEnvironment.Calls.Count.ShouldBe(1);
+        externalEnvironment.Calls[0].Data.ShouldBe(input);
+        externalEnvironment.Calls[0].To.ShouldBe(WebAssemblyRuntimeTestConstants.Alice);
+        externalEnvironment.Calls[0].Value.ShouldBe(0x2a);
+        externalEnvironment.Calls[0].AllowReentry.ShouldBeTrue();
+    }
+
+    [Fact]
+    public void ContractCallTailCallTest()
+    {
+        var input = new byte[] { 0xff, 0x2a, 0x99, 0x88 };
+        var (externalEnvironment, runtime) = ExecuteWatFile("watFiles/contract_call_tail_call.wat",
+            input);
+        runtime.ReturnBuffer.ShouldBe(WebAssemblyRuntimeTestConstants.CallReturnData);
+        externalEnvironment.Calls.Count.ShouldBe(1);
+        externalEnvironment.Calls[0].Data.ShouldBe(input);
+        externalEnvironment.Calls[0].To.ShouldBe(WebAssemblyRuntimeTestConstants.Alice);
+        externalEnvironment.Calls[0].Value.ShouldBe(0x2a);
+        externalEnvironment.Calls[0].AllowReentry.ShouldBeFalse();
+    }
+
+    private (UnitTestExternalEnvironment, WebAssemblyRuntime) ExecuteWatFile(string watFilePath, byte[]? input = null)
+    {
+        var externalEnvironment = new UnitTestExternalEnvironment();
+        var runtime = new WebAssemblyRuntime(externalEnvironment, watFilePath, false, 1, 1);
+        if (input != null)
+        {
+            runtime.Input = input;
+        }
+        var instance = runtime.Instantiate();
+        InvokeCall(instance.GetAction("call"));
+        return (externalEnvironment, runtime);
     }
 
     [Fact]

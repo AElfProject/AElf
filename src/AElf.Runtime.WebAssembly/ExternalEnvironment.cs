@@ -13,6 +13,17 @@ public class ExternalEnvironment : IExternalEnvironment
     public Dictionary<string, bool> Deletes { get; set; } = new();
     public Dictionary<Hash, byte[]> Events { get; } = new();
 
+    public ExecuteReturnValue Call(Weight gasLimit, long depositLimit, Address to, long value, byte[] inputData,
+        bool allowReentry)
+    {
+        throw new NotImplementedException();
+    }
+
+    public ExecuteReturnValue DelegateCall(Hash codeHash, byte[] data)
+    {
+        throw new NotImplementedException();
+    }
+
     public void Transfer(Address to, long value)
     {
         throw new NotImplementedException();

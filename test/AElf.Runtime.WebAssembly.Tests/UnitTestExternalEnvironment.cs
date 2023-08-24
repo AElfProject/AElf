@@ -8,20 +8,42 @@ namespace AElf.Runtime.WebAssembly.Tests;
 
 public class UnitTestExternalEnvironment : IExternalEnvironment
 {
-   
     public IHostSmartContractBridgeContext? HostSmartContractBridgeContext { get; set; }
     public Dictionary<string, ByteString> Writes { get; set; } = new();
     public Dictionary<string, bool> Reads { get; set; } = new();
     public Dictionary<string, bool> Deletes { get; set; } = new();
 
     public List<TransferEntry> Transfers { get; set; } = new();
+    public List<CallEntry> Calls { get; set; } = new();
+    public List<CallCodeEntry> DelegateCalls { get; set; } = new();
     public Dictionary<Hash, byte[]> Events { get; set; } = new();
     public List<string> DebugMessages { get; set; } = new();
     public List<Hash> CodeHashes { get; set; } = new();
 
+    public ExecuteReturnValue Call(Weight gasLimit, long depositLimit, Address to, long value, byte[] inputData,
+        bool allowReentry)
+    {
+        Calls.Add(new CallEntry(to, value, inputData, allowReentry));
+        return new ExecuteReturnValue
+        {
+            Flags = ReturnFlags.Empty,
+            Data = WebAssemblyRuntimeTestConstants.CallReturnData
+        };
+    }
+
+    public ExecuteReturnValue DelegateCall(Hash codeHash, byte[] data)
+    {
+        DelegateCalls.Add(new CallCodeEntry(codeHash, data));
+        return new ExecuteReturnValue
+        {
+            Flags = ReturnFlags.Empty,
+            Data = WebAssemblyRuntimeTestConstants.CallReturnData
+        };
+    }
+
     public void Transfer(Address to, long value)
     {
-        Transfers.Add(new TransferEntry { To = to, Value = value });
+        Transfers.Add(new TransferEntry(to, value));
     }
 
     public WriteOutcome SetStorage(byte[] key, byte[] value, bool takeOld)
@@ -124,7 +146,7 @@ public class UnitTestExternalEnvironment : IExternalEnvironment
 
     public Address GetAddress()
     {
-        return TestAccounts.Bob;
+        return WebAssemblyRuntimeTestConstants.Bob;
     }
 
     public long Balance()
@@ -175,7 +197,7 @@ public class UnitTestExternalEnvironment : IExternalEnvironment
 
     public Address EcdsaToEthAddress(byte[] pk)
     {
-        return TestAccounts.Bob;
+        return WebAssemblyRuntimeTestConstants.Bob;
     }
 
     public void SetCodeHash(Hash hash)
@@ -216,13 +238,6 @@ public class UnitTestExternalEnvironment : IExternalEnvironment
     }
 }
 
-public struct TransferEntry
-{
-    public Address To { get; set; }
-    public long Value { get; set; }
-}
-
-public struct CallEntry
-{
-    
-}
+public record TransferEntry(Address To, long Value);
+public record CallEntry(Address To, long Value, byte[] Data, bool AllowReentry);
+public record CallCodeEntry(Hash CodeHash, byte[] Data);

@@ -1,13 +1,13 @@
 namespace AElf.Runtime.WebAssembly;
 
-public class ExecutionReturnValue
+public class ExecuteReturnValue
 {
     public ReturnFlags Flags { get; set; }
-    public string Data { get; set; }
+    public byte[] Data { get; set; }
 }
 
 public enum ReturnFlags
 {
-    Default = 0,
+    Empty = 0,
     Revert = 1
 }
