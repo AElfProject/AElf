@@ -7,6 +7,19 @@ namespace AElf.Runtime.WebAssembly.Tests;
 public class WebAssemblyRuntimeTests : WebAssemblyRuntimeTestBase
 {
     [Fact]
+    public void ContractTransferTest()
+    {
+        const string watFilePath = "watFiles/contract_transfer.wat";
+        var externalEnvironment = new UnitTestExternalEnvironment();
+        var runtime = new WebAssemblyRuntime(externalEnvironment, watFilePath, false, 1, 1);
+        var instance = runtime.Instantiate();
+        InvokeCall(instance.GetAction("call"));
+        externalEnvironment.Transfers.Count.ShouldBe(1);
+        externalEnvironment.Transfers[0].Value.ShouldBe(153);
+        externalEnvironment.Transfers[0].To.ShouldBe(TestAccounts.Alice);
+    }
+
+    [Fact]
     public void SealReturnWithSuccessStatus()
     {
         const string watFilePath = "watFiles/code_return_with_data.wat";

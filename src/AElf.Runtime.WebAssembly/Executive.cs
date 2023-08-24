@@ -2,7 +2,6 @@
 using AElf.Kernel;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Infrastructure;
-using AElf.Runtime.WebAssembly.Extensions;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.Reflection;

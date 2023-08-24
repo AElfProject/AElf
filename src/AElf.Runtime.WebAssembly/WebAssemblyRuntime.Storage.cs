@@ -67,13 +67,13 @@ public partial class WebAssemblyRuntime
 
     private byte[] DecodeKey(Key key, int keyPtr)
     {
-        return ReadBytes(keyPtr, key.KeyType == KeyType.Fix ? 32 : key.KeyValue.Length);
+        return ReadSandboxMemory(keyPtr, key.KeyType == KeyType.Fix ? 32 : key.KeyValue.Length);
     }
 
     private int SetStorage(Key key, int keyPtr, int valuePtr, int valueLen)
     {
         var keyBytes = DecodeKey(key, keyPtr);
-        var value = ReadBytes(valuePtr, valueLen);
+        var value = ReadSandboxMemory(valuePtr, valueLen);
         var writeOutcome = _externalEnvironment.SetStorage(keyBytes, value, false);
         return writeOutcome.OldLenWithSentinel();
     }
@@ -146,13 +146,12 @@ public partial class WebAssemblyRuntime
     private int GetStorageV1(int keyPtr, int keyLen, int outPtr, int outLenPtr)
     {
         Console.WriteLine($"{keyPtr}, {keyLen}, {outPtr}, {outLenPtr}");
-        var key = ReadBytes(keyPtr, keyLen);
+        var key = ReadSandboxMemory(keyPtr, keyLen);
         var outcome = AsyncHelper.RunSync(() => _externalEnvironment.GetStorageAsync(key));
         if (outcome != null)
         {
             Console.WriteLine($"GetStorage Success: \nKey: {key} \nValue: {outcome}");
-            WriteBytes(outPtr, outcome);
-            WriteUInt32(outLenPtr, Convert.ToUInt32(outcome?.Length));
+            WriteSandboxOutput(outPtr, outLenPtr, outcome);
             return (int)ReturnCode.Success;
         }
 

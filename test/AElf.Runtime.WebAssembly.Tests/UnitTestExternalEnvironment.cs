@@ -4,31 +4,25 @@ using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using NBitcoin.DataEncoders;
 
-namespace AElf.Runtime.WebAssembly;
+namespace AElf.Runtime.WebAssembly.Tests;
 
-public class ExternalEnvironment : IExternalEnvironment
+public class UnitTestExternalEnvironment : IExternalEnvironment
 {
+   
+    public IHostSmartContractBridgeContext? HostSmartContractBridgeContext { get; set; }
     public Dictionary<string, ByteString> Writes { get; set; } = new();
     public Dictionary<string, bool> Reads { get; set; } = new();
     public Dictionary<string, bool> Deletes { get; set; } = new();
-    public Dictionary<Hash, byte[]> Events { get; } = new();
+
+    public List<TransferEntry> Transfers { get; set; } = new();
+    public Dictionary<Hash, byte[]> Events { get; set; } = new();
+    public List<string> DebugMessages { get; set; } = new();
+    public List<Hash> CodeHashes { get; set; } = new();
 
     public void Transfer(Address to, long value)
     {
-        throw new NotImplementedException();
+        Transfers.Add(new TransferEntry { To = to, Value = value });
     }
-
-    public byte[] GetStorage(Key key)
-    {
-        throw new NotImplementedException();
-    }
-
-    public int GetStorageSize(Key key)
-    {
-        throw new NotImplementedException();
-    }
-
-    public IHostSmartContractBridgeContext? HostSmartContractBridgeContext { get; set; }
 
     public WriteOutcome SetStorage(byte[] key, byte[] value, bool takeOld)
     {
@@ -39,7 +33,9 @@ public class ExternalEnvironment : IExternalEnvironment
             if (takeOld)
             {
                 writeOutcome = new WriteOutcome
-                    { WriteOutcomeType = WriteOutcomeType.Taken, Value = Encoders.Hex.EncodeData(oldValue.ToByteArray()) };
+                {
+                    WriteOutcomeType = WriteOutcomeType.Taken, Value = Encoders.Hex.EncodeData(oldValue.ToByteArray())
+                };
             }
             else
             {
@@ -74,10 +70,7 @@ public class ExternalEnvironment : IExternalEnvironment
             }
         }
 
-        var value = await HostSmartContractBridgeContext!.GetStateAsync(stateKey);
-        var byteArrayValue = value?.ToByteArray();
-        Reads.TryAdd(stateKey, value != null);
-        return byteArrayValue;
+        return null;
     }
 
     public async Task<int> GetStorageSizeAsync(byte[] key)
@@ -88,123 +81,148 @@ public class ExternalEnvironment : IExternalEnvironment
 
     public Address Caller()
     {
-        throw new NotImplementedException();
+        return HostSmartContractBridgeContext!.Sender;
     }
 
     public bool IsContract()
     {
-        throw new NotImplementedException();
+        return true;
     }
 
     public Hash CodeHash(Address address)
     {
-        throw new NotImplementedException();
+        return Hash.LoadFromByteArray(new byte[]
+        {
+            11, 11, 11, 11, 11, 11, 11, 11,
+            11, 11, 11, 11, 11, 11, 11, 11,
+            11, 11, 11, 11, 11, 11, 11, 11,
+            11, 11, 11, 11, 11, 11, 11, 11,
+        });
     }
 
     public Hash OwnCodeHash()
     {
-        throw new NotImplementedException();
+        return Hash.LoadFromByteArray(new byte[]
+        {
+            10, 10, 10, 10, 10, 10, 10, 10,
+            10, 10, 10, 10, 10, 10, 10, 10,
+            10, 10, 10, 10, 10, 10, 10, 10,
+            10, 10, 10, 10, 10, 10, 10, 10,
+        });
     }
 
     public bool CallerIsOrigin()
     {
-        throw new NotImplementedException();
+        return false;
     }
 
     public bool CallerIsRoot()
     {
-        throw new NotImplementedException();
+        // &self.caller == &Origin::Root
+        return false;
     }
 
     public Address GetAddress()
     {
-        throw new NotImplementedException();
+        return TestAccounts.Bob;
     }
 
     public long Balance()
     {
-        throw new NotImplementedException();
+        return 228;
     }
 
     public long ValueTransferred()
     {
-        throw new NotImplementedException();
+        return 1337;
     }
 
     public Timestamp Now()
     {
-        throw new NotImplementedException();
+        return Timestamp.FromDateTimeOffset(new DateTime(0, 0, 0, 0, 0, 1111));
     }
 
     public long MinimumBalance()
     {
-        throw new NotImplementedException();
+        return 666;
     }
 
     public byte[] Random(byte[] subject)
     {
-        throw new NotImplementedException();
+        return HashHelper.ComputeFrom(subject).ToByteArray();
     }
 
     public void DepositEvent(byte[] topics, byte[] data)
     {
-        throw new NotImplementedException();
+        Events[HashHelper.ComputeFrom(topics)] = data;
     }
 
     public long BlockNumber()
     {
-        throw new NotImplementedException();
+        return HostSmartContractBridgeContext!.CurrentHeight;
     }
 
     public int MaxValueSize()
     {
-        throw new NotImplementedException();
+        return 16384;
     }
 
     public bool AppendDebugBuffer(string message)
     {
-        throw new NotImplementedException();
+        DebugMessages.Add(message);
+        return true;
     }
 
     public Address EcdsaToEthAddress(byte[] pk)
     {
-        throw new NotImplementedException();
+        return TestAccounts.Bob;
     }
 
     public void SetCodeHash(Hash hash)
     {
-        throw new NotImplementedException();
+        CodeHashes.Add(hash);
     }
 
     public int ReentranceCount()
     {
-        throw new NotImplementedException();
+        return 12;
     }
 
     public int AccountReentranceCount(Address accountAddress)
     {
-        throw new NotImplementedException();
+        return 12;
     }
 
     public long Nonce()
     {
-        throw new NotImplementedException();
-    }
-
-    private string GetStateKey(byte[] key)
-    {
-        return new ScopedStatePath
-        {
-            Address = HostSmartContractBridgeContext!.Self,
-            Path = new StatePath
-            {
-                Parts = { key.ToPlainBase58() }
-            }
-        }.ToStateKey();
+        return 995;
     }
 
     public void SetHostSmartContractBridgeContext(IHostSmartContractBridgeContext smartContractBridgeContext)
     {
         HostSmartContractBridgeContext = smartContractBridgeContext;
     }
+
+    private string GetStateKey(byte[] key)
+    {
+        return new ScopedStatePath
+        {
+            Address = Address.FromBase58("2EM5uV6bSJh6xJfZTUa1pZpYsYcCUAdPvZvFUJzMDJEx3rbioz"),
+            Path = new StatePath
+            {
+                Parts = { key.ToPlainBase58() }
+            }
+        }.ToStateKey();
+    }
+}
+
+public struct TransferEntry
+{
+    public Address To { get; set; }
+    public long Value { get; set; }
+}
+
+public struct CallEntry
+{
+    
 }

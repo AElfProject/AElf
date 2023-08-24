@@ -1,4 +1,3 @@
-using System.Text;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
 using Google.Protobuf;
@@ -74,21 +73,30 @@ public class ExecutiveTests : WebAssemblyRuntimeTestBase
     [Fact]
     public async Task ConstructorTest()
     {
-        const string solFilePath = "solFiles/Ballot.sol";
+        const string solFilePath = "solFiles/Ballot2.sol";
         var proposals = new List<byte[]>(new[]
         {
-            Encoding.UTF8.GetBytes("Proposal #1"),
-            Encoding.UTF8.GetBytes("Proposal #2")
+            "Proposal #1".GetBytes(),
+            "Proposal #2".GetBytes()
         });
         var executive = CreateExecutive(solFilePath);
-        var txContext = MockTransactionContext("deploy",
-            ByteString.CopyFrom(new ABIEncode().GetABIEncoded(
-                new ABIValue("bytes32[2]", proposals)
-            )));
+        // var txContext = MockTransactionContext("deploy",
+        //     ByteString.CopyFrom(new ABIEncode().GetABIEncoded(
+        //         new ABIValue("bytes32[]", proposals)
+        //     )));
+        var txContext = MockTransactionContext("deploy");
 
         var hostSmartContractBridgeContext = _hostSmartContractBridgeContextService.Create();
         executive.SetHostSmartContractBridgeContext(hostSmartContractBridgeContext);
         await executive.ApplyAsync(txContext);
+
+        txContext = MockTransactionContext("setProposals", 
+        ByteString.CopyFrom(new ABIEncode().GetABIEncodedPacked(
+            new ABIValue("bytes32[]", proposals)
+        )));
+        await executive.ApplyAsync(txContext);
+        
+        // TODO: Read proposals.
     }
 
     private IExecutive CreateExecutive(string solFilePath)

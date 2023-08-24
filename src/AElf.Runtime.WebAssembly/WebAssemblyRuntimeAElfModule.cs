@@ -18,9 +18,5 @@ public class WebAssemblyRuntimeAElfModule : AElfModule
     {
         context.Services.AddSingleton<ISmartContractRunner, WebAssemblySmartContractRunner>(_ =>
             new WebAssemblySmartContractRunner(new ExternalEnvironment()));
-#if DEBUG
-        context.Services.AddSingleton<ISmartContractRunner, UnitTestWebAssemblySmartContractRunner>(_ =>
-            new UnitTestWebAssemblySmartContractRunner(new UnitTestExternalEnvironment()));
-#endif
     }
 }

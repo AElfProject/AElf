@@ -3,6 +3,7 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using AElf.Types;
+using Google.Protobuf;
 using Nethereum.ABI;
 using Nethereum.ABI.ABIDeserialisation;
 using Shouldly;
@@ -21,11 +22,10 @@ public class BallotContractTests : SolidityContractTestBase
             Encoding.UTF8.GetBytes("Proposal #1"),
             Encoding.UTF8.GetBytes("Proposal #2")
         });
-        // var executionResult = await DeployWebAssemblyContractAsync(await File.ReadAllBytesAsync(solFilePath),
-        //     ByteString.CopyFrom(new ABIEncode().GetABIEncoded(
-        //         new ABIValue("bytes32[]", proposals)
-        //     )));
-        var executionResult = await DeployWebAssemblyContractAsync(solidityCode.GetBytes());
+        var executionResult = await DeployWebAssemblyContractAsync(await File.ReadAllBytesAsync(solFilePath),
+            ByteString.CopyFrom(new ABIEncode().GetABIEncoded(
+                new ABIValue("bytes32[]", proposals)
+            )));
         executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
         executionResult.TransactionResult.Logs.Count.ShouldBePositive();
         return executionResult.Output;

@@ -16,7 +16,7 @@ public partial class WebAssemblyRuntime : IDisposable
     private readonly Module _module;
     public byte[] ReturnBuffer = Array.Empty<byte>();
     public readonly List<string> DebugMessages = new();
-    public readonly Dictionary<Hash, byte[]> Events = new();
+    public Dictionary<Hash, byte[]> Events => _externalEnvironment.Events;
     public byte[] Input { get; set; } = Array.Empty<byte>();
 
     private IHostSmartContractBridgeContext _hostSmartContractBridgeContext;
@@ -64,11 +64,6 @@ public partial class WebAssemblyRuntime : IDisposable
     {
         _externalEnvironment.SetHostSmartContractBridgeContext(smartContractBridgeContext);
         _hostSmartContractBridgeContext = smartContractBridgeContext;
-    }
-
-    public void AddFuel(ulong fuel)
-    {
-        _store.AddFuel(fuel);
     }
 
     private void DefineImportFunctions()
@@ -213,7 +208,11 @@ public partial class WebAssemblyRuntime : IDisposable
     /// <returns>ReturnCode</returns>
     private int TransferV0(int accountPtr, int accountLen, int valuePtr, int valueLen)
     {
-        throw new NotImplementedException();
+        var account = new Address { Value = ByteString.CopyFrom(ReadSandboxMemory(accountPtr, accountLen)) };
+        var valueBytes = ReadSandboxMemory(valuePtr, valueLen);
+        var value = valueBytes.ToInt64(false);
+        _externalEnvironment.Transfer(account, value);
+        return (int)ReturnCode.Success;
     }
 
     /// <summary>
@@ -638,7 +637,8 @@ public partial class WebAssemblyRuntime : IDisposable
     /// <param name="valueLengthPtr"></param>
     private void ValueTransferred(int valuePtr, int valueLengthPtr)
     {
-        //WriteUInt32(valuePtr, (uint)valueLengthPtr);
+        WriteSandboxMemory(valuePtr, 0);
+        WriteSandboxMemory(valueLengthPtr, 0);
     }
 
     /// <summary>
@@ -706,10 +706,8 @@ public partial class WebAssemblyRuntime : IDisposable
     /// <param name="outLenPtr"></param>
     private void Now(int outPtr, int outLenPtr)
     {
-        // TODO: May not correct.
-        var blockTime = _externalEnvironment.HostSmartContractBridgeContext?.CurrentBlockTime.ToByteArray()!;
-        WriteBytes(outPtr, blockTime);
-        WriteUInt32(outLenPtr, (uint)blockTime.Length);
+        var blockTime = _externalEnvironment.Now().ToByteArray();
+        WriteSandboxOutput(outPtr, outLenPtr, blockTime);
     }
 
     /// <summary>
@@ -721,7 +719,8 @@ public partial class WebAssemblyRuntime : IDisposable
     /// <param name="outLenPtr"></param>
     private void MinimumBalance(int outPtr, int outLenPtr)
     {
-        throw new NotImplementedException();
+        var minBalance = _externalEnvironment.MinimumBalance();
+        WriteSandboxOutput(outPtr, outLenPtr, minBalance.ToBytes());
     }
 
     /// <summary>
@@ -736,7 +735,7 @@ public partial class WebAssemblyRuntime : IDisposable
     /// <param name="outLenPtr"></param>
     private void BlockNumber(int outPtr, int outLenPtr)
     {
-        throw new NotImplementedException();
+        WriteSandboxOutput(outPtr, outLenPtr, _externalEnvironment.BlockNumber().ToBytes());
     }
 
     /// <summary>
@@ -782,8 +781,8 @@ public partial class WebAssemblyRuntime : IDisposable
     /// </param>
     private void HashKeccak256(int inputPtr, int inputLen, int outputPtr)
     {
-        var input = ReadBytes(inputPtr, inputLen);
-        WriteBytes(outputPtr, Keccak256.ComputeHash(input));
+        var input = ReadSandboxMemory(inputPtr, inputLen);
+        WriteSandboxMemory(outputPtr, Keccak256.ComputeHash(input));
     }
 
     /// <summary>
@@ -806,7 +805,7 @@ public partial class WebAssemblyRuntime : IDisposable
     /// </param>
     private void HashBlake2_256(int inputPtr, int inputLen, int outputPtr)
     {
-        var input = ReadBytes(inputPtr, inputLen);
+        var input = ReadSandboxMemory(inputPtr, inputLen);
     }
 
     /// <summary>
@@ -1032,31 +1031,51 @@ public partial class WebAssemblyRuntime : IDisposable
 
     #region Helper functions
 
-    private void WriteBytes(int address, byte[] data)
+    private void WriteSandboxOutput(int? outPtr, int outLenPtr, byte[] buf, bool allowSkip = false)
     {
-        foreach (var (offset, byt) in data.Select((b, i) => (i, b)))
+        if (allowSkip && outPtr == null)
         {
-            _memory.Write(address + offset, byt);
+            return;
+        }
+
+        var bufLen = (uint)buf.Length;
+        var lenBytes = ReadSandboxMemory(outLenPtr, 4);
+        var len = Convert.ToUInt32(lenBytes);
+
+        if (len < bufLen)
+        {
+            throw new OutputBufferTooSmallException();
+        }
+
+        WriteSandboxMemory((int)outPtr!, buf);
+        WriteSandboxMemory(outLenPtr, bufLen);
+    }
+
+    private void WriteSandboxMemory(int ptr, byte[] buf)
+    {
+        foreach (var (offset, byt) in buf.Select((b, i) => (i, b)))
+        {
+            _memory.Write(ptr + offset, byt);
         }
     }
 
-    private void WriteUInt32(int address, uint value)
+    private void WriteSandboxMemory(int ptr, uint value)
     {
-        var numberInBytes = BitConverter.GetBytes(value);
+        var bytes = BitConverter.GetBytes(value);
         if (!BitConverter.IsLittleEndian)
         {
-            Array.Reverse(numberInBytes);
+            Array.Reverse(bytes);
         }
 
-        WriteBytes(address, numberInBytes);
+        WriteSandboxMemory(ptr, bytes);
     }
 
-    private byte[] ReadBytes(int address, int length)
+    private byte[] ReadSandboxMemory(int ptr, int len)
     {
-        var value = new byte[length];
-        for (var i = 0; i < length; i++)
+        var value = new byte[len];
+        for (var i = 0; i < len; i++)
         {
-            value[i] = _memory.ReadByte(address + i);
+            value[i] = _memory.ReadByte(ptr + i);
         }
 
         return value;

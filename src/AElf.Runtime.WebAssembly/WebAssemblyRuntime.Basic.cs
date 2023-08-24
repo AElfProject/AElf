@@ -18,8 +18,7 @@ public partial class WebAssemblyRuntime
     /// <param name="outLenPtr"></param>
     private void InputV0(int outPtr, int outLenPtr)
     {
-        WriteBytes(outPtr, Input);
-        WriteUInt32(outLenPtr, Convert.ToUInt32(Input.Length));
+        WriteSandboxOutput(outPtr, outLenPtr, Input);
     }
 
     /// <summary>
@@ -75,8 +74,7 @@ public partial class WebAssemblyRuntime
     private void Caller(int outPtr, int outLenPtr)
     {
         var sender = _hostSmartContractBridgeContext.Sender.ToByteArray();
-        WriteBytes(outPtr, sender);
-        WriteUInt32(outLenPtr, Convert.ToUInt32(sender.Length));
+        WriteSandboxOutput(outPtr, outLenPtr, sender);
     }
 
     /// <summary>
@@ -92,11 +90,10 @@ public partial class WebAssemblyRuntime
     /// <param name="dataLen">the length of the data buffer.</param>
     private void DepositEvent(int topicsPtr, int topicsLen, int dataPtr, int dataLen)
     {
-        var topics = ReadBytes(topicsPtr, topicsLen);
-        var data = ReadBytes(dataPtr, dataLen);
-        Events[HashHelper.ComputeFrom(topics)] = data;
+        var topics = ReadSandboxMemory(topicsPtr, topicsLen);
+        var data = ReadSandboxMemory(dataPtr, dataLen);
+        _externalEnvironment.DepositEvent(topics, data);
     }
-
 
     /// <summary>
     /// Emit a custom debug message.

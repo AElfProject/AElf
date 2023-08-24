@@ -35,6 +35,9 @@
         <None Update="solFiles\*.contract">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
+        <None Update="solFiles\Ballot2.sol">
+          <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
     </ItemGroup>
 
     <ItemGroup>
