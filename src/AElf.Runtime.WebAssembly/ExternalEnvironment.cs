@@ -12,6 +12,7 @@ public class ExternalEnvironment : IExternalEnvironment
     public Dictionary<string, bool> Reads { get; set; } = new();
     public Dictionary<string, bool> Deletes { get; set; } = new();
     public Dictionary<Hash, byte[]> Events { get; } = new();
+    public List<string> DebugMessages { get; set; } = new();
 
     public ExecuteReturnValue Call(Weight gasLimit, long depositLimit, Address to, long value, byte[] inputData,
         bool allowReentry)
@@ -20,6 +21,12 @@ public class ExternalEnvironment : IExternalEnvironment
     }
 
     public ExecuteReturnValue DelegateCall(Hash codeHash, byte[] data)
+    {
+        throw new NotImplementedException();
+    }
+
+    public (Address, ExecuteReturnValue) Instantiate(Weight gasLimit, long depositLimit, Hash codeHash, long value,
+        byte[] inputData, byte[] salt)
     {
         throw new NotImplementedException();
     }
@@ -99,7 +106,7 @@ public class ExternalEnvironment : IExternalEnvironment
 
     public Address Caller()
     {
-        throw new NotImplementedException();
+        return HostSmartContractBridgeContext!.Sender;
     }
 
     public bool IsContract()

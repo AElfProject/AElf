@@ -20,10 +20,10 @@ public partial class WebAssemblyRuntime
     {
         if (Input == null)
         {
-            Error(WebAssemblyError.InputForwarded);
+            HandleError(WebAssemblyError.InputForwarded);
         }
 
-        WriteSandboxOutput(outPtr, outLenPtr, Input);
+        WriteSandboxOutput(outPtr, outLenPtr, Input!);
     }
 
     /// <summary>
@@ -78,7 +78,7 @@ public partial class WebAssemblyRuntime
     /// <param name="outLenPtr"></param>
     private void Caller(int outPtr, int outLenPtr)
     {
-        var sender = _hostSmartContractBridgeContext.Sender.ToByteArray();
+        var sender = _externalEnvironment.Caller().ToByteArray();
         WriteSandboxOutput(outPtr, outLenPtr, sender);
     }
 

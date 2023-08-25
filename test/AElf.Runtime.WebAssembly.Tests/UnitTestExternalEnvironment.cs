@@ -16,6 +16,10 @@ public class UnitTestExternalEnvironment : IExternalEnvironment
     public List<TransferEntry> Transfers { get; set; } = new();
     public List<CallEntry> Calls { get; set; } = new();
     public List<CallCodeEntry> DelegateCalls { get; set; } = new();
+    public List<InstantiateEntry> Instantiates { get; set; } = new();
+    public List<TerminationEntry> Terminations { get; set; } = new();
+    public Tuple<byte[], byte[]> EcdsaRecover { get; set; }
+    public Tuple<byte[], byte[], byte[]> Sr25519Verify { get; set; }
     public Dictionary<Hash, byte[]> Events { get; set; } = new();
     public List<string> DebugMessages { get; set; } = new();
     public List<Hash> CodeHashes { get; set; } = new();
@@ -39,6 +43,20 @@ public class UnitTestExternalEnvironment : IExternalEnvironment
             Flags = ReturnFlags.Empty,
             Data = WebAssemblyRuntimeTestConstants.CallReturnData
         };
+    }
+
+    public (Address, ExecuteReturnValue) Instantiate(Weight gasLimit, long depositLimit, Hash codeHash, long value,
+        byte[] inputData, byte[] salt)
+    {
+        Instantiates.Add(new InstantiateEntry(codeHash, value, inputData, gasLimit.RefTime, salt));
+        return (
+            new AddressGenerator().GenerateContractAddress(WebAssemblyRuntimeTestConstants.Alice, codeHash, inputData,
+                salt),
+            new ExecuteReturnValue
+            {
+                Flags = ReturnFlags.Empty,
+                Data = Array.Empty<byte>()
+            });
     }
 
     public void Transfer(Address to, long value)
@@ -103,7 +121,7 @@ public class UnitTestExternalEnvironment : IExternalEnvironment
 
     public Address Caller()
     {
-        return HostSmartContractBridgeContext!.Sender;
+        return WebAssemblyRuntimeTestConstants.Alice;
     }
 
     public bool IsContract()
@@ -236,8 +254,18 @@ public class UnitTestExternalEnvironment : IExternalEnvironment
             }
         }.ToStateKey();
     }
+
+    private void AddExceptionToDebugMessage(Exception ex)
+    {
+        AppendDebugBuffer(ex.Message);
+#if DEBUG
+        AppendDebugBuffer(ex.ToString());
+#endif
+    }
 }
 
 public record TransferEntry(Address To, long Value);
 public record CallEntry(Address To, long Value, byte[] Data, bool AllowReentry);
 public record CallCodeEntry(Hash CodeHash, byte[] Data);
+public record InstantiateEntry(Hash CodeHash, long Value, byte[] Data, long GasLeft, byte[] Salt);
+public record TerminationEntry(Address Beneficiary);

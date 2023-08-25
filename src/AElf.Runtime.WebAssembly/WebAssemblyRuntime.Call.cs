@@ -155,7 +155,7 @@ public partial class WebAssemblyRuntime
         {
             if (callFlags.Contains(CallFlags.AllowReentry))
             {
-                Error(WebAssemblyError.InvalidCallFlags);
+                HandleError(WebAssemblyError.InvalidCallFlags);
             }
             var codeHash = ReadSandboxMemory(delegateCall.CodeHashPtr, AElfConstants.HashByteArrayLength).ToHash();
             outcome = _externalEnvironment.DelegateCall(codeHash, inputData);

@@ -6,8 +6,9 @@ public class ExecuteReturnValue
     public byte[] Data { get; set; }
 }
 
+[Flags]
 public enum ReturnFlags
 {
-    Empty = 0,
-    Revert = 1
+    Empty = 0x0000_0000,
+    Revert = 0x0000_0001
 }

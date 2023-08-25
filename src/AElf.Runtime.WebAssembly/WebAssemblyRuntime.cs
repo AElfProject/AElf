@@ -1,9 +1,11 @@
+using System.Reflection;
 using AElf.Kernel.SmartContract;
 using AElf.Runtime.WebAssembly.Extensions;
 using AElf.Types;
 using Epoche;
 using Google.Protobuf;
 using Wasmtime;
+using Module = Wasmtime.Module;
 
 namespace AElf.Runtime.WebAssembly;
 
@@ -16,11 +18,9 @@ public partial class WebAssemblyRuntime : IDisposable
     private readonly Memory _memory;
     private readonly Module _module;
     public byte[] ReturnBuffer = Array.Empty<byte>();
-    public readonly List<string> DebugMessages = new();
+    public List<string> DebugMessages => _externalEnvironment.DebugMessages;
     public Dictionary<Hash, byte[]> Events => _externalEnvironment.Events;
     public byte[]? Input { get; set; } = Array.Empty<byte>();
-
-    private IHostSmartContractBridgeContext _hostSmartContractBridgeContext;
 
     public WebAssemblyRuntime(IExternalEnvironment externalEnvironment, byte[] wasmCode,
         bool withFuelConsumption = false, long memoryMin = 16, long memoryMax = 16)
@@ -64,7 +64,6 @@ public partial class WebAssemblyRuntime : IDisposable
     public void SetHostSmartContractBridgeContext(IHostSmartContractBridgeContext smartContractBridgeContext)
     {
         _externalEnvironment.SetHostSmartContractBridgeContext(smartContractBridgeContext);
-        _hostSmartContractBridgeContext = smartContractBridgeContext;
     }
 
     private void DefineImportFunctions()
@@ -235,7 +234,8 @@ public partial class WebAssemblyRuntime : IDisposable
         int inputDataLen, int addressPtr, int addressLenPtr, int outputPtr, int outputLenPtr, int saltPtr,
         int saltLen)
     {
-        throw new NotImplementedException();
+        return (int)Instantiate(codeHashPtr, new Weight(gas, 0), null, valuePtr,
+            inputDataPtr, inputDataLen, addressPtr, addressLenPtr, outputPtr, outputLenPtr, saltPtr, saltLen);
     }
 
     /// <summary>
@@ -249,7 +249,8 @@ public partial class WebAssemblyRuntime : IDisposable
     private int InstantiateV1(int codeHashPtr, long gas, int valuePtr, int inputDataPtr, int inputDataLen,
         int addressPtr, int addressLenPtr, int outputPtr, int outputLenPtr, int saltPtr, int saltLen)
     {
-        throw new NotImplementedException();
+        return (int)Instantiate(codeHashPtr, new Weight(gas, 0), null, valuePtr,
+            inputDataPtr, inputDataLen, addressPtr, addressLenPtr, outputPtr, outputLenPtr, saltPtr, saltLen);
     }
 
     /// <summary>
@@ -287,7 +288,27 @@ public partial class WebAssemblyRuntime : IDisposable
         int inputDataPtr, int inputDataLen, int addressPtr, int addressLenPtr, int outputPtr, int outputLenPtr,
         int saltPtr, int saltLen)
     {
-        throw new NotImplementedException();
+        return (int)Instantiate(codeHashPtr, new Weight(refTimeLimit, proofSizeLimit), depositPtr, valuePtr,
+            inputDataPtr, inputDataLen, addressPtr, addressLenPtr, outputPtr, outputLenPtr, saltPtr, saltLen);
+    }
+
+    private ReturnCode Instantiate(int codeHashPtr, Weight weight, int? depositPtr, int valuePtr, int inputDataPtr,
+        int inputDataLen, int addressPtr, int addressLenPtr, int outputPtr, int outputLenPtr, int saltPtr, int saltLen)
+    {
+        var depositLimit = depositPtr == null ? 0 : ReadSandboxMemory(depositPtr.Value, 8).ToInt64(false);
+        var value = ReadSandboxMemory(valuePtr, 8).ToInt64(false);
+        var codeHash = ReadSandboxMemory(codeHashPtr, AElfConstants.HashByteArrayLength).ToHash();
+        var inputData = ReadSandboxMemory(inputDataPtr, inputDataLen);
+        var salt = ReadSandboxMemory(saltPtr, saltLen);
+        var (address, output) =
+            _externalEnvironment.Instantiate(weight, depositLimit, codeHash, value, inputData, salt);
+        if (output.Flags != ReturnFlags.Revert)
+        {
+            WriteSandboxOutput(addressPtr, addressLenPtr, address.ToByteArray(), true);
+        }
+
+        WriteSandboxOutput(outputPtr, outputLenPtr, output.Data, true);
+        return output.ToReturnCode();
     }
 
     /// <summary>
@@ -995,7 +1016,7 @@ public partial class WebAssemblyRuntime : IDisposable
         _engine.Dispose();
     }
 
-    private void Error(WebAssemblyError error)
+    private void HandleError(WebAssemblyError error)
     {
         _externalEnvironment.AppendDebugBuffer(error.ToString());
         throw new WebAssemblyRuntimeException(error.ToString());

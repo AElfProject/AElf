@@ -63,7 +63,7 @@ public class Executive : IExecutive
         _webAssemblyRuntime.Input = Encoders.Hex.DecodeData(selector + parameter);
         var instance = _webAssemblyRuntime.Instantiate();
         var actionName = isCallConstructor ? "deploy" : "call";
-        var action = instance.GetAction(actionName);
+        var action = instance.GetFunction<ActionResult>(actionName);
         if (action is null)
         {
             throw new WebAssemblyRuntimeException($"error: {actionName} export is missing");
@@ -98,22 +98,29 @@ public class Executive : IExecutive
         CurrentTransactionContext.Trace.Elapsed = (e - s).Ticks;
     }
 
-    private void InvokeAction(Action? action)
+    private void InvokeAction(Func<ActionResult>? action)
     {
         try
         {
-            action?.Invoke();
-        }
-        catch (TrapException ex)
-        {
-            if (ex.Message.Contains("wasm `unreachable` instruction executed"))
+            var result = action?.Invoke();
+            if (result == null)
             {
-                // Ignored.
+                throw new WebAssemblyRuntimeException("Failed to invoke action.");
+            }
+
+            if (result.Value.Trap.Message.Contains("wasm `unreachable` instruction executed") &&
+                result.Value.Trap.Frames?.Count == 1)
+            {
+                // Ignore.
             }
             else
             {
-                throw new WebAssemblyRuntimeException("got exception " + ex.Message);
+                throw result.Value.Trap;
             }
+        }
+        catch (Exception ex)
+        {
+            _webAssemblyRuntime.DebugMessages.Add(ex.ToString());
         }
     }
 

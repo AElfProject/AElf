@@ -124,7 +124,7 @@ public partial class WebAssemblyRuntime
     /// <returns>ReturnCode</returns>
     private int GetStorageV0(int keyPtr, int outPtr, int outLenPtr)
     {
-        throw new NotImplementedException();
+        return GetStorage(keyPtr, 32, outPtr, outLenPtr);
     }
 
     /// <summary>
@@ -145,12 +145,15 @@ public partial class WebAssemblyRuntime
     /// <returns>ReturnCode</returns>
     private int GetStorageV1(int keyPtr, int keyLen, int outPtr, int outLenPtr)
     {
-        Console.WriteLine($"{keyPtr}, {keyLen}, {outPtr}, {outLenPtr}");
+        return GetStorage(keyPtr, keyLen, outPtr, outLenPtr);
+    }
+
+    private int GetStorage(int keyPtr, int keyLen, int outPtr, int outLenPtr)
+    {
         var key = ReadSandboxMemory(keyPtr, keyLen);
         var outcome = AsyncHelper.RunSync(() => _externalEnvironment.GetStorageAsync(key));
         if (outcome != null)
         {
-            Console.WriteLine($"GetStorage Success: \nKey: {key} \nValue: {outcome}");
             WriteSandboxOutput(outPtr, outLenPtr, outcome);
             return (int)ReturnCode.Success;
         }
@@ -189,7 +192,9 @@ public partial class WebAssemblyRuntime
     /// </returns>
     private int ContainsStorageV1(int keyPtr, int keyLen)
     {
-        throw new NotImplementedException();
+        var key = ReadSandboxMemory(keyPtr, keyLen);
+        var outcome = AsyncHelper.RunSync(() => _externalEnvironment.GetStorageAsync(key));
+        return outcome?.Length ?? int.MaxValue;
     }
 
     /// <summary>
