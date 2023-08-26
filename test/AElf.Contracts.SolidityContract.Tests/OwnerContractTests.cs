@@ -27,9 +27,8 @@ public class OwnerContractTests : SolidityContractTestBase
     {
         var contractAddress = await DeployOwnerContractTest();
         var tx = GetTransaction(DefaultSenderKeyPair, contractAddress, "deploy");
-        var txResult = await TestTransactionExecutor.ExecuteAsync(tx);
-        // Should be failed: Constructor cannot be executed more than once.
-        txResult.Status.ShouldNotBe(TransactionResultStatus.Mined);
+        var txResult = await TestTransactionExecutor.ExecuteWithExceptionAsync(tx);
+        txResult.Error.ShouldNotBeEmpty();
     }
 
     [Fact]

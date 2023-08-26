@@ -110,6 +110,7 @@ public class SmartContractService : ISmartContractService, ITransientDependency
         wasmExecutive.SetHostSmartContractBridgeContext(context);
         await wasmExecutive.ApplyAsync(new TransactionContext
         {
+            Origin = contractAddress,
             Transaction = new Transaction
             {
                 From = author,

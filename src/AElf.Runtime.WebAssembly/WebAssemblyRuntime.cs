@@ -69,6 +69,7 @@ public partial class WebAssemblyRuntime : IDisposable
     private void DefineImportFunctions()
     {
         _linker.Define("env", "memory", _memory);
+        _linker.DefineWasi();
 
         _linker.DefineFunction("seal0", "set_storage", (Action<int, int, int>)SetStorageV0);
         _linker.DefineFunction("seal1", "set_storage", (Func<int, int, int, int>)SetStorageV1);
