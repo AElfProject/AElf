@@ -1,3 +1,7 @@
+using System.Text;
+using AElf.CSharp.Core.Utils;
+using Nethereum.Contracts;
+
 namespace AElf.Runtime.WebAssembly;
 
 public partial class WebAssemblyRuntime
@@ -52,6 +56,7 @@ public partial class WebAssemblyRuntime
     private void SealReturnV0(int flags, int dataPtr, int dataLen)
     {
         Console.WriteLine($"SealReturn: {flags}, {dataPtr}, {dataLen}");
+        ReturnFlags = (ReturnFlags)flags;
         ReturnBuffer = new byte[dataLen];
         for (var offset = dataLen - 1; offset >= 0; offset--)
         {
@@ -78,7 +83,13 @@ public partial class WebAssemblyRuntime
     /// <param name="outLenPtr"></param>
     private void Caller(int outPtr, int outLenPtr)
     {
-        var sender = _externalEnvironment.Caller().ToByteArray();
+        if (_externalEnvironment.Caller == null)
+        {
+            HandleError(DispatchError.RootNotAllowed);
+            return;
+        }
+
+        var sender = _externalEnvironment.Caller.ToByteArray();
         WriteSandboxOutput(outPtr, outLenPtr, sender);
     }
 
@@ -95,9 +106,40 @@ public partial class WebAssemblyRuntime
     /// <param name="dataLen">the length of the data buffer.</param>
     private void DepositEvent(int topicsPtr, int topicsLen, int dataPtr, int dataLen)
     {
-        var topics = ReadSandboxMemory(topicsPtr, topicsLen);
-        var data = ReadSandboxMemory(dataPtr, dataLen);
-        _externalEnvironment.DepositEvent(topics, data);
+        if (dataLen > _externalEnvironment.MaxValueSize())
+        {
+            HandleError(WebAssemblyError.ValueTooLarge);
+            return;
+        }
+
+        var topicsBytes = ReadSandboxMemory(topicsPtr, topicsLen);
+        var topicsCount = topicsBytes[0] / 4;
+        var topics = topicsBytes.Take(new Range(1, topicsBytes[0] * 8 + 1)).ToArray();
+
+        if (topicsCount > 4)
+        {
+            HandleError(WebAssemblyError.TooManyTopics);
+            return;
+        }
+
+        var eventData = ReadSandboxMemory(dataPtr, dataLen);
+        //topicsBytes = topics.Aggregate(Array.Empty<byte>(), (current, next) => current.Concat(next).ToArray());
+        _externalEnvironment.DepositEvent(topics, eventData);
+    }
+
+    private List<byte[]> DecodeEvent(byte[] topics)
+    {
+        var decodedTopics = new List<byte[]>();
+        var length = topics[0] * 8;
+        var topicCount = (topics.Length - 1) / length;
+        for (var i = 0; i < topicCount; i++)
+        {
+            var topic = new byte[length];
+            Array.Copy(topics, i * length + 1, topic, 0, length);
+            decodedTopics.Add(topic);
+        }
+
+        return decodedTopics;
     }
 
     /// <summary>
@@ -124,7 +166,18 @@ public partial class WebAssemblyRuntime
     /// <returns></returns>
     private int DebugMessage(int strPtr, int strLen)
     {
-        DebugMessages.Add(_memory.ReadString(strPtr, strLen));
-        return (int)ReturnCode.Success;
+        var encoding = new UTF8Encoding(false, true);
+        var debugMessageBytes = ReadSandboxMemory(strPtr, strLen);
+        try
+        {
+            // TODO: Find a way to valid utf8 bytes properly.
+            var debugMessage = encoding.GetString(debugMessageBytes);
+            DebugMessages.Add(debugMessage);
+            return (int)ReturnCode.Success;
+        }
+        catch (DecoderFallbackException)
+        {
+            return (int)ReturnCode.CallRuntimeFailed;
+        }
     }
 }

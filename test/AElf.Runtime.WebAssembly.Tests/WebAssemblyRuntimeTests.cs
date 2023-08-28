@@ -1,6 +1,5 @@
 using AElf.Types;
 using Google.Protobuf;
-using NBitcoin.DataEncoders;
 using Shouldly;
 using Wasmtime;
 
@@ -8,7 +7,7 @@ namespace AElf.Runtime.WebAssembly.Tests;
 
 public class WebAssemblyRuntimeTests : WebAssemblyRuntimeTestBase
 {
-    private List<string> _runtimeErrors = new List<string>();
+    private readonly List<string> _runtimeErrors = new();
 
     [Fact]
     public void ContractTransferTest()
@@ -201,8 +200,7 @@ public class WebAssemblyRuntimeTests : WebAssemblyRuntimeTestBase
             byteArrayBuilder.RepeatedBytes(0x22, 32), false);
 
         var runtime = new WebAssemblyRuntime(externalEnvironment, watFilePath, false, 1, 1);
-        var instance = runtime.Instantiate();
-        InvokeCall(instance.GetFunction<ActionResult>("call"));
+        InvokeCall(runtime.Instantiate().GetFunction<ActionResult>("call"));
 
         runtime.ReturnBuffer.ShouldBe(byteArrayBuilder.RepeatedBytes(0x22, 32));
     }
@@ -218,124 +216,179 @@ public class WebAssemblyRuntimeTests : WebAssemblyRuntimeTestBase
     [Fact]
     public void CallerTrapsWhenNoAccountIdTest()
     {
-
+        var externalEnvironment = new UnitTestExternalEnvironment();
+        var runtime = new WebAssemblyRuntime(externalEnvironment, "watFiles/caller.wat", false, 1, 1);
+        externalEnvironment.Caller = null;
+        var invokeResult = InvokeCall(runtime.Instantiate().GetFunction<ActionResult>("call"));
+        invokeResult.Success.ShouldBeFalse();
+        invokeResult.DebugMessage.ShouldContain(DispatchError.RootNotAllowed.ToString());
+        _runtimeErrors[0].ShouldContain(DispatchError.RootNotAllowed.ToString());
     }
 
     [Fact]
     public void AddressTest()
     {
-
+        ExecuteWatFile("watFiles/address.wat");
+        _runtimeErrors.Count.ShouldBe(1);
+        _runtimeErrors[0].ShouldNotContain("assert");
     }
 
     [Fact]
     public void BalanceTest()
     {
-
+        ExecuteWatFile("watFiles/balance.wat");
+        _runtimeErrors.Count.ShouldBe(1);
+        _runtimeErrors[0].ShouldNotContain("assert");
     }
 
     [Fact]
     public void GasPriceTest()
     {
-
+        ExecuteWatFile("watFiles/gas_price.wat");
+        _runtimeErrors.Count.ShouldBe(1);
+        _runtimeErrors[0].ShouldNotContain("assert");
     }
 
     [Fact]
     public void GasLeftTest()
     {
-
+        ExecuteWatFile("watFiles/gas_left.wat");
     }
 
     [Fact]
     public void ValueTransferredTest()
     {
-
+        ExecuteWatFile("watFiles/value_transferred.wat");
+        _runtimeErrors.Count.ShouldBe(1);
+        _runtimeErrors[0].ShouldNotContain("assert");
     }
 
     [Fact]
     public void StartFunctionIllegalTest()
     {
-
+        var trapException = Assert.ThrowsAny<TrapException>(() => ExecuteWatFile("watFiles/start_fn_illegal.wat"));
+        trapException.Message.ShouldContain("start");
     }
 
     [Fact]
     public void NowTest()
     {
-
+        ExecuteWatFile("watFiles/timestamp_now.wat");
+        _runtimeErrors.Count.ShouldBe(1);
+        _runtimeErrors[0].ShouldNotContain("assert");
+        
+        ExecuteWatFile("watFiles/timestamp_now_unprefixed.wat");
+        _runtimeErrors.Count.ShouldBe(2);
+        _runtimeErrors[1].ShouldNotContain("assert");
     }
 
     [Fact]
     public void MinimumBalanceTest()
     {
-
+        ExecuteWatFile("watFiles/minimum_balance.wat");
+        _runtimeErrors.Count.ShouldBe(1);
+        _runtimeErrors[0].ShouldNotContain("assert");
     }
 
     [Fact]
     public void RandomTest()
     {
-
+        var (_, runtime) = ExecuteWatFile("watFiles/random.wat");
+        _runtimeErrors.Count.ShouldBe(1);
+        _runtimeErrors[0].ShouldNotContain("assert");
+        runtime.ReturnBuffer.ShouldBe(
+            ByteArrayHelper.HexStringToByteArray("000102030405060708090A0B0C0D0E0F000102030405060708090A0B0C0D0E0F"));
     }
 
     [Fact]
     public void RandomTestV1()
     {
-
+        var (_, runtime) = ExecuteWatFile("watFiles/random_v1.wat");
+        _runtimeErrors.Count.ShouldBe(1);
+        _runtimeErrors[0].ShouldNotContain("assert");
+        runtime.ReturnBuffer.ShouldBe(ByteArrayHelper
+            .HexStringToByteArray("000102030405060708090A0B0C0D0E0F000102030405060708090A0B0C0D0E0F")
+            .Concat(42.ToBytes(false)));
     }
 
     [Fact]
     public void DepositEventTest()
     {
+        var (externalEnvironment, _) = ExecuteWatFile("watFiles/deposit_event.wat");
+        externalEnvironment.Events.Count.ShouldBe(1);
+        externalEnvironment.Events[0].Item1
+            .ShouldBe(new ByteArrayBuilder().RepeatedBytes(0x33, AElfConstants.HashByteArrayLength));
+        externalEnvironment.Events[0].Item2.ShouldBe(new byte[]
+            { 0x00, 0x01, 0x2a, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xe5, 0x14, 0x00 });
+    }
 
+    [Fact]
+    public void DepositEventDuplicatesAllowedTest()
+    {
+        var (externalEnvironment, _) = ExecuteWatFile("watFiles/deposit_event_duplicates.wat");
+        externalEnvironment.Events[0].Item1.ShouldBe(new ByteArrayBuilder()
+            .RepeatedBytes(0x01, AElfConstants.HashByteArrayLength)
+            .Concat(new ByteArrayBuilder().RepeatedBytes(0x02, AElfConstants.HashByteArrayLength))
+            .Concat(new ByteArrayBuilder().RepeatedBytes(0x01, AElfConstants.HashByteArrayLength))
+            .Concat(new ByteArrayBuilder().RepeatedBytes(0x04, AElfConstants.HashByteArrayLength))
+        );
+        externalEnvironment.Events[0].Item2.ShouldBe(new byte[]
+            { 0x00, 0x01, 0x2a, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xe5, 0x14, 0x00 });
     }
 
     [Fact]
     public void DepositEventMaxTopicsTest()
     {
-
+        ExecuteWatFile("watFiles/deposit_event_max_topics.wat");
+        _runtimeErrors[0].ShouldContain(WebAssemblyError.TooManyTopics.ToString());
     }
 
     [Fact]
     public void BlockNumberTest()
     {
-
+        ExecuteWatFile("watFiles/block_number.wat");
+        _runtimeErrors.Count.ShouldBe(1);
+        _runtimeErrors[0].ShouldNotContain("assert");
     }
 
     [Fact]
     public void SealReturnWithSuccessStatusTest()
     {
-        const string watFilePath = "watFiles/code_return_with_data.wat";
-        var runtime = new WebAssemblyRuntime(new UnitTestExternalEnvironment(), watFilePath, false, 1, 1);
-        runtime.Input = Encoders.Hex.DecodeData("00000000445566778899");
-        var instance = runtime.Instantiate();
-        InvokeCall(instance.GetAction("call"));
-        var hexReturn = Convert.ToHexString(runtime.ReturnBuffer);
-        hexReturn.ShouldBe("445566778899");
+        var (_, runtime) = ExecuteWatFile("watFiles/code_return_with_data.wat",
+            ByteArrayHelper.HexStringToByteArray("00000000445566778899"));
+        runtime.ReturnBuffer.ToHex().ShouldBe("445566778899");
+        runtime.ReturnFlags.ShouldNotBe(ReturnFlags.Revert);
     }
 
     [Fact]
     public void ReturnWithRevertStatusTest()
     {
-
+        var (_, runtime) = ExecuteWatFile("watFiles/code_return_with_data.wat",
+            ByteArrayHelper.HexStringToByteArray("010000005566778899"));
+        runtime.ReturnBuffer.ToHex().ShouldBe("5566778899");
+        runtime.ReturnFlags.ShouldBe(ReturnFlags.Revert);
     }
 
     [Fact]
     public void ContractOutOfBoundsAccessTest()
     {
-
+        ExecuteWatFile("watFiles/out_of_bounds_access.wat");
+        _runtimeErrors.Count.ShouldBe(1);
+        _runtimeErrors[0].ShouldContain(WebAssemblyError.OutOfBounds.ToString());
     }
 
     [Fact]
     public void ContractDecodeLengthIgnoredTest()
     {
-
+        ExecuteWatFile("watFiles/decode_failure.wat");
+        _runtimeErrors.Count.ShouldBe(1);
+        _runtimeErrors[0].ShouldNotContain("assert");
     }
 
     [Fact]
     public void DebugMessageWorks()
     {
-        const string watFilePath = "watFiles/code_debug_message.wat";
-        var runtime = new WebAssemblyRuntime(new UnitTestExternalEnvironment(), watFilePath, false, 1, 1);
-        var instance = runtime.Instantiate();
-        InvokeCall(instance.GetAction("call"));
+        var (_, runtime) = ExecuteWatFile("watFiles/debug_message.wat");
         runtime.DebugMessages.Count.ShouldBe(1);
         runtime.DebugMessages.First().ShouldBe("Hello World!");
     }
@@ -343,7 +396,8 @@ public class WebAssemblyRuntimeTests : WebAssemblyRuntimeTestBase
     [Fact]
     public void DebugMessageInvalidUtf8FailsTest()
     {
-
+        var (_, runtime) = ExecuteWatFile("watFiles/debug_message_fail.wat");
+        runtime.DebugMessages.ShouldBeEmpty();
     }
 
     [Fact]
@@ -433,8 +487,8 @@ public class WebAssemblyRuntimeTests : WebAssemblyRuntimeTestBase
     public void GetStorageWorks()
     {
         const string watFilePath = "watFiles/get_storage_works.wat";
-        var context = new UnitTestExternalEnvironment();
-        var runtime = new WebAssemblyRuntime(context, watFilePath, false, 1, 1);
+        var externalEnvironment = new UnitTestExternalEnvironment();
+        var runtime = new WebAssemblyRuntime(externalEnvironment, watFilePath, false, 1, 1);
 
         var byteArrayBuilder = new ByteArrayBuilder();
         // value does not exist
@@ -453,7 +507,7 @@ public class WebAssemblyRuntimeTests : WebAssemblyRuntimeTestBase
         {
             var key = byteArrayBuilder.RepeatedBytes(1, 64);
 
-            runtime.SetStorage(key, new byte[] { 42 }, false);
+            externalEnvironment.SetStorage(key, new byte[] { 42 }, false);
             runtime.Input = ConstructKeyWithLengthInput(64, byteArrayBuilder.RepeatedBytes(1, 64));
 
             var instance = runtime.Instantiate();
@@ -465,7 +519,7 @@ public class WebAssemblyRuntimeTests : WebAssemblyRuntimeTestBase
         {
             var key = byteArrayBuilder.RepeatedBytes(2, 19);
 
-            runtime.SetStorage(key, new byte[] { }, false);
+            externalEnvironment.SetStorage(key, new byte[] { }, false);
             runtime.Input = ConstructKeyWithLengthInput(19, byteArrayBuilder.RepeatedBytes(2, 19));
             var instance = runtime.Instantiate();
             InvokeCall(instance.GetAction("call"));
@@ -474,15 +528,106 @@ public class WebAssemblyRuntimeTests : WebAssemblyRuntimeTestBase
     }
 
     [Fact]
-    public void ClearStorageWorks()
+    public async Task ClearStorageWorks()
     {
+        const string watFilePath = "watFiles/clear_storage_works.wat";
+        var externalEnvironment = new UnitTestExternalEnvironment();
+        var runtime = new WebAssemblyRuntime(externalEnvironment, watFilePath, false, 1, 1);
 
+        var byteArrayBuilder = new ByteArrayBuilder();
+
+        externalEnvironment.SetStorage(byteArrayBuilder.RepeatedBytes(1, 64), new byte[] { 42 }, false);
+        externalEnvironment.SetStorage(byteArrayBuilder.RepeatedBytes(2, 19), Array.Empty<byte>(), false);
+        
+        // value does not exist
+        {
+            var key = byteArrayBuilder.RepeatedBytes(3, 32);
+            runtime.Input = ConstructKeyWithLengthInput(32, key);
+            var instance = runtime.Instantiate();
+            InvokeCall(instance.GetFunction<ActionResult>("call"));
+            runtime.ReturnBuffer.ToInt32(false).ShouldBe(int.MaxValue);
+            var value = await externalEnvironment.GetStorageAsync(key);
+            value.ShouldBeNull();
+        }
+
+        // value did exist
+        {
+            var key = byteArrayBuilder.RepeatedBytes(1, 64);
+            runtime.Input = ConstructKeyWithLengthInput(64, key);
+            var instance = runtime.Instantiate();
+            InvokeCall(instance.GetFunction<ActionResult>("call"));
+            runtime.ReturnBuffer.ToInt32(false).ShouldBe(1);
+            var value = await externalEnvironment.GetStorageAsync(key);
+            value.ShouldBeNull();
+        }
+        
+        // value did not exist (wrong key length)
+        {
+            var key = byteArrayBuilder.RepeatedBytes(1, 64);
+            runtime.Input = ConstructKeyWithLengthInput(63, key);
+            var instance = runtime.Instantiate();
+            InvokeCall(instance.GetFunction<ActionResult>("call"));
+            runtime.ReturnBuffer.ToInt32(false).ShouldBe(int.MaxValue);
+            var value = await externalEnvironment.GetStorageAsync(key);
+            value.ShouldBeNull();
+        }
+
+        // value exists
+        {
+            var key = byteArrayBuilder.RepeatedBytes(2, 19);
+            runtime.Input = ConstructKeyWithLengthInput(19, key);
+            var instance = runtime.Instantiate();
+            InvokeCall(instance.GetFunction<ActionResult>("call"));
+            runtime.ReturnBuffer.ToInt32(false).ShouldBe(0);
+            var value = await externalEnvironment.GetStorageAsync(key);
+            value.ShouldBeNull();
+        }
     }
 
     [Fact]
-    public void TakeStorageWorks()
+    public async Task TakeStorageWorks()
     {
+        const string watFilePath = "watFiles/take_storage_works.wat";
+        var externalEnvironment = new UnitTestExternalEnvironment();
+        var runtime = new WebAssemblyRuntime(externalEnvironment, watFilePath, false, 1, 1);
 
+        var byteArrayBuilder = new ByteArrayBuilder();
+
+        externalEnvironment.SetStorage(byteArrayBuilder.RepeatedBytes(1, 64), new byte[] { 42 }, false);
+        externalEnvironment.SetStorage(byteArrayBuilder.RepeatedBytes(2, 19), Array.Empty<byte>(), false);
+
+        // value does not exist -> error returned
+        {
+            var key = byteArrayBuilder.RepeatedBytes(1, 64);
+            runtime.Input = ConstructKeyWithLengthInput(63, key);
+            var instance = runtime.Instantiate();
+            InvokeCall(instance.GetFunction<ActionResult>("call"));
+            runtime.ReturnBuffer[..4].ToInt32(false).ShouldBe((int)ReturnCode.KeyNotFound);
+        }
+
+        // value did exist -> value returned.
+        {
+            var key = byteArrayBuilder.RepeatedBytes(1, 64);
+            runtime.Input = ConstructKeyWithLengthInput(64, key);
+            var instance = runtime.Instantiate();
+            InvokeCall(instance.GetFunction<ActionResult>("call"));
+            runtime.ReturnBuffer[..4].ToInt32(false).ShouldBe((int)ReturnCode.Success);
+            runtime.ReturnBuffer[4..].ShouldBe(new byte[] { 42 });
+            var value = await externalEnvironment.GetStorageAsync(key);
+            value.ShouldBeNull();
+        }
+
+        // value did exist -> length returned (test for 0 sized)
+        {
+            var key = byteArrayBuilder.RepeatedBytes(2, 19);
+            runtime.Input = ConstructKeyWithLengthInput(19, key);
+            var instance = runtime.Instantiate();
+            InvokeCall(instance.GetFunction<ActionResult>("call"));
+            runtime.ReturnBuffer[..4].ToInt32(false).ShouldBe((int)ReturnCode.Success);
+            runtime.ReturnBuffer[4..].ShouldBe(Array.Empty<byte>());
+            var value = await externalEnvironment.GetStorageAsync(key);
+            value.ShouldBeNull();
+        }
     }
 
     [Fact]
@@ -566,8 +711,7 @@ public class WebAssemblyRuntimeTests : WebAssemblyRuntimeTestBase
             runtime.Input = input;
         }
 
-        var instance = runtime.Instantiate();
-        InvokeCall(instance.GetFunction<ActionResult>("call"));
+        InvokeCall(runtime.Instantiate().GetFunction<ActionResult>("call"));
         return (externalEnvironment, runtime);
     }
 
@@ -592,28 +736,14 @@ public class WebAssemblyRuntimeTests : WebAssemblyRuntimeTestBase
         }
     }
 
-    private void InvokeCall(Func<ActionResult>? call)
+    private InvokeResult InvokeCall(Func<ActionResult>? action)
     {
-        try
+        var invokeResult = new RuntimeActionInvoker().Invoke(action);
+        if (!invokeResult.Success)
         {
-            var result = call?.Invoke();
-            if (result == null)
-            {
-                throw new WebAssemblyRuntimeException("Failed to invoke call.");
-            }
-            if (result.Value.Trap.Message.Contains("wasm `unreachable` instruction executed") &&
-                result.Value.Trap.Frames?.Count == 1)
-            {
-                // Ignore.
-            }
-            else
-            {
-                _runtimeErrors.Add(result.Value.Trap.ToString());
-            }
+            _runtimeErrors.Add(invokeResult.DebugMessage);
         }
-        catch (Exception e)
-        {
-            _runtimeErrors.Add(e.ToString());
-        }
+
+        return invokeResult;
     }
 }

@@ -10,7 +10,7 @@
 	;;    output_ptr: u32,
 	;;    output_len_ptr: u32
 	;;) -> u32
-	(import "seal0" "seal_call" (func $seal_call (param i32 i32 i64 i32 i32 i32 i32 i32 i32) (result i32)))
+	(import "seal0" "call" (func $seal_call (param i32 i32 i64 i32 i32 i32 i32 i32 i32) (result i32)))
 	(import "env" "memory" (memory 1 1))
 	(func (export "call")
 		(drop

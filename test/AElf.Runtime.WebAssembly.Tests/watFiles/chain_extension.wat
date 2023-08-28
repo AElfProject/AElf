@@ -3,7 +3,7 @@
 	(import "seal0" "call_chain_extension"
 		(func $call_chain_extension (param i32 i32 i32 i32 i32) (result i32))
 	)
-	(import "seal0" "seal_input" (func $seal_input (param i32 i32)))
+	(import "seal0" "input" (func $seal_input (param i32 i32)))
 	(import "seal0" "seal_return" (func $seal_return (param i32 i32 i32)))
 	(import "env" "memory" (memory 16 16))
 

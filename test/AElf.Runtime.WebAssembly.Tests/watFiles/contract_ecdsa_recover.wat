@@ -4,7 +4,7 @@
 	;;    message_hash_ptr: u32,
 	;;    output_ptr: u32
 	;; ) -> u32
-	(import "seal0" "seal_ecdsa_recover" (func $seal_ecdsa_recover (param i32 i32 i32) (result i32)))
+	(import "seal0" "ecdsa_recover" (func $seal_ecdsa_recover (param i32 i32 i32) (result i32)))
 	(import "env" "memory" (memory 1 1))
 	(func (export "call")
 		(drop

@@ -1,7 +1,6 @@
 using AElf.Kernel.SmartContract;
 using AElf.Types;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Runtime.WebAssembly;
 
@@ -14,8 +13,10 @@ public interface IExternalEnvironment
     Dictionary<string, bool> Reads { get; set; }
     Dictionary<string, bool> Deletes { get; set; }
 
-    Dictionary<Hash, byte[]> Events { get; }
+    List<(byte[], byte[])> Events { get; }
     List<string> DebugMessages { get; }
+    
+    Address? Caller { get; set; }
 
     ExecuteReturnValue Call(Weight gasLimit, long depositLimit, Address to, long value, byte[] inputData,
         bool allowReentry);
@@ -24,11 +25,12 @@ public interface IExternalEnvironment
 
     (Address, ExecuteReturnValue) Instantiate(Weight gasLimit, long depositLimit, Hash codeHash, long value,
         byte[] inputData, byte[] salt);
+
+    void Terminate(Address beneficiary);
     void Transfer(Address to, long value);
-    WriteOutcome SetStorage(byte[] key, byte[] value, bool takeOld);
+    WriteOutcome SetStorage(byte[] key, byte[]? value, bool takeOld);
     Task<byte[]?> GetStorageAsync(byte[] key);
     Task<int> GetStorageSizeAsync(byte[] key);
-    Address Caller();
     bool IsContract();
     Hash CodeHash(Address address);
     Hash OwnCodeHash();
@@ -42,7 +44,7 @@ public interface IExternalEnvironment
     /// Returns a reference to the account id of the current contract.
     /// </summary>
     /// <returns></returns>
-    Address GetAddress();
+    Address Address();
 
     /// <summary>
     /// Returns the balance of the current contract.
@@ -50,13 +52,17 @@ public interface IExternalEnvironment
     /// <returns></returns>
     long Balance();
 
+    long GetWeightPrice(Weight weight);
+
     /// <summary>
     /// Returns the value transferred along with this call.
     /// </summary>
     /// <returns></returns>
     long ValueTransferred();
 
-    Timestamp Now();
+    byte[]? EcdsaRecover(byte[] signature, byte[] messageHash);
+
+    long Now();
 
     /// <summary>
     /// Returns the minimum balance that is required for creating an account.
@@ -64,7 +70,7 @@ public interface IExternalEnvironment
     /// <returns></returns>
     long MinimumBalance();
 
-    byte[] Random(byte[] subject);
+    (byte[], long) Random(byte[] subject);
 
     /// <summary>
     /// Deposit an event with the given topics.
@@ -105,11 +111,9 @@ public interface IExternalEnvironment
     bool AppendDebugBuffer(string message);
 
     // 	fn call_runtime(&self, call: <Self::T as Config>::RuntimeCall) -> DispatchResultWithPostInfo;
-    // 	fn ecdsa_recover(&self, signature: &[u8; 65], message_hash: &[u8; 32]) -> Result<[u8; 33], ()>;
     // 	fn sr25519_verify(&self, signature: &[u8; 64], message: &[u8], pub_key: &[u8; 32]) -> bool;
-    // 	fn ecdsa_to_eth_address(&self, pk: &[u8; 33]) -> Result<[u8; 20], ()>;
-    Address EcdsaToEthAddress(byte[] pk);
-    
+    byte[] EcdsaToEthAddress(byte[] pubkey);
+
     // 	fn contract_info(&mut self) -> &mut ContractInfo<Self::T>;
 
     void SetCodeHash(Hash hash);

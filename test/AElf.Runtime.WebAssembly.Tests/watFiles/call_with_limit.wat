@@ -1,7 +1,7 @@
 ;; This expects [account_id, ref_time, proof_size] as input and calls the account_id with the supplied 2D Weight limit.
 ;; It returns the result of the call as output data.
 (module
-	(import "seal0" "seal_input" (func $seal_input (param i32 i32)))
+	(import "seal0" "input" (func $seal_input (param i32 i32)))
 	(import "seal2" "call" (func $seal_call (param i32 i32 i64 i64 i32 i32 i32 i32 i32 i32) (result i32)))
 	(import "seal0" "seal_return" (func $seal_return (param i32 i32 i32)))
 	(import "env" "memory" (memory 1 1))

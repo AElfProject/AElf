@@ -1,6 +1,6 @@
 ;; Stores a value of the passed size. The host function is called twice.
 (module
-	(import "seal0" "seal_input" (func $seal_input (param i32 i32)))
+	(import "seal0" "input" (func $seal_input (param i32 i32)))
 	(import "env" "memory" (memory 1 1))
 
 	;; [0, 8) buffer to write input

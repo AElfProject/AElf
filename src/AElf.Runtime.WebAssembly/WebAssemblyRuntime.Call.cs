@@ -125,7 +125,7 @@ public partial class WebAssemblyRuntime
     private ReturnCode Call(CallFlags callFlags, ICallType callType, int inputDataPtr, int inputDataLen, int outputPtr,
         int outputLenPtr)
     {
-        var inputData = Array.Empty<byte>();
+        byte[]? inputData;
         if (callFlags.Contains(CallFlags.CloneInput))
         {
             inputData = Input;
@@ -148,7 +148,7 @@ public partial class WebAssemblyRuntime
             var callee = ReadSandboxMemory(call.CalleePtr, 32).ToAddress();
             var depositLimit = call.DepositPtr == null ? 0 : ReadSandboxMemory((int)call.DepositPtr, 8).ToInt32(false);
             var value = ReadSandboxMemory(call.ValuePtr, 8).ToInt32(false);
-            outcome = _externalEnvironment.Call(call.Weight, depositLimit, callee, value, inputData,
+            outcome = _externalEnvironment.Call(call.Weight, depositLimit, callee, value, inputData!,
                 callFlags.Contains(CallFlags.AllowReentry));
         }
         else if (callType is DelegateCall delegateCall)
@@ -158,7 +158,7 @@ public partial class WebAssemblyRuntime
                 HandleError(WebAssemblyError.InvalidCallFlags);
             }
             var codeHash = ReadSandboxMemory(delegateCall.CodeHashPtr, AElfConstants.HashByteArrayLength).ToHash();
-            outcome = _externalEnvironment.DelegateCall(codeHash, inputData);
+            outcome = _externalEnvironment.DelegateCall(codeHash, inputData!);
         }
 
         if (callFlags.Contains(CallFlags.TailCall))

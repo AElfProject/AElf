@@ -77,7 +77,11 @@ public class Executive : IExecutive
             throw new WebAssemblyRuntimeException($"error: {actionName} export is missing");
         }
 
-        InvokeAction(action);
+        var invokeResult = new RuntimeActionInvoker().Invoke(action);
+        if (!invokeResult.Success)
+        {
+            _webAssemblyRuntime.DebugMessages.Add(invokeResult.DebugMessage);
+        }
 
         if (_webAssemblyRuntime.DebugMessages.Count > 0)
         {
@@ -93,8 +97,8 @@ public class Executive : IExecutive
                 transactionContext.Trace.Logs.Add(new LogEvent
                 {
                     Address = transaction.To,
-                    Name = depositedEvent.Key.ToHex(),
-                    NonIndexed = ByteString.CopyFrom(depositedEvent.Value)
+                    Name = depositedEvent.Item1.ToHex(),
+                    NonIndexed = ByteString.CopyFrom(depositedEvent.Item2)
                 });
             }
         }
@@ -104,32 +108,6 @@ public class Executive : IExecutive
 
         var e = CurrentTransactionContext.Trace.EndTime = TimestampHelper.GetUtcNow().ToDateTime();
         CurrentTransactionContext.Trace.Elapsed = (e - s).Ticks;
-    }
-
-    private void InvokeAction(Func<ActionResult>? action)
-    {
-        try
-        {
-            var result = action?.Invoke();
-            if (result == null)
-            {
-                throw new WebAssemblyRuntimeException("Failed to invoke action.");
-            }
-
-            if (result.Value.Trap.Message.Contains("wasm `unreachable` instruction executed") &&
-                result.Value.Trap.Frames?.Count == 1)
-            {
-                // Ignore.
-            }
-            else
-            {
-                throw result.Value.Trap;
-            }
-        }
-        catch (Exception ex)
-        {
-            _webAssemblyRuntime.DebugMessages.Add(ex.ToString());
-        }
     }
 
     public string GetJsonStringOfParameters(string methodName, byte[] paramsBytes)

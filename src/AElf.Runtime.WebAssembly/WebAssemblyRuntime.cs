@@ -1,4 +1,3 @@
-using System.Reflection;
 using AElf.Kernel.SmartContract;
 using AElf.Runtime.WebAssembly.Extensions;
 using AElf.Types;
@@ -18,8 +17,9 @@ public partial class WebAssemblyRuntime : IDisposable
     private readonly Memory _memory;
     private readonly Module _module;
     public byte[] ReturnBuffer = Array.Empty<byte>();
+    public ReturnFlags ReturnFlags = ReturnFlags.Empty;
     public List<string> DebugMessages => _externalEnvironment.DebugMessages;
-    public Dictionary<Hash, byte[]> Events => _externalEnvironment.Events;
+    public List<(byte[], byte[])> Events => _externalEnvironment.Events;
     public byte[]? Input { get; set; } = Array.Empty<byte>();
 
     public WebAssemblyRuntime(IExternalEnvironment externalEnvironment, byte[] wasmCode,
@@ -152,8 +152,8 @@ public partial class WebAssemblyRuntime : IDisposable
 
         _linker.DefineFunction("seal0", "value_transferred", (Action<int, int>)ValueTransferred);
 
-        _linker.DefineFunction("seal0", "random", (Func<int, int, int, int, int>)RandomV0);
-        _linker.DefineFunction("seal1", "random", (Func<int, int, int, int, int>)RandomV1);
+        _linker.DefineFunction("seal0", "random", (Action<int, int, int, int>)RandomV0);
+        _linker.DefineFunction("seal1", "random", (Action<int, int, int, int>)RandomV1);
 
         _linker.DefineFunction("seal0", "now", (Action<int, int>)Now);
 
@@ -330,7 +330,7 @@ public partial class WebAssemblyRuntime : IDisposable
     /// <param name="beneficiaryLen"></param>
     private void TerminateV0(int beneficiaryPtr, int beneficiaryLen)
     {
-        throw new NotImplementedException();
+        Terminate(beneficiaryPtr);
     }
 
     /// <summary>
@@ -357,7 +357,13 @@ public partial class WebAssemblyRuntime : IDisposable
     /// </param>
     private void TerminateV1(int beneficiaryPtr)
     {
-        throw new NotImplementedException();
+        Terminate(beneficiaryPtr);
+    }
+
+    private void Terminate(int beneficiaryPtr)
+    {
+        var beneficiary = ReadSandboxMemory(beneficiaryPtr, AElfConstants.AddressHashLength);
+        _externalEnvironment.Terminate(new Address { Value = ByteString.CopyFrom(beneficiary) });
     }
 
     /// <summary>
@@ -455,7 +461,8 @@ public partial class WebAssemblyRuntime : IDisposable
     /// <param name="outLenPtr"></param>
     private void Address(int outPtr, int outLenPtr)
     {
-        throw new NotImplementedException();
+        var address = _externalEnvironment.Address();
+        WriteSandboxOutput(outPtr, outLenPtr, address.ToByteArray());
     }
 
     /// <summary>
@@ -470,7 +477,8 @@ public partial class WebAssemblyRuntime : IDisposable
     /// <param name="outLenPtr"></param>
     private void WeightToFeeV0(long gas, int outPtr, int outLenPtr)
     {
-        throw new NotImplementedException();
+        WriteSandboxOutput(outPtr, outLenPtr,
+            _externalEnvironment.GetWeightPrice(new Weight(gas, 0)));
     }
 
     /// <summary>
@@ -498,7 +506,8 @@ public partial class WebAssemblyRuntime : IDisposable
     /// <exception cref="NotImplementedException"></exception>
     private void WeightToFeeV1(long refTimeLimit, long proofSizeLimit, int outPtr, int outLenPtr)
     {
-        throw new NotImplementedException();
+        WriteSandboxOutput(outPtr, outLenPtr,
+            _externalEnvironment.GetWeightPrice(new Weight(refTimeLimit, proofSizeLimit)));
     }
 
     /// <summary>
@@ -546,7 +555,8 @@ public partial class WebAssemblyRuntime : IDisposable
     /// <param name="outLenPtr"></param>
     private void Balance(int outPtr, int outLenPtr)
     {
-        throw new NotImplementedException();
+        var balance = _externalEnvironment.Balance();
+        WriteSandboxOutput(outPtr, outLenPtr, balance);
     }
 
     /// <summary>
@@ -563,8 +573,7 @@ public partial class WebAssemblyRuntime : IDisposable
     /// <param name="valueLengthPtr"></param>
     private void ValueTransferred(int valuePtr, int valueLengthPtr)
     {
-        WriteSandboxMemory(valuePtr, 0);
-        WriteSandboxMemory(valueLengthPtr, 0);
+        WriteSandboxOutput(valuePtr, valueLengthPtr, _externalEnvironment.ValueTransferred());
     }
 
     /// <summary>
@@ -582,9 +591,11 @@ public partial class WebAssemblyRuntime : IDisposable
     /// <param name="outPtr"></param>
     /// <param name="outLenPtr"></param>
     /// <returns></returns>
-    private int RandomV0(int subjectPtr, int subjectLenPtr, int outPtr, int outLenPtr)
+    private void RandomV0(int subjectPtr, int subjectLenPtr, int outPtr, int outLenPtr)
     {
-        throw new NotImplementedException();
+        var subject = ReadSandboxMemory(subjectPtr, subjectLenPtr);
+        var (random, _) = _externalEnvironment.Random(subject);
+        WriteSandboxOutput(outPtr, outLenPtr, random);
     }
 
     /// <summary>
@@ -615,9 +626,12 @@ public partial class WebAssemblyRuntime : IDisposable
     /// <param name="outPtr"></param>
     /// <param name="outLenPtr"></param>
     /// <returns></returns>
-    private int RandomV1(int subjectPtr, int subjectLenPtr, int outPtr, int outLenPtr)
+    private void RandomV1(int subjectPtr, int subjectLenPtr, int outPtr, int outLenPtr)
     {
-        throw new NotImplementedException();
+        var subject = ReadSandboxMemory(subjectPtr, subjectLenPtr);
+        var (random, blockNumber) = _externalEnvironment.Random(subject);
+        var output = random.Concat(blockNumber.ToBytes(false)).ToArray();
+        WriteSandboxOutput(outPtr, outLenPtr, output);
     }
 
     /// <summary>
@@ -632,7 +646,7 @@ public partial class WebAssemblyRuntime : IDisposable
     /// <param name="outLenPtr"></param>
     private void Now(int outPtr, int outLenPtr)
     {
-        var blockTime = _externalEnvironment.Now().ToByteArray();
+        var blockTime = _externalEnvironment.Now();
         WriteSandboxOutput(outPtr, outLenPtr, blockTime);
     }
 
@@ -646,7 +660,7 @@ public partial class WebAssemblyRuntime : IDisposable
     private void MinimumBalance(int outPtr, int outLenPtr)
     {
         var minBalance = _externalEnvironment.MinimumBalance();
-        WriteSandboxOutput(outPtr, outLenPtr, minBalance.ToBytes());
+        WriteSandboxOutput(outPtr, outLenPtr, minBalance);
     }
 
     /// <summary>
@@ -661,7 +675,7 @@ public partial class WebAssemblyRuntime : IDisposable
     /// <param name="outLenPtr"></param>
     private void BlockNumber(int outPtr, int outLenPtr)
     {
-        WriteSandboxOutput(outPtr, outLenPtr, _externalEnvironment.BlockNumber().ToBytes());
+        WriteSandboxOutput(outPtr, outLenPtr, _externalEnvironment.BlockNumber());
     }
 
     /// <summary>
@@ -807,7 +821,8 @@ public partial class WebAssemblyRuntime : IDisposable
     /// </returns>
     private int CallRuntime(int callPtr, int callLen)
     {
-        throw new NotImplementedException();
+        var call = ReadSandboxMemory(callPtr, callLen);
+        return (int)ReturnCode.Success;
     }
 
     /// <summary>
@@ -831,7 +846,16 @@ public partial class WebAssemblyRuntime : IDisposable
     /// <returns>ReturnCode</returns>
     private int EcdsaRecover(int signaturePtr, int messageHashPtr, int outputPtr)
     {
-        throw new NotImplementedException();
+        var signature = ReadSandboxMemory(signaturePtr, 65);
+        var messageHash = ReadSandboxMemory(messageHashPtr, AElfConstants.HashByteArrayLength);
+        var pubkey = _externalEnvironment.EcdsaRecover(signature, messageHash);
+        if (pubkey != null)
+        {
+            WriteSandboxMemory(outputPtr, pubkey);
+            return (int)ReturnCode.Success;
+        }
+
+        return (int)ReturnCode.EcdsaRecoverFailed;
     }
 
     /// <summary>
@@ -977,6 +1001,11 @@ public partial class WebAssemblyRuntime : IDisposable
         WriteSandboxMemory(outLenPtr, bufLen);
     }
 
+    private void WriteSandboxOutput(int outPtr, int outLenPtr, long num, bool allowSkip = false)
+    {
+        WriteSandboxOutput(outPtr, outLenPtr, num.ToBytes(false), allowSkip);
+    }
+
     private void WriteSandboxMemory(int ptr, byte[] buf)
     {
         foreach (var (offset, byt) in buf.Select((b, i) => (i, b)))
@@ -1001,7 +1030,14 @@ public partial class WebAssemblyRuntime : IDisposable
         var value = new byte[len];
         for (var i = 0; i < len; i++)
         {
-            value[i] = _memory.ReadByte(ptr + i);
+            var index = ptr + i;
+            if (index > _memory.GetLength())
+            {
+                HandleError(WebAssemblyError.OutOfBounds);
+                return value;
+            }
+
+            value[i] = _memory.ReadByte(index);
         }
 
         return value;
@@ -1018,6 +1054,12 @@ public partial class WebAssemblyRuntime : IDisposable
     }
 
     private void HandleError(WebAssemblyError error)
+    {
+        _externalEnvironment.AppendDebugBuffer(error.ToString());
+        throw new WebAssemblyRuntimeException(error.ToString());
+    }
+    
+    private void HandleError(DispatchError error)
     {
         _externalEnvironment.AppendDebugBuffer(error.ToString());
         throw new WebAssemblyRuntimeException(error.ToString());

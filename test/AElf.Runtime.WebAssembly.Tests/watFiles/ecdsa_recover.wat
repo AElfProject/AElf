@@ -4,9 +4,9 @@
 ;; 3) Validates that result is Success
 ;; 4) Returns recovered compressed public key
 (module
-	(import "seal0" "seal_ecdsa_recover" (func $seal_ecdsa_recover (param i32 i32 i32) (result i32)))
+	(import "seal0" "ecdsa_recover" (func $seal_ecdsa_recover (param i32 i32 i32) (result i32)))
 	(import "seal0" "seal_return" (func $seal_return (param i32 i32 i32)))
-	(import "seal0" "seal_input" (func $seal_input (param i32 i32)))
+	(import "seal0" "input" (func $seal_input (param i32 i32)))
 	(import "env" "memory" (memory 1 1))
 
 	(func $assert (param i32)

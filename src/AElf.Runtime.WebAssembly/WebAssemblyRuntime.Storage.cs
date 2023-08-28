@@ -1,3 +1,4 @@
+using Google.Protobuf;
 using Volo.Abp.Threading;
 
 namespace AElf.Runtime.WebAssembly;
@@ -78,7 +79,7 @@ public partial class WebAssemblyRuntime
         return writeOutcome.OldLenWithSentinel();
     }
 
-    public WriteOutcome SetStorage(byte[] key, byte[] value, bool takeOld)
+    public WriteOutcome SetStorage(byte[] key, byte[]? value, bool takeOld)
     {
         return _externalEnvironment.SetStorage(key, value, takeOld);
     }
@@ -93,7 +94,7 @@ public partial class WebAssemblyRuntime
     /// <param name="keyPtr"></param>
     private void ClearStorageV0(int keyPtr)
     {
-        throw new NotImplementedException();
+        ClearStorage(keyPtr, 32);
     }
 
     /// <summary>
@@ -104,7 +105,14 @@ public partial class WebAssemblyRuntime
     /// <returns></returns>
     private int ClearStorageV1(int keyPtr, int keyLen)
     {
-        throw new NotImplementedException();
+        return ClearStorage(keyPtr, keyLen);
+    }
+
+    private int ClearStorage(int keyPtr, int keyLen)
+    {
+        var key = ReadSandboxMemory(keyPtr, keyLen);
+        var writeOutcome = _externalEnvironment.SetStorage(key, null, false);
+        return writeOutcome.OldLenWithSentinel();
     }
 
     #region GetStorage
@@ -176,7 +184,7 @@ public partial class WebAssemblyRuntime
     /// </returns>
     private int ContainsStorageV0(int keyPtr)
     {
-        throw new NotImplementedException();
+        return ContainsStorage(keyPtr, AElfConstants.HashByteArrayLength);
     }
 
     /// <summary>
@@ -191,6 +199,11 @@ public partial class WebAssemblyRuntime
     /// `SENTINEL` is returned as a sentinel value.
     /// </returns>
     private int ContainsStorageV1(int keyPtr, int keyLen)
+    {
+        return ContainsStorage(keyPtr, keyLen);
+    }
+
+    private int ContainsStorage(int keyPtr, int keyLen)
     {
         var key = ReadSandboxMemory(keyPtr, keyLen);
         var outcome = AsyncHelper.RunSync(() => _externalEnvironment.GetStorageAsync(key));
@@ -210,6 +223,20 @@ public partial class WebAssemblyRuntime
     /// <returns>ReturnCode</returns>
     private int TakeStorageV0(int keyPtr, int keyLen, int outPtr, int outLenPtr)
     {
-        throw new NotImplementedException();
+        if (keyLen > WebAssemblyRuntimeConstants.MaxStorageKeyLength)
+        {
+            HandleError(WebAssemblyError.DecodingFailed);
+            return (int)ReturnCode.CallRuntimeFailed;
+        }
+
+        var key = ReadSandboxMemory(keyPtr, keyLen);
+        var writeOutcome = _externalEnvironment.SetStorage(key, null, true);
+        if (writeOutcome.WriteOutcomeType == WriteOutcomeType.Taken)
+        {
+            WriteSandboxOutput(outPtr, outLenPtr, ByteArrayHelper.HexStringToByteArray(writeOutcome.Value));
+            return (int)ReturnCode.Success;
+        }
+
+        return (int)ReturnCode.KeyNotFound;
     }
 }

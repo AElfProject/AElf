@@ -1,5 +1,5 @@
 (module
-	(import "seal0" "seal_input" (func $seal_input (param i32 i32)))
+	(import "seal0" "input" (func $seal_input (param i32 i32)))
 	(import "seal0" "seal_address" (func $seal_address (param i32 i32)))
 	(import "seal0" "seal_call" (func $seal_call (param i32 i32 i64 i32 i32 i32 i32 i32 i32) (result i32)))
 	(import "seal0" "seal_terminate" (func $seal_terminate (param i32 i32)))

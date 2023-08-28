@@ -3,7 +3,7 @@
 	;;     beneficiary_ptr: u32,
 	;;     beneficiary_len: u32,
 	;; )
-	(import "seal0" "seal_terminate" (func $seal_terminate (param i32 i32)))
+	(import "seal0" "terminate" (func $seal_terminate (param i32 i32)))
 	(import "env" "memory" (memory 1 1))
 	(func (export "call")
 		(call $seal_terminate

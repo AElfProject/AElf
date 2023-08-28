@@ -1,6 +1,6 @@
 (module
-	(import "seal0" "seal_deposit_event" (func $seal_deposit_event (param i32 i32 i32 i32)))
-	(import "seal0" "seal_input" (func $seal_input (param i32 i32)))
+	(import "seal0" "deposit_event" (func $seal_deposit_event (param i32 i32 i32 i32)))
+	(import "seal0" "input" (func $seal_input (param i32 i32)))
 	(import "env" "memory" (memory 16 16))
 
 	;; [0, 4) size of the input buffer

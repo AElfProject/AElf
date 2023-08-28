@@ -1,7 +1,7 @@
 ;; This passes its input to `seal_call_runtime` and returns the return value to its caller.
 (module
 	(import "seal0" "call_runtime" (func $call_runtime (param i32 i32) (result i32)))
-	(import "seal0" "seal_input" (func $seal_input (param i32 i32)))
+	(import "seal0" "input" (func $seal_input (param i32 i32)))
 	(import "seal0" "seal_return" (func $seal_return (param i32 i32 i32)))
 	(import "env" "memory" (memory 1 1))
 

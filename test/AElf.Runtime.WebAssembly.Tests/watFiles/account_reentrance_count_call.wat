@@ -1,8 +1,8 @@
 ;; This fixture tests if account_reentrance_count works as expected
 ;; testing it with 2 different addresses
 (module
-	(import "seal0" "seal_input" (func $seal_input (param i32 i32)))
-	(import "seal0" "seal_caller" (func $seal_caller (param i32 i32)))
+	(import "seal0" "input" (func $seal_input (param i32 i32)))
+	(import "seal0" "caller" (func $seal_caller (param i32 i32)))
 	(import "seal0" "seal_return" (func $seal_return (param i32 i32 i32)))
 	(import "seal0" "account_reentrance_count" (func $account_reentrance_count (param i32) (result i32)))
 	(import "env" "memory" (memory 1 1))

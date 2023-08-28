@@ -1,7 +1,7 @@
 ;; This transfers 100 balance to the zero account and copies the return code
 ;; of this transfer to the output buffer.
 (module
-	(import "seal0" "seal_transfer" (func $seal_transfer (param i32 i32 i32 i32) (result i32)))
+	(import "seal0" "transfer" (func $seal_transfer (param i32 i32 i32 i32) (result i32)))
 	(import "seal0" "seal_return" (func $seal_return (param i32 i32 i32)))
 	(import "env" "memory" (memory 1 1))
 

@@ -1,8 +1,10 @@
+using AElf.Cryptography;
+using AElf.Kernel;
 using AElf.Kernel.SmartContract;
 using AElf.Types;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 using NBitcoin.DataEncoders;
+using Nethereum.Util;
 
 namespace AElf.Runtime.WebAssembly;
 
@@ -11,8 +13,9 @@ public class ExternalEnvironment : IExternalEnvironment
     public Dictionary<string, ByteString> Writes { get; set; } = new();
     public Dictionary<string, bool> Reads { get; set; } = new();
     public Dictionary<string, bool> Deletes { get; set; } = new();
-    public Dictionary<Hash, byte[]> Events { get; } = new();
+    public List<(byte[], byte[])> Events { get; } = new();
     public List<string> DebugMessages { get; set; } = new();
+    public Address? Caller { get; set; }
 
     public ExecuteReturnValue Call(Weight gasLimit, long depositLimit, Address to, long value, byte[] inputData,
         bool allowReentry)
@@ -27,6 +30,11 @@ public class ExternalEnvironment : IExternalEnvironment
 
     public (Address, ExecuteReturnValue) Instantiate(Weight gasLimit, long depositLimit, Hash codeHash, long value,
         byte[] inputData, byte[] salt)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void Terminate(Address beneficiary)
     {
         throw new NotImplementedException();
     }
@@ -48,36 +56,9 @@ public class ExternalEnvironment : IExternalEnvironment
 
     public IHostSmartContractBridgeContext? HostSmartContractBridgeContext { get; set; }
 
-    public WriteOutcome SetStorage(byte[] key, byte[] value, bool takeOld)
+    public WriteOutcome SetStorage(byte[] key, byte[]? value, bool takeOld)
     {
-        var stateKey = GetStateKey(key);
-        WriteOutcome writeOutcome;
-        if (Writes.TryGetValue(stateKey, out var oldValue))
-        {
-            if (takeOld)
-            {
-                writeOutcome = new WriteOutcome
-                    { WriteOutcomeType = WriteOutcomeType.Taken, Value = Encoders.Hex.EncodeData(oldValue.ToByteArray()) };
-            }
-            else
-            {
-                var length = oldValue.Length.ToString();
-                if (oldValue.ToHex().All(c => c == '0'))
-                {
-                    length = "0";
-                }
-
-                writeOutcome = new WriteOutcome
-                    { WriteOutcomeType = WriteOutcomeType.Overwritten, Value = length };
-            }
-        }
-        else
-        {
-            writeOutcome = new WriteOutcome { WriteOutcomeType = WriteOutcomeType.New };
-        }
-
-        Writes[stateKey] = ByteString.CopyFrom(value);
-        return writeOutcome;
+        throw new NotImplementedException();
     }
 
     public async Task<byte[]?> GetStorageAsync(byte[] key)
@@ -102,11 +83,6 @@ public class ExternalEnvironment : IExternalEnvironment
     {
         var value = await GetStorageAsync(key);
         return value?.Length ?? 0;
-    }
-
-    public Address Caller()
-    {
-        return HostSmartContractBridgeContext!.Sender;
     }
 
     public bool IsContract()
@@ -134,7 +110,7 @@ public class ExternalEnvironment : IExternalEnvironment
         throw new NotImplementedException();
     }
 
-    public Address GetAddress()
+    public Address Address()
     {
         throw new NotImplementedException();
     }
@@ -144,14 +120,25 @@ public class ExternalEnvironment : IExternalEnvironment
         throw new NotImplementedException();
     }
 
+    public long GetWeightPrice(Weight weight)
+    {
+        throw new NotImplementedException();
+    }
+
     public long ValueTransferred()
     {
         throw new NotImplementedException();
     }
 
-    public Timestamp Now()
+    public byte[]? EcdsaRecover(byte[] signature, byte[] messageHash)
     {
-        throw new NotImplementedException();
+        CryptoHelper.RecoverPublicKey(signature, messageHash, out var pubkey);
+        return pubkey;
+    }
+
+    public long Now()
+    {
+        return TimestampHelper.GetUtcNow().Seconds;
     }
 
     public long MinimumBalance()
@@ -159,7 +146,7 @@ public class ExternalEnvironment : IExternalEnvironment
         throw new NotImplementedException();
     }
 
-    public byte[] Random(byte[] subject)
+    public (byte[], long) Random(byte[] subject)
     {
         throw new NotImplementedException();
     }
@@ -184,9 +171,14 @@ public class ExternalEnvironment : IExternalEnvironment
         throw new NotImplementedException();
     }
 
-    public Address EcdsaToEthAddress(byte[] pk)
+    public byte[] EcdsaToEthAddress(byte[] pubkey)
     {
-        throw new NotImplementedException();
+        var pubkeyNoPrefixCompressed = new byte[pubkey.Length - 1];
+        Array.Copy(pubkey, 1, pubkeyNoPrefixCompressed, 0, pubkeyNoPrefixCompressed.Length);
+        var initAddress = new Sha3Keccack().CalculateHash(pubkeyNoPrefixCompressed);
+        var address = new byte[initAddress.Length - 12];
+        Array.Copy(initAddress, 12, address, 0, initAddress.Length - 12);
+        return address;
     }
 
     public void SetCodeHash(Hash hash)
@@ -224,5 +216,6 @@ public class ExternalEnvironment : IExternalEnvironment
     public void SetHostSmartContractBridgeContext(IHostSmartContractBridgeContext smartContractBridgeContext)
     {
         HostSmartContractBridgeContext = smartContractBridgeContext;
+        Caller = smartContractBridgeContext.Sender;
     }
 }

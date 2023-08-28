@@ -2,8 +2,8 @@
 ;; the return code of this call to the output buffer.
 ;; It also forwards its input to the callee.
 (module
-	(import "seal0" "seal_input" (func $seal_input (param i32 i32)))
-	(import "seal0" "seal_call" (func $seal_call (param i32 i32 i64 i32 i32 i32 i32 i32 i32) (result i32)))
+	(import "seal0" "input" (func $seal_input (param i32 i32)))
+	(import "seal0" "call" (func $seal_call (param i32 i32 i64 i32 i32 i32 i32 i32 i32) (result i32)))
 	(import "seal0" "seal_return" (func $seal_return (param i32 i32 i32)))
 	(import "env" "memory" (memory 1 1))
 

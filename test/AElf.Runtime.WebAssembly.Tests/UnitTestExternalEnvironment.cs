@@ -1,7 +1,6 @@
 using AElf.Kernel.SmartContract;
 using AElf.Types;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 using NBitcoin.DataEncoders;
 
 namespace AElf.Runtime.WebAssembly.Tests;
@@ -20,9 +19,10 @@ public class UnitTestExternalEnvironment : IExternalEnvironment
     public List<TerminationEntry> Terminations { get; set; } = new();
     public Tuple<byte[], byte[]> EcdsaRecover { get; set; }
     public Tuple<byte[], byte[], byte[]> Sr25519Verify { get; set; }
-    public Dictionary<Hash, byte[]> Events { get; set; } = new();
+    public List<(byte[], byte[])> Events { get; set; } = new();
     public List<string> DebugMessages { get; set; } = new();
     public List<Hash> CodeHashes { get; set; } = new();
+    public Address? Caller { get; set; } = WebAssemblyRuntimeTestConstants.Alice;
 
     public ExecuteReturnValue Call(Weight gasLimit, long depositLimit, Address to, long value, byte[] inputData,
         bool allowReentry)
@@ -59,12 +59,17 @@ public class UnitTestExternalEnvironment : IExternalEnvironment
             });
     }
 
+    public void Terminate(Address beneficiary)
+    {
+        Terminations.Add(new TerminationEntry(beneficiary));
+    }
+
     public void Transfer(Address to, long value)
     {
         Transfers.Add(new TransferEntry(to, value));
     }
 
-    public WriteOutcome SetStorage(byte[] key, byte[] value, bool takeOld)
+    public WriteOutcome SetStorage(byte[] key, byte[]? value, bool takeOld)
     {
         var stateKey = GetStateKey(key);
         WriteOutcome writeOutcome;
@@ -74,7 +79,8 @@ public class UnitTestExternalEnvironment : IExternalEnvironment
             {
                 writeOutcome = new WriteOutcome
                 {
-                    WriteOutcomeType = WriteOutcomeType.Taken, Value = Encoders.Hex.EncodeData(oldValue.ToByteArray())
+                    WriteOutcomeType = WriteOutcomeType.Taken,
+                    Value = oldValue.ToHex()
                 };
             }
             else
@@ -86,15 +92,31 @@ public class UnitTestExternalEnvironment : IExternalEnvironment
                 }
 
                 writeOutcome = new WriteOutcome
-                    { WriteOutcomeType = WriteOutcomeType.Overwritten, Value = length };
+                {
+                    WriteOutcomeType = WriteOutcomeType.Overwritten,
+                    Value = length
+                };
+            }
+
+            if (value != null)
+            {
+                Writes[stateKey] = ByteString.CopyFrom(value);
+            }
+            else
+            {
+                Writes.Remove(stateKey);
+                Deletes.Add(stateKey, true);
             }
         }
         else
         {
             writeOutcome = new WriteOutcome { WriteOutcomeType = WriteOutcomeType.New };
+            if (value != null)
+            {
+                Writes[stateKey] = ByteString.CopyFrom(value);
+            }
         }
 
-        Writes[stateKey] = ByteString.CopyFrom(value);
         return writeOutcome;
     }
 
@@ -117,11 +139,6 @@ public class UnitTestExternalEnvironment : IExternalEnvironment
     {
         var value = await GetStorageAsync(key);
         return value?.Length ?? 0;
-    }
-
-    public Address Caller()
-    {
-        return WebAssemblyRuntimeTestConstants.Alice;
     }
 
     public bool IsContract()
@@ -162,7 +179,7 @@ public class UnitTestExternalEnvironment : IExternalEnvironment
         return false;
     }
 
-    public Address GetAddress()
+    public Address Address()
     {
         return WebAssemblyRuntimeTestConstants.Bob;
     }
@@ -172,14 +189,25 @@ public class UnitTestExternalEnvironment : IExternalEnvironment
         return 228;
     }
 
+    public long GetWeightPrice(Weight weight)
+    {
+        return 1312 * weight.RefTime + 103 * weight.ProofSize;
+    }
+
     public long ValueTransferred()
     {
         return 1337;
     }
 
-    public Timestamp Now()
+    byte[] IExternalEnvironment.EcdsaRecover(byte[] signature, byte[] messageHash)
     {
-        return Timestamp.FromDateTimeOffset(new DateTime(0, 0, 0, 0, 0, 1111));
+        EcdsaRecover = new Tuple<byte[], byte[]>(signature, messageHash);
+        return new ByteArrayBuilder().RepeatedBytes(3, 33);
+    }
+
+    public long Now()
+    {
+        return 1111;
     }
 
     public long MinimumBalance()
@@ -187,14 +215,14 @@ public class UnitTestExternalEnvironment : IExternalEnvironment
         return 666;
     }
 
-    public byte[] Random(byte[] subject)
+    public (byte[], long) Random(byte[] subject)
     {
-        return HashHelper.ComputeFrom(subject).ToByteArray();
+        return (subject, 42);
     }
 
     public void DepositEvent(byte[] topics, byte[] data)
     {
-        Events[HashHelper.ComputeFrom(topics)] = data;
+        Events.Add((topics, data));
     }
 
     public long BlockNumber()
@@ -213,9 +241,9 @@ public class UnitTestExternalEnvironment : IExternalEnvironment
         return true;
     }
 
-    public Address EcdsaToEthAddress(byte[] pk)
+    public byte[] EcdsaToEthAddress(byte[] pubkey)
     {
-        return WebAssemblyRuntimeTestConstants.Bob;
+        return WebAssemblyRuntimeTestConstants.Bob.ToByteArray().Take(20).ToArray();
     }
 
     public void SetCodeHash(Hash hash)
@@ -247,7 +275,7 @@ public class UnitTestExternalEnvironment : IExternalEnvironment
     {
         return new ScopedStatePath
         {
-            Address = Address.FromBase58("2EM5uV6bSJh6xJfZTUa1pZpYsYcCUAdPvZvFUJzMDJEx3rbioz"),
+            Address = Types.Address.FromBase58("2EM5uV6bSJh6xJfZTUa1pZpYsYcCUAdPvZvFUJzMDJEx3rbioz"),
             Path = new StatePath
             {
                 Parts = { key.ToPlainBase58() }

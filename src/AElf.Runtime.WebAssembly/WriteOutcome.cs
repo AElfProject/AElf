@@ -5,15 +5,11 @@ public class WriteOutcome
     public WriteOutcomeType WriteOutcomeType { get; set; }
     public string Value { get; set; } = string.Empty;
 
-    /// <summary>
-    /// TODO: SENTINEL is not a `0`
-    /// </summary>
-    /// <returns></returns>
     public int OldLenWithSentinel()
     {
         if (WriteOutcomeType == WriteOutcomeType.New)
         {
-            return 0;
+            return int.MaxValue;
         }
 
         if (WriteOutcomeType == WriteOutcomeType.Overwritten)

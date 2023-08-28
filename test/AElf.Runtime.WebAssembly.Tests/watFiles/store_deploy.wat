@@ -1,7 +1,7 @@
 ;; Stores a value of the passed size in constructor.
 (module
-	(import "seal0" "seal_set_storage" (func $seal_set_storage (param i32 i32 i32)))
-	(import "seal0" "seal_input" (func $seal_input (param i32 i32)))
+	(import "seal0" "set_storage" (func $seal_set_storage (param i32 i32 i32)))
+	(import "seal0" "input" (func $seal_input (param i32 i32)))
 	(import "env" "memory" (memory 16 16))
 
 	;; [0, 32) storage key
