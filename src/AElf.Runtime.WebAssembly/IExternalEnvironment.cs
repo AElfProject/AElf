@@ -18,6 +18,8 @@ public interface IExternalEnvironment
     
     Address? Caller { get; set; }
 
+    GasMeter GasMeter { get; set; }
+
     ExecuteReturnValue Call(Weight gasLimit, long depositLimit, Address to, long value, byte[] inputData,
         bool allowReentry);
 
@@ -31,8 +33,8 @@ public interface IExternalEnvironment
     WriteOutcome SetStorage(byte[] key, byte[]? value, bool takeOld);
     Task<byte[]?> GetStorageAsync(byte[] key);
     Task<int> GetStorageSizeAsync(byte[] key);
-    bool IsContract();
-    Hash CodeHash(Address address);
+    bool IsContract(byte[] address);
+    Hash? CodeHash(byte[] address);
     Hash OwnCodeHash();
 
     bool CallerIsOrigin();
@@ -119,7 +121,10 @@ public interface IExternalEnvironment
     void SetCodeHash(Hash hash);
 
     int ReentranceCount();
-    int AccountReentranceCount(Address accountAddress);
+    int AccountReentranceCount(byte[] accountAddress);
+
+    void AddDelegateDependency(Hash codeHash);
+    void RemoveDelegateDependency(Hash codeHash);
 
     long Nonce();
 }

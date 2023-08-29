@@ -134,7 +134,7 @@ public partial class WebAssemblyRuntime : IDisposable
 
         _linker.DefineFunction("seal0", "code_hash", (Func<int, int, int, int>)CodeHash);
 
-        _linker.DefineFunction("seal0", "own_code_hash", (Func<int, int, int>)OwnCodeHash);
+        _linker.DefineFunction("seal0", "own_code_hash", (Action<int, int>)OwnCodeHash);
 
         _linker.DefineFunction("seal0", "caller_is_origin", CallerIsOrigin);
 
@@ -378,7 +378,9 @@ public partial class WebAssemblyRuntime : IDisposable
     /// <returns></returns>
     private int IsContract(int accountPtr)
     {
-        throw new NotImplementedException();
+        var address = ReadSandboxMemory(accountPtr, 32);
+        var isContract = _externalEnvironment.IsContract(address);
+        return isContract ? 1 : 0;
     }
 
     /// <summary>
@@ -399,7 +401,15 @@ public partial class WebAssemblyRuntime : IDisposable
     /// <returns>ReturnCode</returns>
     private int CodeHash(int accountPtr, int outPtr, int outLenPtr)
     {
-        throw new NotImplementedException();
+        var address = ReadSandboxMemory(accountPtr, 32);
+        var value = _externalEnvironment.CodeHash(address);
+        if (value == null)
+        {
+            return (int)ReturnCode.KeyNotFound;
+        }
+
+        WriteSandboxOutput(outPtr, outLenPtr, value.Value.ToByteArray(), false);
+        return (int)ReturnCode.Success;
     }
 
     /// <summary>
@@ -411,9 +421,10 @@ public partial class WebAssemblyRuntime : IDisposable
     /// the value length is written to.
     /// </param>
     /// <returns></returns>
-    private int OwnCodeHash(int outPtr, int outLenPtr)
+    private void OwnCodeHash(int outPtr, int outLenPtr)
     {
-        throw new NotImplementedException();
+        var codeHash = _externalEnvironment.OwnCodeHash();
+        WriteSandboxOutput(outPtr, outLenPtr, codeHash.ToByteArray().ToArray(), false);
     }
 
     /// <summary>
@@ -430,7 +441,7 @@ public partial class WebAssemblyRuntime : IDisposable
     /// <returns>Returned value is a `u32`-encoded boolean: (`0 = false`, `1 = true`).</returns>
     private int CallerIsOrigin()
     {
-        throw new NotImplementedException();
+        return _externalEnvironment.CallerIsOrigin() ? 1 : 0;
     }
 
     /// <summary>
@@ -446,7 +457,7 @@ public partial class WebAssemblyRuntime : IDisposable
     /// <returns>Returned value is a `u32`-encoded boolean: (`0 = false`, `1 = true`).</returns>
     private int CallerIsRoot()
     {
-        throw new NotImplementedException();
+        return _externalEnvironment.CallerIsRoot() ? 1 : 0;
     }
 
     /// <summary>
@@ -503,7 +514,6 @@ public partial class WebAssemblyRuntime : IDisposable
     /// <param name="proofSizeLimit"></param>
     /// <param name="outPtr"></param>
     /// <param name="outLenPtr"></param>
-    /// <exception cref="NotImplementedException"></exception>
     private void WeightToFeeV1(long refTimeLimit, long proofSizeLimit, int outPtr, int outLenPtr)
     {
         WriteSandboxOutput(outPtr, outLenPtr,
@@ -521,7 +531,8 @@ public partial class WebAssemblyRuntime : IDisposable
     /// <param name="outLenPtr"></param>
     private void GasLeftV0(int outPtr, int outLenPtr)
     {
-        throw new NotImplementedException();
+        var gasLeft = _externalEnvironment.GasMeter.GasLeft.RefTime;
+        WriteSandboxOutput(outPtr, outLenPtr, gasLeft, false);
     }
 
     /// <summary>
@@ -538,7 +549,8 @@ public partial class WebAssemblyRuntime : IDisposable
     /// <param name="outLenPtr"></param>
     private void GasLeftV1(int outPtr, int outLenPtr)
     {
-        throw new NotImplementedException();
+        var gasLeft = _externalEnvironment.GasMeter.GasLeft.RefTime;
+        WriteSandboxOutput(outPtr, outLenPtr, gasLeft, false);
     }
 
     /// <summary>
@@ -902,7 +914,9 @@ public partial class WebAssemblyRuntime : IDisposable
     /// <returns>ReturnCode</returns>
     private int SetCodeHash(int codeHashPtr)
     {
-        throw new NotImplementedException();
+        var codeHash = Hash.LoadFromByteArray(ReadSandboxMemory(codeHashPtr, AElfConstants.HashByteArrayLength));
+        _externalEnvironment.SetCodeHash(codeHash);
+        return (int)ReturnCode.Success;
     }
 
     /// <summary>
@@ -923,7 +937,10 @@ public partial class WebAssemblyRuntime : IDisposable
     /// <returns></returns>
     private int EcdsaToEthAddress(int keyPtr, int outPtr)
     {
-        throw new NotImplementedException();
+        var compressedKey = ReadSandboxMemory(keyPtr, 33);
+        var ethAddress = _externalEnvironment.EcdsaToEthAddress(compressedKey);
+        WriteSandboxMemory(outPtr, ethAddress);
+        return (int)ReturnCode.Success;
     }
 
     /// <summary>
@@ -933,7 +950,7 @@ public partial class WebAssemblyRuntime : IDisposable
     /// <returns>Returns `0` when there is no reentrancy.</returns>
     private int ReentranceCount()
     {
-        throw new NotImplementedException();
+        return _externalEnvironment.ReentranceCount();
     }
 
     /// <summary>
@@ -944,7 +961,8 @@ public partial class WebAssemblyRuntime : IDisposable
     /// <returns>Returns `0` when the contract does not exist on the call stack.</returns>
     private int AccountReentranceCount(int accountPtr)
     {
-        throw new NotImplementedException();
+        var address = ReadSandboxMemory(accountPtr, 32);
+        return _externalEnvironment.AccountReentranceCount(address);
     }
 
     /// <summary>
@@ -965,7 +983,8 @@ public partial class WebAssemblyRuntime : IDisposable
     /// <param name="codeHashPtr">A pointer to the code hash of the dependency.</param>
     private void AddDelegateDependency(int codeHashPtr)
     {
-        throw new NotImplementedException();
+        var codeHash = Hash.LoadFromByteArray(ReadSandboxMemory(codeHashPtr, AElfConstants.HashByteArrayLength));
+        _externalEnvironment.AddDelegateDependency(codeHash);
     }
 
     /// <summary>
@@ -974,7 +993,8 @@ public partial class WebAssemblyRuntime : IDisposable
     /// <param name="codeHashPtr">A pointer to the code hash of the dependency.</param>
     private void RemoveDelegateDependency(int codeHashPtr)
     {
-        throw new NotImplementedException();
+        var codeHash = Hash.LoadFromByteArray(ReadSandboxMemory(codeHashPtr, AElfConstants.HashByteArrayLength));
+        _externalEnvironment.RemoveDelegateDependency(codeHash);
     }
 
     #endregion

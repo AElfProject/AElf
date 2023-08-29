@@ -3,7 +3,6 @@ using AElf.Kernel;
 using AElf.Kernel.SmartContract;
 using AElf.Types;
 using Google.Protobuf;
-using NBitcoin.DataEncoders;
 using Nethereum.Util;
 
 namespace AElf.Runtime.WebAssembly;
@@ -16,6 +15,7 @@ public class ExternalEnvironment : IExternalEnvironment
     public List<(byte[], byte[])> Events { get; } = new();
     public List<string> DebugMessages { get; set; } = new();
     public Address? Caller { get; set; }
+    public GasMeter GasMeter { get; set; }
 
     public ExecuteReturnValue Call(Weight gasLimit, long depositLimit, Address to, long value, byte[] inputData,
         bool allowReentry)
@@ -85,12 +85,12 @@ public class ExternalEnvironment : IExternalEnvironment
         return value?.Length ?? 0;
     }
 
-    public bool IsContract()
+    public bool IsContract(byte[] address)
     {
         throw new NotImplementedException();
     }
 
-    public Hash CodeHash(Address address)
+    public Hash? CodeHash(byte[] address)
     {
         throw new NotImplementedException();
     }
@@ -191,7 +191,17 @@ public class ExternalEnvironment : IExternalEnvironment
         throw new NotImplementedException();
     }
 
-    public int AccountReentranceCount(Address accountAddress)
+    public int AccountReentranceCount(byte[] accountAddress)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void AddDelegateDependency(Hash codeHash)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void RemoveDelegateDependency(Hash codeHash)
     {
         throw new NotImplementedException();
     }

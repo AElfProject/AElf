@@ -633,73 +633,82 @@ public class WebAssemblyRuntimeTests : WebAssemblyRuntimeTestBase
     [Fact]
     public void IsContractWorks()
     {
-
+        var (_, runtime) = ExecuteWatFile("watFiles/is_contract_works.wat");
+        runtime.ReturnBuffer.ToInt32(false).ShouldBe(1);
     }
 
     [Fact]
     public void CodeHashWorks()
     {
+        var (_, runtime) = ExecuteWatFile("watFiles/code_hash_works.wat");
 
     }
 
     [Fact]
     public void OWnCodeHashWorks()
     {
+        var (_, runtime) = ExecuteWatFile("watFiles/own_code_hash_works.wat");
 
     }
 
     [Fact]
     public void CallerIsOriginWorks()
     {
-
+        var (_, runtime) = ExecuteWatFile("watFiles/caller_is_origin_works.wat");
+        runtime.ReturnBuffer.ToInt32(false).ShouldBe(0);
     }
 
     [Fact]
     public void CallerIsRootWorks()
     {
+        {
+            var (_, runtime) = ExecuteWatFile("watFiles/caller_is_root_works.wat");
+            runtime.ReturnBuffer.ToInt32(false).ShouldBe(0);
+        }
 
+        {
+            var externalEnvironment = new UnitTestExternalEnvironment();
+            var runtime = new WebAssemblyRuntime(externalEnvironment, "watFiles/caller_is_root_works.wat", false, 1, 1);
+            externalEnvironment.Caller = null;
+            InvokeCall(runtime.Instantiate().GetFunction<ActionResult>("call"));
+            runtime.ReturnBuffer.ToInt32(false).ShouldBe(1);
+        }
     }
 
     [Fact]
     public void SetCodeHashTest()
     {
-
+        var (externalEnvironment, _) =
+            ExecuteWatFile("watFiles/set_code_hash_works.wat", new ByteArrayBuilder().RepeatedBytes(0, 32));
+        externalEnvironment.CodeHashes.Count.ShouldBe(1);
+        externalEnvironment.CodeHashes[0].ShouldBe(new ByteArrayBuilder().RepeatedBytes(17, 32));
     }
 
     [Fact]
     public void ReentranceCountWorks()
     {
-
+        var (_, runtime) = ExecuteWatFile("watFiles/reentrance_count_works.wat");
     }
 
     [Fact]
     public void AccountReentranceCountWorks()
     {
-
+        var (_, runtime) = ExecuteWatFile("watFiles/account_reentrance_count_works.wat");
     }
 
     [Fact]
     public void InstantiationNonceWorks()
     {
-
-    }
-
-    [Fact]
-    public void CannotDeployUnstableTest()
-    {
-
-    }
-
-    [Fact]
-    public void CannotDeployDeprecatedTest()
-    {
-
+        var (_, runtime) = ExecuteWatFile("watFiles/instantiation_nonce_works.wat");
     }
 
     [Fact]
     public void AddRemoveDelegateDependencyTest()
     {
-
+        var (externalEnvironment, runtime) = ExecuteWatFile("watFiles/add_remove_delegate_dependency_works.wat");
+        externalEnvironment.DelegateDependencies.Count.ShouldBe(1);
+        externalEnvironment.DelegateDependencies[0].Value.ToByteArray()
+            .ShouldBe(new ByteArrayBuilder().RepeatedBytes(1, 32));
     }
 
     private (UnitTestExternalEnvironment, WebAssemblyRuntime) ExecuteWatFile(string watFilePath, byte[]? input = null)

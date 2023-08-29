@@ -1,7 +1,6 @@
 using AElf.Kernel.SmartContract;
 using AElf.Types;
 using Google.Protobuf;
-using NBitcoin.DataEncoders;
 
 namespace AElf.Runtime.WebAssembly.Tests;
 
@@ -17,12 +16,14 @@ public class UnitTestExternalEnvironment : IExternalEnvironment
     public List<CallCodeEntry> DelegateCalls { get; set; } = new();
     public List<InstantiateEntry> Instantiates { get; set; } = new();
     public List<TerminationEntry> Terminations { get; set; } = new();
+    public List<Hash> DelegateDependencies { get; set; } = new();
     public Tuple<byte[], byte[]> EcdsaRecover { get; set; }
     public Tuple<byte[], byte[], byte[]> Sr25519Verify { get; set; }
     public List<(byte[], byte[])> Events { get; set; } = new();
     public List<string> DebugMessages { get; set; } = new();
     public List<Hash> CodeHashes { get; set; } = new();
     public Address? Caller { get; set; } = WebAssemblyRuntimeTestConstants.Alice;
+    public GasMeter GasMeter { get; set; }
 
     public ExecuteReturnValue Call(Weight gasLimit, long depositLimit, Address to, long value, byte[] inputData,
         bool allowReentry)
@@ -141,12 +142,12 @@ public class UnitTestExternalEnvironment : IExternalEnvironment
         return value?.Length ?? 0;
     }
 
-    public bool IsContract()
+    public bool IsContract(byte[] address)
     {
         return true;
     }
 
-    public Hash CodeHash(Address address)
+    public Hash? CodeHash(byte[] address)
     {
         return Hash.LoadFromByteArray(new byte[]
         {
@@ -256,9 +257,19 @@ public class UnitTestExternalEnvironment : IExternalEnvironment
         return 12;
     }
 
-    public int AccountReentranceCount(Address accountAddress)
+    public int AccountReentranceCount(byte[] accountAddress)
     {
         return 12;
+    }
+
+    public void AddDelegateDependency(Hash codeHash)
+    {
+        DelegateDependencies.Add(codeHash);
+    }
+
+    public void RemoveDelegateDependency(Hash codeHash)
+    {
+        DelegateDependencies.Remove(codeHash);
     }
 
     public long Nonce()
