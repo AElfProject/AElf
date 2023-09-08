@@ -20,16 +20,16 @@ public class BallotContractTests : SolidityContractTestBase
     public async Task<Address> DeployBallotContractTest()
     {
         const string solFilePath = "contracts/Ballot.sol";
-        var solidityCode = await File.ReadAllTextAsync(solFilePath);
+        var solidityCode = await File.ReadAllBytesAsync(solFilePath);
         var proposals = new List<byte[]>(new[]
         {
-            Encoding.UTF8.GetBytes("Proposal #1"),
-            Encoding.UTF8.GetBytes("Proposal #2")
+            Encoding.UTF8.GetBytes("Proposal #1").ComputeHash(),
+            Encoding.UTF8.GetBytes("Proposal #2").ComputeHash()
         });
-        var executionResult = await DeployWebAssemblyContractAsync(await File.ReadAllBytesAsync(solFilePath),
-            ByteString.CopyFrom(new ABIEncode().GetABIEncoded(
-                new ABIValue("bytes32[]", proposals)
-            )));
+        var input = ByteString.CopyFrom(new ABIEncode().GetABIEncoded(new ABIValue("bytes32", proposals[0])));
+        var hexInput = input.ToHex();
+        var executionResult = await DeployWebAssemblyContractAsync(solidityCode, input);
+        //var executionResult = await DeployWebAssemblyContractAsync(solidityCode);
         executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
         executionResult.TransactionResult.Logs.Count.ShouldBePositive();
         return executionResult.Output;
@@ -39,7 +39,7 @@ public class BallotContractTests : SolidityContractTestBase
     public async Task ReadProposalsTest()
     {
         var contractAddress = await DeployBallotContractTest();
-        var tx = GetTransaction(DefaultSenderKeyPair, contractAddress, "proposals");
+        var tx = await GetTransactionAsync(DefaultSenderKeyPair, contractAddress, "proposals");
         var txResult = await TestTransactionExecutor.ExecuteAsync(tx);
         txResult.Status.ShouldBe(TransactionResultStatus.Mined);
         txResult.ReturnValue.ShouldNotBeNull();

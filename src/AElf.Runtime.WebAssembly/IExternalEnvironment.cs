@@ -4,6 +4,9 @@ using Google.Protobuf;
 
 namespace AElf.Runtime.WebAssembly;
 
+/// <summary>
+/// Inspired by https://github.com/paritytech/substrate/blob/master/frame/contracts/src/exec.rs
+/// </summary>
 public interface IExternalEnvironment
 {
     IHostSmartContractBridgeContext? HostSmartContractBridgeContext { get; set; }

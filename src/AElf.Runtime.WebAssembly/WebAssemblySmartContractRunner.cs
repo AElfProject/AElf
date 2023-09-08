@@ -21,9 +21,17 @@ public class WebAssemblySmartContractRunner : ISmartContractRunner
 
     public async Task<IExecutive> RunAsync(SmartContractRegistration reg)
     {
-        var code = reg.Code.ToByteArray();
-        var output = new Compiler().BuildWasm(code);
-        var executive = new Executive(ExternalEnvironment, output.Contracts.First());
-        return await Task.FromResult(executive);
+        try
+        {
+            var code = reg.Code.ToByteArray();
+            var output = new Compiler().BuildWasm(code);
+            var executive = new Executive(ExternalEnvironment, output.Contracts.First());
+            return await Task.FromResult(executive);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
     }
 }

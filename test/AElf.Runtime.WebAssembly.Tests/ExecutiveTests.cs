@@ -1,9 +1,11 @@
+using System.Text.Json;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
 using Google.Protobuf;
 using Nethereum.ABI;
 using Shouldly;
 using Solang;
+using Solang.Extensions;
 
 namespace AElf.Runtime.WebAssembly.Tests;
 
@@ -26,9 +28,9 @@ public class ExecutiveTests : WebAssemblyRuntimeTestBase
         const string solFilePath = "solFiles/simple.sol";
         const string functionName = "is_power_of_2";
 
-        var executive = CreateExecutive(solFilePath);
+        TryCompile(solFilePath, out var executive, out var solangAbi).ShouldBeTrue();
         var parameter = new ABIEncode().GetABIEncoded(new ABIValue("uint256", input));
-        var txContext = MockTransactionContext(functionName, ByteString.CopyFrom(parameter));
+        var txContext = MockTransactionContext(solangAbi!.GetSelector(functionName), ByteString.CopyFrom(parameter));
 
         var hostSmartContractBridgeContext = _hostSmartContractBridgeContextService.Create();
         executive.SetHostSmartContractBridgeContext(hostSmartContractBridgeContext);
@@ -44,8 +46,8 @@ public class ExecutiveTests : WebAssemblyRuntimeTestBase
     {
         const string solFilePath = "solFiles/simple.sol";
         const string functionName = "foo";
-        var executive = CreateExecutive(solFilePath);
-        var txContext = MockTransactionContext(functionName);
+        TryCompile(solFilePath, out var executive, out var solangAbi).ShouldBeTrue();
+        var txContext = MockTransactionContext(solangAbi!.GetSelector(functionName));
 
         var hostSmartContractBridgeContext = _hostSmartContractBridgeContextService.Create();
         executive.SetHostSmartContractBridgeContext(hostSmartContractBridgeContext);
@@ -60,11 +62,11 @@ public class ExecutiveTests : WebAssemblyRuntimeTestBase
     {
         const string solFilePath = "solFiles/simple.sol";
         const string functionName = "bar";
-        var executive = CreateExecutive(solFilePath);
-        var txContext = MockTransactionContext(functionName);
+        TryCompile(solFilePath, out var executive, out var solangAbi).ShouldBeTrue();
+        var txContext = MockTransactionContext(solangAbi!.GetSelector(functionName));
 
         var hostSmartContractBridgeContext = _hostSmartContractBridgeContextService.Create();
-        executive.SetHostSmartContractBridgeContext(hostSmartContractBridgeContext);
+        executive!.SetHostSmartContractBridgeContext(hostSmartContractBridgeContext);
 
         await executive.ApplyAsync(txContext);
         txContext.Trace.ReturnValue.ToHex().ShouldBe("02000000");
@@ -79,30 +81,42 @@ public class ExecutiveTests : WebAssemblyRuntimeTestBase
             "Proposal #1".GetBytes(),
             "Proposal #2".GetBytes()
         });
-        var executive = CreateExecutive(solFilePath);
+        TryCompile(solFilePath, out var executive, out var solangAbi).ShouldBeTrue();
         // var txContext = MockTransactionContext("deploy",
         //     ByteString.CopyFrom(new ABIEncode().GetABIEncoded(
         //         new ABIValue("bytes32[]", proposals)
         //     )));
-        var txContext = MockTransactionContext("deploy");
+        var txContext = MockTransactionContext("cdbf608d");
 
         var hostSmartContractBridgeContext = _hostSmartContractBridgeContextService.Create();
         executive.SetHostSmartContractBridgeContext(hostSmartContractBridgeContext);
         await executive.ApplyAsync(txContext);
 
-        txContext = MockTransactionContext("setProposals", 
-        ByteString.CopyFrom(new ABIEncode().GetABIEncodedPacked(
-            new ABIValue("bytes32[]", proposals)
-        )));
+        txContext = MockTransactionContext(solangAbi!.GetSelector("setProposals"),
+            ByteString.CopyFrom(new ABIEncode().GetABIEncodedPacked(
+                new ABIValue("bytes32[]", proposals)
+            )));
         await executive.ApplyAsync(txContext);
-        
+
         // TODO: Read proposals.
     }
 
-    private IExecutive CreateExecutive(string solFilePath)
+    private bool TryCompile(string solFilePath, out IExecutive? executive, out SolangABI? solangAbi)
     {
-        var code = File.ReadAllBytes(solFilePath);
-        return new Executive(new UnitTestExternalEnvironment(),
-            new Compiler().BuildWasm(code).Contracts.First());
+        executive = null;
+        solangAbi = null;
+        try
+        {
+            var code = File.ReadAllBytes(solFilePath);
+            var compiledContract = new Compiler().BuildWasm(code);
+            executive = new Executive(new UnitTestExternalEnvironment(), compiledContract.Contracts.First());
+            solangAbi = JsonSerializer.Deserialize<SolangABI>(compiledContract.Contracts.First().Abi);
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+
+        return true;
     }
 }

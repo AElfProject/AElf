@@ -585,7 +585,7 @@ public partial class WebAssemblyRuntime : IDisposable
     /// <param name="valueLengthPtr"></param>
     private void ValueTransferred(int valuePtr, int valueLengthPtr)
     {
-        WriteSandboxOutput(valuePtr, valueLengthPtr, _externalEnvironment.ValueTransferred());
+        //WriteSandboxOutput(valuePtr, valueLengthPtr, _externalEnvironment.ValueTransferred());
     }
 
     /// <summary>

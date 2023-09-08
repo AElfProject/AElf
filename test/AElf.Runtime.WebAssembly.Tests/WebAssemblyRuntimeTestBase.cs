@@ -20,6 +20,7 @@ public class WebAssemblyRuntimeTestBase : AElfIntegratedTest<WebAssemblyRuntimeT
         };
         return new TransactionContext
         {
+            Origin = SampleAddress.AddressList[0],
             Transaction = tx,
             Trace = new TransactionTrace()
         };

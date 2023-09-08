@@ -8,6 +8,7 @@ namespace Solang
     public unsafe class Compiler
     {
         private static byte[] Buffer = new byte[2097152];
+        private static object _ = new object();
 
         static readonly Lazy<build_wasm> build_wasm
             = LazyDelegate<build_wasm>(nameof(build_wasm));
@@ -26,20 +27,23 @@ namespace Solang
 
         public Output BuildWasm(byte[] source)
         {
-            Span<byte> output = Buffer;
-            var returnedBytes = 0;
-
-            fixed (byte* srcPtr = &MemoryMarshal.GetReference((Span<byte>)source),
-                   buffPtr = &MemoryMarshal.GetReference(output))
+            lock (_)
             {
-                returnedBytes = build_wasm.Value(srcPtr, buffPtr, Buffer.Length);
+                Span<byte> output = Buffer;
+                var returnedBytes = 0;
+
+                fixed (byte* srcPtr = &MemoryMarshal.GetReference((Span<byte>)source),
+                       buffPtr = &MemoryMarshal.GetReference(output))
+                {
+                    returnedBytes = build_wasm.Value(srcPtr, buffPtr, Buffer.Length);
+                }
+
+                if (returnedBytes <= 0) throw new Exception("failed");
+
+                var bytes = new ArraySegment<byte>(Buffer, 0, returnedBytes);
+                var bs = ByteString.CopyFrom(bytes);
+                return Output.Parser.ParseFrom(bs);
             }
-
-            if (returnedBytes <= 0) throw new Exception("failed");
-
-            var bytes = new ArraySegment<byte>(Buffer, 0, returnedBytes);
-            var bs = ByteString.CopyFrom(bytes);
-            return Output.Parser.ParseFrom(bs);
         }
     }
 }

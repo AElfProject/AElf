@@ -58,15 +58,16 @@ public class Executive : IExecutive
 
         var isCallConstructor = transaction.MethodName == "deploy";
 
-        if (isCallConstructor && (_hostSmartContractBridgeContext.Origin != null ||
-                                  _hostSmartContractBridgeContext.Origin == _hostSmartContractBridgeContext.Sender))
+        if (isCallConstructor && _hostSmartContractBridgeContext.Origin != transaction.To)
         {
             transactionContext.Trace.ExecutionStatus = ExecutionStatus.Prefailed;
             transactionContext.Trace.Error = "Cannot execute constructor.";
             return;
         }
 
-        var selector = _solangAbi.GetSelector(transaction.MethodName);
+        var selector = transaction.MethodName == "deploy"
+            ? _solangAbi.GetSelector(transaction.MethodName)
+            : transaction.MethodName;
         var parameter = transaction.Params.ToHex();
         _webAssemblyRuntime.Input = Encoders.Hex.DecodeData(selector + parameter);
         var instance = _webAssemblyRuntime.Instantiate();

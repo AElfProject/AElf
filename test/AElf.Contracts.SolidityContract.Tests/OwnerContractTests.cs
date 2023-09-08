@@ -2,6 +2,7 @@ using System.IO;
 using System.Threading.Tasks;
 using AElf.ContractTestKit;
 using AElf.Runtime.WebAssembly.Extensions;
+using AElf.Runtime.WebAssembly.Tests;
 using AElf.Types;
 using Google.Protobuf;
 using Nethereum.ABI;
@@ -26,7 +27,7 @@ public class OwnerContractTests : SolidityContractTestBase
     public async Task CallConstructorTwice()
     {
         var contractAddress = await DeployOwnerContractTest();
-        var tx = GetTransaction(DefaultSenderKeyPair, contractAddress, "deploy");
+        var tx = await GetTransactionAsync(DefaultSenderKeyPair, contractAddress, "deploy");
         var txResult = await TestTransactionExecutor.ExecuteWithExceptionAsync(tx);
         txResult.Error.ShouldNotBeEmpty();
     }
@@ -35,10 +36,10 @@ public class OwnerContractTests : SolidityContractTestBase
     public async Task<Address> GetOwnerTest()
     {
         var contractAddress = await DeployOwnerContractTest();
-        var tx = GetTransaction(DefaultSenderKeyPair, contractAddress, "getOwner");
+        var tx = await GetTransactionAsync(DefaultSenderKeyPair, contractAddress, "getOwner");
         var txResult = await TestTransactionExecutor.ExecuteAsync(tx);
         txResult.Status.ShouldBe(TransactionResultStatus.Mined);
-        txResult.ReturnValue.ShouldBe(DefaultSender.ToByteArray());
+        txResult.ReturnValue.ShouldBe(WebAssemblyRuntimeTestConstants.Alice.Value);
         return contractAddress;
     }
 
@@ -49,7 +50,7 @@ public class OwnerContractTests : SolidityContractTestBase
 
         var newAddress = SampleAccount.Accounts[1].KeyPair.ToEthECKey().GetPublicAddress();
         {
-            var tx = GetTransaction(DefaultSenderKeyPair, contractAddress, "changeOwner",
+            var tx = await GetTransactionAsync(DefaultSenderKeyPair, contractAddress, "changeOwner",
                 ByteString.CopyFrom(
                     new ABIEncode().GetABIEncoded(new ABIValue("address", newAddress))));
             var txResult = await TestTransactionExecutor.ExecuteAsync(tx);
@@ -57,7 +58,7 @@ public class OwnerContractTests : SolidityContractTestBase
         }
 
         {
-            var tx = GetTransaction(DefaultSenderKeyPair, contractAddress, "getOwner");
+            var tx = await GetTransactionAsync(DefaultSenderKeyPair, contractAddress, "getOwner");
             var txResult = await TestTransactionExecutor.ExecuteAsync(tx);
             txResult.ReturnValue.ToHex().ShouldContain(newAddress.RemoveHexPrefix().ToLower());
         }

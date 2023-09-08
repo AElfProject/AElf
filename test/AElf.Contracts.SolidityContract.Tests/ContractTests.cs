@@ -21,14 +21,12 @@ public class ContractTests : SolidityContractTestBase
         var txResult = await ExecuteContractMethod(contractAddress, "setNumber",
             new ABIEncode().GetABIEncoded(new ABIValue("int", 2147483647)));
         txResult.Status.ShouldBe(TransactionResultStatus.Mined);
-
-
     }
 
     private async Task<TransactionResult> ExecuteContractMethod(Address contractAddress, string methodName,
         byte[] parameter, ECKeyPair keyPair = null)
     {
-        var tx = GetTransaction(keyPair ?? DefaultSenderKeyPair, contractAddress, methodName,
+        var tx = await GetTransactionAsync(keyPair ?? DefaultSenderKeyPair, contractAddress, methodName,
             ByteString.CopyFrom(parameter));
         var txResult = await TestTransactionExecutor.ExecuteAsync(tx);
         txResult.Status.ShouldBe(TransactionResultStatus.Mined);

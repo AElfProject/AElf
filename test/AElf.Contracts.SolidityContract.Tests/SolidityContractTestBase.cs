@@ -1,3 +1,5 @@
+using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using AElf.Contracts.Genesis;
 using AElf.ContractTestKit;
@@ -11,6 +13,8 @@ using AElf.Runtime.WebAssembly.Extensions;
 using AElf.Standards.ACS0;
 using AElf.Types;
 using Google.Protobuf;
+using Solang;
+using Solang.Extensions;
 using Transaction = AElf.Types.Transaction;
 
 namespace AElf.Contracts.SolidityContract;
@@ -60,15 +64,12 @@ public class SolidityContractTestBase : ContractTestBase<SolidityContractTestAEl
         return executionResult;
     }
 
-    internal Transaction GetTransaction(ECKeyPair keyPair, Address to, string methodName,
+    internal async Task<Transaction> GetTransactionAsync(ECKeyPair keyPair, Address to, string methodName,
         ByteString parameter = null)
     {
         var refBlockInfo = RefBlockInfoProvider.GetRefBlockInfo();
         var transaction =
-            // TODO: Convert aelf address to eth address when call solidity contract method.
-            // GetTransactionWithoutSignature(keyPair.ToEthECKey().GetPublicAddress().EthAddressToAElfAddress(), to,
-            //     methodName, parameter);
-            GetTransactionWithoutSignature(Address.FromPublicKey(keyPair.PublicKey), to, methodName, parameter);
+            await GetTransactionWithoutSignatureAsync(Address.FromPublicKey(keyPair.PublicKey), to, methodName, parameter);
         transaction.RefBlockNumber = refBlockInfo.Height;
         transaction.RefBlockPrefix = refBlockInfo.Prefix;
 
@@ -77,14 +78,19 @@ public class SolidityContractTestBase : ContractTestBase<SolidityContractTestAEl
         return transaction;
     }
 
-    private Transaction GetTransactionWithoutSignature(Address from, Address to, string methodName,
+    private async Task<Transaction> GetTransactionWithoutSignatureAsync(Address from, Address to, string methodName,
         ByteString parameter)
     {
+        var registration = await BasicContractZeroStub.GetSmartContractRegistrationByAddress.CallAsync(to);
+        var solangAbi =
+            JsonSerializer.Deserialize<SolangABI>(new Compiler().BuildWasm(registration.Code.ToByteArray()).Contracts.First()
+                .Abi);
+        var selector = solangAbi.GetSelector(methodName);
         var transaction = new Transaction
         {
             From = from,
             To = to,
-            MethodName = methodName,
+            MethodName = selector,
             Params = parameter ?? ByteString.Empty
         };
 
