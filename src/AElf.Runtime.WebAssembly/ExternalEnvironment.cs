@@ -1,9 +1,11 @@
+using System.Security.Cryptography;
 using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract;
 using AElf.Types;
 using Google.Protobuf;
 using Nethereum.Util;
+using Secp256k1Net;
 
 namespace AElf.Runtime.WebAssembly;
 
@@ -132,8 +134,15 @@ public class ExternalEnvironment : IExternalEnvironment
 
     public byte[]? EcdsaRecover(byte[] signature, byte[] messageHash)
     {
-        CryptoHelper.RecoverPublicKey(signature, messageHash, out var pubkey);
-        return pubkey;
+        try
+        {
+            CryptoHelper.RecoverPublicKey(signature, messageHash, out var pubkey);
+            return pubkey;
+        }
+        catch (Exception)
+        {
+            throw new CryptographicException("Failed to perform ecdsa recover.");
+        }
     }
 
     public long Now()
@@ -173,6 +182,10 @@ public class ExternalEnvironment : IExternalEnvironment
 
     public byte[] EcdsaToEthAddress(byte[] pubkey)
     {
+        if (pubkey.Length != Secp256k1.SERIALIZED_UNCOMPRESSED_PUBKEY_LENGTH)
+        {
+            throw new ArgumentException("Incorrect pubkey size.");
+        }
         var pubkeyNoPrefixCompressed = new byte[pubkey.Length - 1];
         Array.Copy(pubkey, 1, pubkeyNoPrefixCompressed, 0, pubkeyNoPrefixCompressed.Length);
         var initAddress = new Sha3Keccack().CalculateHash(pubkeyNoPrefixCompressed);
