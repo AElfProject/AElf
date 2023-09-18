@@ -27,7 +27,7 @@ public class StreamTaskResourcePool : IStreamTaskResourcePool, ISingletonDepende
 
     public Task RegistryTaskPromiseAsync(string requestId, MessageType messageType, TaskCompletionSource<StreamMessage> promise)
     {
-        Logger.LogInformation("registry {requestId} {messageType}", requestId, messageType);
+        Logger.LogDebug("registry {requestId} {messageType}", requestId, messageType);
         _promisePool[requestId] = new Tuple<MessageType, TaskCompletionSource<StreamMessage>>(messageType, promise);
         return Task.CompletedTask;
     }
