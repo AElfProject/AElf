@@ -414,10 +414,10 @@ public partial class BasicContractZero
 
         Assert(State.SignatoryMap[contractOperation.DeployingAddress] == recoveredAddress,
             "Wrong signature.");
-        RemoveDelegateSignatureAddress(contractOperation.DeployingAddress);
+        RemoveSignatory(contractOperation.DeployingAddress);
     }
 
-    private void RemoveDelegateSignatureAddress(Address address)
+    private void RemoveSignatory(Address address)
     {
         State.SignatoryMap.Remove(address);
     }

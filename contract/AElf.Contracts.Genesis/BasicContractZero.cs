@@ -176,7 +176,7 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         var codeHash = HashHelper.ComputeFrom(input.Code.ToByteArray());
         AssertContractExists(codeHash);
 
-        Assert((input.Address == Context.Self || info.SerialNumber > 0) && input.ContractOperation == null || 
+        Assert((input.Address == Context.Self || info.SerialNumber > 0) && input.ContractOperation == null ||
                info.SerialNumber == 0 && input.ContractOperation != null, "Not compatible.");
 
         if (input.ContractOperation != null)
@@ -479,10 +479,9 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         var inputHash = CalculateHashFromInput(input);
         TryClearContractProposingData(inputHash, out var contractProposingInput);
 
-        TryGetInputContractOperation(input.ContractOperation, out var contractOperation);
-
         var address = DeploySmartContract(null, input.Category, input.Code.ToByteArray(), false,
-            contractProposingInput.Author, true, contractOperation.DeployingAddress, contractOperation.Salt);
+            contractProposingInput.Author, true, input.ContractOperation == null ? null : Context.Sender,
+            input.ContractOperation?.Salt);
         return address;
     }
 
@@ -496,22 +495,6 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         UpdateSmartContract(input.Address, input.Code.ToByteArray(), proposingInput.Author, true);
 
         return new Empty();
-    }
-
-    private void TryGetInputContractOperation(ContractOperation input, out ContractOperation contractOperation)
-    {
-        if (input != null)
-        {
-            Assert(input.Salt != null && !input.Salt.Value.IsNullOrEmpty(),
-                "Invalid input salt");
-            contractOperation = new ContractOperation
-            {
-                DeployingAddress = Context.Sender,
-                Salt = input.Salt
-            };
-        }
-
-        contractOperation = null;
     }
 
     public override Empty SetContractAuthor(SetContractAuthorInput input)
@@ -544,7 +527,7 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
 
     public override Empty RemoveSignatory(Empty input)
     {
-        RemoveDelegateSignatureAddress(Context.Sender);
+        RemoveSignatory(Context.Sender);
         return new Empty();
     }
 
