@@ -29,8 +29,7 @@ public partial class GenesisContractAuthTest
         var contractInfo = ContractInfo.Parser.ParseFrom(output);
         
         contractInfo.SerialNumber.ShouldBe(0);
-        contractInfo.DeployingAddress.ShouldBe(CreatorAddress);
-        contractInfo.Salt.ShouldBe(HashHelper.ComputeFrom("test"));
+        contractInfo.Deployer.ShouldBe(CreatorAddress);
 
         var contractDeploymentInput2 = new ContractDeploymentInput
         {
@@ -291,24 +290,24 @@ public partial class GenesisContractAuthTest
 
         var tester = Tester.CreateNewContractTester(CreatorKeyPair);
         var output = await tester.CallContractMethodAsync(BasicContractZeroAddress,
-            nameof(ACS0Container.ACS0Stub.GetDelegateSignatureAddress), CreatorAddress);
+            nameof(ACS0Container.ACS0Stub.GetSignatory), CreatorAddress);
         output.Length.ShouldBe(0);
 
         await tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
-            nameof(ACS0Container.ACS0Stub.SetDelegateSignatureAddress), SignerAddress);
+            nameof(ACS0Container.ACS0Stub.SetSignatory), SignerAddress);
         output = await tester.CallContractMethodAsync(BasicContractZeroAddress,
-            nameof(ACS0Container.ACS0Stub.GetDelegateSignatureAddress), CreatorAddress);
+            nameof(ACS0Container.ACS0Stub.GetSignatory), CreatorAddress);
         var delegateAddress = Address.Parser.ParseFrom(output.ToByteArray());
         delegateAddress.ShouldBe(SignerAddress);
 
         await tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
-            nameof(ACS0Container.ACS0Stub.RemoveDelegateSignatureAddress), new Empty());
+            nameof(ACS0Container.ACS0Stub.RemoveSignatory), new Empty());
         output = await tester.CallContractMethodAsync(BasicContractZeroAddress,
-            nameof(ACS0Container.ACS0Stub.GetDelegateSignatureAddress), CreatorAddress);
+            nameof(ACS0Container.ACS0Stub.GetSignatory), CreatorAddress);
         output.Length.ShouldBe(0);
 
         await tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
-            nameof(ACS0Container.ACS0Stub.SetDelegateSignatureAddress), SignerAddress);
+            nameof(ACS0Container.ACS0Stub.SetSignatory), SignerAddress);
         result = await DeployWithResultAsync(Tester, ParliamentAddress, BasicContractZeroAddress,
             contractDeploymentInput);
         result.Status.ShouldBe(TransactionResultStatus.Mined);
@@ -423,26 +422,8 @@ public partial class GenesisContractAuthTest
         var output = await Tester.CallContractMethodAsync(BasicContractZeroAddress,
             nameof(ACS0Container.ACS0Stub.GetContractInfo), contractAddress);
         var contractInfo = ContractInfo.Parser.ParseFrom(output);
-
-        var result = await UpdateAsync(Tester, ParliamentAddress, BasicContractZeroAddress, new ContractUpdateInput
-        {
-            Address = contractAddress,
-            Code = code,
-            ContractOperation = new ContractOperation
-            {
-                ChainId = chainId,
-                CodeHash = HashHelper.ComputeFrom(code.ToByteArray()),
-                DeployingAddress = CreatorAddress,
-                Salt = HashHelper.ComputeFrom("fail"),
-                Version = contractInfo.Version + 1,
-                Signature = GenerateContractSignature(CreatorKeyPair.PrivateKey, chainId,
-                    HashHelper.ComputeFrom(code.ToByteArray()), CreatorAddress, HashHelper.ComputeFrom("fail"),
-                    contractInfo.Version + 1)
-            }
-        });
-        result.Error.ShouldContain("No permission.");
         
-        result = await UpdateAsync(Tester, ParliamentAddress, BasicContractZeroAddress, new ContractUpdateInput
+        var result = await UpdateAsync(Tester, ParliamentAddress, BasicContractZeroAddress, new ContractUpdateInput
         {
             Address = contractAddress,
             Code = code,

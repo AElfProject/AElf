@@ -84,9 +84,9 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         return new Int32Value { Value = expirationTimePeriod };
     }
 
-    public override Address GetDelegateSignatureAddress(Address input)
+    public override Address GetSignatory(Address input)
     {
-        return State.DelegateSignatureAddressMap[input];
+        return State.SignatoryMap[input];
     }
 
     #endregion Views
@@ -126,7 +126,7 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         if (input.ContractOperation != null)
         {
             CheckSignatureAndData(input.ContractOperation, 0, codeHash);
-            CheckContractAddressOccupied(input.ContractOperation);
+            CheckContractAddressAvailable(input.ContractOperation);
         }
 
         // Create proposal for deployment
@@ -172,16 +172,18 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         Assert(info != null, "Contract not found.");
         AssertAuthorityByContractInfo(info, Context.Sender);
         AssertContractVersion(info.ContractVersion, input.Code, info.Category);
-        
+
         var codeHash = HashHelper.ComputeFrom(input.Code.ToByteArray());
         AssertContractExists(codeHash);
-        Assert(info.SerialNumber > 0 || input.ContractOperation != null, "Not compatible.");
-        
+
+        Assert(
+            (info.SerialNumber > 0 && input.ContractOperation == null) ||
+            (info.SerialNumber == 0 && input.ContractOperation != null), "Not compatible.");
+
         if (input.ContractOperation != null)
         {
-            Assert(info.SerialNumber == 0, "Not compatible.");
             CheckSignatureAndData(input.ContractOperation, info.Version, codeHash);
-            CheckUpdatePermission(input.Address, input.ContractOperation);
+            CheckUpdatePermission(input.Address, input.ContractOperation.DeployingAddress);
         }
 
         var expirationTimePeriod = GetCurrentContractProposalExpirationTimePeriod();
@@ -305,7 +307,7 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         var address =
             DeploySmartContract(null, input.Category, input.Code.ToByteArray(), false,
                 DecideNonSystemContractAuthor(contractProposingInput?.Proposer, Context.Sender), false,
-                input.ContractOperation);
+                input.ContractOperation?.DeployingAddress, input.ContractOperation?.Salt);
         return address;
     }
 
@@ -319,8 +321,7 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         if (!TryClearContractProposingData(inputHash, out _))
             Assert(Context.Sender == info.Author, "No permission.");
 
-        UpdateSmartContract(contractAddress, input.Code.ToByteArray(), info.Author, false,
-            input.ContractOperation);
+        UpdateSmartContract(contractAddress, input.Code.ToByteArray(), info.Author, false);
 
         return contractAddress;
     }
@@ -399,7 +400,7 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
 
         if (input.ContractOperation != null)
         {
-            CheckContractAddressOccupied(input.ContractOperation);
+            CheckContractAddressAvailable(input.ContractOperation);
         }
 
         var proposedContractInputHash = CalculateHashFromInput(input);
@@ -482,7 +483,7 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         TryGetInputContractOperation(input.ContractOperation, out var contractOperation);
 
         var address = DeploySmartContract(null, input.Category, input.Code.ToByteArray(), false,
-            contractProposingInput.Author, true, contractOperation);
+            contractProposingInput.Author, true, contractOperation.DeployingAddress, contractOperation.Salt);
         return address;
     }
 
@@ -492,10 +493,8 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
 
         var inputHash = CalculateHashFromInput(input);
         TryClearContractProposingData(inputHash, out var proposingInput);
-        
-        TryGetInputContractOperation(input.ContractOperation, out var contractOperation);
 
-        UpdateSmartContract(input.Address, input.Code.ToByteArray(), proposingInput.Author, true, contractOperation);
+        UpdateSmartContract(input.Address, input.Code.ToByteArray(), proposingInput.Author, true);
 
         return new Empty();
     }
@@ -534,17 +533,17 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         return new Empty();
     }
 
-    public override Empty SetDelegateSignatureAddress(Address input)
+    public override Empty SetSignatory(Address input)
     {
         Assert(input != null && !input.Value.IsNullOrEmpty(), "Invalid input.");
 
-        if (State.DelegateSignatureAddressMap[Context.Sender] == input) return new Empty();
+        if (State.SignatoryMap[Context.Sender] == input) return new Empty();
 
-        State.DelegateSignatureAddressMap[Context.Sender] = input;
+        State.SignatoryMap[Context.Sender] = input;
         return new Empty();
     }
 
-    public override Empty RemoveDelegateSignatureAddress(Empty input)
+    public override Empty RemoveSignatory(Empty input)
     {
         RemoveDelegateSignatureAddress(Context.Sender);
         return new Empty();

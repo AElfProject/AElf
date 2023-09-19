@@ -79,12 +79,12 @@ service ACS0 {
     rpc SetContractProposerRequiredState (google.protobuf.BoolValue) returns (google.protobuf.Empty) {
     }
     
-    // Set signature delegation.
-    rpc SetDelegateSignatureAddress (aelf.Address) returns (google.protobuf.Empty) {
+    // Set signatory.
+    rpc SetSignatory (aelf.Address) returns (google.protobuf.Empty) {
     }
     
-    // Delete signature delegation.
-    rpc RemoveDelegateSignatureAddress (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    // Delete signatory.
+    rpc RemoveSignatory (google.protobuf.Empty) returns (google.protobuf.Empty) {
     }
     
     // Get the current serial number of genesis contract 
@@ -127,7 +127,7 @@ service ACS0 {
         option (aelf.is_view) = true;
     }
     
-    rpc GetDelegateSignatureAddress (aelf.Address) returns (aelf.Address) {
+    rpc GetSignatory (aelf.Address) returns (aelf.Address) {
         option (aelf.is_view) = true;
     }
 }
@@ -150,9 +150,7 @@ message ContractInfo
     // Indicates if the contract is the user contract.
     bool is_user_contract = 8;
     // The address for deploying the contract
-    aelf.Address deploying_address = 9;
-    // The hash for calculating contract address
-    aelf.Hash salt = 10;
+    aelf.Address deployer = 9;
 }
 
 message ContractDeploymentInput {
@@ -229,6 +227,7 @@ message ContractDeployed
     // The name of the contract. It has to be unique.
     aelf.Hash Name = 5;
     string contract_version = 6;
+    aelf.Address deployer = 7;
 }
 
 message CodeCheckRequired

@@ -13,7 +13,7 @@ namespace AElf.Contracts.Genesis;
 public partial class BasicContractZero
 {
     private Address DeploySmartContract(Hash name, int category, byte[] code, bool isSystemContract,
-        Address author, bool isUserContract, ContractOperation contractOperation = null)
+        Address author, bool isUserContract, Address deployer = null, Hash salt = null)
     {
         if (name != null)
             Assert(State.NameAddressMapping[name] == null, "contract name has already been registered before");
@@ -24,7 +24,7 @@ public partial class BasicContractZero
         long serialNumber;
         Address contractAddress;
 
-        if (contractOperation == null)
+        if (deployer == null)
         {
             serialNumber = State.ContractSerialNumber.Value;
             // Increment
@@ -35,7 +35,7 @@ public partial class BasicContractZero
         {
             serialNumber = 0;
             contractAddress =
-                AddressHelper.BuildContractAddressWithSalt(contractOperation.DeployingAddress, contractOperation.Salt);
+                AddressHelper.BuildContractAddressWithSalt(deployer, salt);
         }
 
         Assert(State.ContractInfos[contractAddress] == null, "Contract address exists");
@@ -49,8 +49,7 @@ public partial class BasicContractZero
             IsSystemContract = isSystemContract,
             Version = 1,
             IsUserContract = isUserContract,
-            DeployingAddress = contractOperation?.DeployingAddress,
-            Salt = contractOperation?.Salt
+            Deployer = deployer
         };
 
         var reg = new SmartContractRegistration
@@ -413,30 +412,28 @@ public partial class BasicContractZero
 
         if (recoveredAddress == contractOperation.DeployingAddress) return;
 
-        Assert(State.DelegateSignatureAddressMap[contractOperation.DeployingAddress] == recoveredAddress,
+        Assert(State.SignatoryMap[contractOperation.DeployingAddress] == recoveredAddress,
             "Wrong signature.");
         RemoveDelegateSignatureAddress(contractOperation.DeployingAddress);
     }
 
     private void RemoveDelegateSignatureAddress(Address address)
     {
-        State.DelegateSignatureAddressMap.Remove(address);
+        State.SignatoryMap.Remove(address);
     }
 
-    private void CheckContractAddressOccupied(ContractOperation contractOperation)
+    private void CheckContractAddressAvailable(ContractOperation contractOperation)
     {
         var contractAddress = AddressHelper.BuildContractAddressWithSalt(contractOperation.DeployingAddress,
             contractOperation.Salt);
         Assert(State.ContractInfos[contractAddress] == null, "Contract address exists.");
     }
 
-    private void CheckUpdatePermission(Address contractAddress, ContractOperation contractOperation)
+    private void CheckUpdatePermission(Address contractAddress, Address deployer)
     {
         var contractInfo = State.ContractInfos[contractAddress];
         Assert(contractInfo != null, "Contract not exists.");
-        Assert(
-            contractInfo.DeployingAddress == contractOperation.DeployingAddress &&
-            contractInfo.Salt == contractOperation.Salt, "No permission.");
+        Assert(contractInfo.Deployer == deployer, "No permission.");
     }
 }
 
