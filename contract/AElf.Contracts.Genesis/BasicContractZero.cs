@@ -176,9 +176,8 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         var codeHash = HashHelper.ComputeFrom(input.Code.ToByteArray());
         AssertContractExists(codeHash);
 
-        Assert(
-            info.SerialNumber > 0 && input.ContractOperation == null ||
-            info.SerialNumber == 0 && input.ContractOperation != null, "Not compatible.");
+        Assert((input.Address == Context.Self || info.SerialNumber > 0) && input.ContractOperation == null || 
+               info.SerialNumber == 0 && input.ContractOperation != null, "Not compatible.");
 
         if (input.ContractOperation != null)
         {
