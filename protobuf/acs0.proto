@@ -127,7 +127,7 @@ service ACS0 {
         option (aelf.is_view) = true;
     }
     
-    rpc GetDelegateSignatureAddress (google.protobuf.Empty) returns (aelf.Address) {
+    rpc GetDelegateSignatureAddress (aelf.Address) returns (aelf.Address) {
         option (aelf.is_view) = true;
     }
 }

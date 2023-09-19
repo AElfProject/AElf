@@ -96,8 +96,7 @@ public partial class BasicContractZero
         return contractAddress;
     }
 
-    private void UpdateSmartContract(Address contractAddress, byte[] code, Address author, bool isUserContract,
-        ContractOperation contractOperation = null)
+    private void UpdateSmartContract(Address contractAddress, byte[] code, Address author, bool isUserContract)
     {
         var info = State.ContractInfos[contractAddress];
         Assert(info != null, "Contract not found.");
@@ -395,7 +394,7 @@ public partial class BasicContractZero
         Assert(contractOperation.CodeHash != null && !contractOperation.CodeHash.Value.IsNullOrEmpty(),
             "Invalid input code hash.");
         Assert(!contractOperation.Signature.IsNullOrEmpty(), "Invalid input signature.");
-        
+
         Assert(contractOperation.Version == version + 1, "Wrong input version.");
         Assert(contractOperation.ChainId == Context.ChainId, "Wrong input chain id.");
         Assert(contractOperation.CodeHash == codeHash, "Wrong input code hash.");
@@ -414,7 +413,8 @@ public partial class BasicContractZero
 
         if (recoveredAddress == contractOperation.DeployingAddress) return;
 
-        Assert(State.DelegateSignatureAddressMap[contractOperation.DeployingAddress] == recoveredAddress, "Wrong signature.");
+        Assert(State.DelegateSignatureAddressMap[contractOperation.DeployingAddress] == recoveredAddress,
+            "Wrong signature.");
         RemoveDelegateSignatureAddress(contractOperation.DeployingAddress);
     }
 
@@ -434,7 +434,9 @@ public partial class BasicContractZero
     {
         var contractInfo = State.ContractInfos[contractAddress];
         Assert(contractInfo != null, "Contract not exists.");
-        Assert(contractInfo.DeployingAddress == contractOperation.DeployingAddress, "No permission.");
+        Assert(
+            contractInfo.DeployingAddress == contractOperation.DeployingAddress &&
+            contractInfo.Salt == contractOperation.Salt, "No permission.");
     }
 }
 

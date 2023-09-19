@@ -268,6 +268,47 @@ public class BasicContractZeroTestBase : TestBase.ContractTestBase<BasicContract
         
         return deploymentResult;
     }
+    
+    internal async Task<TransactionResult> UpdateAsync(ContractTester<BasicContractZeroTestAElfModule> tester,
+        Address parliamentContract, Address contractZeroAddress, ContractUpdateInput contractUpdateInput)
+    {
+        var proposingTxResult = await tester.ExecuteContractWithMiningAsync(contractZeroAddress,
+            nameof(BasicContractZero.ProposeUpdateContract), contractUpdateInput);
+
+        var proposalCreatedEvent =
+            proposingTxResult.Logs.FirstOrDefault(l => l.Name.Contains(nameof(ProposalCreated)));
+        if (proposalCreatedEvent == null)
+            return proposingTxResult;
+
+        var proposalId = ProposalCreated.Parser
+            .ParseFrom(proposalCreatedEvent.NonIndexed)
+            .ProposalId;
+        var proposedContractInputHash = ContractProposed.Parser
+            .ParseFrom(proposingTxResult.Logs.First(l => l.Name.Contains(nameof(ContractProposed))).NonIndexed)
+            .ProposedContractInputHash;
+        await ApproveWithMinersAsync(tester, parliamentContract, proposalId);
+
+        // release contract code and trigger code check proposal
+        var releaseApprovedContractTxResult = await tester.ExecuteContractWithMiningAsync(contractZeroAddress,
+            nameof(BasicContractZero.ReleaseApprovedContract), new ReleaseContractInput
+            {
+                ProposalId = proposalId,
+                ProposedContractInputHash = proposedContractInputHash
+            });
+        var codeCheckProposalId = ProposalCreated.Parser
+            .ParseFrom(releaseApprovedContractTxResult.Logs.First(l => l.Name.Contains(nameof(ProposalCreated)))
+                .NonIndexed).ProposalId;
+
+        await ApproveWithMinersAsync(tester, parliamentContract, codeCheckProposalId);
+
+        // release code check proposal and deployment completes
+        var updateResult = await tester.ExecuteContractWithMiningAsync(contractZeroAddress,
+            nameof(BasicContractZeroImplContainer.BasicContractZeroImplStub.ReleaseCodeCheckedContract),
+            new ReleaseContractInput
+                { ProposedContractInputHash = proposedContractInputHash, ProposalId = codeCheckProposalId });
+
+        return updateResult;
+    }
 
     protected async Task<Address> CreateOrganizationAsync(ContractTester<BasicContractZeroTestAElfModule> tester,
         Address parliamentContract)

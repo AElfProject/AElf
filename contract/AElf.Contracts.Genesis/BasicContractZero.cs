@@ -84,9 +84,9 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         return new Int32Value { Value = expirationTimePeriod };
     }
 
-    public override Address GetDelegateSignatureAddress(Empty input)
+    public override Address GetDelegateSignatureAddress(Address input)
     {
-        return State.DelegateSignatureAddressMap[Context.Sender];
+        return State.DelegateSignatureAddressMap[input];
     }
 
     #endregion Views
@@ -116,7 +116,8 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
     public override Hash ProposeNewContract(ContractDeploymentInput input)
     {
         // AssertDeploymentProposerAuthority(Context.Sender);
-        AssertContractExists(HashHelper.ComputeFrom(input.Code.ToByteArray()));
+        var codeHash = HashHelper.ComputeFrom(input.Code.ToByteArray());
+        AssertContractExists(codeHash);
         var proposedContractInputHash = CalculateHashFromInput(input);
         RegisterContractProposingData(proposedContractInputHash);
 
@@ -124,7 +125,7 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
 
         if (input.ContractOperation != null)
         {
-            CheckSignatureAndData(input.ContractOperation, 0, HashHelper.ComputeFrom(input.Code.ToByteArray()));
+            CheckSignatureAndData(input.ContractOperation, 0, codeHash);
             CheckContractAddressOccupied(input.ContractOperation);
         }
 
@@ -171,13 +172,15 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         Assert(info != null, "Contract not found.");
         AssertAuthorityByContractInfo(info, Context.Sender);
         AssertContractVersion(info.ContractVersion, input.Code, info.Category);
-        AssertContractExists(HashHelper.ComputeFrom(input.Code.ToByteArray()));
-        Assert(info.Salt == null || input.ContractOperation != null, "Invalid contract operation.");
+        
+        var codeHash = HashHelper.ComputeFrom(input.Code.ToByteArray());
+        AssertContractExists(codeHash);
+        Assert(info.SerialNumber > 0 || input.ContractOperation != null, "Not compatible.");
         
         if (input.ContractOperation != null)
         {
-            CheckSignatureAndData(input.ContractOperation, info.Version,
-                HashHelper.ComputeFrom(input.Code.ToByteArray()));
+            Assert(info.SerialNumber == 0, "Not compatible.");
+            CheckSignatureAndData(input.ContractOperation, info.Version, codeHash);
             CheckUpdatePermission(input.Address, input.ContractOperation);
         }
 
