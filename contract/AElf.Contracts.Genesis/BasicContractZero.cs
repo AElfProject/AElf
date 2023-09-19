@@ -81,7 +81,12 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
     public override Int32Value GetContractProposalExpirationTimePeriod(Empty input)
     {
         var expirationTimePeriod = GetCurrentContractProposalExpirationTimePeriod();
-        return new Int32Value{ Value = expirationTimePeriod };
+        return new Int32Value { Value = expirationTimePeriod };
+    }
+
+    public override Address GetDelegateSignatureAddress(Empty input)
+    {
+        return State.DelegateSignatureAddressMap[Context.Sender];
     }
 
     #endregion Views
@@ -114,8 +119,13 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         AssertContractExists(HashHelper.ComputeFrom(input.Code.ToByteArray()));
         var proposedContractInputHash = CalculateHashFromInput(input);
         RegisterContractProposingData(proposedContractInputHash);
-        
+
         var expirationTimePeriod = GetCurrentContractProposalExpirationTimePeriod();
+
+        if (input.ContractOperation != null)
+        {
+            CheckSignatureAndData(input.ContractOperation, 0, HashHelper.ComputeFrom(input.Code.ToByteArray()));
+        }
 
         // Create proposal for deployment
         var proposalCreationInput = new CreateProposalBySystemContractInput
@@ -161,6 +171,12 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         AssertAuthorityByContractInfo(info, Context.Sender);
         AssertContractVersion(info.ContractVersion, input.Code, info.Category);
         AssertContractExists(HashHelper.ComputeFrom(input.Code.ToByteArray()));
+
+        if (input.ContractOperation != null)
+        {
+            CheckSignatureAndData(input.ContractOperation, info.Version,
+                HashHelper.ComputeFrom(input.Code.ToByteArray()));
+        }
 
         var expirationTimePeriod = GetCurrentContractProposalExpirationTimePeriod();
 
@@ -282,7 +298,8 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
 
         var address =
             DeploySmartContract(null, input.Category, input.Code.ToByteArray(), false,
-                DecideNonSystemContractAuthor(contractProposingInput?.Proposer, Context.Sender), false);
+                DecideNonSystemContractAuthor(contractProposingInput?.Proposer, Context.Sender), false,
+                input.ContractOperation);
         return address;
     }
 
@@ -296,8 +313,9 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         if (!TryClearContractProposingData(inputHash, out _))
             Assert(Context.Sender == info.Author, "No permission.");
 
-        UpdateSmartContract(contractAddress, input.Code.ToByteArray(), info.Author, false);
-        
+        UpdateSmartContract(contractAddress, input.Code.ToByteArray(), info.Author, false,
+            input.ContractOperation);
+
         return contractAddress;
     }
 
@@ -362,17 +380,17 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         State.ContractProposalExpirationTimePeriod.Value = input.ExpirationTimePeriod;
         return new Empty();
     }
-    
+
     public override DeployUserSmartContractOutput DeployUserSmartContract(ContractDeploymentInput input)
     {
         AssertInlineDeployOrUpdateUserContract();
         AssertUserDeployContract();
-        
+
         var codeHash = HashHelper.ComputeFrom(input.Code.ToByteArray());
         Context.LogDebug(() => "BasicContractZero - Deployment user contract hash: " + codeHash.ToHex());
-        
+
         AssertContractExists(codeHash);
-        
+
         var proposedContractInputHash = CalculateHashFromInput(input);
         SendUserContractProposal(proposedContractInputHash,
             nameof(BasicContractZeroImplContainer.BasicContractZeroImplBase.PerformDeployUserSmartContract),
@@ -397,7 +415,7 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
     public override Empty UpdateUserSmartContract(ContractUpdateInput input)
     {
         AssertInlineDeployOrUpdateUserContract();
-        
+
         var info = State.ContractInfos[input.Address];
         Assert(info != null, "Contract not found.");
         Assert(Context.Sender == info.Author, "No permission.");
@@ -405,12 +423,12 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         Assert(info.CodeHash != codeHash, "Code is not changed.");
         AssertContractExists(codeHash);
         AssertContractVersion(info.ContractVersion, input.Code, info.Category);
-        
+
         var proposedContractInputHash = CalculateHashFromInput(input);
         SendUserContractProposal(proposedContractInputHash,
             nameof(BasicContractZeroImplContainer.BasicContractZeroImplBase.PerformUpdateUserSmartContract),
             input.ToByteString());
-        
+
         // Fire event to trigger BPs checking contract code
         Context.Fire(new CodeCheckRequired
         {
@@ -420,10 +438,10 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
             IsSystemContract = false,
             IsUserContract = true
         });
-        
+
         return new Empty();
     }
-    
+
     public override Empty ReleaseApprovedUserSmartContract(ReleaseContractInput input)
     {
         var contractProposingInput = State.ContractProposingInputMap[input.ProposedContractInputHash];
@@ -432,9 +450,9 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
             contractProposingInput != null &&
             contractProposingInput.Status == ContractProposingInputStatus.CodeCheckProposed &&
             contractProposingInput.Proposer == Context.Self, "Invalid contract proposing status.");
-        
+
         AssertCurrentMiner();
-        
+
         contractProposingInput.Status = ContractProposingInputStatus.CodeChecked;
         State.ContractProposingInputMap[input.ProposedContractInputHash] = contractProposingInput;
         var codeCheckController = State.CodeCheckController.Value;
@@ -450,21 +468,41 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         var inputHash = CalculateHashFromInput(input);
         TryClearContractProposingData(inputHash, out var contractProposingInput);
 
+        TryGetInputContractOperation(input.ContractOperation, out var contractOperation);
+
         var address = DeploySmartContract(null, input.Category, input.Code.ToByteArray(), false,
-            contractProposingInput.Author, true);
+            contractProposingInput.Author, true, contractOperation);
         return address;
     }
 
     public override Empty PerformUpdateUserSmartContract(ContractUpdateInput input)
     {
         RequireSenderAuthority(State.CodeCheckController.Value.OwnerAddress);
-        
+
         var inputHash = CalculateHashFromInput(input);
         TryClearContractProposingData(inputHash, out var proposingInput);
 
-        UpdateSmartContract(input.Address, input.Code.ToByteArray(), proposingInput.Author, true);
-        
+        TryGetInputContractOperation(input.ContractOperation, out var contractOperation);
+
+        UpdateSmartContract(input.Address, input.Code.ToByteArray(), proposingInput.Author, true, contractOperation);
+
         return new Empty();
+    }
+
+    private void TryGetInputContractOperation(ContractOperation input, out ContractOperation contractOperation)
+    {
+        if (input != null)
+        {
+            Assert(input.Salt != null && !input.Salt.Value.IsNullOrEmpty(),
+                "Invalid input salt");
+            contractOperation = new ContractOperation
+            {
+                DeployingAddress = Context.Sender,
+                Salt = input.Salt
+            };
+        }
+
+        contractOperation = null;
     }
 
     public override Empty SetContractAuthor(SetContractAuthorInput input)
@@ -481,7 +519,23 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
             OldAuthor = oldAuthor,
             NewAuthor = input.NewAuthor
         });
-        
+
+        return new Empty();
+    }
+
+    public override Empty SetDelegateSignatureAddress(Address input)
+    {
+        Assert(input != null && !input.Value.IsNullOrEmpty(), "Invalid input.");
+
+        if (State.DelegateSignatureAddressMap[Context.Sender] == input) return new Empty();
+
+        State.DelegateSignatureAddressMap[Context.Sender] = input;
+        return new Empty();
+    }
+
+    public override Empty RemoveDelegateSignatureAddress(Empty input)
+    {
+        RemoveDelegateSignatureAddress(Context.Sender);
         return new Empty();
     }
 

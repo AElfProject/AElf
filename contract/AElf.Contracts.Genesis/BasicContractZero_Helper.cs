@@ -13,7 +13,7 @@ namespace AElf.Contracts.Genesis;
 public partial class BasicContractZero
 {
     private Address DeploySmartContract(Hash name, int category, byte[] code, bool isSystemContract,
-        Address author, bool isUserContract)
+        Address author, bool isUserContract, ContractOperation contractOperation = null)
     {
         if (name != null)
             Assert(State.NameAddressMapping[name] == null, "contract name has already been registered before");
@@ -21,10 +21,24 @@ public partial class BasicContractZero
         var codeHash = HashHelper.ComputeFrom(code);
         AssertContractExists(codeHash);
 
-        var serialNumber = State.ContractSerialNumber.Value;
-        // Increment
-        State.ContractSerialNumber.Value = serialNumber + 1;
-        var contractAddress = AddressHelper.BuildContractAddress(Context.ChainId, serialNumber);
+        long serialNumber;
+        Address contractAddress;
+
+        if (contractOperation == null)
+        {
+            serialNumber = State.ContractSerialNumber.Value;
+            // Increment
+            State.ContractSerialNumber.Value = serialNumber + 1;
+            contractAddress = AddressHelper.BuildContractAddress(Context.ChainId, serialNumber);
+        }
+        else
+        {
+            serialNumber = 0;
+            contractAddress =
+                AddressHelper.BuildContractAddressWithSalt(contractOperation.DeployingAddress, contractOperation.Salt);
+        }
+
+        Assert(State.ContractInfos[contractAddress] == null, "Contract address exists");
 
         var info = new ContractInfo
         {
@@ -34,7 +48,9 @@ public partial class BasicContractZero
             CodeHash = codeHash,
             IsSystemContract = isSystemContract,
             Version = 1,
-            IsUserContract = isUserContract
+            IsUserContract = isUserContract,
+            DeployingAddress = contractOperation?.DeployingAddress,
+            Salt = contractOperation?.Salt
         };
 
         var reg = new SmartContractRegistration
@@ -49,13 +65,13 @@ public partial class BasicContractZero
         };
 
         var contractInfo = Context.DeploySmartContract(contractAddress, reg, name);
-        
+
         info.ContractVersion = contractInfo.ContractVersion;
         reg.ContractVersion = info.ContractVersion;
-        
+
         State.ContractInfos[contractAddress] = info;
         State.SmartContractRegistrations[reg.CodeHash] = reg;
-        
+
         Context.Fire(new ContractDeployed
         {
             CodeHash = codeHash,
@@ -79,8 +95,9 @@ public partial class BasicContractZero
 
         return contractAddress;
     }
-    
-    private void UpdateSmartContract(Address contractAddress, byte[] code, Address author, bool isUserContract)
+
+    private void UpdateSmartContract(Address contractAddress, byte[] code, Address author, bool isUserContract,
+        ContractOperation contractOperation = null)
     {
         var info = State.ContractInfos[contractAddress];
         Assert(info != null, "Contract not found.");
@@ -90,6 +107,11 @@ public partial class BasicContractZero
         var newCodeHash = HashHelper.ComputeFrom(code);
         Assert(oldCodeHash != newCodeHash, "Code is not changed.");
         AssertContractExists(newCodeHash);
+
+        if (contractOperation != null)
+        {
+            Assert(info.DeployingAddress == contractOperation.DeployingAddress && info.Salt == contractOperation.Salt, "No permission to update.");
+        }
 
         info.CodeHash = newCodeHash;
         info.IsUserContract = isUserContract;
@@ -105,14 +127,14 @@ public partial class BasicContractZero
             ContractAddress = contractAddress,
             IsUserContract = isUserContract
         };
-        
+
         var contractInfo = Context.UpdateSmartContract(contractAddress, reg, null, info.ContractVersion);
         Assert(contractInfo.IsSubsequentVersion,
             $"The version to be deployed is lower than the effective version({info.ContractVersion}), please correct the version number.");
 
         info.ContractVersion = contractInfo.ContractVersion;
         reg.ContractVersion = info.ContractVersion;
-        
+
         State.ContractInfos[contractAddress] = info;
         State.SmartContractRegistrations[reg.CodeHash] = reg;
 
@@ -263,14 +285,14 @@ public partial class BasicContractZero
             input.CodeCheckReleaseMethod == nameof(DeploySmartContract) ||
             input.CodeCheckReleaseMethod == nameof(UpdateSmartContract), "Invalid input.");
     }
-    
+
     private int GetCurrentContractProposalExpirationTimePeriod()
     {
         return State.ContractProposalExpirationTimePeriod.Value == 0
             ? ContractProposalExpirationTimePeriod
             : State.ContractProposalExpirationTimePeriod.Value;
     }
-    
+
     private void AssertCurrentMiner()
     {
         RequireConsensusContractStateSet();
@@ -278,7 +300,7 @@ public partial class BasicContractZero
         Context.LogDebug(() => $"Sender is currentMiner : {isCurrentMiner}.");
         Assert(isCurrentMiner, "No permission.");
     }
-    
+
     private void RequireConsensusContractStateSet()
     {
         if (State.ConsensusContract.Value != null)
@@ -313,7 +335,7 @@ public partial class BasicContractZero
             },
             OriginProposer = Context.Self
         };
-        
+
         Context.SendInline(codeCheckController.ContractAddress,
             nameof(AuthorizationContractContainer.AuthorizationContractReferenceState
                 .CreateProposalBySystemContract), proposalCreationInput);
@@ -328,7 +350,7 @@ public partial class BasicContractZero
         {
             return;
         }
-        
+
         RequireParliamentContractAddressSet();
         var whitelist = State.ParliamentContract.GetProposerWhiteList.Call(new Empty());
         Assert(whitelist.Proposers.Contains(Context.Sender), "No permission.");
@@ -352,7 +374,6 @@ public partial class BasicContractZero
             });
         Assert(contractVersionCheckResult.IsSubsequentVersion,
             $"The version to be deployed is lower than the effective version({currentVersion}), please correct the version number.");
-
     }
 
     private void AssertContractExists(Hash codeHash)
@@ -362,12 +383,49 @@ public partial class BasicContractZero
 
     private void AssertInlineDeployOrUpdateUserContract()
     {
-        Assert(Context.Origin == Context.Sender || !IsMainChain(), "Deploy or update contracts using inline transactions is not allowed.");
+        Assert(Context.Origin == Context.Sender || !IsMainChain(),
+            "Deploy or update contracts using inline transactions is not allowed.");
     }
 
     private bool IsMainChain()
     {
         return Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName) != null;
+    }
+
+    private void CheckSignatureAndData(ContractOperation contractOperation, int version, Hash codeHash)
+    {
+        Assert(contractOperation.DeployingAddress != null && !contractOperation.DeployingAddress.Value.IsNullOrEmpty(),
+            "Invalid input deploying address.");
+        Assert(contractOperation.Salt != null && !contractOperation.Salt.Value.IsNullOrEmpty(), "Invalid input salt.");
+        Assert(contractOperation.CodeHash != null && !contractOperation.CodeHash.Value.IsNullOrEmpty(),
+            "Invalid input code hash.");
+        Assert(!contractOperation.Signature.IsNullOrEmpty(), "Invalid input signature.");
+        
+        Assert(contractOperation.Version == version + 1, "Invalid version.");
+        Assert(contractOperation.ChainId == Context.ChainId, "Invalid chain id.");
+        Assert(contractOperation.CodeHash == codeHash, "Invalid code hash.");
+
+        var hash = HashHelper.ComputeFrom(contractOperation.ToByteArray());
+        var publicKey = Context.RecoverPublicKey(contractOperation.Signature.ToByteArray(), hash.ToByteArray());
+
+        var recoveredAddress = Address.FromPublicKey(publicKey);
+
+        if (recoveredAddress == contractOperation.DeployingAddress) return;
+
+        Assert(State.DelegateSignatureAddressMap[contractOperation.DeployingAddress] == recoveredAddress);
+        RemoveDelegateSignatureAddress(contractOperation.DeployingAddress);
+    }
+
+    private void RemoveDelegateSignatureAddress(Address address)
+    {
+        State.DelegateSignatureAddressMap.Remove(address);
+    }
+
+    private void AssertContractOperation(ContractOperation contractOperation)
+    {
+        Assert(contractOperation.DeployingAddress != null && !contractOperation.DeployingAddress.Value.IsNullOrEmpty(),
+            "Invalid input deploying address");
+        Assert(contractOperation.Salt != null && !contractOperation.Salt.Value.IsNullOrEmpty(), "Invalid input salt");
     }
 }
 
@@ -386,5 +444,11 @@ public static class AddressHelper
     public static Address BuildContractAddress(int chainId, long serialNumber)
     {
         return BuildContractAddress(HashHelper.ComputeFrom(chainId), serialNumber);
+    }
+
+    public static Address BuildContractAddressWithSalt(Address deployingAddress, Hash salt)
+    {
+        var hash = HashHelper.ConcatAndCompute(HashHelper.ComputeFrom(deployingAddress), salt);
+        return Address.FromBytes(hash.ToByteArray());
     }
 }
