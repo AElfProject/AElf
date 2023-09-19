@@ -125,6 +125,7 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         if (input.ContractOperation != null)
         {
             CheckSignatureAndData(input.ContractOperation, 0, HashHelper.ComputeFrom(input.Code.ToByteArray()));
+            CheckContractAddressOccupied(input.ContractOperation);
         }
 
         // Create proposal for deployment
@@ -177,6 +178,7 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         {
             CheckSignatureAndData(input.ContractOperation, info.Version,
                 HashHelper.ComputeFrom(input.Code.ToByteArray()));
+            CheckUpdatePermission(input.Address, input.ContractOperation);
         }
 
         var expirationTimePeriod = GetCurrentContractProposalExpirationTimePeriod();
@@ -391,6 +393,11 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         Context.LogDebug(() => "BasicContractZero - Deployment user contract hash: " + codeHash.ToHex());
 
         AssertContractExists(codeHash);
+
+        if (input.ContractOperation != null)
+        {
+            CheckContractAddressOccupied(input.ContractOperation);
+        }
 
         var proposedContractInputHash = CalculateHashFromInput(input);
         SendUserContractProposal(proposedContractInputHash,

@@ -108,11 +108,6 @@ public partial class BasicContractZero
         Assert(oldCodeHash != newCodeHash, "Code is not changed.");
         AssertContractExists(newCodeHash);
 
-        if (contractOperation != null)
-        {
-            Assert(info.DeployingAddress == contractOperation.DeployingAddress, "No permission to update.");
-        }
-
         info.CodeHash = newCodeHash;
         info.IsUserContract = isUserContract;
         info.Version++;
@@ -401,18 +396,25 @@ public partial class BasicContractZero
             "Invalid input code hash.");
         Assert(!contractOperation.Signature.IsNullOrEmpty(), "Invalid input signature.");
         
-        Assert(contractOperation.Version == version + 1, "Invalid version.");
-        Assert(contractOperation.ChainId == Context.ChainId, "Invalid chain id.");
-        Assert(contractOperation.CodeHash == codeHash, "Invalid code hash.");
+        Assert(contractOperation.Version == version + 1, "Wrong input version.");
+        Assert(contractOperation.ChainId == Context.ChainId, "Wrong input chain id.");
+        Assert(contractOperation.CodeHash == codeHash, "Wrong input code hash.");
 
-        var hash = HashHelper.ComputeFrom(contractOperation.ToByteArray());
+        var hash = HashHelper.ComputeFrom(new ContractOperation
+        {
+            ChainId = contractOperation.ChainId,
+            CodeHash = contractOperation.CodeHash,
+            DeployingAddress = contractOperation.DeployingAddress,
+            Salt = contractOperation.Salt,
+            Version = contractOperation.Version
+        }.ToByteArray());
         var publicKey = Context.RecoverPublicKey(contractOperation.Signature.ToByteArray(), hash.ToByteArray());
 
         var recoveredAddress = Address.FromPublicKey(publicKey);
 
         if (recoveredAddress == contractOperation.DeployingAddress) return;
 
-        Assert(State.DelegateSignatureAddressMap[contractOperation.DeployingAddress] == recoveredAddress);
+        Assert(State.DelegateSignatureAddressMap[contractOperation.DeployingAddress] == recoveredAddress, "Wrong signature.");
         RemoveDelegateSignatureAddress(contractOperation.DeployingAddress);
     }
 
@@ -421,11 +423,18 @@ public partial class BasicContractZero
         State.DelegateSignatureAddressMap.Remove(address);
     }
 
-    private void AssertContractOperation(ContractOperation contractOperation)
+    private void CheckContractAddressOccupied(ContractOperation contractOperation)
     {
-        Assert(contractOperation.DeployingAddress != null && !contractOperation.DeployingAddress.Value.IsNullOrEmpty(),
-            "Invalid input deploying address");
-        Assert(contractOperation.Salt != null && !contractOperation.Salt.Value.IsNullOrEmpty(), "Invalid input salt");
+        var contractAddress = AddressHelper.BuildContractAddressWithSalt(contractOperation.DeployingAddress,
+            contractOperation.Salt);
+        Assert(State.ContractInfos[contractAddress] == null, "Contract address exists.");
+    }
+
+    private void CheckUpdatePermission(Address contractAddress, ContractOperation contractOperation)
+    {
+        var contractInfo = State.ContractInfos[contractAddress];
+        Assert(contractInfo == null, "Contract not exists.");
+        Assert(contractInfo.DeployingAddress == contractOperation.DeployingAddress, "No permission.");
     }
 }
 
