@@ -433,7 +433,7 @@ public partial class BasicContractZero
     private void CheckUpdatePermission(Address contractAddress, ContractOperation contractOperation)
     {
         var contractInfo = State.ContractInfos[contractAddress];
-        Assert(contractInfo == null, "Contract not exists.");
+        Assert(contractInfo != null, "Contract not exists.");
         Assert(contractInfo.DeployingAddress == contractOperation.DeployingAddress, "No permission.");
     }
 }
