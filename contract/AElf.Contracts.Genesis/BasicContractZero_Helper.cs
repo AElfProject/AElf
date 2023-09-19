@@ -110,7 +110,7 @@ public partial class BasicContractZero
 
         if (contractOperation != null)
         {
-            Assert(info.DeployingAddress == contractOperation.DeployingAddress && info.Salt == contractOperation.Salt, "No permission to update.");
+            Assert(info.DeployingAddress == contractOperation.DeployingAddress, "No permission to update.");
         }
 
         info.CodeHash = newCodeHash;

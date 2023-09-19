@@ -171,7 +171,8 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         AssertAuthorityByContractInfo(info, Context.Sender);
         AssertContractVersion(info.ContractVersion, input.Code, info.Category);
         AssertContractExists(HashHelper.ComputeFrom(input.Code.ToByteArray()));
-
+        Assert(info.Salt == null || input.ContractOperation != null, "Invalid contract operation.");
+        
         if (input.ContractOperation != null)
         {
             CheckSignatureAndData(input.ContractOperation, info.Version,
@@ -481,7 +482,7 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
 
         var inputHash = CalculateHashFromInput(input);
         TryClearContractProposingData(inputHash, out var proposingInput);
-
+        
         TryGetInputContractOperation(input.ContractOperation, out var contractOperation);
 
         UpdateSmartContract(input.Address, input.Code.ToByteArray(), proposingInput.Author, true, contractOperation);
