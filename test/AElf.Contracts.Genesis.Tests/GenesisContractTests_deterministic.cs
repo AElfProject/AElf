@@ -39,7 +39,7 @@ public partial class GenesisContractAuthTest
             {
                 ChainId = sideChainId,
                 CodeHash = HashHelper.ComputeFrom(code.ToByteArray()),
-                DeployingAddress = CreatorAddress,
+                Deployer = CreatorAddress,
                 Salt = HashHelper.ComputeFrom("test"),
                 Version = 1,
                 Signature = GenerateContractSignature(CreatorKeyPair.PrivateKey, sideChainId,
@@ -62,7 +62,7 @@ public partial class GenesisContractAuthTest
                 {
                     ChainId = sideChainId,
                     CodeHash = HashHelper.ComputeFrom(code.ToByteArray()),
-                    DeployingAddress = CreatorAddress,
+                    Deployer = CreatorAddress,
                     Salt = HashHelper.ComputeFrom("test"),
                     Version = 1,
                     Signature = GenerateContractSignature(CreatorKeyPair.PrivateKey, sideChainId,
@@ -94,7 +94,7 @@ public partial class GenesisContractAuthTest
                 Code = code,
                 ContractOperation = new ContractOperation
                 {
-                    DeployingAddress = new Address()
+                    Deployer = new Address()
                 }
             });
         result.Error.ShouldContain("Invalid input deploying address.");
@@ -106,7 +106,7 @@ public partial class GenesisContractAuthTest
                 Code = code,
                 ContractOperation = new ContractOperation
                 {
-                    DeployingAddress = CreatorAddress
+                    Deployer = CreatorAddress
                 }
             });
         result.Error.ShouldContain("Invalid input salt.");
@@ -118,7 +118,7 @@ public partial class GenesisContractAuthTest
                 Code = code,
                 ContractOperation = new ContractOperation
                 {
-                    DeployingAddress = CreatorAddress,
+                    Deployer = CreatorAddress,
                     Salt = new Hash()
                 }
             });
@@ -131,7 +131,7 @@ public partial class GenesisContractAuthTest
                 Code = code,
                 ContractOperation = new ContractOperation
                 {
-                    DeployingAddress = CreatorAddress,
+                    Deployer = CreatorAddress,
                     Salt = HashHelper.ComputeFrom("test")
                 }
             });
@@ -144,7 +144,7 @@ public partial class GenesisContractAuthTest
                 Code = code,
                 ContractOperation = new ContractOperation
                 {
-                    DeployingAddress = CreatorAddress,
+                    Deployer = CreatorAddress,
                     Salt = HashHelper.ComputeFrom("test"),
                     CodeHash = new Hash()
                 }
@@ -158,7 +158,7 @@ public partial class GenesisContractAuthTest
                 Code = code,
                 ContractOperation = new ContractOperation
                 {
-                    DeployingAddress = CreatorAddress,
+                    Deployer = CreatorAddress,
                     Salt = HashHelper.ComputeFrom("test"),
                     CodeHash = HashHelper.ComputeFrom("code")
                 }
@@ -172,7 +172,7 @@ public partial class GenesisContractAuthTest
                 Code = code,
                 ContractOperation = new ContractOperation
                 {
-                    DeployingAddress = CreatorAddress,
+                    Deployer = CreatorAddress,
                     Salt = HashHelper.ComputeFrom("test"),
                     CodeHash = HashHelper.ComputeFrom("code"),
                     Signature = GenerateContractSignature(CreatorKeyPair.PrivateKey, mainChainId,
@@ -188,7 +188,7 @@ public partial class GenesisContractAuthTest
                 Code = code,
                 ContractOperation = new ContractOperation
                 {
-                    DeployingAddress = CreatorAddress,
+                    Deployer = CreatorAddress,
                     Salt = HashHelper.ComputeFrom("test"),
                     CodeHash = HashHelper.ComputeFrom("code"),
                     Signature = GenerateContractSignature(CreatorKeyPair.PrivateKey, mainChainId,
@@ -205,7 +205,7 @@ public partial class GenesisContractAuthTest
                 Code = code,
                 ContractOperation = new ContractOperation
                 {
-                    DeployingAddress = CreatorAddress,
+                    Deployer = CreatorAddress,
                     Salt = HashHelper.ComputeFrom("test"),
                     CodeHash = HashHelper.ComputeFrom("code"),
                     Signature = GenerateContractSignature(CreatorKeyPair.PrivateKey, mainChainId,
@@ -223,7 +223,7 @@ public partial class GenesisContractAuthTest
                 Code = code,
                 ContractOperation = new ContractOperation
                 {
-                    DeployingAddress = CreatorAddress,
+                    Deployer = CreatorAddress,
                     Salt = HashHelper.ComputeFrom("test"),
                     CodeHash = HashHelper.ComputeFrom("code"),
                     Signature = GenerateContractSignature(CreatorKeyPair.PrivateKey, mainChainId,
@@ -241,7 +241,7 @@ public partial class GenesisContractAuthTest
                 Code = code,
                 ContractOperation = new ContractOperation
                 {
-                    DeployingAddress = CreatorAddress,
+                    Deployer = CreatorAddress,
                     Salt = HashHelper.ComputeFrom("test"),
                     CodeHash = HashHelper.ComputeFrom(code.ToByteArray()),
                     Signature = GenerateContractSignature(CreatorKeyPair.PrivateKey, mainChainId,
@@ -276,7 +276,7 @@ public partial class GenesisContractAuthTest
             {
                 ChainId = mainChainId,
                 CodeHash = HashHelper.ComputeFrom(code.ToByteArray()),
-                DeployingAddress = CreatorAddress,
+                Deployer = CreatorAddress,
                 Salt = HashHelper.ComputeFrom("test"),
                 Version = 1,
                 Signature = GenerateContractSignature(SignerKeyPair.PrivateKey, mainChainId,
@@ -333,7 +333,7 @@ public partial class GenesisContractAuthTest
             {
                 ChainId = chainId,
                 CodeHash = HashHelper.ComputeFrom(code.ToByteArray()),
-                DeployingAddress = CreatorAddress,
+                Deployer = CreatorAddress,
                 Salt = HashHelper.ComputeFrom("test"),
                 Version = contractInfo.Version + 1,
                 Signature = GenerateContractSignature(CreatorKeyPair.PrivateKey, chainId,
@@ -387,7 +387,7 @@ public partial class GenesisContractAuthTest
             {
                 ChainId = chainId,
                 CodeHash = HashHelper.ComputeFrom(code.ToByteArray()),
-                DeployingAddress = CreatorAddress,
+                Deployer = CreatorAddress,
                 Salt = HashHelper.ComputeFrom("test"),
                 Version = contractInfo.Version + 1,
                 Signature = GenerateContractSignature(CreatorKeyPair.PrivateKey, chainId,
@@ -431,7 +431,7 @@ public partial class GenesisContractAuthTest
             {
                 ChainId = chainId,
                 CodeHash = HashHelper.ComputeFrom(code.ToByteArray()),
-                DeployingAddress = SignerAddress,
+                Deployer = SignerAddress,
                 Salt = HashHelper.ComputeFrom("test"),
                 Version = contractInfo.Version + 1,
                 Signature = GenerateContractSignature(SignerKeyPair.PrivateKey, chainId,
@@ -449,7 +449,7 @@ public partial class GenesisContractAuthTest
             {
                 ChainId = chainId,
                 CodeHash = HashHelper.ComputeFrom(code.ToByteArray()),
-                DeployingAddress = SignerAddress,
+                Deployer = SignerAddress,
                 Salt = HashHelper.ComputeFrom("test"),
                 Version = 0,
                 Signature = GenerateContractSignature(SignerKeyPair.PrivateKey, chainId,
@@ -473,7 +473,7 @@ public partial class GenesisContractAuthTest
             {
                 ChainId = mainChainId,
                 CodeHash = HashHelper.ComputeFrom(code.ToByteArray()),
-                DeployingAddress = CreatorAddress,
+                Deployer = CreatorAddress,
                 Salt = HashHelper.ComputeFrom("test"),
                 Version = 1,
                 Signature = GenerateContractSignature(CreatorKeyPair.PrivateKey, mainChainId,
@@ -495,7 +495,7 @@ public partial class GenesisContractAuthTest
         {
             ChainId = chainId,
             CodeHash = codeHash,
-            DeployingAddress = address,
+            Deployer = address,
             Salt = salt,
             Version = version
         };

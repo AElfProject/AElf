@@ -78,7 +78,8 @@ public partial class BasicContractZero
             Author = author,
             Version = info.Version,
             Name = name,
-            ContractVersion = info.ContractVersion
+            ContractVersion = info.ContractVersion,
+            Deployer = deployer
         });
 
         Context.LogDebug(() => "BasicContractZero - Deployment ContractHash: " + codeHash.ToHex());
@@ -387,7 +388,7 @@ public partial class BasicContractZero
 
     private void CheckSignatureAndData(ContractOperation contractOperation, int version, Hash codeHash)
     {
-        Assert(contractOperation.DeployingAddress != null && !contractOperation.DeployingAddress.Value.IsNullOrEmpty(),
+        Assert(contractOperation.Deployer != null && !contractOperation.Deployer.Value.IsNullOrEmpty(),
             "Invalid input deploying address.");
         Assert(contractOperation.Salt != null && !contractOperation.Salt.Value.IsNullOrEmpty(), "Invalid input salt.");
         Assert(contractOperation.CodeHash != null && !contractOperation.CodeHash.Value.IsNullOrEmpty(),
@@ -402,7 +403,7 @@ public partial class BasicContractZero
         {
             ChainId = contractOperation.ChainId,
             CodeHash = contractOperation.CodeHash,
-            DeployingAddress = contractOperation.DeployingAddress,
+            Deployer = contractOperation.Deployer,
             Salt = contractOperation.Salt,
             Version = contractOperation.Version
         }.ToByteArray());
@@ -410,11 +411,11 @@ public partial class BasicContractZero
 
         var recoveredAddress = Address.FromPublicKey(publicKey);
 
-        if (recoveredAddress == contractOperation.DeployingAddress) return;
+        if (recoveredAddress == contractOperation.Deployer) return;
 
-        Assert(State.SignatoryMap[contractOperation.DeployingAddress] == recoveredAddress,
+        Assert(State.SignatoryMap[contractOperation.Deployer] == recoveredAddress,
             "Wrong signature.");
-        RemoveSignatory(contractOperation.DeployingAddress);
+        RemoveSignatory(contractOperation.Deployer);
     }
 
     private void RemoveSignatory(Address address)
@@ -422,10 +423,9 @@ public partial class BasicContractZero
         State.SignatoryMap.Remove(address);
     }
 
-    private void CheckContractAddressAvailable(ContractOperation contractOperation)
+    private void CheckContractAddressAvailable(Address deployer, Hash salt)
     {
-        var contractAddress = AddressHelper.BuildContractAddressWithSalt(contractOperation.DeployingAddress,
-            contractOperation.Salt);
+        var contractAddress = AddressHelper.BuildContractAddressWithSalt(deployer, salt);
         Assert(State.ContractInfos[contractAddress] == null, "Contract address exists.");
     }
 
@@ -454,9 +454,9 @@ public static class AddressHelper
         return BuildContractAddress(HashHelper.ComputeFrom(chainId), serialNumber);
     }
 
-    public static Address BuildContractAddressWithSalt(Address deployingAddress, Hash salt)
+    public static Address BuildContractAddressWithSalt(Address deployer, Hash salt)
     {
-        var hash = HashHelper.ConcatAndCompute(HashHelper.ComputeFrom(deployingAddress), salt);
+        var hash = HashHelper.ConcatAndCompute(HashHelper.ComputeFrom(deployer), salt);
         return Address.FromBytes(hash.ToByteArray());
     }
 }

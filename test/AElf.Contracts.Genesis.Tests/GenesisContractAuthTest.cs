@@ -1622,14 +1622,14 @@ public partial class GenesisContractAuthTest : BasicContractZeroTestBase
         await AddZeroContractToProposerWhiteListAsync();
         
         // deploy contract
-        var contractDeploymentInput = new ContractDeploymentInput
+        var userContractDeploymentInput = new UserContractDeploymentInput
         {
             Category = KernelConstants.DefaultRunnerCategory, 
             Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("TokenConverter")).Value)
         };
 
         var deployResult = await SideChainTester.ExecuteContractWithMiningAsync(SideBasicContractZeroAddress,
-            nameof(ACS0Container.ACS0Stub.DeployUserSmartContract), contractDeploymentInput);
+            nameof(ACS0Container.ACS0Stub.DeployUserSmartContract), userContractDeploymentInput);
         deployResult.Status.ShouldBe(TransactionResultStatus.Mined);
         var codeHash = DeployUserSmartContractOutput.Parser.ParseFrom(deployResult.ReturnValue).CodeHash;
         
@@ -1639,8 +1639,8 @@ public partial class GenesisContractAuthTest : BasicContractZeroTestBase
 
         var codeCheckRequired = CodeCheckRequired.Parser
             .ParseFrom(deployResult.Logs.First(l => l.Name.Contains(nameof(CodeCheckRequired))).NonIndexed);
-        codeCheckRequired.Category.ShouldBe(contractDeploymentInput.Category);
-        codeCheckRequired.Code.ShouldBe(contractDeploymentInput.Code);
+        codeCheckRequired.Category.ShouldBe(userContractDeploymentInput.Category);
+        codeCheckRequired.Code.ShouldBe(userContractDeploymentInput.Code);
         codeCheckRequired.IsSystemContract.ShouldBeFalse();
         codeCheckRequired.IsUserContract.ShouldBeTrue();
         
@@ -1693,14 +1693,14 @@ public partial class GenesisContractAuthTest : BasicContractZeroTestBase
         contractInfo.Author.ShouldBe(Address.FromPublicKey(CreatorKeyPair.PublicKey));
         
         // update contract
-        var contractUpdateInput = new ContractUpdateInput
+        var userContractUpdateInput = new UserContractUpdateInput
         {
             Address = contractDeployed.Address, 
             Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("TokenHolder")).Value)
         };
 
         var updateResult = await SideChainTester.ExecuteContractWithMiningAsync(SideBasicContractZeroAddress,
-            nameof(ACS0Container.ACS0Stub.UpdateUserSmartContract), contractUpdateInput);
+            nameof(ACS0Container.ACS0Stub.UpdateUserSmartContract), userContractUpdateInput);
         updateResult.Status.ShouldBe(TransactionResultStatus.Mined);
         
         proposalId = ProposalCreated.Parser
@@ -1709,7 +1709,7 @@ public partial class GenesisContractAuthTest : BasicContractZeroTestBase
 
         codeCheckRequired = CodeCheckRequired.Parser
             .ParseFrom(updateResult.Logs.First(l => l.Name.Contains(nameof(CodeCheckRequired))).NonIndexed);
-        codeCheckRequired.Category.ShouldBe(contractDeploymentInput.Category);
+        codeCheckRequired.Category.ShouldBe(userContractDeploymentInput.Category);
         //codeCheckRequired.Code.ShouldBe(contractUpdateInput.Code);
         codeCheckRequired.IsSystemContract.ShouldBeFalse();
         codeCheckRequired.IsUserContract.ShouldBeTrue();

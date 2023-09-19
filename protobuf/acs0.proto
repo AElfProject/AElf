@@ -48,11 +48,11 @@ service ACS0 {
     }
 
     // Deploy a user smart contract on chain and return the hash of the contract code.
-    rpc DeployUserSmartContract (ContractDeploymentInput) returns (DeployUserSmartContractOutput) {
+    rpc DeployUserSmartContract (UserContractDeploymentInput) returns (DeployUserSmartContractOutput) {
     }
 
     // Update a user smart contract on chain.
-    rpc UpdateUserSmartContract (ContractUpdateInput) returns (google.protobuf.Empty) {
+    rpc UpdateUserSmartContract (UserContractUpdateInput) returns (google.protobuf.Empty) {
     }
 
     // Release the proposal which has passed the code check.
@@ -159,6 +159,21 @@ message ContractDeploymentInput {
     // The byte array of the contract code.
     bytes code = 2;
     ContractOperation contract_operation = 3;
+}
+
+message UserContractDeploymentInput {
+    // The category of contract code(0: C#).
+    sint32 category = 1;
+    // The byte array of the contract code.
+    bytes code = 2;
+    aelf.Hash salt = 3;
+}
+
+message UserContractUpdateInput {
+    // The contract address that needs to be updated.
+    aelf.Address address = 1;
+    // The byte array of the new contract code.
+    bytes code = 2;
 }
 
 message SystemContractDeploymentInput {
@@ -304,7 +319,7 @@ message DeployUserSmartContractOutput{
 message ContractOperation{
     int32 chain_id = 1;
     aelf.Hash code_hash = 2;
-    aelf.Address deploying_address = 3;
+    aelf.Address deployer = 3;
     aelf.Hash salt = 4;
     int32 version = 5;
     bytes signature = 10000;

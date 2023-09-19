@@ -126,7 +126,7 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         if (input.ContractOperation != null)
         {
             CheckSignatureAndData(input.ContractOperation, 0, codeHash);
-            CheckContractAddressAvailable(input.ContractOperation);
+            CheckContractAddressAvailable(input.ContractOperation.Deployer, input.ContractOperation.Salt);
         }
 
         // Create proposal for deployment
@@ -182,7 +182,7 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         if (input.ContractOperation != null)
         {
             CheckSignatureAndData(input.ContractOperation, info.Version, codeHash);
-            CheckUpdatePermission(input.Address, input.ContractOperation.DeployingAddress);
+            CheckUpdatePermission(input.Address, input.ContractOperation.Deployer);
         }
 
         var expirationTimePeriod = GetCurrentContractProposalExpirationTimePeriod();
@@ -306,7 +306,7 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         var address =
             DeploySmartContract(null, input.Category, input.Code.ToByteArray(), false,
                 DecideNonSystemContractAuthor(contractProposingInput?.Proposer, Context.Sender), false,
-                input.ContractOperation?.DeployingAddress, input.ContractOperation?.Salt);
+                input.ContractOperation?.Deployer, input.ContractOperation?.Salt);
         return address;
     }
 
@@ -387,7 +387,7 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         return new Empty();
     }
 
-    public override DeployUserSmartContractOutput DeployUserSmartContract(ContractDeploymentInput input)
+    public override DeployUserSmartContractOutput DeployUserSmartContract(UserContractDeploymentInput input)
     {
         AssertInlineDeployOrUpdateUserContract();
         AssertUserDeployContract();
@@ -397,9 +397,9 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
 
         AssertContractExists(codeHash);
 
-        if (input.ContractOperation != null)
+        if (input.Salt != null)
         {
-            CheckContractAddressAvailable(input.ContractOperation);
+            CheckContractAddressAvailable(Context.Sender, input.Salt);
         }
 
         var proposedContractInputHash = CalculateHashFromInput(input);
@@ -423,7 +423,7 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         };
     }
 
-    public override Empty UpdateUserSmartContract(ContractUpdateInput input)
+    public override Empty UpdateUserSmartContract(UserContractUpdateInput input)
     {
         AssertInlineDeployOrUpdateUserContract();
 
