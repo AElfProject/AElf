@@ -177,8 +177,8 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         AssertContractExists(codeHash);
 
         Assert(
-            (info.SerialNumber > 0 && input.ContractOperation == null) ||
-            (info.SerialNumber == 0 && input.ContractOperation != null), "Not compatible.");
+            info.SerialNumber > 0 && input.ContractOperation == null ||
+            info.SerialNumber == 0 && input.ContractOperation != null, "Not compatible.");
 
         if (input.ContractOperation != null)
         {
