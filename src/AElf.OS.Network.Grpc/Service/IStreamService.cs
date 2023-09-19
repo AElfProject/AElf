@@ -134,7 +134,7 @@ public class StreamService : IStreamService, ISingletonDependency
     {
         if (exception.ExceptionType == NetworkExceptionType.Unrecoverable)
         {
-            Logger.LogDebug(exception, $"Removing unrecoverable {peer}.");
+            Logger.LogInformation(exception, $"Removing unrecoverable {peer}.");
             await _connectionService.TrySchedulePeerReconnectionAsync(peer);
         }
         else if (exception.ExceptionType == NetworkExceptionType.PeerUnstable)
