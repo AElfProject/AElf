@@ -18,8 +18,8 @@
         <ContractStub Include="..\..\protobuf\acs0.proto">
             <Link>Protobuf\Proto\acs0.proto</Link>
         </ContractStub>
-        <ContractStub Include="..\..\protobuf\virtual_transaction.proto">
+        <ContractMessage Include="..\..\protobuf\virtual_transaction.proto">
             <Link>Protobuf\Proto\virtual_transaction.proto</Link>
-        </ContractStub>
+        </ContractMessage>
     </ItemGroup>
 </Project>
