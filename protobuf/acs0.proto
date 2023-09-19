@@ -60,11 +60,11 @@ service ACS0 {
     }
 
     // Perform user contract deployment.
-    rpc PerformDeployUserSmartContract(ContractDeploymentInput) returns (aelf.Address) {
+    rpc PerformDeployUserSmartContract(UserContractDeploymentInput) returns (aelf.Address) {
     }
 
     // Perform user contract update.
-    rpc PerformUpdateUserSmartContract(ContractUpdateInput) returns (google.protobuf.Empty) {
+    rpc PerformUpdateUserSmartContract(UserContractUpdateInput) returns (google.protobuf.Empty) {
     }
 
     // Set author of the specified contract.

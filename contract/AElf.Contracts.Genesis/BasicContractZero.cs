@@ -472,7 +472,7 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         return new Empty();
     }
 
-    public override Address PerformDeployUserSmartContract(ContractDeploymentInput input)
+    public override Address PerformDeployUserSmartContract(UserContractDeploymentInput input)
     {
         RequireSenderAuthority(State.CodeCheckController.Value.OwnerAddress);
 
@@ -480,12 +480,11 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         TryClearContractProposingData(inputHash, out var contractProposingInput);
 
         var address = DeploySmartContract(null, input.Category, input.Code.ToByteArray(), false,
-            contractProposingInput.Author, true, input.ContractOperation == null ? null : Context.Sender,
-            input.ContractOperation?.Salt);
+            contractProposingInput.Author, true, Context.Sender, input.Salt);
         return address;
     }
 
-    public override Empty PerformUpdateUserSmartContract(ContractUpdateInput input)
+    public override Empty PerformUpdateUserSmartContract(UserContractUpdateInput input)
     {
         RequireSenderAuthority(State.CodeCheckController.Value.OwnerAddress);
 

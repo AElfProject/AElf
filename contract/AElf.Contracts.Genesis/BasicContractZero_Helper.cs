@@ -24,7 +24,7 @@ public partial class BasicContractZero
         long serialNumber;
         Address contractAddress;
 
-        if (deployer == null)
+        if (salt == null)
         {
             serialNumber = State.ContractSerialNumber.Value;
             // Increment
