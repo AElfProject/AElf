@@ -64,7 +64,7 @@ public partial class GenesisContractAuthTest
     }
 
     [Fact]
-    public async Task DeploySmartContract_Deterministic_Test_ContractOperation_Fail()
+    public async Task DeploySmartContract_Deterministic_ContractOperation_Test()
     {
         var code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("TestContract.BasicFunction")).Value);
         var mainChainId = Tester.GetChainAsync().Result.Id;
