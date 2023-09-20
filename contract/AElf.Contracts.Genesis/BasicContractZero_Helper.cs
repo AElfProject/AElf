@@ -34,11 +34,10 @@ public partial class BasicContractZero
         else
         {
             serialNumber = 0;
-            contractAddress =
-                AddressHelper.BuildContractAddressWithSalt(deployer, salt);
+            contractAddress = AddressHelper.BuildContractAddressWithSalt(deployer, salt);
         }
 
-        Assert(State.ContractInfos[contractAddress] == null, "Contract address exists");
+        Assert(State.ContractInfos[contractAddress] == null, "Contract address exists.");
 
         var info = new ContractInfo
         {
@@ -79,7 +78,7 @@ public partial class BasicContractZero
             Version = info.Version,
             Name = name,
             ContractVersion = info.ContractVersion,
-            Deployer = deployer ?? author
+            Deployer = deployer
         });
 
         Context.LogDebug(() => "BasicContractZero - Deployment ContractHash: " + codeHash.ToHex());
