@@ -117,7 +117,7 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
     {
         // AssertDeploymentProposerAuthority(Context.Sender);
         var codeHash = HashHelper.ComputeFrom(input.Code.ToByteArray());
-        AssertContractExists(codeHash);
+        AssertContractNotExists(codeHash);
         var proposedContractInputHash = CalculateHashFromInput(input);
         RegisterContractProposingData(proposedContractInputHash);
 
@@ -125,8 +125,12 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
 
         if (input.ContractOperation != null)
         {
-            CheckSignatureAndData(input.ContractOperation, 0, codeHash);
-            CheckContractAddressAvailable(input.ContractOperation.Deployer, input.ContractOperation.Salt);
+            ValidateContractOperation(input.ContractOperation, 0, codeHash);
+            
+            // Remove one time signatory if exists. Signatory is only needed for validating signature.
+            RemoveOneTimeSignatory(input.ContractOperation.Deployer);
+            
+            AssertContractAddressAvailable(input.ContractOperation.Deployer, input.ContractOperation.Salt);
         }
 
         // Create proposal for deployment
@@ -174,15 +178,16 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         AssertContractVersion(info.ContractVersion, input.Code, info.Category);
 
         var codeHash = HashHelper.ComputeFrom(input.Code.ToByteArray());
-        AssertContractExists(codeHash);
+        AssertContractNotExists(codeHash);
 
         Assert((input.Address == Context.Self || info.SerialNumber > 0) && input.ContractOperation == null ||
                info.SerialNumber == 0 && input.ContractOperation != null, "Not compatible.");
 
         if (input.ContractOperation != null)
         {
-            CheckSignatureAndData(input.ContractOperation, info.Version, codeHash);
-            CheckUpdatePermission(input.Address, input.ContractOperation.Deployer);
+            ValidateContractOperation(input.ContractOperation, info.Version, codeHash);
+            RemoveOneTimeSignatory(input.ContractOperation.Deployer);
+            AssertSameDeployer(input.Address, input.ContractOperation.Deployer);
         }
 
         var expirationTimePeriod = GetCurrentContractProposalExpirationTimePeriod();
@@ -395,11 +400,11 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         var codeHash = HashHelper.ComputeFrom(input.Code.ToByteArray());
         Context.LogDebug(() => "BasicContractZero - Deployment user contract hash: " + codeHash.ToHex());
 
-        AssertContractExists(codeHash);
+        AssertContractNotExists(codeHash);
 
         if (input.Salt != null)
         {
-            CheckContractAddressAvailable(Context.Sender, input.Salt);
+            AssertContractAddressAvailable(Context.Sender, input.Salt);
         }
 
         var proposedContractInputHash = CalculateHashFromInput(input);
@@ -432,7 +437,7 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         Assert(Context.Sender == info.Author, "No permission.");
         var codeHash = HashHelper.ComputeFrom(input.Code.ToByteArray());
         Assert(info.CodeHash != codeHash, "Code is not changed.");
-        AssertContractExists(codeHash);
+        AssertContractNotExists(codeHash);
         AssertContractVersion(info.ContractVersion, input.Code, info.Category);
 
         var proposedContractInputHash = CalculateHashFromInput(input);
@@ -526,7 +531,7 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
 
     public override Empty RemoveSignatory(Empty input)
     {
-        RemoveSignatory(Context.Sender);
+        RemoveOneTimeSignatory(Context.Sender);
         return new Empty();
     }
 

@@ -1,7 +1,6 @@
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Cryptography;
-using AElf.CSharp.CodeOps.Validators.Whitelist;
 using AElf.Kernel;
 using AElf.Standards.ACS0;
 using AElf.Types;
@@ -21,6 +20,8 @@ public partial class GenesisContractAuthTest
         var sideChainId = SideChainTester.GetChainAsync().Result.Id;
 
         var code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("TestContract.BasicFunction")).Value);
+        var salt = HashHelper.ComputeFrom("test");
+        var computedAddress = AddressHelper.BuildContractAddressWithSalt(CreatorAddress, salt);
 
         var contractAddress = await DeployContractOnMainChain();
         
@@ -40,16 +41,17 @@ public partial class GenesisContractAuthTest
                 ChainId = sideChainId,
                 CodeHash = HashHelper.ComputeFrom(code.ToByteArray()),
                 Deployer = CreatorAddress,
-                Salt = HashHelper.ComputeFrom("test"),
+                Salt = salt,
                 Version = 1,
                 Signature = GenerateContractSignature(CreatorKeyPair.PrivateKey, sideChainId,
-                    HashHelper.ComputeFrom(code.ToByteArray()), CreatorAddress, HashHelper.ComputeFrom("test"), 1)
+                    HashHelper.ComputeFrom(code.ToByteArray()), CreatorAddress, salt, 1)
             }
         };
         var contractAddress2 = await DeployAsync(SideChainTester, SideParliamentAddress, SideBasicContractZeroAddress,
             contractDeploymentInput2);
         contractAddress2.ShouldNotBeNull();
 
+        contractAddress.ShouldBe(computedAddress);
         contractAddress.ShouldBe(contractAddress2);
 
         code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("TestContract.BasicSecurity")).Value);
@@ -63,10 +65,10 @@ public partial class GenesisContractAuthTest
                     ChainId = sideChainId,
                     CodeHash = HashHelper.ComputeFrom(code.ToByteArray()),
                     Deployer = CreatorAddress,
-                    Salt = HashHelper.ComputeFrom("test"),
+                    Salt = salt,
                     Version = 1,
                     Signature = GenerateContractSignature(CreatorKeyPair.PrivateKey, sideChainId,
-                        HashHelper.ComputeFrom(code.ToByteArray()), CreatorAddress, HashHelper.ComputeFrom("test"), 1)
+                        HashHelper.ComputeFrom(code.ToByteArray()), CreatorAddress, salt, 1)
                 }
             });
         result.Error.ShouldContain("Contract address exists");
@@ -179,7 +181,7 @@ public partial class GenesisContractAuthTest
                         HashHelper.ComputeFrom("code"), CreatorAddress, HashHelper.ComputeFrom("test"), 1)
                 }
             });
-        result.Error.ShouldContain("Wrong input version.");
+        result.Error.ShouldContain("Invalid input version.");
 
         result = await DeployWithResultAsync(Tester, ParliamentAddress, BasicContractZeroAddress,
             new ContractDeploymentInput
@@ -196,7 +198,7 @@ public partial class GenesisContractAuthTest
                     Version = 2
                 }
             });
-        result.Error.ShouldContain("Wrong input version.");
+        result.Error.ShouldContain("Invalid input version.");
 
         result = await DeployWithResultAsync(Tester, ParliamentAddress, BasicContractZeroAddress,
             new ContractDeploymentInput
@@ -214,7 +216,7 @@ public partial class GenesisContractAuthTest
                     ChainId = 1
                 }
             });
-        result.Error.ShouldContain("Wrong input chain id.");
+        result.Error.ShouldContain("Invalid input chain id.");
 
         result = await DeployWithResultAsync(Tester, ParliamentAddress, BasicContractZeroAddress,
             new ContractDeploymentInput
@@ -232,7 +234,7 @@ public partial class GenesisContractAuthTest
                     ChainId = mainChainId
                 }
             });
-        result.Error.ShouldContain("Wrong input code hash.");
+        result.Error.ShouldContain("Invalid input code hash.");
 
         result = await DeployWithResultAsync(Tester, ParliamentAddress, BasicContractZeroAddress,
             new ContractDeploymentInput
@@ -250,7 +252,7 @@ public partial class GenesisContractAuthTest
                     ChainId = mainChainId
                 }
             });
-        result.Error.ShouldContain("Wrong signature.");
+        result.Error.ShouldContain("Invalid signature.");
 
         // compatible with old version
         result = await DeployWithResultAsync(Tester, ParliamentAddress, BasicContractZeroAddress,
@@ -286,7 +288,7 @@ public partial class GenesisContractAuthTest
 
         var result = await DeployWithResultAsync(Tester, ParliamentAddress, BasicContractZeroAddress,
             contractDeploymentInput);
-        result.Error.ShouldContain("Wrong signature.");
+        result.Error.ShouldContain("Invalid signature.");
 
         var tester = Tester.CreateNewContractTester(CreatorKeyPair);
         var output = await tester.CallContractMethodAsync(BasicContractZeroAddress,
@@ -457,7 +459,7 @@ public partial class GenesisContractAuthTest
                     0)
             }
         });
-        result.Error.ShouldContain("Wrong input version.");
+        result.Error.ShouldContain("Invalid input version.");
     }
     
     private async Task<Address> DeployContractOnMainChain()
