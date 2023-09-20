@@ -1,4 +1,5 @@
 using AElf.Kernel.SmartContract;
+using AElf.Runtime.WebAssembly.Tests.MockedExternalEnvironment;
 using AElf.Types;
 using Google.Protobuf;
 
@@ -275,6 +276,16 @@ public class UnitTestExternalEnvironment : IExternalEnvironment
     public long Nonce()
     {
         return 995;
+    }
+
+    public void ChargeGas(RuntimeCosts runtimeCosts, Weight weight)
+    {
+        
+    }
+    
+    public void ChargeGas(RuntimeCosts runtimeCosts, long size)
+    {
+        
     }
 
     public void SetHostSmartContractBridgeContext(IHostSmartContractBridgeContext smartContractBridgeContext)

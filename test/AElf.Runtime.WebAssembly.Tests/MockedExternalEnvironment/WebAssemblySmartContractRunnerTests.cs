@@ -1,22 +1,18 @@
-using AElf.Kernel;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Types;
 using Google.Protobuf;
 using Nethereum.ABI;
 using Shouldly;
 
-namespace AElf.Runtime.WebAssembly.Tests;
+namespace AElf.Runtime.WebAssembly.Tests.MockedExternalEnvironment;
 
 public class WebAssemblySmartContractRunnerTests : WebAssemblyRuntimeTestBase
 {
     private readonly IHostSmartContractBridgeContextService _hostSmartContractBridgeContextService;
-    private readonly ISmartContractRunner _smartContractRunner;
 
     public WebAssemblySmartContractRunnerTests()
     {
         _hostSmartContractBridgeContextService = GetRequiredService<IHostSmartContractBridgeContextService>();
-        _smartContractRunner = GetRequiredService<ISmartContractRunner>();
     }
 
     [Fact]
@@ -31,7 +27,7 @@ public class WebAssemblySmartContractRunnerTests : WebAssemblyRuntimeTestBase
             CodeHash = HashHelper.ComputeFrom(contractCode)
         };
 
-        var smartContractRunner = _smartContractRunner;
+        var smartContractRunner = new WebAssemblySmartContractRunner(new UnitTestExternalEnvironment());
         var executive = await smartContractRunner.RunAsync(smartContractRegistration);
         executive.ContractHash.ShouldNotBeNull();
 

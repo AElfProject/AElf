@@ -7,7 +7,7 @@ using Shouldly;
 using Solang;
 using Solang.Extensions;
 
-namespace AElf.Runtime.WebAssembly.Tests;
+namespace AElf.Runtime.WebAssembly.Tests.MockedExternalEnvironment;
 
 public class ExecutiveTests : WebAssemblyRuntimeTestBase
 {

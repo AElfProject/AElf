@@ -1,6 +1,6 @@
 using AElf.Types;
 
-namespace AElf.Runtime.WebAssembly.Tests;
+namespace AElf.Runtime.WebAssembly.Tests.MockedExternalEnvironment;
 
 public class AddressGenerator
 {

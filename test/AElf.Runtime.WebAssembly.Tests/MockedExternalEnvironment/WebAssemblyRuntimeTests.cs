@@ -3,7 +3,7 @@ using Google.Protobuf;
 using Shouldly;
 using Wasmtime;
 
-namespace AElf.Runtime.WebAssembly.Tests;
+namespace AElf.Runtime.WebAssembly.Tests.MockedExternalEnvironment;
 
 public class WebAssemblyRuntimeTests : WebAssemblyRuntimeTestBase
 {

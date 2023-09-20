@@ -6,7 +6,9 @@ using Volo.Abp.Modularity;
 
 namespace AElf.Runtime.WebAssembly;
 
-[DependsOn(typeof(SmartContractAElfModule))]
+[DependsOn(
+    typeof(SmartContractAElfModule)
+    )]
 public class WebAssemblyRuntimeAElfModule : AElfModule
 {
     public override void PreConfigureServices(ServiceConfigurationContext context)
@@ -16,7 +18,8 @@ public class WebAssemblyRuntimeAElfModule : AElfModule
 
     public override void ConfigureServices(ServiceConfigurationContext context)
     {
+        var contractReader = context.Services.GetRequiredService<CSharpContractReader>();
         context.Services.AddSingleton<ISmartContractRunner, WebAssemblySmartContractRunner>(_ =>
-            new WebAssemblySmartContractRunner(new ExternalEnvironment()));
+            new WebAssemblySmartContractRunner(new ExternalEnvironment(contractReader)));
     }
 }

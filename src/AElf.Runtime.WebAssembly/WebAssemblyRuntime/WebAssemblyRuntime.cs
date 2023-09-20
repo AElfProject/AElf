@@ -1001,7 +1001,8 @@ public partial class WebAssemblyRuntime : IDisposable
 
     #region Helper functions
 
-    private void WriteSandboxOutput(int outPtr, int outLenPtr, byte[] buf, bool allowSkip = false)
+    private void WriteSandboxOutput(int outPtr, int outLenPtr, byte[] buf, bool allowSkip = false,
+        Func<int, (RuntimeCosts, int)>? createToken = null)
     {
         if (allowSkip && outPtr == -1)
         {
@@ -1015,6 +1016,12 @@ public partial class WebAssemblyRuntime : IDisposable
         if (len < bufLen)
         {
             throw new OutputBufferTooSmallException();
+        }
+
+        if (createToken != null)
+        {
+            var (runtimeCosts, size) = createToken.Invoke(len);
+            _externalEnvironment.ChargeGas(runtimeCosts, size);
         }
 
         WriteSandboxMemory(outPtr, buf);

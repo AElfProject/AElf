@@ -18,7 +18,7 @@ public interface IExternalEnvironment
 
     List<(byte[], byte[])> Events { get; }
     List<string> DebugMessages { get; }
-    
+
     Address? Caller { get; set; }
 
     GasMeter GasMeter { get; set; }
@@ -130,4 +130,7 @@ public interface IExternalEnvironment
     void RemoveDelegateDependency(Hash codeHash);
 
     long Nonce();
+
+    void ChargeGas(RuntimeCosts runtimeCosts, Weight weight);
+    void ChargeGas(RuntimeCosts runtimeCosts, long size = 0);
 }
