@@ -244,7 +244,7 @@ public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, I
     }
     
     public void SendVirtualInline(Hash fromVirtualAddress, Address toAddress, string methodName,
-        ByteString args, bool isVirtualTransactionEventFired)
+        ByteString args, bool logTransaction)
     {
         var transaction = new Transaction
         {
@@ -254,7 +254,7 @@ public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, I
             Params = args
         };
         TransactionContext.Trace.InlineTransactions.Add(transaction);
-        if (!isVirtualTransactionEventFired) return;
+        if (!logTransaction) return;
         FireVirtualTransactionLogEvent(fromVirtualAddress, transaction);
     }
 
@@ -271,7 +271,7 @@ public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, I
     }
     
     public void SendVirtualInlineBySystemContract(Hash fromVirtualAddress, Address toAddress, string methodName,
-        ByteString args, bool isVirtualTransactionEventFired)
+        ByteString args, bool logTransaction)
     {
         var transaction = new Transaction
         {
@@ -281,7 +281,7 @@ public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, I
             Params = args
         };
         TransactionContext.Trace.InlineTransactions.Add(transaction);
-        if (!isVirtualTransactionEventFired) return;
+        if (!logTransaction) return;
         FireVirtualTransactionLogEvent(fromVirtualAddress, transaction);
     }
     
