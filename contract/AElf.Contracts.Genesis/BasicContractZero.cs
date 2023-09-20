@@ -480,7 +480,7 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         TryClearContractProposingData(inputHash, out var contractProposingInput);
 
         var address = DeploySmartContract(null, input.Category, input.Code.ToByteArray(), false,
-            contractProposingInput.Author, true, Context.Sender, input.Salt);
+            contractProposingInput.Author, true, contractProposingInput.Author, input.Salt);
         return address;
     }
 
