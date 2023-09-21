@@ -79,12 +79,12 @@ service ACS0 {
     rpc SetContractProposerRequiredState (google.protobuf.BoolValue) returns (google.protobuf.Empty) {
     }
     
-    // Set signatory.
-    rpc SetSignatory (aelf.Address) returns (google.protobuf.Empty) {
+    // Set signer.
+    rpc SetSigner (aelf.Address) returns (google.protobuf.Empty) {
     }
     
-    // Delete signatory.
-    rpc RemoveSignatory (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    // Delete signer.
+    rpc RemoveSigner (google.protobuf.Empty) returns (google.protobuf.Empty) {
     }
     
     // Get the current serial number of genesis contract 
@@ -127,7 +127,7 @@ service ACS0 {
         option (aelf.is_view) = true;
     }
     
-    rpc GetSignatory (aelf.Address) returns (aelf.Address) {
+    rpc GetSigner (aelf.Address) returns (aelf.Address) {
         option (aelf.is_view) = true;
     }
 }

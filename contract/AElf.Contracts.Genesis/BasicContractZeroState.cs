@@ -35,5 +35,5 @@ public partial class BasicContractZeroState : ContractState
 
     public SingletonState<int> ContractProposalExpirationTimePeriod { get; set; }
     
-    public MappedState<Address, Address> SignatoryMap { get; set; }
+    public MappedState<Address, Address> SignerMap { get; set; }
 }

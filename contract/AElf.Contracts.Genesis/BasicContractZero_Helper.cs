@@ -29,7 +29,7 @@ public partial class BasicContractZero
             serialNumber = State.ContractSerialNumber.Value;
             // Increment
             State.ContractSerialNumber.Value = serialNumber + 1;
-            contractAddress = AddressHelper.BuildContractAddress(Context.ChainId, serialNumber);
+            contractAddress = AddressHelper.ComputeContractAddress(Context.ChainId, serialNumber);
         }
         else
         {
@@ -402,7 +402,7 @@ public partial class BasicContractZero
 
         Assert(
             recoveredAddress == contractOperation.Deployer ||
-            State.SignatoryMap[contractOperation.Deployer] == recoveredAddress, "Invalid signature.");
+            State.SignerMap[contractOperation.Deployer] == recoveredAddress, "Invalid signature.");
     }
 
     private Address RecoverAddressFromSignature(ContractOperation contractOperation)
@@ -425,9 +425,9 @@ public partial class BasicContractZero
         }.ToByteArray());
     }
 
-    private void RemoveOneTimeSignatory(Address address)
+    private void RemoveOneTimeSigner(Address address)
     {
-        State.SignatoryMap.Remove(address);
+        State.SignerMap.Remove(address);
     }
 
     private void AssertContractAddressAvailable(Address deployer, Hash salt)
@@ -450,15 +450,15 @@ public static class AddressHelper
     /// </summary>
     /// <returns></returns>
     /// <exception cref="ArgumentOutOfRangeException"></exception>
-    private static Address BuildContractAddress(Hash chainId, long serialNumber)
+    private static Address ComputeContractAddress(Hash chainId, long serialNumber)
     {
         var hash = HashHelper.ConcatAndCompute(chainId, HashHelper.ComputeFrom(serialNumber));
         return Address.FromBytes(hash.ToByteArray());
     }
 
-    public static Address BuildContractAddress(int chainId, long serialNumber)
+    public static Address ComputeContractAddress(int chainId, long serialNumber)
     {
-        return BuildContractAddress(HashHelper.ComputeFrom(chainId), serialNumber);
+        return ComputeContractAddress(HashHelper.ComputeFrom(chainId), serialNumber);
     }
 
     public static Address ComputeContractAddress(Address deployer, Hash salt)

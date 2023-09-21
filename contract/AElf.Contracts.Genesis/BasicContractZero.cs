@@ -84,9 +84,9 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         return new Int32Value { Value = expirationTimePeriod };
     }
 
-    public override Address GetSignatory(Address input)
+    public override Address GetSigner(Address input)
     {
-        return State.SignatoryMap[input];
+        return State.SignerMap[input];
     }
 
     #endregion Views
@@ -127,8 +127,8 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         {
             ValidateContractOperation(input.ContractOperation, 0, codeHash);
             
-            // Remove one time signatory if exists. Signatory is only needed for validating signature.
-            RemoveOneTimeSignatory(input.ContractOperation.Deployer);
+            // Remove one time signer if exists. Signer is only needed for validating signature.
+            RemoveOneTimeSigner(input.ContractOperation.Deployer);
             
             AssertContractAddressAvailable(input.ContractOperation.Deployer, input.ContractOperation.Salt);
         }
@@ -186,7 +186,7 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         if (input.ContractOperation != null)
         {
             ValidateContractOperation(input.ContractOperation, info.Version, codeHash);
-            RemoveOneTimeSignatory(input.ContractOperation.Deployer);
+            RemoveOneTimeSigner(input.ContractOperation.Deployer);
             AssertSameDeployer(input.Address, input.ContractOperation.Deployer);
         }
 
@@ -519,19 +519,19 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         return new Empty();
     }
 
-    public override Empty SetSignatory(Address input)
+    public override Empty SetSigner(Address input)
     {
         Assert(input != null && !input.Value.IsNullOrEmpty(), "Invalid input.");
 
-        if (State.SignatoryMap[Context.Sender] == input) return new Empty();
+        if (State.SignerMap[Context.Sender] == input) return new Empty();
 
-        State.SignatoryMap[Context.Sender] = input;
+        State.SignerMap[Context.Sender] = input;
         return new Empty();
     }
 
-    public override Empty RemoveSignatory(Empty input)
+    public override Empty RemoveSigner(Empty input)
     {
-        RemoveOneTimeSignatory(Context.Sender);
+        RemoveOneTimeSigner(Context.Sender);
         return new Empty();
     }
 
