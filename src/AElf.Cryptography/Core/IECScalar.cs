@@ -1,6 +1,8 @@
-namespace AElf.Cryptography.Core;
-
-public interface IECScalar
+namespace AElf.Cryptography.Core
 {
-    byte[] Representation { get; }
+
+    public interface IECScalar
+    {
+        byte[] Representation { get; }
+    }
 }
