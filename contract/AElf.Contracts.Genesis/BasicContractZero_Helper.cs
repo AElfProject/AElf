@@ -34,7 +34,7 @@ public partial class BasicContractZero
         else
         {
             serialNumber = 0;
-            contractAddress = AddressHelper.BuildContractAddressWithSalt(deployer, salt);
+            contractAddress = AddressHelper.ComputeContractAddress(deployer, salt);
         }
 
         Assert(State.ContractInfos[contractAddress] == null, "Contract address exists.");
@@ -432,7 +432,7 @@ public partial class BasicContractZero
 
     private void AssertContractAddressAvailable(Address deployer, Hash salt)
     {
-        var contractAddress = AddressHelper.BuildContractAddressWithSalt(deployer, salt);
+        var contractAddress = AddressHelper.ComputeContractAddress(deployer, salt);
         Assert(State.ContractInfos[contractAddress] == null, "Contract address exists.");
     }
 
@@ -461,7 +461,7 @@ public static class AddressHelper
         return BuildContractAddress(HashHelper.ComputeFrom(chainId), serialNumber);
     }
 
-    public static Address BuildContractAddressWithSalt(Address deployer, Hash salt)
+    public static Address ComputeContractAddress(Address deployer, Hash salt)
     {
         var hash = HashHelper.ConcatAndCompute(HashHelper.ComputeFrom(deployer), salt);
         return Address.FromBytes(hash.ToByteArray());

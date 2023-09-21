@@ -21,7 +21,7 @@ public partial class GenesisContractAuthTest
 
         var code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("TestContract.BasicFunction")).Value);
         var salt = HashHelper.ComputeFrom("test");
-        var computedAddress = AddressHelper.BuildContractAddressWithSalt(CreatorAddress, salt);
+        var computedAddress = AddressHelper.ComputeContractAddress(CreatorAddress, salt);
 
         var contractAddress = await DeployContractOnMainChain();
         
