@@ -12,85 +12,50 @@ namespace AElf.Contracts.Genesis;
 
 public partial class BasicContractZero
 {
-    private Address DeploySmartContract(Hash name, int category, byte[] code, bool isSystemContract,
-        Address author, bool isUserContract, Address deployer = null, Hash salt = null)
+    private void AddCodeHashToList(Hash codeHash)
     {
-        if (name != null)
-            Assert(State.NameAddressMapping[name] == null, "contract name has already been registered before");
-
-        var codeHash = HashHelper.ComputeFrom(code);
-        AssertContractNotExists(codeHash);
-
-        long serialNumber;
-        Address contractAddress;
-
-        if (salt == null)
-        {
-            serialNumber = State.ContractSerialNumber.Value;
-            // Increment
-            State.ContractSerialNumber.Value = serialNumber + 1;
-            contractAddress = AddressHelper.ComputeContractAddress(Context.ChainId, serialNumber);
-        }
-        else
-        {
-            serialNumber = 0;
-            contractAddress = AddressHelper.ComputeContractAddress(deployer, salt);
-        }
-
-        Assert(State.ContractInfos[contractAddress] == null, "Contract address exists.");
-
-        var info = new ContractInfo
-        {
-            SerialNumber = serialNumber,
-            Author = author,
-            Category = category,
-            CodeHash = codeHash,
-            IsSystemContract = isSystemContract,
-            Version = 1,
-            IsUserContract = isUserContract,
-            Deployer = deployer
-        };
-
-        var reg = new SmartContractRegistration
-        {
-            Category = category,
-            Code = ByteString.CopyFrom(code),
-            CodeHash = codeHash,
-            IsSystemContract = info.IsSystemContract,
-            Version = info.Version,
-            ContractAddress = contractAddress,
-            IsUserContract = isUserContract
-        };
-
-        var contractInfo = Context.DeploySmartContract(contractAddress, reg, name);
-
-        info.ContractVersion = contractInfo.ContractVersion;
-        reg.ContractVersion = info.ContractVersion;
-
-        State.ContractInfos[contractAddress] = info;
-        State.SmartContractRegistrations[reg.CodeHash] = reg;
-
-        Context.Fire(new ContractDeployed
-        {
-            CodeHash = codeHash,
-            Address = contractAddress,
-            Author = author,
-            Version = info.Version,
-            Name = name,
-            ContractVersion = info.ContractVersion,
-            Deployer = deployer
-        });
-
-        Context.LogDebug(() => "BasicContractZero - Deployment ContractHash: " + codeHash.ToHex());
-        Context.LogDebug(() => "BasicContractZero - Deployment success: " + contractAddress.ToBase58());
-
-        if (name != null)
-            State.NameAddressMapping[name] = contractAddress;
-
         var contractCodeHashList =
             State.ContractCodeHashListMap[Context.CurrentHeight] ?? new ContractCodeHashList();
         contractCodeHashList.Value.Add(codeHash);
         State.ContractCodeHashListMap[Context.CurrentHeight] = contractCodeHashList;
+    }
+
+    private ContractDeployed DeploySmartContractInternalCore(SmartContractRegistration reg, Address author,
+        Address contractAddress, long serialNumber, Hash name = null)
+    {
+        AssertContractNotExists(reg.CodeHash);
+
+        Assert(State.ContractInfos[contractAddress] == null, "Contract address exists.");
+        var contractInfo = Context.DeploySmartContract(contractAddress, reg, name);
+
+        State.ContractInfos[contractAddress] = Extensions.CreateContractInfo(reg, author)
+            .SetSerialNumber(serialNumber)
+            .SetContractVersion(contractInfo.ContractVersion);
+        State.SmartContractRegistrations[reg.CodeHash] = reg.SetContractVersion(contractInfo.ContractVersion);
+        AddCodeHashToList(reg.CodeHash);
+
+        Context.LogDebug(() => "BasicContractZero - Deployment ContractHash: " + reg.CodeHash.ToHex());
+        Context.LogDebug(() => "BasicContractZero - Deployment success: " + contractAddress.ToBase58());
+        return Extensions.CreateContractDeployedEvent(reg, contractAddress).SetAuthor(author).SetName(name);
+    }
+
+    private Address DeploySmartContractInternal(SmartContractRegistration reg, Address author, Hash name = null)
+    {
+        var serialNumber = State.ContractSerialNumber.Value;
+        // Increment
+        State.ContractSerialNumber.Value = serialNumber + 1;
+        var contractAddress = AddressHelper.ComputeContractAddress(Context.ChainId, serialNumber);
+
+        Context.Fire(DeploySmartContractInternalCore(reg, author, contractAddress, serialNumber, name));
+
+        return contractAddress;
+    }
+
+    private Address DeploySmartContractInternal(SmartContractRegistration reg, Address author, Address deployer,
+        Hash salt)
+    {
+        var contractAddress = AddressHelper.ComputeContractAddress(deployer, salt);
+        Context.Fire(DeploySmartContractInternalCore(reg, author, contractAddress, 0, null));
 
         return contractAddress;
     }
