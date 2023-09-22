@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+option csharp_namespace = "AElf.Types";
+
+
+import "aelf/core.proto";
+import "aelf/options.proto";
+
+service VirtualTransaction {
+}
+
+message VirtualTransactionCreated {
+  option (aelf.is_event) = true;
+  aelf.Hash virtual_hash = 1 [(aelf.is_indexed) = true];
+  aelf.Address from = 2 [(aelf.is_indexed) = true];
+  aelf.Address to = 3 [(aelf.is_indexed) = true];
+  string method_name = 4 [(aelf.is_indexed) = true];
+  bytes params = 5;
+  aelf.Address signatory = 6 [(aelf.is_indexed) = true];
+}
