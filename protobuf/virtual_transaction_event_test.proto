@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+import "aelf/options.proto";
+import "aelf/core.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+
+option csharp_namespace = "AElf.Contracts.TestContract.VirtualTransactionEvent";
+
+service VirtualTransactionEventContract {
+  option (aelf.csharp_state) = "AElf.Contracts.TestContract.VirtualTransactionEvent.State";
+  
+  rpc FireVirtualTransactionEventTest(FireVirtualTransactionEventTestInput) returns (google.protobuf.Empty){}
+
+  rpc SendVirtualTransactionWithOutEvent(FireVirtualTransactionEventTestInput) returns (google.protobuf.Empty){}
+  
+  
+}
+
+message FireVirtualTransactionEventTestInput{
+  aelf.Address to = 1;
+  string method_name = 3;
+  bytes args = 4;
+}
