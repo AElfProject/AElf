@@ -48,11 +48,11 @@ service ACS0 {
     }
 
     // Deploy a user smart contract on chain and return the hash of the contract code.
-    rpc DeployUserSmartContract (ContractDeploymentInput) returns (DeployUserSmartContractOutput) {
+    rpc DeployUserSmartContract (UserContractDeploymentInput) returns (DeployUserSmartContractOutput) {
     }
 
     // Update a user smart contract on chain.
-    rpc UpdateUserSmartContract (ContractUpdateInput) returns (google.protobuf.Empty) {
+    rpc UpdateUserSmartContract (UserContractUpdateInput) returns (google.protobuf.Empty) {
     }
 
     // Release the proposal which has passed the code check.
@@ -60,11 +60,11 @@ service ACS0 {
     }
 
     // Perform user contract deployment.
-    rpc PerformDeployUserSmartContract(ContractDeploymentInput) returns (aelf.Address) {
+    rpc PerformDeployUserSmartContract(UserContractDeploymentInput) returns (aelf.Address) {
     }
 
     // Perform user contract update.
-    rpc PerformUpdateUserSmartContract(ContractUpdateInput) returns (google.protobuf.Empty) {
+    rpc PerformUpdateUserSmartContract(UserContractUpdateInput) returns (google.protobuf.Empty) {
     }
 
     // Set author of the specified contract.
@@ -77,6 +77,14 @@ service ACS0 {
     
     // Set authority of contract deployment.
     rpc SetContractProposerRequiredState (google.protobuf.BoolValue) returns (google.protobuf.Empty) {
+    }
+    
+    // Set signer.
+    rpc SetSigner (aelf.Address) returns (google.protobuf.Empty) {
+    }
+    
+    // Delete signer.
+    rpc RemoveSigner (google.protobuf.Empty) returns (google.protobuf.Empty) {
     }
     
     // Get the current serial number of genesis contract 
@@ -118,6 +126,10 @@ service ACS0 {
     rpc GetContractCodeHashListByDeployingBlockHeight (google.protobuf.Int64Value) returns (ContractCodeHashList) {
         option (aelf.is_view) = true;
     }
+    
+    rpc GetSigner (aelf.Address) returns (aelf.Address) {
+        option (aelf.is_view) = true;
+    }
 }
 
 message ContractInfo
@@ -137,12 +149,30 @@ message ContractInfo
     string contract_version = 7;
     // Indicates if the contract is the user contract.
     bool is_user_contract = 8;
+    // The address for deploying the contract
+    aelf.Address deployer = 9;
 }
 
 message ContractDeploymentInput {
     // The category of contract code(0: C#).
     sint32 category = 1;
     // The byte array of the contract code.
+    bytes code = 2;
+    ContractOperation contract_operation = 3;
+}
+
+message UserContractDeploymentInput {
+    // The category of contract code(0: C#).
+    sint32 category = 1;
+    // The byte array of the contract code.
+    bytes code = 2;
+    aelf.Hash salt = 3;
+}
+
+message UserContractUpdateInput {
+    // The contract address that needs to be updated.
+    aelf.Address address = 1;
+    // The byte array of the new contract code.
     bytes code = 2;
 }
 
@@ -173,6 +203,7 @@ message ContractUpdateInput {
     aelf.Address address = 1;
     // The byte array of the new contract code.
     bytes code = 2;
+    ContractOperation contract_operation = 3;
 }
 
 message ContractCodeCheckInput{
@@ -211,6 +242,7 @@ message ContractDeployed
     // The name of the contract. It has to be unique.
     aelf.Hash Name = 5;
     string contract_version = 6;
+    aelf.Address deployer = 7;
 }
 
 message CodeCheckRequired
@@ -282,4 +314,13 @@ message SetContractAuthorInput{
 
 message DeployUserSmartContractOutput{
     aelf.Hash code_hash = 1;
+}
+
+message ContractOperation{
+    int32 chain_id = 1;
+    aelf.Hash code_hash = 2;
+    aelf.Address deployer = 3;
+    aelf.Hash salt = 4;
+    int32 version = 5;
+    bytes signature = 10000;
 }
