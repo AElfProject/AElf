@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.Cryptography;
 using AElf.CSharp.Core;
+using AElf.CSharp.Core.Extension;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
@@ -241,6 +242,21 @@ public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, I
             Params = args
         });
     }
+    
+    public void SendVirtualInline(Hash fromVirtualAddress, Address toAddress, string methodName,
+        ByteString args, bool logTransaction)
+    {
+        var transaction = new Transaction
+        {
+            From = ConvertVirtualAddressToContractAddress(fromVirtualAddress, Self),
+            To = toAddress,
+            MethodName = methodName,
+            Params = args
+        };
+        TransactionContext.Trace.InlineTransactions.Add(transaction);
+        if (!logTransaction) return;
+        FireVirtualTransactionLogEvent(fromVirtualAddress, transaction);
+    }
 
     public void SendVirtualInlineBySystemContract(Hash fromVirtualAddress, Address toAddress, string methodName,
         ByteString args)
@@ -252,6 +268,36 @@ public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, I
             MethodName = methodName,
             Params = args
         });
+    }
+    
+    public void SendVirtualInlineBySystemContract(Hash fromVirtualAddress, Address toAddress, string methodName,
+        ByteString args, bool logTransaction)
+    {
+        var transaction = new Transaction
+        {
+            From = ConvertVirtualAddressToContractAddressWithContractHashName(fromVirtualAddress, Self),
+            To = toAddress,
+            MethodName = methodName,
+            Params = args
+        };
+        TransactionContext.Trace.InlineTransactions.Add(transaction);
+        if (!logTransaction) return;
+        FireVirtualTransactionLogEvent(fromVirtualAddress, transaction);
+    }
+    
+    
+    private void FireVirtualTransactionLogEvent(Hash fromVirtualAddress, Transaction transaction)
+    {
+        var log = new VirtualTransactionCreated
+        {
+            From = transaction.From,
+            To = transaction.To,
+            VirtualHash = fromVirtualAddress,
+            MethodName = transaction.MethodName,
+            Params = transaction.Params,
+            Signatory = Sender
+        };
+        FireLogEvent(log.ToLogEvent(Self));
     }
 
     public Address ConvertVirtualAddressToContractAddress(Hash virtualAddress, Address contractAddress)

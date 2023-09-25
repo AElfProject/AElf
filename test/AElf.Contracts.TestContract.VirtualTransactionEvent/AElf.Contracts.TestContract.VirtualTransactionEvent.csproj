@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="..\..\common.props" />
+
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <PackageId>AElf.Contracts.TestContract.VirtualTransactionEvent</PackageId>
+        <RootNamespace>AElf.Contracts.TestContract.VirtualTransactionEvent</RootNamespace>
+        <IsPackable>false</IsPackable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\src\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj" />
+    </ItemGroup>
+    <ItemGroup>
+
+        <ContractCode Include="..\..\protobuf\virtual_transaction_event_test.proto">
+            <Link>Protobuf\Proto\virtual_transaction_event_test.proto</Link>
+        </ContractCode>
+    </ItemGroup>
+
+</Project>
