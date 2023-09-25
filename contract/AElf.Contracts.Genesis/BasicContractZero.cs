@@ -103,8 +103,15 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         var code = input.Code.ToByteArray();
         var transactionMethodCallList = input.TransactionMethodCallList;
 
+        if (name != null)
+            Assert(State.NameAddressMapping[name] == null, "contract name has already been registered before");
         // Context.Sender should be identical to Genesis contract address before initialization in production
-        var address = DeploySmartContract(name, category, code, true, Context.Sender, false);
+        var reg = Extensions.CreateNewSmartContractRegistration(category, code).SetIsSystemContract(true);
+        AssertContractNotExists(reg.CodeHash);
+        var address = DeploySmartContractInternal(reg, Context.Sender, name);
+
+        if (name != null)
+            State.NameAddressMapping[name] = address;
 
         if (transactionMethodCallList != null)
             foreach (var methodCall in transactionMethodCallList.Value)
@@ -126,10 +133,10 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         if (input.ContractOperation != null)
         {
             ValidateContractOperation(input.ContractOperation, 0, codeHash);
-            
+
             // Remove one time signer if exists. Signer is only needed for validating signature.
             RemoveOneTimeSigner(input.ContractOperation.Deployer);
-            
+
             AssertContractAddressAvailable(input.ContractOperation.Deployer, input.ContractOperation.Salt);
         }
 
@@ -308,11 +315,16 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         var inputHash = CalculateHashFromInput(input);
         TryClearContractProposingData(inputHash, out var contractProposingInput);
 
-        var address =
-            DeploySmartContract(null, input.Category, input.Code.ToByteArray(), false,
-                DecideNonSystemContractAuthor(contractProposingInput?.Proposer, Context.Sender), false,
-                input.ContractOperation?.Deployer, input.ContractOperation?.Salt);
-        return address;
+        var reg = Extensions.CreateNewSmartContractRegistration(input.Category, input.Code.ToByteArray());
+        AssertContractNotExists(reg.CodeHash);
+        var author = DecideNonSystemContractAuthor(contractProposingInput?.Proposer, Context.Sender);
+        if (input.RequiresDeterministicAddress())
+        {
+            return DeploySmartContractInternal(reg, author, input.ContractOperation.Deployer,
+                input.ContractOperation.Salt);
+        }
+
+        return DeploySmartContractInternal(reg, author);
     }
 
     public override Address UpdateSmartContract(ContractUpdateInput input)
@@ -485,8 +497,12 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         var inputHash = CalculateHashFromInput(input);
         TryClearContractProposingData(inputHash, out var contractProposingInput);
 
-        var address = DeploySmartContract(null, input.Category, input.Code.ToByteArray(), false,
-            contractProposingInput.Author, true, contractProposingInput.Author, input.Salt);
+        var reg = Extensions.CreateNewSmartContractRegistration(input.Category, input.Code.ToByteArray())
+            .SetIsUserContract(true);
+        var author = contractProposingInput.Author;
+        var deployer = contractProposingInput.Author;
+        var salt = input.Salt;
+        var address = DeploySmartContractInternal(reg, author, deployer, salt);
         return address;
     }
 
