@@ -20,7 +20,7 @@ using CreateOrganizationInput = AElf.Contracts.Parliament.CreateOrganizationInpu
 
 namespace AElf.Contracts.Genesis;
 
-public class GenesisContractAuthTest : BasicContractZeroTestBase
+public partial class GenesisContractAuthTest : BasicContractZeroTestBase
 {
     [Fact]
     public async Task SetInitialController_Failed_Test()
@@ -324,7 +324,7 @@ public class GenesisContractAuthTest : BasicContractZeroTestBase
         };
 
         {
-            var address = await DeployAsync(Tester, ParliamentAddress, contractDeploymentInput);
+            var address = await DeployAsync(Tester, ParliamentAddress, BasicContractZeroAddress, contractDeploymentInput);
             address.ShouldNotBeNull();
             var contractInfo = ContractInfo.Parser.ParseFrom(await Tester.CallContractMethodAsync(
                 BasicContractZeroAddress,
@@ -334,7 +334,7 @@ public class GenesisContractAuthTest : BasicContractZeroTestBase
 
         {
             // Deployment of the same contract code will fail and return null address
-            var address = await DeployAsync(Tester, ParliamentAddress, contractDeploymentInput);
+            var address = await DeployAsync(Tester, ParliamentAddress, BasicContractZeroAddress, contractDeploymentInput);
             address.ShouldBeNull();
         }
 
@@ -362,7 +362,7 @@ public class GenesisContractAuthTest : BasicContractZeroTestBase
             Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("TokenConverter")).Value)
         };
 
-        var newAddress = await DeployAsync(Tester, ParliamentAddress, contractDeploymentInput);
+        var newAddress = await DeployAsync(Tester, ParliamentAddress, BasicContractZeroAddress, contractDeploymentInput);
         var contractInfo = ContractInfo.Parser.ParseFrom(await Tester.CallContractMethodAsync(BasicContractZeroAddress,
             nameof(BasicContractZeroImplContainer.BasicContractZeroImplStub.GetContractInfo), newAddress));
         contractInfo.Version.ShouldBe(1);
@@ -416,7 +416,7 @@ public class GenesisContractAuthTest : BasicContractZeroTestBase
         };
 
 
-        var newAddress = await DeployAsync(Tester, ParliamentAddress, contractDeploymentInput);
+        var newAddress = await DeployAsync(Tester, ParliamentAddress, BasicContractZeroAddress, contractDeploymentInput);
         var contractInfo = ContractInfo.Parser.ParseFrom(await Tester.CallContractMethodAsync(BasicContractZeroAddress,
             nameof(BasicContractZeroImplContainer.BasicContractZeroImplStub.GetContractInfo), newAddress));
         contractInfo.Version.ShouldBe(1);
@@ -426,7 +426,7 @@ public class GenesisContractAuthTest : BasicContractZeroTestBase
             Category = KernelConstants.DefaultRunnerCategory, // test the default runner
             Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("TestContract.BasicFunction")).Value)
         };
-        var updateAddress = await DeployAsync(Tester, ParliamentAddress, contractDeploymentInput2);
+        var updateAddress = await DeployAsync(Tester, ParliamentAddress, BasicContractZeroAddress, contractDeploymentInput2);
         var contractUpdateInput = new ContractUpdateInput
         {
             Address = updateAddress,
@@ -448,7 +448,7 @@ public class GenesisContractAuthTest : BasicContractZeroTestBase
             Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("TokenConverter")).Value)
         };
 
-        var newAddress = await DeployAsync(Tester, ParliamentAddress, contractDeploymentInput);
+        var newAddress = await DeployAsync(Tester, ParliamentAddress, BasicContractZeroAddress, contractDeploymentInput);
         var contractInfo = ContractInfo.Parser.ParseFrom(await Tester.CallContractMethodAsync(BasicContractZeroAddress,
             nameof(BasicContractZeroImplContainer.BasicContractZeroImplStub.GetContractInfo), newAddress));
         contractInfo.Version.ShouldBe(1);
@@ -544,7 +544,7 @@ public class GenesisContractAuthTest : BasicContractZeroTestBase
             Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("TokenConverter")).Value)
         };
 
-        var newAddress = await DeployAsync(Tester, ParliamentAddress, contractDeploymentInput);
+        var newAddress = await DeployAsync(Tester, ParliamentAddress, BasicContractZeroAddress, contractDeploymentInput);
         var contractInfo = ContractInfo.Parser.ParseFrom(await Tester.CallContractMethodAsync(BasicContractZeroAddress,
             nameof(BasicContractZeroImplContainer.BasicContractZeroImplStub.GetContractInfo), newAddress));
         contractInfo.Version.ShouldBe(1);
@@ -622,7 +622,7 @@ public class GenesisContractAuthTest : BasicContractZeroTestBase
             Code = ByteString.CopyFrom(contractCode)
         };
 
-        var newAddress = await DeployAsync(Tester, ParliamentAddress, contractDeploymentInput);
+        var newAddress = await DeployAsync(Tester, ParliamentAddress, BasicContractZeroAddress, contractDeploymentInput);
 
         var code = ReadCode(Path.Combine(BaseDir, "AElf.Contracts.Referendum.dll"));
         var contractUpdateInput = new ContractUpdateInput
@@ -1622,14 +1622,14 @@ public class GenesisContractAuthTest : BasicContractZeroTestBase
         await AddZeroContractToProposerWhiteListAsync();
         
         // deploy contract
-        var contractDeploymentInput = new ContractDeploymentInput
+        var userContractDeploymentInput = new UserContractDeploymentInput
         {
             Category = KernelConstants.DefaultRunnerCategory, 
             Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("TokenConverter")).Value)
         };
 
         var deployResult = await SideChainTester.ExecuteContractWithMiningAsync(SideBasicContractZeroAddress,
-            nameof(ACS0Container.ACS0Stub.DeployUserSmartContract), contractDeploymentInput);
+            nameof(ACS0Container.ACS0Stub.DeployUserSmartContract), userContractDeploymentInput);
         deployResult.Status.ShouldBe(TransactionResultStatus.Mined);
         var codeHash = DeployUserSmartContractOutput.Parser.ParseFrom(deployResult.ReturnValue).CodeHash;
         
@@ -1639,8 +1639,8 @@ public class GenesisContractAuthTest : BasicContractZeroTestBase
 
         var codeCheckRequired = CodeCheckRequired.Parser
             .ParseFrom(deployResult.Logs.First(l => l.Name.Contains(nameof(CodeCheckRequired))).NonIndexed);
-        codeCheckRequired.Category.ShouldBe(contractDeploymentInput.Category);
-        codeCheckRequired.Code.ShouldBe(contractDeploymentInput.Code);
+        codeCheckRequired.Category.ShouldBe(userContractDeploymentInput.Category);
+        codeCheckRequired.Code.ShouldBe(userContractDeploymentInput.Code);
         codeCheckRequired.IsSystemContract.ShouldBeFalse();
         codeCheckRequired.IsUserContract.ShouldBeTrue();
         
@@ -1693,14 +1693,14 @@ public class GenesisContractAuthTest : BasicContractZeroTestBase
         contractInfo.Author.ShouldBe(Address.FromPublicKey(CreatorKeyPair.PublicKey));
         
         // update contract
-        var contractUpdateInput = new ContractUpdateInput
+        var userContractUpdateInput = new UserContractUpdateInput
         {
             Address = contractDeployed.Address, 
             Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("TokenHolder")).Value)
         };
 
         var updateResult = await SideChainTester.ExecuteContractWithMiningAsync(SideBasicContractZeroAddress,
-            nameof(ACS0Container.ACS0Stub.UpdateUserSmartContract), contractUpdateInput);
+            nameof(ACS0Container.ACS0Stub.UpdateUserSmartContract), userContractUpdateInput);
         updateResult.Status.ShouldBe(TransactionResultStatus.Mined);
         
         proposalId = ProposalCreated.Parser
@@ -1709,7 +1709,7 @@ public class GenesisContractAuthTest : BasicContractZeroTestBase
 
         codeCheckRequired = CodeCheckRequired.Parser
             .ParseFrom(updateResult.Logs.First(l => l.Name.Contains(nameof(CodeCheckRequired))).NonIndexed);
-        codeCheckRequired.Category.ShouldBe(contractDeploymentInput.Category);
+        codeCheckRequired.Category.ShouldBe(userContractDeploymentInput.Category);
         //codeCheckRequired.Code.ShouldBe(contractUpdateInput.Code);
         codeCheckRequired.IsSystemContract.ShouldBeFalse();
         codeCheckRequired.IsUserContract.ShouldBeTrue();

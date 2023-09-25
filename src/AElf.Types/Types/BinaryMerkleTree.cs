@@ -2,99 +2,101 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace AElf.Types;
-
-public partial class BinaryMerkleTree
+namespace AElf.Types
 {
-    public static BinaryMerkleTree FromLeafNodes(IEnumerable<Hash> leafNodes)
-    {
-        var binaryMerkleTree = new BinaryMerkleTree();
-        binaryMerkleTree.Nodes.AddRange(leafNodes);
-        binaryMerkleTree.LeafCount = binaryMerkleTree.Nodes.Count;
-        GenerateBinaryMerkleTreeNodesWithLeafNodes(binaryMerkleTree.Nodes);
-        binaryMerkleTree.Root = binaryMerkleTree.Nodes.Any() ? binaryMerkleTree.Nodes.Last() : Hash.Empty;
-        return binaryMerkleTree;
-    }
 
-    /// <summary>
-    ///     Calculate merkle tree root from leaf node list.
-    /// </summary>
-    /// <example>
-    ///     For leave {0,1,2,3,4}, the tree should be like
-    ///     12
-    ///     10 ------ 11
-    ///     6 -- 7    8 -- 9
-    ///     0-1  2-3  4-5
-    ///     in which {5,9} are copied from {4,8}, and {6,7,8,10,11,12} are calculated.
-    ///     [12] is merkle tree root.
-    /// </example>
-    private static void GenerateBinaryMerkleTreeNodesWithLeafNodes(IList<Hash> leafNodes)
+    public partial class BinaryMerkleTree
     {
-        if (!leafNodes.Any()) return;
-
-        if (leafNodes.Count % 2 == 1)
-            leafNodes.Add(leafNodes.Last());
-        var nodeToAdd = leafNodes.Count / 2;
-        var newAdded = 0;
-        var i = 0;
-        while (i < leafNodes.Count - 1)
+        public static BinaryMerkleTree FromLeafNodes(IEnumerable<Hash> leafNodes)
         {
-            var left = leafNodes[i++];
-            var right = leafNodes[i++];
-            leafNodes.Add(HashHelper.ConcatAndCompute(left, right));
-            if (++newAdded != nodeToAdd)
-                continue;
+            var binaryMerkleTree = new BinaryMerkleTree();
+            binaryMerkleTree.Nodes.AddRange(leafNodes);
+            binaryMerkleTree.LeafCount = binaryMerkleTree.Nodes.Count;
+            GenerateBinaryMerkleTreeNodesWithLeafNodes(binaryMerkleTree.Nodes);
+            binaryMerkleTree.Root = binaryMerkleTree.Nodes.Any() ? binaryMerkleTree.Nodes.Last() : Hash.Empty;
+            return binaryMerkleTree;
+        }
 
-            // complete this row
-            if (nodeToAdd % 2 == 1 && nodeToAdd != 1)
-            {
-                nodeToAdd++;
+        /// <summary>
+        ///     Calculate merkle tree root from leaf node list.
+        /// </summary>
+        /// <example>
+        ///     For leave {0,1,2,3,4}, the tree should be like
+        ///     12
+        ///     10 ------ 11
+        ///     6 -- 7    8 -- 9
+        ///     0-1  2-3  4-5
+        ///     in which {5,9} are copied from {4,8}, and {6,7,8,10,11,12} are calculated.
+        ///     [12] is merkle tree root.
+        /// </example>
+        private static void GenerateBinaryMerkleTreeNodesWithLeafNodes(IList<Hash> leafNodes)
+        {
+            if (!leafNodes.Any()) return;
+
+            if (leafNodes.Count % 2 == 1)
                 leafNodes.Add(leafNodes.Last());
+            var nodeToAdd = leafNodes.Count / 2;
+            var newAdded = 0;
+            var i = 0;
+            while (i < leafNodes.Count - 1)
+            {
+                var left = leafNodes[i++];
+                var right = leafNodes[i++];
+                leafNodes.Add(HashHelper.ConcatAndCompute(left, right));
+                if (++newAdded != nodeToAdd)
+                    continue;
+
+                // complete this row
+                if (nodeToAdd % 2 == 1 && nodeToAdd != 1)
+                {
+                    nodeToAdd++;
+                    leafNodes.Add(leafNodes.Last());
+                }
+
+                // start a new row
+                nodeToAdd /= 2;
+                newAdded = 0;
             }
-
-            // start a new row
-            nodeToAdd /= 2;
-            newAdded = 0;
         }
-    }
 
-    public MerklePath GenerateMerklePath(int index)
-    {
-        if (Root == null || index >= LeafCount)
-            throw new InvalidOperationException("Cannot generate merkle path from incomplete binary merkle tree.");
-        var path = new MerklePath();
-        var indexOfFirstNodeInRow = 0;
-        var nodeCountInRow = LeafCount;
-        while (index < Nodes.Count - 1)
+        public MerklePath GenerateMerklePath(int index)
         {
-            Hash neighbor;
-            bool isLeftNeighbor;
-            if (index % 2 == 0)
+            if (Root == null || index >= LeafCount)
+                throw new InvalidOperationException("Cannot generate merkle path from incomplete binary merkle tree.");
+            var path = new MerklePath();
+            var indexOfFirstNodeInRow = 0;
+            var nodeCountInRow = LeafCount;
+            while (index < Nodes.Count - 1)
             {
-                // add right neighbor node
-                neighbor = Nodes[index + 1];
-                isLeftNeighbor = false;
-            }
-            else
-            {
-                // add left neighbor node
-                neighbor = Nodes[index - 1];
-                isLeftNeighbor = true;
+                Hash neighbor;
+                bool isLeftNeighbor;
+                if (index % 2 == 0)
+                {
+                    // add right neighbor node
+                    neighbor = Nodes[index + 1];
+                    isLeftNeighbor = false;
+                }
+                else
+                {
+                    // add left neighbor node
+                    neighbor = Nodes[index - 1];
+                    isLeftNeighbor = true;
+                }
+
+                path.MerklePathNodes.Add(new MerklePathNode
+                {
+                    Hash = Hash.LoadFromByteArray(neighbor.ToByteArray()),
+                    IsLeftChildNode = isLeftNeighbor
+                });
+
+                nodeCountInRow = nodeCountInRow % 2 == 0 ? nodeCountInRow : nodeCountInRow + 1;
+                var shift = (index - indexOfFirstNodeInRow) / 2;
+                indexOfFirstNodeInRow += nodeCountInRow;
+                index = indexOfFirstNodeInRow + shift;
+                nodeCountInRow /= 2;
             }
 
-            path.MerklePathNodes.Add(new MerklePathNode
-            {
-                Hash = Hash.LoadFromByteArray(neighbor.ToByteArray()),
-                IsLeftChildNode = isLeftNeighbor
-            });
-
-            nodeCountInRow = nodeCountInRow % 2 == 0 ? nodeCountInRow : nodeCountInRow + 1;
-            var shift = (index - indexOfFirstNodeInRow) / 2;
-            indexOfFirstNodeInRow += nodeCountInRow;
-            index = indexOfFirstNodeInRow + shift;
-            nodeCountInRow /= 2;
+            return path;
         }
-
-        return path;
     }
 }

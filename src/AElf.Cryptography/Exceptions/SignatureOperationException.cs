@@ -1,10 +1,12 @@
 using System;
 
-namespace AElf.Cryptography.Exceptions;
-
-public class SignatureOperationException : Exception
+namespace AElf.Cryptography.Exceptions
 {
-    public SignatureOperationException(string message) : base(message)
+
+    public class SignatureOperationException : Exception
     {
+        public SignatureOperationException(string message) : base(message)
+        {
+        }
     }
 }
