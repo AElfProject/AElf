@@ -1,44 +1,46 @@
 using System;
 using Google.Protobuf;
 
-namespace AElf.Types;
-
-public partial class Transaction
+namespace AElf.Types
 {
-    private Hash _transactionId;
 
-    public Hash GetHash()
+    public partial class Transaction
     {
-        if (_transactionId == null)
-            _transactionId = HashHelper.ComputeFrom(GetSignatureData());
+        private Hash _transactionId;
 
-        return _transactionId;
-    }
+        public Hash GetHash()
+        {
+            if (_transactionId == null)
+                _transactionId = HashHelper.ComputeFrom(GetSignatureData());
 
-    public bool VerifyFields()
-    {
-        if (To == null || From == null)
-            return false;
+            return _transactionId;
+        }
 
-        if (RefBlockNumber < 0)
-            return false;
+        public bool VerifyFields()
+        {
+            if (To == null || From == null)
+                return false;
 
-        if (string.IsNullOrEmpty(MethodName))
-            return false;
+            if (RefBlockNumber < 0)
+                return false;
 
-        return true;
-    }
+            if (string.IsNullOrEmpty(MethodName))
+                return false;
 
-    private byte[] GetSignatureData()
-    {
-        if (!VerifyFields())
-            throw new InvalidOperationException($"Invalid transaction: {this}");
+            return true;
+        }
 
-        if (Signature.IsEmpty)
-            return this.ToByteArray();
+        private byte[] GetSignatureData()
+        {
+            if (!VerifyFields())
+                throw new InvalidOperationException($"Invalid transaction: {this}");
 
-        var transaction = Clone();
-        transaction.Signature = ByteString.Empty;
-        return transaction.ToByteArray();
+            if (Signature.IsEmpty)
+                return this.ToByteArray();
+
+            var transaction = Clone();
+            transaction.Signature = ByteString.Empty;
+            return transaction.ToByteArray();
+        }
     }
 }

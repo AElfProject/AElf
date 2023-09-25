@@ -1,11 +1,13 @@
 ﻿using System.Text;
 
-namespace AElf;
-
-public static class StringExtensions
+namespace AElf
 {
-    public static byte[] GetBytes(this string value)
+
+    public static class StringExtensions
     {
-        return Encoding.UTF8.GetBytes(value);
+        public static byte[] GetBytes(this string value)
+        {
+            return Encoding.UTF8.GetBytes(value);
+        }
     }
 }
