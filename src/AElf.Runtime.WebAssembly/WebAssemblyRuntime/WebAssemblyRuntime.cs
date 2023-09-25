@@ -1021,7 +1021,7 @@ public partial class WebAssemblyRuntime : IDisposable
         if (createToken != null)
         {
             var (runtimeCosts, size) = createToken.Invoke(len);
-            _externalEnvironment.ChargeGas(runtimeCosts, size);
+            _externalEnvironment.ChargeGasAsync(runtimeCosts, size);
         }
 
         WriteSandboxMemory(outPtr, buf);

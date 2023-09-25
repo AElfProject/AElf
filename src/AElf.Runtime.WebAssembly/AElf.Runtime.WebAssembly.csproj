@@ -9,6 +9,7 @@
     <ItemGroup>
       <ProjectReference Include="..\AElf.Kernel.SmartContract\AElf.Kernel.SmartContract.csproj" />
       <ProjectReference Include="..\AElf.Kernel.Token\AElf.Kernel.Token.csproj" />
+      <ProjectReference Include="..\AElf.Runtime.CSharp\AElf.Runtime.CSharp.csproj" />
       <ProjectReference Include="..\Solang.Net\Solang.Net.csproj" />
     </ItemGroup>
 

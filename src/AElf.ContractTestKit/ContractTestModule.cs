@@ -157,7 +157,10 @@ public class ContractTestModule : AbpModule
         dto.ContractDeploymentAuthorityRequired = contractOptions.ContractDeploymentAuthorityRequired;
         var osService = context.ServiceProvider.GetService<IOsBlockchainNodeContextService>();
         var that = this;
-        AsyncHelper.RunSync(async () => { that.OsBlockchainNodeContext = await osService.StartAsync(dto); });
+        AsyncHelper.RunSync(async () =>
+        {
+            that.OsBlockchainNodeContext = await osService.StartAsync(dto);
+        });
     }
 
     public override void OnApplicationShutdown(ApplicationShutdownContext context)

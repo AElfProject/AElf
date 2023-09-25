@@ -11,15 +11,13 @@ using Volo.Abp.Modularity;
 namespace AElf.Contracts.SolidityContract;
 
 [DependsOn(typeof(ContractTestModule),
-    typeof(SmartContractAElfModule))]
+    typeof(SmartContractAElfModule),
+    typeof(WebAssemblyRuntimeAElfModule))]
 public class SolidityContractTestAElfModule : ContractTestModule
 {
     public override void ConfigureServices(ServiceConfigurationContext context)
     {
         Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false);
         context.Services.RemoveAll<IPreExecutionPlugin>();
-
-        context.Services.AddSingleton<ISmartContractRunner, WebAssemblySmartContractRunner>(_ =>
-            new WebAssemblySmartContractRunner(new UnitTestExternalEnvironment()));
     }
 }

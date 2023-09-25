@@ -70,7 +70,7 @@ public partial class WebAssemblyRuntime
 
     private int SetStorage(Key key, int keyPtr, int valuePtr, int valueLen)
     {
-        _externalEnvironment.ChargeGas(RuntimeCosts.SetStorage, valueLen);
+        _externalEnvironment.ChargeGasAsync(RuntimeCosts.SetStorage, valueLen);
         var keyBytes = DecodeKey(key, keyPtr);
         var value = ReadSandboxMemory(valuePtr, valueLen);
         var writeOutcome = _externalEnvironment.SetStorage(keyBytes, value, false);

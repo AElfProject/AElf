@@ -1,14 +1,16 @@
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Modularity;
+using AElf.Runtime.CSharp;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
 
 namespace AElf.Runtime.WebAssembly;
 
 [DependsOn(
-    typeof(SmartContractAElfModule)
-    )]
+    typeof(SmartContractAElfModule),
+    typeof(CSharpRuntimeAElfModule)
+)]
 public class WebAssemblyRuntimeAElfModule : AElfModule
 {
     public override void PreConfigureServices(ServiceConfigurationContext context)
@@ -18,8 +20,11 @@ public class WebAssemblyRuntimeAElfModule : AElfModule
 
     public override void ConfigureServices(ServiceConfigurationContext context)
     {
-        var contractReader = context.Services.GetRequiredService<CSharpContractReader>();
-        context.Services.AddSingleton<ISmartContractRunner, WebAssemblySmartContractRunner>(_ =>
-            new WebAssemblySmartContractRunner(new ExternalEnvironment(contractReader)));
+        var smartContractRunnerContainer = context.Services.GetRequiredService<ISmartContractRunnerContainer>();
+        context.Services.AddSingleton<ISmartContractRunner, WebAssemblySmartContractRunner>(provider =>
+        {
+            var contractReader = provider.GetRequiredService<CSharpContractReader>();
+            return new WebAssemblySmartContractRunner(new ExternalEnvironment(contractReader));
+        });
     }
 }

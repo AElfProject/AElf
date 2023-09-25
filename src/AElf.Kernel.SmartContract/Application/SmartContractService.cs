@@ -69,7 +69,7 @@ public class SmartContractService : ISmartContractService, ITransientDependency
     {
         if (registration.Category == KernelConstants.SolidityRunnerCategory)
         {
-            await ExecuteSolidityContractConstructorAsync(registration, author, contractAddress, constructorInput);
+            //await ExecuteSolidityContractConstructorAsync(registration, author, contractAddress, constructorInput);
         }
     }
 

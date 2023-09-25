@@ -19,7 +19,7 @@ public interface IExternalEnvironment
     List<(byte[], byte[])> Events { get; }
     List<string> DebugMessages { get; }
 
-    Address? Caller { get; set; }
+    Address? Caller { get; }
 
     GasMeter GasMeter { get; set; }
 
@@ -131,6 +131,6 @@ public interface IExternalEnvironment
 
     long Nonce();
 
-    void ChargeGas(RuntimeCosts runtimeCosts, Weight weight);
-    void ChargeGas(RuntimeCosts runtimeCosts, long size = 0);
+    Task ChargeGasAsync(RuntimeCosts runtimeCosts, Weight weight);
+    Task ChargeGasAsync(RuntimeCosts runtimeCosts, long size = 0);
 }

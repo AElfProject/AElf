@@ -278,14 +278,14 @@ public class UnitTestExternalEnvironment : IExternalEnvironment
         return 995;
     }
 
-    public void ChargeGas(RuntimeCosts runtimeCosts, Weight weight)
+    public Task ChargeGasAsync(RuntimeCosts runtimeCosts, Weight weight)
     {
-        
+        return Task.CompletedTask;
     }
     
-    public void ChargeGas(RuntimeCosts runtimeCosts, long size)
+    public Task ChargeGasAsync(RuntimeCosts runtimeCosts, long size)
     {
-        
+        return Task.CompletedTask;
     }
 
     public void SetHostSmartContractBridgeContext(IHostSmartContractBridgeContext smartContractBridgeContext)

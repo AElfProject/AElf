@@ -9,11 +9,11 @@ using Solang.Extensions;
 
 namespace AElf.Runtime.WebAssembly.Tests.MockedExternalEnvironment;
 
-public class ExecutiveTests : WebAssemblyRuntimeTestBase
+public class ExecutiveMockedTests : WebAssemblyRuntimeMockedTestBase
 {
     private readonly IHostSmartContractBridgeContextService _hostSmartContractBridgeContextService;
 
-    public ExecutiveTests()
+    public ExecutiveMockedTests()
     {
         _hostSmartContractBridgeContextService = GetRequiredService<IHostSmartContractBridgeContextService>();
     }

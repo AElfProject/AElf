@@ -6,11 +6,11 @@ using Shouldly;
 
 namespace AElf.Runtime.WebAssembly.Tests.MockedExternalEnvironment;
 
-public class WebAssemblySmartContractRunnerTests : WebAssemblyRuntimeTestBase
+public class WebAssemblySmartContractRunnerMockedTests : WebAssemblyRuntimeMockedTestBase
 {
     private readonly IHostSmartContractBridgeContextService _hostSmartContractBridgeContextService;
 
-    public WebAssemblySmartContractRunnerTests()
+    public WebAssemblySmartContractRunnerMockedTests()
     {
         _hostSmartContractBridgeContextService = GetRequiredService<IHostSmartContractBridgeContextService>();
     }

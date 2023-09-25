@@ -5,7 +5,7 @@ using Wasmtime;
 
 namespace AElf.Runtime.WebAssembly.Tests.MockedExternalEnvironment;
 
-public class WebAssemblyRuntimeTests : WebAssemblyRuntimeTestBase
+public class WebAssemblyRuntimeMockedTests : WebAssemblyRuntimeMockedTestBase
 {
     private readonly List<string> _runtimeErrors = new();
 

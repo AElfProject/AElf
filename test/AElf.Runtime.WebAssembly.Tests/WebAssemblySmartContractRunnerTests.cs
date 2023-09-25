@@ -11,12 +11,12 @@ namespace AElf.Runtime.WebAssembly.Tests;
 public class WebAssemblySmartContractRunnerTests : WebAssemblyRuntimeTestBase
 {
     private readonly IHostSmartContractBridgeContextService _hostSmartContractBridgeContextService;
-    private readonly ISmartContractRunner _smartContractRunner;
+    private readonly ISmartContractRunnerContainer _smartContractRunnerContainer;
 
     public WebAssemblySmartContractRunnerTests()
     {
         _hostSmartContractBridgeContextService = GetRequiredService<IHostSmartContractBridgeContextService>();
-        _smartContractRunner = GetRequiredService<ISmartContractRunner>();
+        _smartContractRunnerContainer = GetRequiredService<ISmartContractRunnerContainer>();
     }
 
     [Fact]
@@ -31,7 +31,7 @@ public class WebAssemblySmartContractRunnerTests : WebAssemblyRuntimeTestBase
             CodeHash = HashHelper.ComputeFrom(contractCode)
         };
 
-        var smartContractRunner = _smartContractRunner;
+        var smartContractRunner = _smartContractRunnerContainer.GetRunner(KernelConstants.SolidityRunnerCategory);
         var executive = await smartContractRunner.RunAsync(smartContractRegistration);
         executive.ContractHash.ShouldNotBeNull();
 

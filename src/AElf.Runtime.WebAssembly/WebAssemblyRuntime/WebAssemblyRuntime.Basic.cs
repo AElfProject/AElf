@@ -20,7 +20,7 @@ public partial class WebAssemblyRuntime
     /// <param name="outLenPtr"></param>
     private void InputV0(int outPtr, int outLenPtr)
     {
-        _externalEnvironment.ChargeGas(RuntimeCosts.InputBase);
+        _externalEnvironment.ChargeGasAsync(RuntimeCosts.InputBase);
         if (Input == null)
         {
             HandleError(WebAssemblyError.InputForwarded);
@@ -54,7 +54,7 @@ public partial class WebAssemblyRuntime
     /// <param name="dataLen"></param>
     private void SealReturnV0(int flags, int dataPtr, int dataLen)
     {
-        _externalEnvironment.ChargeGas(RuntimeCosts.Return, dataLen);
+        _externalEnvironment.ChargeGasAsync(RuntimeCosts.Return, dataLen);
         ReturnFlags = (ReturnFlags)flags;
         ReturnBuffer = ReadSandboxMemory(dataPtr, dataLen);
     }

@@ -3,7 +3,6 @@ using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract;
 using AElf.Types;
-using Google.Protobuf;
 using Nethereum.Util;
 using Secp256k1Net;
 
@@ -15,8 +14,8 @@ public partial class ExternalEnvironment : IExternalEnvironment
 
     public List<(byte[], byte[])> Events { get; } = new();
     public List<string> DebugMessages { get; set; } = new();
-    public Address? Caller { get; set; }
-    public Address ContractAddress { get; set; }
+    public Address? Caller => HostSmartContractBridgeContext?.Sender;
+    public Address ContractAddress => HostSmartContractBridgeContext?.Self;
     public GasMeter GasMeter { get; set; }
 
     public IHostSmartContractBridgeContext? HostSmartContractBridgeContext { get; set; }
@@ -191,20 +190,20 @@ public partial class ExternalEnvironment : IExternalEnvironment
         throw new NotImplementedException();
     }
 
-    public void ChargeGas(RuntimeCosts runtimeCosts, Weight weight)
+    public Task ChargeGasAsync(RuntimeCosts runtimeCosts, Weight weight)
     {
-        throw new NotImplementedException();
+        return Task.CompletedTask;
     }
 
-    public void ChargeGas(RuntimeCosts runtimeCosts, long size)
+    public async Task ChargeGasAsync(RuntimeCosts runtimeCosts, long size)
     {
-        throw new NotImplementedException();
+        var balance = await _contractReader.GetBalanceAsync(Caller);
     }
 
     public void SetHostSmartContractBridgeContext(IHostSmartContractBridgeContext smartContractBridgeContext)
     {
         HostSmartContractBridgeContext = smartContractBridgeContext;
-        Caller = smartContractBridgeContext.Sender;
-        ContractAddress = smartContractBridgeContext.Self!;
+        //Caller = smartContractBridgeContext.Sender;
+        //ContractAddress = smartContractBridgeContext.Self!;
     }
 }

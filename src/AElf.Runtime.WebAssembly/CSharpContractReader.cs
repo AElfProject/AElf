@@ -1,9 +1,12 @@
 using AElf.Contracts.MultiToken;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.Token;
 using AElf.Types;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Volo.Abp.DependencyInjection;
 
@@ -11,41 +14,56 @@ namespace AElf.Runtime.WebAssembly;
 
 internal class CSharpContractReader : ICSharpContractReader, ISingletonDependency
 {
-    private readonly ISmartContractAddressService _smartContractAddressService;
+    private readonly IHostSmartContractBridgeContextService _hostSmartContractBridgeContextService;
     private readonly IBlockchainService _blockchainService;
+    private readonly ISmartContractAddressProvider _smartContractAddressProvider;
+    private readonly ISmartContractExecutiveProvider _smartContractExecutiveProvider;
+    private readonly ISmartContractRegistrationProvider _smartContractRegistrationProvider;
 
-    private readonly IContractReaderFactory<TokenContractContainer.TokenContractStub> _tokenContractReaderFactory;
-
-    public CSharpContractReader(ISmartContractAddressService smartContractAddressService,
-        IBlockchainService blockchainService,
-        IContractReaderFactory<TokenContractContainer.TokenContractStub> tokenContractReaderFactory)
+    public CSharpContractReader(IHostSmartContractBridgeContextService hostSmartContractBridgeContextService,
+        IBlockchainService blockchainService, ISmartContractAddressProvider smartContractAddressProvider,
+        ISmartContractExecutiveProvider smartContractExecutiveProvider,
+        ISmartContractRegistrationProvider smartContractRegistrationProvider)
     {
-        _smartContractAddressService = smartContractAddressService;
+        _hostSmartContractBridgeContextService = hostSmartContractBridgeContextService;
         _blockchainService = blockchainService;
-        _tokenContractReaderFactory = tokenContractReaderFactory;
+        _smartContractAddressProvider = smartContractAddressProvider;
+        _smartContractExecutiveProvider = smartContractExecutiveProvider;
+        _smartContractRegistrationProvider = smartContractRegistrationProvider;
     }
 
     public async Task<long> GetBalanceAsync(Address owner, string? symbol = null)
     {
         var chain = await _blockchainService.GetChainAsync();
-        var tokenContractAddress = await _smartContractAddressService.GetAddressByContractNameAsync(new ChainContext
+        var smartContractAddress = await _smartContractAddressProvider.GetSmartContractAddressAsync(new ChainContext
             {
                 BlockHeight = chain.BestChainHeight,
                 BlockHash = chain.BestChainHash
+            }, TokenSmartContractAddressNameProvider.StringName);
+        var tokenContractAddress = smartContractAddress.Address;
+        if (!_smartContractExecutiveProvider.TryGetValue(tokenContractAddress, out var executives)
+            || !executives.TryTake(out var executive))
+        {
+            return 0;
+        }
+
+        var hostSmartContractBridgeContext = _hostSmartContractBridgeContextService.Create();
+        executive.SetHostSmartContractBridgeContext(hostSmartContractBridgeContext);
+        await executive.ApplyAsync(new TransactionContext
+        {
+            Transaction = new Transaction
+            {
+                To = tokenContractAddress,
+                From = owner,
+                Params = new GetBalanceInput
+                {
+                    Symbol = "ELF",
+                    Owner = owner
+                }.ToByteString()
             },
-            TokenSmartContractAddressNameProvider.StringName);
-        var tokenContractStub = _tokenContractReaderFactory.Create(new ContractReaderContext
-        {
-            BlockHash = chain.BestChainHash,
-            BlockHeight = chain.BestChainHeight,
-            ContractAddress = tokenContractAddress
         });
-        var querySymbol = symbol ?? (await tokenContractStub.GetNativeTokenInfo.CallAsync(new Empty())).Symbol;
-        var output = await tokenContractStub.GetBalance.CallAsync(new GetBalanceInput
-        {
-            Symbol = querySymbol,
-            Owner = owner
-        });
+        var output = new GetBalanceOutput();
+        output.MergeFrom(hostSmartContractBridgeContext.TransactionContext.Trace.ReturnValue);
         return output.Balance;
     }
 }
