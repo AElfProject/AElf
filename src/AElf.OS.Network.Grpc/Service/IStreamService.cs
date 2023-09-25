@@ -43,11 +43,11 @@ public class StreamService : IStreamService, ISingletonDependency
     {
         var peer = _connectionService.GetPeerByPubkey(context.GetPublicKey());
         var streamPeer = peer as GrpcStreamPeer;
-        Logger.LogInformation("receive {requestId} {streamType} {meta}", message.RequestId, message.StreamType, message.Meta);
+        Logger.LogDebug("receive {requestId} {streamType} {meta}", message.RequestId, message.StreamType, message.Meta);
         try
         {
             await DoProcessAsync(new StreamMessageMetaStreamContext(message.Meta), message, streamPeer);
-            Logger.LogInformation("handle stream call success, clientPubKey={clientPubKey} request={requestId} {streamType}-{messageType} latency={latency}",
+            Logger.LogDebug("handle stream call success, clientPubKey={clientPubKey} request={requestId} {streamType}-{messageType} latency={latency}",
                 context.GetPublicKey(), message.RequestId, message.StreamType, message.MessageType, CommonHelper.GetRequestLatency(message.RequestId));
         }
         catch (Exception ex)
@@ -65,14 +65,14 @@ public class StreamService : IStreamService, ISingletonDependency
     public async Task ProcessStreamReplyAsync(ByteString reply, string clientPubKey)
     {
         var message = StreamMessage.Parser.ParseFrom(reply);
-        Logger.LogInformation("receive {requestId} {streamType} {meta}", message.RequestId, message.StreamType, message.Meta);
+        Logger.LogDebug("receive {requestId} {streamType} {meta}", message.RequestId, message.StreamType, message.Meta);
 
         var peer = _connectionService.GetPeerByPubkey(clientPubKey);
         var streamPeer = peer as GrpcStreamPeer;
         try
         {
             await DoProcessAsync(new StreamMessageMetaStreamContext(message.Meta), message, streamPeer);
-            Logger.LogInformation("handle stream call success, clientPubKey={clientPubKey} request={requestId} {streamType}-{messageType} latency={latency}",
+            Logger.LogDebug("handle stream call success, clientPubKey={clientPubKey} request={requestId} {streamType}-{messageType} latency={latency}",
                 clientPubKey, message.RequestId, message.StreamType, message.MessageType, CommonHelper.GetRequestLatency(message.RequestId));
         }
         catch (Exception ex)
@@ -84,7 +84,7 @@ public class StreamService : IStreamService, ISingletonDependency
 
     private async Task DoProcessAsync(IStreamContext streamContext, StreamMessage request, GrpcStreamPeer responsePeer)
     {
-        Logger.LogInformation("ProcessReceive {requestId} {streamType}-{messageType} latency={latency} messageSize={size}", request.RequestId, request.StreamType, request.MessageType, CommonHelper.GetRequestLatency(request.RequestId),
+        Logger.LogDebug("ProcessReceive {requestId} {streamType}-{messageType} latency={latency} messageSize={size}", request.RequestId, request.StreamType, request.MessageType, CommonHelper.GetRequestLatency(request.RequestId),
             request.ToByteArray().Length);
         if (!ValidContext(request, streamContext, responsePeer)) return;
         switch (request.StreamType)
