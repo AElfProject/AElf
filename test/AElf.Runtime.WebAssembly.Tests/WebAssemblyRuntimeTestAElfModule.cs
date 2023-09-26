@@ -16,22 +16,6 @@ public class WebAssemblyRuntimeTestAElfModule : AElfModule
     public override void ConfigureServices(ServiceConfigurationContext context)
     {
         var services = context.Services;
-    }
-}
-
-[DependsOn(
-    typeof(WebAssemblyRuntimeAElfModule),
-    typeof(SmartContractTestAElfModule)
-)]
-public class WebAssemblyRuntimeMockedTestAElfModule : AElfModule
-{
-    public override void ConfigureServices(ServiceConfigurationContext context)
-    {
-        var services = context.Services;
         //services.AddSingleton<IExternalEnvironment, UnitTestExternalEnvironment>();
-        context.Services.RemoveAll<ISmartContractRunner>();
-        context.Services.AddSingleton<ISmartContractRunner, WebAssemblySmartContractRunner>(_ =>
-            new WebAssemblySmartContractRunner(new UnitTestExternalEnvironment()));
     }
 }
-

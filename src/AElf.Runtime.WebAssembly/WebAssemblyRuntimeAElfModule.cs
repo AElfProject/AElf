@@ -20,11 +20,5 @@ public class WebAssemblyRuntimeAElfModule : AElfModule
 
     public override void ConfigureServices(ServiceConfigurationContext context)
     {
-        var smartContractRunnerContainer = context.Services.GetRequiredService<ISmartContractRunnerContainer>();
-        context.Services.AddSingleton<ISmartContractRunner, WebAssemblySmartContractRunner>(provider =>
-        {
-            var contractReader = provider.GetRequiredService<CSharpContractReader>();
-            return new WebAssemblySmartContractRunner(new ExternalEnvironment(contractReader));
-        });
     }
 }

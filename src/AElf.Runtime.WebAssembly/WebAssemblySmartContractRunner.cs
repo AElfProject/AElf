@@ -6,7 +6,7 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Runtime.WebAssembly;
 
-public class WebAssemblySmartContractRunner : ISmartContractRunner
+public class WebAssemblySmartContractRunner : ISmartContractRunner, ISingletonDependency
 {
     public int Category { get; protected set; }
 

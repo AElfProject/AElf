@@ -1,13 +1,13 @@
 using AElf.Kernel.SmartContract;
-using AElf.Runtime.WebAssembly.Tests.MockedExternalEnvironment;
 using AElf.Types;
 using Google.Protobuf;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.Runtime.WebAssembly.Tests;
 
-public class UnitTestExternalEnvironment : IExternalEnvironment
+public class UnitTestExternalEnvironment : IExternalEnvironment, ITransientDependency
 {
-    public IHostSmartContractBridgeContext? HostSmartContractBridgeContext { get; set; }
+    private IHostSmartContractBridgeContext? HostSmartContractBridgeContext { get; set; }
     public Dictionary<string, ByteString> Writes { get; set; } = new();
     public Dictionary<string, bool> Reads { get; set; } = new();
     public Dictionary<string, bool> Deletes { get; set; } = new();

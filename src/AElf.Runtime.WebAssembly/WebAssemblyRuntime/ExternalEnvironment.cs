@@ -5,20 +5,21 @@ using AElf.Kernel.SmartContract;
 using AElf.Types;
 using Nethereum.Util;
 using Secp256k1Net;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.Runtime.WebAssembly;
 
-public partial class ExternalEnvironment : IExternalEnvironment
+public partial class ExternalEnvironment : IExternalEnvironment, ITransientDependency
 {
     private readonly ICSharpContractReader _contractReader;
 
     public List<(byte[], byte[])> Events { get; } = new();
     public List<string> DebugMessages { get; set; } = new();
-    public Address? Caller => HostSmartContractBridgeContext?.Sender;
+    public Address Caller => HostSmartContractBridgeContext?.Sender;
     public Address ContractAddress => HostSmartContractBridgeContext?.Self;
     public GasMeter GasMeter { get; set; }
 
-    public IHostSmartContractBridgeContext? HostSmartContractBridgeContext { get; set; }
+    private IHostSmartContractBridgeContext? HostSmartContractBridgeContext { get; set; }
 
     public ExternalEnvironment(ICSharpContractReader contractReader)
     {
@@ -127,7 +128,7 @@ public partial class ExternalEnvironment : IExternalEnvironment
 
     public void DepositEvent(byte[] topics, byte[] data)
     {
-        throw new NotImplementedException();
+        
     }
 
     public long BlockNumber()
@@ -137,12 +138,12 @@ public partial class ExternalEnvironment : IExternalEnvironment
 
     public int MaxValueSize()
     {
-        throw new NotImplementedException();
+        return int.MaxValue;
     }
 
     public bool AppendDebugBuffer(string message)
     {
-        throw new NotImplementedException();
+        return true;
     }
 
     public byte[] EcdsaToEthAddress(byte[] pubkey)
@@ -192,12 +193,12 @@ public partial class ExternalEnvironment : IExternalEnvironment
 
     public Task ChargeGasAsync(RuntimeCosts runtimeCosts, Weight weight)
     {
-        return Task.CompletedTask;
+        throw new NotImplementedException();
     }
 
     public async Task ChargeGasAsync(RuntimeCosts runtimeCosts, long size)
     {
-        var balance = await _contractReader.GetBalanceAsync(Caller);
+        var balance = await _contractReader.GetBalanceAsync(Caller, Caller);
     }
 
     public void SetHostSmartContractBridgeContext(IHostSmartContractBridgeContext smartContractBridgeContext)

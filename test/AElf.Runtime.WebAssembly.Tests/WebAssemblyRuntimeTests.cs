@@ -3,9 +3,9 @@ using Google.Protobuf;
 using Shouldly;
 using Wasmtime;
 
-namespace AElf.Runtime.WebAssembly.Tests.MockedExternalEnvironment;
+namespace AElf.Runtime.WebAssembly.Tests;
 
-public class WebAssemblyRuntimeMockedTests : WebAssemblyRuntimeMockedTestBase
+public class WebAssemblyRuntimeTests : WebAssemblyRuntimeTestBase
 {
     private readonly List<string> _runtimeErrors = new();
 

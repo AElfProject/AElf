@@ -7,13 +7,13 @@ using Shouldly;
 using Solang;
 using Solang.Extensions;
 
-namespace AElf.Runtime.WebAssembly.Tests.MockedExternalEnvironment;
+namespace AElf.Runtime.WebAssembly.Tests;
 
-public class ExecutiveMockedTests : WebAssemblyRuntimeMockedTestBase
+public class ExecutiveTests : WebAssemblyRuntimeTestBase
 {
     private readonly IHostSmartContractBridgeContextService _hostSmartContractBridgeContextService;
 
-    public ExecutiveMockedTests()
+    public ExecutiveTests()
     {
         _hostSmartContractBridgeContextService = GetRequiredService<IHostSmartContractBridgeContextService>();
     }
@@ -50,8 +50,9 @@ public class ExecutiveMockedTests : WebAssemblyRuntimeMockedTestBase
         var txContext = MockTransactionContext(solangAbi!.GetSelector(functionName));
 
         var hostSmartContractBridgeContext = _hostSmartContractBridgeContextService.Create();
-        executive.SetHostSmartContractBridgeContext(hostSmartContractBridgeContext);
+        executive.SetHostSmartContractBridgeContext(_hostSmartContractBridgeContextService.Create());
 
+        hostSmartContractBridgeContext.TransactionContext.ShouldBeNull();
         await executive.ApplyAsync(txContext);
         var hexReturn = txContext.Trace.ReturnValue.ToHex();
         hexReturn.ShouldBe("02000000");

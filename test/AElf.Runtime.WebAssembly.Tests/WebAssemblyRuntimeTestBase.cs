@@ -25,23 +25,3 @@ public class WebAssemblyRuntimeTestBase : AElfIntegratedTest<WebAssemblyRuntimeT
         };
     }
 }
-
-public class WebAssemblyRuntimeMockedTestBase : AElfIntegratedTest<WebAssemblyRuntimeMockedTestAElfModule>
-{
-    internal TransactionContext MockTransactionContext(string functionName, ByteString? param = null)
-    {
-        var tx = new Transaction
-        {
-            From = SampleAddress.AddressList[0],
-            To = SampleAddress.AddressList[1],
-            MethodName = functionName,
-            Params = param ?? ByteString.Empty
-        };
-        return new TransactionContext
-        {
-            Origin = SampleAddress.AddressList[0],
-            Transaction = tx,
-            Trace = new TransactionTrace()
-        };
-    }
-}

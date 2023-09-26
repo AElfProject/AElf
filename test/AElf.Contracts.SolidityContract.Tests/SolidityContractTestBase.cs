@@ -95,22 +95,14 @@ public class SolidityContractTestBase : ContractTestBase<SolidityContractTestAEl
     internal async Task<IExecutionResult<Address>> DeployWebAssemblyContractAsync(byte[] codeBytes,
         ByteString constructorInput = null)
     {
-        try
+        var executionResult = await BasicContractZeroStub.DeploySmartContract.SendAsync(new ContractDeploymentInput
         {
-            var executionResult = await BasicContractZeroStub.DeploySmartContract.SendAsync(new ContractDeploymentInput
-            {
-                Category = KernelConstants.SolidityRunnerCategory,
-                Code = ByteString.CopyFrom(codeBytes),
-                Parameter = constructorInput ?? ByteString.Empty
-            });
+            Category = KernelConstants.SolidityRunnerCategory,
+            Code = ByteString.CopyFrom(codeBytes),
+            Parameter = constructorInput ?? ByteString.Empty
+        });
 
-            return executionResult;
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine(e);
-            throw;
-        }
+        return executionResult;
     }
 
     internal async Task<Transaction> GetTransactionAsync(ECKeyPair keyPair, Address to, string methodName,
