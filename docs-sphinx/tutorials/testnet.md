@@ -163,7 +163,7 @@ Next add the testnet mainchain nodes as peer (bootnode peers):
 }
 ```
 
-Note: if both side nodeVersion>=1.5.0, nodes will connect
+Note: if both side nodeVersion>=1.4.0, nodes will connect
 to each other by grpc stream and will transfer data via grpc stream.
 
 Note: if your infrastructure is behind a firewall you need to open the
