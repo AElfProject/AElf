@@ -163,7 +163,7 @@ Next add the testnet mainchain nodes as peer (bootnode peers):
 }
 ```
 
-Note: if both side nodeVersion>=1.4.0, nodes will connect
+Note: if both side nodeVersion>=1.5.0, nodes will connect
 to each other by grpc stream and will transfer data via grpc stream.
 
 Note: if your infrastructure is behind a firewall you need to open the
@@ -187,9 +187,9 @@ To run the node with Docker, enter the following commands:
 
 ``` bash
 ## pull AElf’s image and navigate to the template folder to execute the start script
->> docker pull aelf/node:testnet-v1.4.0
+>> docker pull aelf/node:testnet-v1.5.0
 >> cd /opt/aelf-node
->> sh aelf-node.sh start aelf/node:testnet-v1.4.0
+>> sh aelf-node.sh start aelf/node:testnet-v1.5.0
 ```
 
 to stop the node you can run:
