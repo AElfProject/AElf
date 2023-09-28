@@ -17,6 +17,7 @@ public partial class ExternalEnvironment : IExternalEnvironment, ITransientDepen
     public List<string> DebugMessages { get; set; } = new();
     public Address Caller => HostSmartContractBridgeContext?.Sender;
     public Address ContractAddress => HostSmartContractBridgeContext?.Self;
+    public long CurrentBlockTime => HostSmartContractBridgeContext!.CurrentBlockTime.Seconds * 1000;
     public GasMeter GasMeter { get; set; }
 
     private IHostSmartContractBridgeContext? HostSmartContractBridgeContext { get; set; }
@@ -113,7 +114,7 @@ public partial class ExternalEnvironment : IExternalEnvironment, ITransientDepen
 
     public long Now()
     {
-        return TimestampHelper.GetUtcNow().Seconds;
+        return CurrentBlockTime;
     }
 
     public long MinimumBalance()
