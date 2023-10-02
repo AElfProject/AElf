@@ -181,9 +181,9 @@ public class UnitTestExternalEnvironment : IExternalEnvironment, ITransientDepen
         return false;
     }
 
-    public Address Address()
+    public byte[] Address()
     {
-        return WebAssemblyRuntimeTestConstants.Bob;
+        return WebAssemblyRuntimeTestConstants.Bob.ToByteArray();
     }
 
     public long Balance()

@@ -473,7 +473,7 @@ public partial class WebAssemblyRuntime : IDisposable
     private void Address(int outPtr, int outLenPtr)
     {
         var address = _externalEnvironment.Address();
-        WriteSandboxOutput(outPtr, outLenPtr, address.ToByteArray());
+        WriteSandboxOutput(outPtr, outLenPtr, address);
     }
 
     /// <summary>

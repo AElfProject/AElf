@@ -48,7 +48,7 @@ public interface IExternalEnvironment
     /// Returns a reference to the account id of the current contract.
     /// </summary>
     /// <returns></returns>
-    Address Address();
+    byte[] Address();
 
     /// <summary>
     /// Returns the balance of the current contract.

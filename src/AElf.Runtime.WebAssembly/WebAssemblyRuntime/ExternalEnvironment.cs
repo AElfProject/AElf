@@ -78,9 +78,9 @@ public partial class ExternalEnvironment : IExternalEnvironment, ITransientDepen
         throw new NotImplementedException();
     }
 
-    public Address Address()
+    public byte[] Address()
     {
-        throw new NotImplementedException();
+        return HostSmartContractBridgeContext!.Sender.ToByteArray();
     }
 
     public long Balance()
