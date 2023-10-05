@@ -1,3 +1,5 @@
+using System.Data.HashFunction.Blake2;
+using System.Security.Cryptography;
 using AElf.Kernel.SmartContract;
 using AElf.Runtime.WebAssembly.Extensions;
 using AElf.Types;
@@ -710,7 +712,8 @@ public partial class WebAssemblyRuntime : IDisposable
     /// </param>
     private void HashSha2_256(int inputPtr, int inputLen, int outputPtr)
     {
-        throw new NotImplementedException();
+        var input = ReadSandboxMemory(inputPtr, inputLen);
+        WriteSandboxMemory(outputPtr, SHA256.Create().ComputeHash(input));
     }
 
     /// <summary>
@@ -758,6 +761,8 @@ public partial class WebAssemblyRuntime : IDisposable
     private void HashBlake2_256(int inputPtr, int inputLen, int outputPtr)
     {
         var input = ReadSandboxMemory(inputPtr, inputLen);
+        var hashBlake256 = Blake2BFactory.Instance.Create(new Blake2BConfig {HashSizeInBits = 256});
+        WriteSandboxMemory(outputPtr, hashBlake256.ComputeHash(input).Hash);
     }
 
     /// <summary>
@@ -780,7 +785,9 @@ public partial class WebAssemblyRuntime : IDisposable
     /// </param>
     private void HashBlake2_128(int inputPtr, int inputLen, int outputPtr)
     {
-        throw new NotImplementedException();
+        var input = ReadSandboxMemory(inputPtr, inputLen);
+        var hashBlake256 = Blake2BFactory.Instance.Create(new Blake2BConfig {HashSizeInBits = 128});
+        WriteSandboxMemory(outputPtr, hashBlake256.ComputeHash(input).Hash);
     }
 
     /// <summary>
