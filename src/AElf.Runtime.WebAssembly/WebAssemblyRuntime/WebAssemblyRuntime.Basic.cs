@@ -1,6 +1,4 @@
 using System.Text;
-using AElf.CSharp.Core.Utils;
-using Nethereum.Contracts;
 
 namespace AElf.Runtime.WebAssembly;
 
@@ -22,12 +20,13 @@ public partial class WebAssemblyRuntime
     /// <param name="outLenPtr"></param>
     private void InputV0(int outPtr, int outLenPtr)
     {
+        _externalEnvironment.ChargeGasAsync(RuntimeCosts.InputBase);
         if (Input == null)
         {
             HandleError(WebAssemblyError.InputForwarded);
         }
 
-        WriteSandboxOutput(outPtr, outLenPtr, Input!);
+        WriteSandboxOutput(outPtr, outLenPtr, Input!, false, len => (RuntimeCosts.CopyToContract, len));
     }
 
     /// <summary>
@@ -55,13 +54,9 @@ public partial class WebAssemblyRuntime
     /// <param name="dataLen"></param>
     private void SealReturnV0(int flags, int dataPtr, int dataLen)
     {
-        Console.WriteLine($"SealReturn: {flags}, {dataPtr}, {dataLen}");
+        _externalEnvironment.ChargeGasAsync(RuntimeCosts.Return, dataLen);
         ReturnFlags = (ReturnFlags)flags;
-        ReturnBuffer = new byte[dataLen];
-        for (var offset = dataLen - 1; offset >= 0; offset--)
-        {
-            ReturnBuffer[offset] = _memory.ReadByte(dataPtr + offset);
-        }
+        ReturnBuffer = ReadSandboxMemory(dataPtr, dataLen);
     }
 
     /// <summary>

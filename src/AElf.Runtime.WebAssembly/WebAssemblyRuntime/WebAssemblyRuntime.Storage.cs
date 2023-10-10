@@ -1,4 +1,3 @@
-using Google.Protobuf;
 using Volo.Abp.Threading;
 
 namespace AElf.Runtime.WebAssembly;
@@ -64,8 +63,6 @@ public partial class WebAssemblyRuntime
         return SetStorage(key, keyPtr, valuePtr, valueLen);
     }
 
-    #endregion
-
     private byte[] DecodeKey(Key key, int keyPtr)
     {
         return ReadSandboxMemory(keyPtr, key.KeyType == KeyType.Fix ? 32 : key.KeyValue.Length);
@@ -73,16 +70,16 @@ public partial class WebAssemblyRuntime
 
     private int SetStorage(Key key, int keyPtr, int valuePtr, int valueLen)
     {
+        _externalEnvironment.ChargeGasAsync(RuntimeCosts.SetStorage, valueLen);
         var keyBytes = DecodeKey(key, keyPtr);
         var value = ReadSandboxMemory(valuePtr, valueLen);
         var writeOutcome = _externalEnvironment.SetStorage(keyBytes, value, false);
         return writeOutcome.OldLenWithSentinel();
     }
 
-    public WriteOutcome SetStorage(byte[] key, byte[]? value, bool takeOld)
-    {
-        return _externalEnvironment.SetStorage(key, value, takeOld);
-    }
+    #endregion
+
+    #region ClearStorage
 
     /// <summary>
     /// Clear the value at the given key in the contract storage.
@@ -114,6 +111,8 @@ public partial class WebAssemblyRuntime
         var writeOutcome = _externalEnvironment.SetStorage(key, null, false);
         return writeOutcome.OldLenWithSentinel();
     }
+
+    #endregion
 
     #region GetStorage
 
@@ -171,6 +170,8 @@ public partial class WebAssemblyRuntime
 
     #endregion
 
+    #region ContainsStorage
+
     /// <summary>
     /// Checks whether there is a value stored under the given key.
     ///
@@ -210,6 +211,10 @@ public partial class WebAssemblyRuntime
         return outcome?.Length ?? int.MaxValue;
     }
 
+    #endregion
+
+    #region TakeStorage
+
     /// <summary>
     /// Retrieve and remove the value under the given key from storage.
     /// </summary>
@@ -239,4 +244,6 @@ public partial class WebAssemblyRuntime
 
         return (int)ReturnCode.KeyNotFound;
     }
+
+    #endregion
 }

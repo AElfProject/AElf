@@ -1,6 +1,5 @@
 using AElf.Kernel;
 using AElf.Kernel.SmartContract;
-using AElf.Runtime.WebAssembly.Extensions;
 using AElf.TestBase;
 using AElf.Types;
 using Google.Protobuf;

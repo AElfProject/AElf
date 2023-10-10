@@ -45,4 +45,6 @@
       <ProjectReference Include="..\AElf.Kernel.SmartContract.Tests\AElf.Kernel.SmartContract.Tests.csproj" />
     </ItemGroup>
 
+
+
 </Project>

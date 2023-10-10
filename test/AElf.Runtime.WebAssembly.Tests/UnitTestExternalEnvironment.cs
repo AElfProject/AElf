@@ -1,12 +1,13 @@
 using AElf.Kernel.SmartContract;
 using AElf.Types;
 using Google.Protobuf;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.Runtime.WebAssembly.Tests;
 
-public class UnitTestExternalEnvironment : IExternalEnvironment
+public class UnitTestExternalEnvironment : IExternalEnvironment, ITransientDependency
 {
-    public IHostSmartContractBridgeContext? HostSmartContractBridgeContext { get; set; }
+    private IHostSmartContractBridgeContext? HostSmartContractBridgeContext { get; set; }
     public Dictionary<string, ByteString> Writes { get; set; } = new();
     public Dictionary<string, bool> Reads { get; set; } = new();
     public Dictionary<string, bool> Deletes { get; set; } = new();
@@ -275,6 +276,16 @@ public class UnitTestExternalEnvironment : IExternalEnvironment
     public long Nonce()
     {
         return 995;
+    }
+
+    public Task ChargeGasAsync(RuntimeCosts runtimeCosts, Weight weight)
+    {
+        return Task.CompletedTask;
+    }
+    
+    public Task ChargeGasAsync(RuntimeCosts runtimeCosts, long size)
+    {
+        return Task.CompletedTask;
     }
 
     public void SetHostSmartContractBridgeContext(IHostSmartContractBridgeContext smartContractBridgeContext)

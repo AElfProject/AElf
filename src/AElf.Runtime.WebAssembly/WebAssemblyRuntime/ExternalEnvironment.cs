@@ -3,21 +3,28 @@ using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract;
 using AElf.Types;
-using Google.Protobuf;
 using Nethereum.Util;
 using Secp256k1Net;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.Runtime.WebAssembly;
 
-public class ExternalEnvironment : IExternalEnvironment
+public partial class ExternalEnvironment : IExternalEnvironment, ITransientDependency
 {
-    public Dictionary<string, ByteString> Writes { get; set; } = new();
-    public Dictionary<string, bool> Reads { get; set; } = new();
-    public Dictionary<string, bool> Deletes { get; set; } = new();
+    private readonly ICSharpContractReader _contractReader;
+
     public List<(byte[], byte[])> Events { get; } = new();
     public List<string> DebugMessages { get; set; } = new();
-    public Address? Caller { get; set; }
+    public Address Caller => HostSmartContractBridgeContext?.Sender;
+    public Address ContractAddress => HostSmartContractBridgeContext?.Self;
     public GasMeter GasMeter { get; set; }
+
+    private IHostSmartContractBridgeContext? HostSmartContractBridgeContext { get; set; }
+
+    public ExternalEnvironment(ICSharpContractReader contractReader)
+    {
+        _contractReader = contractReader;
+    }
 
     public ExecuteReturnValue Call(Weight gasLimit, long depositLimit, Address to, long value, byte[] inputData,
         bool allowReentry)
@@ -44,47 +51,6 @@ public class ExternalEnvironment : IExternalEnvironment
     public void Transfer(Address to, long value)
     {
         throw new NotImplementedException();
-    }
-
-    public byte[] GetStorage(Key key)
-    {
-        throw new NotImplementedException();
-    }
-
-    public int GetStorageSize(Key key)
-    {
-        throw new NotImplementedException();
-    }
-
-    public IHostSmartContractBridgeContext? HostSmartContractBridgeContext { get; set; }
-
-    public WriteOutcome SetStorage(byte[] key, byte[]? value, bool takeOld)
-    {
-        throw new NotImplementedException();
-    }
-
-    public async Task<byte[]?> GetStorageAsync(byte[] key)
-    {
-        var stateKey = GetStateKey(key);
-        if (Writes.ContainsKey(stateKey))
-        {
-            if (Writes.TryGetValue(stateKey, out var byteStringValue))
-            {
-                Reads.TryAdd(stateKey, true);
-                return byteStringValue.ToByteArray();
-            }
-        }
-
-        var value = await HostSmartContractBridgeContext!.GetStateAsync(stateKey);
-        var byteArrayValue = value?.ToByteArray();
-        Reads.TryAdd(stateKey, value != null);
-        return byteArrayValue;
-    }
-
-    public async Task<int> GetStorageSizeAsync(byte[] key)
-    {
-        var value = await GetStorageAsync(key);
-        return value?.Length ?? 0;
     }
 
     public bool IsContract(byte[] address)
@@ -162,7 +128,7 @@ public class ExternalEnvironment : IExternalEnvironment
 
     public void DepositEvent(byte[] topics, byte[] data)
     {
-        throw new NotImplementedException();
+        
     }
 
     public long BlockNumber()
@@ -172,12 +138,12 @@ public class ExternalEnvironment : IExternalEnvironment
 
     public int MaxValueSize()
     {
-        throw new NotImplementedException();
+        return int.MaxValue;
     }
 
     public bool AppendDebugBuffer(string message)
     {
-        throw new NotImplementedException();
+        return true;
     }
 
     public byte[] EcdsaToEthAddress(byte[] pubkey)
@@ -186,6 +152,7 @@ public class ExternalEnvironment : IExternalEnvironment
         {
             throw new ArgumentException("Incorrect pubkey size.");
         }
+
         var pubkeyNoPrefixCompressed = new byte[pubkey.Length - 1];
         Array.Copy(pubkey, 1, pubkeyNoPrefixCompressed, 0, pubkeyNoPrefixCompressed.Length);
         var initAddress = new Sha3Keccack().CalculateHash(pubkeyNoPrefixCompressed);
@@ -224,21 +191,20 @@ public class ExternalEnvironment : IExternalEnvironment
         throw new NotImplementedException();
     }
 
-    private string GetStateKey(byte[] key)
+    public Task ChargeGasAsync(RuntimeCosts runtimeCosts, Weight weight)
     {
-        return new ScopedStatePath
-        {
-            Address = HostSmartContractBridgeContext!.Self,
-            Path = new StatePath
-            {
-                Parts = { key.ToPlainBase58() }
-            }
-        }.ToStateKey();
+        throw new NotImplementedException();
+    }
+
+    public async Task ChargeGasAsync(RuntimeCosts runtimeCosts, long size)
+    {
+        var balance = await _contractReader.GetBalanceAsync(Caller, Caller);
     }
 
     public void SetHostSmartContractBridgeContext(IHostSmartContractBridgeContext smartContractBridgeContext)
     {
         HostSmartContractBridgeContext = smartContractBridgeContext;
-        Caller = smartContractBridgeContext.Sender;
+        //Caller = smartContractBridgeContext.Sender;
+        //ContractAddress = smartContractBridgeContext.Self!;
     }
 }

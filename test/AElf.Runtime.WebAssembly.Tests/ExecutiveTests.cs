@@ -50,8 +50,9 @@ public class ExecutiveTests : WebAssemblyRuntimeTestBase
         var txContext = MockTransactionContext(solangAbi!.GetSelector(functionName));
 
         var hostSmartContractBridgeContext = _hostSmartContractBridgeContextService.Create();
-        executive.SetHostSmartContractBridgeContext(hostSmartContractBridgeContext);
+        executive.SetHostSmartContractBridgeContext(_hostSmartContractBridgeContextService.Create());
 
+        hostSmartContractBridgeContext.TransactionContext.ShouldBeNull();
         await executive.ApplyAsync(txContext);
         var hexReturn = txContext.Trace.ReturnValue.ToHex();
         hexReturn.ShouldBe("02000000");

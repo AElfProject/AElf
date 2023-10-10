@@ -14,4 +14,16 @@ public static class ByteExtensions
     {
         return Hash.LoadFromByteArray(bytes);
     }
+
+    public static string ToStateKey(this byte[] key, Address contractAddress)
+    {
+        return new ScopedStatePath
+        {
+            Address = contractAddress,
+            Path = new StatePath
+            {
+                Parts = { key.ToPlainBase58() }
+            }
+        }.ToStateKey();
+    }
 }

@@ -39,7 +39,7 @@ public class OwnerContractTests : SolidityContractTestBase
         var tx = await GetTransactionAsync(DefaultSenderKeyPair, contractAddress, "getOwner");
         var txResult = await TestTransactionExecutor.ExecuteAsync(tx);
         txResult.Status.ShouldBe(TransactionResultStatus.Mined);
-        txResult.ReturnValue.ShouldBe(WebAssemblyRuntimeTestConstants.Alice.Value);
+        txResult.ReturnValue.ShouldBe(DefaultSender.Value);
         return contractAddress;
     }
 

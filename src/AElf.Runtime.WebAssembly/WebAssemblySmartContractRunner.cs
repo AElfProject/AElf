@@ -2,10 +2,11 @@ using AElf.Kernel;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Types;
 using Solang;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.Runtime.WebAssembly;
 
-public class WebAssemblySmartContractRunner : ISmartContractRunner
+public class WebAssemblySmartContractRunner : ISmartContractRunner, ISingletonDependency
 {
     public int Category { get; protected set; }
 

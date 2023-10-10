@@ -8,14 +8,37 @@
 
     <ItemGroup>
       <ProjectReference Include="..\AElf.Kernel.SmartContract\AElf.Kernel.SmartContract.csproj" />
+      <ProjectReference Include="..\AElf.Kernel.Token\AElf.Kernel.Token.csproj" />
+      <ProjectReference Include="..\AElf.Runtime.CSharp\AElf.Runtime.CSharp.csproj" />
       <ProjectReference Include="..\Solang.Net\Solang.Net.csproj" />
     </ItemGroup>
 
     <ItemGroup>
         <PackageReference Include="Keccak256" Version="1.0.0" />
+        <PackageReference Include="LanguageExt.Core" Version="4.4.4" />
         <PackageReference Include="NBitcoin" Version="7.0.27" />
         <PackageReference Include="Nethereum.Web3" Version="4.15.2" />
         <PackageReference Include="Wasmtime" Version="11.0.1" />
+
     </ItemGroup>
+
+    <ItemGroup>
+        <CommonMessage Include="..\..\protobuf\authority_info.proto">
+            <Link>Protobuf\Proto\authority_info.proto</Link>
+        </CommonMessage>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ContractStub Include="..\..\protobuf\acs1.proto">
+            <Link>Protobuf\Proto\acs1.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\configuration_contract.proto">
+            <Link>Protobuf\Proto\configuration_contract.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\token_contract.proto">
+            <Link>Protobuf\Proto\token_contract.proto</Link>
+        </ContractStub>
+    </ItemGroup>
+
 
 </Project>
