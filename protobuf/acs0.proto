@@ -144,6 +144,8 @@ message ContractDeploymentInput {
     sint32 category = 1;
     // The byte array of the contract code.
     bytes code = 2;
+    // The parameter of contract constructor.
+    bytes parameter = 3;
 }
 
 message SystemContractDeploymentInput {

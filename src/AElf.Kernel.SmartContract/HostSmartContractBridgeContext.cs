@@ -328,6 +328,14 @@ public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, I
             _smartContractBridgeService.DeployContractAsync(registration));
     }
 
+    public void ExecuteContractConstructor(Address contractAddress, SmartContractRegistration registration,
+        Address author, ByteString constructorInput)
+    {
+        AsyncHelper.RunSync(() =>
+            _smartContractBridgeService.ExecuteConstructorAsync(registration, author, contractAddress,
+                constructorInput));
+    }
+
     public ContractInfoDto UpdateSmartContract(Address address, SmartContractRegistration registration, Hash name, string previousContractVersion)
     {
         if (!Self.Equals(_smartContractBridgeService.GetZeroSmartContractAddress())) throw new NoPermissionException();
@@ -346,8 +354,8 @@ public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, I
 
     public byte[] RecoverPublicKey(byte[] signature, byte[] hash)
     {
-        var cabBeRecovered = CryptoHelper.RecoverPublicKey(signature, hash, out var publicKey);
-        return !cabBeRecovered ? null : publicKey;
+        var canBeRecovered = CryptoHelper.RecoverPublicKey(signature, hash, out var publicKey);
+        return !canBeRecovered ? null : publicKey;
     }
 
     public bool ECVrfVerify(byte[] pubKey, byte[] alpha, byte[] pi, out byte[] beta)

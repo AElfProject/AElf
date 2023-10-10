@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\AElf.Kernel.SmartContract\AElf.Kernel.SmartContract.csproj" />
+      <ProjectReference Include="..\Solang.Net\Solang.Net.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Keccak256" Version="1.0.0" />
+        <PackageReference Include="NBitcoin" Version="7.0.27" />
+        <PackageReference Include="Nethereum.Web3" Version="4.15.2" />
+        <PackageReference Include="Wasmtime" Version="11.0.1" />
+    </ItemGroup>
+
+</Project>

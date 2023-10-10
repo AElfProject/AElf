@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+message Output {
+  repeated CompiledContract contracts = 1;
+}
+
+message CompiledContract {
+  bytes wasm_code = 1;
+  string abi = 2;
+}
