@@ -4,7 +4,7 @@ Smart contracts Overview
 This section provides the knowledge you need to write smart contracts
 and it will take you around 40 minutes to go through the whole tutorial.
 You can follow the instructions along with the examples to learn how to
-set up the development environment via C# and AElf-tools. The
+set up the development environment via C# and Boilerplate. The
 instructions will walk you through the development, test, and deployment
 /update of smart contracts. There are 2 types of smart contract
 deployment/update: one requires BP's approval and the other does not.
