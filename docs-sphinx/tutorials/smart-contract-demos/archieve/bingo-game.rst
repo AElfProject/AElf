@@ -77,21 +77,38 @@ In addition, there are some View methods for querying information only:
 Write Contract
 --------------
 
-create and initialize project
+Use the code generator to generate contracts and test projects
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-create a new folder named BingoGame. Then run the following commands to new and initialize contract project.
+Open the ``AElf.Boilerplate.CodeGenerator`` project in the
+`AElf.Boilerplate<https://aelf-boilerplate-docs.readthedocs.io/en/latest/usage/setup.html#try-code-generator>`,
+and modify the Contents node in appsetting.json under this
+project:
 
-::
-mkdir BingoGame
-cd BingoGame
+.. code:: json
 
-::
-dotnet new aelf -n BingoGameContract -N AElf.Contracts.BingoGame
+   {
+     "Contents": [
+     {
+       "Origin": "AElf.Contracts.HelloWorldContract",
+       "New": "AElf.Contracts.BingoContract"
+     },
+     {
+       "Origin": "HelloWorld",
+       "New": "Bingo"
+     },
+     {
+       "Origin": "hello_world",
+       "New": "bingo"
+     }
+     ],
+   }
 
-After running successfully, you will see the `src` and `test` directory under the
-BingoGame directory. Open the src and test folders, you will see that the contract module 
-and test case module of the BingoGame contract.
+Then run the ``AElf.Boilerplate.CodeGenerator`` project. After running
+successfully, you will see a `AElf.Contracts.BingoContract.sln` in the
+same directory as the `AElf.Boilerplate.sln` is in. After opening the sln,
+you will see that the contract project and test case project of the
+Bingo contract have been generated and are included in the new solution.
 
 Define Proto
 ~~~~~~~~~~~~
@@ -100,61 +117,48 @@ Based on the API list in the requirements analysis, the
 bingo_contract.proto file is as follows:
 
 .. code:: proto
-syntax = "proto3";
-import "aelf/core.proto";
-import "aelf/options.proto";
-import "google/protobuf/empty.proto";
-import "google/protobuf/wrappers.proto";
-import "google/protobuf/timestamp.proto";
-option csharp_namespace = "AElf.Contracts.BingoContract";
-service BingoContract {
-    option (aelf.csharp_state) = "AElf.Contracts.BingoContract.BingoContractState";
 
-    // Actions
-    rpc Register (google.protobuf.Empty) returns (google.protobuf.Empty) {
-    }
-    rpc Play (google.protobuf.Int64Value) returns (google.protobuf.Int64Value) {
-    }
-    rpc Bingo (aelf.Hash) returns (google.protobuf.BoolValue) {
-    }
-    rpc Quit (google.protobuf.Empty) returns (google.protobuf.Empty) {
-    }
+   syntax = "proto3";
+   import "aelf/core.proto";
+   import "aelf/options.proto";
+   import "google/protobuf/empty.proto";
+   import "google/protobuf/wrappers.proto";
+   import "google/protobuf/timestamp.proto";
+   option csharp_namespace = "AElf.Contracts.BingoContract";
+   service BingoContract {
+       option (aelf.csharp_state) = "AElf.Contracts.BingoContract.BingoContractState";
 
-    // Views
-    rpc GetAward (aelf.Hash) returns (google.protobuf.Int64Value) {
-        option (aelf.is_view) = true;
-    }
-    rpc GetPlayerInformation (aelf.Address) returns (PlayerInformation) {
-        option (aelf.is_view) = true;
-    }
-}
-message PlayerInformation {
-    aelf.Hash seed = 1;
-    repeated BoutInformation bouts = 2;
-    google.protobuf.Timestamp register_time = 3;
-}
-message BoutInformation {
-    int64 play_block_height = 1;
-    int64 amount = 2;
-    int64 award = 3;
-    bool is_complete = 4;
-    aelf.Hash play_id = 5;
-    int64 bingo_block_height = 6;
-}
+       // Actions
+       rpc Register (google.protobuf.Empty) returns (google.protobuf.Empty) {
+       }
+       rpc Play (google.protobuf.Int64Value) returns (google.protobuf.Int64Value) {
+       }
+       rpc Bingo (aelf.Hash) returns (google.protobuf.BoolValue) {
+       }
+       rpc Quit (google.protobuf.Empty) returns (google.protobuf.Empty) {
+       }
 
-You need to delete `hello_world_contract.proto` first. Then create a new proto file, and write the definition content. 
-The contract/reference/base proto files need to be placed different directories. Please refer to the following rules (If there is no corresponding folder, you can create it yourself).
-
-For Protobuf under the **src** folder:
-- contract: the contract folder is used to store definition proto file of contract.
-- message: the proto files under the message folder are used to define some common properties for import and use by other proto files.
-- reference: the reference folder is used to store the proto files of the referenced contract.
-- base: the reference folder is used to store the basic proto files, such as ACS (aelf standard contract) proto files.
-
-For Protobuf under the **test** folder:
-- contract: the contract folder is used to store definition proto files of contract and referenced.
-- message: the proto files under the message folder are used to define some common properties for import and use by other proto files, same as src one.
-- base: the reference folder is used to store the basic proto files, such as ACS (aelf standard contract) proto files, same as src one.
+       // Views
+       rpc GetAward (aelf.Hash) returns (google.protobuf.Int64Value) {
+           option (aelf.is_view) = true;
+       }
+       rpc GetPlayerInformation (aelf.Address) returns (PlayerInformation) {
+           option (aelf.is_view) = true;
+       }
+   }
+   message PlayerInformation {
+       aelf.Hash seed = 1;
+       repeated BoutInformation bouts = 2;
+       google.protobuf.Timestamp register_time = 3;
+   }
+   message BoutInformation {
+       int64 play_block_height = 1;
+       int64 amount = 2;
+       int64 award = 3;
+       bool is_complete = 4;
+       aelf.Hash play_id = 5;
+       int64 bingo_block_height = 6;
+   }
 
 Contract Implementation
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -213,26 +217,28 @@ constructing the stub of the bingo contract, the stub of the token
 contract is also required, so the code referenced in csproj for the
 proto file is:
 
-::
+.. code:: text
 
-    test
-    ├── Protobuf
-    │   ├── message
-    │   │   └── authority_info.proto
-    │   └── stub
-    │       ├── bingo_game_contract.proto
-    │       └── token_contract.proto
+   <ItemGroup>
+     <ContractStub Include="..\..\protobuf\bingo_contract.proto">
+       <Link>Protobuf\Proto\bingo_contract.proto</Link>
+     </ContractStub>
+     <ContractStub Include="..\..\protobuf\token_contract.proto">
+       <Link>Protobuf\Proto\token_contract.proto</Link>
+     </ContractStub>
+   </ItemGroup>
 
 Then you can write test code directly in the Test method of
 BingoContractTest. Prepare the two stubs mentioned above:
 
 .. code:: c#
 
-    // Get a stub for testing.
-    var keyPair = SampleECKeyPairs.KeyPairs[0];
-    var stub = GetBingoContractStub(keyPair);
-    var tokenStub = GetTester<TokenContractContainer.TokenContractStub>(
-        GetAddress(TokenSmartContractAddressNameProvider.StringName), keyPair);
+   // Get a stub for testing.
+   var keyPair = SampleECKeyPairs.KeyPairs[0];
+   var stub = GetBingoContractStub(keyPair);
+   var tokenStub =
+       GetTester<TokenContractContainer.TokenContractStub>(
+           GetAddress(TokenSmartContractAddressNameProvider.StringName), keyPair);
 
 The stub is the stub of the bingo contract, and the tokenStub is the
 stub of the token contract.
@@ -243,55 +249,55 @@ first let the account transfer ELF to the bingo contract:
 
 .. code:: c#
 
-    // Prepare awards.
-    await tokenStub.Transfer.SendAsync(new TransferInput
-    {
-        To = DAppContractAddress,
-        Symbol = "ELF",
-        Amount = 100_00000000
-    });
+   // Prepare awards.
+   await tokenStub.Transfer.SendAsync(new TransferInput
+   {
+       To = DAppContractAddress,
+       Symbol = "ELF",
+       Amount = 100_00000000
+   });
 
-Then you can start using the BingoGame contract. Register：
-
-.. code:: c#
-
-    await stub.Register.SendAsync(new Empty());
-    
-    After registration, take a look at PlayInformation:
+Then you can start using the Bingo contract. Register：
 
 .. code:: c#
 
-    // Now I have player information.
-    var address = Address.FromPublicKey(keyPair.PublicKey);
-    {
-        var playerInformation = await stub.GetPlayerInformation.CallAsync(address);
-        playerInformation.Seed.Value.ShouldNotBeEmpty();
-        playerInformation.RegisterTime.ShouldNotBeNull();
-    }
+   await stub.Register.SendAsync(new Empty());
+
+After registration, take a look at PlayInformation:
+
+.. code:: c#
+
+   // Now I have player information.
+   var address = Address.FromPublicKey(keyPair.PublicKey);
+   {
+       var playerInformation = await stub.GetPlayerInformation.CallAsync(address);
+       playerInformation.Seed.Value.ShouldNotBeEmpty();
+       playerInformation.RegisterTime.ShouldNotBeNull();
+   }
 
 Bet, but before you can bet, you need to Approve the bingo contract:
 
 .. code:: c#
 
-    // Play.
-    await tokenStub.Approve.SendAsync(new ApproveInput
-    {
-        Spender = DAppContractAddress,
-        Symbol = "ELF",
-        Amount = 10000
-    });
-    await stub.Play.SendAsync(new Int64Value {Value = 10000});
+   // Play.
+   await tokenStub.Approve.SendAsync(new ApproveInput
+   {
+       Spender = DAppContractAddress,
+       Symbol = "ELF",
+       Amount = 10000
+   });
+   await stub.Play.SendAsync(new Int64Value {Value = 10000});
 
 See if Bout is generated after betting.
 
 .. code:: c#
 
-    Hash playId;
-    {
-        var playerInformation = await stub.GetPlayerInformation.CallAsync(address);
-        playerInformation.Bouts.ShouldNotBeEmpty();
-        playId = playerInformation.Bouts.First().PlayId;
-    }
+   Hash playId;
+   {
+       var playerInformation = await stub.GetPlayerInformation.CallAsync(address);
+       playerInformation.Bouts.ShouldNotBeEmpty();
+       playId = playerInformation.Bouts.First().PlayId;
+   }
 
 Since the outcome requires eight blocks, you need send seven invalid
 transactions (these transactions will fail, but the block height will
@@ -299,16 +305,16 @@ increase) :
 
 .. code:: c#
 
-    // Mine 7 more blocks.
-    for (var i = 0; i < 7; i++)
-    {
-        await stub.Bingo.SendWithExceptionAsync(playId);
-    }
+   // Mine 7 more blocks.
+   for (var i = 0; i < 7; i++)
+   {
+       await stub.Bingo.SendWithExceptionAsync(playId);
+   }
 
 Last check the award, and that the award amount is greater than 0 indicates you win.
 
 .. code:: c#
 
-    await stub.Bingo.SendAsync(playId);
-    var award = await stub.GetAward.CallAsync(playId);
-    award.Value.ShouldNotBe(0);
+   await stub.Bingo.SendAsync(playId);
+   var award = await stub.GetAward.CallAsync(playId);
+   award.Value.ShouldNotBe(0);
