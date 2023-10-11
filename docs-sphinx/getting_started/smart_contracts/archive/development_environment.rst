@@ -4,10 +4,6 @@ Development Environment
 Before you get started with the tutorials, you need to install the
 following tools and frameworks.
 
-**Note that if you just want to learn smart contract development, you only need to install .NET SDK. 
-Other tools are used to start aelf nodes, publish contracts and etc. 
-The installation of these tools is optional and you can install them when you need them.**
-
 For most of these dependencies, we provide command line instructions for
 macOS, Linux Ubuntu 18, and Windows. In case any problems occur or if
 you have more complex needs, please leave a message on GitHub and we
@@ -20,7 +16,7 @@ Configure Environment
 ~~~~~~~~~~~~~~~~~~~~~
 
 You can install and set up the development environment on macOS
-computers with either Intel or Apple M1/M2 processors. This will take 10-20
+computers with either Intel or Apple M1 processors. This will take 10-20
 minutes.
 
 Before You Start
@@ -285,6 +281,161 @@ location.
    For the sake of convenience, you are encouraged to keep this Terminal
    on the account info interface and open another Terminal to continue
    the following.
+
+Create and Run Boilerplate
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+AElf - Boilerplate is mainly used to develop contracts on aelf
+blockchain.
+
+Clone Boilerplate Code to Local Computer
+''''''''''''''''''''''''''''''''''''''''
+
+This tutorial creates a directory ``BoilerplateTest`` on the desktop for
+reference.
+
+1. Execute this command to create a directory:
+
+   ::
+
+      mkdir ~/Desktop/BoilerplateTest
+
+2. Execute this command to change the directory:
+
+   ::
+
+      cd ~/Desktop/BoilerplateTest
+
+3. Execute this command to clone the Boilerplate’s code:
+
+   ::
+
+      git clone https://github.com/AElfProject/aelf-boilerplate
+
+Create Boilerplate
+''''''''''''''''''
+
+1. Execute this command to change to the chain’s directory:
+
+   ::
+
+      # enter the folder
+      cd aelf-boilerplate/chain
+
+2. Execute this command to restore the Boilerplate’s files:
+
+   ::
+
+      # restore
+      dotnet restore AElf.Boilerplate.sln
+
+3. Execute this command to change to the Launcher’s directory:
+
+   ::
+
+      # enter the Launcher folder
+      cd src/AElf.Boilerplate.Launcher/
+
+4. Execute this command to build the Boilerplate’s code:
+
+   ::
+
+      # build
+      dotnet build
+
+   If it shows permission issues like ``permission denied`` or
+   ``access denied``, you can add ``sudo`` to the front of the command
+   to grant permissions.
+
+5. Execute this command to modify the ``appsettings.json`` file, or you
+   can go to
+   ``Desktop > BoilerplateTest > aelf-boilerplate > chain > src > AElf.Boilerplate.Launcher``
+   and open the ``appsettings.json`` file in the editor to modify it:
+
+   ::
+
+      vim appsettings.json
+
+   Find the account data you just created using ``aelf-command`` create.
+
+   ::
+
+      AElf [Info]: Your wallet info is :
+      AElf [Info]: Mnemonic            : mirror among battle muffin cattle plunge tuition buzz hip mad surround recall
+      AElf [Info]: Private Key         : 4bf625afea60e21aa5afcab5ea682b3dfb614941245698632d72a09ae13*****
+      AElf [Info]: Public Key          : 04f9bb56a9eca921bd494e677307f0279c98f1d2ed6bdeaa6dd256878272eabd14e91ec61469d2a32ce5e63205930dabdc0b9f13fc80c1f4e31760618d182*****
+      AElf [Info]: Address             : 21qciGwcaowwBttKMjMk86AW6WajhcodSHytY1vCyZb7p*****
+
+   Fill in ``NodeAccount`` and ``NodeAccountPassword`` under ``Account``
+   using the ``Address`` and ``password`` you set:
+
+   ::
+
+      "Account": {
+          "NodeAccount": "",
+          "NodeAccountPassword": ""
+      }
+
+   It may look like this when you complete it:
+
+   ::
+
+      "Account": {
+          "NodeAccount": "21qciGwcaowwBttKMjMk86AW6WajhcodSHytY1vCyZb7p*****",
+          "NodeAccountPassword": "********"
+      }, 
+
+   Fill in the ``InitialMineList`` under ``Consensus`` using Public Key:
+
+   ::
+
+      "Consensus": {
+          "InitialMinerList": [],
+          "MiningInterval": 4000,
+          "StartTimestamp": 0,
+          "PeriodSeconds": 604800,
+          "MinerIncreaseInterval": 31536000
+      }
+
+   It may look like this when you complete it (make sure to add ``""``):
+
+   ::
+
+      "Consensus": {
+          "InitialMinerList": ["04f9bb56a9eca921bd494e677307f0279c98f1d2ed6bdeaa6dd256878272eabd14e91ec61469d2a32ce5e63205930dabdc0b9f13fc80c1f4e31760618d182*****"],
+          "MiningInterval": 4000,
+          "StartTimestamp": 0,
+          "PeriodSeconds": 604800,
+          "MinerIncreaseInterval": 31536000
+      }
+
+   This is an example of a single node. If you are setting up
+   multi-nodes, make sure to separate the public keys with ``,``.
+
+Run Boilerplate
+'''''''''''''''
+
+Execute the ``dotnet run`` command:
+
+::
+
+   dotnet run --no-build bin/Debug/net6.0/AElf.Boilerplate.Launcher
+
+The following output suggests successful launch:
+
+::
+
+   2022-11-29 16:07:44,554 [.NET ThreadPool Worker] INFO  AElf.Kernel.SmartContractExecution.Application.BlockExecutionResultProcessingService - Attach blocks to best chain, best chain hash: "f396756945d9bb883f81827ab36fcb0533d3c66f7062269700e49b74895*****", height: 177
+
+If you want to check the node’s block height and other block info, you
+can visit `this page <http://localhost:8000/swagger/index.html>`__ where
+you can access the API docs and interact with this single node.
+
+To shut the node down, please use control + c on your keyboard.
+
+So far, you have successfully downloaded, created, and run Boilerplate.
+In the following tutorial, you will learn how to add, test, and deploy a
+contract.
 
 Linux
 -----
@@ -563,6 +714,169 @@ location.
    For the sake of convenience, you are encouraged to keep this Terminal
    on the account info interface and open another Terminal to continue
    the following.
+
+.. _create-and-run-boilerplate-1:
+
+Create and Run Boilerplate
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+AElf - Boilerplate is mainly used to develop contracts on aelf
+blockchain.
+
+.. _clone-boilerplate-code-to-local-computer-1:
+
+Clone Boilerplate Code to Local Computer
+''''''''''''''''''''''''''''''''''''''''
+
+This tutorial creates a directory ``BoilerplateTest`` on the desktop for
+reference.
+
+1. Execute this command to create a directory:
+
+   ::
+
+      mkdir ~/Desktop/BoilerplateTest
+
+2. Execute this command to change the directory:
+
+   ::
+
+      cd ~/Desktop/BoilerplateTest
+
+3. Execute this command to clone the Boilerplate’s code:
+
+   ::
+
+      git clone https://github.com/AElfProject/aelf-boilerplate
+
+.. _create-boilerplate-1:
+
+Create Boilerplate
+''''''''''''''''''
+
+1. Execute this command to change to the chain’s directory:
+
+   ::
+
+      # enter the folder
+      cd aelf-boilerplate/chain
+
+2. Execute this command to restore the Boilerplate’s files:
+
+   ::
+
+      # restore
+      dotnet restore AElf.Boilerplate.sln
+
+3. Execute this command to change to the Launcher’s directory:
+
+   ::
+
+      # enter the Launcher folder
+      cd src/AElf.Boilerplate.Launcher/
+
+4. Execute this command to build the Boilerplate’s code:
+
+   ::
+
+      # build
+      dotnet build
+
+   If it shows permission issues like ``permission denied`` or
+   ``access denied``, you can add ``sudo`` to the front of the command
+   to grant permissions.
+
+5. Execute this command to modify the ``appsettings.json`` file, or you
+   can go to
+   ``Desktop > BoilerplateTest > aelf-boilerplate > chain > src > AElf.Boilerplate.Launcher``
+   and open the ``appsettings.json`` file in the editor to modify it:
+
+   ::
+
+      vim appsettings.json
+
+   Find the account data you just created using ``aelf-command`` create.
+
+   ::
+
+      AElf [Info]: Your wallet info is :
+      AElf [Info]: Mnemonic            : mirror among battle muffin cattle plunge tuition buzz hip mad surround recall
+      AElf [Info]: Private Key         : 4bf625afea60e21aa5afcab5ea682b3dfb614941245698632d72a09ae13*****
+      AElf [Info]: Public Key          : 04f9bb56a9eca921bd494e677307f0279c98f1d2ed6bdeaa6dd256878272eabd14e91ec61469d2a32ce5e63205930dabdc0b9f13fc80c1f4e31760618d182*****
+      AElf [Info]: Address             : 21qciGwcaowwBttKMjMk86AW6WajhcodSHytY1vCyZb7p*****
+
+   Fill in ``NodeAccount`` and ``NodeAccountPassword`` under ``Account``
+   using the ``Address`` and ``password`` you set:
+
+   ::
+
+      "Account": {
+          "NodeAccount": "",
+          "NodeAccountPassword": ""
+      }
+
+   It may look like this when you complete it:
+
+   ::
+
+      "Account": {
+          "NodeAccount": "21qciGwcaowwBttKMjMk86AW6WajhcodSHytY1vCyZb7p*****",
+          "NodeAccountPassword": "********"
+      }, 
+
+   Fill in the ``InitialMineList`` under ``Consensus`` using Public Key:
+
+   ::
+
+      "Consensus": {
+          "InitialMinerList": [],
+          "MiningInterval": 4000,
+          "StartTimestamp": 0,
+          "PeriodSeconds": 604800,
+          "MinerIncreaseInterval": 31536000
+      }
+
+   It may look like this when you complete it (make sure to add ``""``):
+
+   ::
+
+      "Consensus": {
+          "InitialMinerList": ["04f9bb56a9eca921bd494e677307f0279c98f1d2ed6bdeaa6dd256878272eabd14e91ec61469d2a32ce5e63205930dabdc0b9f13fc80c1f4e31760618d182*****"],
+          "MiningInterval": 4000,
+          "StartTimestamp": 0,
+          "PeriodSeconds": 604800,
+          "MinerIncreaseInterval": 31536000
+      }
+
+   This is an example of a single node. If you are setting up
+   multi-nodes, make sure to separate the public keys with ``,``.
+
+.. _run-boilerplate-1:
+
+Run Boilerplate
+'''''''''''''''
+
+Execute the ``dotnet run`` command:
+
+::
+
+   dotnet run --no-build bin/Debug/net6.0/AElf.Boilerplate.Launcher
+
+The following output suggests successful launch:
+
+::
+
+   2022-11-29 16:07:44,554 [.NET ThreadPool Worker] INFO  AElf.Kernel.SmartContractExecution.Application.BlockExecutionResultProcessingService - Attach blocks to best chain, best chain hash: "f396756945d9bb883f81827ab36fcb0533d3c66f7062269700e49b74895*****", height: 177
+
+If you want to check the node’s block height and other block info, you
+can visit `this page <http://localhost:8000/swagger/index.html>`__ where
+you can access the API docs and interact with this single node.
+
+To shut the node down, please use control + c on your keyboard.
+
+So far, you have successfully downloaded, created, and run Boilerplate.
+In the following tutorial, you will learn how to add, test, and deploy a
+contract.
 
 Windows
 -------
@@ -852,6 +1166,169 @@ location.
    on the account info interface and open another Terminal to continue
    the following.
 
+.. _create-and-run-boilerplate-2:
+
+Create and Run Boilerplate
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+AElf - Boilerplate is mainly used to develop contracts on aelf
+blockchain.
+
+.. _clone-boilerplate-code-to-local-computer-2:
+
+Clone Boilerplate Code to Local Computer
+''''''''''''''''''''''''''''''''''''''''
+
+This tutorial creates a directory ``BoilerplateTest`` on the desktop for
+reference.
+
+1. Execute this command to create a directory:
+
+   ::
+
+      mkdir ~/Desktop/BoilerplateTest
+
+2. Execute this command to change the directory:
+
+   ::
+
+      cd ~/Desktop/BoilerplateTest
+
+3. Execute this command to clone the Boilerplate’s code:
+
+   ::
+
+      git clone https://github.com/AElfProject/aelf-boilerplate
+
+.. _create-boilerplate-2:
+
+Create Boilerplate
+''''''''''''''''''
+
+1. Execute this command to change to the chain’s directory:
+
+   ::
+
+      # enter the folder
+      cd aelf-boilerplate/chain
+
+2. Execute this command to restore the Boilerplate’s files:
+
+   ::
+
+      # restore
+      dotnet restore AElf.Boilerplate.sln
+
+3. Execute this command to change to the Launcher’s directory:
+
+   ::
+
+      # enter the Launcher folder
+      cd src/AElf.Boilerplate.Launcher/
+
+4. Execute this command to build the Boilerplate’s code:
+
+   ::
+
+      # build
+      dotnet build
+
+   If it shows permission issues like ``permission denied`` or
+   ``access denied``, you can add ``sudo`` to the front of the command
+   to grant permissions.
+
+5. Execute this command to modify the ``appsettings.json`` file, or you
+   can go to
+   ``Desktop > BoilerplateTest > aelf-boilerplate > chain > src > AElf.Boilerplate.Launcher``
+   and open the ``appsettings.json`` file in the editor to modify it:
+
+   ::
+
+      vim appsettings.json
+
+   Find the account data you just created using ``aelf-command`` create.
+
+   ::
+
+      AElf [Info]: Your wallet info is :
+      AElf [Info]: Mnemonic            : mirror among battle muffin cattle plunge tuition buzz hip mad surround recall
+      AElf [Info]: Private Key         : 4bf625afea60e21aa5afcab5ea682b3dfb614941245698632d72a09ae13*****
+      AElf [Info]: Public Key          : 04f9bb56a9eca921bd494e677307f0279c98f1d2ed6bdeaa6dd256878272eabd14e91ec61469d2a32ce5e63205930dabdc0b9f13fc80c1f4e31760618d182*****
+      AElf [Info]: Address             : 21qciGwcaowwBttKMjMk86AW6WajhcodSHytY1vCyZb7p*****
+
+   Fill in ``NodeAccount`` and ``NodeAccountPassword`` under ``Account``
+   using the ``Address`` and ``password`` you set:
+
+   ::
+
+      "Account": {
+          "NodeAccount": "",
+          "NodeAccountPassword": ""
+      }
+
+   It may look like this when you complete it:
+
+   ::
+
+      "Account": {
+          "NodeAccount": "21qciGwcaowwBttKMjMk86AW6WajhcodSHytY1vCyZb7p*****",
+          "NodeAccountPassword": "********"
+      }, 
+
+   Fill in the ``InitialMineList`` under ``Consensus`` using Public Key:
+
+   ::
+
+      "Consensus": {
+          "InitialMinerList": [],
+          "MiningInterval": 4000,
+          "StartTimestamp": 0,
+          "PeriodSeconds": 604800,
+          "MinerIncreaseInterval": 31536000
+      }
+
+   It may look like this when you complete it (make sure to add ``""``):
+
+   ::
+
+      "Consensus": {
+          "InitialMinerList": ["04f9bb56a9eca921bd494e677307f0279c98f1d2ed6bdeaa6dd256878272eabd14e91ec61469d2a32ce5e63205930dabdc0b9f13fc80c1f4e31760618d182*****"],
+          "MiningInterval": 4000,
+          "StartTimestamp": 0,
+          "PeriodSeconds": 604800,
+          "MinerIncreaseInterval": 31536000
+      }
+
+   This is an example of a single node. If you are setting up
+   multi-nodes, make sure to separate the public keys with ``,``.
+
+.. _run-boilerplate-2:
+
+Run Boilerplate
+'''''''''''''''
+
+Execute the ``dotnet run`` command:
+
+::
+
+   dotnet run --no-build bin/Debug/net6.0/AElf.Boilerplate.Launcher
+
+The following output suggests successful launch:
+
+::
+
+   2022-11-29 16:07:44,554 [.NET ThreadPool Worker] INFO  AElf.Kernel.SmartContractExecution.Application.BlockExecutionResultProcessingService - Attach blocks to best chain, best chain hash: "f396756945d9bb883f81827ab36fcb0533d3c66f7062269700e49b74895*****", height: 177
+
+If you want to check the node’s block height and other block info, you
+can visit `this page <http://localhost:8000/swagger/index.html>`__ where
+you can access the API docs and interact with this single node.
+
+To shut the node down, please use control + c on your keyboard.
+
+So far, you have successfully downloaded, created, and run Boilerplate.
+In the following tutorial, you will learn how to add, test, and deploy a
+contract.
+
 Codespaces
 ----------
 
@@ -1081,3 +1558,134 @@ location.
    For the sake of convenience, you are encouraged to keep this Terminal
    on the account info interface and open another Terminal to continue
    the following.
+
+.. _create-and-run-boilerplate-3:
+
+Create and Run Boilerplate
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. _create-boilerplate-3:
+
+Create Boilerplate
+''''''''''''''''''
+
+1. Execute this command to change to the chain’s directory:
+
+   ::
+
+      # enter the folder
+      cd aelf-boilerplate/chain
+
+2. Execute this command to restore the Boilerplate’s files:
+
+   .. code::
+
+      # restore
+      dotnet restore AElf.Boilerplate.sln
+
+3. Execute this command to change to the Launcher’s directory:
+
+   ::
+
+      # enter the Launcher folder
+      cd src/AElf.Boilerplate.Launcher/
+
+4. Execute this command to build the Boilerplate’s code:
+
+   ::
+
+      # build
+      dotnet build
+
+   If it shows permission issues like “permission denied” or “access
+   denied”, you can add sudo to the front of the command to grant
+   permissions.
+
+5. Execute this command to modify the ``appsettings.json`` file:
+
+   ::
+
+      vim appsettings.json
+
+   Find the account data you just created using ``aelf-command create``.
+
+   ::
+
+      AElf [Info]: Your wallet info is :
+      AElf [Info]: Mnemonic            : mirror among battle muffin cattle plunge tuition buzz hip mad surround recall
+      AElf [Info]: Private Key         : 4bf625afea60e21aa5afcab5ea682b3dfb614941245698632d72a09ae13*****
+      AElf [Info]: Public Key          : 04f9bb56a9eca921bd494e677307f0279c98f1d2ed6bdeaa6dd256878272eabd14e91ec61469d2a32ce5e63205930dabdc0b9f13fc80c1f4e31760618d182*****
+      AElf [Info]: Address             : 21qciGwcaowwBttKMjMk86AW6WajhcodSHytY1vCyZb7p*****
+
+   Fill in ``NodeAccount`` and ``NodeAccountPassword`` under ``Account``
+   using the ``Address`` and ``password`` you set:
+
+   ::
+
+      "Account": {
+          "NodeAccount": "",
+          "NodeAccountPassword": ""
+      }
+
+   It may look like this when you complete it:
+
+   ::
+
+      "Account": {
+          "NodeAccount": "21qciGwcaowwBttKMjMk86AW6WajhcodSHytY1vCyZb7p*****",
+          "NodeAccountPassword": "********"
+      }, 
+
+   Fill in the ``InitialMineList`` under ``Consensus`` using Public Key:
+
+   ::
+
+      "Consensus": {
+          "InitialMinerList": [],
+          "MiningInterval": 4000,
+          "StartTimestamp": 0,
+          "PeriodSeconds": 604800,
+          "MinerIncreaseInterval": 31536000
+      }
+
+   It may look like this when you complete it (make sure to add ``""``):
+
+   ::
+
+      "Consensus": {
+         "InitialMinerList": ["04f9bb56a9eca921bd494e677307f0279c98f1d2ed6bdeaa6dd256878272eabd14e91ec61469d2a32ce5e63205930dabdc0b9f13fc80c1f4e31760618d182*****"],
+          "MiningInterval": 4000,
+          "StartTimestamp": 0,
+          "PeriodSeconds": 604800,
+          "MinerIncreaseInterval": 31536000
+      }
+
+   This is an example of a single node. If you are setting up
+   multi-nodes, make sure to separate the public keys with ``,``.
+
+.. _run-boilerplate-3:
+
+Run Boilerplate
+'''''''''''''''
+
+Execute the ``dotnet run`` command:
+
+::
+
+   dotnet run --no-build bin/Debug/net6.0/AElf.Boilerplate.Launcher
+
+The following output suggests successful launch:
+
+::
+
+   2022-11-29 16:07:44,554 [.NET ThreadPool Worker] INFO  AElf.Kernel.SmartContractExecution.Application.BlockExecutionResultProcessingService - Attach blocks to best chain, best chain hash: "f396756945d9bb883f81827ab36fcb0533d3c66f7062269700e49b74895*****", height: 177
+
+If you want to check the node’s block height and other block info, you
+can visit `this page <http://localhost:8000/swagger/index.html>`__ where
+you can access the API docs and interact with this single node.
+
+To shut the node down, please use control + c on your keyboard.
+
+So far, you have successfully downloaded, created, and run Boilerplate.
+In the following tutorial, you will learn how to add, test, and deploy a
+contract.
