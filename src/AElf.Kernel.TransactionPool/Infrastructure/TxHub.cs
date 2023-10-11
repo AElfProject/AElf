@@ -75,6 +75,8 @@ public class TxHub : ITxHub, ISingletonDependency
         output.Transactions.AddRange(_validatedTransactions.Values.OrderBy(x => x.EnqueueTime)
             .Take(transactionCount)
             .Select(x => x.Transaction));
+        Logger.LogInformation("Select transactions to mined, transaction ids:{transactionIds}",
+            output.Transactions.Select(x => x.GetHash()).ToList());
 
         return output;
     }
@@ -324,6 +326,9 @@ public class TxHub : ITxHub, ISingletonDependency
             return null;
 
         await _transactionManager.AddTransactionAsync(queuedTransaction.Transaction);
+        Logger.LogInformation(
+            "Add transaction, transaction id:{transactionId}, enqueue time:{time}",
+            queuedTransaction.TransactionId.ToHex(), queuedTransaction.EnqueueTime);
         var addSuccess = _allTransactions.TryAdd(queuedTransaction.TransactionId, queuedTransaction);
         if (addSuccess)
         {
@@ -353,10 +358,15 @@ public class TxHub : ITxHub, ISingletonDependency
             CheckRefBlockStatus(queuedTransaction.Transaction, prefix, _bestChainHeight);
 
         if (queuedTransaction.RefBlockStatus == RefBlockStatus.RefBlockValid)
+        {
+            Logger.LogDebug(
+                "Accept transaction, transaction id :{transactionId}",
+                queuedTransaction.TransactionId.ToHex());
             await LocalEventBus.PublishAsync(new TransactionAcceptedEvent
             {
                 Transaction = queuedTransaction.Transaction
             });
+        }
 
         return queuedTransaction;
     }
