@@ -4,10 +4,6 @@ Development Environment
 Before you get started with the tutorials, you need to install the
 following tools and frameworks.
 
-**Note that if you just want to learn smart contract development, you only need to install .NET SDK. 
-Other tools are used to start aelf nodes, publish contracts and etc. 
-The installation of these tools is optional and you can install them when you need them.**
-
 For most of these dependencies, we provide command line instructions for
 macOS, Linux Ubuntu 18, and Windows. In case any problems occur or if
 you have more complex needs, please leave a message on GitHub and we
@@ -20,7 +16,7 @@ Configure Environment
 ~~~~~~~~~~~~~~~~~~~~~
 
 You can install and set up the development environment on macOS
-computers with either Intel or Apple M1/M2 processors. This will take 10-20
+computers with either Intel or Apple M1 processors. This will take 10-20
 minutes.
 
 Before You Start
