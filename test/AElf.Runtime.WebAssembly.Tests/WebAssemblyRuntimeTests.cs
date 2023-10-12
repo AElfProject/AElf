@@ -168,9 +168,32 @@ public class WebAssemblyRuntimeTests : WebAssemblyRuntimeTestBase
     [Fact]
     public void ContractEcdsaRecoverTest()
     {
-        var (externalEnvironment, _) = ExecuteWatFile("watFiles/contract_ecdsa_recover.wat");
-        externalEnvironment.EcdsaRecover.Item1.ShouldBe(new ByteArrayBuilder().RepeatedBytes(1, 65));
-        externalEnvironment.EcdsaRecover.Item2.ShouldBe(new ByteArrayBuilder().RepeatedBytes(1, 32));
+        var publicKey = new byte[]
+        {
+            4, 167, 102, 223, 221, 190, 59, 84, 106, 86, 216, 34, 156, 169, 185, 104, 232, 226, 9, 180, 172, 204, 177,
+            252, 241, 189, 45, 73, 138, 249, 13, 145, 181, 132, 10, 60, 115, 219, 136, 189, 147, 213, 66, 89, 147, 228,
+            175, 128, 169, 55, 137, 128, 193, 212, 225, 100, 224, 49, 116, 233, 242, 198, 73, 17, 149
+        };
+
+        var messageHash = new byte[]
+        {
+            54, 56, 54, 53, 54, 99, 54, 99, 54, 102, 50, 48, 55, 55, 54, 102,
+            55, 50, 54, 99, 54, 52, 51, 57, 51, 57, 52, 56, 50, 56, 48, 49
+        };
+        
+        var signature = new byte[]
+        {
+            89, 239, 29, 59, 43, 133, 63, 202, 30, 51, 208, 119, 101, 222, 186, 175,
+            56, 168, 20, 66, 207, 233, 8, 34, 212, 51, 78, 143, 206, 152, 137, 216,
+            12, 153, 160, 190, 24, 88, 193, 242, 107, 77, 153, 152, 126, 255, 96, 3,
+            243, 59, 124, 63, 50, 187, 219, 156, 238, 198, 138, 30, 138, 77, 180, 176,
+            0
+        };
+    
+        var (externalEnvironment, runtime) = ExecuteWatFile("watFiles/contract_ecdsa_recover.wat");
+        externalEnvironment.EcdsaRecover.Item1.ShouldBe(signature);
+        externalEnvironment.EcdsaRecover.Item2.ShouldBe(messageHash);
+        runtime.ReturnBuffer.ShouldBe(publicKey);
     }
 
     [Fact]
