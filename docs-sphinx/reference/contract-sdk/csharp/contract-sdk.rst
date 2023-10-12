@@ -39,8 +39,8 @@ Contents
    -  :ref:`RecoverPublicKey() <AElf-Sdk-CSharp-CSharpSmartContractContext-RecoverPublicKey>`
    -  :ref:`Transaction() <AElf-Sdk-CSharp-CSharpSmartContractContext-Transaction>`
    -  :ref:`SendInline(toAddress,methodName,args) <AElf-Sdk-CSharp-CSharpSmartContractContext-SendInline-AElf-Types-Address-System-String-Google-Protobuf-ByteString>`
-   -  :ref:`SendVirtualInline(fromVirtualAddress,toAddress,methodName,args) <AElf-Sdk-CSharp-CSharpSmartContractContext-SendVirtualInline-AElf-Types-Hash-AElf-Types-Address-System-String-Google-Protobuf-ByteString>`
-   -  :ref:`SendVirtualInlineBySystemContract(fromVirtualAddress,toAddress,methodName,args) <AElf-Sdk-CSharp-CSharpSmartContractContext-SendVirtualInlineBySystemContract-AElf-Types-Hash-AElf-Types-Address-System-String-Google-Protobuf-ByteString>`
+   -  :ref:`SendVirtualInline(fromVirtualAddress,toAddress,methodName,args,logTransaction) <AElf-Sdk-CSharp-CSharpSmartContractContext-SendVirtualInline-AElf-Types-Hash-AElf-Types-Address-System-String-Google-Protobuf-ByteString>`
+   -  :ref:`SendVirtualInlineBySystemContract(fromVirtualAddress,toAddress,methodName,args,logTransaction) <AElf-Sdk-CSharp-CSharpSmartContractContext-SendVirtualInlineBySystemContract-AElf-Types-Hash-AElf-Types-Address-System-String-Google-Protobuf-ByteString>`
    -  :ref:`UpdateContract(address,registration,name) <AElf-Sdk-CSharp-CSharpSmartContractContext-UpdateContract-AElf-Types-Address-AElf-Types-SmartContractRegistration-AElf-Types-Hash>`
    -  :ref:`ValidateStateSize(obj) <AElf-Sdk-CSharp-CSharpSmartContractContext-ValidateStateSize-System-Object>`
    -  :ref:`VerifySignature(tx) <AElf-Sdk-CSharp-CSharpSmartContractContext-VerifySignature-AElf-Types-Transaction>`
@@ -748,8 +748,8 @@ Parameters
 
 .. _AElf-Sdk-CSharp-CSharpSmartContractContext-SendVirtualInline-AElf-Types-Hash-AElf-Types-Address-System-String-Google-Protobuf-ByteString:
 
-SendVirtualInline(fromVirtualAddress,toAddress,methodName,args) ``method``
->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+SendVirtualInline(fromVirtualAddress,toAddress,methodName,args,logTransaction) ``method``
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 Summary
 '''''''
@@ -779,6 +779,9 @@ Parameters
 |                    | .ByteString      | method. This is usually generated from |
 |                    |                  | the protobuf                           |
 +--------------------+------------------+----------------------------------------+
+| logTransaction     | System.Boolean   | Whether to fire a logEvent to log      |
+|                    |                  | inline transactions.                   |
++--------------------+------------------+----------------------------------------+
 | definition of the  |                  |                                        |
 | input type.        |                  |                                        |
 +--------------------+------------------+----------------------------------------+
@@ -787,8 +790,8 @@ Parameters
 
 SendVirtualInlineBySystemContract(fromVirtualAddress,toAddress,
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-methodName,args)  ``method``
->>>>>>>>>>>>>>>>>>>>>>>>>>>>
+methodName,args,logTransaction)  ``method``
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 Summary
 '''''''
@@ -820,6 +823,9 @@ Parameters
 | args               | Google.Protobuf  | The input arguments for calling that   |
 |                    | .ByteString      | method. This is usually generated from |
 |                    |                  | the protobuf                           |
++--------------------+------------------+----------------------------------------+
+| logTransaction     | System.Boolean   | Whether to fire a logEvent to log      |
+|                    |                  | inline transactions.                   |
 +--------------------+------------------+----------------------------------------+
 | definition of the  |                  |                                        |
 | input type.        |                  |                                        |
