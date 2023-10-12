@@ -440,7 +440,7 @@ contract.
 Linux
 -----
 
-.. _configure-environment-1:
+.. _configure-environment-1-archive:
 
 Configure Environment
 ~~~~~~~~~~~~~~~~~~~~~
@@ -448,7 +448,7 @@ Configure Environment
 You can install and set up the development environment on computers
 running 64-bit Linux. This will take 10-20 minutes.
 
-.. _before-you-start-1:
+.. _before-you-start-1-archive:
 
 Before You Start
 ^^^^^^^^^^^^^^^^
@@ -478,7 +478,7 @@ The following output suggests successful update:
    Fetched 25.0 MB in 3s (8,574 kB/s)
    Reading package lists... Done
 
-.. _install-git-1:
+.. _install-git-1-archive:
 
 Install Git
 ^^^^^^^^^^^
@@ -507,7 +507,7 @@ The following output suggests successful installation:
 
    git version 2.17.1
 
-.. _install-.net-sdk-1:
+.. _install-.net-sdk-1-archive:
 
 Install .NET SDK
 ^^^^^^^^^^^^^^^^
@@ -551,7 +551,7 @@ The following output suggests successful installation:
 
    6.0.403
 
-.. _install-protobuf-1:
+.. _install-protobuf-1-archive:
 
 Install protoBuf
 ^^^^^^^^^^^^^^^^
@@ -597,7 +597,7 @@ The following output suggests successful installation:
 
    libprotoc 3.21.9
 
-.. _install-redis-1:
+.. _install-redis-1-archive:
 
 Install Redis
 ^^^^^^^^^^^^^
@@ -631,7 +631,7 @@ use it):
 
    flushall
 
-.. _install-nodejs-1:
+.. _install-nodejs-1-archive:
 
 Install Nodejs
 ^^^^^^^^^^^^^^
@@ -656,7 +656,7 @@ The following output suggests successful installation:
 
    6.14.8
 
-.. _install-aelf-command-1:
+.. _install-aelf-command-1-archive:
 
 Install aelf-command
 ^^^^^^^^^^^^^^^^^^^^
@@ -675,7 +675,7 @@ Install aelf-command
 
       sudo chmod 755 /usr/local/lib/node_modules
 
-.. _create-an-aelf-account-1:
+.. _create-an-aelf-account-1-archive:
 
 Create an aelf Account
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -881,7 +881,7 @@ contract.
 Windows
 -------
 
-.. _configure-environment-2:
+.. _configure-environment-2-archive:
 
 Configure Environment
 ~~~~~~~~~~~~~~~~~~~~~
@@ -889,7 +889,7 @@ Configure Environment
 You can install and set up the development environment on computers
 running Windows 10 or higher. This will take 10-20 minutes.
 
-.. _before-you-start-2:
+.. _before-you-start-2-archive:
 
 Before You Start
 ^^^^^^^^^^^^^^^^
@@ -951,7 +951,7 @@ then there is a permission issue with PowerShell. To solve it:
    path ``C:\Program Files\Chocolatey``. If you don’t find it, click New
    System Variable to manually add it.
 
-.. _install-git-2:
+.. _install-git-2-archive:
 
 Install Git
 ^^^^^^^^^^^
@@ -991,7 +991,7 @@ you can:
    ``C:\Program Files\git``. If you don’t find it, click **New System
    Variable** to manually add it.
 
-.. _install-.net-sdk-2:
+.. _install-.net-sdk-2-archive:
 
 Install .NET SDK
 ^^^^^^^^^^^^^^^^
@@ -1018,7 +1018,7 @@ devices).
 
       6.0.403
 
-.. _install-protobuf-2:
+.. _install-protobuf-2-archive:
 
 Install protoBuf
 ^^^^^^^^^^^^^^^^
@@ -1044,7 +1044,7 @@ The following output suggests successful installation:
 
    libprotoc 3.21.9
 
-.. _install-redis-2:
+.. _install-redis-2-archive:
 
 Install Redis
 ^^^^^^^^^^^^^
@@ -1070,7 +1070,7 @@ started:
    :alt: redis
 
 
-.. _install-nodejs-2:
+.. _install-nodejs-2-archive:
 
 Install Nodejs
 ^^^^^^^^^^^^^^
@@ -1107,7 +1107,7 @@ function, script file, or operable program, you can:
    ``C:\Program Files\nodejs``. If you don’t find it, click **New System
    Variable** to manually add it.
 
-.. _install-aelf-command-2:
+.. _install-aelf-command-2-archive:
 
 Install aelf-command
 ^^^^^^^^^^^^^^^^^^^^
@@ -1126,7 +1126,7 @@ Install aelf-command
 
       sudo chmod 755 /usr/local/lib/node_modules
 
-.. _create-an-aelf-account-2:
+.. _create-an-aelf-account-2-archive:
 
 Create an aelf Account
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -1383,7 +1383,7 @@ versions:
    # 8.19.2
    npm --version
 
-.. _update-environment-1:
+.. _update-environment-1-archive:
 
 Update Environment
 ^^^^^^^^^^^^^^^^^^
@@ -1401,7 +1401,7 @@ The following output suggests successful update:
    Fetched 25.0 MB in 3s (8,574 kB/s)
    Reading package lists... Done
 
-.. _install-.net-sdk-3:
+.. _install-.net-sdk-3-archive:
 
 Install .NET SDK
 ^^^^^^^^^^^^^^^^
@@ -1450,7 +1450,7 @@ The following output suggests successful installation:
 
    6.0.403
 
-.. _install-protobuf-3:
+.. _install-protobuf-3-archive:
 
 Install protoBuf
 ^^^^^^^^^^^^^^^^
@@ -1482,7 +1482,7 @@ The following output suggests successful installation:
 
    libprotoc 3.21.9
 
-.. _install-redis-3:
+.. _install-redis-3-archive:
 
 Install Redis
 ^^^^^^^^^^^^^
@@ -1508,7 +1508,7 @@ started:
    Server initialized
    Ready to accept connections
 
-.. _install-aelf-command-3:
+.. _install-aelf-command-3-archive:
 
 Install aelf-command
 ^^^^^^^^^^^^^^^^^^^^
@@ -1519,7 +1519,7 @@ Execute npm command to install aelf-command:
 
    npm i aelf-command -g
 
-.. _create-an-aelf-account-3:
+.. _create-an-aelf-account-3-archive:
 
 Create an aelf Account
 ^^^^^^^^^^^^^^^^^^^^^^

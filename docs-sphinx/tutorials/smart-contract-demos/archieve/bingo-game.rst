@@ -1,5 +1,5 @@
-Bingo Game
-==========
+Bingo Game (Archive)
+====================
 
 Requirement Analysis
 --------------------

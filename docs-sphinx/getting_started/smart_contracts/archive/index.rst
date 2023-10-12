@@ -1,5 +1,5 @@
-Smart Contracts
-=============== 
+Smart Contracts (Archive)
+========================= 
 
 .. toctree::
    :maxdepth: 2
