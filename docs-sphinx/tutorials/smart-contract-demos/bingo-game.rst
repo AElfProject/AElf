@@ -83,11 +83,13 @@ create and initialize project
 create a new folder named BingoGame. Then run the following commands to new and initialize contract project.
 
 ::
-mkdir BingoGame
-cd BingoGame
+
+    mkdir BingoGame
+    cd BingoGame
 
 ::
-dotnet new aelf -n BingoGameContract -N AElf.Contracts.BingoGame
+
+    dotnet new aelf -n BingoGameContract -N AElf.Contracts.BingoGame
 
 After running successfully, you will see the `src` and `test` directory under the
 BingoGame directory. Open the src and test folders, you will see that the contract module 
@@ -100,47 +102,48 @@ Based on the API list in the requirements analysis, the
 bingo_contract.proto file is as follows:
 
 .. code:: proto
-syntax = "proto3";
-import "aelf/core.proto";
-import "aelf/options.proto";
-import "google/protobuf/empty.proto";
-import "google/protobuf/wrappers.proto";
-import "google/protobuf/timestamp.proto";
-option csharp_namespace = "AElf.Contracts.BingoContract";
-service BingoContract {
-    option (aelf.csharp_state) = "AElf.Contracts.BingoContract.BingoContractState";
 
-    // Actions
-    rpc Register (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    syntax = "proto3";
+    import "aelf/core.proto";
+    import "aelf/options.proto";
+    import "google/protobuf/empty.proto";
+    import "google/protobuf/wrappers.proto";
+    import "google/protobuf/timestamp.proto";
+    option csharp_namespace = "AElf.Contracts.BingoContract";
+    service BingoContract {
+        option (aelf.csharp_state) = "AElf.Contracts.BingoContract.BingoContractState";
+    
+        // Actions
+        rpc Register (google.protobuf.Empty) returns (google.protobuf.Empty) {
+        }
+        rpc Play (google.protobuf.Int64Value) returns (google.protobuf.Int64Value) {
+        }
+        rpc Bingo (aelf.Hash) returns (google.protobuf.BoolValue) {
+        }
+        rpc Quit (google.protobuf.Empty) returns (google.protobuf.Empty) {
+        }
+    
+        // Views
+        rpc GetAward (aelf.Hash) returns (google.protobuf.Int64Value) {
+            option (aelf.is_view) = true;
+        }
+        rpc GetPlayerInformation (aelf.Address) returns (PlayerInformation) {
+            option (aelf.is_view) = true;
+        }
     }
-    rpc Play (google.protobuf.Int64Value) returns (google.protobuf.Int64Value) {
+    message PlayerInformation {
+        aelf.Hash seed = 1;
+        repeated BoutInformation bouts = 2;
+        google.protobuf.Timestamp register_time = 3;
     }
-    rpc Bingo (aelf.Hash) returns (google.protobuf.BoolValue) {
+    message BoutInformation {
+        int64 play_block_height = 1;
+        int64 amount = 2;
+        int64 award = 3;
+        bool is_complete = 4;
+        aelf.Hash play_id = 5;
+        int64 bingo_block_height = 6;
     }
-    rpc Quit (google.protobuf.Empty) returns (google.protobuf.Empty) {
-    }
-
-    // Views
-    rpc GetAward (aelf.Hash) returns (google.protobuf.Int64Value) {
-        option (aelf.is_view) = true;
-    }
-    rpc GetPlayerInformation (aelf.Address) returns (PlayerInformation) {
-        option (aelf.is_view) = true;
-    }
-}
-message PlayerInformation {
-    aelf.Hash seed = 1;
-    repeated BoutInformation bouts = 2;
-    google.protobuf.Timestamp register_time = 3;
-}
-message BoutInformation {
-    int64 play_block_height = 1;
-    int64 amount = 2;
-    int64 award = 3;
-    bool is_complete = 4;
-    aelf.Hash play_id = 5;
-    int64 bingo_block_height = 6;
-}
 
 You need to delete `hello_world_contract.proto` first. Then create a new proto file, and write the definition content. 
 The contract/reference/base proto files need to be placed different directories. Please refer to the following rules (If there is no corresponding folder, you can create it yourself).
