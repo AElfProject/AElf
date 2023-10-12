@@ -14,7 +14,7 @@ namespace AElf.Contracts.SolidityContract;
 
 public class EcdsaRecoverTest : SolidityContractTestBase
 {
-    [Fact]
+    [Fact(Skip = "Substrate did not implement ecrecover, therefore this test will fail to compile from solidity.")]
     public async Task RecoverPublicAddressTest()
     {
         var message = Encoding.UTF8.GetBytes("Test Ecdsa Recover").ComputeHash();
