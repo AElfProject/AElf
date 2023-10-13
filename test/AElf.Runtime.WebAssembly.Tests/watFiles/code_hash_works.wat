@@ -2,8 +2,9 @@
 	(import "seal0" "code_hash" (func $seal_code_hash (param i32 i32 i32) (result i32)))
 	(import "env" "memory" (memory 1 1))
 
-	;; size of our buffer is 32 bytes
-	(data (i32.const 32) "\20")
+    (data (i32.const 0)
+        "388C818CA8B9251b393131C08a736A67ccB19297"
+    )
 
 	(func $assert (param i32)
 		(block $ok

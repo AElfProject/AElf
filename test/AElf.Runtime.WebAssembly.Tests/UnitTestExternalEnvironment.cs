@@ -2,11 +2,13 @@ using AElf.Kernel.SmartContract;
 using AElf.Types;
 using Google.Protobuf;
 using Volo.Abp.DependencyInjection;
+using AElf.Runtime.WebAssembly;
 
 namespace AElf.Runtime.WebAssembly.Tests;
 
 public class UnitTestExternalEnvironment : IExternalEnvironment, ITransientDependency
 {
+    private readonly ICSharpContractReader _contractReader;
     private IHostSmartContractBridgeContext? HostSmartContractBridgeContext { get; set; }
     public Dictionary<string, ByteString> Writes { get; set; } = new();
     public Dictionary<string, bool> Reads { get; set; } = new();
@@ -150,24 +152,15 @@ public class UnitTestExternalEnvironment : IExternalEnvironment, ITransientDepen
 
     public Hash? CodeHash(byte[] address)
     {
-        return Hash.LoadFromByteArray(new byte[]
-        {
-            11, 11, 11, 11, 11, 11, 11, 11,
-            11, 11, 11, 11, 11, 11, 11, 11,
-            11, 11, 11, 11, 11, 11, 11, 11,
-            11, 11, 11, 11, 11, 11, 11, 11,
-        });
+        var codeHash = _contractReader.GetContractHashAsync(Types.Address.FromBytes(address), Types.Address.FromBytes(address)).Result;
+        return codeHash;
     }
 
-    public Hash OwnCodeHash()
+    public Hash OwnCodeHash() 
     {
-        return Hash.LoadFromByteArray(new byte[]
-        {
-            10, 10, 10, 10, 10, 10, 10, 10,
-            10, 10, 10, 10, 10, 10, 10, 10,
-            10, 10, 10, 10, 10, 10, 10, 10,
-            10, 10, 10, 10, 10, 10, 10, 10,
-        });
+        var address = HostSmartContractBridgeContext!.Sender.ToByteArray();
+        var codeHash = _contractReader.GetContractHashAsync(Types.Address.FromBytes(address), Types.Address.FromBytes(address)).Result;
+        return codeHash;
     }
 
     public bool CallerIsOrigin()
