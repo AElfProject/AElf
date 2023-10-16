@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <Import Project="..\..\common.props" />
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFrameworks>netstandard2.1;net6.0</TargetFrameworks>
         <PackageId>AElf.Cryptography</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Description>Cryptographic primitives used in AElf.</Description>
