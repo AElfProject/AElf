@@ -749,7 +749,7 @@ Parameters
 .. _AElf-Sdk-CSharp-CSharpSmartContractContext-SendVirtualInline-AElf-Types-Hash-AElf-Types-Address-System-String-Google-Protobuf-ByteString:
 
 SendVirtualInline(fromVirtualAddress,toAddress,methodName,args,
->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 logTransaction) ``method``
 >>>>>>>>>>>>>>>>>>>>>>>>>>
 
