@@ -616,7 +616,7 @@ acs0.UserContractDeploymentInput
 +--------------------------+------------------------------------+----------------------------------------------------------------+--------+
 | code                     | `bytes <#bytes>`__                 | The byte array of the contract code.                           |        |
 +--------------------------+------------------------------------+----------------------------------------------------------------+--------+
-| salt                     | `Hash <#aelf.Hash>`__              | The hash based on which user contract address is generated.    |        |
+| salt                     | `aelf.Hash <#aelf.Hash>`__         | The hash based on which user contract address is generated.    |        |
 +--------------------------+------------------------------------+----------------------------------------------------------------+--------+
 
 AElf.Standards.ACS1
