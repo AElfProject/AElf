@@ -749,12 +749,12 @@ Parameters
 .. _AElf-Sdk-CSharp-CSharpSmartContractContext-SendVirtualInline-AElf-Types-Hash-AElf-Types-Address-System-String-Google-Protobuf-ByteString:
 
 SendVirtualInline(fromVirtualAddress,toAddress,methodName,args,logTransaction) ``method``
->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 Summary
 '''''''
 
-Sends a virtual inline transaction to another contract.
+Add an overloaded SDK method SendVirtualInline to support automatically firing a LogEvent to log the inline transactions from virtual addresses.
 
 Parameters
 ''''''''''
@@ -796,7 +796,7 @@ methodName,args,logTransaction)  ``method``
 Summary
 '''''''
 
-Like SendVirtualInline but the virtual address us a system smart
+Add an overloaded SDK method SendVirtualInlineBySystemContract,Like SendVirtualInline, but the virtual address uses a system smart
 contract.
 
 Parameters
