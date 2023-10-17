@@ -907,7 +907,7 @@ Parameters
 +--------------------+------------------+----------------------------------------+
 | args               | Google.Protobuf  | The input arguments for calling that   |
 |                    | .ByteString      | method. This is usually generated from |
-|                    |                  | the protobuf                           |
+|                    |                  | the protobuf.                          |
 +--------------------+------------------+----------------------------------------+
 | logTransaction     | System.Boolean   | Whether to fire a logEvent to log      |
 |                    |                  | inline transactions.                   |
