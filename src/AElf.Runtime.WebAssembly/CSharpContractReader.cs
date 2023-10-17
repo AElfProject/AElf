@@ -50,6 +50,14 @@ internal class CSharpContractReader : ICSharpContractReader, ISingletonDependenc
         return output.Balance;
     }
 
+    public async Task<Hash> GetContractHashAsync(Address from, Address contractAddress)
+    {
+        var output = await ExecuteCSharpContract<Hash>(from,
+            ZeroSmartContractAddressNameProvider.StringName,
+        "GetContractHash", contractAddress.ToByteString());
+        return output;
+    }
+
     // public async Task Transfer(Address from, Address to, long amount, string? symbol = null)
     // {
     //     await ExecuteCSharpContract(from, TokenSmartContractAddressNameProvider.StringName, "Transfer",

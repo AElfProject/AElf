@@ -1,9 +1,13 @@
 (module
-	(import "seal0" "seal_own_code_hash" (func $seal_own_code_hash (param i32 i32)))
+	(import "seal0" "own_code_hash" (func $seal_own_code_hash (param i32 i32)))
 	(import "env" "memory" (memory 1 1))
 
 	;; size of our buffer is 32 bytes
 	(data (i32.const 32) "\20")
+    (data (i32.const 0)
+        "\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"
+        "\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"
+    )
 
 	(func $assert (param i32)
 		(block $ok

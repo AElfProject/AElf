@@ -232,6 +232,22 @@ public class WebAssemblyRuntimeTests : WebAssemblyRuntimeTestBase
         _runtimeErrors.Count.ShouldBe(1);
         _runtimeErrors[0].ShouldNotContain("assert");
     }
+    
+    [Fact]
+    public void CodeHashTest()
+    {
+        ExecuteWatFile("watFiles/code_hash_works.wat");
+        _runtimeErrors.Count.ShouldBe(1);
+        _runtimeErrors[0].ShouldNotContain("assert");
+    }
+    
+    [Fact]
+    public void OwnCodeHashTest()
+    {
+        ExecuteWatFile("watFiles/own_code_hash_works.wat");
+        _runtimeErrors.Count.ShouldBe(1);
+        _runtimeErrors[0].ShouldNotContain("assert");
+    }
 
     [Fact]
     public void BalanceTest()
