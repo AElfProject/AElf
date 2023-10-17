@@ -202,7 +202,14 @@ public class UnitTestExternalEnvironment : IExternalEnvironment, ITransientDepen
     byte[] IExternalEnvironment.EcdsaRecover(byte[] signature, byte[] messageHash)
     {
         EcdsaRecover = new Tuple<byte[], byte[]>(signature, messageHash);
-        return new ByteArrayBuilder().RepeatedBytes(3, 33);
+        
+        var publicKey = new byte[]
+        {
+            4, 167, 102, 223, 221, 190, 59, 84, 106, 86, 216, 34, 156, 169, 185, 104, 232, 226, 9, 180, 172, 204, 177,
+            252, 241, 189, 45, 73, 138, 249, 13, 145, 181, 132, 10, 60, 115, 219, 136, 189, 147, 213, 66, 89, 147, 228,
+            175, 128, 169, 55, 137, 128, 193, 212, 225, 100, 224, 49, 116, 233, 242, 198, 73, 17, 149
+        };
+        return publicKey;
     }
 
     public long Now()

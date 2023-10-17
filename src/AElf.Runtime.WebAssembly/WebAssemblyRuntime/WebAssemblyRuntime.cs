@@ -874,6 +874,7 @@ public partial class WebAssemblyRuntime : IDisposable
         if (pubkey != null)
         {
             WriteSandboxMemory(outputPtr, pubkey);
+            ReturnBuffer = pubkey;
             return (int)ReturnCode.Success;
         }
 
