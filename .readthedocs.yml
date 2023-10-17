@@ -6,7 +6,7 @@
 version: 2
 
 build:
-  image: latest
+  os: ubuntu-22.04
 
 # Build documentation with sphinx
 sphinx:
