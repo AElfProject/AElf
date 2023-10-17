@@ -588,7 +588,7 @@ acs0.ContractOperation
 +---------------------+------------------------------------+------------------------------------------------------------------+---------+
 | code\_hash          | `aelf.Hash <#aelf.Hash>`__         | The hash of the contract code.                                   |         |
 +---------------------+------------------------------------+------------------------------------------------------------------+---------+
-| deployer            | `aelf.Address <#aelf.Address>`__   | The actual address that initiate the the contract deployment.    |         |
+| deployer            | `aelf.Address <#aelf.Address>`__   | The actual address that initiate the contract deployment.        |         |
 +---------------------+------------------------------------+------------------------------------------------------------------+---------+
 | salt                | `aelf.Hash <#aelf.Hash>`__         | The hash based on which user contract address is generated.      |         |
 +---------------------+------------------------------------+------------------------------------------------------------------+---------+
