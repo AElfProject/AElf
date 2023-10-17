@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract;
+using AElf.Runtime.WebAssembly.TransactionPayment;
 using AElf.Types;
 using Nethereum.Util;
 using Secp256k1Net;
@@ -12,6 +13,7 @@ namespace AElf.Runtime.WebAssembly;
 public partial class ExternalEnvironment : IExternalEnvironment, ITransientDependency
 {
     private readonly ICSharpContractReader _contractReader;
+    private readonly IFeeService _feeService;
 
     public List<(byte[], byte[])> Events { get; } = new();
     public List<string> DebugMessages { get; set; } = new();
@@ -21,9 +23,10 @@ public partial class ExternalEnvironment : IExternalEnvironment, ITransientDepen
 
     private IHostSmartContractBridgeContext? HostSmartContractBridgeContext { get; set; }
 
-    public ExternalEnvironment(ICSharpContractReader contractReader)
+    public ExternalEnvironment(ICSharpContractReader contractReader, IFeeService feeService)
     {
         _contractReader = contractReader;
+        _feeService = feeService;
     }
 
     public ExecuteReturnValue Call(Weight gasLimit, long depositLimit, Address to, long value, byte[] inputData,
@@ -90,7 +93,7 @@ public partial class ExternalEnvironment : IExternalEnvironment, ITransientDepen
 
     public long GetWeightPrice(Weight weight)
     {
-        throw new NotImplementedException();
+        return _feeService.CalculateFees(weight);
     }
 
     public long ValueTransferred()

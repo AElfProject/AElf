@@ -1,3 +1,5 @@
+using AElf.Runtime.WebAssembly.TransactionPayment;
+
 namespace AElf.Runtime.WebAssembly;
 
 public interface ICallType

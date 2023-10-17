@@ -31,7 +31,7 @@ public class CalculateFunction
         });
     }
 
-    public long CalculateFee(int totalCount)
+    public long CalculateFee(long totalCount)
     {
         if (CalculateFeeCoefficients.PieceCoefficientsList.Count != _currentCalculateFunctions.Count)
             throw new ArgumentOutOfRangeException(nameof(_currentCalculateFunctions),
@@ -48,7 +48,7 @@ public class CalculateFunction
             var interval = pieceUpperBound - pieceStart;
             pieceStart = pieceUpperBound;
             var count = Math.Min(interval, remainCount);
-            result += function(count);
+            result += function((int)count);
             if (pieceUpperBound > totalCount) break;
 
             remainCount -= interval;
