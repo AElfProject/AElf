@@ -40,9 +40,9 @@ Contents
    -  :ref:`Transaction() <AElf-Sdk-CSharp-CSharpSmartContractContext-Transaction>`
    -  :ref:`SendInline(toAddress,methodName,args) <AElf-Sdk-CSharp-CSharpSmartContractContext-SendInline-AElf-Types-Address-System-String-Google-Protobuf-ByteString>`
    -  :ref:`SendVirtualInline(fromVirtualAddress,toAddress,methodName,args) <AElf-Sdk-CSharp-CSharpSmartContractContext-SendVirtualInline-AElf-Types-Hash-AElf-Types-Address-System-String-Google-Protobuf-ByteString>`
-   -  :ref:`SendVirtualInline(fromVirtualAddress,toAddress,methodName,args,logTransaction) <AElf-Sdk-CSharp-CSharpSmartContractContext-SendVirtualInline-AElf-Types-Hash-AElf-Types-Address-System-String-Google-Protobuf-ByteString>`
+   -  :ref:`SendVirtualInline(fromVirtualAddress,toAddress,methodName,args,logTransaction) <AElf-Sdk-CSharp-CSharpSmartContractContext-SendVirtualInline-AElf-Types-Hash-AElf-Types-Address-System-String-Google-Protobuf-ByteString-System-Boolean>`
    -  :ref:`SendVirtualInlineBySystemContract(fromVirtualAddress,toAddress,methodName,args) <AElf-Sdk-CSharp-CSharpSmartContractContext-SendVirtualInlineBySystemContract-AElf-Types-Hash-AElf-Types-Address-System-String-Google-Protobuf-ByteString>`
-   -  :ref:`SendVirtualInlineBySystemContract(fromVirtualAddress,toAddress,methodName,args,logTransaction) <AElf-Sdk-CSharp-CSharpSmartContractContext-SendVirtualInlineBySystemContract-AElf-Types-Hash-AElf-Types-Address-System-String-Google-Protobuf-ByteString>`
+   -  :ref:`SendVirtualInlineBySystemContract(fromVirtualAddress,toAddress,methodName,args,logTransaction) <AElf-Sdk-CSharp-CSharpSmartContractContext-SendVirtualInlineBySystemContract-AElf-Types-Hash-AElf-Types-Address-System-String-Google-Protobuf-ByteString-System-Boolean>`
    -  :ref:`UpdateContract(address,registration,name) <AElf-Sdk-CSharp-CSharpSmartContractContext-UpdateContract-AElf-Types-Address-AElf-Types-SmartContractRegistration-AElf-Types-Hash>`
    -  :ref:`ValidateStateSize(obj) <AElf-Sdk-CSharp-CSharpSmartContractContext-ValidateStateSize-System-Object>`
    -  :ref:`VerifySignature(tx) <AElf-Sdk-CSharp-CSharpSmartContractContext-VerifySignature-AElf-Types-Transaction>`
@@ -785,7 +785,7 @@ Parameters
 | input type.        |                  |                                        |
 +--------------------+------------------+----------------------------------------+
 
-.. _AElf-Sdk-CSharp-CSharpSmartContractContext-SendVirtualInline-AElf-Types-Hash-AElf-Types-Address-System-String-Google-Protobuf-ByteString:
+.. _AElf-Sdk-CSharp-CSharpSmartContractContext-SendVirtualInline-AElf-Types-Hash-AElf-Types-Address-System-String-Google-Protobuf-ByteString-System-Boolean:
 
 SendVirtualInline(fromVirtualAddress,toAddress,methodName,args,
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -869,7 +869,7 @@ Parameters
 | input type.        |                  |                                        |
 +--------------------+------------------+----------------------------------------+
 
-.. _AElf-Sdk-CSharp-CSharpSmartContractContext-SendVirtualInlineBySystemContract-AElf-Types-Hash-AElf-Types-Address-System-String-Google-Protobuf-ByteString:
+.. _AElf-Sdk-CSharp-CSharpSmartContractContext-SendVirtualInlineBySystemContract-AElf-Types-Hash-AElf-Types-Address-System-String-Google-Protobuf-ByteString-System-Boolean:
 
 SendVirtualInlineBySystemContract(fromVirtualAddress,toAddress,
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
