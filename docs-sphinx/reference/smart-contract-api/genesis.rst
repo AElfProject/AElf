@@ -584,11 +584,11 @@ acs0.ContractOperation
 +---------------------+------------------------------------+------------------------------------------------------------------+---------+
 | Field               | Type                               | Description                                                      | Label   |
 +=====================+====================================+==================================================================+=========+
-| chain\_id           | `int32 <#int32>`__                 | The id of the chain to deploy/update the contract.               |         |
+| chain\_id           | `int32 <#int32>`__                 | The ID of the chain where the contract is deployed/updated.      |         |
 +---------------------+------------------------------------+------------------------------------------------------------------+---------+
 | code\_hash          | `aelf.Hash <#aelf.Hash>`__         | The hash of the contract code.                                   |         |
 +---------------------+------------------------------------+------------------------------------------------------------------+---------+
-| deployer            | `aelf.Address <#aelf.Address>`__   | The actual address of deploying the contract.                    |         |
+| deployer            | `aelf.Address <#aelf.Address>`__   | The actual address that initiate the the contract deployment.    |         |
 +---------------------+------------------------------------+------------------------------------------------------------------+---------+
 | salt                | `aelf.Hash <#aelf.Hash>`__         | The hash based on which user contract address is generated.      |         |
 +---------------------+------------------------------------+------------------------------------------------------------------+---------+
