@@ -1,5 +1,6 @@
 using AElf.Kernel.SmartContract;
 using AElf.Runtime.WebAssembly.Extensions;
+using AElf.Runtime.WebAssembly.TransactionPayment;
 using AElf.Types;
 using Epoche;
 using Google.Protobuf;

@@ -8,6 +8,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\AElf.Kernel.SmartContract\AElf.Kernel.SmartContract.csproj" />
+      <ProjectReference Include="..\AElf.Runtime.WebAssembly.TransactionPayment\AElf.Runtime.WebAssembly.TransactionPayment.csproj" />
       <ProjectReference Include="..\Solang.Net\Solang.Net.csproj" />
     </ItemGroup>
 

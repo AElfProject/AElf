@@ -1,4 +1,5 @@
 using AElf.Runtime.WebAssembly.Extensions;
+using AElf.Runtime.WebAssembly.TransactionPayment;
 
 namespace AElf.Runtime.WebAssembly;
 

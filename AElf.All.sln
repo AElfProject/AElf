@@ -383,6 +383,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Solang.Net", "src\Solang.Ne
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.SolidityContract.Tests", "test\AElf.Contracts.SolidityContract.Tests\AElf.Contracts.SolidityContract.Tests.csproj", "{333EB81C-29C0-4808-BB8B-2CD5D8F08CF6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Runtime.WebAssembly.TransactionPayment", "src\AElf.Runtime.WebAssembly.TransactionPayment\AElf.Runtime.WebAssembly.TransactionPayment.csproj", "{24366E34-6A38-4E67-BD37-3F57A893799E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -1101,6 +1103,10 @@ Global
 		{333EB81C-29C0-4808-BB8B-2CD5D8F08CF6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{333EB81C-29C0-4808-BB8B-2CD5D8F08CF6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{333EB81C-29C0-4808-BB8B-2CD5D8F08CF6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{24366E34-6A38-4E67-BD37-3F57A893799E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{24366E34-6A38-4E67-BD37-3F57A893799E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{24366E34-6A38-4E67-BD37-3F57A893799E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{24366E34-6A38-4E67-BD37-3F57A893799E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1294,5 +1300,6 @@ Global
 		{3E2C148D-02BC-46B7-91CF-7F93AA4A20F9} = {4E54480A-D155-43ED-9736-1A5BE7957211}
 		{FF2B654E-AE79-4A33-A201-73C537D5439C} = {798BAA50-825B-4DD9-83E2-77A9EE6EBE09}
 		{333EB81C-29C0-4808-BB8B-2CD5D8F08CF6} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
+		{24366E34-6A38-4E67-BD37-3F57A893799E} = {798BAA50-825B-4DD9-83E2-77A9EE6EBE09}
 	EndGlobalSection
 EndGlobal

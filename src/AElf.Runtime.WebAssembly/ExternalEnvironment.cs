@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract;
+using AElf.Runtime.WebAssembly.TransactionPayment;
 using AElf.Types;
 using Google.Protobuf;
 using Nethereum.Util;
@@ -11,6 +12,7 @@ namespace AElf.Runtime.WebAssembly;
 
 public class ExternalEnvironment : IExternalEnvironment
 {
+    private readonly IFeeService _feeService;
     public Dictionary<string, ByteString> Writes { get; set; } = new();
     public Dictionary<string, bool> Reads { get; set; } = new();
     public Dictionary<string, bool> Deletes { get; set; } = new();
@@ -18,6 +20,11 @@ public class ExternalEnvironment : IExternalEnvironment
     public List<string> DebugMessages { get; set; } = new();
     public Address? Caller { get; set; }
     public GasMeter GasMeter { get; set; }
+
+    public ExternalEnvironment(IFeeService feeService)
+    {
+        _feeService = feeService;
+    }
 
     public ExecuteReturnValue Call(Weight gasLimit, long depositLimit, Address to, long value, byte[] inputData,
         bool allowReentry)
@@ -124,7 +131,7 @@ public class ExternalEnvironment : IExternalEnvironment
 
     public long GetWeightPrice(Weight weight)
     {
-        throw new NotImplementedException();
+        return _feeService.CalculateFees(weight);
     }
 
     public long ValueTransferred()

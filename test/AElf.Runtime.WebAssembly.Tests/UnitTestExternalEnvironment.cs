@@ -1,4 +1,5 @@
 using AElf.Kernel.SmartContract;
+using AElf.Runtime.WebAssembly.TransactionPayment;
 using AElf.Types;
 using Google.Protobuf;
 
@@ -45,7 +46,6 @@ public class UnitTestExternalEnvironment : IExternalEnvironment
             Data = WebAssemblyRuntimeTestConstants.CallReturnData
         };
     }
-
     public (Address, ExecuteReturnValue) Instantiate(Weight gasLimit, long depositLimit, Hash codeHash, long value,
         byte[] inputData, byte[] salt)
     {
@@ -192,7 +192,12 @@ public class UnitTestExternalEnvironment : IExternalEnvironment
 
     public long GetWeightPrice(Weight weight)
     {
-        return 1312 * weight.RefTime + 103 * weight.ProofSize;
+        return new FeeService(new IFeeProvider[]
+            {
+                new LengthFeeProvider(),
+                new WeightFeeProvider(new FeeFunctionProvider())
+            })
+            .CalculateFees(weight);
     }
 
     public long ValueTransferred()
