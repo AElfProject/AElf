@@ -820,7 +820,7 @@ Parameters
 +--------------------+------------------+----------------------------------------+
 | args               | Google.Protobuf  | The input arguments for calling that   |
 |                    | .ByteString      | method. This is usually generated from |
-|                    |                  | the protobuf                           |
+|                    |                  | the protobuf.                          |
 +--------------------+------------------+----------------------------------------+
 | logTransaction     | System.Boolean   | Whether to fire a logEvent to log      |
 |                    |                  | inline transactions.                   |
@@ -865,7 +865,7 @@ Parameters
 +--------------------+------------------+----------------------------------------+
 | args               | Google.Protobuf  | The input arguments for calling that   |
 |                    | .ByteString      | method. This is usually generated from |
-|                    |                  | the protobuf                           |
+|                    |                  | the protobuf.                          |
 +--------------------+------------------+----------------------------------------+
 | definition of the  |                  |                                        |
 | input type.        |                  |                                        |
@@ -881,7 +881,7 @@ methodName,args,logTransaction)  ``method``
 Summary
 '''''''
 
-Add an overloaded SDK method SendVirtualInlineBySystemContract,like SendVirtualInline, but the virtual address uses a system smart
+Add an overloaded SDK method SendVirtualInlineBySystemContract, like SendVirtualInline, but the virtual address uses a system smart
 contract.
 
 Parameters
