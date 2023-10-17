@@ -39,7 +39,9 @@ Contents
    -  :ref:`RecoverPublicKey() <AElf-Sdk-CSharp-CSharpSmartContractContext-RecoverPublicKey>`
    -  :ref:`Transaction() <AElf-Sdk-CSharp-CSharpSmartContractContext-Transaction>`
    -  :ref:`SendInline(toAddress,methodName,args) <AElf-Sdk-CSharp-CSharpSmartContractContext-SendInline-AElf-Types-Address-System-String-Google-Protobuf-ByteString>`
+   -  :ref:`SendVirtualInline(fromVirtualAddress,toAddress,methodName,args) <AElf-Sdk-CSharp-CSharpSmartContractContext-SendVirtualInline-AElf-Types-Hash-AElf-Types-Address-System-String-Google-Protobuf-ByteString>`
    -  :ref:`SendVirtualInline(fromVirtualAddress,toAddress,methodName,args,logTransaction) <AElf-Sdk-CSharp-CSharpSmartContractContext-SendVirtualInline-AElf-Types-Hash-AElf-Types-Address-System-String-Google-Protobuf-ByteString>`
+   -  :ref:`SendVirtualInlineBySystemContract(fromVirtualAddress,toAddress,methodName,args) <AElf-Sdk-CSharp-CSharpSmartContractContext-SendVirtualInlineBySystemContract-AElf-Types-Hash-AElf-Types-Address-System-String-Google-Protobuf-ByteString>`
    -  :ref:`SendVirtualInlineBySystemContract(fromVirtualAddress,toAddress,methodName,args,logTransaction) <AElf-Sdk-CSharp-CSharpSmartContractContext-SendVirtualInlineBySystemContract-AElf-Types-Hash-AElf-Types-Address-System-String-Google-Protobuf-ByteString>`
    -  :ref:`UpdateContract(address,registration,name) <AElf-Sdk-CSharp-CSharpSmartContractContext-UpdateContract-AElf-Types-Address-AElf-Types-SmartContractRegistration-AElf-Types-Hash>`
    -  :ref:`ValidateStateSize(obj) <AElf-Sdk-CSharp-CSharpSmartContractContext-ValidateStateSize-System-Object>`
@@ -748,6 +750,43 @@ Parameters
 
 .. _AElf-Sdk-CSharp-CSharpSmartContractContext-SendVirtualInline-AElf-Types-Hash-AElf-Types-Address-System-String-Google-Protobuf-ByteString:
 
+SendVirtualInline(fromVirtualAddress,toAddress,methodName,args) ``method``
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+Summary
+'''''''
+
+Sends a virtual inline transaction to another contract.
+
+Parameters
+''''''''''
+
++--------------------+------------------+----------------------------------------+
+| Name               | Type             | Description                            |
++====================+==================+========================================+
+| fromVirtualAddress | AElf.Types.Hash  | The virtual address to use as sender.  |
++--------------------+------------------+----------------------------------------+
+| toAddress          | AElf.Types.      | The address of the contract you’re     |
+|                    | Address          | seeking to interact with.              |
++--------------------+------------------+----------------------------------------+
+| methodName         | `System.String   | The name of method you want to invoke. |
+|                    | <http://msdn.mic |                                        |
+|                    | rosoft.com/query |                                        |
+|                    | /dev14.query?app |                                        |
+|                    | Id=Dev14IDEF1&l= |                                        |
+|                    | EN-US&k=k:System |                                        |
+|                    | .String>`__      |                                        |
++--------------------+------------------+----------------------------------------+
+| args               | Google.Protobuf  | The input arguments for calling that   |
+|                    | .ByteString      | method. This is usually generated from |
+|                    |                  | the protobuf                           |
++--------------------+------------------+----------------------------------------+
+| definition of the  |                  |                                        |
+| input type.        |                  |                                        |
++--------------------+------------------+----------------------------------------+
+
+.. _AElf-Sdk-CSharp-CSharpSmartContractContext-SendVirtualInline-AElf-Types-Hash-AElf-Types-Address-System-String-Google-Protobuf-ByteString:
+
 SendVirtualInline(fromVirtualAddress,toAddress,methodName,args,
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 logTransaction) ``method``
@@ -783,6 +822,48 @@ Parameters
 +--------------------+------------------+----------------------------------------+
 | logTransaction     | System.Boolean   | Whether to fire a logEvent to log      |
 |                    |                  | inline transactions.                   |
++--------------------+------------------+----------------------------------------+
+| definition of the  |                  |                                        |
+| input type.        |                  |                                        |
++--------------------+------------------+----------------------------------------+
+
+.. _AElf-Sdk-CSharp-CSharpSmartContractContext-SendVirtualInlineBySystemContract-AElf-Types-Hash-AElf-Types-Address-System-String-Google-Protobuf-ByteString:
+
+SendVirtualInlineBySystemContract(fromVirtualAddress,toAddress,
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+methodName,args)  ``method``
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+Summary
+'''''''
+
+Like SendVirtualInline but the virtual address us a system smart
+contract.
+
+Parameters
+''''''''''
+
++--------------------+------------------+----------------------------------------+
+| Name               | Type             | Description                            |
++====================+==================+========================================+
+| fromVirtualAddress | AElf.Types.Hash  | Sends a virtual inline transaction to  |
+|                    |                  | another contract. This method is only  |
+|                    |                  | available to system smart contract.    |
++--------------------+------------------+----------------------------------------+
+| toAddress          | AElf.Types.      | The address of the contract you’re     |
+|                    | Address          | seeking to interact with.              |
++--------------------+------------------+----------------------------------------+
+| methodName         | `System.String   | The name of method you want to invoke. |
+|                    | <http://msdn.mic |                                        |
+|                    | rosoft.com/query |                                        |
+|                    | /dev14.query?app |                                        |
+|                    | Id=Dev14IDEF1&l= |                                        |
+|                    | EN-US&k=k:System |                                        |
+|                    | .String>`__      |                                        |
++--------------------+------------------+----------------------------------------+
+| args               | Google.Protobuf  | The input arguments for calling that   |
+|                    | .ByteString      | method. This is usually generated from |
+|                    |                  | the protobuf                           |
 +--------------------+------------------+----------------------------------------+
 | definition of the  |                  |                                        |
 | input type.        |                  |                                        |

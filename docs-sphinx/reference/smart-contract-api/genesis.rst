@@ -318,7 +318,7 @@ acs0.ContractDeployed
 +-------------------------+------------------------------------+-----------------------------------------------------------------------------+---------+
 | contract_version        | `string <#string>`__               | The version of the current contract.                                        |         |
 +-------------------------+------------------------------------+-----------------------------------------------------------------------------+---------+
-| deployer                | `aelf.Address <#aelf.Address>`__   | The actual address of deploying the contract.                               |         |
+| deployer                | `aelf.Address <#aelf.Address>`__   | The actual address that initiate the the contract deployment.               |         |
 +-------------------------+------------------------------------+-----------------------------------------------------------------------------+---------+
 
 
@@ -373,7 +373,7 @@ acs0.ContractInfo
 +------------------------+------------------------------------+-----------------------------------------------------------------------------+---------+
 | is_user_contract       | `bool <#bool>`__                   | Indicates if the contract is the user contract.                             |         |
 +------------------------+------------------------------------+-----------------------------------------------------------------------------+---------+
-| deployer               | `aelf.Address <#aelf.Address>`__   | The actual address of deploying the contract.                               |         |
+| deployer               | `aelf.Address <#aelf.Address>`__   | The actual address that initiate the the contract deployment.               |         |
 +------------------------+------------------------------------+-----------------------------------------------------------------------------+---------+
 
 
