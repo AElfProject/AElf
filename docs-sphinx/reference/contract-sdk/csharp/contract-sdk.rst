@@ -881,7 +881,7 @@ methodName,args,logTransaction)  ``method``
 Summary
 '''''''
 
-Add an overloaded SDK method SendVirtualInlineBySystemContract,Like SendVirtualInline, but the virtual address uses a system smart
+Add an overloaded SDK method SendVirtualInlineBySystemContract,like SendVirtualInline, but the virtual address uses a system smart
 contract.
 
 Parameters
