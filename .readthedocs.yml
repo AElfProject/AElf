@@ -5,6 +5,9 @@
 # Required
 version: 2
 
+build:
+  image: latest
+
 # Build documentation with sphinx
 sphinx:
   builder: html
