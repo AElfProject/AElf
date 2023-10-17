@@ -1,9 +1,11 @@
+using System.Security.Cryptography;
 using AElf.Kernel.SmartContract;
 using AElf.Runtime.WebAssembly.Extensions;
 using AElf.Runtime.WebAssembly.TransactionPayment;
 using AElf.Types;
-using Epoche;
+using Blake2Fast;
 using Google.Protobuf;
+using Nethereum.Util;
 using Wasmtime;
 using Module = Wasmtime.Module;
 
@@ -711,7 +713,8 @@ public partial class WebAssemblyRuntime : IDisposable
     /// </param>
     private void HashSha2_256(int inputPtr, int inputLen, int outputPtr)
     {
-        throw new NotImplementedException();
+        var input = ReadSandboxMemory(inputPtr, inputLen);
+        WriteSandboxMemory(outputPtr, SHA256.Create().ComputeHash(input));
     }
 
     /// <summary>
@@ -735,7 +738,8 @@ public partial class WebAssemblyRuntime : IDisposable
     private void HashKeccak256(int inputPtr, int inputLen, int outputPtr)
     {
         var input = ReadSandboxMemory(inputPtr, inputLen);
-        WriteSandboxMemory(outputPtr, Keccak256.ComputeHash(input));
+        // var res = Keccak256.ComputeHash(input);
+        WriteSandboxMemory(outputPtr, new Sha3Keccack().CalculateHash(input));
     }
 
     /// <summary>
@@ -759,6 +763,9 @@ public partial class WebAssemblyRuntime : IDisposable
     private void HashBlake2_256(int inputPtr, int inputLen, int outputPtr)
     {
         var input = ReadSandboxMemory(inputPtr, inputLen);
+        // var hashBlake256 = Blake2BFactory.Instance.Create(new Blake2BConfig {HashSizeInBits = 256}).ComputeHash(input).Hash;
+        // Blake2B.ComputeHash(input);
+        WriteSandboxMemory(outputPtr, Blake2b.ComputeHash(32, input));
     }
 
     /// <summary>
@@ -781,7 +788,9 @@ public partial class WebAssemblyRuntime : IDisposable
     /// </param>
     private void HashBlake2_128(int inputPtr, int inputLen, int outputPtr)
     {
-        throw new NotImplementedException();
+        var input = ReadSandboxMemory(inputPtr, inputLen);
+        // var hashBlake256 = Blake2BFactory.Instance.Create(new Blake2BConfig {HashSizeInBits = 128});
+        WriteSandboxMemory(outputPtr, Blake2s.ComputeHash(16, input));
     }
 
     /// <summary>

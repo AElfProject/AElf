@@ -20,7 +20,8 @@
         <PackageReference Include="NBitcoin" Version="7.0.27" />
         <PackageReference Include="Nethereum.Web3" Version="4.15.2" />
         <PackageReference Include="Wasmtime" Version="11.0.1" />
-
+        <PackageReference Include="Nethereum.Util" Version="4.17.1" />
+        <PackageReference Include="SauceControl.Blake2Fast" Version="2.0.0" />
     </ItemGroup>
 
     <ItemGroup>

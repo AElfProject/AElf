@@ -1,5 +1,8 @@
+using System.Security.Cryptography;
 using AElf.Types;
+using Blake2Fast;
 using Google.Protobuf;
+using Nethereum.Util;
 using Shouldly;
 using Wasmtime;
 
@@ -725,6 +728,46 @@ public class WebAssemblyRuntimeTests : WebAssemblyRuntimeTestBase
         externalEnvironment.DelegateDependencies.Count.ShouldBe(1);
         externalEnvironment.DelegateDependencies[0].Value.ToByteArray()
             .ShouldBe(new ByteArrayBuilder().RepeatedBytes(1, 32));
+    }
+    
+    [Fact]
+    public void Sha256Test()
+    {
+        String input = "hello";
+        // get this result by online tool https://tools.keycdn.com/sha256-online-generator
+        String expectHash = "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824";
+        var hash = SHA256.Create().ComputeHash(input.GetBytes()).ToHex();
+        hash.ShouldBe(expectHash);
+    }
+    
+    [Fact]
+    public void Keccak256Test()
+    {
+        String input = "hello";
+        // get this result by online tool https://emn178.github.io/online-tools/keccak_256.html
+        String expectHash = "1c8aff950685c2ed4bc3174f3472287b56d9517b9c948127319a09a7a36deac8";
+        var hash = new Sha3Keccack().CalculateHash(input.GetBytes()).ToHex();
+        hash.ShouldBe(expectHash);
+    }
+    
+    [Fact]
+    public void Blake256Test()
+    {
+        String input = "hello";
+        // get this result by online tool https://toolkitbay.com/tkb/tool/BLAKE2b_256
+        String expectHash = "324dcf027dd4a30a932c441f365a25e86b173defa4b8e58948253471b81b72cf";
+        var hash = Blake2b.ComputeHash(32, input.GetBytes()).ToHex();
+        hash.ShouldBe(expectHash);
+    }
+    
+    [Fact]
+    public void Blake128Test()
+    {
+        String input = "hello";
+        // get this result by online tool https://toolkitbay.com/tkb/tool/BLAKE2s_128
+        String expectHash = "b00ece7999660332a8958b76533d1f78";
+        var hash = Blake2s.CreateHMAC(16, "a".GetBytes()).ComputeHash(input.GetBytes()).ToHex();
+        hash.ShouldBe(expectHash);
     }
 
     private (UnitTestExternalEnvironment, WebAssemblyRuntime) ExecuteWatFile(string watFilePath, byte[]? input = null)
