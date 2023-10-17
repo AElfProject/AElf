@@ -848,8 +848,8 @@ Parameters
 +--------------------+------------------+----------------------------------------+
 | Name               | Type             | Description                            |
 +====================+==================+========================================+
-| fromVirtualAddress | AElf.Types.Hash  | Sends a virtual inline transaction to  |
-|                    |                  | another contract. This method is only  |
+| fromVirtualAddress | AElf.Types.Hash  | The hash based on which virtual address|
+|                    |                  | is generated. This method is only      |
 |                    |                  | available to system smart contract.    |
 +--------------------+------------------+----------------------------------------+
 | toAddress          | AElf.Types.      | The address of the contract you’re     |
@@ -890,8 +890,8 @@ Parameters
 +--------------------+------------------+----------------------------------------+
 | Name               | Type             | Description                            |
 +====================+==================+========================================+
-| fromVirtualAddress | AElf.Types.Hash  | Sends a virtual inline transaction to  |
-|                    |                  | another contract. This method is only  |
+| fromVirtualAddress | AElf.Types.Hash  | The hash based on which virtual address|
+|                    |                  | is generated. This method is only      |
 |                    |                  | available to system smart contract.    |
 +--------------------+------------------+----------------------------------------+
 | toAddress          | AElf.Types.      | The address of the contract you’re     |
