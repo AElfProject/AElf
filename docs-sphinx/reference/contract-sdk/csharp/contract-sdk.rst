@@ -839,7 +839,7 @@ methodName,args)  ``method``
 Summary
 '''''''
 
-Like SendVirtualInline but the virtual address us a system smart
+Like SendVirtualInline but the virtual address uses a system smart
 contract.
 
 Parameters
