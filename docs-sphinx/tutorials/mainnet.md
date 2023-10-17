@@ -113,7 +113,7 @@ Note that a more detailed section about the cli can be found [command line inter
 
 ``` bash
 ## download the settings template and docker script
->> cd /tmp/ && wget https://github.com/AElfProject/AElf/releases/download/v1.5.0/aelf-mainnet-mainchain.zip
+>> cd /tmp/ && wget https://github.com/AElfProject/AElf/releases/download/v1.6.0/aelf-mainnet-mainchain.zip
 >> unzip aelf-mainnet-mainchain.zip
 >> mv aelf-mainnet-mainchain /opt/aelf-node
 ```
@@ -187,9 +187,9 @@ To run the node with Docker, enter the following commands:
 
 ``` bash
 ## pull AElf’s image and navigate to the template folder to execute the start script
->> docker pull aelf/node:mainnet-v1.5.0
+>> docker pull aelf/node:mainnet-v1.6.0
 >> cd /opt/aelf-node
->> sh aelf-node.sh start aelf/node:mainnet-v1.5.0
+>> sh aelf-node.sh start aelf/node:mainnet-v1.6.0
 ```
 
 to stop the node you can run:
@@ -211,7 +211,7 @@ download for your platform, and install it.
 Get the latest release with the following commands:
 
 ``` bash
->> cd /tmp/ && wget https://github.com/AElfProject/AElf/releases/download/v1.5.0/aelf.zip
+>> cd /tmp/ && wget https://github.com/AElfProject/AElf/releases/download/v1.6.0/aelf.zip
 >> unzip aelf.zip
 >> mv aelf /opt/aelf-node/
 ```
@@ -229,7 +229,7 @@ Running a full node with the source
 The most convenient way is to directly use docker or the binary
 packages, but if you want you can compile from source code. First make
 sure the code version is consistent (current is release AELF
-v1.5.0), and secondly make sure to compile on a Ubuntu Linux
+v1.6.0), and secondly make sure to compile on a Ubuntu Linux
 machine (we recommend Ubuntu 18.04.2 LTS) and have dotnet core SDK
 version 6.0 installed. This is because different platforms or compilers
 will cause the dll hashes to be inconsistent with the current chain.
@@ -260,7 +260,7 @@ configuration will change. Here you can find the instructions for
 sidechain1:
 
 ``` bash
->> cd /tmp/ && wget https://github.com/AElfProject/AElf/releases/download/v1.5.0/aelf-mainnet-sidechain1.zip
+>> cd /tmp/ && wget https://github.com/AElfProject/AElf/releases/download/v1.6.0/aelf-mainnet-sidechain1.zip
 >> unzip aelf-mainnet-sidechain1.zip
 >> mv aelf-mainnet-sidechain1 /opt/aelf-node
 ```
@@ -294,7 +294,7 @@ the latest:
 Here you can find the list of templates folders (appsettings and docker
 run script) for the side-chain:
 
-    wget https://github.com/AElfProject/AElf/releases/download/v1.5.0/aelf-mainnet-sidechain1.zip
+    wget https://github.com/AElfProject/AElf/releases/download/v1.6.0/aelf-mainnet-sidechain1.zip
 
 Each side chain has its own P2P network, add the mainnet sidechain nodes as peer:
 

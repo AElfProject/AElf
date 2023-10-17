@@ -40,7 +40,9 @@ Contents
    -  :ref:`Transaction() <AElf-Sdk-CSharp-CSharpSmartContractContext-Transaction>`
    -  :ref:`SendInline(toAddress,methodName,args) <AElf-Sdk-CSharp-CSharpSmartContractContext-SendInline-AElf-Types-Address-System-String-Google-Protobuf-ByteString>`
    -  :ref:`SendVirtualInline(fromVirtualAddress,toAddress,methodName,args) <AElf-Sdk-CSharp-CSharpSmartContractContext-SendVirtualInline-AElf-Types-Hash-AElf-Types-Address-System-String-Google-Protobuf-ByteString>`
+   -  :ref:`SendVirtualInline(fromVirtualAddress,toAddress,methodName,args,logTransaction) <AElf-Sdk-CSharp-CSharpSmartContractContext-SendVirtualInline-AElf-Types-Hash-AElf-Types-Address-System-String-Google-Protobuf-ByteString-System-Boolean>`
    -  :ref:`SendVirtualInlineBySystemContract(fromVirtualAddress,toAddress,methodName,args) <AElf-Sdk-CSharp-CSharpSmartContractContext-SendVirtualInlineBySystemContract-AElf-Types-Hash-AElf-Types-Address-System-String-Google-Protobuf-ByteString>`
+   -  :ref:`SendVirtualInlineBySystemContract(fromVirtualAddress,toAddress,methodName,args,logTransaction) <AElf-Sdk-CSharp-CSharpSmartContractContext-SendVirtualInlineBySystemContract-AElf-Types-Hash-AElf-Types-Address-System-String-Google-Protobuf-ByteString-System-Boolean>`
    -  :ref:`UpdateContract(address,registration,name) <AElf-Sdk-CSharp-CSharpSmartContractContext-UpdateContract-AElf-Types-Address-AElf-Types-SmartContractRegistration-AElf-Types-Hash>`
    -  :ref:`ValidateStateSize(obj) <AElf-Sdk-CSharp-CSharpSmartContractContext-ValidateStateSize-System-Object>`
    -  :ref:`VerifySignature(tx) <AElf-Sdk-CSharp-CSharpSmartContractContext-VerifySignature-AElf-Types-Transaction>`
@@ -762,7 +764,8 @@ Parameters
 +--------------------+------------------+----------------------------------------+
 | Name               | Type             | Description                            |
 +====================+==================+========================================+
-| fromVirtualAddress | AElf.Types.Hash  | The virtual address to use as sender.  |
+| fromVirtualAddress | AElf.Types.Hash  | The hash based on which virtual        | 
+|                    |                  | address is generated.                  |
 +--------------------+------------------+----------------------------------------+
 | toAddress          | AElf.Types.      | The address of the contract you’re     |
 |                    | Address          | seeking to interact with.              |
@@ -783,6 +786,49 @@ Parameters
 | input type.        |                  |                                        |
 +--------------------+------------------+----------------------------------------+
 
+.. _AElf-Sdk-CSharp-CSharpSmartContractContext-SendVirtualInline-AElf-Types-Hash-AElf-Types-Address-System-String-Google-Protobuf-ByteString-System-Boolean:
+
+SendVirtualInline(fromVirtualAddress,toAddress,methodName,args,
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+logTransaction) ``method``
+>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+Summary
+'''''''
+
+Add an overloaded SDK method SendVirtualInline to support automatically firing a LogEvent to log the inline transactions from virtual addresses.
+
+Parameters
+''''''''''
+
++--------------------+------------------+----------------------------------------+
+| Name               | Type             | Description                            |
++====================+==================+========================================+      
+| fromVirtualAddress | AElf.Types.Hash  | The hash based on which virtual        | 
+|                    |                  | address is generated.                  |
++--------------------+------------------+----------------------------------------+
+| toAddress          | AElf.Types.      | The address of the contract you’re     |
+|                    | Address          | seeking to interact with.              |
++--------------------+------------------+----------------------------------------+
+| methodName         | `System.String   | The name of method you want to invoke. |
+|                    | <http://msdn.mic |                                        |
+|                    | rosoft.com/query |                                        |
+|                    | /dev14.query?app |                                        |
+|                    | Id=Dev14IDEF1&l= |                                        |
+|                    | EN-US&k=k:System |                                        |
+|                    | .String>`__      |                                        |
++--------------------+------------------+----------------------------------------+
+| args               | Google.Protobuf  | The input arguments for calling that   |
+|                    | .ByteString      | method. This is usually generated from |
+|                    |                  | the protobuf.                          |
++--------------------+------------------+----------------------------------------+
+| logTransaction     | System.Boolean   | Whether to fire a logEvent to log      |
+|                    |                  | inline transactions.                   |
++--------------------+------------------+----------------------------------------+
+| definition of the  |                  |                                        |
+| input type.        |                  |                                        |
++--------------------+------------------+----------------------------------------+
+
 .. _AElf-Sdk-CSharp-CSharpSmartContractContext-SendVirtualInlineBySystemContract-AElf-Types-Hash-AElf-Types-Address-System-String-Google-Protobuf-ByteString:
 
 SendVirtualInlineBySystemContract(fromVirtualAddress,toAddress,
@@ -793,7 +839,7 @@ methodName,args)  ``method``
 Summary
 '''''''
 
-Like SendVirtualInline but the virtual address us a system smart
+Like SendVirtualInline but the virtual address uses a system smart
 contract.
 
 Parameters
@@ -802,8 +848,8 @@ Parameters
 +--------------------+------------------+----------------------------------------+
 | Name               | Type             | Description                            |
 +====================+==================+========================================+
-| fromVirtualAddress | AElf.Types.Hash  | Sends a virtual inline transaction to  |
-|                    |                  | another contract. This method is only  |
+| fromVirtualAddress | AElf.Types.Hash  | The hash based on which virtual address|
+|                    |                  | is generated. This method is only      |
 |                    |                  | available to system smart contract.    |
 +--------------------+------------------+----------------------------------------+
 | toAddress          | AElf.Types.      | The address of the contract you’re     |
@@ -819,7 +865,52 @@ Parameters
 +--------------------+------------------+----------------------------------------+
 | args               | Google.Protobuf  | The input arguments for calling that   |
 |                    | .ByteString      | method. This is usually generated from |
-|                    |                  | the protobuf                           |
+|                    |                  | the protobuf.                          |
++--------------------+------------------+----------------------------------------+
+| definition of the  |                  |                                        |
+| input type.        |                  |                                        |
++--------------------+------------------+----------------------------------------+
+
+.. _AElf-Sdk-CSharp-CSharpSmartContractContext-SendVirtualInlineBySystemContract-AElf-Types-Hash-AElf-Types-Address-System-String-Google-Protobuf-ByteString-System-Boolean:
+
+SendVirtualInlineBySystemContract(fromVirtualAddress,toAddress,
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+methodName,args,logTransaction)  ``method``
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+Summary
+'''''''
+
+Add an overloaded SDK method SendVirtualInlineBySystemContract, like SendVirtualInline, but the virtual address uses a system smart
+contract.
+
+Parameters
+''''''''''
+
++--------------------+------------------+----------------------------------------+
+| Name               | Type             | Description                            |
++====================+==================+========================================+
+| fromVirtualAddress | AElf.Types.Hash  | The hash based on which virtual address|
+|                    |                  | is generated. This method is only      |
+|                    |                  | available to system smart contract.    |
++--------------------+------------------+----------------------------------------+
+| toAddress          | AElf.Types.      | The address of the contract you’re     |
+|                    | Address          | seeking to interact with.              |
++--------------------+------------------+----------------------------------------+
+| methodName         | `System.String   | The name of method you want to invoke. |
+|                    | <http://msdn.mic |                                        |
+|                    | rosoft.com/query |                                        |
+|                    | /dev14.query?app |                                        |
+|                    | Id=Dev14IDEF1&l= |                                        |
+|                    | EN-US&k=k:System |                                        |
+|                    | .String>`__      |                                        |
++--------------------+------------------+----------------------------------------+
+| args               | Google.Protobuf  | The input arguments for calling that   |
+|                    | .ByteString      | method. This is usually generated from |
+|                    |                  | the protobuf.                          |
++--------------------+------------------+----------------------------------------+
+| logTransaction     | System.Boolean   | Whether to fire a logEvent to log      |
+|                    |                  | inline transactions.                   |
 +--------------------+------------------+----------------------------------------+
 | definition of the  |                  |                                        |
 | input type.        |                  |                                        |
