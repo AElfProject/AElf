@@ -321,7 +321,7 @@ acs0.ContractDeployed
 | deployer                | `aelf.Address <#aelf.Address>`__   | The actual address that initiate the the contract deployment.               |         |
 +-------------------------+------------------------------------+-----------------------------------------------------------------------------+---------+
 
-
+ 
 .. raw:: html
 
    <div id="acs0.ContractDeploymentInput">
