@@ -8,17 +8,9 @@ namespace AElf.Runtime.WebAssembly;
 
 public class WebAssemblySmartContractRunner : ISmartContractRunner, ISingletonDependency
 {
-    public int Category { get; protected set; }
+    public int Category { get; protected set; } = KernelConstants.SolidityRunnerCategory;
 
     public string ContractVersion { get; protected set; } = string.Empty;
-
-    protected IExternalEnvironment ExternalEnvironment { get; set; }
-
-    public WebAssemblySmartContractRunner(IExternalEnvironment externalEnvironment)
-    {
-        ExternalEnvironment = externalEnvironment;
-        Category = KernelConstants.SolidityRunnerCategory;
-    }
 
     public async Task<IExecutive> RunAsync(SmartContractRegistration reg)
     {
@@ -26,7 +18,7 @@ public class WebAssemblySmartContractRunner : ISmartContractRunner, ISingletonDe
         {
             var code = reg.Code.ToByteArray();
             var output = new Compiler().BuildWasm(code);
-            var executive = new Executive(ExternalEnvironment, output.Contracts.First());
+            var executive = new Executive(output.Contracts.First());
             return await Task.FromResult(executive);
         }
         catch (Exception e)

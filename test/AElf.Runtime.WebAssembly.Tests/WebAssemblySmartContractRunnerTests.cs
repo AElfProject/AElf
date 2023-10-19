@@ -27,7 +27,7 @@ public class WebAssemblySmartContractRunnerTests : WebAssemblyRuntimeTestBase
             CodeHash = HashHelper.ComputeFrom(contractCode)
         };
 
-        var smartContractRunner = new WebAssemblySmartContractRunner(new UnitTestExternalEnvironment());
+        var smartContractRunner = new WebAssemblySmartContractRunner();
         var executive = await smartContractRunner.RunAsync(smartContractRegistration);
         executive.ContractHash.ShouldNotBeNull();
 

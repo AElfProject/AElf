@@ -1,7 +1,11 @@
 ﻿using System.Text.Json;
+using AElf.CSharp.CodeOps;
 using AElf.Kernel;
+using AElf.Kernel.Infrastructure;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Infrastructure;
+using AElf.Runtime.CSharp;
+using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.Reflection;
@@ -20,38 +24,58 @@ public class Executive : IExecutive
     public Timestamp LastUsedTime { get; set; }
     public string ContractVersion { get; set; }
 
-    private readonly WebAssemblyRuntime _webAssemblyRuntime;
     private readonly SolangABI _solangAbi;
+    private readonly WebAssemblyContract _webAssemblyContract;
+    private readonly CSharpSmartContractProxy _smartContractProxy;
 
     private IHostSmartContractBridgeContext _hostSmartContractBridgeContext;
     private ITransactionContext CurrentTransactionContext => _hostSmartContractBridgeContext.TransactionContext;
 
-    public Executive(IExternalEnvironment ext, CompiledContract compiledContract)
+    public Executive(CompiledContract compiledContract)
     {
         var wasmCode = compiledContract.WasmCode.ToByteArray();
         _solangAbi = JsonSerializer.Deserialize<SolangABI>(compiledContract.Abi)!;
-        _webAssemblyRuntime = new WebAssemblyRuntime(ext, wasmCode);
         ContractHash = HashHelper.ComputeFrom(wasmCode);
+        _webAssemblyContract = new WebAssemblyContract(wasmCode);
+        _smartContractProxy =
+            new CSharpSmartContractProxy(_webAssemblyContract, typeof(ExecutionObserverProxy));
+        // TODO: Maybe we are able to know the solidity code version.
         ContractVersion = "Unknown solidity version.";
     }
 
     public IExecutive SetHostSmartContractBridgeContext(IHostSmartContractBridgeContext smartContractBridgeContext)
     {
         _hostSmartContractBridgeContext = smartContractBridgeContext;
-        _webAssemblyRuntime.SetHostSmartContractBridgeContext(smartContractBridgeContext);
+        _smartContractProxy.InternalInitialize(_hostSmartContractBridgeContext);
         return this;
     }
 
     public Task ApplyAsync(ITransactionContext transactionContext)
     {
-        _hostSmartContractBridgeContext.TransactionContext = transactionContext;
-        Execute();
+        try
+        {
+            _hostSmartContractBridgeContext.TransactionContext = transactionContext;
+            if (CurrentTransactionContext.CallDepth > CurrentTransactionContext.MaxCallDepth)
+            {
+                CurrentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ExceededMaxCallDepth;
+                CurrentTransactionContext.Trace.Error = "\n" + "ExceededMaxCallDepth";
+                return Task.CompletedTask;
+            }
+
+            Execute();
+        }
+        finally
+        {
+            _hostSmartContractBridgeContext.TransactionContext = null;
+        }
+
         return Task.CompletedTask;
     }
 
     private void Execute()
     {
         var s = CurrentTransactionContext.Trace.StartTime = TimestampHelper.GetUtcNow().ToDateTime();
+        var methodName = CurrentTransactionContext.Transaction.MethodName;
 
         var transactionContext = _hostSmartContractBridgeContext.TransactionContext;
         var transaction = transactionContext.Transaction;
@@ -69,8 +93,8 @@ public class Executive : IExecutive
             ? _solangAbi.GetSelector(transaction.MethodName)
             : transaction.MethodName;
         var parameter = transaction.Params.ToHex();
-        _webAssemblyRuntime.Input = Encoders.Hex.DecodeData(selector + parameter);
-        var instance = _webAssemblyRuntime.Instantiate();
+        _webAssemblyContract.Input = Encoders.Hex.DecodeData(selector + parameter);
+        var instance = _webAssemblyContract.Instantiate();
         var actionName = isCallConstructor ? "deploy" : "call";
         var action = instance.GetFunction<ActionResult>(actionName);
         if (action is null)
@@ -81,19 +105,19 @@ public class Executive : IExecutive
         var invokeResult = new RuntimeActionInvoker().Invoke(action);
         if (!invokeResult.Success)
         {
-            _webAssemblyRuntime.DebugMessages.Add(invokeResult.DebugMessage);
+            _webAssemblyContract.DebugMessages.Add(invokeResult.DebugMessage);
         }
 
-        if (_webAssemblyRuntime.DebugMessages.Count > 0)
+        if (_webAssemblyContract.DebugMessages.Count > 0)
         {
             transactionContext.Trace.ExecutionStatus = ExecutionStatus.ContractError;
-            transactionContext.Trace.Error = _webAssemblyRuntime.DebugMessages.First();
+            transactionContext.Trace.Error = _webAssemblyContract.DebugMessages.First();
         }
         else
         {
-            transactionContext.Trace.ReturnValue = ByteString.CopyFrom(_webAssemblyRuntime.ReturnBuffer);
+            transactionContext.Trace.ReturnValue = ByteString.CopyFrom(_webAssemblyContract.ReturnBuffer);
             transactionContext.Trace.ExecutionStatus = ExecutionStatus.Executed;
-            foreach (var depositedEvent in _webAssemblyRuntime.Events)
+            foreach (var depositedEvent in _webAssemblyContract.Events)
             {
                 transactionContext.Trace.Logs.Add(new LogEvent
                 {
@@ -104,11 +128,35 @@ public class Executive : IExecutive
             }
         }
 
-        var changes = _webAssemblyRuntime.GetChanges();
-        CurrentTransactionContext.Trace.StateSet = changes;
-
+        CurrentTransactionContext.Trace.StateSet = GetChanges();
         var e = CurrentTransactionContext.Trace.EndTime = TimestampHelper.GetUtcNow().ToDateTime();
         CurrentTransactionContext.Trace.Elapsed = (e - s).Ticks;
+    }
+
+    private TransactionExecutingStateSet GetChanges()
+    {
+        var changes = _smartContractProxy.GetChanges();
+
+        var address = _hostSmartContractBridgeContext.Self.ToStorageKey();
+        foreach (var key in changes.Writes.Keys)
+            if (!key.StartsWith(address))
+                throw new InvalidOperationException("a contract cannot access other contracts data");
+
+        foreach (var (key, value) in changes.Deletes)
+            if (!key.StartsWith(address))
+                throw new InvalidOperationException("a contract cannot access other contracts data");
+
+        foreach (var key in changes.Reads.Keys)
+            if (!key.StartsWith(address))
+                throw new InvalidOperationException("a contract cannot access other contracts data");
+
+        if (!CurrentTransactionContext.Trace.IsSuccessful())
+        {
+            changes.Writes.Clear();
+            changes.Deletes.Clear();
+        }
+
+        return changes;
     }
 
     public string GetJsonStringOfParameters(string methodName, byte[] paramsBytes)

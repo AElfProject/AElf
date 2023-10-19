@@ -110,7 +110,7 @@ public class ExecutiveTests : WebAssemblyRuntimeTestBase
         {
             var code = File.ReadAllBytes(solFilePath);
             var compiledContract = new Compiler().BuildWasm(code);
-            executive = new Executive(new UnitTestExternalEnvironment(), compiledContract.Contracts.First());
+            executive = new Executive(compiledContract.Contracts.First());
             solangAbi = JsonSerializer.Deserialize<SolangABI>(compiledContract.Contracts.First().Abi);
         }
         catch (Exception)
