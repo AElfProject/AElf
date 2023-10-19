@@ -1,54 +1,51 @@
 Creating Smart Contracts
 ========================
 
-This article will guide you through how to use **AElf Boilerplate** to
-implement a smart contract. It takes an example on the **Greeter**
-contract that’s already included in Boilerplate. Based on the concepts
-this article presents, you’ll be able to create your own basic contract.
+This article will guide you on how to use AElf-developer-tools to implement a smart contract.
+It uses the **GreeterContract** as an example, which is already included in contract templates.
+With the concepts presented in this article, you will be able to create your own basic contract.
 
-This section will guide you through how to use **AElf-Tools** and **Template** to 
-implement a smart contract. We will use **GreeterContract** as an example 
-to show how to develop a simple contract base on it. Meanwhile, introduce concepts of
-the aelf smart contracts to you.
+In this section, you will be guided on how to use AElf-Tools and Templates to implement a smart contract.
+We will use the **GreeterContract** as an example to demonstrate how to develop a simple contract based on it.
+We will also introduce you to the concepts of aelf smart contracts.
 
-**Steps of creating smart contracts**
+**Steps for developing smart contracts**
 
 The following content will walk you through the basics of writing a
 smart contract; this process contains essentially four steps:
 
--  **Install template**: install the aelf smart contract template 
-   locally using ``dotnet`` command.
+-  **Install template**: Install the aelf smart contract templates
+   locally using the dotnet command.
 
--  **Initialize project**: build the project structure and generate 
-   the base contract code from the proto definition with ``dotnet`` command.
+-  **Initialize project**: Build the project structure and generate 
+   the base contract code from the proto definition using the dotnet command.
    
--  **defining the contract**: the methods and types needed in your
-   contract should be defined in a protobuf file, following typical
-   protobuf syntax.
+-  **Define the contract**: The methods and types required in your contract 
+   should be defined in a protobuf file following the typical protobuf syntax.
 
--  **Implement contract code**: implement the logic of the contract
+-  **Implement contract code**: implement the logic for the contract
    methods.
 
-The ``Greeter`` contract is a very simple contract that exposes a
-``AddGreeters`` method to add a new greeter to GreetList, and a 
+The ``Greeter`` contract is a very simple contract that exposes an
+``AddGreeters`` method to add a new greeter to ``GreeterList``, and a 
 ``GetGreeters`` method to get all of greeters.
 
-This tutorial shows you how to develop a smart contract with the C#
-contract SDK; you can find you more
+This tutorial demonstrates how to develop a smart contract using the C# contract SDK.
+You can learn more about it
 `here <https://docs.aelf.io/en/latest/reference/contract-sdk/index.html>`__.
-AElf-Tools and Template will automatically add the reference to the SDK.
+AElf-developer-tools and contract templates will automatically add the reference to the SDK.
 
 Install template
 ----------------
 
-Installing template means to download templates from nuget repo to your local 
-environment, and install it locally. Run the following command to install it.
+Installing a template means downloading templates from the NuGet repository to your local environment 
+and installing them locally. Run the following command to install it.
 
 ::
 
     dotnet new install AElf.ContractTemplates
 
-After installing, you can use dotnet new uninstall to check this template on local.
+After installation, you can use 'dotnet new uninstall' to verify the presence of this template locally.
 
 ::
 
@@ -63,8 +60,8 @@ After installing, you can use dotnet new uninstall to check this template on loc
           Uninstall Command:
              dotnet new uninstall AElf.ContractTemplates
          
-If you can see this result, it means that the template installation is successful. 
-These information show the template name, version and other details.
+If you can see this result, it indicates that the template installation was successful. 
+This information shows the template name, version, and other details.
 
 Initialize project
 ------------------
@@ -111,9 +108,9 @@ the contract name will be ``GreeterContract``. And the namespace of the project 
 The src folder
 ^^^^^^^^^^^^^^
 
-The src folder contains several proto files used to describe blockchain smart contract methods 
+The **src** folder contains several protobuf files used to describe blockchain smart contract methods 
 and data structures. It also includes specific implementations of smart contract methods and 
-definition files for managing contract state in communication with the blockchain, such as GreeterContractState.cs here.
+definition files for managing contract state in communication with the blockchain. For example, GreeterContractState.cs is one such file.
 
 ::
 
@@ -131,6 +128,11 @@ the unit testing environment for blockchain smart contracts. It defines test mod
 facilitating context loading, stub class retrieval, and stub acquisition methods. As a result, these classes and 
 methods are employed in unit tests to conduct various tests on the smart contract.
 
+Similarly, the **test** folder contains a proto subfolder, along with a setup file used to establish 
+the unit testing environment for blockchain smart contracts. It defines test module classes and a base test class, 
+facilitating context loading, stub class retrieval, and stub acquisition methods. These classes and methods are 
+employed in unit tests to conduct various tests on the smart contract.
+
 ::
 
     src
@@ -147,13 +149,14 @@ AElf defines smart contracts as services that are implemented using gRPC and Pro
 in the proto files and do not contain logic. The proto files are used to generate C# classes that will be used to 
 implement the logic and state of the contract.
 
-In the Protobuf folder, the different folders are used to store different definition proto files 
-(If there is no corresponding folder, you can create it yourself. Only the contract and message directories are used here).
-For Protobuf under the src folder:
+In the Protobuf folder, different subfolders are used to store various definition proto files. 
+If a corresponding folder does not exist, you can create one yourself. In this context, 
+only the contract and message directories are used. Here's a breakdown of the Protobuf content under the src folder:
+
 - contract: the contract folder is used to store definition proto file of contract.
-- message: the proto files under the message folder are used to define some common properties for import and use by other proto files.
+- message: the proto files under the message folder are used to define common properties for import and use by other proto files.
 - reference: the reference folder is used to store the proto files of the referenced contract.
-- base: the reference folder is used to store the basic proto files, such as ACS (aelf standard contract) proto files.
+- base: the base folder is used to store the basic proto files, such as ACS (aelf standard contract) proto files.
 
 ::
 
@@ -164,9 +167,9 @@ For Protobuf under the src folder:
         └── message
             └── authority_info.proto
 
-The **hello_world_contract.proto** file is used for the HelloWorld contract template. We need to delete this proto file first.
-Then, create a new greet_contract.proto file, which will be used for the GreetContract contract. Let's see how to write definitions 
-in the proto file.
+The **hello_world_contract.proto** file is used as a template for the HelloWorld contract. 
+First, we need to delete this proto file. Next, we will create a new **greeter_contract.proto** file, 
+which will be used for the GreeterContract contract. Let's explore how to write definitions in the proto file.
 
 .. code:: protobuf
 
@@ -197,11 +200,13 @@ in the proto file.
         repeated string greeter = 1;
     }
 
-Above is the full definition of the contract, it is mainly composed of three parts:
-- imports: the dependencies of your contract.
-- service definitions: the methods of your contract.
-- types: some custom defined types used by the contract.
-Let’s have a deeper look at the three different parts.
+The complete contract definition consists of three main parts:
+
+- Imports: These are the dependencies of your contract.
+- Service Definitions: These define the methods of your contract.
+- Types: These are custom-defined types used by the contract.
+
+Now, let's take a closer look at these three different parts.
 
 Syntax, imports and namespace
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -216,11 +221,14 @@ Syntax, imports and namespace
     // The namespace of this class
     option csharp_namespace = "AElf.Contracts.Greeter";
 
-The first line specifies the syntax that this protobuf file uses, we recommend you always use proto3 for your contracts. 
-Next, you’ll notice that this contract specifies some imports, let’s describe them briefly:
-- aelf/options.proto : contracts can use AElf specific options. This file contains the definitions. One example is the is_view options that we will use later.
-- empty.proto, wrappers.proto : these are proto files imported directly from protobuf’s library. They are useful for defining things like an empty return value and wrappers around some common types such as string.
-The last line specifies an option that determines the target namespace of the generated code. Here the generated code will be in the ``AElf.Contracts.Greeter`` namespace.
+The first line specifies the syntax used in this protobuf file. We recommend using proto3 for your contracts. 
+Next, you will notice that this contract specifies some imports. Let's briefly describe them:
+
+- aelf/options.proto: Contracts can use AElf-specific options. This file contains the definitions, including options like is_view that we will use later.
+- empty.proto, wrappers.proto: These are proto files imported directly from the protobuf library. They are useful for defining things like an empty return value and wrappers around common types, such as strings.
+
+The last line specifies an option that determines the target namespace of the generated code. In this case, 
+the generated code will be placed in the AElf.Contracts.Greeter namespace.
 
 Service definitions
 ^^^^^^^^^^^^^^^^^^^
@@ -243,21 +251,22 @@ Service definitions
       }
     }
 
-The first line here uses the ``aelf.csharp_state`` option to specify the name (full name) of the state class. 
-This means that the state of the contract should be defined in the ``GreeterContractState`` class under the ``AElf.Contracts.Greeter`` namespace.
+In the first line, we use the ``aelf.csharp_state`` option to specify the full name of the state class. 
+This indicates that the state of the contract should be defined in the ``GreeterContractState`` class under the ``AElf.Contracts.Greeter`` namespace.
 
-Next, an action method is defined: ``AddGreeters``. A contract method is defined by three parts: the method name, 
-the input argument(s) type(s) and the output type. For example, ``AddGreeters`` requires that the input type is ``google.protobuf.StringValue`` 
-that is used to specify that this method takes an argument and the output type will be ``google.protobuf.Empty``.
+Next, an action method is defined: ``AddGreeters``. A contract method is composed of three parts: the method name, 
+the input argument type(s), and the output type. For instance, ``AddGreeters`` specifies that it requires a ``google.protobuf.StringValue`` 
+input type, indicating that this method takes an argument, and the output type will be ``google.protobuf.Empty``.
 
-Then a view method is also defined in the service: ``GetGreeters``. The method is used only to query the contract state, 
-and that has no side effect on the state. The definition of ``GetGreeters`` uses the aelf.is_view option to make it a view method.
+The service also defines a view method: ``GetGreeters``. This method is exclusively used to query the contract state 
+and has no side effects on the state. The definition of ``GetGreeters`` uses the ``aelf.is_view`` option to designate it as a view method.
 
-A brief summary follows.
-- use google.protobuf.Empty to specify that a method takes no arguments (import google/protobuf/empty.proto).
-- use google.protobuf.StringValue to use a string (import google/protobuf/wrappers.proto).
-- use the aelf.is_view option to create a view method (import aelf/options.proto).
-- use the aelf.csharp_state to specify the namespace of your contracts state (import aelf/options.proto).
+To summarize:
+
+- Use google.protobuf.Empty to specify that a method takes no arguments (import google/protobuf/empty.proto).
+- Use google.protobuf.StringValue to handle strings (import google/protobuf/wrappers.proto).
+- Use the aelf.is_view option to create a view method (import aelf/options.proto).
+- Use the aelf.csharp_state option to specify the namespace of your contract's state (import aelf/options.proto)."
 
 Custom types
 ^^^^^^^^^^^^
@@ -268,24 +277,22 @@ Custom types
         repeated string greeter = 1;
     }
 
-# todo
-The protobuf file also includes the definition of a custom type. The GreeterList is an event type (you can also define a normal type, normal type has no aelf.is_event). Event types can be used to emit an event during the execution of a contract. Normal types are used as types for input and output parameters.
+A brief summary follows:
 
-A brief summary follows.
-- use the aelf.is_event option to specify that the type will emit an event.
-- use repeated to represent a collection of items of the same type.
-
+- Use the aelf.is_event option to indicate that the type will trigger an event.
+- Use **repeated** to denote a collection of items of the same type.
 
 Implement contract code
 -----------------------
 
-After defining definitions, we need to run dotnet build command again under the src folder so that 
-recompile these proto files you defined and generate new C# code. And we can run this command again 
-after each modification of the definition to compile and generate the latest code.
+After defining the contract's structure and methods, you need to execute the dotnet build command within the src folder. 
+This will recompile the proto files and generate updated C# code. You should repeat this command every time you make changes 
+to the contract's structure to ensure the code is up to date.
 
-For now, we can extend the generated code to implement the logic of the contract. Two files are presented here:
-- GreeterContract: the actual implementation logic, it inherits from the contract base generated by proto files.
-- GreeterContractState: the state class that contains properties for reading and writing the state. This class inherits the ContractState class from the C# SDK.
+Currently, you can extend the generated code to implement the contract's logic. There are two key files involved:
+
+- GreeterContract: This file contains the actual implementation logic. It inherits from the contract base generated by the proto files.
+- GreeterContractState: This is the state class that holds properties for reading and writing the contract's state. It inherits the ContractState class from the C# SDK.
 
 .. code:: csharp
 
@@ -345,12 +352,10 @@ Asserting
 
     Assert(!string.IsNullOrWhiteSpace(input.Value), "Invalid name.");
 
-When writing a smart contract, it is often useful (and recommended) to
-validate the input. AElf smart contracts can use the ``Assert`` method
-defined in the base smart contract class to implement this pattern. For
-example, here, the method validates that the input string is null or
-composed only of white spaces. If the condition is false, this line will
-abort the execution of the transaction.
+When writing a smart contract, it is often useful and recommended to validate the input. AElf smart contracts can utilize 
+the ``Assert`` method defined in the base smart contract class to implement this pattern. For example, in the following method, 
+validation checks if the input string is null or consists only of white spaces. If this condition evaluates to false, 
+the transaction execution will be terminated.
 
 Saving and reading state
 ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -361,16 +366,15 @@ Saving and reading state
     ...
     var greeterList = State.GreeterList.Value;
 
-From within the contract methods, you can easily save and read the contracts state through the 
-State property of the contract. Here the state property refers to the GreeterContractState class. 
-The first one is to save the input value to the state, and the second one is to read the value from the state.
+From within the contract methods, you can easily save and read the contract's state using the State property of the contract. 
+In this context, the State property refers to the GreeterContractState class. The first line is used to save the input value to the state, 
+while the second line is used to retrieve the value from the state.
 
 Contract state
 ^^^^^^^^^^^^^^
 
-As a reminder, here is the state definition in the contract (we
-specified the name of the class and a type) as well as the custom type
-``GreeterList``:
+As a reminder, here is the state definition in the contract where we specify the name of the class and its type, 
+along with the custom type ``GreeterList``:
 
 .. code:: csharp
 
@@ -379,9 +383,11 @@ specified the name of the class and a type) as well as the custom type
         public SingletonState<GreeterList> GreeterList { get; set; }
     }
 
-The aelf.csharp_state option allows the contract author to specify in which namespace and class name the state will be. 
-To implement a state class, you need to inherit from the ContractState class that is contained in the C# SDK.
-For the type of properties under the state. We have a generic way of writing.
-- For save and read a single object: use SingletonState<ClassType>.
-- For save and read a key-value pair: use MappedState<KeyClassType, ValueClassType>
-We also can use StringState instead of SingletonState<ClassType> after we are familiar with all the usages of the state.
+The aelf.csharp_state option allows the contract author to specify the namespace and class name for the state. 
+To implement a state class, you need to inherit from the ContractState class provided by the C# SDK. 
+When defining properties under the state, we follow a generic approach:
+
+- To save and read a single object: use SingletonState<ClassType>.
+- To save and read a key-value pair: use MappedState<KeyClassType, ValueClassType>.
+
+After becoming familiar with all state usages, you can also use StringState as an alternative to SingletonState<ClassType>.

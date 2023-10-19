@@ -78,9 +78,9 @@ Write Contract
 --------------
 
 create and initialize project
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-create a new folder named BingoGame. Then run the following commands to new and initialize contract project.
+Begin by creating a new folder named BingoGame. Then execute the following commands to create and initialize the contract project.
 
 ::
 
@@ -91,9 +91,8 @@ create a new folder named BingoGame. Then run the following commands to new and 
 
     dotnet new aelf -n BingoGameContract -N AElf.Contracts.BingoGame
 
-After running successfully, you will see the `src` and `test` directory under the
-BingoGame directory. Open the src and test folders, you will see that the contract module 
-and test case module of the BingoGame contract.
+After a successful execution, you will find src and test directories within the BingoGame directory. 
+Upon opening these folders, you will discover the contract module and test case module for the BingoGame contract.
 
 Define Proto
 ~~~~~~~~~~~~
@@ -145,7 +144,7 @@ bingo_contract.proto file is as follows:
         int64 bingo_block_height = 6;
     }
 
-You need to delete `hello_world_contract.proto` first. Then create a new proto file, and write the definition content. 
+You need to delete ``hello_world_contract.proto`` first. Then create a new proto file, and write the definition content. 
 The contract/reference/base proto files need to be placed different directories. Please refer to the following rules (If there is no corresponding folder, you can create it yourself).
 
 For Protobuf under the **src** folder:
@@ -154,10 +153,22 @@ For Protobuf under the **src** folder:
 - reference: the reference folder is used to store the proto files of the referenced contract.
 - base: the reference folder is used to store the basic proto files, such as ACS (aelf standard contract) proto files.
 
-For Protobuf under the **test** folder:
-- contract: the contract folder is used to store definition proto files of contract and referenced.
-- message: the proto files under the message folder are used to define some common properties for import and use by other proto files, same as src one.
-- base: the reference folder is used to store the basic proto files, such as ACS (aelf standard contract) proto files, same as src one.
+Begin by deleting the ``hello_world_contract.proto`` file. Afterward, create a new proto file and define its contents. 
+It's important to organize your proto files according to the following rules. If the corresponding folders do not exist, 
+you can create them as needed.
+
+For Protobuf files under the **src** folder:
+
+- contract: The contract folder is used to store the definition proto files for your contract.
+- message: The proto files under the message folder are utilized to define common properties that can be imported and used by other proto files.
+- reference: The reference folder is dedicated to storing proto files for contracts that are referenced by your contract.
+- base: Within the base folder, you store basic proto files, such as ACS (AElf standard contract) proto files.
+
+For Protobuf files under the **test** folder:
+
+- contract: The contract folder is used to store definition proto files for both your contract and any referenced contracts.
+- message: Similar to the message folder in the src directory, this folder is used to define common properties for import and use by other proto files.
+- base: The base folder houses basic proto files, including ACS proto files, just like in the src directory.
 
 Contract Implementation
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -211,10 +222,8 @@ Bingo：
 Write Test
 ----------
 
-Because the token transfer is involved in this test, in addition to
-constructing the stub of the bingo contract, the stub of the token
-contract is also required, so the code referenced in csproj for the
-proto file is:
+Due to the token transfer involved in this test, it's essential to construct not only the stub for the Bingo contract 
+but also the stub for the Token contract. Ensure that the code referenced in the .csproj file for the proto file is as follows:
 
 ::
 

@@ -1,17 +1,15 @@
 Development Environment
 =======================
 
-Before you get started with the tutorials, you need to install the
-following tools and frameworks.
+Before you begin the tutorials, you need to install the following tools and frameworks.
 
-**Note that if you just want to learn smart contract development, you only need to install .NET SDK. 
-Other tools are used to start aelf nodes, publish contracts and etc. 
-The installation of these tools is optional and you can install them when you need them.**
+**Please note that if you are solely interested in learning smart contract development, 
+you only need to install the .NET SDK. Other tools are used to start aelf nodes, publish contracts, and more. 
+The installation of these tools is optional, and you can install them as needed.**
 
-For most of these dependencies, we provide command line instructions for
-macOS, Linux Ubuntu 18, and Windows. In case any problems occur or if
-you have more complex needs, please leave a message on GitHub and we
-will handle it ASAP.
+For most of these dependencies, we provide command-line instructions for macOS, Linux (Ubuntu 18), and Windows.
+If you encounter any issues or have more complex requirements, please leave a message on GitHub, 
+and we will address them as soon as possible.
 
 macOS
 -----

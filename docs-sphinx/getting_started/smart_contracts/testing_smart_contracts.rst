@@ -4,15 +4,15 @@ Testing Smart Contracts
 GreeterContract Testing
 -----------------------
 
-The aelf-developer-tools greatly simplifies unit tests. This tutorial will test the GreeterContract for reference.
+The aelf-developer-tools greatly simplify unit tests. This tutorial will demonstrate how to test the GreeterContract for reference.
 
-AElf Contract TestKit is a testing framework specifically used to test AElf smart contracts. With this framework,
-you can simulate the execution of a transaction by constructing a stub of a smart contract and using the methods provided 
-by the Stub instance (corresponding to the contract's Actions methods) and query (corresponding to the Views methods of the contract), 
-and then get the transaction execution results in the test case.
+AElf Contract TestKit is a testing framework designed specifically for testing AElf smart contracts. With this framework, 
+you can simulate the execution of a transaction by constructing a stub of a smart contract and utilize the methods provided 
+by the Stub instance (corresponding to the contract's Action methods) for executing transactions and 
+queries (corresponding to the Views methods of the contract) to obtain transaction execution results in the test case.
 
-As you can see, test code is placed in the test folder. This test folder usually contains a project file (.csproj) and at least two .cs files. 
-The project file is a basic C# xUnit test project file, to which we've added some references.
+As you can observe, the test code is located within the test folder. Typically, this test folder contains a project file (.csproj) 
+and at least two .cs files. The project file serves as a standard C# xUnit test project file, with additional references included as needed.
 
 ::
 
@@ -27,18 +27,20 @@ The project file is a basic C# xUnit test project file, to which we've added som
     └── _Setup.cs
 
 **Steps of testing smart contracts**
-The testing process is quite similar to the development process.
-- Defining the contract: the methods and types needed in your contract should be defined in a protobuf file, they are same as the src. We can simply copy them to test folders.
-- Setting up testing context: to test contracts locally, we need to simulate the execution of a transaction by constructing a stub. Here, we will set up some context and stub required for testing.
-- Implement contract unit test code: implement the logic of unit test methods.
+The testing process closely mirrors the development process and generally consists of the following steps:
+
+- Defining the Contract: All the required methods and types for your contract should be defined in a protobuf file. These definitions are identical to those in the src folder, and you can simply copy them to the test folder.
+- Setting up the Testing Context: To conduct local contract testing, it's essential to simulate the execution of a transaction by creating a stub. In this step, you will configure the necessary context and stub components needed for testing.
+- Implementing Contract Unit Test Code: Create the logic for unit test methods, which will test the contract's functionality and ensure it works as expected.
 
 Defining the contract
 ^^^^^^^^^^^^^^^^^^^^^
 
-The Protobuf folder under the test directory serves the same purpose as the src directory, but with slightly different folder names.
-For Protobuf under the test folder:
-- message: the proto files under the message folder are used to define some common properties for import and use by other proto files.
-- stub: the stub folder contains contract proto files for unit testing, as well as other proto files that are dependent on and imported into this test proto file.
+The Protobuf folder within the test directory serves a similar purpose to the src directory but with slightly different folder names. 
+For the Protobuf section within the test folder, the following applies:
+
+- message: The proto files contained in the message folder are used to define common properties that can be imported and utilized by other proto files.
+- stub: The stub folder houses contract proto files dedicated to unit testing. Additionally, it may contain other proto files that this test proto file depends on and imports.
 
 ::
 
@@ -49,14 +51,14 @@ For Protobuf under the test folder:
         └── stub
             └── hello_world_contract.proto
 
-We just need to copy these proto files of the src folder and paste them here. Please note that the contract proto files 
-in the src folder and other proto files that are dependencies need to be placed in the stub folder.
+You can copy the necessary proto files from the src folder and paste them into the stub folder. It's important to ensure that 
+contract proto files from the src folder and any dependent proto files are correctly placed in the stub directory.
 
 Setting up testing context
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-To test contract methods locally, we need to set up the context required for testing, which primarily involves 
-getting the stub for the contract. Here is the content of _Setup.cs file.
+To locally test contract methods, you need to establish the context required for testing. This process primarily 
+involves obtaining the stub for the contract. Below is the content of the **_Setup.cs** file:
 
 .. code:: csharp
 
@@ -88,16 +90,19 @@ getting the stub for the contract. Here is the content of _Setup.cs file.
         }   
     }
 
-TestBase inherits ContractTestBase<Module>. Then we define a contract stub under the class, and get a keyPair from the 
-aelf contract TestKit framework. Later, in the constructor, we input the address and keyPair parameters and use the GetTester method to get the contract stub.
+In this code, TestBase inherits ContractTestBase<Module> and defines a contract stub within the class. 
+It also obtains a key pair from the AElf contract TestKit framework. In the constructor, the address and 
+key pair parameters are provided, and the "GetTester" method is used to retrieve the contract stub.
 
 Implement contract unit test code
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Now for the easy part, the test class only needs to inherit from the TestBase. After this, you can write unit test implementations you need.
+Now comes the easy part: the test class only needs to inherit from TestBase. Once you've done that, 
+you can proceed to write the unit test implementations you require.
 
-Here, we can call the Update method to save the message to the state first, then call the Read method to retrieve the message from the state. 
-Finally, we compare the retrieved message with the message inputed to check whether the values are the same.
+In this section, you can use the ``AddGreetersTest`` method to save a message to the state. Following that, 
+you can call the ``GetGreeters`` method to retrieve the message from the state. Finally, you can compare the retrieved message 
+with the originally input message to verify whether the values match.
 
 .. code:: csharp
 

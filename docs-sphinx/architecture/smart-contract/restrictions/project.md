@@ -1,7 +1,7 @@
 # Contract Project Requirements
 
 ## Project Properties
-- It is required to add a contract proto file under the contract directory of your contract project, so that the contract's DLL will be post processed by AElf's contract patcher to perform necessary injections that are required by code checks during deployment. Otherwise, deployment will fail.
+- It is necessary to add a contract proto file to the contract directory of your contract project. This step ensures that the contract's DLL will undergo post-processing by AElf's contract patcher, enabling it to perform the necessary injections required for code checks during deployment. Failure to do so will result in a deployment failure
 
 ```
 src
