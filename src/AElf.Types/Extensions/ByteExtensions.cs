@@ -77,6 +77,16 @@ public static class ByteExtensions
         Buffer.BlockCopy(bytes, 0, paddedBytes, length - bytes.Length, bytes.Length);
         return paddedBytes;
     }
+    
+    public static byte[] RightPad(this byte[] bytes, int length)
+    {
+        if (length <= bytes.Length)
+            return bytes;
+
+        var paddedBytes = new byte[length];
+        Buffer.BlockCopy(bytes, length - bytes.Length, paddedBytes, length - 1, bytes.Length);
+        return paddedBytes;
+    }
 
     /// <summary>
     ///     Find subarray in the source array.

@@ -23,13 +23,11 @@ public class BallotContractTests : SolidityContractTestBase
         var solidityCode = await File.ReadAllBytesAsync(solFilePath);
         var proposals = new List<byte[]>(new[]
         {
-            Encoding.UTF8.GetBytes("Proposal #1").ComputeHash(),
-            Encoding.UTF8.GetBytes("Proposal #2").ComputeHash()
+            Encoding.UTF8.GetBytes("Proposal #1"),
+            Encoding.UTF8.GetBytes("Proposal #2")
         });
-        var input = ByteString.CopyFrom(new ABIEncode().GetABIEncoded(new ABIValue("bytes32", proposals[0])));
-        var hexInput = input.ToHex();
+        var input = ByteString.CopyFrom(new ABIEncode().GetABIEncoded(new ABIValue("bytes32[]", proposals)));
         var executionResult = await DeployWebAssemblyContractAsync(solidityCode, input);
-        //var executionResult = await DeployWebAssemblyContractAsync(solidityCode);
         executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
         executionResult.TransactionResult.Logs.Count.ShouldBePositive();
         return executionResult.Output;
@@ -42,11 +40,6 @@ public class BallotContractTests : SolidityContractTestBase
         var tx = await GetTransactionAsync(DefaultSenderKeyPair, contractAddress, "proposals");
         var txResult = await TestTransactionExecutor.ExecuteAsync(tx);
         txResult.Status.ShouldBe(TransactionResultStatus.Mined);
-        txResult.ReturnValue.ShouldNotBeNull();
-    }
-
-    private ABIValue GetBytes32ABIValue(string str)
-    {
-        return new ABIValue("bytes32", HashHelper.ComputeFrom(str).ToByteArray());
+        txResult.ReturnValue.IsEmpty.ShouldBeFalse();
     }
 }

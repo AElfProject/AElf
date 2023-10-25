@@ -8,6 +8,7 @@ using Blake2Fast;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Nethereum.Util;
+using Secp256k1Net;
 using Wasmtime;
 using Module = Wasmtime.Module;
 
@@ -272,6 +273,7 @@ public partial class WebAssemblyContract : CSharpSmartContract<WebAssemblyContra
     private int CodeHash(int accountPtr, int outPtr, int outLenPtr)
     {
         var address = ReadSandboxMemory(accountPtr, 32);
+        State.GenesisContract.Value = Context.GetZeroSmartContractAddress();
         var value = State.GenesisContract.GetContractHash.Call(Types.Address.FromBytes(address));
         if (value == null)
         {
@@ -360,7 +362,7 @@ public partial class WebAssemblyContract : CSharpSmartContract<WebAssemblyContra
         WriteSandboxOutput(outPtr, outLenPtr,
             new FeeService(new IFeeProvider[]
             {
-                new LengthFeeProvider(), 
+                new LengthFeeProvider(),
                 new WeightFeeProvider(new FeeFunctionProvider())
             }).CalculateFees(new Weight(gas, 0)));
     }
@@ -403,7 +405,7 @@ public partial class WebAssemblyContract : CSharpSmartContract<WebAssemblyContra
     /// <param name="outLenPtr"></param>
     private void GasLeftV0(int outPtr, int outLenPtr)
     {
-        
+
     }
 
     /// <summary>
@@ -420,7 +422,7 @@ public partial class WebAssemblyContract : CSharpSmartContract<WebAssemblyContra
     /// <param name="outLenPtr"></param>
     private void GasLeftV1(int outPtr, int outLenPtr)
     {
-        
+
     }
 
     /// <summary>
@@ -821,9 +823,24 @@ public partial class WebAssemblyContract : CSharpSmartContract<WebAssemblyContra
     private int EcdsaToEthAddress(int keyPtr, int outPtr)
     {
         var compressedKey = ReadSandboxMemory(keyPtr, 33);
-        var ethAddress = _externalEnvironment.EcdsaToEthAddress(compressedKey);
+        var ethAddress = EcdsaToEthAddress(compressedKey);
         WriteSandboxMemory(outPtr, ethAddress);
         return (int)ReturnCode.Success;
+    }
+
+    private byte[] EcdsaToEthAddress(byte[] pubkey)
+    {
+        if (pubkey.Length != Secp256k1.SERIALIZED_UNCOMPRESSED_PUBKEY_LENGTH)
+        {
+            throw new ArgumentException("Incorrect pubkey size.");
+        }
+
+        var pubkeyNoPrefixCompressed = new byte[pubkey.Length - 1];
+        Array.Copy(pubkey, 1, pubkeyNoPrefixCompressed, 0, pubkeyNoPrefixCompressed.Length);
+        var initAddress = new Sha3Keccack().CalculateHash(pubkeyNoPrefixCompressed);
+        var address = new byte[initAddress.Length - 12];
+        Array.Copy(initAddress, 12, address, 0, initAddress.Length - 12);
+        return address;
     }
 
     /// <summary>
@@ -904,7 +921,7 @@ public partial class WebAssemblyContract : CSharpSmartContract<WebAssemblyContra
         if (createToken != null)
         {
             var (runtimeCosts, size) = createToken.Invoke(len);
-            _externalEnvironment.ChargeGasAsync(runtimeCosts, size);
+            //_externalEnvironment.ChargeGasAsync(runtimeCosts, size);
         }
 
         WriteSandboxMemory(outPtr, buf);
@@ -955,16 +972,15 @@ public partial class WebAssemblyContract : CSharpSmartContract<WebAssemblyContra
 
     #endregion
 
-
     private void HandleError(WebAssemblyError error)
     {
-        _externalEnvironment.AppendDebugBuffer(error.ToString());
+        DebugMessages.Add(error.ToString());
         throw new WebAssemblyRuntimeException(error.ToString());
     }
 
     private void HandleError(DispatchError error)
     {
-        _externalEnvironment.AppendDebugBuffer(error.ToString());
+        DebugMessages.Add(error.ToString());
         throw new WebAssemblyRuntimeException(error.ToString());
     }
 }

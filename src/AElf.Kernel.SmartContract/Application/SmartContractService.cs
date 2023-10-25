@@ -64,15 +64,6 @@ public class SmartContractService : ISmartContractService, ITransientDependency
         };
     }
 
-    public async Task ExecuteConstructorAsync(SmartContractRegistration registration, Address author,
-        Address contractAddress, ByteString constructorInput)
-    {
-        if (registration.Category == KernelConstants.SolidityRunnerCategory)
-        {
-            await ExecuteSolidityContractConstructorAsync(registration, author, contractAddress, constructorInput);
-        }
-    }
-
     private void CheckRunner(int category)
     {
         _smartContractRunnerContainer.GetRunner(category);
@@ -99,26 +90,5 @@ public class SmartContractService : ISmartContractService, ITransientDependency
         }
 
         return new Version(previousContractVersion) < new Version(newContractVersion);
-    }
-
-    private async Task ExecuteSolidityContractConstructorAsync(SmartContractRegistration registration, Address author,
-        Address contractAddress, ByteString constructorInput)
-    {
-        var wasmRunner = _smartContractRunnerContainer.GetRunner(KernelConstants.SolidityRunnerCategory);
-        var wasmExecutive = await wasmRunner.RunAsync(registration);
-        var context = _hostSmartContractBridgeContextService.Create();
-        wasmExecutive.SetHostSmartContractBridgeContext(context);
-        await wasmExecutive.ApplyAsync(new TransactionContext
-        {
-            Origin = contractAddress,
-            Transaction = new Transaction
-            {
-                From = author,
-                To = contractAddress,
-                MethodName = "deploy",
-                Params = constructorInput
-            },
-            Trace = new TransactionTrace()
-        });
     }
 }

@@ -2,7 +2,6 @@ using System.IO;
 using System.Threading.Tasks;
 using AElf.ContractTestKit;
 using AElf.Runtime.WebAssembly.Extensions;
-using AElf.Runtime.WebAssembly.Tests;
 using AElf.Types;
 using Google.Protobuf;
 using Nethereum.ABI;

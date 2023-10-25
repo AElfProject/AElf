@@ -1,6 +1,7 @@
 using AElf.Contracts.MultiToken;
 using AElf.Runtime.WebAssembly.Extensions;
 using AElf.Sdk.CSharp;
+using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
@@ -62,12 +63,6 @@ public partial class WebAssemblyContract
     /// </returns>
     private int SetStorageV2(int keyPtr, int keyLen, int valuePtr, int valueLen)
     {
-        State.TokenContract.Value = Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
-        var balance = State.TokenContract.GetBalance.Call(new GetBalanceInput
-        {
-            Owner = Context.Sender,
-            Symbol = "ELF"
-        });
         Console.WriteLine($"SetStorage: {keyPtr}, {keyLen}, {valuePtr}, {valueLen}");
         var key = new Key { KeyType = KeyType.Var, KeyValue = new byte[keyLen] };
         return SetStorage(key, keyPtr, valuePtr, valueLen);
@@ -89,8 +84,8 @@ public partial class WebAssemblyContract
     private WriteOutcome SetStorage(byte[] key, BytesValue? value, bool takeOld)
     {
         WriteOutcome writeOutcome;
-        var stateKey = key.ToStateKey(Context.Self);
-        var oldValue = State.Database[Context.Self][stateKey];
+        var keyHash = HashHelper.ComputeFrom(key);
+        var oldValue = State.Database[keyHash];
         if (oldValue != null)
         {
             if (takeOld)
@@ -118,11 +113,11 @@ public partial class WebAssemblyContract
 
             if (value != null)
             {
-                State.Database[Context.Self][stateKey] = value;
+                State.Database[keyHash] = value;
             }
             else
             {
-                State.Database[Context.Self].Remove(stateKey);
+                State.Database.Remove(keyHash);
             }
         }
         else
@@ -130,7 +125,7 @@ public partial class WebAssemblyContract
             writeOutcome = new WriteOutcome { WriteOutcomeType = WriteOutcomeType.New };
             if (value != null)
             {
-                State.Database[Context.Self][stateKey] = value;
+                State.Database[keyHash] = value;
             }
         }
 
@@ -296,7 +291,7 @@ public partial class WebAssemblyContract
         }
 
         var key = ReadSandboxMemory(keyPtr, keyLen);
-        var writeOutcome = _externalEnvironment.SetStorage(key, null, true);
+        var writeOutcome = SetStorage(key, null, true);
         if (writeOutcome.WriteOutcomeType == WriteOutcomeType.Taken)
         {
             WriteSandboxOutput(outPtr, outLenPtr, ByteArrayHelper.HexStringToByteArray(writeOutcome.Value));
@@ -310,6 +305,6 @@ public partial class WebAssemblyContract
 
     private BytesValue ReadState(byte[] key)
     {
-        return State.Database[Context.Self][key.ToStateKey(Context.Self)];
+        return State.Database[HashHelper.ComputeFrom(key)];
     }
 }

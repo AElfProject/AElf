@@ -22,8 +22,6 @@ public interface ISmartContractBridgeService
 
     Task<ContractInfoDto> UpdateContractAsync(string previousContractVersion, SmartContractRegistration registration);
 
-    Task ExecuteConstructorAsync(SmartContractRegistration registration, Address author, Address contractAddress, ByteString constructorInput);
-
     Task<ContractVersionCheckDto> CheckContractVersionAsync(string previousContractVersion, SmartContractRegistration registration);
 
     Task<List<Transaction>> GetBlockTransactions(Hash blockHash);
@@ -90,11 +88,6 @@ public class SmartContractBridgeService : ISmartContractBridgeService
     public async Task<ContractInfoDto> UpdateContractAsync(string previousContractVersion,SmartContractRegistration registration)
     {
         return await _smartContractService.UpdateContractAsync(previousContractVersion,registration);
-    }
-
-    public async Task ExecuteConstructorAsync(SmartContractRegistration registration, Address author, Address contractAddress, ByteString constructorInput)
-    {
-        await _smartContractService.ExecuteConstructorAsync(registration, author, contractAddress, constructorInput);
     }
 
     public async Task<ContractVersionCheckDto> CheckContractVersionAsync(string previousContractVersion,SmartContractRegistration registration)

@@ -36,7 +36,6 @@
         <ProjectReference Include="..\..\contract\AElf.Contracts.Consensus.AEDPoS\AElf.Contracts.Consensus.AEDPoS.csproj" />
         <ProjectReference Include="..\..\contract\AElf.Contracts.Parliament\AElf.Contracts.Parliament.csproj" />
         <ProjectReference Include="..\..\src\AElf.Runtime.WebAssembly\AElf.Runtime.WebAssembly.csproj" />
-        <ProjectReference Include="..\AElf.Runtime.WebAssembly.Tests\AElf.Runtime.WebAssembly.Tests.csproj" />
     </ItemGroup>
     <ItemGroup>
         <CommonMessage Include="..\..\protobuf\authority_info.proto">
@@ -84,6 +83,12 @@
         </None>
         <None Update="contracts\*\*.sol">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+        <None Update="contracts\delegate_call_delegator.sol">
+          <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+        <None Update="contracts\Ballot2.sol">
+          <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
     </ItemGroup>
 </Project>

@@ -4,8 +4,6 @@ using AElf.Kernel;
 using AElf.Kernel.Infrastructure;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Infrastructure;
-using AElf.Runtime.CSharp;
-using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.Reflection;
@@ -26,7 +24,7 @@ public class Executive : IExecutive
 
     private readonly SolangABI _solangAbi;
     private readonly WebAssemblyContract _webAssemblyContract;
-    private readonly CSharpSmartContractProxy _smartContractProxy;
+    private readonly WebAssemblySmartContractProxy _smartContractProxy;
 
     private IHostSmartContractBridgeContext _hostSmartContractBridgeContext;
     private ITransactionContext CurrentTransactionContext => _hostSmartContractBridgeContext.TransactionContext;
@@ -38,7 +36,8 @@ public class Executive : IExecutive
         ContractHash = HashHelper.ComputeFrom(wasmCode);
         _webAssemblyContract = new WebAssemblyContract(wasmCode);
         _smartContractProxy =
-            new CSharpSmartContractProxy(_webAssemblyContract, typeof(ExecutionObserverProxy));
+            new WebAssemblySmartContractProxy(_webAssemblyContract, typeof(ExecutionObserverProxy));
+
         // TODO: Maybe we are able to know the solidity code version.
         ContractVersion = "Unknown solidity version.";
     }
@@ -74,25 +73,66 @@ public class Executive : IExecutive
 
     private void Execute()
     {
-        var s = CurrentTransactionContext.Trace.StartTime = TimestampHelper.GetUtcNow().ToDateTime();
+        var startTime = CurrentTransactionContext.Trace.StartTime = TimestampHelper.GetUtcNow().ToDateTime();
         var methodName = CurrentTransactionContext.Transaction.MethodName;
 
-        var transactionContext = _hostSmartContractBridgeContext.TransactionContext;
-        var transaction = transactionContext.Transaction;
-
-        var isCallConstructor = transaction.MethodName == "deploy";
-
-        if (isCallConstructor && _hostSmartContractBridgeContext.Origin != transaction.To)
+        try
         {
-            transactionContext.Trace.ExecutionStatus = ExecutionStatus.Prefailed;
-            transactionContext.Trace.Error = "Cannot execute constructor.";
-            return;
+            var transactionContext = _hostSmartContractBridgeContext.TransactionContext;
+            var transaction = transactionContext.Transaction;
+
+            var isCallConstructor = methodName == "deploy";
+
+            if (isCallConstructor && _hostSmartContractBridgeContext.Sender != _hostSmartContractBridgeContext.GetZeroSmartContractAddress())
+            {
+                transactionContext.Trace.ExecutionStatus = ExecutionStatus.Prefailed;
+                transactionContext.Trace.Error = "Cannot execute constructor.";
+                return;
+            }
+
+            var selector = isCallConstructor ? _solangAbi.GetConstructor() : methodName;
+            var action = GetAction(selector, transaction.Params.ToHex(), isCallConstructor);
+            var invokeResult = new RuntimeActionInvoker().Invoke(action);
+
+            if (!invokeResult.Success)
+            {
+                _webAssemblyContract.DebugMessages.Add(invokeResult.DebugMessage);
+            }
+
+            if (_webAssemblyContract.DebugMessages.Count > 0)
+            {
+                transactionContext.Trace.ExecutionStatus = ExecutionStatus.ContractError;
+                transactionContext.Trace.Error = _webAssemblyContract.DebugMessages.First();
+            }
+            else
+            {
+                transactionContext.Trace.ReturnValue = ByteString.CopyFrom(_webAssemblyContract.ReturnBuffer);
+                transactionContext.Trace.ExecutionStatus = ExecutionStatus.Executed;
+                foreach (var depositedEvent in _webAssemblyContract.Events)
+                {
+                    transactionContext.Trace.Logs.Add(new LogEvent
+                    {
+                        Address = transaction.To,
+                        Name = depositedEvent.Item1.ToHex(),
+                        NonIndexed = ByteString.CopyFrom(depositedEvent.Item2)
+                    });
+                }
+            }
+
+            CurrentTransactionContext.Trace.StateSet = GetChanges();
+        }
+        catch (Exception ex)
+        {
+            CurrentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.SystemError;
+            CurrentTransactionContext.Trace.Error += ex + "\n";
         }
 
-        var selector = transaction.MethodName == "deploy"
-            ? _solangAbi.GetSelector(transaction.MethodName)
-            : transaction.MethodName;
-        var parameter = transaction.Params.ToHex();
+        var endTime = CurrentTransactionContext.Trace.EndTime = TimestampHelper.GetUtcNow().ToDateTime();
+        CurrentTransactionContext.Trace.Elapsed = (endTime - startTime).Ticks;
+    }
+
+    private Func<ActionResult> GetAction(string selector, string parameter, bool isCallConstructor)
+    {
         _webAssemblyContract.Input = Encoders.Hex.DecodeData(selector + parameter);
         var instance = _webAssemblyContract.Instantiate();
         var actionName = isCallConstructor ? "deploy" : "call";
@@ -102,35 +142,7 @@ public class Executive : IExecutive
             throw new WebAssemblyRuntimeException($"error: {actionName} export is missing");
         }
 
-        var invokeResult = new RuntimeActionInvoker().Invoke(action);
-        if (!invokeResult.Success)
-        {
-            _webAssemblyContract.DebugMessages.Add(invokeResult.DebugMessage);
-        }
-
-        if (_webAssemblyContract.DebugMessages.Count > 0)
-        {
-            transactionContext.Trace.ExecutionStatus = ExecutionStatus.ContractError;
-            transactionContext.Trace.Error = _webAssemblyContract.DebugMessages.First();
-        }
-        else
-        {
-            transactionContext.Trace.ReturnValue = ByteString.CopyFrom(_webAssemblyContract.ReturnBuffer);
-            transactionContext.Trace.ExecutionStatus = ExecutionStatus.Executed;
-            foreach (var depositedEvent in _webAssemblyContract.Events)
-            {
-                transactionContext.Trace.Logs.Add(new LogEvent
-                {
-                    Address = transaction.To,
-                    Name = depositedEvent.Item1.ToHex(),
-                    NonIndexed = ByteString.CopyFrom(depositedEvent.Item2)
-                });
-            }
-        }
-
-        CurrentTransactionContext.Trace.StateSet = GetChanges();
-        var e = CurrentTransactionContext.Trace.EndTime = TimestampHelper.GetUtcNow().ToDateTime();
-        CurrentTransactionContext.Trace.Elapsed = (e - s).Ticks;
+        return action;
     }
 
     private TransactionExecutingStateSet GetChanges()

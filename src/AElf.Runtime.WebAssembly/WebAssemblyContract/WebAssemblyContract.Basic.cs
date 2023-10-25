@@ -20,7 +20,6 @@ public partial class WebAssemblyContract
     /// <param name="outLenPtr"></param>
     private void InputV0(int outPtr, int outLenPtr)
     {
-        _externalEnvironment.ChargeGasAsync(RuntimeCosts.InputBase);
         if (Input == null)
         {
             HandleError(WebAssemblyError.InputForwarded);
@@ -54,7 +53,7 @@ public partial class WebAssemblyContract
     /// <param name="dataLen"></param>
     private void SealReturnV0(int flags, int dataPtr, int dataLen)
     {
-        _externalEnvironment.ChargeGasAsync(RuntimeCosts.Return, dataLen);
+        ChargeGas(RuntimeCosts.Return, dataLen);
         ReturnFlags = (ReturnFlags)flags;
         ReturnBuffer = ReadSandboxMemory(dataPtr, dataLen);
     }
@@ -78,13 +77,7 @@ public partial class WebAssemblyContract
     /// <param name="outLenPtr"></param>
     private void Caller(int outPtr, int outLenPtr)
     {
-        if (_externalEnvironment.Caller == null)
-        {
-            HandleError(DispatchError.RootNotAllowed);
-            return;
-        }
-
-        var sender = _externalEnvironment.Caller.ToByteArray();
+        var sender = Context.Sender.ToByteArray();
         WriteSandboxOutput(outPtr, outLenPtr, sender);
     }
 
@@ -174,5 +167,10 @@ public partial class WebAssemblyContract
         {
             return (int)ReturnCode.CallRuntimeFailed;
         }
+    }
+    
+    private void ChargeGas(RuntimeCosts runtimeCosts, long size = 0)
+    {
+        
     }
 }

@@ -201,6 +201,24 @@ public class CSharpSmartContractContext : ISmartContractBridgeContext
     }
 
     /// <summary>
+    ///     Calls a method on another contract.
+    /// </summary>
+    /// <param name="fromAddress">The address to use as sender.</param>
+    /// <param name="toAddress">The address of the contract you're seeking to interact with.</param>
+    /// <param name="methodName">The name of method you want to call.</param>
+    /// <param name="args">
+    ///     The input arguments for calling that method. This is usually generated from the protobuf
+    ///     definition of the input type
+    /// </param>
+    /// <typeparam name="T">The type of the return message.</typeparam>
+    /// <returns>The result of the call.</returns>
+    public T Execute<T>(Address fromAddress, Address toAddress, string methodName, ByteString args)
+        where T : IMessage<T>, new()
+    {
+        return SmartContractBridgeContextImplementation.Execute<T>(fromAddress, toAddress, methodName, args);
+    }
+
+    /// <summary>
     ///     Sends an inline transaction to another contract.
     /// </summary>
     /// <param name="toAddress">The address of the contract you're seeking to interact with.</param>

@@ -12,9 +12,9 @@ namespace AElf.Runtime.WebAssembly;
 public class WebAssemblyContractState : ContractState
 {
     /// <summary>
-    /// Contract Address -> StateKey -> Value
+    /// Hash Key -> Value
     /// </summary>
-    public MappedState<Address, string, BytesValue> Database { get; set; }
+    public MappedState<Hash, BytesValue> Database { get; set; }
 
     internal ACS0Container.ACS0ReferenceState GenesisContract { get; set; }
 

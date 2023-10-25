@@ -9,7 +9,6 @@ namespace AElf.Runtime.WebAssembly.Tests;
 
 public class UnitTestExternalEnvironment : IExternalEnvironment, ITransientDependency
 {
-    private readonly ICSharpContractReader _contractReader;
     private IHostSmartContractBridgeContext? HostSmartContractBridgeContext { get; set; }
     public Dictionary<string, ByteString> Writes { get; set; } = new();
     public Dictionary<string, bool> Reads { get; set; } = new();
@@ -152,15 +151,24 @@ public class UnitTestExternalEnvironment : IExternalEnvironment, ITransientDepen
 
     public Hash? CodeHash(byte[] address)
     {
-        var codeHash = _contractReader.GetContractHashAsync(Types.Address.FromBytes(address), Types.Address.FromBytes(address)).Result;
-        return codeHash;
+        return Hash.LoadFromByteArray(new byte[]
+        {
+            11, 11, 11, 11, 11, 11, 11, 11,
+            11, 11, 11, 11, 11, 11, 11, 11,
+            11, 11, 11, 11, 11, 11, 11, 11,
+            11, 11, 11, 11, 11, 11, 11, 11,
+        });
     }
 
-    public Hash OwnCodeHash() 
+    public Hash OwnCodeHash()
     {
-        var address = HostSmartContractBridgeContext!.Sender.ToByteArray();
-        var codeHash = _contractReader.GetContractHashAsync(Types.Address.FromBytes(address), Types.Address.FromBytes(address)).Result;
-        return codeHash;
+        return Hash.LoadFromByteArray(new byte[]
+        {
+            10, 10, 10, 10, 10, 10, 10, 10,
+            10, 10, 10, 10, 10, 10, 10, 10,
+            10, 10, 10, 10, 10, 10, 10, 10,
+            10, 10, 10, 10, 10, 10, 10, 10,
+        });
     }
 
     public bool CallerIsOrigin()

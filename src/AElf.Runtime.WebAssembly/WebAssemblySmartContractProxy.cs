@@ -2,7 +2,9 @@ using AElf.Runtime.CSharp;
 
 namespace AElf.Runtime.WebAssembly;
 
-public class WebAssemblySmartContractProxy
+internal class WebAssemblySmartContractProxy : CSharpSmartContractProxy
 {
-
+    internal WebAssemblySmartContractProxy(object instance, Type counterType) : base(instance, counterType)
+    {
+    }
 }

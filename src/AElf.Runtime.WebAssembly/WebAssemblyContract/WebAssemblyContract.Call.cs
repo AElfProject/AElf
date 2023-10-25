@@ -1,11 +1,14 @@
 using AElf.Runtime.WebAssembly.Extensions;
 using AElf.Runtime.WebAssembly.TransactionPayment;
+using AElf.Sdk.CSharp;
+using AElf.Types;
+using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Runtime.WebAssembly;
 
-public partial class WebAssemblyRuntime
+public partial class WebAssemblyContract
 {
-
     /// <summary>
     /// Make a call to another contract.
     /// <br/>
@@ -149,7 +152,7 @@ public partial class WebAssemblyRuntime
             var callee = ReadSandboxMemory(call.CalleePtr, 32).ToAddress();
             var depositLimit = call.DepositPtr == null ? 0 : ReadSandboxMemory((int)call.DepositPtr, 8).ToInt32(false);
             var value = ReadSandboxMemory(call.ValuePtr, 8).ToInt32(false);
-            outcome = _externalEnvironment.Call(call.Weight, depositLimit, callee, value, inputData!,
+            outcome = Call(call.Weight, depositLimit, callee, value, inputData!,
                 callFlags.Contains(CallFlags.AllowReentry));
         }
         else if (callType is DelegateCall delegateCall)
@@ -158,8 +161,9 @@ public partial class WebAssemblyRuntime
             {
                 HandleError(WebAssemblyError.InvalidCallFlags);
             }
+
             var codeHash = ReadSandboxMemory(delegateCall.CodeHashPtr, AElfConstants.HashByteArrayLength).ToHash();
-            outcome = _externalEnvironment.DelegateCall(codeHash, inputData!);
+            outcome = DelegateCall(codeHash, inputData!);
         }
 
         if (callFlags.Contains(CallFlags.TailCall))
@@ -176,5 +180,33 @@ public partial class WebAssemblyRuntime
         }
 
         return ReturnCode.Success;
+    }
+
+    private ExecuteReturnValue Call(Weight gasLimit, long depositLimit, Address to, long value, byte[] inputData,
+        bool allowReentry)
+    {
+        var inputDataHex = inputData.ToHex();
+        var methodName = inputDataHex[..8];
+        var parameter = new byte[inputData.Length - 8];
+        Array.Copy(inputData, 8, parameter, 0, parameter.Length);
+        var result = Context.Execute<BytesValue>(Context.Self, to, methodName, ByteString.CopyFrom(parameter));
+        return new ExecuteReturnValue
+        {
+            Data = result.ToByteArray()
+        };
+    }
+
+    private ExecuteReturnValue DelegateCall(Hash codeHash, byte[] inputData)
+    {
+        var inputDataHex = inputData.ToHex();
+        var methodName = inputDataHex[..8];
+        var parameter = new byte[inputData.Length - 8];
+        Array.Copy(inputData, 8, parameter, 0, parameter.Length);
+        var result =
+            Context.Execute<BytesValue>(Context.Sender, Context.Self, methodName, ByteString.CopyFrom(parameter));
+        return new ExecuteReturnValue
+        {
+            Data = result.ToByteArray()
+        };
     }
 }

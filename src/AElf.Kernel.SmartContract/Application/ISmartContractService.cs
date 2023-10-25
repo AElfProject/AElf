@@ -21,7 +21,4 @@ public interface ISmartContractService
 
     Task<ContractVersionCheckDto> CheckContractVersionAsync(string previousContractVersion,
         SmartContractRegistration registration);
-
-    Task ExecuteConstructorAsync(SmartContractRegistration registration, Address author, Address contractAddress,
-        ByteString constructorInput);
 }
