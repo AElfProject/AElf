@@ -16,6 +16,8 @@ public class WebAssemblyContractState : ContractState
     /// </summary>
     public MappedState<Hash, BytesValue> Database { get; set; }
 
+    public BoolState Initialized { get; set; }
+
     internal ACS0Container.ACS0ReferenceState GenesisContract { get; set; }
 
     internal RandomNumberProviderContractContainer.RandomNumberProviderContractReferenceState RandomNumberContract

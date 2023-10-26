@@ -60,6 +60,7 @@ message TransactionTrace {
     int64 elapsed = 11;
     ExecutionStatus execution_status = 12;
     TransactionExecutingStateSet state_set = 13;
+    TransactionExecutingStateSet call_state_set = 14;
 }
 
 message ExecutionReturnSet {

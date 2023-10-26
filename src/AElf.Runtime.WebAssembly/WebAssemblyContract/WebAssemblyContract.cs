@@ -27,6 +27,7 @@ public partial class WebAssemblyContract : CSharpSmartContract<WebAssemblyContra
     public List<string> DebugMessages => new();
     public List<(byte[], byte[])> Events => new();
     public byte[]? Input { get; set; } = Array.Empty<byte>();
+    public bool Initialized => State.Initialized.Value;
 
     private IExternalEnvironment _externalEnvironment;
 
@@ -43,6 +44,7 @@ public partial class WebAssemblyContract : CSharpSmartContract<WebAssemblyContra
 
     public Instance Instantiate()
     {
+        State.Initialized.Value = true;
         return _linker.Instantiate(_store, _module);
     }
 
@@ -612,7 +614,6 @@ public partial class WebAssemblyContract : CSharpSmartContract<WebAssemblyContra
     private void HashKeccak256(int inputPtr, int inputLen, int outputPtr)
     {
         var input = ReadSandboxMemory(inputPtr, inputLen);
-        // var res = Keccak256.ComputeHash(input);
         WriteSandboxMemory(outputPtr, new Sha3Keccack().CalculateHash(input));
     }
 
@@ -915,6 +916,7 @@ public partial class WebAssemblyContract : CSharpSmartContract<WebAssemblyContra
 
         if (len < bufLen)
         {
+            HandleError(WebAssemblyError.OutOfBounds);
             throw new OutputBufferTooSmallException();
         }
 

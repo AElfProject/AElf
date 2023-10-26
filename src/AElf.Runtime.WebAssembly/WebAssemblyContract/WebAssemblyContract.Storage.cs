@@ -214,13 +214,13 @@ public partial class WebAssemblyContract
     {
         var key = ReadSandboxMemory(keyPtr, keyLen);
         var outcome = ReadState(key);
-        if (outcome.Value.Length == 0)
+        if (outcome == null)
         {
             return (int)ReturnCode.KeyNotFound;
         }
 
-        ReturnBuffer = outcome.ToByteArray();
-        WriteSandboxOutput(outPtr, outLenPtr, outcome.ToByteArray());
+        ReturnBuffer = outcome;
+        WriteSandboxOutput(outPtr, outLenPtr, outcome);
         return (int)ReturnCode.Success;
     }
 
@@ -264,7 +264,7 @@ public partial class WebAssemblyContract
     {
         var key = ReadSandboxMemory(keyPtr, keyLen);
         var outcome = ReadState(key);
-        return outcome.Value.Length;
+        return outcome.Length;
     }
 
     #endregion
@@ -303,8 +303,9 @@ public partial class WebAssemblyContract
 
     #endregion
 
-    private BytesValue ReadState(byte[] key)
+    private byte[]? ReadState(byte[] key)
     {
-        return State.Database[HashHelper.ComputeFrom(key)];
+        var bytesValue = State.Database[HashHelper.ComputeFrom(key)];
+        return bytesValue?.Value.ToByteArray();
     }
 }

@@ -26,9 +26,9 @@ public partial class WebAssemblyContract
 
         _linker.DefineFunction("seal0", "transfer", (Func<int, int, int, int, int>)TransferV0);
 
-        _linker.DefineFunction("seal0", "call", (Func<int, int, long, int, int, int, int, int, int, int>)CallV0);
-        _linker.DefineFunction("seal1", "call", (Func<int, int, long, int, int, int, int, int, int>)CallV1);
-        _linker.DefineFunction("seal2", "call", (Func<int, int, long, long, int, int, int, int, int, int, int>)CallV2);
+        _linker.DefineFunction("seal0", "seal_call", (Func<int, int, long, int, int, int, int, int, int, int>)CallV0);
+        _linker.DefineFunction("seal1", "seal_call", (Func<int, int, long, int, int, int, int, int, int>)CallV1);
+        _linker.DefineFunction("seal2", "seal_call", (Func<int, int, long, long, int, int, int, int, int, int, int>)CallV2);
 
         _linker.DefineFunction("seal0", "delegate_call", (Func<int, int, int, int, int, int, int>)DelegateCallV0);
 

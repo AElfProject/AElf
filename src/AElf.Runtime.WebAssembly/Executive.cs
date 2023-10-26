@@ -3,7 +3,9 @@ using AElf.CSharp.CodeOps;
 using AElf.Kernel;
 using AElf.Kernel.Infrastructure;
 using AElf.Kernel.SmartContract;
+using AElf.Kernel.SmartContract.Domain;
 using AElf.Kernel.SmartContract.Infrastructure;
+using AElf.Runtime.WebAssembly.Extensions;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.Reflection;
@@ -81,9 +83,9 @@ public class Executive : IExecutive
             var transactionContext = _hostSmartContractBridgeContext.TransactionContext;
             var transaction = transactionContext.Transaction;
 
-            var isCallConstructor = methodName == "deploy";
+            var isCallConstructor = methodName == "deploy" || _solangAbi.GetConstructor() == methodName;
 
-            if (isCallConstructor && _hostSmartContractBridgeContext.Sender != _hostSmartContractBridgeContext.GetZeroSmartContractAddress())
+            if (isCallConstructor && _webAssemblyContract.Initialized)
             {
                 transactionContext.Trace.ExecutionStatus = ExecutionStatus.Prefailed;
                 transactionContext.Trace.Error = "Cannot execute constructor.";
@@ -161,6 +163,8 @@ public class Executive : IExecutive
         foreach (var key in changes.Reads.Keys)
             if (!key.StartsWith(address))
                 throw new InvalidOperationException("a contract cannot access other contracts data");
+
+        changes = changes.Merge(CurrentTransactionContext.Trace.CallStateSet);
 
         if (!CurrentTransactionContext.Trace.IsSuccessful())
         {

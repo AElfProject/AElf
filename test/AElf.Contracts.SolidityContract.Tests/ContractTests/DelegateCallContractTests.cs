@@ -30,9 +30,18 @@ public class DelegateCallContractTests : SolidityContractTestBase
         var input = ByteString.CopyFrom(new ABIEncode().GetABIEncoded(
             new ABIValue("address", address),
             new ABIValue("uint256", 1616)));
-        var tx = await GetTransactionAsync(DefaultSenderKeyPair, delegatorContractAddress, "setVars",
-            input);
-        var txResult = await TestTransactionExecutor.ExecuteAsync(tx);
-        txResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        {
+            var tx = await GetTransactionAsync(DefaultSenderKeyPair, delegatorContractAddress, "setVars",
+                input);
+            var txResult = await TestTransactionExecutor.ExecuteAsync(tx);
+            txResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        }
+
+        // Checks
+        {
+            var tx = await GetTransactionAsync(DefaultSenderKeyPair, delegatorContractAddress, "num");
+            var txResult = await TestTransactionExecutor.ExecuteAsync(tx);
+            txResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        }
     }
 }

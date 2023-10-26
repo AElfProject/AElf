@@ -1,3 +1,5 @@
+using AElf.Types;
+
 namespace AElf.Runtime.WebAssembly.Extensions;
 
 public static class Extensions
@@ -20,5 +22,19 @@ public static class Extensions
         }
 
         return ReturnCode.CalleeTrapped;
+    }
+
+    public static TransactionExecutingStateSet Merge(this TransactionExecutingStateSet stateSet,
+        TransactionExecutingStateSet? anotherStateSet)
+    {
+        if (anotherStateSet == null)
+        {
+            return stateSet;
+        }
+
+        stateSet.Writes.Add(anotherStateSet.Writes);
+        stateSet.Reads.Add(anotherStateSet.Reads);
+        stateSet.Deletes.Add(anotherStateSet.Deletes);
+        return stateSet;
     }
 }

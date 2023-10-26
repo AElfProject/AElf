@@ -126,7 +126,7 @@ public class SolidityContractTestBase : ContractTestBase<SolidityContractTestAEl
         var solangAbi =
             JsonSerializer.Deserialize<SolangABI>(new Compiler().BuildWasm(registration.Code.ToByteArray()).Contracts.First()
                 .Abi);
-        var selector = solangAbi.GetSelector(methodName);
+        var selector = methodName == "deploy" ? solangAbi.GetConstructor() : solangAbi.GetSelector(methodName);
         var transaction = new Transaction
         {
             From = from,

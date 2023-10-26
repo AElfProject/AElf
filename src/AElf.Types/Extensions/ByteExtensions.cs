@@ -84,7 +84,7 @@ public static class ByteExtensions
             return bytes;
 
         var paddedBytes = new byte[length];
-        Buffer.BlockCopy(bytes, length - bytes.Length, paddedBytes, length - 1, bytes.Length);
+        Buffer.BlockCopy(bytes, 0, paddedBytes, 0, bytes.Length);
         return paddedBytes;
     }
 

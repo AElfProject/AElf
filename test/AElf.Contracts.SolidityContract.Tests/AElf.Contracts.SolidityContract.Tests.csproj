@@ -90,5 +90,8 @@
         <None Update="contracts\Ballot2.sol">
           <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
+        <None Update="contracts\call_callee.sol">
+          <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
     </ItemGroup>
 </Project>

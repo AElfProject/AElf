@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using AElf.Contracts.Parliament;
 using AElf.CSharp.Core.Extension;
 using AElf.Sdk.CSharp;
@@ -56,7 +57,12 @@ public partial class BasicContractZero
         State.ContractInfos[contractAddress] = info;
         State.SmartContractRegistrations[reg.CodeHash] = reg;
 
-        Context.ExecuteContractConstructor(contractAddress, reg, author, constructorInput ?? ByteString.Empty);
+        if (Context.ExecuteContractConstructor(contractAddress, reg, author, constructorInput ?? ByteString.Empty))
+        {
+            // TODO: So weird. Optimize this.
+            var evmContractAddress = Address.FromBytes(contractAddress.Value.ToByteArray().Take(20).ToArray().RightPad(32));
+            State.ContractInfos[evmContractAddress] = info;
+        }
 
         Context.Fire(new ContractDeployed
         {

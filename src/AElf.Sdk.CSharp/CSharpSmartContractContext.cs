@@ -165,10 +165,10 @@ public class CSharpSmartContractContext : ISmartContractBridgeContext
         return SmartContractBridgeContextImplementation.DeploySmartContract(address,registration,name);
     }
 
-    public void ExecuteContractConstructor(Address contractAddress, SmartContractRegistration registration, Address author,
+    public bool ExecuteContractConstructor(Address contractAddress, SmartContractRegistration registration, Address author,
         ByteString constructorInput)
     {
-        SmartContractBridgeContextImplementation.ExecuteContractConstructor(contractAddress, registration,
+        return SmartContractBridgeContextImplementation.ExecuteContractConstructor(contractAddress, registration,
             author, constructorInput);
     }
 
@@ -212,10 +212,9 @@ public class CSharpSmartContractContext : ISmartContractBridgeContext
     /// </param>
     /// <typeparam name="T">The type of the return message.</typeparam>
     /// <returns>The result of the call.</returns>
-    public T Execute<T>(Address fromAddress, Address toAddress, string methodName, ByteString args)
-        where T : IMessage<T>, new()
+    public byte[] Execute(Address fromAddress, Address toAddress, string methodName, ByteString args)
     {
-        return SmartContractBridgeContextImplementation.Execute<T>(fromAddress, toAddress, methodName, args);
+        return SmartContractBridgeContextImplementation.Execute(fromAddress, toAddress, methodName, args);
     }
 
     /// <summary>

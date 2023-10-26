@@ -187,12 +187,13 @@ public partial class WebAssemblyContract
     {
         var inputDataHex = inputData.ToHex();
         var methodName = inputDataHex[..8];
-        var parameter = new byte[inputData.Length - 8];
-        Array.Copy(inputData, 8, parameter, 0, parameter.Length);
-        var result = Context.Execute<BytesValue>(Context.Self, to, methodName, ByteString.CopyFrom(parameter));
+        var parameter = new byte[inputData.Length - 4];
+        Array.Copy(inputData, 4, parameter, 0, parameter.Length);
+        to = Types.Address.FromBase58("2CUGsErPjvvtd8vA9hWgf7SPRyvxTeZxYg6Q23FgxcVcpRrL7o");
+        var result = Context.Execute(Context.Self, to, methodName, ByteString.CopyFrom(parameter));
         return new ExecuteReturnValue
         {
-            Data = result.ToByteArray()
+            Data = result
         };
     }
 
@@ -203,10 +204,10 @@ public partial class WebAssemblyContract
         var parameter = new byte[inputData.Length - 8];
         Array.Copy(inputData, 8, parameter, 0, parameter.Length);
         var result =
-            Context.Execute<BytesValue>(Context.Sender, Context.Self, methodName, ByteString.CopyFrom(parameter));
+            Context.Execute(Context.Sender, Context.Self, methodName, ByteString.CopyFrom(parameter));
         return new ExecuteReturnValue
         {
-            Data = result.ToByteArray()
+            Data = result
         };
     }
 }
