@@ -1,6 +1,6 @@
 AElf.Contracts.MultiToken
 -------------------------
-
+// TODO improvement
 MultiToken contract.
 
 The MultiToken contract is mainly used to manage the user's account and
