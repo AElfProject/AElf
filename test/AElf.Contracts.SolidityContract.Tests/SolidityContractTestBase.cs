@@ -16,6 +16,7 @@ using AElf.Kernel.Token;
 using AElf.Standards.ACS0;
 using AElf.Types;
 using Google.Protobuf;
+using Nethereum.ABI;
 using Solang;
 using Solang.Extensions;
 using Volo.Abp.Threading;
@@ -136,5 +137,10 @@ public class SolidityContractTestBase : ContractTestBase<SolidityContractTestAEl
         };
 
         return transaction;
+    }
+
+    internal ByteString Index(int index)
+    {
+        return ByteString.CopyFrom(new ABIEncode().GetABIEncoded(new ABIValue("uint256", index)));
     }
 }

@@ -42,6 +42,13 @@ contract Ballot {
         }));
     }
 
+    function addProposal(bytes32 proposalName) public {
+        proposals.push(Proposal({
+            name: proposalName,
+            voteCount: 0
+        }));
+    }
+
     /** 
      * @dev Give 'voter' the right to vote on this ballot. May only be called by 'chairperson'.
      * @param voter address of voter

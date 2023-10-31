@@ -27,7 +27,7 @@ public class MethodReference<TInput, TOutput> where TInput : class, IMessage<TIn
 
     public TOutput Call(Address fromAddress, TInput input)
     {
-        return _parent.Context.Call<TOutput>(fromAddress, _parent.Value, _name, input);
+        return ((CSharpSmartContractContext)_parent.Context).Call<TOutput>(fromAddress, _parent.Value, _name, input);
     }
 
     public void VirtualSend(Hash virtualAddress, TInput input)
@@ -37,7 +37,8 @@ public class MethodReference<TInput, TOutput> where TInput : class, IMessage<TIn
 
     public TOutput VirtualCall(Hash virtualAddress, TInput input)
     {
-        return _parent.Context.Call<TOutput>(_parent.Context.ConvertVirtualAddressToContractAddress(virtualAddress),
+        return ((CSharpSmartContractContext)_parent.Context).Call<TOutput>(
+            _parent.Context.ConvertVirtualAddressToContractAddress(virtualAddress),
             _parent.Value, _name, input);
     }
 }

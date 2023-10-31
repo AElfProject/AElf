@@ -1,4 +1,7 @@
+using AElf.Kernel;
+using AElf.Kernel.SmartContract;
 using AElf.Types;
+using Google.Protobuf;
 
 namespace AElf.Runtime.WebAssembly.Extensions;
 
@@ -32,9 +35,35 @@ public static class Extensions
             return stateSet;
         }
 
-        stateSet.Writes.Add(anotherStateSet.Writes);
-        stateSet.Reads.Add(anotherStateSet.Reads);
-        stateSet.Deletes.Add(anotherStateSet.Deletes);
+        foreach (var write in anotherStateSet.Writes)
+        {
+            stateSet.Writes.TryAdd(write.Key, write.Value);
+        }
+
+        foreach (var read in anotherStateSet.Reads)
+        {
+            stateSet.Reads.TryAdd(read.Key, read.Value);
+        }
+
+        foreach (var delete in anotherStateSet.Deletes)
+        {
+            stateSet.Deletes.TryAdd(delete.Key, delete.Value);
+        }
+
+        return stateSet;
+    }
+
+    public static TransactionExecutingStateSet ReplaceAddress(this TransactionExecutingStateSet stateSet,
+        string selfAddress)
+    {
+        var writes = new Dictionary<string, ByteString>();
+        foreach (var write in stateSet.Writes)
+        {
+            writes.Add($"{selfAddress}{write.Key[selfAddress.Length..]}", write.Value);
+        }
+
+        stateSet.Writes.Clear();
+        stateSet.Writes.Add(writes);
         return stateSet;
     }
 }

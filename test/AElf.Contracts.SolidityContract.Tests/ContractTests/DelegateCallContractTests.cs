@@ -1,10 +1,8 @@
 using System.IO;
 using System.Threading.Tasks;
-using AElf.Runtime.WebAssembly.Extensions;
 using AElf.Types;
 using Google.Protobuf;
 using Nethereum.ABI;
-using Nethereum.ABI.Encoders;
 using Shouldly;
 
 namespace AElf.Contracts.SolidityContract;
@@ -26,9 +24,8 @@ public class DelegateCallContractTests : SolidityContractTestBase
             delegatorContractAddress = executionResult.Output;
         }
 
-        var address = new AddressTypeEncoder().Encode(delegateeContractAddress.AElfAddressToEthAddress()).ToHex();
         var input = ByteString.CopyFrom(new ABIEncode().GetABIEncoded(
-            new ABIValue("address", address),
+            new ABIValue("bytes32", delegateeContractAddress.ToByteArray()),
             new ABIValue("uint256", 1616)));
         {
             var tx = await GetTransactionAsync(DefaultSenderKeyPair, delegatorContractAddress, "setVars",
@@ -42,6 +39,8 @@ public class DelegateCallContractTests : SolidityContractTestBase
             var tx = await GetTransactionAsync(DefaultSenderKeyPair, delegatorContractAddress, "num");
             var txResult = await TestTransactionExecutor.ExecuteAsync(tx);
             txResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            var num = new ABIEncode().GetABIEncoded(new ABIValue("uint256", 1616));
+            txResult.ReturnValue.ShouldBe(num);
         }
     }
 }

@@ -149,7 +149,6 @@ public static class SmartContractBridgeContextExtensions
     public static ByteString ConvertToByteString(IMessage message)
     {
         return message?.ToByteString() ?? ByteString.Empty;
-        //return ByteString.CopyFrom(ParamsPacker.Pack(message));
     }
 
     /// <summary>

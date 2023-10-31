@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using AElf.Cryptography;
 using AElf.CSharp.Core;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContract.Domain;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -186,7 +185,7 @@ public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, I
     public T Call<T>(Address fromAddress, Address toAddress, string methodName, ByteString args)
         where T : IMessage<T>, new()
     {
-        var trace = GetTrace(fromAddress, toAddress, methodName, args);
+        var trace = Execute(fromAddress, toAddress, methodName, args);
 
         if (!trace.IsSuccessful()) throw new ContractCallException(trace.Error);
 
@@ -195,7 +194,7 @@ public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, I
         return obj;
     }
 
-    private TransactionTrace GetTrace(Address fromAddress, Address toAddress, string methodName, ByteString args)
+    public TransactionTrace Execute(Address fromAddress, Address toAddress, string methodName, ByteString args)
     {
         return AsyncHelper.RunSync(async () =>
         {
@@ -215,17 +214,6 @@ public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, I
             };
             return await _transactionReadOnlyExecutionService.ExecuteAsync(chainContext, tx, CurrentBlockTime);
         });
-    }
-
-    public byte[] Execute(Address fromAddress, Address toAddress, string methodName, ByteString args)
-    {
-        var trace = GetTrace(fromAddress, toAddress, methodName, args);
-
-        if (!trace.IsSuccessful()) throw new ContractExecuteException(trace.Error);
-
-        TransactionContext.Trace.CallStateSet = trace.StateSet;
-
-        return trace.ReturnValue.ToByteArray();
     }
 
     public void SendInline(Address toAddress, string methodName, ByteString args)
@@ -337,7 +325,7 @@ public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, I
             _smartContractBridgeService.DeployContractAsync(registration));
     }
 
-    public bool ExecuteContractConstructor(Address contractAddress, SmartContractRegistration registration,
+    public void ExecuteContractConstructor(Address contractAddress, SmartContractRegistration registration,
         Address author, ByteString constructorInput)
     {
         if (registration.Category == KernelConstants.SolidityRunnerCategory)
@@ -349,10 +337,7 @@ public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, I
                 MethodName = "deploy",
                 Params = constructorInput
             });
-            return true;
         }
-
-        return false;
     }
 
     public ContractInfoDto UpdateSmartContract(Address address, SmartContractRegistration registration, Hash name, string previousContractVersion)

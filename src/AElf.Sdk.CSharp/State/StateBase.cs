@@ -5,7 +5,7 @@ namespace AElf.Sdk.CSharp.State;
 
 public class StateBase
 {
-    private CSharpSmartContractContext _context;
+    private ISmartContractBridgeContext _context;
     private StatePath _path;
     internal IStateProvider Provider => _context.StateProvider;
 
@@ -19,7 +19,7 @@ public class StateBase
         }
     }
 
-    internal CSharpSmartContractContext Context
+    internal ISmartContractBridgeContext Context
     {
         get => _context;
         set

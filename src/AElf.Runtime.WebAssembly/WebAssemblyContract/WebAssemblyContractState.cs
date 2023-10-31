@@ -4,7 +4,6 @@ using AElf.Sdk.CSharp.State;
 using AElf.Standards.ACS0;
 using AElf.Standards.ACS6;
 using AElf.Types;
-using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Runtime.WebAssembly;

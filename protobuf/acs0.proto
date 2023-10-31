@@ -118,6 +118,10 @@ service ACS0 {
     rpc GetContractCodeHashListByDeployingBlockHeight (google.protobuf.Int64Value) returns (ContractCodeHashList) {
         option (aelf.is_view) = true;
     }
+
+    rpc GetContractAddressByCodeHash (aelf.Hash) returns (aelf.Address) {
+        option (aelf.is_view) = true;
+    }
 }
 
 message ContractInfo

@@ -2,7 +2,7 @@ using Wasmtime;
 
 namespace AElf.Runtime.WebAssembly;
 
-public partial class WebAssemblyContract
+public partial class WebAssemblyContractImplementation
 {
     private void DefineImportFunctions()
     {

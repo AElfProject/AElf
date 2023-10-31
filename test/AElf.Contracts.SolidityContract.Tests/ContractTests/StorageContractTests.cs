@@ -1,9 +1,7 @@
 using System.IO;
 using System.Threading.Tasks;
-using AElf.Runtime.WebAssembly.Extensions;
 using AElf.Types;
 using Google.Protobuf;
-using NBitcoin.DataEncoders;
 using Nethereum.ABI;
 using Shouldly;
 
@@ -32,8 +30,7 @@ public class StorageContractTests : SolidityContractTestBase
         var tx = await GetTransactionAsync(DefaultSenderKeyPair, contractAddress, "retrieve");
         var txResult = await TestTransactionExecutor.ExecuteAsync(tx);
         txResult.Status.ShouldBe(TransactionResultStatus.Mined);
-        var hexReturn = txResult.ReturnValue.ToHex();
-        var hexValue = Encoders.Hex.EncodeData(new byte[] { 100 });
-        hexReturn.ShouldContain(hexValue);
+        var value = new ABIEncode().GetABIEncoded(new ABIValue("uint256", 100));
+        txResult.ReturnValue.ShouldBe(value);
     }
 }

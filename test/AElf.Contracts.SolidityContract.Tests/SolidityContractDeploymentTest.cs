@@ -1,7 +1,6 @@
 using System.IO;
 using System.Threading.Tasks;
 using AElf.Kernel;
-using AElf.Standards.ACS0;
 using AElf.Types;
 using Google.Protobuf;
 using Shouldly;

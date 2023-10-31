@@ -11,14 +11,26 @@ namespace AElf.Contracts.SolidityContract;
 
 public class BallotContractTests : SolidityContractTestBase
 {
-    private List<byte[]> _proposals = new(new[]
+    private readonly List<byte[]> _proposals = new(new[]
     {
-        Encoding.UTF8.GetBytes("Proposal #1"),
-        Encoding.UTF8.GetBytes("Proposal #2")
+        Encoding.UTF8.GetBytes("foo"),
+        Encoding.UTF8.GetBytes("bar")
     });
 
     [Fact]
     public async Task<Address> DeployBallotContractTest()
+    {
+        const string solFilePath = "contracts/Ballot.sol";
+        var solidityCode = await File.ReadAllBytesAsync(solFilePath);
+        var input = ByteString.CopyFrom(new ABIEncode().GetABIEncoded(new ABIValue("bytes32[]", _proposals)));
+        var executionResult = await DeployWebAssemblyContractAsync(solidityCode, input);
+        executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        executionResult.TransactionResult.Logs.Count.ShouldBePositive();
+        return executionResult.Output;
+    }
+
+    [Fact]
+    public async Task<Address> DeployBallot2ContractTest()
     {
         const string solFilePath = "contracts/Ballot2.sol";
         var solidityCode = await File.ReadAllBytesAsync(solFilePath);
@@ -48,9 +60,10 @@ public class BallotContractTests : SolidityContractTestBase
     public async Task ReadProposalsTest()
     {
         var contractAddress = await DeployBallotContractTest();
-        var tx = await GetTransactionAsync(DefaultSenderKeyPair, contractAddress, "proposals");
+        var tx = await GetTransactionAsync(DefaultSenderKeyPair, contractAddress, "proposals",
+            Index(0));
         var txResult = await TestTransactionExecutor.ExecuteAsync(tx);
         txResult.Status.ShouldBe(TransactionResultStatus.Mined);
-        var proposals = _proposals[0];
+        txResult.ReturnValue.ToHex().ShouldContain(_proposals[0].ToHex());
     }
 }

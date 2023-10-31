@@ -57,12 +57,8 @@ public partial class BasicContractZero
         State.ContractInfos[contractAddress] = info;
         State.SmartContractRegistrations[reg.CodeHash] = reg;
 
-        if (Context.ExecuteContractConstructor(contractAddress, reg, author, constructorInput ?? ByteString.Empty))
-        {
-            // TODO: So weird. Optimize this.
-            var evmContractAddress = Address.FromBytes(contractAddress.Value.ToByteArray().Take(20).ToArray().RightPad(32));
-            State.ContractInfos[evmContractAddress] = info;
-        }
+        Context.ExecuteContractConstructor(contractAddress, reg, author, constructorInput ?? ByteString.Empty);
+        State.CodeHashToAddressMap[codeHash] = contractAddress;
 
         Context.Fire(new ContractDeployed
         {
@@ -376,6 +372,11 @@ public partial class BasicContractZero
     private bool IsMainChain()
     {
         return Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName) != null;
+    }
+
+    public override Address GetContractAddressByCodeHash(Hash input)
+    {
+        return State.CodeHashToAddressMap[input];
     }
 }
 

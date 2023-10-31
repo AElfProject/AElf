@@ -1,9 +1,7 @@
 ﻿using System.Text.Json;
-using AElf.CSharp.CodeOps;
 using AElf.Kernel;
 using AElf.Kernel.Infrastructure;
 using AElf.Kernel.SmartContract;
-using AElf.Kernel.SmartContract.Domain;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Runtime.WebAssembly.Extensions;
 using AElf.Types;
@@ -25,7 +23,7 @@ public class Executive : IExecutive
     public string ContractVersion { get; set; }
 
     private readonly SolangABI _solangAbi;
-    private readonly WebAssemblyContract _webAssemblyContract;
+    private readonly WebAssemblyContractImplementation _webAssemblyContractImplementation;
     private readonly WebAssemblySmartContractProxy _smartContractProxy;
 
     private IHostSmartContractBridgeContext _hostSmartContractBridgeContext;
@@ -36,9 +34,8 @@ public class Executive : IExecutive
         var wasmCode = compiledContract.WasmCode.ToByteArray();
         _solangAbi = JsonSerializer.Deserialize<SolangABI>(compiledContract.Abi)!;
         ContractHash = HashHelper.ComputeFrom(wasmCode);
-        _webAssemblyContract = new WebAssemblyContract(wasmCode);
-        _smartContractProxy =
-            new WebAssemblySmartContractProxy(_webAssemblyContract, typeof(ExecutionObserverProxy));
+        _webAssemblyContractImplementation = new WebAssemblyContractImplementation(wasmCode);
+        _smartContractProxy = new WebAssemblySmartContractProxy(_webAssemblyContractImplementation);
 
         // TODO: Maybe we are able to know the solidity code version.
         ContractVersion = "Unknown solidity version.";
@@ -85,7 +82,7 @@ public class Executive : IExecutive
 
             var isCallConstructor = methodName == "deploy" || _solangAbi.GetConstructor() == methodName;
 
-            if (isCallConstructor && _webAssemblyContract.Initialized)
+            if (isCallConstructor && _webAssemblyContractImplementation.Initialized)
             {
                 transactionContext.Trace.ExecutionStatus = ExecutionStatus.Prefailed;
                 transactionContext.Trace.Error = "Cannot execute constructor.";
@@ -98,19 +95,19 @@ public class Executive : IExecutive
 
             if (!invokeResult.Success)
             {
-                _webAssemblyContract.DebugMessages.Add(invokeResult.DebugMessage);
+                _webAssemblyContractImplementation.DebugMessages.Add(invokeResult.DebugMessage);
             }
 
-            if (_webAssemblyContract.DebugMessages.Count > 0)
+            if (_webAssemblyContractImplementation.DebugMessages.Count > 0)
             {
                 transactionContext.Trace.ExecutionStatus = ExecutionStatus.ContractError;
-                transactionContext.Trace.Error = _webAssemblyContract.DebugMessages.First();
+                transactionContext.Trace.Error = _webAssemblyContractImplementation.DebugMessages.First();
             }
             else
             {
-                transactionContext.Trace.ReturnValue = ByteString.CopyFrom(_webAssemblyContract.ReturnBuffer);
+                transactionContext.Trace.ReturnValue = ByteString.CopyFrom(_webAssemblyContractImplementation.ReturnBuffer);
                 transactionContext.Trace.ExecutionStatus = ExecutionStatus.Executed;
-                foreach (var depositedEvent in _webAssemblyContract.Events)
+                foreach (var depositedEvent in _webAssemblyContractImplementation.Events)
                 {
                     transactionContext.Trace.Logs.Add(new LogEvent
                     {
@@ -135,8 +132,8 @@ public class Executive : IExecutive
 
     private Func<ActionResult> GetAction(string selector, string parameter, bool isCallConstructor)
     {
-        _webAssemblyContract.Input = Encoders.Hex.DecodeData(selector + parameter);
-        var instance = _webAssemblyContract.Instantiate();
+        _webAssemblyContractImplementation.Input = Encoders.Hex.DecodeData(selector + parameter);
+        var instance = _webAssemblyContractImplementation.Instantiate();
         var actionName = isCallConstructor ? "deploy" : "call";
         var action = instance.GetFunction<ActionResult>(actionName);
         if (action is null)
@@ -164,7 +161,14 @@ public class Executive : IExecutive
             if (!key.StartsWith(address))
                 throw new InvalidOperationException("a contract cannot access other contracts data");
 
-        changes = changes.Merge(CurrentTransactionContext.Trace.CallStateSet);
+        if (CurrentTransactionContext.Trace.CallStateSet != null)
+        {
+            changes = changes.Merge(CurrentTransactionContext.Trace.CallStateSet);
+        }
+        if (CurrentTransactionContext.Trace.DelegateCallStateSet != null)
+        {
+            changes = changes.Merge(CurrentTransactionContext.Trace.DelegateCallStateSet.ReplaceAddress(address));
+        }
 
         if (!CurrentTransactionContext.Trace.IsSuccessful())
         {

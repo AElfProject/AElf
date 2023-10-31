@@ -2,7 +2,7 @@ using System.Text;
 
 namespace AElf.Runtime.WebAssembly;
 
-public partial class WebAssemblyContract
+public partial class WebAssemblyContractImplementation
 {
     /// <summary>
     /// Stores the input passed by the caller into the supplied buffer.

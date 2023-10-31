@@ -7,7 +7,7 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Runtime.WebAssembly;
 
-public partial class WebAssemblyContract
+public partial class WebAssemblyContractImplementation
 {
     /// <summary>
     /// Make a call to another contract.
@@ -189,8 +189,7 @@ public partial class WebAssemblyContract
         var methodName = inputDataHex[..8];
         var parameter = new byte[inputData.Length - 4];
         Array.Copy(inputData, 4, parameter, 0, parameter.Length);
-        to = Types.Address.FromBase58("2CUGsErPjvvtd8vA9hWgf7SPRyvxTeZxYg6Q23FgxcVcpRrL7o");
-        var result = Context.Execute(Context.Self, to, methodName, ByteString.CopyFrom(parameter));
+        var result = Context.CallMethod(Context.Self, to, methodName, ByteString.CopyFrom(parameter));
         return new ExecuteReturnValue
         {
             Data = result
@@ -201,10 +200,11 @@ public partial class WebAssemblyContract
     {
         var inputDataHex = inputData.ToHex();
         var methodName = inputDataHex[..8];
-        var parameter = new byte[inputData.Length - 8];
-        Array.Copy(inputData, 8, parameter, 0, parameter.Length);
+        var parameter = new byte[inputData.Length - 4];
+        Array.Copy(inputData, 4, parameter, 0, parameter.Length);
+        var to = State.GenesisContract.GetContractAddressByCodeHash.Call(codeHash);
         var result =
-            Context.Execute(Context.Sender, Context.Self, methodName, ByteString.CopyFrom(parameter));
+            Context.DelegateCall(Context.Sender, to, methodName, ByteString.CopyFrom(parameter));
         return new ExecuteReturnValue
         {
             Data = result

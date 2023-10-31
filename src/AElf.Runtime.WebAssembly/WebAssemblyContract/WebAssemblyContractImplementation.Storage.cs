@@ -1,13 +1,10 @@
 using AElf.Contracts.MultiToken;
-using AElf.Runtime.WebAssembly.Extensions;
-using AElf.Sdk.CSharp;
-using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Runtime.WebAssembly;
 
-public partial class WebAssemblyContract
+public partial class WebAssemblyContractImplementation
 {
     #region SetStorage
 

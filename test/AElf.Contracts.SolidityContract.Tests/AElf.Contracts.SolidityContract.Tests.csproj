@@ -84,6 +84,9 @@
         <None Update="contracts\*\*.sol">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
+        <None Update="contracts\*.yul">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
         <None Update="contracts\delegate_call_delegator.sol">
           <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>

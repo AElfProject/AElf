@@ -26,9 +26,7 @@ public class CallContractTests : SolidityContractTestBase
             callerContractAddress = executionResult.Output;
         }
 
-        // var address = Address.FromBytes(calleeContractAddress.Value.ToByteArray().Take(20).ToArray().RightPad(32));
-        var address = new AddressTypeEncoder().Encode(calleeContractAddress.AElfAddressToEthAddress()).ToHex();
-        var input = ByteString.CopyFrom(new ABIEncode().GetABIEncoded(new ABIValue("address", address)));
+        var input = ByteString.CopyFrom(new ABIEncode().GetABIEncoded(new ABIValue("bytes32", calleeContractAddress.ToByteArray())));
         {
             var tx = await GetTransactionAsync(DefaultSenderKeyPair, callerContractAddress, "testCall",
                 input);
@@ -41,7 +39,7 @@ public class CallContractTests : SolidityContractTestBase
             var tx = await GetTransactionAsync(DefaultSenderKeyPair, callerContractAddress, "callee");
             var txResult = await TestTransactionExecutor.ExecuteAsync(tx);
             txResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            txResult.ReturnValue.ToHex().ShouldBe(address);
+            txResult.ReturnValue.ToHex().ShouldBe(calleeContractAddress.ToByteArray().ToHex());
         }
 
         {
