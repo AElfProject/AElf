@@ -1,3 +1,4 @@
+using AElf.Runtime.WebAssembly.Contract;
 using Volo.Abp.DependencyInjection;
 using Wasmtime;
 

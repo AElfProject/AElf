@@ -2,7 +2,7 @@ using System.Reflection;
 using AElf.Kernel.SmartContract;
 using AElf.Types;
 
-namespace AElf.Runtime.WebAssembly;
+namespace AElf.Runtime.WebAssembly.Contract;
 
 public class WebAssemblySmartContractProxy
 {

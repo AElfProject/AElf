@@ -1,8 +1,7 @@
-using AElf.Contracts.MultiToken;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.Runtime.WebAssembly;
+namespace AElf.Runtime.WebAssembly.Contract;
 
 public partial class WebAssemblyContractImplementation
 {
@@ -305,4 +304,19 @@ public partial class WebAssemblyContractImplementation
         var bytesValue = State.Database[HashHelper.ComputeFrom(key)];
         return bytesValue?.Value.ToByteArray();
     }
+}
+
+/// <summary>
+/// Inspired by https://github.com/paritytech/substrate/blob/master/frame/contracts/src/exec.rs#L65
+/// </summary>
+public class Key
+{
+    public KeyType KeyType { get; set; }
+    public byte[] KeyValue { get; set; } = Array.Empty<byte>();
+}
+
+public enum KeyType
+{
+    Fix,
+    Var
 }

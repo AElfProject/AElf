@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace AElf.Runtime.WebAssembly;
+namespace AElf.Runtime.WebAssembly.Contract;
 
 public partial class WebAssemblyContractImplementation
 {
@@ -20,6 +20,12 @@ public partial class WebAssemblyContractImplementation
     /// <param name="outLenPtr"></param>
     private void InputV0(int outPtr, int outLenPtr)
     {
+        if (State.Terminated.Value)
+        {
+            // TODO: Maybe not proper.
+            HandleError(WebAssemblyError.TerminatedInConstructor);
+        }
+
         if (Input == null)
         {
             HandleError(WebAssemblyError.InputForwarded);
@@ -94,7 +100,7 @@ public partial class WebAssemblyContractImplementation
     /// <param name="dataLen">the length of the data buffer.</param>
     private void DepositEvent(int topicsPtr, int topicsLen, int dataPtr, int dataLen)
     {
-        if (dataLen > _externalEnvironment.MaxValueSize())
+        if (dataLen > MaxValueSize())
         {
             HandleError(WebAssemblyError.ValueTooLarge);
             return;
@@ -112,7 +118,12 @@ public partial class WebAssemblyContractImplementation
 
         var eventData = ReadSandboxMemory(dataPtr, dataLen);
         //topicsBytes = topics.Aggregate(Array.Empty<byte>(), (current, next) => current.Concat(next).ToArray());
-        _externalEnvironment.DepositEvent(topics, eventData);
+        // DepositEvent(topics, eventData);
+    }
+
+    private int MaxValueSize()
+    {
+        return int.MaxValue;
     }
 
     private List<byte[]> DecodeEvent(byte[] topics)

@@ -34,12 +34,7 @@ public class BallotContractTests : SolidityContractTestBase
     {
         const string solFilePath = "contracts/Ballot2.sol";
         var solidityCode = await File.ReadAllBytesAsync(solFilePath);
-        var proposals = new List<byte[]>(new[]
-        {
-            Encoding.UTF8.GetBytes("Proposal #1"),
-            Encoding.UTF8.GetBytes("Proposal #2")
-        });
-        var input = ByteString.CopyFrom(new ABIEncode().GetABIEncoded(new ABIValue("bytes32", proposals[0])));
+        var input = ByteString.CopyFrom(new ABIEncode().GetABIEncoded(new ABIValue("bytes32", _proposals[0])));
         var executionResult = await DeployWebAssemblyContractAsync(solidityCode, input);
         executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
         executionResult.TransactionResult.Logs.Count.ShouldBePositive();
@@ -59,7 +54,7 @@ public class BallotContractTests : SolidityContractTestBase
     [Fact]
     public async Task ReadProposalsTest()
     {
-        var contractAddress = await DeployBallotContractTest();
+        var contractAddress = await DeployBallot2ContractTest();
         var tx = await GetTransactionAsync(DefaultSenderKeyPair, contractAddress, "proposals",
             Index(0));
         var txResult = await TestTransactionExecutor.ExecuteAsync(tx);

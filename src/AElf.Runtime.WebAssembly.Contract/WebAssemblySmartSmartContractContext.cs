@@ -1,14 +1,13 @@
 using AElf.Kernel.SmartContract;
-using AElf.Runtime.WebAssembly.Extensions;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 
-namespace AElf.Runtime.WebAssembly;
+namespace AElf.Runtime.WebAssembly.Contract;
 
-public class WebAssemblySmartContractContext : CSharpSmartContractContext, IWebAssemblyChainExtension
+public class WebAssemblySmartSmartContractContext : CSharpSmartContractContext, IWebAssemblySmartContractContext
 {
-    public WebAssemblySmartContractContext(ISmartContractBridgeContext smartContractBridgeContextImplementation) : base(
+    public WebAssemblySmartSmartContractContext(ISmartContractBridgeContext smartContractBridgeContextImplementation) : base(
         smartContractBridgeContextImplementation)
     {
         SmartContractBridgeContextImplementation = smartContractBridgeContextImplementation;

@@ -1,9 +1,7 @@
-using AElf.Kernel;
-using AElf.Kernel.SmartContract;
 using AElf.Types;
 using Google.Protobuf;
 
-namespace AElf.Runtime.WebAssembly.Extensions;
+namespace AElf.Runtime.WebAssembly.Contract;
 
 public static class Extensions
 {

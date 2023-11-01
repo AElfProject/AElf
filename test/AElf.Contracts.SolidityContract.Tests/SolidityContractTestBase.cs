@@ -107,7 +107,7 @@ public class SolidityContractTestBase : ContractTestBase<SolidityContractTestAEl
     }
 
     internal async Task<Transaction> GetTransactionAsync(ECKeyPair keyPair, Address to, string methodName,
-        ByteString parameter = null)
+        ByteString parameter = null, long value = 0)
     {
         var refBlockInfo = RefBlockInfoProvider.GetRefBlockInfo();
         var transaction =
@@ -121,8 +121,13 @@ public class SolidityContractTestBase : ContractTestBase<SolidityContractTestAEl
     }
 
     private async Task<Transaction> GetTransactionWithoutSignatureAsync(Address from, Address to, string methodName,
-        ByteString parameter)
+        ByteString parameter = null, long value = 0)
     {
+        var parameterWithValue = new TransactionParameterWithValue
+        {
+            Parameter = parameter ?? ByteString.Empty,
+            Value = value
+        }.ToByteString();
         var registration = await BasicContractZeroStub.GetSmartContractRegistrationByAddress.CallAsync(to);
         var solangAbi =
             JsonSerializer.Deserialize<SolangABI>(new Compiler().BuildWasm(registration.Code.ToByteArray()).Contracts.First()
@@ -133,7 +138,7 @@ public class SolidityContractTestBase : ContractTestBase<SolidityContractTestAEl
             From = from,
             To = to,
             MethodName = selector,
-            Params = parameter ?? ByteString.Empty
+            Params = parameterWithValue
         };
 
         return transaction;

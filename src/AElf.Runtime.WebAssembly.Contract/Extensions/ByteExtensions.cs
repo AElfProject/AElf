@@ -1,7 +1,7 @@
 using AElf.Types;
 using Google.Protobuf;
 
-namespace AElf.Runtime.WebAssembly.Extensions;
+namespace AElf.Runtime.WebAssembly.Contract;
 
 public static class ByteExtensions
 {

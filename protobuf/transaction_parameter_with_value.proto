@@ -1,0 +1,6 @@
+syntax = "proto3";
+
+message TransactionParameterWithValue {
+    bytes parameter = 1;
+    int64 value = 2;
+}

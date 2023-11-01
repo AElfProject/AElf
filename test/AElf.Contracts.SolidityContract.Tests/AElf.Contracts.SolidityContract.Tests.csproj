@@ -76,6 +76,9 @@
         <ContractBase Include="..\..\protobuf\acs4.proto">
             <Link>Protobuf\Proto\acs4.proto</Link>
         </ContractBase>
+        <ContractMessage Include="..\..\protobuf\transaction_parameter_with_value.proto">
+            <Link>Protobuf\Proto\transaction_parameter_with_value.proto</Link>
+        </ContractMessage>
     </ItemGroup>
     <ItemGroup>
         <None Update="contracts\*.sol">

@@ -10,54 +10,14 @@
       <ProjectReference Include="..\AElf.Kernel.SmartContract\AElf.Kernel.SmartContract.csproj" />
       <ProjectReference Include="..\AElf.Kernel.Token\AElf.Kernel.Token.csproj" />
       <ProjectReference Include="..\AElf.Runtime.CSharp\AElf.Runtime.CSharp.csproj" />
+      <ProjectReference Include="..\AElf.Runtime.WebAssembly.Contract\AElf.Runtime.WebAssembly.Contract.csproj" />
       <ProjectReference Include="..\AElf.Runtime.WebAssembly.TransactionPayment\AElf.Runtime.WebAssembly.TransactionPayment.csproj" />
-      <ProjectReference Include="..\Solang.Net\Solang.Net.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Keccak256" Version="1.0.0" />
-        <PackageReference Include="LanguageExt.Core" Version="4.4.4" />
-        <PackageReference Include="NBitcoin" Version="7.0.27" />
-        <PackageReference Include="Nethereum.Web3" Version="4.15.2" />
-        <PackageReference Include="Wasmtime" Version="11.0.1" />
-        <PackageReference Include="Nethereum.Util" Version="4.17.1" />
-        <PackageReference Include="SauceControl.Blake2Fast" Version="2.0.0" />
-    </ItemGroup>
-
-    <ItemGroup>
-        <CommonMessage Include="..\..\protobuf\authority_info.proto">
-            <Link>Protobuf\Proto\authority_info.proto</Link>
+        <CommonMessage Include="..\..\protobuf\transaction_parameter_with_value.proto">
+            <Link>Protobuf\Proto\transaction_parameter_with_value.proto</Link>
         </CommonMessage>
     </ItemGroup>
-
-    <ItemGroup>
-        <ContractReference Include="..\..\protobuf\acs0.proto">
-            <Link>Protobuf\Proto\acs0.proto</Link>
-        </ContractReference>
-        <ContractReference Include="..\..\protobuf\acs1.proto">
-            <Link>Protobuf\Proto\acs1.proto</Link>
-        </ContractReference>
-        <ContractReference Include="..\..\protobuf\acs6.proto">
-            <Link>Protobuf\Proto\acs6.proto</Link>
-        </ContractReference>
-        <ContractReference Include="..\..\protobuf\configuration_contract.proto">
-            <Link>Protobuf\Proto\configuration_contract.proto</Link>
-        </ContractReference>
-        <ContractReference Include="..\..\protobuf\token_contract.proto">
-            <Link>Protobuf\Proto\token_contract.proto</Link>
-        </ContractReference>
-        <ContractReference Include="..\..\protobuf\aedpos_contract.proto">
-            <Link>Protobuf\Proto\aedpos_contract.proto</Link>
-        </ContractReference>
-    </ItemGroup>
-
-    <ItemGroup>
-        <CommonMessage Include="..\..\protobuf\authority_info.proto">
-            <Link>Protobuf\Proto\authority_info.proto</Link>
-        </CommonMessage>
-    </ItemGroup>
-
-
-
 
 </Project>

@@ -373,11 +373,6 @@ public partial class BasicContractZero
     {
         return Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName) != null;
     }
-
-    public override Address GetContractAddressByCodeHash(Hash input)
-    {
-        return State.CodeHashToAddressMap[input];
-    }
 }
 
 public static class AddressHelper

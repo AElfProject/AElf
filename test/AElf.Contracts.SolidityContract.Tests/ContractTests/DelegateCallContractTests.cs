@@ -42,5 +42,11 @@ public class DelegateCallContractTests : SolidityContractTestBase
             var num = new ABIEncode().GetABIEncoded(new ABIValue("uint256", 1616));
             txResult.ReturnValue.ShouldBe(num);
         }
+
+        {
+            var tx = await GetTransactionAsync(DefaultSenderKeyPair, delegatorContractAddress, "value");
+            var txResult = await TestTransactionExecutor.ExecuteAsync(tx);
+            txResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        }
     }
 }

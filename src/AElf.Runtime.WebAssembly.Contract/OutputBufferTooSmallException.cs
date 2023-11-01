@@ -1,4 +1,4 @@
-namespace AElf.Runtime.WebAssembly;
+namespace AElf.Runtime.WebAssembly.Contract;
 
 public class OutputBufferTooSmallException : Exception
 {

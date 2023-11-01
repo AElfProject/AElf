@@ -1,11 +1,8 @@
-using AElf.Runtime.WebAssembly.Extensions;
 using AElf.Runtime.WebAssembly.TransactionPayment;
-using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.Runtime.WebAssembly;
+namespace AElf.Runtime.WebAssembly.Contract;
 
 public partial class WebAssemblyContractImplementation
 {
@@ -202,7 +199,7 @@ public partial class WebAssemblyContractImplementation
         var methodName = inputDataHex[..8];
         var parameter = new byte[inputData.Length - 4];
         Array.Copy(inputData, 4, parameter, 0, parameter.Length);
-        var to = State.GenesisContract.GetContractAddressByCodeHash.Call(codeHash);
+        var to = State.SolidityContractManager.GetContractAddressByCodeHash.Call(codeHash);
         var result =
             Context.DelegateCall(Context.Sender, to, methodName, ByteString.CopyFrom(parameter));
         return new ExecuteReturnValue
@@ -210,4 +207,20 @@ public partial class WebAssemblyContractImplementation
             Data = result
         };
     }
+}
+
+public interface ICallType
+{
+}
+
+public record Call(int CalleePtr, int ValuePtr, int? DepositPtr, Weight Weight) : ICallType;
+public record DelegateCall(int CodeHashPtr) : ICallType;
+
+[Flags]
+public enum CallFlags
+{
+    ForwardInput = 0b0000_0001,
+    CloneInput = 0b0000_0010,
+    TailCall = 0b0000_0100,
+    AllowReentry = 0b0000_1000
 }

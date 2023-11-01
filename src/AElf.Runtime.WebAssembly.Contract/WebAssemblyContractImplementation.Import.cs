@@ -1,6 +1,6 @@
 using Wasmtime;
 
-namespace AElf.Runtime.WebAssembly;
+namespace AElf.Runtime.WebAssembly.Contract;
 
 public partial class WebAssemblyContractImplementation
 {

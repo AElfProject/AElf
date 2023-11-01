@@ -2,7 +2,7 @@ using AElf.Kernel.SmartContract;
 using AElf.Sdk.CSharp.State;
 using AElf.Types;
 
-namespace AElf.Runtime.WebAssembly;
+namespace AElf.Runtime.WebAssembly.Contract;
 
 public class WebAssemblyContract : ISmartContract
 {
@@ -15,7 +15,7 @@ public class WebAssemblyContract<TContractState> where TContractState : Contract
         Path = new StatePath()
     };
 
-    public WebAssemblySmartContractContext Context { get; set; }
+    public WebAssemblySmartSmartContractContext Context { get; set; }
 
     internal TransactionExecutingStateSet GetChanges()
     {
@@ -31,7 +31,7 @@ public class WebAssemblyContract<TContractState> where TContractState : Contract
     {
         if (Context != null)
             throw new InvalidOperationException();
-        Context = new WebAssemblySmartContractContext(bridgeContext);
+        Context = new WebAssemblySmartSmartContractContext(bridgeContext);
         State.Context = Context;
         OnInitialized();
     }

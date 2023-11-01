@@ -3,7 +3,7 @@ using AElf.Kernel;
 using AElf.Kernel.Infrastructure;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Infrastructure;
-using AElf.Runtime.WebAssembly.Extensions;
+using AElf.Runtime.WebAssembly.Contract;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.Reflection;
@@ -23,7 +23,7 @@ public class Executive : IExecutive
     public string ContractVersion { get; set; }
 
     private readonly SolangABI _solangAbi;
-    private readonly WebAssemblyContractImplementation _webAssemblyContractImplementation;
+    private readonly WebAssemblyContractImplementation _webAssemblyContract;
     private readonly WebAssemblySmartContractProxy _smartContractProxy;
 
     private IHostSmartContractBridgeContext _hostSmartContractBridgeContext;
@@ -34,8 +34,8 @@ public class Executive : IExecutive
         var wasmCode = compiledContract.WasmCode.ToByteArray();
         _solangAbi = JsonSerializer.Deserialize<SolangABI>(compiledContract.Abi)!;
         ContractHash = HashHelper.ComputeFrom(wasmCode);
-        _webAssemblyContractImplementation = new WebAssemblyContractImplementation(wasmCode);
-        _smartContractProxy = new WebAssemblySmartContractProxy(_webAssemblyContractImplementation);
+        _webAssemblyContract = new WebAssemblyContractImplementation(wasmCode);
+        _smartContractProxy = new WebAssemblySmartContractProxy(_webAssemblyContract);
 
         // TODO: Maybe we are able to know the solidity code version.
         ContractVersion = "Unknown solidity version.";
@@ -82,7 +82,7 @@ public class Executive : IExecutive
 
             var isCallConstructor = methodName == "deploy" || _solangAbi.GetConstructor() == methodName;
 
-            if (isCallConstructor && _webAssemblyContractImplementation.Initialized)
+            if (isCallConstructor && _webAssemblyContract.Initialized)
             {
                 transactionContext.Trace.ExecutionStatus = ExecutionStatus.Prefailed;
                 transactionContext.Trace.Error = "Cannot execute constructor.";
@@ -90,24 +90,39 @@ public class Executive : IExecutive
             }
 
             var selector = isCallConstructor ? _solangAbi.GetConstructor() : methodName;
-            var action = GetAction(selector, transaction.Params.ToHex(), isCallConstructor);
+            string parameter;
+            long value;
+            if (isCallConstructor)
+            {
+                parameter = transaction.Params.ToHex();
+                value = 0;
+            }
+            else
+            {
+                var parameterWithValue = new TransactionParameterWithValue();
+                parameterWithValue.MergeFrom(transaction.Params);
+                parameter = parameterWithValue.Parameter.ToHex();
+                value = parameterWithValue.Value;
+            }
+
+            var action = GetAction(selector, parameter, value, isCallConstructor);
             var invokeResult = new RuntimeActionInvoker().Invoke(action);
 
             if (!invokeResult.Success)
             {
-                _webAssemblyContractImplementation.DebugMessages.Add(invokeResult.DebugMessage);
+                _webAssemblyContract.DebugMessages.Add(invokeResult.DebugMessage);
             }
 
-            if (_webAssemblyContractImplementation.DebugMessages.Count > 0)
+            if (_webAssemblyContract.DebugMessages.Count > 0)
             {
                 transactionContext.Trace.ExecutionStatus = ExecutionStatus.ContractError;
-                transactionContext.Trace.Error = _webAssemblyContractImplementation.DebugMessages.First();
+                transactionContext.Trace.Error = _webAssemblyContract.DebugMessages.First();
             }
             else
             {
-                transactionContext.Trace.ReturnValue = ByteString.CopyFrom(_webAssemblyContractImplementation.ReturnBuffer);
+                transactionContext.Trace.ReturnValue = ByteString.CopyFrom(_webAssemblyContract.ReturnBuffer);
                 transactionContext.Trace.ExecutionStatus = ExecutionStatus.Executed;
-                foreach (var depositedEvent in _webAssemblyContractImplementation.Events)
+                foreach (var depositedEvent in _webAssemblyContract.Events)
                 {
                     transactionContext.Trace.Logs.Add(new LogEvent
                     {
@@ -130,10 +145,11 @@ public class Executive : IExecutive
         CurrentTransactionContext.Trace.Elapsed = (endTime - startTime).Ticks;
     }
 
-    private Func<ActionResult> GetAction(string selector, string parameter, bool isCallConstructor)
+    private Func<ActionResult> GetAction(string selector, string parameter, long value, bool isCallConstructor)
     {
-        _webAssemblyContractImplementation.Input = Encoders.Hex.DecodeData(selector + parameter);
-        var instance = _webAssemblyContractImplementation.Instantiate();
+        _webAssemblyContract.Input = Encoders.Hex.DecodeData(selector + parameter);
+        _webAssemblyContract.Value = value;
+        var instance = _webAssemblyContract.Instantiate();
         var actionName = isCallConstructor ? "deploy" : "call";
         var action = instance.GetFunction<ActionResult>(actionName);
         if (action is null)

@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package SolidityContract;
+option csharp_namespace = "AElf.SolidityContract";
+
+import public "aelf/core.proto";
+import "aelf/options.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+
+service SolidityContract {
+    // Deploy a system smart contract on chain and return the address of the system contract deployed.
+    rpc DeploySoliditySmartContract (DeploySoliditySmartContractInput) returns (aelf.Address) {
+    }
+
+    rpc GetContractAddressByCodeHash (aelf.Hash) returns (aelf.Address) {
+        option (aelf.is_view) = true;
+    }
+}
+
+message DeploySoliditySmartContractInput {
+    // The category of contract code(1: Solidity).
+    sint32 category = 1;
+    // The byte array of the contract code.
+    bytes code = 2;
+    // The parameter of contract constructor.
+    bytes parameter = 3;
+    int64 value = 4;
+}

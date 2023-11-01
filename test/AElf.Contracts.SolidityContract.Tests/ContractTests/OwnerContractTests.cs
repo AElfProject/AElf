@@ -47,11 +47,12 @@ public class OwnerContractTests : SolidityContractTestBase
     {
         var contractAddress = await DeployOwnerContractTest();
 
-        var newAddress = SampleAccount.Accounts[1].KeyPair.ToEthECKey().GetPublicAddress();
+        var newAddress = SampleAccount.Accounts[1].Address.ToByteArray();
+
         {
             var tx = await GetTransactionAsync(DefaultSenderKeyPair, contractAddress, "changeOwner",
                 ByteString.CopyFrom(
-                    new ABIEncode().GetABIEncoded(new ABIValue("address", newAddress))));
+                    new ABIEncode().GetABIEncoded(new ABIValue("bytes32", newAddress))));
             var txResult = await TestTransactionExecutor.ExecuteAsync(tx);
             txResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
@@ -59,7 +60,7 @@ public class OwnerContractTests : SolidityContractTestBase
         {
             var tx = await GetTransactionAsync(DefaultSenderKeyPair, contractAddress, "getOwner");
             var txResult = await TestTransactionExecutor.ExecuteAsync(tx);
-            txResult.ReturnValue.ToHex().ShouldContain(newAddress.RemoveHexPrefix().ToLower());
+            txResult.ReturnValue.ShouldBe(newAddress);
         }
     }
 }
