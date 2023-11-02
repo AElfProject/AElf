@@ -13,7 +13,7 @@ public class StorageContractTests : SolidityContractTestBase
     public async Task<Address> StoreTest()
     {
         const string solFilePath = "contracts/Storage.sol";
-        var executionResult = await DeployWebAssemblyContractAsync(await File.ReadAllBytesAsync(solFilePath));
+        var executionResult = await DeploySolidityContractAsync(await File.ReadAllBytesAsync(solFilePath));
         var contractAddress = executionResult.Output;
         var parameter = new ABIEncode().GetABIEncoded(new ABIValue("uint256", 100));
         var tx = await GetTransactionAsync(DefaultSenderKeyPair, contractAddress, "store",

@@ -31,7 +31,8 @@ public partial class WebAssemblyContractImplementation
             HandleError(WebAssemblyError.InputForwarded);
         }
 
-        WriteSandboxOutput(outPtr, outLenPtr, Input!, false, len => (RuntimeCosts.CopyToContract, len));
+        WriteSandboxOutput(outPtr, outLenPtr, Input!, false, 
+            len => (RuntimeCosts.CopyToContract, len));
     }
 
     /// <summary>

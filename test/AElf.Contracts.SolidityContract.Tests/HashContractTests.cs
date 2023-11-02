@@ -14,7 +14,7 @@ public class HashContractTests : SolidityContractTestBase
     public async Task<Address> HashSha256Test()
     {
         const string solFilePath = "contracts/Hash.sol";
-        var executionResult = await DeployWebAssemblyContractAsync(await File.ReadAllBytesAsync(solFilePath));
+        var executionResult = await DeploySolidityContractAsync(await File.ReadAllBytesAsync(solFilePath));
         var contractAddress = executionResult.Output;
         var parameter = new ABIEncode().GetABIEncoded(new ABIValue("string", "hello"));
         var tx = await GetTransactionAsync(DefaultSenderKeyPair, contractAddress, "HashSha256");
@@ -28,7 +28,7 @@ public class HashContractTests : SolidityContractTestBase
     public async Task<Address> HashKeccak256Test()
     {
         const string solFilePath = "contracts/Hash.sol";
-        var executionResult = await DeployWebAssemblyContractAsync(await File.ReadAllBytesAsync(solFilePath));
+        var executionResult = await DeploySolidityContractAsync(await File.ReadAllBytesAsync(solFilePath));
         var contractAddress = executionResult.Output;
         var parameter = new ABIEncode().GetABIEncoded(new ABIValue("string", "hello"));
         var tx = await GetTransactionAsync(DefaultSenderKeyPair, contractAddress, "HashKeccak256");

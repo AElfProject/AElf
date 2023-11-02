@@ -19,7 +19,7 @@ public class StoreContractTests : SolidityContractTestBase
     {
         const string solFilePath = "contracts/store.sol";
         var executionResult = AsyncHelper.RunSync(async () =>
-            await DeployWebAssemblyContractAsync(await File.ReadAllBytesAsync(solFilePath)));
+            await DeploySolidityContractAsync(await File.ReadAllBytesAsync(solFilePath)));
         _contractAddress = executionResult.Output;
     }
 

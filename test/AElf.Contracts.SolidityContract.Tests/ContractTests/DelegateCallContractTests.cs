@@ -1,4 +1,5 @@
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Types;
 using Google.Protobuf;
@@ -15,12 +16,12 @@ public class DelegateCallContractTests : SolidityContractTestBase
         Address delegateeContractAddress, delegatorContractAddress;
         {
             const string solFilePath = "contracts/delegate_call_delegatee.sol";
-            var executionResult = await DeployWebAssemblyContractAsync(await File.ReadAllBytesAsync(solFilePath));
+            var executionResult = await DeploySolidityContractAsync(await File.ReadAllBytesAsync(solFilePath));
             delegateeContractAddress = executionResult.Output;
         }
         {
             const string solFilePath = "contracts/delegate_call_delegator.sol";
-            var executionResult = await DeployWebAssemblyContractAsync(await File.ReadAllBytesAsync(solFilePath));
+            var executionResult = await DeploySolidityContractAsync(await File.ReadAllBytesAsync(solFilePath));
             delegatorContractAddress = executionResult.Output;
         }
 
@@ -29,7 +30,7 @@ public class DelegateCallContractTests : SolidityContractTestBase
             new ABIValue("uint256", 1616)));
         {
             var tx = await GetTransactionAsync(DefaultSenderKeyPair, delegatorContractAddress, "setVars",
-                input);
+                input, 100);
             var txResult = await TestTransactionExecutor.ExecuteAsync(tx);
             txResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
@@ -47,6 +48,8 @@ public class DelegateCallContractTests : SolidityContractTestBase
             var tx = await GetTransactionAsync(DefaultSenderKeyPair, delegatorContractAddress, "value");
             var txResult = await TestTransactionExecutor.ExecuteAsync(tx);
             txResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            var value = new ABIEncode().GetABIEncoded(new ABIValue("uint256", 100));
+            txResult.ReturnValue.Reverse().ShouldBe(value);
         }
     }
 }

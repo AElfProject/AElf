@@ -13,7 +13,7 @@ public class SolidityContractDeploymentTest : SolidityContractTestBase
     public async Task<Address> DeployStorageContract()
     {
         var codeBytes = await File.ReadAllBytesAsync("contracts/Storage.sol");
-        var executionResult = await DeployWebAssemblyContractAsync(codeBytes);
+        var executionResult = await DeploySolidityContractAsync(codeBytes);
         executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
         var contractAddress = executionResult.Output;
         var registration = await BasicContractZeroStub.GetSmartContractRegistrationByAddress.CallAsync(contractAddress);

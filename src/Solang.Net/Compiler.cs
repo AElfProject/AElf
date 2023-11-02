@@ -7,7 +7,7 @@ namespace Solang
 {
     public unsafe class Compiler
     {
-        private static byte[] Buffer = new byte[2097152];
+        private static readonly byte[] Buffer = new byte[2097152];
         private static object _ = new object();
 
         static readonly Lazy<build_wasm> build_wasm

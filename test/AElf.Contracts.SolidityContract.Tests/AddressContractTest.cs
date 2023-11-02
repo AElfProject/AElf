@@ -11,7 +11,7 @@ public class AddressContractTests : SolidityContractTestBase
     public async Task AddressTest()
     {
         const string solFilePath = "contracts/Address.sol";
-        var executionResult = await DeployWebAssemblyContractAsync(await File.ReadAllBytesAsync(solFilePath));
+        var executionResult = await DeploySolidityContractAsync(await File.ReadAllBytesAsync(solFilePath));
         var contractAddress = executionResult.Output;
         var tx = await GetTransactionAsync(DefaultSenderKeyPair, contractAddress, "getAddress");
         var txResult = await TestTransactionExecutor.ExecuteAsync(tx);

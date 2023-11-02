@@ -14,7 +14,7 @@ public class ContractTests : SolidityContractTestBase
     public async Task ArrayStructMappingStorageTest()
     {
         const string solFilePath = "contracts/array_struct_mapping_storage.sol";
-        var executionResult = await DeployWebAssemblyContractAsync(await File.ReadAllBytesAsync(solFilePath));
+        var executionResult = await DeploySolidityContractAsync(await File.ReadAllBytesAsync(solFilePath));
         var contractAddress = executionResult.Output;
 
         // first set a canary

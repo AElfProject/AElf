@@ -91,11 +91,11 @@ public class Executive : IExecutive
 
             var selector = isCallConstructor ? _solangAbi.GetConstructor() : methodName;
             string parameter;
-            long value;
+            var value = 0L;
+            var delegateCallValue = 0L;
             if (isCallConstructor)
             {
                 parameter = transaction.Params.ToHex();
-                value = 0;
             }
             else
             {
@@ -103,9 +103,10 @@ public class Executive : IExecutive
                 parameterWithValue.MergeFrom(transaction.Params);
                 parameter = parameterWithValue.Parameter.ToHex();
                 value = parameterWithValue.Value;
+                delegateCallValue = parameterWithValue.DelegateCallValue;
             }
 
-            var action = GetAction(selector, parameter, value, isCallConstructor);
+            var action = GetAction(selector, parameter, isCallConstructor, value, delegateCallValue);
             var invokeResult = new RuntimeActionInvoker().Invoke(action);
 
             if (!invokeResult.Success)
@@ -145,10 +146,12 @@ public class Executive : IExecutive
         CurrentTransactionContext.Trace.Elapsed = (endTime - startTime).Ticks;
     }
 
-    private Func<ActionResult> GetAction(string selector, string parameter, long value, bool isCallConstructor)
+    private Func<ActionResult> GetAction(string selector, string parameter, bool isCallConstructor, long value,
+        long delegateCallValue)
     {
         _webAssemblyContract.Input = Encoders.Hex.DecodeData(selector + parameter);
         _webAssemblyContract.Value = value;
+        _webAssemblyContract.DelegateCallValue = delegateCallValue;
         var instance = _webAssemblyContract.Instantiate();
         var actionName = isCallConstructor ? "deploy" : "call";
         var action = instance.GetFunction<ActionResult>(actionName);

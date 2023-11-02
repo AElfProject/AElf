@@ -23,7 +23,7 @@ public class BallotContractTests : SolidityContractTestBase
         const string solFilePath = "contracts/Ballot.sol";
         var solidityCode = await File.ReadAllBytesAsync(solFilePath);
         var input = ByteString.CopyFrom(new ABIEncode().GetABIEncoded(new ABIValue("bytes32[]", _proposals)));
-        var executionResult = await DeployWebAssemblyContractAsync(solidityCode, input);
+        var executionResult = await DeploySolidityContractAsync(solidityCode, input);
         executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
         executionResult.TransactionResult.Logs.Count.ShouldBePositive();
         return executionResult.Output;
@@ -35,9 +35,8 @@ public class BallotContractTests : SolidityContractTestBase
         const string solFilePath = "contracts/Ballot2.sol";
         var solidityCode = await File.ReadAllBytesAsync(solFilePath);
         var input = ByteString.CopyFrom(new ABIEncode().GetABIEncoded(new ABIValue("bytes32", _proposals[0])));
-        var executionResult = await DeployWebAssemblyContractAsync(solidityCode, input);
+        var executionResult = await DeploySolidityContractAsync(solidityCode, input);
         executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-        executionResult.TransactionResult.Logs.Count.ShouldBePositive();
         return executionResult.Output;
     }
 

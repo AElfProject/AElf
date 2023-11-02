@@ -1,10 +1,8 @@
 using System.IO;
 using System.Threading.Tasks;
-using AElf.Runtime.WebAssembly.Extensions;
 using AElf.Types;
 using Google.Protobuf;
 using Nethereum.ABI;
-using Nethereum.ABI.Encoders;
 using Shouldly;
 
 namespace AElf.Contracts.SolidityContract;
@@ -17,12 +15,12 @@ public class CallContractTests : SolidityContractTestBase
         Address calleeContractAddress, callerContractAddress;
         {
             const string solFilePath = "contracts/call_callee.sol";
-            var executionResult = await DeployWebAssemblyContractAsync(await File.ReadAllBytesAsync(solFilePath));
+            var executionResult = await DeploySolidityContractAsync(await File.ReadAllBytesAsync(solFilePath));
             calleeContractAddress = executionResult.Output;
         }
         {
             const string solFilePath = "contracts/call_caller.sol";
-            var executionResult = await DeployWebAssemblyContractAsync(await File.ReadAllBytesAsync(solFilePath));
+            var executionResult = await DeploySolidityContractAsync(await File.ReadAllBytesAsync(solFilePath));
             callerContractAddress = executionResult.Output;
         }
 

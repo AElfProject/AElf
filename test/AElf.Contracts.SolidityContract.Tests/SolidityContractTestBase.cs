@@ -1,10 +1,12 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
+using AElf.Contracts.SolidityContract.Extensions;
 using AElf.ContractTestKit;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
@@ -36,7 +38,6 @@ public class SolidityContractTestBase : ContractTestBase<SolidityContractTestAEl
     internal readonly ITestTransactionExecutor TestTransactionExecutor;
     internal readonly IRefBlockInfoProvider RefBlockInfoProvider;
 
-
     public SolidityContractTestBase()
     {
         SmartContractAddressService = GetRequiredService<ISmartContractAddressService>();
@@ -60,7 +61,7 @@ public class SolidityContractTestBase : ContractTestBase<SolidityContractTestAEl
                     TransactionMethodCallList = GenerateTokenInitializationCallList()
                 }));
     }
-    
+
     private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList
         GenerateTokenInitializationCallList()
     {
@@ -93,7 +94,7 @@ public class SolidityContractTestBase : ContractTestBase<SolidityContractTestAEl
         return GetTester<BasicContractZeroImplContainer.BasicContractZeroImplStub>(ContractZeroAddress, keyPair);
     }
 
-    internal async Task<IExecutionResult<Address>> DeployWebAssemblyContractAsync(byte[] codeBytes,
+    internal async Task<IExecutionResult<Address>> DeploySolidityContractAsync(byte[] codeBytes,
         ByteString constructorInput = null)
     {
         var executionResult = await BasicContractZeroStub.DeploySmartContract.SendAsync(new ContractDeploymentInput
@@ -111,7 +112,8 @@ public class SolidityContractTestBase : ContractTestBase<SolidityContractTestAEl
     {
         var refBlockInfo = RefBlockInfoProvider.GetRefBlockInfo();
         var transaction =
-            await GetTransactionWithoutSignatureAsync(Address.FromPublicKey(keyPair.PublicKey), to, methodName, parameter);
+            await GetTransactionWithoutSignatureAsync(Address.FromPublicKey(keyPair.PublicKey), to, methodName,
+                parameter, value);
         transaction.RefBlockNumber = refBlockInfo.Height;
         transaction.RefBlockPrefix = refBlockInfo.Prefix;
 
@@ -130,7 +132,8 @@ public class SolidityContractTestBase : ContractTestBase<SolidityContractTestAEl
         }.ToByteString();
         var registration = await BasicContractZeroStub.GetSmartContractRegistrationByAddress.CallAsync(to);
         var solangAbi =
-            JsonSerializer.Deserialize<SolangABI>(new Compiler().BuildWasm(registration.Code.ToByteArray()).Contracts.First()
+            JsonSerializer.Deserialize<SolangABI>(new Compiler().BuildWasm(registration.Code.ToByteArray()).Contracts
+                .First()
                 .Abi);
         var selector = methodName == "deploy" ? solangAbi.GetConstructor() : solangAbi.GetSelector(methodName);
         var transaction = new Transaction
@@ -147,5 +150,20 @@ public class SolidityContractTestBase : ContractTestBase<SolidityContractTestAEl
     internal ByteString Index(int index)
     {
         return ByteString.CopyFrom(new ABIEncode().GetABIEncoded(new ABIValue("uint256", index)));
+    }
+
+    internal static string ExtraContractCodeFromHardhatOutput(string filePath)
+    {
+        var json = File.ReadAllText(filePath);
+        var hardhatOutput = JsonSerializer.Deserialize<HardhatOutput>(json);
+        var contracts = hardhatOutput.Input.Sources.Select(s => s.Value.Values).Select(v => v.First()).ToList();
+        return contracts.IntegrateContracts();
+    }
+
+    internal async Task<ByteString> ViewField(Address contractAddress, string fieldName, ByteString parameter = null)
+    {
+        var tx = await GetTransactionAsync(DefaultSenderKeyPair, contractAddress, fieldName, parameter);
+        var txResult = await TestTransactionExecutor.ExecuteAsync(tx);
+        return txResult.ReturnValue;
     }
 }

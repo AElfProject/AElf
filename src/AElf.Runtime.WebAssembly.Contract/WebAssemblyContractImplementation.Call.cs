@@ -186,7 +186,12 @@ public partial class WebAssemblyContractImplementation
         var methodName = inputDataHex[..8];
         var parameter = new byte[inputData.Length - 4];
         Array.Copy(inputData, 4, parameter, 0, parameter.Length);
-        var result = Context.CallMethod(Context.Self, to, methodName, ByteString.CopyFrom(parameter));
+        var parameterWithValue = new TransactionParameterWithValue
+        {
+            Parameter = ByteString.CopyFrom(parameter),
+            Value = value
+        }.ToByteString();
+        var result = Context.CallMethod(Context.Self, to, methodName, parameterWithValue);
         return new ExecuteReturnValue
         {
             Data = result
@@ -200,8 +205,13 @@ public partial class WebAssemblyContractImplementation
         var parameter = new byte[inputData.Length - 4];
         Array.Copy(inputData, 4, parameter, 0, parameter.Length);
         var to = State.SolidityContractManager.GetContractAddressByCodeHash.Call(codeHash);
+        var parameterWithValue = new TransactionParameterWithValue
+        {
+            Parameter = ByteString.CopyFrom(parameter),
+            DelegateCallValue = Value
+        }.ToByteString();
         var result =
-            Context.DelegateCall(Context.Sender, to, methodName, ByteString.CopyFrom(parameter));
+            Context.DelegateCall(Context.Sender, to, methodName, parameterWithValue);
         return new ExecuteReturnValue
         {
             Data = result

@@ -27,6 +27,7 @@ public partial class WebAssemblyContractImplementation : WebAssemblyContract<Web
     public List<(byte[], byte[])> Events => new();
     public byte[]? Input { get; set; } = Array.Empty<byte>();
     public long Value { get; set; } = 0;
+    public long DelegateCallValue { get; set; } = 0;
     public bool Initialized => State.Initialized.Value;
 
     public WebAssemblyContractImplementation(byte[] wasmCode, bool withFuelConsumption = false, long memoryMin = 16,
@@ -44,7 +45,7 @@ public partial class WebAssemblyContractImplementation : WebAssemblyContract<Web
     {
         State.Initialized.Value = true;
         State.GenesisContract.Value = Context.GetZeroSmartContractAddress();
-        State.GenesisContract.Value = State.GenesisContract.Value;
+        State.SolidityContractManager.Value = State.GenesisContract.Value;
         State.TokenContract.Value = Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
         State.RandomNumberContract.Value =
             Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
@@ -371,10 +372,24 @@ public partial class WebAssemblyContractImplementation : WebAssemblyContract<Web
     /// <param name="valueLengthPtr"></param>
     private void ValueTransferred(int valuePtr, int valueLengthPtr)
     {
-        if (Value > 0)
+        if (Value <= 0)
         {
-            WriteSandboxOutput(valuePtr, valueLengthPtr, Value);
+            if (DelegateCallValue > 0)
+            {
+                WriteSandboxOutput(valuePtr, valueLengthPtr, DelegateCallValue);
+            }
+
+            return;
         }
+
+        WriteSandboxOutput(valuePtr, valueLengthPtr, Value);
+        Context.CallMethod(Context.Sender, State.TokenContract.Value, nameof(State.TokenContract.Transfer),
+            new TransferInput
+            {
+                To = Context.Self,
+                Symbol = Context.Variables.NativeSymbol,
+                Amount = Value
+            }.ToByteString());
     }
 
     /// <summary>
@@ -632,8 +647,7 @@ public partial class WebAssemblyContractImplementation : WebAssemblyContract<Web
     /// </returns>
     private int CallRuntime(int callPtr, int callLen)
     {
-        var call = ReadSandboxMemory(callPtr, callLen);
-        return (int)ReturnCode.Success;
+        throw new NotImplementedException();
     }
 
     /// <summary>
