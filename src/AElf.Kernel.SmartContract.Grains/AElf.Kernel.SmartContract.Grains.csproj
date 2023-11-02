@@ -1,0 +1,47 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <RootNamespace>AElf.Kernel.SmartContract.Grains</RootNamespace>
+        <PackageId>AElf.Kernel.SmartContract.Grains</PackageId>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="AElf.AElfNode.EventHandler.BackgroundJob" Version="1.1.9" />
+        <PackageReference Include="Microsoft.Extensions.Http" Version="7.0.0" />
+        <PackageReference Include="Microsoft.Orleans.CodeGenerator.MSBuild" Version="3.6.5">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Microsoft.Orleans.Core.Abstractions" Version="3.6.5" />
+        <PackageReference Include="MongoDB.Bson" Version="2.17.1" />
+        <PackageReference Include="AElf.Client" Version="1.1.0" />
+        <PackageReference Include="AElf.Core" Version="1.2.3" />
+        <PackageReference Include="AElf.CSharp.Core" Version="1.2.3" />
+        <PackageReference Include="AElf.Kernel.Types" Version="1.2.3" />
+        <PackageReference Include="AElf.Types" Version="1.2.3" />
+        <PackageReference Include="Volo.Abp.Autofac" Version="7.0.0" />
+        <PackageReference Include="Volo.Abp.BackgroundJobs.Domain" Version="7.0.0" />
+        <PackageReference Include="Volo.Abp.Caching" Version="7.0.0" />
+        <PackageReference Include="GraphQL.Client.Serializer.Newtonsoft" Version="5.1.0" />
+        <PackageReference Include="GraphQL.Client" Version="5.1.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+     <ProjectReference Include="..\AElf.Kernel.SmartContract\AElf.Kernel.SmartContract.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Orleans_CodeGenInputs Remove="Grain\CollectionCreationJob\CollectionCreationJobGrain.cs" />
+      <Orleans_CodeGenInputs Remove="Grain\CollectionCreationJob\CollectionCreationJobGrainDto.cs" />
+      <Orleans_CodeGenInputs Remove="Grain\CollectionCreationJob\ICollectionCreationJobGrain.cs" />
+      <Orleans_CodeGenInputs Remove="State\NFTInfo\NftCollectionExtensionState.cs" />
+      <Orleans_CodeGenInputs Remove="State\NFTInfo\NftInfoExtensionState.cs" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="State" />
+    </ItemGroup>
+
+</Project>
