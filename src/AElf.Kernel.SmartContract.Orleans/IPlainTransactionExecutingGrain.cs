@@ -4,7 +4,7 @@ using Orleans;
 
 namespace AElf.Kernel.SmartContract.Grains;
 
-public interface IPlainTransactionExecutingGrain : IGrainWithGuidKey
+public interface IPlainTransactionExecutingGrain : Grain<NftCollectionExtensionState> ,IGrainWithGuidKey
 {
     Task<GrainResultDto<string>> GetTransactionPoolStatusAsync();
     

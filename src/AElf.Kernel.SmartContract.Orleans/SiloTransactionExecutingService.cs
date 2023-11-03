@@ -21,14 +21,14 @@ namespace AElf.Kernel.SmartContract.Orleans;
 public class SiloTransactionExecutingService : IPlainTransactionExecutingService, ISingletonDependency
 {
 
-    private readonly IClusterClient _clusterClient;
+    private readonly ISiloClusterClientContext _siloClusterClientContext;
     private readonly ILogger<SiloTransactionExecutingService> _logger;
 
 
-    public SiloTransactionExecutingService(IClusterClient clusterClient, ILogger<SiloTransactionExecutingService> logger)
+    public SiloTransactionExecutingService(ISiloClusterClientContext siloClusterClientContext, ILogger<SiloTransactionExecutingService> logger)
     {
         _logger = logger;
-        _clusterClient = clusterClient;
+        _siloClusterClientContext = siloClusterClientContext;
     }
 
     public ILogger<PlainTransactionExecutingService> Logger { get; set; }
@@ -40,7 +40,7 @@ public class SiloTransactionExecutingService : IPlainTransactionExecutingService
     {
         try
         {
-            var grain = _clusterClient.GetGrain<IPlainTransactionExecutingGrain>(Guid.NewGuid());
+            var grain = _siloClusterClientContext.GetClusterClient().GetGrain<IPlainTransactionExecutingGrain>(Guid.NewGuid());
             var result = await grain.ExecuteAsync(transactionExecutingDto, cancellationToken);
             return result;
         }

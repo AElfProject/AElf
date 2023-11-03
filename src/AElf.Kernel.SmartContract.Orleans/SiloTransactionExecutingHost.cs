@@ -1,14 +1,13 @@
-using Microsoft.Extensions.Hosting;
 using Volo.Abp;
 
-namespace AElf.Kernel.SmartContract.Silo;
+namespace AElf.Kernel.SmartContract.Orleans;
 
-public class AElfKernelSmartContractOrleansSiloService : IHostedService
+public class SiloTransactionExecutingHost : ISiloTransactionExecutingHost
 {
     private readonly IAbpApplicationWithExternalServiceProvider _application;
     private readonly IServiceProvider _serviceProvider;
-    
-    public AElfKernelSmartContractOrleansSiloService(
+
+    public SiloTransactionExecutingHost(
         IAbpApplicationWithExternalServiceProvider application,
         IServiceProvider serviceProvider)
     {

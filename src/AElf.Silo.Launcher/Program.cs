@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using AElf.Kernel.SmartContract.Silo;
 using AElf.Kernel.SmartContract.Silo.Extensions;
+using AElf.Silo.Launcher;
 using Serilog;
 using Serilog.Events;
 
@@ -13,7 +14,8 @@ public class Program
     public async static Task<int> Main(string[] args)
     {
         var configuration = new ConfigurationBuilder()
-            .AddJsonFile("appsettings.json")
+            //.AddJsonFile("appsettings.json")
+            .AddJsonFile("appsetting.ParallelExecution.json")
             .Build();
         Log.Logger = new LoggerConfiguration()
 #if DEBUG
@@ -32,7 +34,7 @@ public class Program
 
         try
         {
-            Log.Information("Starting AElf.Kernel.SmartContract.Silo.");
+            Log.Information("Starting AElf.Silo.Launcher.");
 
             await CreateHostBuilder(args).RunConsoleAsync();
 
@@ -53,7 +55,7 @@ public class Program
         Host.CreateDefaultBuilder(args)
             .ConfigureServices((hostcontext, services) =>
             {
-                services.AddApplication<AElfKernelSmartContractOrleansSiloModule>();
+                services.AddApplication<AElfSiloLauncherModule>();
             })
             .UseOrleansSnapshot()
             .UseAutofac()

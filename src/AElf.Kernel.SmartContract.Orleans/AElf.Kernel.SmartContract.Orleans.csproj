@@ -3,8 +3,8 @@
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
-        <RootNamespace>AElf.Kernel.SmartContract.Orlean</RootNamespace>
-        <PackageId>AElf.Kernel.SmartContract.Orlean</PackageId>
+        <RootNamespace>AElf.Kernel.SmartContract.Orleans</RootNamespace>
+        <PackageId>AElf.Kernel.SmartContract.Orleans</PackageId>
     </PropertyGroup>
 
     <ItemGroup>
@@ -30,7 +30,6 @@
     </ItemGroup>
 
     <ItemGroup>
-     <ProjectReference Include="..\AElf.Kernel.SmartContract.Grains\AElf.Kernel.SmartContract.Grains.csproj" />
      <ProjectReference Include="..\AElf.Kernel.SmartContract\AElf.Kernel.SmartContract.csproj" />
     </ItemGroup>
 

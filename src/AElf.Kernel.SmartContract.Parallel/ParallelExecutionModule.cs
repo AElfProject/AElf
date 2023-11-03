@@ -19,7 +19,7 @@ public class ParallelExecutionModule : AElfModule
         context.Services.AddSingleton<ITransactionExecutingService, LocalParallelTransactionExecutingService>();
         if (true)
         {
-            context.Services.AddApplication<AElfKernelSmartContractOrleansModule>();
+            context.Services.AddApplication<SiloExecutionAElfModule>();
         }
 
     }
