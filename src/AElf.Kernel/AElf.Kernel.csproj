@@ -20,8 +20,4 @@
         <ProjectReference Include="..\AElf.Kernel.TransactionPool\AElf.Kernel.TransactionPool.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-      <PackageReference Include="Volo.Abp.AutoMapper" Version="5.2.2" />
-    </ItemGroup>
-
 </Project>

@@ -84,11 +84,7 @@ public class PlainTransactionExecutingGrain : Grain<TransactionState>, IPlainTra
                 returnSets.Add(returnSet);
             }
 
-            State = new TransactionState
-            {
-                ExecutionReturnSets = returnSets
-            };
-
+            State.ExecutionReturnSets = returnSets;
             await WriteStateAsync();
             return returnSets;
         }
