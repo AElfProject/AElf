@@ -1,15 +1,12 @@
 using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContract.Grains;
 using AElf.Types;
 using Orleans;
 
-namespace AElf.Kernel.SmartContract.Grains;
+namespace AElf.Kernel.SmartContract.Orleans;
 
-public interface IPlainTransactionExecutingGrain : Grain<NftCollectionExtensionState> ,IGrainWithGuidKey
+public interface IPlainTransactionExecutingGrain : IGrainWithGuidKey
 {
-    Task<GrainResultDto<string>> GetTransactionPoolStatusAsync();
-    
-    Task<GrainResultDto<string>> ExecuteTransactionAsync(Transaction transaction);
-
     Task<List<ExecutionReturnSet>> ExecuteAsync(TransactionExecutingDto transactionExecutingDto,
         CancellationToken cancellationToken);
 }

@@ -2,7 +2,7 @@ using Orleans;
 
 namespace AElf.Kernel.SmartContract.Orleans;
 
-public class SiloClusterClientContext
+public class SiloClusterClientContext : ISiloClusterClientContext
 {
     private readonly IClusterClient _clusterClient;
     

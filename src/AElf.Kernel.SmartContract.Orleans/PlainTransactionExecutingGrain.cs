@@ -1,16 +1,18 @@
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Domain;
+using AElf.Kernel.SmartContract.Grains;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Types;
+using AutoMapper.Internal.Mappers;
 using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Volo.Abp.EventBus.Local;
+using Orleans;
 
-namespace AElf.Kernel.SmartContract.Grains;
+namespace AElf.Kernel.SmartContract.Orleans;
 
-public class PlainTransactionExecutingGrain : IPlainTransactionExecutingGrain
+public class PlainTransactionExecutingGrain : Grain<TransactionState>, IPlainTransactionExecutingGrain
 {
     public ILogger<PlainTransactionExecutingGrain> Logger { get; set; }
     private readonly ISmartContractExecutiveService _smartContractExecutiveService;
@@ -28,17 +30,6 @@ public class PlainTransactionExecutingGrain : IPlainTransactionExecutingGrain
         _prePlugins = GetUniquePlugins(prePlugins);
         _postPlugins = GetUniquePlugins(postPlugins);
         Logger = NullLogger<PlainTransactionExecutingGrain>.Instance;
-    }
-
-    public Task<GrainResultDto<string>> GetTransactionPoolStatusAsync()
-    {
-        throw new NotImplementedException();
-    }
-
-
-    public Task<GrainResultDto<string>> ExecuteTransactionAsync(Transaction transaction)
-    {
-        throw new NotImplementedException();
     }
 
     public async Task<List<ExecutionReturnSet>> ExecuteAsync(TransactionExecutingDto transactionExecutingDto,
@@ -93,6 +84,12 @@ public class PlainTransactionExecutingGrain : IPlainTransactionExecutingGrain
                 returnSets.Add(returnSet);
             }
 
+            State = new TransactionState
+            {
+                ExecutionReturnSets = returnSets
+            };
+
+            await WriteStateAsync();
             return returnSets;
         }
         catch (Exception e)

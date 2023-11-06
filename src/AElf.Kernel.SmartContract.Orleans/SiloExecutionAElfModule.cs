@@ -15,6 +15,8 @@ public class SiloExecutionAElfModule : AbpModule
     {
         context.Services.AddSingleton<IPlainTransactionExecutingService, SiloTransactionExecutingService>();
         context.Services.AddSingleton<IPlainTransactionExecutingGrain, PlainTransactionExecutingGrain>();
+        context.Services.AddSingleton<ISiloClusterClientContext, SiloClusterClientContext>();
+        ;
 
     }
 }
