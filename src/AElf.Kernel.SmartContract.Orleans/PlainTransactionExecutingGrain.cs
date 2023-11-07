@@ -3,7 +3,6 @@ using AElf.Kernel.SmartContract.Domain;
 using AElf.Kernel.SmartContract.Grains;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Types;
-using AutoMapper.Internal.Mappers;
 using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;

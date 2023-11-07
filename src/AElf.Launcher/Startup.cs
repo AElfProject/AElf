@@ -54,6 +54,8 @@ public class Startup
                 if (_configuration["CorsOrigins"] != "*") builder.AllowCredentials();
             });
         });
+//        AddApplication<SiloExecutionAElfModule>(services);
+
     }
 
     private static void AddApplication<T>(IServiceCollection services) where T : IAbpModule

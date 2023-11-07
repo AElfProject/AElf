@@ -9,40 +9,61 @@
 
     <ItemGroup>
        <!-- <PackageReference Include="AElf.AElfNode.EventHandler.BackgroundJob" Version="1.1.9" />-->
-        <PackageReference Include="Microsoft.Extensions.Http" Version="7.0.0" />
+        <!--<PackageReference Include="Microsoft.Extensions.Http" Version="6.0.0" />-->
         <PackageReference Include="Microsoft.Orleans.CodeGenerator.MSBuild" Version="3.6.5">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Microsoft.Orleans.Core" Version="3.6.5" />
         <PackageReference Include="Microsoft.Orleans.Core.Abstractions" Version="3.6.5" />
         <PackageReference Include="MongoDB.Bson" Version="2.17.1" />
-        <PackageReference Include="AElf.Client" Version="1.1.0" />
-        <PackageReference Include="AElf.Core" Version="1.2.3" />
-        <PackageReference Include="AElf.CSharp.Core" Version="1.2.3" />
-        <PackageReference Include="AElf.Kernel.Types" Version="1.2.3" />
-        <PackageReference Include="AElf.Types" Version="1.2.3" />
+        <PackageReference Include="Orleans.Providers.MongoDB" Version="3.8.0" />
+<!--        <PackageReference Include="AElf.Sdk.CSharp" Version="1.5.0" />-->
+<!--        <PackageReference Include="AElf.Core" Version="1.5.0" />-->
+<!--        <PackageReference Include="AElf.CSharp.Core" Version="1.5.0" />-->
+<!--        <PackageReference Include="AElf.Kernel.Types" Version="1.5.0" />-->
+<!--        <PackageReference Include="AElf.Types" Version="1.5.0" />-->
+        <!-- <PackageReference Include="AElf.Contracts.TokenConverter" Version="1.5.0" />
+        <PackageReference Include="AElf.Contracts.MultiToken" Version="1.5.0" />-->
         <PackageReference Include="Volo.Abp.Autofac" Version="5.2.2" />
-        <PackageReference Include="Volo.Abp.BackgroundJobs.Domain" Version="7.0.0" />
-        <PackageReference Include="Volo.Abp.Caching" Version="7.0.0" />
-        <PackageReference Include="GraphQL.Client.Serializer.Newtonsoft" Version="5.1.0" />
-        <PackageReference Include="GraphQL.Client" Version="5.1.0" />
+        <PackageReference Include="Volo.Abp.BackgroundJobs.Domain" Version="5.2.2" />
+        <PackageReference Include="Volo.Abp.Caching" Version="5.2.2" />
+<!--        <PackageReference Include="GraphQL.Client.Serializer.Newtonsoft" Version="5.1.0" />-->
+<!--        <PackageReference Include="GraphQL.Client" Version="5.1.0" />-->
+        <!--<PackageReference Include="AElf.Sdk.CSharp" Version="1.5.0" />
+        <PackageReference Include="FluentAssertions" Version="6.11.0" />
+        <PackageReference Include="Orleans.Providers.MongoDB" Version="3.8.0" />
+        <PackageReference Include="Volo.Abp.ObjectExtending" Version="5.2.2" />
+        <PackageReference Include="Volo.Abp.Account.Application.Contracts" Version="5.2.2" />
+        <PackageReference Include="Volo.Abp.Identity.Application.Contracts" Version="5.2.2" />
+        <PackageReference Include="Volo.Abp.PermissionManagement.Application.Contracts" Version="5.2.2" />
+        <PackageReference Include="Volo.Abp.TenantManagement.Application.Contracts" Version="5.2.2" />
+        <PackageReference Include="Volo.Abp.FeatureManagement.Application.Contracts" Version="5.2.2" />
+        <PackageReference Include="Volo.Abp.SettingManagement.Application.Contracts" Version="5.2.2" />-->
+        <!--<PackageReference Include="AElf.Whitelist.Application.Contracts" Version="0.0.3" />-->
+
+        <!--<PackageReference Include="AElf.Contracts.CrossChain" Version="1.5.0" />-->
     </ItemGroup>
 
     <ItemGroup>
-     <ProjectReference Include="..\AElf.Kernel.SmartContract\AElf.Kernel.SmartContract.csproj" />
+        <ProjectReference Include="..\AElf.Kernel.SmartContract\AElf.Kernel.SmartContract.csproj" />
+    </ItemGroup>
+
+<!--    <ItemGroup>
+        <Orleans_CodeGenInputs Remove="Grain\CollectionCreationJob\CollectionCreationJobGrain.cs" />
+        <Orleans_CodeGenInputs Remove="Grain\CollectionCreationJob\CollectionCreationJobGrainDto.cs" />
+        <Orleans_CodeGenInputs Remove="Grain\CollectionCreationJob\ICollectionCreationJobGrain.cs" />
+        <Orleans_CodeGenInputs Remove="State\NFTInfo\NftCollectionExtensionState.cs" />
+        <Orleans_CodeGenInputs Remove="State\NFTInfo\NftInfoExtensionState.cs" />
+    </ItemGroup>-->
+
+    <ItemGroup>
+        <Folder Include="State" />
     </ItemGroup>
 
     <ItemGroup>
-      <Orleans_CodeGenInputs Remove="Grain\CollectionCreationJob\CollectionCreationJobGrain.cs" />
-      <Orleans_CodeGenInputs Remove="Grain\CollectionCreationJob\CollectionCreationJobGrainDto.cs" />
-      <Orleans_CodeGenInputs Remove="Grain\CollectionCreationJob\ICollectionCreationJobGrain.cs" />
-      <Orleans_CodeGenInputs Remove="State\NFTInfo\NftCollectionExtensionState.cs" />
-      <Orleans_CodeGenInputs Remove="State\NFTInfo\NftInfoExtensionState.cs" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="State" />
+      <Reference Include="Orleans.Core">
+        <HintPath>..\..\..\..\..\.nuget\packages\microsoft.orleans.core\3.6.5\lib\net6.0\Orleans.Core.dll</HintPath>
+      </Reference>
     </ItemGroup>
 
 </Project>
