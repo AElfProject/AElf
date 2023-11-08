@@ -9,29 +9,36 @@ using Microsoft.Extensions.Logging;
 using Orleans;
 using Orleans.Configuration;
 using Orleans.Providers.MongoDB.Configuration;
+using Volo.Abp;
 using Volo.Abp.Auditing;
 using Volo.Abp.AutoMapper;
 using Volo.Abp.Modularity;
 using Volo.Abp.ObjectExtending;
 using Volo.Abp.ObjectMapping;
+using Volo.Abp.Threading;
 
 namespace AElf.Kernel.SmartContract.Orleans;
-
-[DependsOn(
-    // typeof(AbpAutoMapperModule)
-    )]
 public class SiloExecutionAElfModule : AbpModule
 {
     public override void ConfigureServices(ServiceConfigurationContext context)
     {
         var configuration = context.Services.GetConfiguration();
-        
-        ConfigureOrleans(context, configuration);
-        
-        context.Services.AddSingleton<IPlainTransactionExecutingService, SiloTransactionExecutingService>();
+        ConfigureOrleans(context, configuration); 
+        context.Services.AddSingleton<IPlainTransactionExecutingService, SiloTransactionExecutingService>(); 
         context.Services.AddSingleton<IPlainTransactionExecutingGrain, PlainTransactionExecutingGrain>();
         context.Services.AddSingleton<ISiloClusterClientContext, SiloClusterClientContext>();
+        context.Services.AddSingleton<ISmartContractExecutiveService, SmartContractExecutiveService>();
+       // context.Services.AddSingleton<ITransactionExecutingService, SiloTransactionExecutingService>();
 
+    }
+    public override void OnApplicationInitialization(ApplicationInitializationContext context)
+    {
+
+        StartOrleans(context.ServiceProvider);
+    }
+    public override void OnApplicationShutdown(ApplicationShutdownContext context)
+    {
+        StopOrleans(context.ServiceProvider);
     }
     private static void ConfigureOrleans(ServiceConfigurationContext context, IConfiguration configuration)
     {
@@ -56,5 +63,16 @@ public class SiloExecutionAElfModule : AbpModule
                 .ConfigureLogging(builder => builder.AddProvider(o.GetService<ILoggerProvider>()))
                 .Build();
         });
+    }
+    private static void StartOrleans(IServiceProvider serviceProvider)
+    {
+        var client = serviceProvider.GetRequiredService<IClusterClient>();
+        AsyncHelper.RunSync(async () => await client.Connect());
+    }
+
+    private static void StopOrleans(IServiceProvider serviceProvider)
+    {
+        var client = serviceProvider.GetRequiredService<IClusterClient>();
+        AsyncHelper.RunSync(client.Close);
     }
 }

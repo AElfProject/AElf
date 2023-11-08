@@ -23,12 +23,14 @@ public class SiloTransactionExecutingService : IPlainTransactionExecutingService
 
     private readonly ISiloClusterClientContext _siloClusterClientContext;
     private readonly ILogger<SiloTransactionExecutingService> _logger;
+    private readonly IClusterClient _clusterClient;
 
 
-    public SiloTransactionExecutingService(ISiloClusterClientContext siloClusterClientContext, ILogger<SiloTransactionExecutingService> logger)
+    public SiloTransactionExecutingService(ISiloClusterClientContext siloClusterClientContext, ILogger<SiloTransactionExecutingService> logger, IClusterClient clusterClient)
     {
         _logger = logger;
         _siloClusterClientContext = siloClusterClientContext;
+        _clusterClient = clusterClient;
     }
 
     public ILogger<PlainTransactionExecutingService> Logger { get; set; }
@@ -40,6 +42,7 @@ public class SiloTransactionExecutingService : IPlainTransactionExecutingService
     {
         try
         {
+            //var client = _clusterClient.GetGrain<IPlainTransactionExecutingGrain>(Guid.NewGuid());
             var grain = _siloClusterClientContext.GetClusterClient().GetGrain<IPlainTransactionExecutingGrain>(Guid.NewGuid());
             var result = await grain.ExecuteAsync(transactionExecutingDto, cancellationToken);
             return result;

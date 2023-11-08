@@ -8,7 +8,8 @@ using AElf.Kernel.SmartContract.Orleans;
 
 namespace AElf.Kernel.SmartContract.Parallel;
 
-[DependsOn(typeof(SmartContractAElfModule),typeof(SiloExecutionAElfModule))]
+[DependsOn(typeof(SmartContractAElfModule),typeof(SiloExecutionAElfModule)
+)]
 public class ParallelExecutionModule : AElfModule
 {
     public override void ConfigureServices(ServiceConfigurationContext context)
@@ -20,7 +21,6 @@ public class ParallelExecutionModule : AElfModule
         if (true)
         {
              //context.Services.AddApplication<SiloExecutionAElfModule>();
-            // context.Services.AddAbpModule<SiloExecutionAElfModule>();
         }
 
     }
