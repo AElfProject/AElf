@@ -18,6 +18,7 @@ using Volo.Abp.ObjectMapping;
 using Volo.Abp.Threading;
 
 namespace AElf.Kernel.SmartContract.Orleans;
+[DependsOn(typeof(SmartContractAElfModule))]
 public class SiloExecutionAElfModule : AbpModule
 {
     public override void ConfigureServices(ServiceConfigurationContext context)
