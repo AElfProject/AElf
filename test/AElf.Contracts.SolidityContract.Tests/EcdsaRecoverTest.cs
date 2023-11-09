@@ -22,7 +22,7 @@ public class EcdsaRecoverTest : SolidityContractTestBase
         var signature = key.Sign(message);
         
         const string solFilePath = "contracts/ecdsa_recover.sol";
-        var executionResult = await DeploySolidityContractAsync(await File.ReadAllBytesAsync(solFilePath));
+        var executionResult = await DeployWasmContractAsync(await File.ReadAllBytesAsync(solFilePath));
         var contractAddress = executionResult.Output;
         var abiParams = new ABIValue[]
         {

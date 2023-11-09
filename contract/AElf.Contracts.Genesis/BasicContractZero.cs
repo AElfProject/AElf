@@ -46,7 +46,10 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
     public override SmartContractRegistration GetSmartContractRegistrationByAddress(Address input)
     {
         var info = State.ContractInfos[input];
-        if (info == null) return null;
+        if (info == null)
+        {
+            return null;
+        }
 
         return State.SmartContractRegistrations[info.CodeHash];
     }
@@ -282,8 +285,7 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
 
         var address =
             DeploySmartContract(null, input.Category, input.Code.ToByteArray(), false,
-                DecideNonSystemContractAuthor(contractProposingInput?.Proposer, Context.Sender), false,
-                input.Parameter);
+                DecideNonSystemContractAuthor(contractProposingInput?.Proposer, Context.Sender), false);
         return address;
     }
 

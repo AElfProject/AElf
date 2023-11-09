@@ -13,8 +13,13 @@ service SolidityContract {
     rpc DeploySoliditySmartContract (DeploySoliditySmartContractInput) returns (aelf.Address) {
     }
 
-    rpc GetContractAddressByCodeHash (aelf.Hash) returns (aelf.Address) {
-        option (aelf.is_view) = true;
+    rpc DeployWasmSmartContract (DeploySoliditySmartContractInput) returns (aelf.Address) {
+    }
+    
+    rpc InstantiateSoliditySmartContract (InstantiateSoliditySmartContractInput) returns (aelf.Address) {
+    }
+
+    rpc UploadSoliditySmartContract (UploadSoliditySmartContractInput) returns (aelf.Hash) {
     }
 }
 
@@ -26,4 +31,16 @@ message DeploySoliditySmartContractInput {
     // The parameter of contract constructor.
     bytes parameter = 3;
     int64 value = 4;
+}
+
+message InstantiateSoliditySmartContractInput {
+    sint32 category = 1;
+    aelf.Hash code_hash = 2;
+    bytes parameter = 3;
+    bytes salt = 4;
+}
+
+message UploadSoliditySmartContractInput {
+    sint32 category = 1;
+    bytes code = 2;
 }

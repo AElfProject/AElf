@@ -107,17 +107,20 @@ public partial class WebAssemblyContractImplementation
     private (Address, ExecuteReturnValue) Instantiate(Weight gasLimit, long depositLimit, Hash codeHash, long value,
         byte[] inputData, byte[] salt)
     {
-        var registration = State.GenesisContract.GetSmartContractRegistrationByCodeHash.Call(codeHash);
+        ChargeGas(new Instantiate());
         var parameter = new byte[inputData.Length - 4];
         Array.Copy(inputData, 4, parameter, 0, parameter.Length);
         var addressBytes = Context.CallMethod(Context.Sender, Context.GetZeroSmartContractAddress(),
-            nameof(State.SolidityContractManager.DeploySoliditySmartContract), new DeploySoliditySmartContractInput
+            nameof(State.SolidityContractManager.InstantiateSoliditySmartContract), new InstantiateSoliditySmartContractInput
             {
-                Code = registration.Code,
-                Category = KernelConstants.SolidityRunnerCategory,
-                Parameter = ByteString.CopyFrom(parameter)
+                CodeHash = codeHash,
+                Category = KernelConstants.WasmRunnerCategory,
+                Parameter = ByteString.CopyFrom(parameter),
+                Salt = ByteString.CopyFrom(salt)
             }.ToByteString());
-        return (Types.Address.FromBytes(addressBytes), new ExecuteReturnValue
+        var contractAddress = new Address();
+        contractAddress.MergeFrom(addressBytes);
+        return (contractAddress, new ExecuteReturnValue
         {
             Data = addressBytes
         });

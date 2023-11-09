@@ -1,4 +1,5 @@
 using System.Text;
+using AElf.Runtime.WebAssembly.TransactionPayment;
 
 namespace AElf.Runtime.WebAssembly.Contract;
 

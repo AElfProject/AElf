@@ -46,6 +46,9 @@
         </CommonMessage>
     </ItemGroup>
     <ItemGroup>
+        <ContractStub Include="..\..\protobuf\solidity_contract.proto">
+            <Link>Protobuf\Proto\solidity_contract.proto</Link>
+        </ContractStub>
         <ContractStub Include="..\..\protobuf\acs1.proto">
             <Link>Protobuf\Proto\acs1.proto</Link>
         </ContractStub>
@@ -76,8 +79,8 @@
         <ContractBase Include="..\..\protobuf\acs4.proto">
             <Link>Protobuf\Proto\acs4.proto</Link>
         </ContractBase>
-        <ContractMessage Include="..\..\protobuf\transaction_parameter_with_value.proto">
-            <Link>Protobuf\Proto\transaction_parameter_with_value.proto</Link>
+        <ContractMessage Include="..\..\protobuf\solidity_transaction_parameter.proto">
+            <Link>Protobuf\Proto\solidity_transaction_parameter.proto</Link>
         </ContractMessage>
     </ItemGroup>
     <ItemGroup>
@@ -85,6 +88,12 @@
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
         <None Update="contracts\*\*.sol">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+        <None Update="contracts\*.wasm">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+        <None Update="contracts\*.contract">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
         <None Update="contracts\delegate_call_delegator.sol">

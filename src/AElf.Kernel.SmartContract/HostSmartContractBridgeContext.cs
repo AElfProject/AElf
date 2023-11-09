@@ -328,7 +328,7 @@ public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, I
     public void ExecuteContractConstructor(Address contractAddress, SmartContractRegistration registration,
         Address author, ByteString constructorInput)
     {
-        if (registration.Category == KernelConstants.SolidityRunnerCategory)
+        if (registration.Category == KernelConstants.WasmRunnerCategory)
         {
             TransactionContext.Trace.InlineTransactions.Add(new Transaction
             {

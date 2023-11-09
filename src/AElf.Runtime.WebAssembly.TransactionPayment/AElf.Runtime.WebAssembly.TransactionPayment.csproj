@@ -13,4 +13,10 @@
       <ProjectReference Include="..\AElf.Kernel.FeeCalculation\AElf.Kernel.FeeCalculation.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+        <CommonMessage Include="..\..\protobuf\solidity_transaction_parameter.proto">
+            <Link>Protobuf\Proto\solidity_transaction_parameter.proto</Link>
+        </CommonMessage>
+    </ItemGroup>
+
 </Project>

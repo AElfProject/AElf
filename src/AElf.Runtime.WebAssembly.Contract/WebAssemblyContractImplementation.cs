@@ -1,9 +1,7 @@
-using System.Security.Cryptography;
 using AElf.Contracts.MultiToken;
 using AElf.Runtime.WebAssembly.TransactionPayment;
 using AElf.Sdk.CSharp;
 using AElf.Types;
-using Blake2Fast;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Nethereum.Util;
@@ -16,7 +14,6 @@ namespace AElf.Runtime.WebAssembly.Contract;
 public partial class WebAssemblyContractImplementation : WebAssemblyContract<WebAssemblyContractState>
 {
     private readonly Store _store;
-    private readonly Engine _engine;
     private readonly Linker _linker;
     private readonly Memory _memory;
     private readonly Module _module;
@@ -33,11 +30,11 @@ public partial class WebAssemblyContractImplementation : WebAssemblyContract<Web
     public WebAssemblyContractImplementation(byte[] wasmCode, bool withFuelConsumption = false, long memoryMin = 16,
         long memoryMax = 16)
     {
-        _engine = new Engine(new Config().WithFuelConsumption(withFuelConsumption));
-        _store = new Store(_engine);
-        _linker = new Linker(_engine);
+        var engine = new Engine(new Config().WithFuelConsumption(withFuelConsumption));
+        _store = new Store(engine);
+        _linker = new Linker(engine);
         _memory = new Memory(_store, memoryMin, memoryMax);
-        _module = Module.FromBytes(_engine, "contract", wasmCode);
+        _module = Module.FromBytes(engine, "contract", wasmCode);
         DefineImportFunctions();
     }
 
@@ -497,104 +494,6 @@ public partial class WebAssemblyContractImplementation : WebAssemblyContract<Web
     private void BlockNumber(int outPtr, int outLenPtr)
     {
         WriteSandboxOutput(outPtr, outLenPtr, Context.CurrentHeight);
-    }
-
-    /// <summary>
-    /// Computes the SHA2 256-bit hash on the given input buffer.
-    ///
-    /// Returns the result directly into the given output buffer.
-    ///
-    /// # Note
-    ///
-    /// - The `input` and `output` buffer may overlap.
-    /// - The output buffer is expected to hold at least 32 bytes (256 bits).
-    /// - It is the callers responsibility to provide an output buffer that is large enough to hold
-    ///   the expected amount of bytes returned by the chosen hash function.
-    /// </summary>
-    /// <param name="inputPtr">the pointer into the linear memory where the input data is placed.</param>
-    /// <param name="inputLen">the length of the input data in bytes.</param>
-    /// <param name="outputPtr">
-    /// the pointer into the linear memory where the output data is placed. The
-    /// function will write the result directly into this buffer.
-    /// </param>
-    private void HashSha2_256(int inputPtr, int inputLen, int outputPtr)
-    {
-        var input = ReadSandboxMemory(inputPtr, inputLen);
-        WriteSandboxMemory(outputPtr, SHA256.Create().ComputeHash(input));
-    }
-
-    /// <summary>
-    /// Computes the KECCAK 256-bit hash on the given input buffer.
-    ///
-    /// Returns the result directly into the given output buffer.
-    ///
-    /// # Note
-    ///
-    /// - The `input` and `output` buffer may overlap.
-    /// - The output buffer is expected to hold at least 32 bytes (256 bits).
-    /// - It is the callers responsibility to provide an output buffer that is large enough to hold
-    ///   the expected amount of bytes returned by the chosen hash function.
-    /// </summary>
-    /// <param name="inputPtr">the pointer into the linear memory where the input data is placed.</param>
-    /// <param name="inputLen">the length of the input data in bytes.</param>
-    /// <param name="outputPtr">
-    /// the pointer into the linear memory where the output data is placed. The
-    /// function will write the result directly into this buffer.
-    /// </param>
-    private void HashKeccak256(int inputPtr, int inputLen, int outputPtr)
-    {
-        var input = ReadSandboxMemory(inputPtr, inputLen);
-        WriteSandboxMemory(outputPtr, new Sha3Keccack().CalculateHash(input));
-    }
-
-    /// <summary>
-    /// Computes the BLAKE2 256-bit hash on the given input buffer.
-    ///
-    /// Returns the result directly into the given output buffer.
-    ///
-    /// # Note
-    ///
-    /// - The `input` and `output` buffer may overlap.
-    /// - The output buffer is expected to hold at least 32 bytes (256 bits).
-    /// - It is the callers responsibility to provide an output buffer that is large enough to hold
-    ///   the expected amount of bytes returned by the chosen hash function.
-    /// </summary>
-    /// <param name="inputPtr">the pointer into the linear memory where the input data is placed.</param>
-    /// <param name="inputLen">the length of the input data in bytes.</param>
-    /// <param name="outputPtr">
-    /// the pointer into the linear memory where the output data is placed. The
-    /// function will write the result directly into this buffer.
-    /// </param>
-    private void HashBlake2_256(int inputPtr, int inputLen, int outputPtr)
-    {
-        var input = ReadSandboxMemory(inputPtr, inputLen);
-        // var hashBlake256 = Blake2BFactory.Instance.Create(new Blake2BConfig {HashSizeInBits = 256}).ComputeHash(input).Hash;
-        // Blake2B.ComputeHash(input);
-        WriteSandboxMemory(outputPtr, Blake2b.ComputeHash(32, input));
-    }
-
-    /// <summary>
-    /// Computes the BLAKE2 128-bit hash on the given input buffer.
-    ///
-    /// Returns the result directly into the given output buffer.
-    ///
-    /// # Note
-    ///
-    /// - The `input` and `output` buffer may overlap.
-    /// - The output buffer is expected to hold at least 32 bytes (256 bits).
-    /// - It is the callers responsibility to provide an output buffer that is large enough to hold
-    ///   the expected amount of bytes returned by the chosen hash function.
-    /// </summary>
-    /// <param name="inputPtr">the pointer into the linear memory where the input data is placed.</param>
-    /// <param name="inputLen">the length of the input data in bytes.</param>
-    /// <param name="outputPtr">
-    /// the pointer into the linear memory where the output data is placed. The
-    /// function will write the result directly into this buffer.
-    /// </param>
-    private void HashBlake2_128(int inputPtr, int inputLen, int outputPtr)
-    {
-        var input = ReadSandboxMemory(inputPtr, inputLen);
-        WriteSandboxMemory(outputPtr, Blake2s.ComputeHash(16, input));
     }
 
     /// <summary>

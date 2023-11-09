@@ -15,12 +15,12 @@ public class CallContractTests : SolidityContractTestBase
         Address calleeContractAddress, callerContractAddress;
         {
             const string solFilePath = "contracts/call_callee.sol";
-            var executionResult = await DeploySolidityContractAsync(await File.ReadAllBytesAsync(solFilePath));
+            var executionResult = await DeployWasmContractAsync(await File.ReadAllBytesAsync(solFilePath));
             calleeContractAddress = executionResult.Output;
         }
         {
             const string solFilePath = "contracts/call_caller.sol";
-            var executionResult = await DeploySolidityContractAsync(await File.ReadAllBytesAsync(solFilePath));
+            var executionResult = await DeployWasmContractAsync(await File.ReadAllBytesAsync(solFilePath));
             callerContractAddress = executionResult.Output;
         }
 

@@ -4,6 +4,7 @@ using AElf.Kernel.Infrastructure;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Runtime.WebAssembly.Contract;
+using AElf.Runtime.WebAssembly.TransactionPayment;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.Reflection;
@@ -99,11 +100,17 @@ public class Executive : IExecutive
             }
             else
             {
-                var parameterWithValue = new TransactionParameterWithValue();
-                parameterWithValue.MergeFrom(transaction.Params);
-                parameter = parameterWithValue.Parameter.ToHex();
-                value = parameterWithValue.Value;
-                delegateCallValue = parameterWithValue.DelegateCallValue;
+                var solidityTransactionParameter = new SolidityTransactionParameter();
+                solidityTransactionParameter.MergeFrom(transaction.Params);
+                parameter = solidityTransactionParameter.Parameter.ToHex();
+                value = solidityTransactionParameter.Value;
+                delegateCallValue = solidityTransactionParameter.DelegateCallValue;
+
+                if (solidityTransactionParameter.GasLimit == null || solidityTransactionParameter.GasLimit.RefTime == 0)
+                {
+                    _webAssemblyContract.EstimateGas = true;
+                }
+                _webAssemblyContract.GasMeter = new GasMeter(solidityTransactionParameter.GasLimit);
             }
 
             var action = GetAction(selector, parameter, isCallConstructor, value, delegateCallValue);

@@ -19,7 +19,7 @@ public class StoreContractTests : SolidityContractTestBase
     {
         const string solFilePath = "contracts/store.sol";
         var executionResult = AsyncHelper.RunSync(async () =>
-            await DeploySolidityContractAsync(await File.ReadAllBytesAsync(solFilePath)));
+            await DeployWasmContractAsync(await File.ReadAllBytesAsync(solFilePath)));
         _contractAddress = executionResult.Output;
     }
 
@@ -87,13 +87,5 @@ public class StoreContractTests : SolidityContractTestBase
             txResult.Status.ShouldBe(TransactionResultStatus.Mined);
             var hexReturn = txResult.ReturnValue.Reverse().ToArray().ToHex();
         }
-    }
-
-    class Result1
-    {
-        [Parameter("int256", 1)] public BigInteger Item4 { get; set; }
-        [Parameter("int16", 2)] public BigInteger Item3 { get; set; }
-        [Parameter("uint32", 3)] public BigInteger Item2 { get; set; }
-        [Parameter("uint64", 4)] public BigInteger Item1 { get; set; }
     }
 }

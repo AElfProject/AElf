@@ -186,7 +186,7 @@ public partial class WebAssemblyContractImplementation
         var methodName = inputDataHex[..8];
         var parameter = new byte[inputData.Length - 4];
         Array.Copy(inputData, 4, parameter, 0, parameter.Length);
-        var parameterWithValue = new TransactionParameterWithValue
+        var parameterWithValue = new SolidityTransactionParameter
         {
             Parameter = ByteString.CopyFrom(parameter),
             Value = value
@@ -200,12 +200,13 @@ public partial class WebAssemblyContractImplementation
 
     private ExecuteReturnValue DelegateCall(Hash codeHash, byte[] inputData)
     {
+        ChargeGas(new TransactionPayment.DelegateCall());
         var inputDataHex = inputData.ToHex();
         var methodName = inputDataHex[..8];
         var parameter = new byte[inputData.Length - 4];
         Array.Copy(inputData, 4, parameter, 0, parameter.Length);
-        var to = State.SolidityContractManager.GetContractAddressByCodeHash.Call(codeHash);
-        var parameterWithValue = new TransactionParameterWithValue
+        var to = Types.Address.FromBytes(codeHash.ToByteArray());
+        var parameterWithValue = new SolidityTransactionParameter
         {
             Parameter = ByteString.CopyFrom(parameter),
             DelegateCallValue = Value

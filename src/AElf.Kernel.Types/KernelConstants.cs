@@ -17,7 +17,7 @@ public static class KernelConstants
     /// <summary>
     /// WebAssembly Contract
     /// </summary>
-    public const int SolidityRunnerCategory = 1;
+    public const int WasmRunnerCategory = 1;
     public const string MergeBlockStateQueueName = "MergeBlockStateQueue";
     public const string UpdateChainQueueName = "UpdateChainQueue";
     public const string ConsensusRequestMiningQueueName = "ConsensusRequestMiningQueue";

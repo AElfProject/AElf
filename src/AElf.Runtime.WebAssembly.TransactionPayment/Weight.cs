@@ -1,3 +1,10 @@
-namespace AElf.Runtime.WebAssembly.TransactionPayment;
+namespace AElf.Runtime.WebAssembly;
 
-public record Weight(long RefTime, long ProofSize);
+public partial class Weight
+{
+    public Weight(long refTime, long proofSize)
+    {
+        RefTime = refTime;
+        ProofSize = proofSize;
+    }
+}

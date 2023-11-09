@@ -1,14 +1,14 @@
 using AElf.Kernel;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Types;
-using Solang;
+using Google.Protobuf;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Runtime.WebAssembly;
 
 public class WebAssemblySmartContractRunner : ISmartContractRunner, ISingletonDependency
 {
-    public int Category { get; protected set; } = KernelConstants.SolidityRunnerCategory;
+    public int Category { get; protected set; } = KernelConstants.WasmRunnerCategory;
 
     public string ContractVersion { get; protected set; } = string.Empty;
 
@@ -16,9 +16,13 @@ public class WebAssemblySmartContractRunner : ISmartContractRunner, ISingletonDe
     {
         try
         {
-            var code = reg.Code.ToByteArray();
-            var output = new Compiler().BuildWasm(code);
-            var executive = new Executive(output.Contracts.First());
+            var wasmCode = new WasmContractCode();
+            wasmCode.MergeFrom(reg.Code);
+            var executive = new Executive(new CompiledContract
+            {
+                WasmCode = wasmCode.Code,
+                Abi = wasmCode.Abi
+            });
             return await Task.FromResult(executive);
         }
         catch (Exception e)

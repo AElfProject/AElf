@@ -8,7 +8,7 @@ namespace Solang
     public unsafe class Compiler
     {
         private static readonly byte[] Buffer = new byte[2097152];
-        private static object _ = new object();
+        private static readonly object _ = new object();
 
         static readonly Lazy<build_wasm> build_wasm
             = LazyDelegate<build_wasm>(nameof(build_wasm));
@@ -30,7 +30,7 @@ namespace Solang
             lock (_)
             {
                 Span<byte> output = Buffer;
-                var returnedBytes = 0;
+                int returnedBytes;
 
                 fixed (byte* srcPtr = &MemoryMarshal.GetReference((Span<byte>)source),
                        buffPtr = &MemoryMarshal.GetReference(output))

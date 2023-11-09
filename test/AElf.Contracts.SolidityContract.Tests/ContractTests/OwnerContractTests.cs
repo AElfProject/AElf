@@ -16,7 +16,7 @@ public class OwnerContractTests : SolidityContractTestBase
     public async Task<Address> DeployOwnerContractTest()
     {
         const string solFilePath = "contracts/Owner.sol";
-        var executionResult = await DeploySolidityContractAsync(await File.ReadAllBytesAsync(solFilePath));
+        var executionResult = await DeployWasmContractAsync(await File.ReadAllBytesAsync(solFilePath));
         executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
         executionResult.TransactionResult.Logs.Count.ShouldBePositive();
         return executionResult.Output;

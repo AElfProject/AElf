@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+import public "aelf/core.proto";
+
+option csharp_namespace = "AElf.Runtime.WebAssembly";
+
+message SolidityTransactionParameter {
+    bytes parameter = 1;
+    int64 value = 2;
+    // Won't transfer token, only write to sandbox memory.
+    int64 delegate_call_value = 3;
+    Weight gas_limit = 4;
+}
+
+message Weight {
+    int64 ref_time = 1;
+    int64 proof_size = 2;
+}
+
+message WasmContractCode {
+    bytes code = 1;
+    string abi = 2;
+    aelf.Hash code_hash = 3;
+}

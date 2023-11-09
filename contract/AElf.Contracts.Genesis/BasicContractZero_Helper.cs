@@ -14,7 +14,7 @@ namespace AElf.Contracts.Genesis;
 public partial class BasicContractZero
 {
     private Address DeploySmartContract(Hash name, int category, byte[] code, bool isSystemContract,
-        Address author, bool isUserContract, ByteString constructorInput = null)
+        Address author, bool isUserContract)
     {
         if (name != null)
             Assert(State.NameAddressMapping[name] == null, "contract name has already been registered before");
@@ -56,9 +56,6 @@ public partial class BasicContractZero
         
         State.ContractInfos[contractAddress] = info;
         State.SmartContractRegistrations[reg.CodeHash] = reg;
-
-        Context.ExecuteContractConstructor(contractAddress, reg, author, constructorInput ?? ByteString.Empty);
-        State.CodeHashToAddressMap[codeHash] = contractAddress;
 
         Context.Fire(new ContractDeployed
         {

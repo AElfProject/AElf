@@ -1,5 +1,6 @@
 using System.Reflection;
 using AElf.Kernel.SmartContract;
+using AElf.Runtime.WebAssembly.TransactionPayment;
 using AElf.Types;
 
 namespace AElf.Runtime.WebAssembly.Contract;
@@ -27,13 +28,13 @@ public class WebAssemblySmartContractProxy
 
         _methodResetFields = CreateDelegate<Action>(instance, instanceType, nameof(ResetFields));
     }
-    
+
     private static MethodInfo? GetMethodInfo(Type type, string name)
     {
         return type.GetMethod(name,
             BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy);
     }
-    
+
     private static T CreateDelegate<T>(object instance, MethodInfo method)
         where T : Delegate
     {

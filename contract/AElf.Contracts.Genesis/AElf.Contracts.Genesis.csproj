@@ -19,6 +19,9 @@
         <CommonMessage Include="..\..\protobuf\authority_info.proto">
             <Link>Protobuf\Proto\authority_info.proto</Link>
         </CommonMessage>
+        <CommonMessage Include="..\..\protobuf\solidity_transaction_parameter.proto">
+            <Link>Protobuf\Proto\solidity_transaction_parameter.proto</Link>
+        </CommonMessage>
     </ItemGroup>
 
     <ItemGroup>

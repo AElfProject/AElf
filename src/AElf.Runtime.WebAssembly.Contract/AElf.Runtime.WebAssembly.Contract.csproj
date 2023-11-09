@@ -58,9 +58,6 @@
         <CommonMessage Include="..\..\protobuf\authority_info.proto">
             <Link>Protobuf\Proto\authority_info.proto</Link>
         </CommonMessage>
-        <CommonMessage Include="..\..\protobuf\transaction_parameter_with_value.proto">
-            <Link>Protobuf\Proto\transaction_parameter_with_value.proto</Link>
-        </CommonMessage>
     </ItemGroup>
     
 </Project>

@@ -16,12 +16,12 @@ public class DelegateCallContractTests : SolidityContractTestBase
         Address delegateeContractAddress, delegatorContractAddress;
         {
             const string solFilePath = "contracts/delegate_call_delegatee.sol";
-            var executionResult = await DeploySolidityContractAsync(await File.ReadAllBytesAsync(solFilePath));
+            var executionResult = await DeployWasmContractAsync(await File.ReadAllBytesAsync(solFilePath));
             delegateeContractAddress = executionResult.Output;
         }
         {
             const string solFilePath = "contracts/delegate_call_delegator.sol";
-            var executionResult = await DeploySolidityContractAsync(await File.ReadAllBytesAsync(solFilePath));
+            var executionResult = await DeployWasmContractAsync(await File.ReadAllBytesAsync(solFilePath));
             delegatorContractAddress = executionResult.Output;
         }
 
