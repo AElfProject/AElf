@@ -2054,11 +2054,7 @@ public partial class ExecutePluginTransactionDirectlyTest
             Symbol = "SEED-0"
         });
         info.Owner.ShouldBe(DefaultSender);
-        await TokenContractStub.SetOwner.SendAsync(new SetOwnerInput
-        {
-            Token = "SEED-0",
-            Owner = UserAAddress
-        });
+        await TokenContractStub.SetOwner.SendAsync(UserAAddress);
         info = await TokenContractStub.GetTokenInfo.CallAsync(new GetTokenInfoInput
         {
             Symbol = "SEED-0"

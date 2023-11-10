@@ -588,13 +588,12 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
         return new Empty();
     }
 
-    public override Empty SetOwner(SetOwnerInput input)
+    public override Empty SetOwner(Address input)
     {
-        Assert(input.Token == TokenContractConstants.SeedCollectionSymbol, "invalid input.");
-        var tokenInfo = State.TokenInfos[input.Token];
+        var tokenInfo = State.TokenInfos[TokenContractConstants.SeedCollectionSymbol];
         Assert(tokenInfo.Issuer == Context.Sender, "invalid sender");
 
-        tokenInfo.Owner = input.Owner;
+        tokenInfo.Owner = input;
 
         return new Empty();
     }

@@ -227,12 +227,7 @@ service TokenContract {
         option (aelf.is_view) = true;
     }
     
-    rpc SetOwner (SetOwnerInput) returns (google.protobuf.Empty) {}
-}
-
-message SetOwnerInput {
-    string token = 1;
-    aelf.Address owner = 2;
+    rpc SetOwner (aelf.Address) returns (google.protobuf.Empty) {}
 }
 
 message TokenInfo {
