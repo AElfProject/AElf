@@ -17,11 +17,15 @@ Summary of the steps to set up a node:
 3.  Modify the appsettings according to your needs.
 4.  Run and check the node.
 
-Hardware suggestion: for the AElf mainnet we use the following Amazon
-configuration: c5.xlarge instance with 4 vCPUs, 8GiB RAM and a 500GiB
-hard drive for each node we run. We recommend using something similar
-per node that you want to run (one for the mainchain node and one per
-side chain node).
+The configuration requirements for BP and a full node are as follows:
+
+Minimum Configuration: c5.xlarge instance with 4 vCPU, 8GiB RAM, 1TB hard drive, and 5 Mbps bandwidth
+
+Recommended Configuration: c5.2xlarge instance with 8 vCPU, 16GiB RAM, 1TB hard drive, and 100 Mbps bandwidth
+
+Please note:
+- If you want to run a full node that doesn't participate in block production and governance, there is no requirement on how many nodes you should run.
+- If you want to become a BP, however, you need to run individual nodes for both MainChain AELF and all the SideChains.
 
 **Note**: any server you use to run a node should be time synced via
 NTP. Failing to do this will prevent your node from syncing.

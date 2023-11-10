@@ -17,11 +17,11 @@ Summary of the steps to set up a node:
 3.  Modify the appsettings according to your needs.
 4.  Run and check the node.
 
-Hardware suggestion: for the AElf testnet we use the following Amazon
-configuration: c5.large instance with 2 vCPUs, 4GiB RAM and a 200GiB
-hard drive for each node we run. We recommend using something similar
-per node that you want to run (one for the mainchain node and one per
-side chain node).
+Minimum Configuration: c5.large instance with 2 vCPU, 4GiB RAM, 800GiB hard drive, and 5 Mbps bandwidth
+
+Recommended Configuration: c5.xlarge instance with 4 vCPU, 8GiB RAM, 800GiB hard drive, and 100 Mbps bandwidth
+
+Please note: If you are running Testnet node for the purpose of testing or DApp deployment in the test environment, aelf recommends running SideChain node only. If you want to run multiple nodes on both MainChain and SideChain, it's suggested to use the same configuration for all your nodes.
 
 **Note**: any server you use to run a node should be time synced via
 NTP. Failing to do this will prevent your node from syncing.
