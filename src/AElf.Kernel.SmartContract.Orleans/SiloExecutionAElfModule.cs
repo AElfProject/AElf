@@ -2,6 +2,7 @@ using System.Xml.Schema;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Grains;
 using AElf.Kernel.SmartContract.Orleans;
+using AElf.Runtime.CSharp;
 using Microsoft.Extensions.Configuration;
 //using AutoMapper.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,18 +19,17 @@ using Volo.Abp.ObjectMapping;
 using Volo.Abp.Threading;
 
 namespace AElf.Kernel.SmartContract.Orleans;
-[DependsOn(typeof(SmartContractAElfModule))]
+[DependsOn(typeof(CSharpRuntimeAElfModule),typeof(SmartContractAElfModule))]
 public class SiloExecutionAElfModule : AbpModule
 {
     public override void ConfigureServices(ServiceConfigurationContext context)
     {
         var configuration = context.Services.GetConfiguration();
-        ConfigureOrleans(context, configuration); 
+        //ConfigureOrleans(context, configuration); 
         context.Services.AddSingleton<IPlainTransactionExecutingService, SiloTransactionExecutingService>(); 
         context.Services.AddSingleton<IPlainTransactionExecutingGrain, PlainTransactionExecutingGrain>();
         context.Services.AddSingleton<ISiloClusterClientContext, SiloClusterClientContext>();
         context.Services.AddSingleton<ISmartContractExecutiveService, SmartContractExecutiveService>();
-       // context.Services.AddSingleton<ITransactionExecutingService, SiloTransactionExecutingService>();
 
     }
     public override void OnApplicationInitialization(ApplicationInitializationContext context)

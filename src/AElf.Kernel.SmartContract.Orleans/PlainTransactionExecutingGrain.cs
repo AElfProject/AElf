@@ -1,3 +1,4 @@
+using AElf.Contracts.Genesis;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Domain;
 using AElf.Kernel.SmartContract.Grains;
@@ -18,17 +19,20 @@ public class PlainTransactionExecutingGrain : Grain<TransactionState>, IPlainTra
     private readonly List<IPreExecutionPlugin> _prePlugins;
     private readonly List<IPostExecutionPlugin> _postPlugins;
     private readonly ITransactionContextFactory _transactionContextFactory;
+    private readonly IDefaultContractZeroCodeProvider _defaultContractZeroCodeProvider;
 
 
     public PlainTransactionExecutingGrain(ISmartContractExecutiveService smartContractExecutiveService,
         IEnumerable<IPostExecutionPlugin> postPlugins, IEnumerable<IPreExecutionPlugin> prePlugins,
-        ITransactionContextFactory transactionContextFactory)
+        ITransactionContextFactory transactionContextFactory,IDefaultContractZeroCodeProvider defaultContractZeroCodeProvider)
     {
         _smartContractExecutiveService = smartContractExecutiveService;
         _transactionContextFactory = transactionContextFactory;
         _prePlugins = GetUniquePlugins(prePlugins);
         _postPlugins = GetUniquePlugins(postPlugins);
         Logger = NullLogger<PlainTransactionExecutingGrain>.Instance;
+        _defaultContractZeroCodeProvider = defaultContractZeroCodeProvider;
+
     }
 
     public async Task<List<ExecutionReturnSet>> ExecuteAsync(TransactionExecutingDto transactionExecutingDto,
@@ -36,6 +40,8 @@ public class PlainTransactionExecutingGrain : Grain<TransactionState>, IPlainTra
     {
         try
         {
+            _defaultContractZeroCodeProvider.SetDefaultContractZeroRegistrationByType(typeof(BasicContractZero));
+
             var groupStateCache = transactionExecutingDto.PartialBlockStateSet.ToTieredStateCache();
             var groupChainContext = new ChainContextWithTieredStateCache(
                 transactionExecutingDto.BlockHeader.PreviousBlockHash,

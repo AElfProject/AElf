@@ -14,8 +14,8 @@ public class Program
     public async static Task<int> Main(string[] args)
     {
         var configuration = new ConfigurationBuilder()
-            //.AddJsonFile("appsettings.json")
-            .AddJsonFile("appsetting.ParallelExecution.json")
+            .AddJsonFile("appsettings.json")
+            //.AddJsonFile("appsetting.ParallelExecution.json")
             .Build();
         Log.Logger = new LoggerConfiguration()
 #if DEBUG
