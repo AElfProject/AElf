@@ -588,5 +588,16 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
         return new Empty();
     }
 
+    public override Empty SetOwner(SetOwnerInput input)
+    {
+        Assert(input.Token == TokenContractConstants.SeedCollectionSymbol, "invalid input.");
+        var tokenInfo = State.TokenInfos[input.Token];
+        Assert(tokenInfo.Issuer == Context.Sender, "invalid sender");
+
+        tokenInfo.Owner = input.Owner;
+
+        return new Empty();
+    }
+
     #endregion
 }

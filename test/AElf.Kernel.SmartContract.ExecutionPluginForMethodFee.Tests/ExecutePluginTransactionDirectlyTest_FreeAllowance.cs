@@ -2044,4 +2044,26 @@ public partial class ExecutePluginTransactionDirectlyTest
         await IssueTokenToUserAsync(NativeTokenSymbol, 1_00000000, UserCAddress);
         await IssueTokenToUserAsync(USDT, 1_000000, UserCAddress);
     }
+
+    [Fact]
+    public async Task SetOwnerTests()
+    {
+        await CreateTokenAsync(DefaultSender, "SEED-0");
+        var info = await TokenContractStub.GetTokenInfo.CallAsync(new GetTokenInfoInput
+        {
+            Symbol = "SEED-0"
+        });
+        info.Owner.ShouldBe(DefaultSender);
+        await TokenContractStub.SetOwner.SendAsync(new SetOwnerInput
+        {
+            Token = "SEED-0",
+            Owner = UserAAddress
+        });
+        info = await TokenContractStub.GetTokenInfo.CallAsync(new GetTokenInfoInput
+        {
+            Symbol = "SEED-0"
+        });
+        info.Owner.ShouldNotBe(DefaultSender);
+        info.Owner.ShouldBe(UserAAddress);
+    }
 }
