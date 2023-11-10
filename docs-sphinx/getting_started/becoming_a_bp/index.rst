@@ -6,4 +6,5 @@ Becoming a BP
 
    Introduction <bp_introduction>
    Operations <bp_operations>
+   Simulation in the local environment <simulation_in_the_local_environment>
 
