@@ -12,7 +12,7 @@ using Orleans;
 
 namespace AElf.Kernel.SmartContract.Orleans;
 
-public class PlainTransactionExecutingGrain : Grain<TransactionState>, IPlainTransactionExecutingGrain
+public class PlainTransactionExecutingGrain : Grain, IPlainTransactionExecutingGrain
 {
     public ILogger<PlainTransactionExecutingGrain> Logger { get; set; }
     private readonly ISmartContractExecutiveService _smartContractExecutiveService;
@@ -89,8 +89,8 @@ public class PlainTransactionExecutingGrain : Grain<TransactionState>, IPlainTra
                 returnSets.Add(returnSet);
             }
 
-            State.ExecutionReturnSets = returnSets;
-            await WriteStateAsync();
+            //State.ExecutionReturnSets = returnSets;
+            //await WriteStateAsync();
             return returnSets;
         }
         catch (Exception e)
