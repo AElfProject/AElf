@@ -32,7 +32,7 @@ Please note: The term that aelf’s BPs are elected is every 7 days. To make thi
 
 3. Change ``"PeriodSeconds": 604800`` to ``"PeriodSeconds": 120`` and the election term will be changed to 2 minutes.
 
-4. If you have set up nodes and produced blocks before, please shut down your nodes and delete all Redis data via command, the instructions of which can be found in `Multi-Nodes <https://docs.aelf.io/en/latest/getting_started/development-environment/node.html#multi-nodes>`_ . After that, you can restart your multi-nodes again.
+4. If you have set up nodes and produced blocks before, please shut down your nodes and delete all Redis data via command, the instructions of which can be found in `Multi-Nodes <../../getting_started/development-environment/node.html#multi-nodes>`__ . After that, you can restart your multi-nodes again.
 
 
 Become a candidate node
