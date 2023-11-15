@@ -21,6 +21,8 @@ public partial class WebAssemblyContractImplementation : WebAssemblyContract<Web
     public byte[] ReturnBuffer = Array.Empty<byte>();
     public ReturnFlags ReturnFlags = ReturnFlags.Empty;
     public List<string> DebugMessages => new();
+    public List<string> Logs => new();
+    public List<string> Prints => new();
     public List<(byte[], byte[])> Events => new();
     public byte[]? Input { get; set; } = Array.Empty<byte>();
     public long Value { get; set; } = 0;
@@ -628,7 +630,6 @@ public partial class WebAssemblyContractImplementation : WebAssemblyContract<Web
     private int SetCodeHash(int codeHashPtr)
     {
         var codeHash = Hash.LoadFromByteArray(ReadSandboxMemory(codeHashPtr, AElfConstants.HashByteArrayLength));
-        //_externalEnvironment.SetCodeHash(codeHash);
         // TODO: Update contract.
         return (int)ReturnCode.Success;
     }
@@ -731,7 +732,7 @@ public partial class WebAssemblyContractImplementation : WebAssemblyContract<Web
     #region Helper functions
 
     private void WriteSandboxOutput(int outPtr, int outLenPtr, byte[] buf, bool allowSkip = false,
-        Func<int, (RuntimeCosts, int)>? createToken = null)
+        Func<int, RuntimeCost>? createToken = null)
     {
         if (allowSkip && outPtr == -1)
         {
@@ -750,8 +751,7 @@ public partial class WebAssemblyContractImplementation : WebAssemblyContract<Web
 
         if (createToken != null)
         {
-            var (runtimeCosts, size) = createToken.Invoke(len);
-            //_externalEnvironment.ChargeGasAsync(runtimeCosts, size);
+            GasMeter?.ChargeGas(createToken.Invoke(len));
         }
 
         WriteSandboxMemory(outPtr, buf);

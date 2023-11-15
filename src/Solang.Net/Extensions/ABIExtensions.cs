@@ -6,7 +6,11 @@ namespace Solang.Extensions
     {
         public static string GetSelector(this SolangABI solangAbi, string methodName)
         {
-            var selectorWithPrefix = solangAbi.Spec.Messages.FirstOrDefault(m => m.Label == methodName)?.Selector;
+            var selectorWithPrefix = (solangAbi.Spec.Messages.FirstOrDefault(m => m.Label == methodName)?.Selector ??
+                                      solangAbi.Spec.Messages.FirstOrDefault(m => m.Label == $"{methodName}_")
+                                          ?.Selector) ??
+                                     solangAbi.Spec.Messages.FirstOrDefault(m => m.Label.StartsWith(methodName))
+                                         ?.Selector;
             var selector = selectorWithPrefix?[(selectorWithPrefix.StartsWith("0x") ? 2 : 0)..];
             if (selector == null)
             {

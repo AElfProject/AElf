@@ -1,6 +1,7 @@
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Runtime.WebAssembly.Types;
 using AElf.Types;
 using Google.Protobuf;
 using Nethereum.ABI;
@@ -13,6 +14,8 @@ public class DelegateCallContractTests : SolidityContractTestBase
     [Fact]
     public async Task DelegateCallTest()
     {
+        const long vars = 1616;
+        const long transferValue = 100;
         Address delegateeContractAddress, delegatorContractAddress;
         {
             const string solFilePath = "contracts/delegate_call_delegatee.sol";
@@ -25,12 +28,12 @@ public class DelegateCallContractTests : SolidityContractTestBase
             delegatorContractAddress = executionResult.Output;
         }
 
-        var input = ByteString.CopyFrom(new ABIEncode().GetABIEncoded(
-            new ABIValue("bytes32", delegateeContractAddress.ToByteArray()),
-            new ABIValue("uint256", 1616)));
+        var input = WebAssemblyTypeHelper.ConvertToParameter(delegateeContractAddress.ToWebAssemblyAddress(),
+            vars.ToWebAssemblyUInt256());
+
         {
             var tx = await GetTransactionAsync(DefaultSenderKeyPair, delegatorContractAddress, "setVars",
-                input, 100);
+                input, transferValue);
             var txResult = await TestTransactionExecutor.ExecuteAsync(tx);
             txResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
@@ -40,16 +43,14 @@ public class DelegateCallContractTests : SolidityContractTestBase
             var tx = await GetTransactionAsync(DefaultSenderKeyPair, delegatorContractAddress, "num");
             var txResult = await TestTransactionExecutor.ExecuteAsync(tx);
             txResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            var num = new ABIEncode().GetABIEncoded(new ABIValue("uint256", 1616));
-            txResult.ReturnValue.ShouldBe(num);
+            txResult.ReturnValue.ToByteArray().ToInt64(false).ShouldBe(vars);
         }
 
         {
             var tx = await GetTransactionAsync(DefaultSenderKeyPair, delegatorContractAddress, "value");
             var txResult = await TestTransactionExecutor.ExecuteAsync(tx);
             txResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            var value = new ABIEncode().GetABIEncoded(new ABIValue("uint256", 100));
-            txResult.ReturnValue.Reverse().ShouldBe(value);
+            txResult.ReturnValue.ToByteArray().ToInt64(false).ShouldBe(transferValue);
         }
     }
 }

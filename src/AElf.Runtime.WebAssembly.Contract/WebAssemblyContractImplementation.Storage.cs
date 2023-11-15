@@ -59,7 +59,6 @@ public partial class WebAssemblyContractImplementation
     /// </returns>
     private int SetStorageV2(int keyPtr, int keyLen, int valuePtr, int valueLen)
     {
-        Console.WriteLine($"SetStorage: {keyPtr}, {keyLen}, {valuePtr}, {valueLen}");
         var key = new Key { KeyType = KeyType.Var, KeyValue = new byte[keyLen] };
         return SetStorage(key, keyPtr, valuePtr, valueLen);
     }

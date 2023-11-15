@@ -1,9 +1,7 @@
-using System.IO;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using AElf.Types;
 using Epoche;
-using Nethereum.ABI;
 using Shouldly;
 
 namespace AElf.Contracts.SolidityContract;

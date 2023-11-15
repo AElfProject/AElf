@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using AElf.Runtime.WebAssembly.Types;
 using AElf.Types;
 using Google.Protobuf;
 using Nethereum.ABI;
@@ -34,7 +35,7 @@ public class BallotContractTests : SolidityContractTestBase
     {
         const string solFilePath = "contracts/Ballot2.sol";
         var solidityCode = await File.ReadAllBytesAsync(solFilePath);
-        var input = ByteString.CopyFrom(new ABIEncode().GetABIEncoded(new ABIValue("bytes32", _proposals[0])));
+        var input = _proposals[0].ToABIValue().ToParameter();
         var executionResult = await DeployWasmContractAsync(solidityCode, input);
         executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
         return executionResult.Output;

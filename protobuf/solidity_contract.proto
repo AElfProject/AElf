@@ -36,8 +36,7 @@ message DeploySoliditySmartContractInput {
 message InstantiateSoliditySmartContractInput {
     sint32 category = 1;
     aelf.Hash code_hash = 2;
-    bytes parameter = 3;
-    bytes salt = 4;
+    bytes salt = 3;
 }
 
 message UploadSoliditySmartContractInput {

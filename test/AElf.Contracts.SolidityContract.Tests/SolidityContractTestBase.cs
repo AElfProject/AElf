@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -152,6 +153,10 @@ public class SolidityContractTestBase : ContractTestBase<SolidityContractTestAEl
             Value = value
         }.ToByteString();
         var registration = await BasicContractZeroStub.GetSmartContractRegistrationByAddress.CallAsync(to);
+        if (registration.Category == 0)
+        {
+            throw new Exception("Registration not found.");
+        }
         var wasmCode = new WasmContractCode();
         wasmCode.MergeFrom(registration.Code);
         var solangAbi = JsonSerializer.Deserialize<SolangABI>(wasmCode.Abi);

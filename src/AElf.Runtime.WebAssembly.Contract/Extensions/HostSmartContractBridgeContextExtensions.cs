@@ -17,7 +17,15 @@ public static class HostSmartContractBridgeContextExtensions
         if (!trace.IsSuccessful()) throw new ContractExecuteException(trace.Error);
 
         var txContext = hostSmartContractBridgeContext.TransactionContext;
-        txContext.Trace.CallStateSet = trace.StateSet;
+        if (txContext.Trace.CallStateSet == null)
+        {
+            txContext.Trace.CallStateSet = trace.StateSet;
+        }
+        else
+        {
+            txContext.Trace.CallStateSet.Writes.Add(trace.StateSet.Writes);
+        }
+
         (txContext.StateCache as TieredStateCache)?.Update(new[] { trace.StateSet });
         hostSmartContractBridgeContext.TransactionContext = txContext;
 
@@ -32,7 +40,15 @@ public static class HostSmartContractBridgeContextExtensions
         if (!trace.IsSuccessful()) throw new ContractExecuteException(trace.Error);
 
         var txContext = hostSmartContractBridgeContext.TransactionContext;
-        txContext.Trace.CallStateSet = trace.StateSet;
+        if (txContext.Trace.DelegateCallStateSet == null)
+        {
+            txContext.Trace.DelegateCallStateSet = trace.StateSet;
+        }
+        else
+        {
+            txContext.Trace.DelegateCallStateSet.Writes.Add(trace.StateSet.Writes);
+        }
+
         (txContext.StateCache as TieredStateCache)?.Update(new[] { trace.StateSet });
         hostSmartContractBridgeContext.TransactionContext = txContext;
 

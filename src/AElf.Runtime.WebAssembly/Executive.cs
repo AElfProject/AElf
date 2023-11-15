@@ -121,6 +121,12 @@ public class Executive : IExecutive
                 _webAssemblyContract.DebugMessages.Add(invokeResult.DebugMessage);
             }
 
+            var prints = _webAssemblyContract.Prints;
+            if (prints.Count > 0)
+            {
+                ;
+            }
+
             if (_webAssemblyContract.DebugMessages.Count > 0)
             {
                 transactionContext.Trace.ExecutionStatus = ExecutionStatus.ContractError;

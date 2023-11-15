@@ -385,6 +385,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Solang.Net", "src\Solang.Ne
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Runtime.WebAssembly.Contract", "src\AElf.Runtime.WebAssembly.Contract\AElf.Runtime.WebAssembly.Contract.csproj", "{D5AA5838-B7C0-4DCF-9F2E-E2AA58614F92}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Runtime.WebAssembly.Types", "src\AElf.Runtime.WebAssembly.Types\AElf.Runtime.WebAssembly.Types.csproj", "{9CD2D859-F0BE-484F-B3CA-AE83883D1A9E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -1107,6 +1109,10 @@ Global
 		{D5AA5838-B7C0-4DCF-9F2E-E2AA58614F92}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D5AA5838-B7C0-4DCF-9F2E-E2AA58614F92}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D5AA5838-B7C0-4DCF-9F2E-E2AA58614F92}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9CD2D859-F0BE-484F-B3CA-AE83883D1A9E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9CD2D859-F0BE-484F-B3CA-AE83883D1A9E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9CD2D859-F0BE-484F-B3CA-AE83883D1A9E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9CD2D859-F0BE-484F-B3CA-AE83883D1A9E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1301,5 +1307,6 @@ Global
 		{24366E34-6A38-4E67-BD37-3F57A893799E} = {798BAA50-825B-4DD9-83E2-77A9EE6EBE09}
 		{93783D40-7E5E-4796-A415-BADD28931C34} = {798BAA50-825B-4DD9-83E2-77A9EE6EBE09}
 		{D5AA5838-B7C0-4DCF-9F2E-E2AA58614F92} = {798BAA50-825B-4DD9-83E2-77A9EE6EBE09}
+		{9CD2D859-F0BE-484F-B3CA-AE83883D1A9E} = {798BAA50-825B-4DD9-83E2-77A9EE6EBE09}
 	EndGlobalSection
 EndGlobal

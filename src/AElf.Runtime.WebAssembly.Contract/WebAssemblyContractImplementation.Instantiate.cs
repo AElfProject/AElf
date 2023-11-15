@@ -115,11 +115,12 @@ public partial class WebAssemblyContractImplementation
             {
                 CodeHash = codeHash,
                 Category = KernelConstants.WasmRunnerCategory,
-                Parameter = ByteString.CopyFrom(parameter),
                 Salt = ByteString.CopyFrom(salt)
             }.ToByteString());
         var contractAddress = new Address();
         contractAddress.MergeFrom(addressBytes);
+        // Execute the constructor manually.
+        Context.CallMethod(Context.Self, contractAddress, "deploy", ByteString.CopyFrom(parameter));
         return (contractAddress, new ExecuteReturnValue
         {
             Data = addressBytes

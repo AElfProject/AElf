@@ -84,7 +84,6 @@ public partial class BasicContractZero
             throw new AssertionException($"Contract code of hash {input.CodeHash} not found.");
         }
         Assert(reg.Category == category, "Category not match.");
-        var constructorInput = input.Parameter;
         var author = Context.Sender;
         var serialNumber = State.ContractSerialNumber.Value;
         State.ContractSerialNumber.Value = serialNumber + 1;
@@ -110,8 +109,6 @@ public partial class BasicContractZero
         // Duplicate contract info for delegate calling.
         var codeHashAddress = Address.FromBytes(codeHash.ToByteArray());
         State.ContractInfos[codeHashAddress] = info;
-
-        Context.ExecuteContractConstructor(contractAddress, reg, author, constructorInput ?? ByteString.Empty);
 
         Context.Fire(new ContractDeployed
         {

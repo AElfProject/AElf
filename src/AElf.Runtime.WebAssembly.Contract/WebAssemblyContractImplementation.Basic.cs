@@ -32,8 +32,8 @@ public partial class WebAssemblyContractImplementation
             HandleError(WebAssemblyError.InputForwarded);
         }
 
-        WriteSandboxOutput(outPtr, outLenPtr, Input!, false, 
-            len => (RuntimeCosts.CopyToContract, len));
+        WriteSandboxOutput(outPtr, outLenPtr, Input!, false,
+            len => new CopyToContract(len));
     }
 
     /// <summary>
@@ -173,7 +173,24 @@ public partial class WebAssemblyContractImplementation
         {
             // TODO: Find a way to valid utf8 bytes properly.
             var debugMessage = encoding.GetString(debugMessageBytes);
-            DebugMessages.Add(debugMessage);
+            if (debugMessage.Contains("error"))
+            {
+                return (int)ReturnCode.CallRuntimeFailed;
+            }
+            if (debugMessage.Contains("print"))
+            {
+                Context.LogDebug(() => debugMessage);
+                Prints.Add(debugMessage);
+            }
+            else if (debugMessage.Contains("call"))
+            {
+                Logs.Add(debugMessage);
+            }
+            else
+            {
+                DebugMessages.Add(debugMessage);
+            }
+
             return (int)ReturnCode.Success;
         }
         catch (DecoderFallbackException)

@@ -2,6 +2,7 @@ using System.IO;
 using System.Threading.Tasks;
 using AElf.ContractTestKit;
 using AElf.Runtime.WebAssembly.Extensions;
+using AElf.Runtime.WebAssembly.Types;
 using AElf.Types;
 using Google.Protobuf;
 using Nethereum.ABI;
@@ -51,8 +52,7 @@ public class OwnerContractTests : SolidityContractTestBase
 
         {
             var tx = await GetTransactionAsync(DefaultSenderKeyPair, contractAddress, "changeOwner",
-                ByteString.CopyFrom(
-                    new ABIEncode().GetABIEncoded(new ABIValue("bytes32", newAddress))));
+                newAddress.ToWebAssemblyAddress().ToParameter());
             var txResult = await TestTransactionExecutor.ExecuteAsync(tx);
             txResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }

@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using AElf.ContractTestKit;
 using AElf.Kernel;
 using AElf.Runtime.WebAssembly;
+using AElf.Runtime.WebAssembly.Types;
 using AElf.SolidityContract;
 using AElf.Types;
 using Google.Protobuf;
@@ -32,7 +33,7 @@ public class UniswapV2ContractTests : ERC20ContractTests
         registration.ShouldNotBeNull();
     }
 
-    [Fact]
+    [Fact(DisplayName = "feeTo, feeToSetter, allPairsLength")]
     public async Task<Address> DeployUniswapV2FactoryContract()
     {
         await UploadUniswapV2PairContract();
@@ -47,36 +48,78 @@ public class UniswapV2ContractTests : ERC20ContractTests
             CodeHash = Hash.LoadFromHex(solangAbi.Source.Hash)
         };
         var executionResult =
-            await DeployWasmContractAsync(wasmCode, ByteString.CopyFrom(new ABIEncode().GetABIEncoded(Alice)));
+            await DeployWasmContractAsync(wasmCode, Alice.ToParameter());
         executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
         var contractAddress = executionResult.Output;
 
-        var feeTo = await QueryField(contractAddress, "feeTo");
-        feeTo.ToByteArray().ShouldAllBe(i => i == 0);
-        (await QueryField(contractAddress, "feeToSetter")).ShouldBe(
-            ByteString.CopyFrom(new ABIEncode().GetABIEncoded(Alice)));
-        (await QueryField(contractAddress, "allPairsLength")).ToByteArray().ShouldAllBe(i => i == 0);
+        (await QueryField(contractAddress, "feeTo")).ToByteArray().ShouldAllBe(i => i == 0);
+        (await QueryField(contractAddress, "feeToSetter")).ToByteArray().ShouldBe(AliceAddress.ToByteArray());
+        (await QueryField(contractAddress, "allPairsLength")).ToByteArray().ToInt64(false).ShouldBe(0);
         return contractAddress;
     }
 
-    [Fact]
+    [Fact(DisplayName = "createPair")]
     public async Task CreatePairTest()
     {
-        var token0 = SampleAccount.Accounts[2].Address.ToByteArray();
+        var token0 = SampleAccount.Accounts[3].Address.ToByteArray();
         var token0AbiValue = new ABIValue("bytes32", token0);
-        var token1 = SampleAccount.Accounts[3].Address.ToByteArray();
+        var token1 = SampleAccount.Accounts[2].Address.ToByteArray();
         var token1AbiValue = new ABIValue("bytes32", token1);
         var tokenPair = ByteString.CopyFrom(new ABIEncode().GetABIEncoded(token0AbiValue, token1AbiValue));
-        var contractAddress = await DeployUniswapV2FactoryContract();
+        var factoryContractAddress = await DeployUniswapV2FactoryContract();
 
         {
-            var tx = await GetTransactionAsync(DaveKeyPair, contractAddress, "createPair",
+            var tx = await GetTransactionAsync(AliceKeyPair, factoryContractAddress, "createPair",
                 tokenPair);
             var txResult = await TestTransactionExecutor.ExecuteAsync(tx);
             txResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
 
-        var pairAddress = await QueryField(contractAddress, "getPair", tokenPair);
-        pairAddress.ToByteArray().ShouldAllBe(i => i != 0);
+        var pairAddress1 = await QueryField(factoryContractAddress, "getPair", tokenPair);
+        pairAddress1.ToByteArray().ShouldAllBe(i => i != 0);
+
+        var pairAddress2 = await QueryField(factoryContractAddress, "getPair",
+            ByteString.CopyFrom(new ABIEncode().GetABIEncoded(token1AbiValue, token0AbiValue)));
+        pairAddress2.ShouldBe(pairAddress1);
+
+        var pairAddress = await QueryField(factoryContractAddress, "allPairs", Index(0));
+        pairAddress.ShouldBe(pairAddress1);
+        var pairContractAddress = Address.FromBytes(pairAddress.ToByteArray());
+
+        var allPairsLength = await QueryField(factoryContractAddress, "allPairsLength");
+        allPairsLength.ToByteArray().ToInt64(false).ShouldBe(1);
+
+        var factory = await QueryField(pairContractAddress, "factory");
+        factory.ToByteArray().ShouldBe(factoryContractAddress.ToByteArray());
+
+        var queriedToken0 = await QueryField(pairContractAddress, "token0");
+        queriedToken0.ToByteArray().ShouldBe(token0);
+
+        var queriedToken1 = await QueryField(pairContractAddress, "token1");
+        queriedToken1.ToByteArray().ShouldBe(token1);
+    }
+
+    [Fact]
+    public async Task SetFeeToTest()
+    {
+        var contractAddress = await DeployUniswapV2FactoryContract();
+        var tx = await GetTransactionAsync(AliceKeyPair, contractAddress, "setFeeTo",
+            Dave.ToParameter());
+        var txResult = await TestTransactionExecutor.ExecuteAsync(tx);
+        txResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        var queriedFeeTo = await QueryField(contractAddress, "feeTo");
+        queriedFeeTo.ToByteArray().ShouldBe(DaveAddress.ToByteArray());
+    }
+
+    [Fact]
+    public async Task SetFeeToSetterTest()
+    {
+        var contractAddress = await DeployUniswapV2FactoryContract();
+        var tx = await GetTransactionAsync(AliceKeyPair, contractAddress, "setFeeToSetter",
+            Dave.ToParameter());
+        var txResult = await TestTransactionExecutor.ExecuteAsync(tx);
+        txResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        var queriedFeeToSetter = await QueryField(contractAddress, "feeToSetter");
+        queriedFeeToSetter.ToByteArray().ShouldBe(DaveAddress.ToByteArray());
     }
 }

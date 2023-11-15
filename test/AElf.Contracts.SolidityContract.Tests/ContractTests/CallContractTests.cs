@@ -1,8 +1,7 @@
 using System.IO;
 using System.Threading.Tasks;
+using AElf.Runtime.WebAssembly.Types;
 using AElf.Types;
-using Google.Protobuf;
-using Nethereum.ABI;
 using Shouldly;
 
 namespace AElf.Contracts.SolidityContract;
@@ -24,7 +23,7 @@ public class CallContractTests : SolidityContractTestBase
             callerContractAddress = executionResult.Output;
         }
 
-        var input = ByteString.CopyFrom(new ABIEncode().GetABIEncoded(new ABIValue("bytes32", calleeContractAddress.ToByteArray())));
+        var input = calleeContractAddress.ToWebAssemblyAddress().ToParameter();
         {
             var tx = await GetTransactionAsync(DefaultSenderKeyPair, callerContractAddress, "testCall",
                 input);

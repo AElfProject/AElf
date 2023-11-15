@@ -66,6 +66,7 @@ public class GasMeter : IGasMeter
             ReentranceCount => new Weight(287_220_765, 6771),
             AccountReentranceCount => new Weight(331_187_665, 7866),
             InstantiationNonce => new Weight(286_686_654, 6768),
+            CopyToContract c => new Weight(232_759_442, 6776).Mul(c.ContractBytesSize),
             _ => throw new ArgumentOutOfRangeException(nameof(runtimeCost), runtimeCost, null)
         };
         GasLeft = GasLeft.Sub(cost);

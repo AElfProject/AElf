@@ -20,9 +20,7 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
     public override ContractInfo GetContractInfo(Address input)
     {
         var info = State.ContractInfos[input];
-        if (info == null) return new ContractInfo();
-
-        return info;
+        return info ?? new ContractInfo();
     }
 
     public override Address GetContractAuthor(Address input)
@@ -46,12 +44,7 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
     public override SmartContractRegistration GetSmartContractRegistrationByAddress(Address input)
     {
         var info = State.ContractInfos[input];
-        if (info == null)
-        {
-            return null;
-        }
-
-        return State.SmartContractRegistrations[info.CodeHash];
+        return info == null ? null : State.SmartContractRegistrations[info.CodeHash];
     }
 
     public override SmartContractRegistration GetSmartContractRegistrationByCodeHash(Hash input)
