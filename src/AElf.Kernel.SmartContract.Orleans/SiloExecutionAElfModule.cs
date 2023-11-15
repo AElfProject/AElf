@@ -19,6 +19,7 @@ public class SiloExecutionAElfModule : AbpModule
     public override void ConfigureServices(ServiceConfigurationContext context)
     {
         var configuration = context.Services.GetConfiguration();
+        //ConfigureOrleans(context, configuration); 
         context.Services.AddSingleton<IPlainTransactionExecutingService, SiloTransactionExecutingService>();
         context.Services.AddSingleton<IPlainTransactionExecutingGrain, PlainTransactionExecutingGrain>();
         context.Services.AddSingleton<ISiloClusterClientContext, SiloClusterClientContext>();
