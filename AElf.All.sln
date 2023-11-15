@@ -379,9 +379,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TestContract
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.VirtualTransactionEventContract.Tests", "test\AElf.Contracts.VirtualTransactionEventContract.Tests\AElf.Contracts.VirtualTransactionEventContract.Tests.csproj", "{6981684D-450C-412B-9082-0B0A67A679B9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Silo.Launcher", "src\AElf.Silo.Launcher\AElf.Silo.Launcher.csproj", "{56AA69DA-7654-4B9A-AF6D-584C33457FC1}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContract.Orleans", "src\AElf.Kernel.SmartContract.Orleans\AElf.Kernel.SmartContract.Orleans.csproj", "{0DBE8AFD-19AA-469A-A1B5-8939CF8A0606}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Silo.Launcher", "src\AElf.Silo.Launcher\AElf.Silo.Launcher.csproj", "{81AFEFAB-F4C5-4F1D-85F5-FADBB3EB1ACF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -1093,14 +1093,14 @@ Global
 		{6981684D-450C-412B-9082-0B0A67A679B9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6981684D-450C-412B-9082-0B0A67A679B9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6981684D-450C-412B-9082-0B0A67A679B9}.Release|Any CPU.Build.0 = Release|Any CPU
-		{56AA69DA-7654-4B9A-AF6D-584C33457FC1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{56AA69DA-7654-4B9A-AF6D-584C33457FC1}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{56AA69DA-7654-4B9A-AF6D-584C33457FC1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{56AA69DA-7654-4B9A-AF6D-584C33457FC1}.Release|Any CPU.Build.0 = Release|Any CPU
 		{0DBE8AFD-19AA-469A-A1B5-8939CF8A0606}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{0DBE8AFD-19AA-469A-A1B5-8939CF8A0606}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0DBE8AFD-19AA-469A-A1B5-8939CF8A0606}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0DBE8AFD-19AA-469A-A1B5-8939CF8A0606}.Release|Any CPU.Build.0 = Release|Any CPU
+		{81AFEFAB-F4C5-4F1D-85F5-FADBB3EB1ACF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{81AFEFAB-F4C5-4F1D-85F5-FADBB3EB1ACF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{81AFEFAB-F4C5-4F1D-85F5-FADBB3EB1ACF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{81AFEFAB-F4C5-4F1D-85F5-FADBB3EB1ACF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1292,7 +1292,7 @@ Global
 		{64498F8C-B827-4E1C-B5FB-4B9188C839A8} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
 		{0F10B838-C363-4F55-A5BB-B7F9F80565AB} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
 		{6981684D-450C-412B-9082-0B0A67A679B9} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
-		{56AA69DA-7654-4B9A-AF6D-584C33457FC1} = {90B310B4-C2DB-419E-B5EE-97FA096B62CC}
 		{0DBE8AFD-19AA-469A-A1B5-8939CF8A0606} = {90B310B4-C2DB-419E-B5EE-97FA096B62CC}
+		{81AFEFAB-F4C5-4F1D-85F5-FADBB3EB1ACF} = {798BAA50-825B-4DD9-83E2-77A9EE6EBE09}
 	EndGlobalSection
 EndGlobal

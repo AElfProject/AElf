@@ -1,4 +1,4 @@
-namespace AElf.Kernel.SmartContract.Grains;
+namespace AElf.Kernel.SmartContract.Orleans;
 
 public class GrainResultDto<T> : GrainResultDto
 {

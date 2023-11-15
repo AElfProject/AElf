@@ -1,7 +1,6 @@
 using AElf.Contracts.Genesis;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Domain;
-using AElf.Kernel.SmartContract.Grains;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Types;
 using Google.Protobuf.Collections;
@@ -24,7 +23,8 @@ public class PlainTransactionExecutingGrain : Grain, IPlainTransactionExecutingG
 
     public PlainTransactionExecutingGrain(ISmartContractExecutiveService smartContractExecutiveService,
         IEnumerable<IPostExecutionPlugin> postPlugins, IEnumerable<IPreExecutionPlugin> prePlugins,
-        ITransactionContextFactory transactionContextFactory,IDefaultContractZeroCodeProvider defaultContractZeroCodeProvider)
+        ITransactionContextFactory transactionContextFactory,
+        IDefaultContractZeroCodeProvider defaultContractZeroCodeProvider)
     {
         _smartContractExecutiveService = smartContractExecutiveService;
         _transactionContextFactory = transactionContextFactory;
@@ -32,7 +32,6 @@ public class PlainTransactionExecutingGrain : Grain, IPlainTransactionExecutingG
         _postPlugins = GetUniquePlugins(postPlugins);
         Logger = NullLogger<PlainTransactionExecutingGrain>.Instance;
         _defaultContractZeroCodeProvider = defaultContractZeroCodeProvider;
-
     }
 
     public async Task<List<ExecutionReturnSet>> ExecuteAsync(TransactionExecutingDto transactionExecutingDto,
@@ -89,8 +88,6 @@ public class PlainTransactionExecutingGrain : Grain, IPlainTransactionExecutingG
                 returnSets.Add(returnSet);
             }
 
-            //State.ExecutionReturnSets = returnSets;
-            //await WriteStateAsync();
             return returnSets;
         }
         catch (Exception e)

@@ -1,9 +1,5 @@
-﻿using System;
-using System.Globalization;
-using System.Linq;
+﻿using System.Globalization;
 using AElf.Kernel;
-using AElf.Kernel.SmartContract.Orleans;
-using AElf.Silo.Launcher;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Hosting;
@@ -11,7 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
 
-namespace AElf.Launcher;
+namespace AElf.Silo.Launcher;
 
 public class Startup
 {
@@ -23,20 +19,9 @@ public class Startup
         _configuration = configuration;
     }
 
-    // This method gets called by the runtime. Use this method to add services to the container.
-    // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
     public void ConfigureServices(IServiceCollection services)
     {
         var chainType = _configuration.GetValue("ChainType", ChainType.MainChain);
-        // switch (chainType)
-        // {
-        //     case ChainType.SideChain:
-        //         AddApplication<SideChainAElfModule>(services);
-        //         break;
-        //     default:
-        //         AddApplication<MainChainAElfModule>(services);
-        //         break;
-        // }
         AddApplication<AElfSiloLauncherModule>(services);
 
         services.AddCors(options =>
@@ -55,8 +40,6 @@ public class Startup
                 if (_configuration["CorsOrigins"] != "*") builder.AllowCredentials();
             });
         });
-//        AddApplication<SiloExecutionAElfModule>(services);
-
     }
 
     private static void AddApplication<T>(IServiceCollection services) where T : IAbpModule
@@ -64,18 +47,10 @@ public class Startup
         services.AddApplication<T>();
     }
 
-    // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-    // ReSharper disable once UnusedMember.Global
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
     {
         var cultureInfo = CultureInfo.InvariantCulture;
         CultureInfo.DefaultThreadCurrentCulture = cultureInfo;
-
-        // app.UseRouting();
-        // app.UseAuthentication();
-        // app.UseAuthorization();
-        // app.UseCors(DefaultCorsPolicyName);
-        //
         app.InitializeApplication();
     }
 }

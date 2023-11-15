@@ -9,11 +9,11 @@ using Orleans.Hosting;
 using Orleans.Providers.MongoDB.Configuration;
 using Orleans.Statistics;
 
-namespace AElf.Kernel.SmartContract.Silo.Extensions;
+namespace AElf.Silo.Launcher.Extensions;
 
 public static class OrleansHostExtensions
 {
-     public static IHostBuilder UseOrleansSnapshot(this IHostBuilder hostBuilder)
+    public static IHostBuilder UseOrleansSnapshot(this IHostBuilder hostBuilder)
     {
         var configuration = new ConfigurationBuilder()
             .AddJsonFile("appsettings.json")
@@ -26,18 +26,21 @@ public static class OrleansHostExtensions
         {
             //Configure OrleansSnapshot
             siloBuilder
-                .ConfigureEndpoints(advertisedIP:IPAddress.Parse(configSection.GetValue<string>("AdvertisedIP")),siloPort: configSection.GetValue<int>("SiloPort"), gatewayPort: configSection.GetValue<int>("GatewayPort"), listenOnAnyHostAddress: true)
+                .ConfigureEndpoints(advertisedIP: IPAddress.Parse(configSection.GetValue<string>("AdvertisedIP")),
+                    siloPort: configSection.GetValue<int>("SiloPort"),
+                    gatewayPort: configSection.GetValue<int>("GatewayPort"), listenOnAnyHostAddress: true)
                 .UseMongoDBClient(configSection.GetValue<string>("MongoDBClient"))
                 .UseMongoDBClustering(options =>
                 {
-                    options.DatabaseName = configSection.GetValue<string>("DataBase");;
+                    options.DatabaseName = configSection.GetValue<string>("DataBase");
+                    ;
                     options.Strategy = MongoDBMembershipStrategy.SingleDocument;
                 })
-                .AddMongoDBGrainStorage("Default",(MongoDBGrainStorageOptions op) =>
+                .AddMongoDBGrainStorage("Default", (MongoDBGrainStorageOptions op) =>
                 {
                     op.CollectionPrefix = "GrainStorage";
                     op.DatabaseName = configSection.GetValue<string>("DataBase");
-                
+
                     op.ConfigureJsonSerializerSettings = jsonSettings =>
                     {
                         // jsonSettings.ContractResolver = new PrivateSetterContractResolver();
@@ -45,7 +48,6 @@ public static class OrleansHostExtensions
                         jsonSettings.DefaultValueHandling = DefaultValueHandling.Populate;
                         jsonSettings.ObjectCreationHandling = ObjectCreationHandling.Replace;
                     };
-                    
                 })
                 .UseMongoDBReminders(options =>
                 {
@@ -57,9 +59,10 @@ public static class OrleansHostExtensions
                     options.ClusterId = configSection.GetValue<string>("ClusterId");
                     options.ServiceId = configSection.GetValue<string>("ServiceId");
                 })
-               // .AddMemoryGrainStorage("PubSubStore")
+                // .AddMemoryGrainStorage("PubSubStore")
                 .ConfigureApplicationParts(parts => parts.AddFromApplicationBaseDirectory())
-                .UseDashboard(options => {
+                .UseDashboard(options =>
+                {
                     options.Username = configSection.GetValue<string>("DashboardUserName");
                     options.Password = configSection.GetValue<string>("DashboardPassword");
                     options.Host = "*";

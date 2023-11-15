@@ -4,5 +4,4 @@ namespace AElf.Kernel.SmartContract.Orleans;
 
 public interface ISiloTransactionExecutingHost : IHostedService
 {
-    
 }

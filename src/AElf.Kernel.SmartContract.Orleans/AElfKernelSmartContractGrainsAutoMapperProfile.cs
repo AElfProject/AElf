@@ -6,6 +6,5 @@ public class AElfKernelSmartContractGrainsAutoMapperProfile : Profile
 {
     public AElfKernelSmartContractGrainsAutoMapperProfile()
     {
-       
     }
 }

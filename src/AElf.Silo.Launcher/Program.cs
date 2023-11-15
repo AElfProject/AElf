@@ -1,79 +1,11 @@
-﻿// using Microsoft.Extensions.Configuration;
-// using Microsoft.Extensions.DependencyInjection;
-// using Microsoft.Extensions.Hosting;
-// using AElf.Kernel.SmartContract.Silo;
-// using AElf.Kernel.SmartContract.Silo.Extensions;
-// using AElf.OS;
-// using AElf.Silo.Launcher;
-// using AElf.WebApp.Application.Chain;
-// using Microsoft.AspNetCore.Hosting;
-// using Serilog;
-// using Serilog.Events;
-//
-// namespace AElf.Kernel.SmartContract.Silo;
-//
-// public class Program
-// {
-//     public async static Task<int> Main(string[] args)
-//     {
-//         var configuration = new ConfigurationBuilder()
-//             .AddJsonFile("appsettings.json")
-//             //.AddJsonFile("appsetting.ParallelExecution.json")
-//             .Build();
-//         Log.Logger = new LoggerConfiguration()
-// #if DEBUG
-//             .MinimumLevel.Debug()
-// #else
-//             .MinimumLevel.Information()
-// #endif
-//             .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
-//             .Enrich.FromLogContext()
-//             .ReadFrom.Configuration(configuration)
-//             // .WriteTo.Async(c => c.File("Logs/logs.txt"))
-// #if DEBUG
-//             .WriteTo.Async(c => c.Console())
-// #endif
-//             .CreateLogger();
-//         try
-//         {
-//             Log.Information("Starting AElf.Silo.Launcher.");
-//
-//             await CreateHostBuilder(args).Build().RunAsync();
-//
-//             return 0;
-//         }
-//         catch (Exception ex)
-//         {
-//             Log.Fatal(ex, "Host terminated unexpectedly!");
-//             return 1;
-//         }
-//         finally
-//         {
-//             Log.CloseAndFlush();
-//         }
-//     }
-//     
-//    
-//     internal static IHostBuilder CreateHostBuilder(string[] args) =>
-//         Host.CreateDefaultBuilder(args)
-//             .ConfigureServices((hostcontext, services) =>
-//             {
-//                 services.AddApplication<AElfSiloLauncherModule>();
-//             })
-//             .UseOrleansSnapshot()
-//             .UseAutofac()
-//             .UseSerilog();
-// }
-using System;
-using System.IO;
-using System.Reflection;
-using AElf.Kernel.SmartContract.Silo.Extensions;
+﻿using System.Reflection;
+using AElf.Silo.Launcher.Extensions;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace AElf.Launcher;
+namespace AElf.Silo.Launcher;
 
 internal class Program
 {
@@ -122,7 +54,6 @@ internal class Program
         }
     }
 
-    // create default https://github.com/aspnet/MetaPackages/blob/master/src/Microsoft.AspNetCore/WebHost.cs
     private static IHostBuilder CreateHostBuilder(string[] args)
     {
         return Host.CreateDefaultBuilder(args)

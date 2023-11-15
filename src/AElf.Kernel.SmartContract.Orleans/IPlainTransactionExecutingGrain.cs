@@ -1,6 +1,4 @@
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContract.Grains;
-using AElf.Types;
 using Orleans;
 
 namespace AElf.Kernel.SmartContract.Orleans;

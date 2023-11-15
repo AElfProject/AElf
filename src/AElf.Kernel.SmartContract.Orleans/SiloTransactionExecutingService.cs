@@ -1,17 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContract.Domain;
-using AElf.Kernel.SmartContract.Grains;
-using AElf.Kernel.SmartContract.Infrastructure;
-using AElf.Types;
-using Google.Protobuf.Collections;
-using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using Orleans;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus.Local;
@@ -42,7 +30,6 @@ public class SiloTransactionExecutingService : IPlainTransactionExecutingService
     {
         try
         {
-            //var client = _clusterClient.GetGrain<IPlainTransactionExecutingGrain>(Guid.NewGuid());
             var grain = _siloClusterClientContext.GetClusterClient().GetGrain<IPlainTransactionExecutingGrain>(Guid.NewGuid());
             var result = await grain.ExecuteAsync(transactionExecutingDto, cancellationToken);
             return result;
