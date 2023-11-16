@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Text;
+using System.Text.Json;
 using AElf.Kernel;
 using AElf.Kernel.Infrastructure;
 using AElf.Kernel.SmartContract;
@@ -110,6 +111,7 @@ public class Executive : IExecutive
                 {
                     _webAssemblyContract.EstimateGas = true;
                 }
+
                 _webAssemblyContract.GasMeter = new GasMeter(solidityTransactionParameter.GasLimit);
             }
 
@@ -121,12 +123,6 @@ public class Executive : IExecutive
                 _webAssemblyContract.DebugMessages.Add(invokeResult.DebugMessage);
             }
 
-            var prints = _webAssemblyContract.Prints;
-            if (prints.Count > 0)
-            {
-                ;
-            }
-
             if (_webAssemblyContract.DebugMessages.Count > 0)
             {
                 transactionContext.Trace.ExecutionStatus = ExecutionStatus.ContractError;
@@ -136,15 +132,32 @@ public class Executive : IExecutive
             {
                 transactionContext.Trace.ReturnValue = ByteString.CopyFrom(_webAssemblyContract.ReturnBuffer);
                 transactionContext.Trace.ExecutionStatus = ExecutionStatus.Executed;
-                foreach (var depositedEvent in _webAssemblyContract.Events)
+                var events = _smartContractProxy.GetEvents();
+                if (events != null)
                 {
-                    transactionContext.Trace.Logs.Add(new LogEvent
+                    foreach (var depositedEvent in events)
                     {
-                        Address = transaction.To,
-                        Name = depositedEvent.Item1.ToHex(),
-                        NonIndexed = ByteString.CopyFrom(depositedEvent.Item2)
-                    });
+                        var logEvent = new LogEvent
+                        {
+                            Address = transaction.To,
+                            Name = Encoding.UTF8.GetString(depositedEvent.Item1.TrimZeroBytes()),
+                            NonIndexed = ByteString.CopyFrom(depositedEvent.Item2)
+                        };
+                        transactionContext.Trace.Logs.Add(logEvent);
+                    }
                 }
+            }
+
+            if (!isCallConstructor)
+            {
+                var gasMeter = _smartContractProxy.GetGasMeter();
+                var logEvent = new LogEvent
+                {
+                    Address = transaction.To,
+                    Name = WebAssemblyTransactionPaymentConstants.LogEventName,
+                    NonIndexed = gasMeter.GasLeft.ToByteString()
+                };
+                CurrentTransactionContext.Trace.Logs.Add(logEvent);
             }
 
             CurrentTransactionContext.Trace.StateSet = GetChanges();
@@ -157,15 +170,26 @@ public class Executive : IExecutive
 
         var endTime = CurrentTransactionContext.Trace.EndTime = TimestampHelper.GetUtcNow().ToDateTime();
         CurrentTransactionContext.Trace.Elapsed = (endTime - startTime).Ticks;
+
+        ForDebug();
+    }
+
+    private void ForDebug()
+    {
+        var runtimeLogs = _smartContractProxy.GetRuntimeLogs();
+        var prints = _smartContractProxy.GetCustomPrints();
+        var errors = _smartContractProxy.GetErrorMessages();
+        var debugs = _smartContractProxy.GetDebugMessages();
+        var events = _smartContractProxy.GetEvents();
     }
 
     private Func<ActionResult> GetAction(string selector, string parameter, bool isCallConstructor, long value,
         long delegateCallValue)
     {
-        _webAssemblyContract.Input = Encoders.Hex.DecodeData(selector + parameter);
+        var inputData = Encoders.Hex.DecodeData(selector + parameter);
         _webAssemblyContract.Value = value;
         _webAssemblyContract.DelegateCallValue = delegateCallValue;
-        var instance = _webAssemblyContract.Instantiate();
+        var instance = _webAssemblyContract.Instantiate(inputData);
         var actionName = isCallConstructor ? "deploy" : "call";
         var action = instance.GetFunction<ActionResult>(actionName);
         if (action is null)

@@ -13,35 +13,36 @@ namespace AElf.Runtime.WebAssembly.Contract;
 
 public partial class WebAssemblyContractImplementation : WebAssemblyContract<WebAssemblyContractState>
 {
-    private readonly Store _store;
-    private readonly Linker _linker;
-    private readonly Memory _memory;
-    private readonly Module _module;
+    private const long MemoryMin = 16;
+    private const long MemoryMax = 16;
+
+    private readonly byte[] _wasmCode;
+
+    private readonly Engine _engine;
+    private Store _store;
+    private Linker _linker;
+    private Memory _memory;
+    private Module _module;
 
     public byte[] ReturnBuffer = Array.Empty<byte>();
     public ReturnFlags ReturnFlags = ReturnFlags.Empty;
-    public List<string> DebugMessages => new();
-    public List<string> Logs => new();
-    public List<string> Prints => new();
-    public List<(byte[], byte[])> Events => new();
-    public byte[]? Input { get; set; } = Array.Empty<byte>();
     public long Value { get; set; } = 0;
     public long DelegateCallValue { get; set; } = 0;
     public bool Initialized => State.Initialized.Value;
 
-    public WebAssemblyContractImplementation(byte[] wasmCode, bool withFuelConsumption = false, long memoryMin = 16,
-        long memoryMax = 16)
+    public WebAssemblyContractImplementation(byte[] wasmCode, bool withFuelConsumption = false)
     {
-        var engine = new Engine(new Config().WithFuelConsumption(withFuelConsumption));
-        _store = new Store(engine);
-        _linker = new Linker(engine);
-        _memory = new Memory(_store, memoryMin, memoryMax);
-        _module = Module.FromBytes(engine, "contract", wasmCode);
-        DefineImportFunctions();
+        _wasmCode = wasmCode;
+        _engine = new Engine(new Config().WithFuelConsumption(withFuelConsumption));
     }
 
-    public Instance Instantiate()
+    public Instance Instantiate(byte[] inputData)
     {
+        _store = new Store(_engine, inputData);
+        _linker = new Linker(_engine);
+        _memory = new Memory(_store, MemoryMin, MemoryMax);
+        _module = Module.FromBytes(_engine, "contract", _wasmCode);
+        DefineImportFunctions();
         State.Initialized.Value = true;
         State.GenesisContract.Value = Context.GetZeroSmartContractAddress();
         State.SolidityContractManager.Value = State.GenesisContract.Value;

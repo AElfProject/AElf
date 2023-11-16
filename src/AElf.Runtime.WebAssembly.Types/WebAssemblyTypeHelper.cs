@@ -7,6 +7,6 @@ public static class WebAssemblyTypeHelper
 {
     public static ByteString ConvertToParameter(params ABIValue[] abiValues)
     {
-        return ByteString.CopyFrom(new ABIEncode().GetABIEncoded(abiValues));
+        return ByteString.CopyFrom(new ABIEncode().GetABIEncodedPacked(abiValues));
     }
 }

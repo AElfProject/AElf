@@ -14,6 +14,18 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ContractBase Include="..\..\protobuf\token_contract.proto">
+            <Link>Protobuf\Proto\token_contract.proto</Link>
+        </ContractBase>
+        <ContractStub Include="..\..\protobuf\token_contract_impl.proto">
+            <Link>Protobuf\Proto\token_contract_impl.proto</Link>
+        </ContractStub>
+        <ContractMessage Include="..\..\protobuf\transaction_fee.proto">
+            <Link>Protobuf\Proto\transaction_fee.proto</Link>
+        </ContractMessage>
+        <ContractMessage Include="..\..\protobuf\authority_info.proto">
+            <Link>Protobuf\Proto\authority_info.proto</Link>
+        </ContractMessage>
         <CommonMessage Include="..\..\protobuf\solidity_transaction_parameter.proto">
             <Link>Protobuf\Proto\solidity_transaction_parameter.proto</Link>
         </CommonMessage>

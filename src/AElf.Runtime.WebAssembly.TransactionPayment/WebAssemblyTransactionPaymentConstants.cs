@@ -4,4 +4,5 @@ public class WebAssemblyTransactionPaymentConstants
 {
     public const int TransactionByteFee = 1;
     public const int FeeWeightRatio = 1000;
+    public const string LogEventName = "AElf::GasFeeConsumed";
 }

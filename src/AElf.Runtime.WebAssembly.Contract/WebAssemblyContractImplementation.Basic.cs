@@ -27,12 +27,14 @@ public partial class WebAssemblyContractImplementation
             HandleError(WebAssemblyError.TerminatedInConstructor);
         }
 
-        if (Input == null)
+        var inputData = _store.GetData();
+
+        if (inputData == null)
         {
             HandleError(WebAssemblyError.InputForwarded);
         }
 
-        WriteSandboxOutput(outPtr, outLenPtr, Input!, false,
+        WriteSandboxOutput(outPtr, outLenPtr, (byte[])inputData!, false,
             len => new CopyToContract(len));
     }
 
@@ -61,7 +63,6 @@ public partial class WebAssemblyContractImplementation
     /// <param name="dataLen"></param>
     private void SealReturnV0(int flags, int dataPtr, int dataLen)
     {
-        ChargeGas(RuntimeCosts.Return, dataLen);
         ReturnFlags = (ReturnFlags)flags;
         ReturnBuffer = ReadSandboxMemory(dataPtr, dataLen);
     }
@@ -119,8 +120,7 @@ public partial class WebAssemblyContractImplementation
         }
 
         var eventData = ReadSandboxMemory(dataPtr, dataLen);
-        //topicsBytes = topics.Aggregate(Array.Empty<byte>(), (current, next) => current.Concat(next).ToArray());
-        // DepositEvent(topics, eventData);
+        Events.Add((topics, eventData));
     }
 
     private int MaxValueSize()
@@ -171,24 +171,24 @@ public partial class WebAssemblyContractImplementation
         var debugMessageBytes = ReadSandboxMemory(strPtr, strLen);
         try
         {
-            // TODO: Find a way to valid utf8 bytes properly.
-            var debugMessage = encoding.GetString(debugMessageBytes);
-            if (debugMessage.Contains("error"))
+            var message = encoding.GetString(debugMessageBytes);
+            if (message.Contains("error"))
             {
+                ErrorMessages.Add(message);
                 return (int)ReturnCode.CallRuntimeFailed;
             }
-            if (debugMessage.Contains("print"))
+
+            if (message.Contains("print"))
             {
-                Context.LogDebug(() => debugMessage);
-                Prints.Add(debugMessage);
+                CustomPrints.Add(message);
             }
-            else if (debugMessage.Contains("call"))
+            else if (message.Contains("call"))
             {
-                Logs.Add(debugMessage);
+                RuntimeLogs.Add(message);
             }
             else
             {
-                DebugMessages.Add(debugMessage);
+                DebugMessages.Add(message);
             }
 
             return (int)ReturnCode.Success;
@@ -197,10 +197,5 @@ public partial class WebAssemblyContractImplementation
         {
             return (int)ReturnCode.CallRuntimeFailed;
         }
-    }
-    
-    private void ChargeGas(RuntimeCosts runtimeCosts, long size = 0)
-    {
-        
     }
 }

@@ -1,4 +1,5 @@
 using AElf.Kernel.SmartContract;
+using AElf.Runtime.WebAssembly.TransactionPayment;
 using AElf.Sdk.CSharp.State;
 using AElf.Types;
 
@@ -14,6 +15,14 @@ public class WebAssemblyContract<TContractState> where TContractState : Contract
     {
         Path = new StatePath()
     };
+
+    public IGasMeter? GasMeter { get; set; }
+
+    public List<string> RuntimeLogs = new();
+    public List<string> CustomPrints = new();
+    public List<string> ErrorMessages = new();
+    public List<string> DebugMessages = new();
+    public List<(byte[], byte[])> Events = new();
 
     public WebAssemblySmartSmartContractContext Context { get; set; }
 
@@ -34,6 +43,36 @@ public class WebAssemblyContract<TContractState> where TContractState : Contract
         Context = new WebAssemblySmartSmartContractContext(bridgeContext);
         State.Context = Context;
         OnInitialized();
+    }
+
+    internal IGasMeter GetGasMeter()
+    {
+        return GasMeter!;
+    }
+
+    internal List<string> GetRuntimeLogs()
+    {
+        return RuntimeLogs;
+    }
+
+    internal List<string> GetCustomPrints()
+    {
+        return CustomPrints;
+    }
+
+    internal List<string> GetDebugMessages()
+    {
+        return DebugMessages;
+    }
+
+    internal List<string> GetErrorMessages()
+    {
+        return ErrorMessages;
+    }
+
+    internal List<(byte[], byte[])> GetEvents()
+    {
+        return Events;
     }
 
     protected virtual void OnInitialized()

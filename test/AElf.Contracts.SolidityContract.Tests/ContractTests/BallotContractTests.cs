@@ -4,7 +4,6 @@ using System.Text;
 using System.Threading.Tasks;
 using AElf.Runtime.WebAssembly.Types;
 using AElf.Types;
-using Google.Protobuf;
 using Nethereum.ABI;
 using Shouldly;
 
@@ -23,7 +22,7 @@ public class BallotContractTests : SolidityContractTestBase
     {
         const string solFilePath = "contracts/Ballot.sol";
         var solidityCode = await File.ReadAllBytesAsync(solFilePath);
-        var input = ByteString.CopyFrom(new ABIEncode().GetABIEncoded(new ABIValue("bytes32[]", _proposals)));
+        var input = WebAssemblyTypeHelper.ConvertToParameter(new ABIValue("bytes32[]", _proposals));
         var executionResult = await DeployWasmContractAsync(solidityCode, input);
         executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
         executionResult.TransactionResult.Logs.Count.ShouldBePositive();
@@ -35,7 +34,7 @@ public class BallotContractTests : SolidityContractTestBase
     {
         const string solFilePath = "contracts/Ballot2.sol";
         var solidityCode = await File.ReadAllBytesAsync(solFilePath);
-        var input = _proposals[0].ToABIValue().ToParameter();
+        var input = _proposals[0].ToBytes32ABIValue().ToParameter();
         var executionResult = await DeployWasmContractAsync(solidityCode, input);
         executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
         return executionResult.Output;
@@ -56,7 +55,7 @@ public class BallotContractTests : SolidityContractTestBase
     {
         var contractAddress = await DeployBallot2ContractTest();
         var tx = await GetTransactionAsync(DefaultSenderKeyPair, contractAddress, "proposals",
-            Index(0));
+            0.ToWebAssemblyUInt256().ToParameter());
         var txResult = await TestTransactionExecutor.ExecuteAsync(tx);
         txResult.Status.ShouldBe(TransactionResultStatus.Mined);
         txResult.ReturnValue.ToHex().ShouldContain(_proposals[0].ToHex());

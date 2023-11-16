@@ -129,14 +129,8 @@ public partial class WebAssemblyContractImplementation
         byte[]? inputData;
         if (callFlags.Contains(CallFlags.CloneInput))
         {
-            inputData = Input;
+            inputData = (byte[])_store.GetData()!;
             // Charge gas for RuntimeCosts.CallInputCloned
-        }
-        else if (callFlags.Contains(CallFlags.ForwardInput))
-        {
-            // Take value from Input.
-            inputData = Input;
-            Input = null;
         }
         else
         {

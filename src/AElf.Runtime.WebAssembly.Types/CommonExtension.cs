@@ -7,12 +7,12 @@ public static class CommonExtension
 {
     public static ByteString ToParameter(this ABIValue abiValue)
     {
-        var bytes = new ABIEncode().GetABIEncodedPacked(abiValue);
+        var bytes = new ABIEncode().GetABIEncoded(abiValue);
         return ByteString.CopyFrom(bytes);
     }
 
-    public static ABIValue ToABIValue(this byte[] bytes)
+    public static ABIValue ToBytes32ABIValue(this byte[] bytes)
     {
-        return new ABIValue("bytes", bytes);
+        return new ABIValue("bytes32", bytes);
     }
 }

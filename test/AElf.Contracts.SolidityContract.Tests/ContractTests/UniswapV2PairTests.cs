@@ -1,10 +1,8 @@
-using System;
 using System.Threading.Tasks;
 using AElf.Cryptography.ECDSA;
 using AElf.Runtime.WebAssembly.Types;
 using AElf.Types;
 using Google.Protobuf;
-using LanguageExt;
 using Nethereum.ABI;
 using Shouldly;
 
@@ -18,7 +16,7 @@ public class UniswapV2PairTests : UniswapV2ContractTests
 
     private const long MinimumLiquidity = 1000;
 
-    [Fact]
+    [Fact(DisplayName = "mint")]
     public async Task MintTest()
     {
         const long token0Amount = (long)1e10;
@@ -44,7 +42,7 @@ public class UniswapV2PairTests : UniswapV2ContractTests
         reserve1.ShouldBe(token1Amount);
     }
 
-    [Fact]
+    [Fact(DisplayName = "swapToken0")]
     public async Task SwapToken0Test()
     {
         const long token0Amount = (long)5e10;
@@ -59,7 +57,7 @@ public class UniswapV2PairTests : UniswapV2ContractTests
         // Swap
         var tx = await GetTransactionAsync(AliceKeyPair, _pairContractAddress, "swap",
             WebAssemblyTypeHelper.ConvertToParameter(0.ToWebAssemblyUInt256(),
-                expectedOutputAmount.ToWebAssemblyUInt256(), Alice));
+                expectedOutputAmount.ToWebAssemblyUInt256(), Alice, new ABIValue("bytes", new byte[] { 0 })));
         var txResult = await TestTransactionExecutor.ExecuteAsync(tx);
         txResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
@@ -81,7 +79,7 @@ public class UniswapV2PairTests : UniswapV2ContractTests
             .ShouldBe(token1TotalSupply - token1Amount + expectedOutputAmount);
     }
 
-    [Fact]
+    [Fact(DisplayName = "swapToken1")]
     public async Task SwapToken1Test()
     {
         const long token0Amount = (long)5e10;
@@ -96,7 +94,7 @@ public class UniswapV2PairTests : UniswapV2ContractTests
         // Swap
         var tx = await GetTransactionAsync(AliceKeyPair, _pairContractAddress, "swap",
             WebAssemblyTypeHelper.ConvertToParameter(expectedOutputAmount.ToWebAssemblyUInt256(),
-                0.ToWebAssemblyUInt256(), Alice));
+                0.ToWebAssemblyUInt256(), Alice, new ABIValue("bytes", new byte[] { 0 })));
         var txResult = await TestTransactionExecutor.ExecuteAsync(tx);
         txResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
@@ -118,7 +116,7 @@ public class UniswapV2PairTests : UniswapV2ContractTests
             .ShouldBe(token1TotalSupply - token1Amount - swapAmount);
     }
 
-    [Fact]
+    [Fact(DisplayName = "burn")]
     public async Task BurnTest()
     {
         const long token0Amount = (long)3e10;

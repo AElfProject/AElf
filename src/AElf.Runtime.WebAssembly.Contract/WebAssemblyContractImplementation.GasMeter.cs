@@ -6,7 +6,6 @@ namespace AElf.Runtime.WebAssembly.Contract;
 public partial class WebAssemblyContractImplementation
 {
     public bool EstimateGas { get; set; }
-    public IGasMeter? GasMeter { get; set; }
 
     public Weight? ChargeGas(RuntimeCost runtimeCost)
     {

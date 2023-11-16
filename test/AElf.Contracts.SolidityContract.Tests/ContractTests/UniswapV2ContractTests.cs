@@ -82,7 +82,7 @@ public class UniswapV2ContractTests : ERC20ContractTests
             ByteString.CopyFrom(new ABIEncode().GetABIEncoded(token1AbiValue, token0AbiValue)));
         pairAddress2.ShouldBe(pairAddress1);
 
-        var pairAddress = await QueryField(factoryContractAddress, "allPairs", Index(0));
+        var pairAddress = await QueryField(factoryContractAddress, "allPairs", 0.ToWebAssemblyUInt256().ToParameter());
         pairAddress.ShouldBe(pairAddress1);
         var pairContractAddress = Address.FromBytes(pairAddress.ToByteArray());
 
@@ -99,7 +99,7 @@ public class UniswapV2ContractTests : ERC20ContractTests
         queriedToken1.ToByteArray().ShouldBe(token1);
     }
 
-    [Fact]
+    [Fact(DisplayName = "setFeeTo")]
     public async Task SetFeeToTest()
     {
         var contractAddress = await DeployUniswapV2FactoryContract();
@@ -111,7 +111,7 @@ public class UniswapV2ContractTests : ERC20ContractTests
         queriedFeeTo.ToByteArray().ShouldBe(DaveAddress.ToByteArray());
     }
 
-    [Fact]
+    [Fact(DisplayName = "setFeeToSetter")]
     public async Task SetFeeToSetterTest()
     {
         var contractAddress = await DeployUniswapV2FactoryContract();

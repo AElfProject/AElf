@@ -21,6 +21,7 @@ using AElf.Types;
 using Google.Protobuf;
 using Nethereum.ABI;
 using Nethereum.Hex.HexConvertors.Extensions;
+using Nethereum.Util.ByteArrayConvertors;
 using Solang;
 using Solang.Extensions;
 using Volo.Abp.Threading;
@@ -143,6 +144,21 @@ public class SolidityContractTestBase : ContractTestBase<SolidityContractTestAEl
         transaction.Signature = ByteString.CopyFrom(signature);
         return transaction;
     }
+    
+    internal async Task<Transaction> GetTransactionAsync(ECKeyPair keyPair, Address to, string methodName,
+        string parameter, long value = 0)
+    {
+        var refBlockInfo = RefBlockInfoProvider.GetRefBlockInfo();
+        var transaction =
+            await GetTransactionWithoutSignatureAsync(Address.FromPublicKey(keyPair.PublicKey), to, methodName,
+                ByteString.CopyFrom(new HexToByteArrayConvertor().ConvertToByteArray(parameter)), value);
+        transaction.RefBlockNumber = refBlockInfo.Height;
+        transaction.RefBlockPrefix = refBlockInfo.Prefix;
+
+        var signature = CryptoHelper.SignWithPrivateKey(keyPair.PrivateKey, transaction.GetHash().Value.ToByteArray());
+        transaction.Signature = ByteString.CopyFrom(signature);
+        return transaction;
+    }
 
     private async Task<Transaction> GetTransactionWithoutSignatureAsync(Address from, Address to, string methodName,
         ByteString parameter = null, long value = 0)
@@ -170,11 +186,6 @@ public class SolidityContractTestBase : ContractTestBase<SolidityContractTestAEl
         };
 
         return transaction;
-    }
-
-    internal ByteString Index(int index)
-    {
-        return ByteString.CopyFrom(new ABIEncode().GetABIEncoded(new ABIValue("uint256", index)));
     }
 
     internal static string ExtraContractCodeFromHardhatOutput(string filePath)
