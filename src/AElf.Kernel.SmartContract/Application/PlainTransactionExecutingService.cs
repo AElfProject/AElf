@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -133,12 +134,15 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
         SingleTransactionExecutingDto singleTxExecutingDto,
         CancellationToken cancellationToken)
     {
+        var stopwatch = Stopwatch.StartNew();
         if (singleTxExecutingDto.IsCancellable)
             cancellationToken.ThrowIfCancellationRequested();
 
         var txContext = CreateTransactionContext(singleTxExecutingDto);
+        stopwatch.Stop();
+        Logger.LogDebug("CreateTransactionContext time{Time}",stopwatch.ElapsedMilliseconds);
+        stopwatch.Start();
         var trace = txContext.Trace;
-
         var internalStateCache = new TieredStateCache(singleTxExecutingDto.ChainContext.StateCache);
         var internalChainContext =
             new ChainContextWithTieredStateCache(singleTxExecutingDto.ChainContext, internalStateCache);
@@ -156,7 +160,8 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
             txContext.Trace.Error += "Invalid contract address.\n";
             return trace;
         }
-
+        stopwatch.Stop();
+        Logger.LogDebug("GetExecutiveAsync time{Time}",stopwatch.ElapsedMilliseconds);
         try
         {
             #region PreTransaction
@@ -171,9 +176,10 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
                 }
 
             #endregion
-
+            stopwatch.Start();
             await executive.ApplyAsync(txContext);
-
+            stopwatch.Stop();
+            Logger.LogDebug("ApplyAsync time{Time}",stopwatch.ElapsedMilliseconds);
             if (txContext.Trace.IsSuccessful())
                 await ExecuteInlineTransactions(singleTxExecutingDto.Depth, singleTxExecutingDto.CurrentBlockTime,
                     txContext, internalStateCache,

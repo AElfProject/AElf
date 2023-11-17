@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.SmartContract.Application;
@@ -30,13 +31,17 @@ public class PlainTransactionExecutingAsPluginService : PlainTransactionExecutin
         SingleTransactionExecutingDto singleTxExecutingDto,
         CancellationToken cancellationToken)
     {
+
+        var stopwatch = Stopwatch.StartNew();
         if (singleTxExecutingDto.IsCancellable)
             cancellationToken.ThrowIfCancellationRequested();
-
+        
         singleTxExecutingDto.OriginTransactionId = _pluginOriginId;
         var txContext = CreateTransactionContext(singleTxExecutingDto);
         var trace = txContext.Trace;
-
+        stopwatch.Stop();
+        Logger.LogDebug("CreateTransactionContext time{Time}",stopwatch.ElapsedMilliseconds);
+        stopwatch.Start();
         var internalStateCache = new TieredStateCache(singleTxExecutingDto.ChainContext.StateCache);
         var internalChainContext =
             new ChainContextWithTieredStateCache(singleTxExecutingDto.ChainContext, internalStateCache);
@@ -54,17 +59,21 @@ public class PlainTransactionExecutingAsPluginService : PlainTransactionExecutin
             txContext.Trace.Error += "Invalid contract address.\n";
             return trace;
         }
-
+        stopwatch.Stop();
+        Logger.LogDebug("GetExecutiveAsync time{Time}",stopwatch.ElapsedMilliseconds);
+        stopwatch.Start();
         try
         {
             await executive.ApplyAsync(txContext);
-
+            stopwatch.Stop();
+            Logger.LogDebug("ApplyAsync time{Time}",stopwatch.ElapsedMilliseconds);
             if (txContext.Trace.IsSuccessful())
                 await ExecuteInlineTransactions(singleTxExecutingDto.Depth, singleTxExecutingDto.CurrentBlockTime,
                     txContext, internalStateCache,
                     internalChainContext,
                     singleTxExecutingDto.OriginTransactionId,
                     cancellationToken);
+        
         }
         catch (Exception ex)
         {
@@ -78,8 +87,8 @@ public class PlainTransactionExecutingAsPluginService : PlainTransactionExecutin
             await _smartContractExecutiveService.PutExecutiveAsync(singleTxExecutingDto.ChainContext,
                 singleTxExecutingDto.Transaction.To, executive);
         }
-
         return trace;
+        
     }
 
     private async Task ExecuteInlineTransactions(int depth, Timestamp currentBlockTime,
@@ -88,8 +97,11 @@ public class PlainTransactionExecutingAsPluginService : PlainTransactionExecutin
         Hash originTransactionId,
         CancellationToken cancellationToken)
     {
+        var stopwatch = Stopwatch.StartNew();
         var trace = txContext.Trace;
         internalStateCache.Update(txContext.Trace.GetStateSets());
+        stopwatch.Stop();
+        Logger.LogDebug("internalStateCache update time{Time}",stopwatch.ElapsedMilliseconds);
         foreach (var inlineTx in txContext.Trace.InlineTransactions)
         {
             var singleTxExecutingDto = new SingleTransactionExecutingDto
@@ -101,17 +113,19 @@ public class PlainTransactionExecutingAsPluginService : PlainTransactionExecutin
                 Origin = txContext.Origin,
                 OriginTransactionId = originTransactionId
             };
-
+            stopwatch.Start();
             var inlineTrace = await ExecuteOneAsync(singleTxExecutingDto, cancellationToken);
-
+            stopwatch.Stop();
+            Logger.LogDebug("ExecuteOneAsync time{Time}",stopwatch.ElapsedMilliseconds);
             if (inlineTrace == null)
                 break;
             trace.InlineTraces.Add(inlineTrace);
             if (!inlineTrace.IsSuccessful())
                 // Already failed, no need to execute remaining inline transactions
                 break;
-
+            stopwatch.Start();
             internalStateCache.Update(inlineTrace.GetStateSets());
+            stopwatch.Stop();
         }
     }
 }
