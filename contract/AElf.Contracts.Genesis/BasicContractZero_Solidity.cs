@@ -4,6 +4,7 @@ using AElf.SolidityContract;
 using AElf.Standards.ACS0;
 using AElf.Types;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Genesis;
 
@@ -83,6 +84,7 @@ public partial class BasicContractZero
         {
             throw new AssertionException($"Contract code of hash {input.CodeHash} not found.");
         }
+
         Assert(reg.Category == category, "Category not match.");
         var author = Context.Sender;
         var serialNumber = State.ContractSerialNumber.Value;
@@ -143,5 +145,18 @@ public partial class BasicContractZero
         };
         State.SmartContractRegistrations[codeHash] = reg;
         return codeHash;
+    }
+
+    public override Empty UpdateSoliditySmartContract(UpdateSoliditySmartContractInput input)
+    {
+        var contractInfo = State.ContractInfos[input.ContractAddress];
+        if (contractInfo == null)
+        {
+            throw new AssertionException("Contract info not found.");
+        }
+
+        contractInfo.CodeHash = input.CodeHash;
+        State.ContractInfos[input.ContractAddress] = contractInfo;
+        return new Empty();
     }
 }

@@ -22,7 +22,7 @@ public class BallotContractTests : SolidityContractTestBase
     {
         const string solFilePath = "contracts/Ballot.sol";
         var solidityCode = await File.ReadAllBytesAsync(solFilePath);
-        var input = WebAssemblyTypeHelper.ConvertToParameter(new ABIValue("bytes32[]", _proposals));
+        var input = WebAssemblyTypeHelper.ConvertToParameter(new ABIValue("bytes32[]", new byte[]{}));
         var executionResult = await DeployWasmContractAsync(solidityCode, input);
         executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
         executionResult.TransactionResult.Logs.Count.ShouldBePositive();

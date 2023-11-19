@@ -21,6 +21,9 @@ service SolidityContract {
 
     rpc UploadSoliditySmartContract (UploadSoliditySmartContractInput) returns (aelf.Hash) {
     }
+
+    rpc UpdateSoliditySmartContract (UpdateSoliditySmartContractInput) returns (google.protobuf.Empty) {
+    }
 }
 
 message DeploySoliditySmartContractInput {
@@ -42,4 +45,9 @@ message InstantiateSoliditySmartContractInput {
 message UploadSoliditySmartContractInput {
     sint32 category = 1;
     bytes code = 2;
+}
+
+message UpdateSoliditySmartContractInput {
+    aelf.Address contract_address = 1;
+    aelf.Hash code_hash = 2;
 }

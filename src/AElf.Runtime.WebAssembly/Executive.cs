@@ -154,7 +154,9 @@ public class Executive : IExecutive
                 var logEvent = new LogEvent
                 {
                     Address = transaction.To,
-                    Name = WebAssemblyTransactionPaymentConstants.LogEventName,
+                    Name = _webAssemblyContract.EstimateGas
+                        ? WebAssemblyTransactionPaymentConstants.GasFeeEstimatedLogEventName
+                        : WebAssemblyTransactionPaymentConstants.GasFeeConsumedLogEventName,
                     NonIndexed = gasMeter.GasLeft.ToByteString()
                 };
                 CurrentTransactionContext.Trace.Logs.Add(logEvent);

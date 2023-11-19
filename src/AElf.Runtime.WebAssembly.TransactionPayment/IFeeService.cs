@@ -4,7 +4,7 @@ namespace AElf.Runtime.WebAssembly.TransactionPayment;
 
 public interface IFeeService
 {
-    long CalculateFees(Weight weight);
+    long CalculateFees(Weight? weight);
 }
 
 public class FeeService : IFeeService, ITransientDependency
@@ -16,8 +16,10 @@ public class FeeService : IFeeService, ITransientDependency
         _feeProviders = feeProviders;
     }
 
-    public long CalculateFees(Weight weight)
+    public long CalculateFees(Weight? weight)
     {
-        return _feeProviders.Select(feeFunctionProvider => feeFunctionProvider.GetWeightFee(weight)).Sum();
+        return weight == null
+            ? 0
+            : _feeProviders.Select(feeFunctionProvider => feeFunctionProvider.GetWeightFee(weight)).Sum();
     }
 }

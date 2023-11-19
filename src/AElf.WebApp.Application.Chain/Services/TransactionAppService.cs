@@ -9,6 +9,8 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.FeeCalculation.Extensions;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.TransactionPool;
+using AElf.Runtime.WebAssembly.TransactionPayment;
+using AElf.Runtime.WebAssembly.TransactionPayment.Extensions;
 using AElf.Types;
 using AElf.WebApp.Application.Chain.Dto;
 using AElf.WebApp.Application.Chain.Infrastructure;
@@ -38,6 +40,7 @@ public interface ITransactionAppService
     Task<string[]> SendTransactionsAsync(SendTransactionsInput input);
 
     Task<CalculateTransactionFeeOutput> CalculateTransactionFeeAsync(CalculateTransactionFeeInput input);
+    Task<EstimateTransactionFeeOutput> EstimateGasFeeAsync(CalculateTransactionFeeInput input);
 }
 
 public class TransactionAppService : AElfAppService, ITransactionAppService
@@ -47,17 +50,20 @@ public class TransactionAppService : AElfAppService, ITransactionAppService
     private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
     private readonly ITransactionResultStatusCacheProvider _transactionResultStatusCacheProvider;
     private readonly IPlainTransactionExecutingService _plainTransactionExecutingService;
+    private readonly IFeeService _feeService;
 
     public TransactionAppService(ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService,
         IBlockchainService blockchainService, IObjectMapper<ChainApplicationWebAppAElfModule> objectMapper,
         ITransactionResultStatusCacheProvider transactionResultStatusCacheProvider,
-        IPlainTransactionExecutingService plainTransactionExecutingService)
+        IPlainTransactionExecutingService plainTransactionExecutingService,
+        IFeeService feeService)
     {
         _transactionReadOnlyExecutionService = transactionReadOnlyExecutionService;
         _blockchainService = blockchainService;
         _objectMapper = objectMapper;
         _transactionResultStatusCacheProvider = transactionResultStatusCacheProvider;
         _plainTransactionExecutingService = plainTransactionExecutingService;
+        _feeService = feeService;
 
         LocalEventBus = NullLocalEventBus.Instance;
         Logger = NullLogger<TransactionAppService>.Instance;
@@ -262,7 +268,7 @@ public class TransactionAppService : AElfAppService, ITransactionAppService
 
         try
         {
-            var result = await EstimateTransactionFee(transaction);
+            var result = await EstimateTransactionFeeAsync(transaction);
             return result;
         }
         catch (Exception e)
@@ -273,7 +279,36 @@ public class TransactionAppService : AElfAppService, ITransactionAppService
         }
     }
 
-    private async Task<CalculateTransactionFeeOutput> EstimateTransactionFee(Transaction transaction)
+    public async Task<EstimateTransactionFeeOutput> EstimateGasFeeAsync(CalculateTransactionFeeInput input)
+    {
+        Transaction transaction;
+
+        try
+        {
+            var byteArray = ByteArrayHelper.HexStringToByteArray(input.RawTransaction);
+            transaction = Transaction.Parser.ParseFrom(byteArray);
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(e, "{ErrorMessage}", e.Message); //for debug
+            throw new UserFriendlyException(Error.Message[Error.InvalidParams],
+                Error.InvalidParams.ToString());
+        }
+
+        try
+        {
+            var result = await EstimateGasFeeAsync(transaction);
+            return result;
+        }
+        catch (Exception e)
+        {
+            using var detail = new StringReader(e.Message);
+            throw new UserFriendlyException(Error.Message[Error.InvalidTransaction],
+                Error.InvalidTransaction.ToString(), await detail.ReadLineAsync());
+        }
+    }
+
+    private async Task<CalculateTransactionFeeOutput> EstimateTransactionFeeAsync(Transaction transaction)
     {
         var chainContext = await GetChainContextAsync();
         var executionReturnSets = await _plainTransactionExecutingService.ExecuteAsync(new TransactionExecutingDto
@@ -295,6 +330,35 @@ public class TransactionAppService : AElfAppService, ITransactionAppService
             result.Success = true;
             result.TransactionFee = transactionFees;
             result.ResourceFee = resourceFees;
+        }
+        else
+        {
+            result.Success = false;
+        }
+
+        return result;
+    }
+    
+    private async Task<EstimateTransactionFeeOutput> EstimateGasFeeAsync(Transaction transaction)
+    {
+        var chainContext = await GetChainContextAsync();
+        var executionReturnSets = await _plainTransactionExecutingService.ExecuteAsync(new TransactionExecutingDto
+        {
+            Transactions = new[] { transaction },
+            BlockHeader = new BlockHeader
+            {
+                PreviousBlockHash = chainContext.BlockHash,
+                Height = chainContext.BlockHeight,
+                Time = TimestampHelper.GetUtcNow()
+            }
+        }, CancellationToken.None);
+        var result = new EstimateTransactionFeeOutput();
+        if (executionReturnSets.FirstOrDefault()?.Status == TransactionResultStatus.Mined)
+        {
+            var weight =
+                executionReturnSets.FirstOrDefault()?.TransactionResult.GetEstimatedGasFee();
+            result.Success = true;
+            result.GasFee = _feeService.CalculateFees(weight);
         }
         else
         {

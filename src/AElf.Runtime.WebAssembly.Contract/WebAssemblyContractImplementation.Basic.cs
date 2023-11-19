@@ -68,29 +68,6 @@ public partial class WebAssemblyContractImplementation
     }
 
     /// <summary>
-    /// Stores the address of the caller into the supplied buffer.
-    ///
-    /// The value is stored to linear memory at the address pointed to by `out_ptr`.
-    /// `out_len_ptr` must point to a u32 value that describes the available space at
-    /// `out_ptr`. This call overwrites it with the size of the value. If the available
-    /// space at `out_ptr` is less than the size of the value a trap is triggered.
-    ///
-    /// If this is a top-level call (i.e. initiated by an extrinsic) the origin address of the
-    /// extrinsic will be returned. Otherwise, if this call is initiated by another contract then
-    /// the address of the contract will be returned. The value is encoded as T::AccountId.
-    ///
-    /// If there is no address associated with the caller (e.g. because the caller is root) then
-    /// it traps with `BadOrigin`.
-    /// </summary>
-    /// <param name="outPtr"></param>
-    /// <param name="outLenPtr"></param>
-    private void Caller(int outPtr, int outLenPtr)
-    {
-        var sender = Context.Sender.ToByteArray();
-        WriteSandboxOutput(outPtr, outLenPtr, sender);
-    }
-
-    /// <summary>
     /// Deposit a contract event with the data buffer and optional list of topics. There is a limit
     /// on the maximum number of topics specified by `event_topics`.
     /// </summary>
@@ -126,21 +103,6 @@ public partial class WebAssemblyContractImplementation
     private int MaxValueSize()
     {
         return int.MaxValue;
-    }
-
-    private List<byte[]> DecodeEvent(byte[] topics)
-    {
-        var decodedTopics = new List<byte[]>();
-        var length = topics[0] * 8;
-        var topicCount = (topics.Length - 1) / length;
-        for (var i = 0; i < topicCount; i++)
-        {
-            var topic = new byte[length];
-            Array.Copy(topics, i * length + 1, topic, 0, length);
-            decodedTopics.Add(topic);
-        }
-
-        return decodedTopics;
     }
 
     /// <summary>

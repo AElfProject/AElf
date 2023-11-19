@@ -17,6 +17,7 @@ public class SolidityContractTestAElfModule : ContractTestModule
     public override void ConfigureServices(ServiceConfigurationContext context)
     {
         Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false);
+        Configure<WebAssemblyRuntimeOption>(o => o.IsChargeGasFee = false);
         context.Services.RemoveAll<IPreExecutionPlugin>();
     }
 }
