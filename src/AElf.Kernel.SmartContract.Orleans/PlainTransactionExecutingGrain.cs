@@ -8,6 +8,7 @@ using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Orleans;
+using Orleans.Runtime;
 
 namespace AElf.Kernel.SmartContract.Orleans;
 
@@ -24,13 +25,13 @@ public class PlainTransactionExecutingGrain : Grain, IPlainTransactionExecutingG
     public PlainTransactionExecutingGrain(ISmartContractExecutiveService smartContractExecutiveService,
         IEnumerable<IPostExecutionPlugin> postPlugins, IEnumerable<IPreExecutionPlugin> prePlugins,
         ITransactionContextFactory transactionContextFactory,
-        IDefaultContractZeroCodeProvider defaultContractZeroCodeProvider)
+        IDefaultContractZeroCodeProvider defaultContractZeroCodeProvider,ILogger<PlainTransactionExecutingGrain> logger)
     {
         _smartContractExecutiveService = smartContractExecutiveService;
         _transactionContextFactory = transactionContextFactory;
         _prePlugins = GetUniquePlugins(prePlugins);
         _postPlugins = GetUniquePlugins(postPlugins);
-        Logger = NullLogger<PlainTransactionExecutingGrain>.Instance;
+        Logger = logger;
         _defaultContractZeroCodeProvider = defaultContractZeroCodeProvider;
     }
 
@@ -39,7 +40,7 @@ public class PlainTransactionExecutingGrain : Grain, IPlainTransactionExecutingG
     {
         try
         {
-            Logger.LogDebug($"PlainTransactionExecutingGrain.ExecuteAsync, height: {transactionExecutingDto.BlockHeader.Height},txCount:{transactionExecutingDto.Transactions.Count()}");
+            Logger.LogInformation($"PlainTransactionExecutingGrain.ExecuteAsync, groupType:{transactionExecutingDto.GroupType}, height: {transactionExecutingDto.BlockHeader.Height},txCount:{transactionExecutingDto.Transactions.Count()}");
             _defaultContractZeroCodeProvider.SetDefaultContractZeroRegistrationByType(typeof(BasicContractZero));
 
             var groupStateCache = transactionExecutingDto.PartialBlockStateSet.ToTieredStateCache();
