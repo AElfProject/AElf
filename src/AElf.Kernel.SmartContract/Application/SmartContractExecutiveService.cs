@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.SmartContract.Infrastructure;
@@ -44,19 +45,32 @@ public class SmartContractExecutiveService : ISmartContractExecutiveService, ISi
 
     public async Task<IExecutive> GetExecutiveAsync(IChainContext chainContext, Address address)
     {
+        var stopwatch = Stopwatch.StartNew();
         if (address == null) throw new ArgumentNullException(nameof(address));
 
         var pool = _smartContractExecutiveProvider.GetPool(address);
+        stopwatch.Stop();
+        Logger.LogDebug("Get executive pool time{Time}",stopwatch.ElapsedMilliseconds);
+        
+        stopwatch.Start();
         var smartContractRegistration = await GetSmartContractRegistrationAsync(chainContext, address);
+        stopwatch.Stop();
+        Logger.LogDebug("Get smart contract registration time{Time}",stopwatch.ElapsedMilliseconds);
 
         if (!pool.TryTake(out var executive))
         {
+            stopwatch.Start();
             executive = await GetExecutiveAsync(smartContractRegistration);
+            stopwatch.Stop();
+            Logger.LogDebug("Get smart contract executive time{Time}",stopwatch.ElapsedMilliseconds);
         }
         else if (smartContractRegistration.CodeHash != executive.ContractHash)
         {
+            stopwatch.Start();
             _smartContractExecutiveProvider.TryRemove(address, out _);
             executive = await GetExecutiveAsync(smartContractRegistration);
+            stopwatch.Stop();
+            Logger.LogDebug("Remove old executive,and get smart contract executive time{Time}",stopwatch.ElapsedMilliseconds);
         }
 
         return executive;
@@ -120,11 +134,17 @@ public class SmartContractExecutiveService : ISmartContractExecutiveService, ISi
 
     private async Task<IExecutive> GetExecutiveAsync(SmartContractRegistration reg)
     {
+        var stopwatch = Stopwatch.StartNew();
         // get runner
         var runner = _smartContractRunnerContainer.GetRunner(reg.Category);
+        stopwatch.Stop();
+        Logger.LogDebug("Get smart contract runner time{Time}",stopwatch.ElapsedMilliseconds);
 
+        stopwatch.Start();
         // run smartContract executive info and return executive
         var executive = await runner.RunAsync(reg);
+        stopwatch.Stop();
+        Logger.LogDebug("Run smart contract executive time{Time}",stopwatch.ElapsedMilliseconds);
 
         var context = _hostSmartContractBridgeContextService.Create();
         executive.SetHostSmartContractBridgeContext(context);
