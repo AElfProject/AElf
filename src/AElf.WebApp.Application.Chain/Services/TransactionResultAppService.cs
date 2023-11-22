@@ -88,23 +88,34 @@ public class TransactionResultAppService : AElfAppService, ITransactionResultApp
         output.Transaction = _objectMapper.Map<Transaction, TransactionDto>(transaction);
         output.TransactionSize = transaction?.CalculateSize() ?? 0;
 
-        if (transactionResult.Status == TransactionResultStatus.NotExisted)
+        if (transactionResult.Status != TransactionResultStatus.NotExisted)
         {
-            var validationStatus =
-                _transactionResultStatusCacheProvider.GetTransactionResultStatus(transactionIdHash);
-            if (validationStatus != null)
-            {
-                output.Status = validationStatus.TransactionResultStatus.ToString().ToUpper();
-                output.Error =
-                    TransactionErrorResolver.TakeErrorMessage(validationStatus.Error, _webAppOptions.IsDebugMode);
-            }
+            await FormatTransactionParamsAsync(output.Transaction, transaction.Params);
+            return output;
+        }
 
+        var validationStatus = _transactionResultStatusCacheProvider.GetTransactionResultStatus(transactionIdHash);
+        if (validationStatus != null)
+        {
+            output.Status = validationStatus.TransactionResultStatus.ToString().ToUpper();
+            output.Error =
+                TransactionErrorResolver.TakeErrorMessage(validationStatus.Error, _webAppOptions.IsDebugMode);
             return output;
         }
         
-        await FormatTransactionParamsAsync(output.Transaction, transaction.Params);
-        
+        var failedTransactionResult =
+            await _transactionResultProxyService.TransactionResultQueryService.GetFailedTransactionResultAsync(
+                transactionIdHash);
+        if (failedTransactionResult != null)
+        {
+            output.Status = failedTransactionResult.Status.ToString().ToUpper();
+            output.Error =
+                TransactionErrorResolver.TakeErrorMessage(failedTransactionResult.Error, _webAppOptions.IsDebugMode);
+            return output;
+        }
+
         return output;
+        
     }
 
     /// <summary>
