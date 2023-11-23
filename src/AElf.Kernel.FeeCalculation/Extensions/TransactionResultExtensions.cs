@@ -8,13 +8,18 @@ namespace AElf.Kernel.FeeCalculation.Extensions;
 
 public static class TransactionResultExtensions
 {
-    public static Dictionary<string, long> GetChargedTransactionFees(this TransactionResult transactionResult)
+    public static Dictionary<Address, Dictionary<string, long>> GetChargedTransactionFees(
+        this TransactionResult transactionResult)
     {
         return transactionResult.Logs
             .Where(l => l.Name == nameof(TransactionFeeCharged))
-            .Select(l => TransactionFeeCharged.Parser.ParseFrom(l.NonIndexed))
-            .GroupBy(fee => fee.Symbol, fee => fee.Amount)
-            .ToDictionary(g => g.Key, g => g.Sum());
+            .GroupBy(
+                log => TransactionFeeCharged.Parser.ParseFrom(log.Indexed[0]).ChargingAddress,
+                log => TransactionFeeCharged.Parser.ParseFrom(log.NonIndexed))
+            .ToDictionary(e => e.Key,
+                e => e
+                    .GroupBy(fee => fee.Symbol, fee => fee.Amount)
+                    .ToDictionary(g => g.Key, g => g.Sum()));
     }
 
     public static Dictionary<string, long> GetConsumedResourceTokens(this TransactionResult transactionResult)

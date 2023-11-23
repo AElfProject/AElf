@@ -17,6 +17,7 @@ using Google.Protobuf.Reflection;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using Volo.Abp;
 using Volo.Abp.EventBus.Local;
 using Volo.Abp.ObjectMapping;
@@ -47,17 +48,21 @@ public class TransactionAppService : AElfAppService, ITransactionAppService
     private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
     private readonly ITransactionResultStatusCacheProvider _transactionResultStatusCacheProvider;
     private readonly IPlainTransactionExecutingService _plainTransactionExecutingService;
+    private readonly WebAppOptions _webAppOptions;
+
 
     public TransactionAppService(ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService,
         IBlockchainService blockchainService, IObjectMapper<ChainApplicationWebAppAElfModule> objectMapper,
         ITransactionResultStatusCacheProvider transactionResultStatusCacheProvider,
-        IPlainTransactionExecutingService plainTransactionExecutingService)
+        IPlainTransactionExecutingService plainTransactionExecutingService,
+        IOptionsMonitor<WebAppOptions> webAppOptions)
     {
         _transactionReadOnlyExecutionService = transactionReadOnlyExecutionService;
         _blockchainService = blockchainService;
         _objectMapper = objectMapper;
         _transactionResultStatusCacheProvider = transactionResultStatusCacheProvider;
         _plainTransactionExecutingService = plainTransactionExecutingService;
+        _webAppOptions = webAppOptions.CurrentValue;
 
         LocalEventBus = NullLocalEventBus.Instance;
         Logger = NullLogger<TransactionAppService>.Instance;
@@ -292,13 +297,17 @@ public class TransactionAppService : AElfAppService, ITransactionAppService
             var transactionFees =
                 executionReturnSets.FirstOrDefault()?.TransactionResult.GetChargedTransactionFees();
             var resourceFees = executionReturnSets.FirstOrDefault()?.TransactionResult.GetConsumedResourceTokens();
+            var chargingAddress = transactionFees?.Keys.First();
             result.Success = true;
-            result.TransactionFee = transactionFees;
+            result.TransactionFeeChargingAddress = chargingAddress;
+            result.TransactionFee = transactionFees?[chargingAddress];
             result.ResourceFee = resourceFees;
         }
         else
         {
             result.Success = false;
+            result.Error = TransactionErrorResolver.TakeErrorMessage(
+                executionReturnSets.FirstOrDefault()?.TransactionResult.Error, _webAppOptions.IsDebugMode);
         }
 
         return result;
