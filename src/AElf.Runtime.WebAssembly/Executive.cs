@@ -11,6 +11,7 @@ using Google.Protobuf;
 using Google.Protobuf.Reflection;
 using Google.Protobuf.WellKnownTypes;
 using NBitcoin.DataEncoders;
+using Nethereum.Hex.HexConvertors.Extensions;
 using Solang;
 using Solang.Extensions;
 using Wasmtime;
@@ -31,11 +32,11 @@ public class Executive : IExecutive
     private IHostSmartContractBridgeContext _hostSmartContractBridgeContext;
     private ITransactionContext CurrentTransactionContext => _hostSmartContractBridgeContext.TransactionContext;
 
-    public Executive(CompiledContract compiledContract)
+    public Executive(string solangAbi)
     {
-        var wasmCode = compiledContract.WasmCode.ToByteArray();
-        _solangAbi = JsonSerializer.Deserialize<SolangABI>(compiledContract.Abi)!;
-        ContractHash = HashHelper.ComputeFrom(wasmCode);
+        _solangAbi = JsonSerializer.Deserialize<SolangABI>(solangAbi)!;
+        ContractHash = Hash.LoadFromHex(_solangAbi.Source.Hash);
+        var wasmCode = _solangAbi.Source.Wasm.HexToByteArray();
         _webAssemblyContract = new WebAssemblyContractImplementation(wasmCode);
         _smartContractProxy = new WebAssemblySmartContractProxy(_webAssemblyContract);
 

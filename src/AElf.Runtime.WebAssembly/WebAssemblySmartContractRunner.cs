@@ -18,11 +18,7 @@ public class WebAssemblySmartContractRunner : ISmartContractRunner, ISingletonDe
         {
             var wasmCode = new WasmContractCode();
             wasmCode.MergeFrom(reg.Code);
-            var executive = new Executive(new CompiledContract
-            {
-                WasmCode = wasmCode.Code,
-                Abi = wasmCode.Abi
-            });
+            var executive = new Executive(wasmCode.Abi);
             return await Task.FromResult(executive);
         }
         catch (Exception e)

@@ -23,7 +23,10 @@ public static class HostSmartContractBridgeContextExtensions
         }
         else
         {
-            txContext.Trace.CallStateSet.Writes.Add(trace.StateSet.Writes);
+            foreach (var writes in trace.StateSet.Writes)
+            {
+                txContext.Trace.CallStateSet.Writes[writes.Key] = writes.Value;
+            }
         }
 
         (txContext.StateCache as TieredStateCache)?.Update(new[] { trace.StateSet });
@@ -46,7 +49,10 @@ public static class HostSmartContractBridgeContextExtensions
         }
         else
         {
-            txContext.Trace.DelegateCallStateSet.Writes.Add(trace.StateSet.Writes);
+            foreach (var writes in trace.StateSet.Writes)
+            {
+                txContext.Trace.DelegateCallStateSet.Writes[writes.Key] = writes.Value;
+            }
         }
 
         (txContext.StateCache as TieredStateCache)?.Update(new[] { trace.StateSet });
