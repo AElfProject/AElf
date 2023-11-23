@@ -1,7 +1,6 @@
 using AElf.Kernel;
 using AElf.Runtime.WebAssembly.TransactionPayment;
 using AElf.SolidityContract;
-using AElf.Standards.ACS0;
 using AElf.Types;
 using Google.Protobuf;
 

@@ -39,8 +39,8 @@ public class Executive : IExecutive
         _webAssemblyContract = new WebAssemblyContractImplementation(wasmCode);
         _smartContractProxy = new WebAssemblySmartContractProxy(_webAssemblyContract);
 
-        // TODO: Maybe we are able to know the solidity code version.
-        ContractVersion = "Unknown solidity version.";
+        ContractVersion = _solangAbi.Version;
+        Descriptors = new List<ServiceDescriptor>();
     }
 
     public IExecutive SetHostSmartContractBridgeContext(IHostSmartContractBridgeContext smartContractBridgeContext)
@@ -239,21 +239,21 @@ public class Executive : IExecutive
 
     public string GetJsonStringOfParameters(string methodName, byte[] paramsBytes)
     {
-        throw new NotImplementedException();
+        return string.Empty;
     }
 
     public bool IsView(string methodName)
     {
-        throw new NotImplementedException();
+        return false;
     }
 
     public byte[] GetFileDescriptorSet()
     {
-        throw new NotImplementedException();
+        return Array.Empty<byte>();
     }
 
     public IEnumerable<FileDescriptor> GetFileDescriptors()
     {
-        throw new NotImplementedException();
+        return new List<FileDescriptor>();
     }
 }

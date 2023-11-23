@@ -1,4 +1,3 @@
-using AElf.Contracts.MultiToken;
 using AElf.Kernel.FeeCalculation.Infrastructure;
 
 namespace AElf.Runtime.WebAssembly.TransactionPayment;

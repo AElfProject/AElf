@@ -20,6 +20,7 @@ using AElf.OS.Network.Grpc;
 using AElf.OS.Node.Application;
 using AElf.OS.Node.Domain;
 using AElf.Runtime.CSharp;
+using AElf.Runtime.WebAssembly;
 using AElf.RuntimeSetup;
 using AElf.WebApp.Application.Chain;
 using AElf.WebApp.Web;
@@ -42,6 +43,7 @@ namespace AElf.Blockchains.BasicBaseChain;
     typeof(OSAElfModule),
     typeof(AbpAspNetCoreModule),
     typeof(CSharpRuntimeAElfModule),
+    typeof(WebAssemblyRuntimeAElfModule),
     typeof(CSharpCodeOpsAElfModule),
     typeof(GrpcNetworkModule),
     typeof(RuntimeSetupAElfModule),

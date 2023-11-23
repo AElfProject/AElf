@@ -6,7 +6,6 @@ public class GasMeter : IGasMeter
 {
     public Weight GasLimit { get; set; }
     public Weight GasLeft { get; private set; }
-    public Weight GasLeftLowest { get; set; }
     public long EngineConsumed { get; set; }
 
     public GasMeter(Weight? gasLimit)

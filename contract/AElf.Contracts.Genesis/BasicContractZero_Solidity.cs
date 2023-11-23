@@ -18,7 +18,6 @@ public partial class BasicContractZero
         var constructorInput = input.Parameter;
         var author = Context.Sender;
         var codeHash = wasmCode.CodeHash;
-        var codeHashAddress = Address.FromBytes(codeHash.ToByteArray());
         var serialNumber = State.ContractSerialNumber.Value;
         State.ContractSerialNumber.Value = serialNumber + 1;
 
@@ -54,6 +53,7 @@ public partial class BasicContractZero
         State.SmartContractRegistrations[reg.CodeHash] = reg;
 
         // Duplicate contract info for delegate calling.
+        var codeHashAddress = Address.FromBytes(codeHash.ToByteArray());
         State.ContractInfos[codeHashAddress] = info;
 
         Context.ExecuteContractConstructor(contractAddress, reg, author, constructorInput ?? ByteString.Empty);
@@ -66,11 +66,6 @@ public partial class BasicContractZero
             Version = info.Version,
             ContractVersion = info.ContractVersion
         });
-
-        var contractCodeHashList =
-            State.ContractCodeHashListMap[Context.CurrentHeight] ?? new ContractCodeHashList();
-        contractCodeHashList.Value.Add(codeHash);
-        State.ContractCodeHashListMap[Context.CurrentHeight] = contractCodeHashList;
 
         return contractAddress;
     }

@@ -9,6 +9,7 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.FeeCalculation.Extensions;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.TransactionPool;
+using AElf.Runtime.WebAssembly;
 using AElf.Runtime.WebAssembly.TransactionPayment;
 using AElf.Runtime.WebAssembly.TransactionPayment.Extensions;
 using AElf.Types;
@@ -392,11 +393,28 @@ public class TransactionAppService : AElfAppService, ITransactionAppService
 
             var contractMethodDescriptor =
                 await GetContractMethodDescriptorAsync(transaction.To, transaction.MethodName);
+            IMessage? parameters = null;
             if (contractMethodDescriptor == null)
-                throw new UserFriendlyException(Error.Message[Error.NoMatchMethodInContractAddress],
-                    Error.NoMatchMethodInContractAddress.ToString());
+            {
+                try
+                {
+                    parameters = SolidityTransactionParameter.Parser.ParseFrom(transaction.Params);
+                }
+                catch (Exception)
+                {
+                    throw new UserFriendlyException(Error.Message[Error.NoMatchMethodInContractAddress],
+                        Error.NoMatchMethodInContractAddress.ToString());
+                }
+            }
 
-            var parameters = contractMethodDescriptor.InputType.Parser.ParseFrom(transaction.Params);
+            if (parameters == null)
+            {
+                if (contractMethodDescriptor == null)
+                    throw new UserFriendlyException(Error.Message[Error.NoMatchMethodInContractAddress],
+                        Error.NoMatchMethodInContractAddress.ToString());
+
+                parameters = contractMethodDescriptor.InputType.Parser.ParseFrom(transaction.Params);
+            }
 
             if (!IsValidMessage(parameters))
                 throw new UserFriendlyException(Error.Message[Error.InvalidParams], Error.InvalidParams.ToString());

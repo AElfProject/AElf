@@ -13,9 +13,6 @@ service SolidityContract {
     rpc DeploySoliditySmartContract (DeploySoliditySmartContractInput) returns (aelf.Address) {
     }
 
-    rpc DeployWasmSmartContract (DeploySoliditySmartContractInput) returns (aelf.Address) {
-    }
-    
     rpc InstantiateSoliditySmartContract (InstantiateSoliditySmartContractInput) returns (aelf.Address) {
     }
 
@@ -33,7 +30,6 @@ message DeploySoliditySmartContractInput {
     bytes code = 2;
     // The parameter of contract constructor.
     bytes parameter = 3;
-    int64 value = 4;
 }
 
 message InstantiateSoliditySmartContractInput {

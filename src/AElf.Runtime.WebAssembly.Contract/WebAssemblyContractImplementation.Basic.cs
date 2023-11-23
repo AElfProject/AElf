@@ -1,4 +1,6 @@
 using System.Text;
+using AElf.CSharp.Core;
+using AElf.Kernel;
 using AElf.Runtime.WebAssembly.TransactionPayment;
 
 namespace AElf.Runtime.WebAssembly.Contract;
@@ -64,7 +66,10 @@ public partial class WebAssemblyContractImplementation
     private void SealReturnV0(int flags, int dataPtr, int dataLen)
     {
         ReturnFlags = (ReturnFlags)flags;
-        ReturnBuffer = ReadSandboxMemory(dataPtr, dataLen);
+        if (dataLen > 0)
+        {
+            ReturnBuffer = ReadSandboxMemory(dataPtr, dataLen);
+        }
     }
 
     /// <summary>
@@ -80,6 +85,9 @@ public partial class WebAssemblyContractImplementation
     /// <param name="dataLen">the length of the data buffer.</param>
     private void DepositEvent(int topicsPtr, int topicsLen, int dataPtr, int dataLen)
     {
+        var topicNumber = topicsLen.Div(AElfConstants.HashByteArrayLength);
+        ChargeGas(new DepositEvent(topicNumber, dataLen));
+
         if (dataLen > MaxValueSize())
         {
             HandleError(WebAssemblyError.ValueTooLarge);
@@ -102,7 +110,7 @@ public partial class WebAssemblyContractImplementation
 
     private int MaxValueSize()
     {
-        return int.MaxValue;
+        return 16 * 1024;
     }
 
     /// <summary>
