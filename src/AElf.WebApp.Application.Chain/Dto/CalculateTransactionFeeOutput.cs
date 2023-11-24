@@ -13,5 +13,5 @@ public class CalculateTransactionFeeOutput
 
     public string Error { get; set; }
     
-    public Address TransactionFeeChargingAddress { get; set; }
+    public string TransactionFeeChargingAddress { get; set; }
 }
