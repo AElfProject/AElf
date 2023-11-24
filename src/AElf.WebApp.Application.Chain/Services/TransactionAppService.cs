@@ -299,8 +299,11 @@ public class TransactionAppService : AElfAppService, ITransactionAppService
             var resourceFees = executionReturnSets.FirstOrDefault()?.TransactionResult.GetConsumedResourceTokens();
             var chargingAddress = transactionFees?.Keys.First();
             result.Success = true;
-            result.TransactionFeeChargingAddress = chargingAddress;
-            result.TransactionFee = transactionFees?[chargingAddress];
+            result.TransactionFeeChargingAddress = chargingAddress?.ToBase58();
+            if (chargingAddress != null)
+            {
+                result.TransactionFee = transactionFees[chargingAddress];
+            }
             result.ResourceFee = resourceFees;
         }
         else
