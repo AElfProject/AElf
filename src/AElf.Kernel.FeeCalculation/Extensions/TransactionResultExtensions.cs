@@ -22,12 +22,16 @@ public static class TransactionResultExtensions
                     .ToDictionary(g => g.Key, g => g.Sum()));
     }
 
-    public static Dictionary<string, long> GetConsumedResourceTokens(this TransactionResult transactionResult)
+    public static Dictionary<Address, Dictionary<string, long>> GetConsumedResourceTokens(this TransactionResult transactionResult)
     {
         var relatedLogs = transactionResult.Logs.Where(l => l.Name == nameof(ResourceTokenCharged)).ToList();
-        if (!relatedLogs.Any()) return new Dictionary<string, long>();
+        if (!relatedLogs.Any()) return new Dictionary<Address, Dictionary<string, long>>();
         return relatedLogs.Select(l => ResourceTokenCharged.Parser.ParseFrom(l.NonIndexed))
-            .ToDictionary(e => e.Symbol, e => e.Amount);
+            .GroupBy(g => g.ContractAddress)
+            .ToDictionary(e => e.Key,
+                e => e
+                    .GroupBy(fee => fee.Symbol, fee => fee.Amount)
+                    .ToDictionary(g => g.Key, g => g.Sum()));
     }
 
     public static Dictionary<string, long> GetOwningResourceTokens(this TransactionResult transactionResult)

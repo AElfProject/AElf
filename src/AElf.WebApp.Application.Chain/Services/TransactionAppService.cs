@@ -297,14 +297,11 @@ public class TransactionAppService : AElfAppService, ITransactionAppService
             var transactionFees =
                 executionReturnSets.FirstOrDefault()?.TransactionResult.GetChargedTransactionFees();
             var resourceFees = executionReturnSets.FirstOrDefault()?.TransactionResult.GetConsumedResourceTokens();
-            var chargingAddress = transactionFees?.Keys.First();
             result.Success = true;
-            result.TransactionFeeChargingAddress = chargingAddress?.ToBase58();
-            if (chargingAddress != null)
-            {
-                result.TransactionFee = transactionFees[chargingAddress];
-            }
-            result.ResourceFee = resourceFees;
+            result.TransactionFee = GetFeeValue(transactionFees);
+            result.ResourceFee = GetFeeValue(resourceFees);
+            result.TransactionFeeList = GetFeeList(transactionFees);
+            result.ResourceFeeList = GetFeeList(resourceFees);
         }
         else
         {
@@ -314,6 +311,28 @@ public class TransactionAppService : AElfAppService, ITransactionAppService
         }
 
         return result;
+    }
+
+    private Dictionary<string, long> GetFeeValue(Dictionary<Address, Dictionary<string, long>> feeMap)
+    {
+        return feeMap?.SelectMany(pair => pair.Value)
+            .GroupBy(p => p.Key)
+            .ToDictionary(g => g.Key, g => g.Sum(pair => pair.Value));
+    }
+
+    private List<FeeDto> GetFeeList(Dictionary<Address, Dictionary<string, long>> feeMap)
+    {
+        var feeList = new List<FeeDto>();
+        if (feeMap != null)
+        {
+            feeList.AddRange(feeMap.Select(fee => new FeeDto
+            {
+                ChargingAddress = fee.Key.ToBase58(),
+                Fee = fee.Value
+            }));
+        }
+
+        return feeList;
     }
 
     private async Task<string[]> PublishTransactionsAsync(string[] rawTransactions)
