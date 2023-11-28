@@ -1,12 +1,6 @@
 Smart Contract
 ==============
 
-This section gives the usages, explanations, and implementations of current
-system contracts. It’s not meant to be exhaustive. With some useful methods
-we give the demo code of interaction, these demos will be useful during
-developing user contracts.
-
-
 .. toctree::
 
    Genesis Contract <genesis-contract>
