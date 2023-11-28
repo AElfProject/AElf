@@ -1,8 +1,10 @@
-# Overview
+# Genesis Contract
+
+## Overview
 
 Genesis Contract, also known as the Zero Contract, is mainly used to deploy and maintain smart contracts running on the aelf blockchain.
 
-# Deploy and update contracts
+## Deploy and update contracts
 
 There is a critical data structure defined in `aelf/core.proto`, called SmartContractRegistration:
 
@@ -71,7 +73,7 @@ From the `code_hash` field of `ContractInfo`, it is not difficult to guess:
 1. When trying to retrieve the contract code, the `code_hash` of ContractInfo is first read, and then the contract code itself is read from `State.SmartContractRegistrations` mapped state.
 2. Upgrading a contract on aelf is actually replacing the `code_hash` of `ContractInfo`.
 
-# Calculation of contract address
+## Calculation of contract address
 
 The contract address is actually calculated through a field that increases with the number of contract deployments.
 
@@ -97,19 +99,19 @@ var contractAddress = AddressHelper.ComputeContractAddress(deployer, salt);
 
 - Deploying contracts with the same account and using the same Salt can make the contract address of each chain of aelf the same.
 
-# Contract deployment and update process
+## Contract deployment and update process
 
-## Deploy contract with audit
+### Deploy contract with audit
 
 The current pipeline starts with Propose, which generates a parliamentary proposal.
 When more than 2/3 of the BPs agree to deploy/update, a new proposal is released to request code inspection. 
 Finally, after the code inspection is passed, the real contract deployment/upgrade will be achieved through the proposal of releasing code inspection.
 
-## Deploy contract without audit
+### Deploy contract without audit
 
 Developers send deployment/update user contract transactions, generate a parliamentary CodeCheck proposal, and when more than 2/3 of the BPs conduct code checks and pass, achieve real contract deployment/upgrade through the proposal of automatically releasing code checks.
 
-## Contract deployment and upgrade new version number
+### Contract deployment and upgrade new version number
 
 When upgrading a contract, check the contract version information
 - If the contract version is less than or equal to the original contract version, the upgrade contract transaction fails
@@ -124,7 +126,7 @@ Assert(contractInfo.IsSubsequentVersion,
     $"The version to be deployed is lower than the effective version({info.ContractVersion}), please correct the version number.");
 ```
 
-# Contract error message
+## Contract error message
 
 
 | Method | Error message | Note |
