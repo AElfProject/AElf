@@ -8,15 +8,15 @@ public class CalculateTransactionFeeOutput
 {
     public bool Success { get; set; }
 
-    [Obsolete("This property is deprecated and will be removed in the next version. Use the TransactionFeeList instead.")]
+    [Obsolete("This property is deprecated and will be removed in the next version. Use the TransactionFees instead.")]
     public Dictionary<string, long> TransactionFee { get; set; }
     
-    [Obsolete("This property is deprecated and will be removed in the next version. Use the TransactionFeeList instead.")]
+    [Obsolete("This property is deprecated and will be removed in the next version. Use the ResourceFees instead.")]
     public Dictionary<string, long> ResourceFee { get; set; }
     
-    public List<FeeDto> TransactionFeeList { get; set; }
+    public FeeDto TransactionFees { get; set; }
 
-    public List<FeeDto> ResourceFeeList { get; set; }
+    public FeeDto ResourceFees { get; set; }
 
     public string Error { get; set; }
 }
