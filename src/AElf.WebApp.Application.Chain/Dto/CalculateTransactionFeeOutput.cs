@@ -8,10 +8,10 @@ public class CalculateTransactionFeeOutput
 {
     public bool Success { get; set; }
 
-    [Obsolete("ThisField is deprecated, please use NewField instead.")]
+    [Obsolete("This property is deprecated and will be removed in the next version. Use the TransactionFeeList instead.")]
     public Dictionary<string, long> TransactionFee { get; set; }
     
-    [Obsolete("ThisField is deprecated, please use NewField instead.")]
+    [Obsolete("This property is deprecated and will be removed in the next version. Use the TransactionFeeList instead.")]
     public Dictionary<string, long> ResourceFee { get; set; }
     
     public List<FeeDto> TransactionFeeList { get; set; }
