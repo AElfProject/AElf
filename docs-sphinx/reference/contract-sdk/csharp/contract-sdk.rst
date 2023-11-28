@@ -40,10 +40,16 @@ Contents
    -  :ref:`Transaction() <AElf-Sdk-CSharp-CSharpSmartContractContext-Transaction>`
    -  :ref:`SendInline(toAddress,methodName,args) <AElf-Sdk-CSharp-CSharpSmartContractContext-SendInline-AElf-Types-Address-System-String-Google-Protobuf-ByteString>`
    -  :ref:`SendVirtualInline(fromVirtualAddress,toAddress,methodName,args) <AElf-Sdk-CSharp-CSharpSmartContractContext-SendVirtualInline-AElf-Types-Hash-AElf-Types-Address-System-String-Google-Protobuf-ByteString>`
+   -  :ref:`SendVirtualInline(fromVirtualAddress,toAddress,methodName,args,logTransaction) <AElf-Sdk-CSharp-CSharpSmartContractContext-SendVirtualInline-AElf-Types-Hash-AElf-Types-Address-System-String-Google-Protobuf-ByteString-System-Boolean>`
    -  :ref:`SendVirtualInlineBySystemContract(fromVirtualAddress,toAddress,methodName,args) <AElf-Sdk-CSharp-CSharpSmartContractContext-SendVirtualInlineBySystemContract-AElf-Types-Hash-AElf-Types-Address-System-String-Google-Protobuf-ByteString>`
+   -  :ref:`SendVirtualInlineBySystemContract(fromVirtualAddress,toAddress,methodName,args,logTransaction) <AElf-Sdk-CSharp-CSharpSmartContractContext-SendVirtualInlineBySystemContract-AElf-Types-Hash-AElf-Types-Address-System-String-Google-Protobuf-ByteString-System-Boolean>`
    -  :ref:`UpdateContract(address,registration,name) <AElf-Sdk-CSharp-CSharpSmartContractContext-UpdateContract-AElf-Types-Address-AElf-Types-SmartContractRegistration-AElf-Types-Hash>`
    -  :ref:`ValidateStateSize(obj) <AElf-Sdk-CSharp-CSharpSmartContractContext-ValidateStateSize-System-Object>`
    -  :ref:`VerifySignature(tx) <AElf-Sdk-CSharp-CSharpSmartContractContext-VerifySignature-AElf-Types-Transaction>`
+   -  :ref:`CheckContractVersion(previousContractVersion,registration) <AElf-Sdk-CSharp-CSharpCheckContractVersion>`
+   -  :ref:`DeploySmartContract(address,registration,name) <AElf-Sdk-CSharp-CSharpDeploySmartContract>`
+   -  :ref:`UpdateSmartContract(address,registration,name,previousContractVersion) <AElf-Sdk-CSharp-CSharpUpdateSmartContract>`
+   -  :ref:`ECVrfVerify(pubKey, alpha, pi, beta) <AElf-Sdk-CSharp-CSharpECVrfVerify>`
 
 -  :ref:`CSharpSmartContract <AElf-Sdk-CSharp-CSharpSmartContract>`
 
@@ -758,7 +764,8 @@ Parameters
 +--------------------+------------------+----------------------------------------+
 | Name               | Type             | Description                            |
 +====================+==================+========================================+
-| fromVirtualAddress | AElf.Types.Hash  | The virtual address to use as sender.  |
+| fromVirtualAddress | AElf.Types.Hash  | The hash based on which virtual        | 
+|                    |                  | address is generated.                  |
 +--------------------+------------------+----------------------------------------+
 | toAddress          | AElf.Types.      | The address of the contract you’re     |
 |                    | Address          | seeking to interact with.              |
@@ -779,6 +786,49 @@ Parameters
 | input type.        |                  |                                        |
 +--------------------+------------------+----------------------------------------+
 
+.. _AElf-Sdk-CSharp-CSharpSmartContractContext-SendVirtualInline-AElf-Types-Hash-AElf-Types-Address-System-String-Google-Protobuf-ByteString-System-Boolean:
+
+SendVirtualInline(fromVirtualAddress,toAddress,methodName,args,
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+logTransaction) ``method``
+>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+Summary
+'''''''
+
+Add an overloaded SDK method SendVirtualInline to support automatically firing a LogEvent to log the inline transactions from virtual addresses.
+
+Parameters
+''''''''''
+
++--------------------+------------------+----------------------------------------+
+| Name               | Type             | Description                            |
++====================+==================+========================================+      
+| fromVirtualAddress | AElf.Types.Hash  | The hash based on which virtual        | 
+|                    |                  | address is generated.                  |
++--------------------+------------------+----------------------------------------+
+| toAddress          | AElf.Types.      | The address of the contract you’re     |
+|                    | Address          | seeking to interact with.              |
++--------------------+------------------+----------------------------------------+
+| methodName         | `System.String   | The name of method you want to invoke. |
+|                    | <http://msdn.mic |                                        |
+|                    | rosoft.com/query |                                        |
+|                    | /dev14.query?app |                                        |
+|                    | Id=Dev14IDEF1&l= |                                        |
+|                    | EN-US&k=k:System |                                        |
+|                    | .String>`__      |                                        |
++--------------------+------------------+----------------------------------------+
+| args               | Google.Protobuf  | The input arguments for calling that   |
+|                    | .ByteString      | method. This is usually generated from |
+|                    |                  | the protobuf.                          |
++--------------------+------------------+----------------------------------------+
+| logTransaction     | System.Boolean   | Whether to fire a logEvent to log      |
+|                    |                  | inline transactions.                   |
++--------------------+------------------+----------------------------------------+
+| definition of the  |                  |                                        |
+| input type.        |                  |                                        |
++--------------------+------------------+----------------------------------------+
+
 .. _AElf-Sdk-CSharp-CSharpSmartContractContext-SendVirtualInlineBySystemContract-AElf-Types-Hash-AElf-Types-Address-System-String-Google-Protobuf-ByteString:
 
 SendVirtualInlineBySystemContract(fromVirtualAddress,toAddress,
@@ -789,7 +839,7 @@ methodName,args)  ``method``
 Summary
 '''''''
 
-Like SendVirtualInline but the virtual address us a system smart
+Like SendVirtualInline but the virtual address uses a system smart
 contract.
 
 Parameters
@@ -798,8 +848,8 @@ Parameters
 +--------------------+------------------+----------------------------------------+
 | Name               | Type             | Description                            |
 +====================+==================+========================================+
-| fromVirtualAddress | AElf.Types.Hash  | Sends a virtual inline transaction to  |
-|                    |                  | another contract. This method is only  |
+| fromVirtualAddress | AElf.Types.Hash  | The hash based on which virtual address|
+|                    |                  | is generated. This method is only      |
 |                    |                  | available to system smart contract.    |
 +--------------------+------------------+----------------------------------------+
 | toAddress          | AElf.Types.      | The address of the contract you’re     |
@@ -815,7 +865,52 @@ Parameters
 +--------------------+------------------+----------------------------------------+
 | args               | Google.Protobuf  | The input arguments for calling that   |
 |                    | .ByteString      | method. This is usually generated from |
-|                    |                  | the protobuf                           |
+|                    |                  | the protobuf.                          |
++--------------------+------------------+----------------------------------------+
+| definition of the  |                  |                                        |
+| input type.        |                  |                                        |
++--------------------+------------------+----------------------------------------+
+
+.. _AElf-Sdk-CSharp-CSharpSmartContractContext-SendVirtualInlineBySystemContract-AElf-Types-Hash-AElf-Types-Address-System-String-Google-Protobuf-ByteString-System-Boolean:
+
+SendVirtualInlineBySystemContract(fromVirtualAddress,toAddress,
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+methodName,args,logTransaction)  ``method``
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+Summary
+'''''''
+
+Add an overloaded SDK method SendVirtualInlineBySystemContract, like SendVirtualInline, but the virtual address uses a system smart
+contract.
+
+Parameters
+''''''''''
+
++--------------------+------------------+----------------------------------------+
+| Name               | Type             | Description                            |
++====================+==================+========================================+
+| fromVirtualAddress | AElf.Types.Hash  | The hash based on which virtual address|
+|                    |                  | is generated. This method is only      |
+|                    |                  | available to system smart contract.    |
++--------------------+------------------+----------------------------------------+
+| toAddress          | AElf.Types.      | The address of the contract you’re     |
+|                    | Address          | seeking to interact with.              |
++--------------------+------------------+----------------------------------------+
+| methodName         | `System.String   | The name of method you want to invoke. |
+|                    | <http://msdn.mic |                                        |
+|                    | rosoft.com/query |                                        |
+|                    | /dev14.query?app |                                        |
+|                    | Id=Dev14IDEF1&l= |                                        |
+|                    | EN-US&k=k:System |                                        |
+|                    | .String>`__      |                                        |
++--------------------+------------------+----------------------------------------+
+| args               | Google.Protobuf  | The input arguments for calling that   |
+|                    | .ByteString      | method. This is usually generated from |
+|                    |                  | the protobuf.                          |
++--------------------+------------------+----------------------------------------+
+| logTransaction     | System.Boolean   | Whether to fire a logEvent to log      |
+|                    |                  | inline transactions.                   |
 +--------------------+------------------+----------------------------------------+
 | definition of the  |                  |                                        |
 | input type.        |                  |                                        |
@@ -901,6 +996,137 @@ Parameters
 +======+========================+============================+
 | tx   | AElf.Types.Transaction | The transaction to verify. |
 +------+------------------------+----------------------------+
+
+.. _AElf-Sdk-CSharp-CSharpCheckContractVersion:
+
+CheckContractVersion(previousContractVersion,registration) ``method``
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+Summary
+'''''''
+
+Check the contract version when updating the contract. (only the genesis contract can call it).
+
+Returns
+'''''''
+
++-----------------------+------------------------+-------------------------------------------------------+
+| Name                  | Type                   | Description                                           |
++=======================+========================+=======================================================+
+| IsSubsequentVersion   | System.Boolean         | Whether the contract version is a subsequent version. |
++-----------------------+------------------------+-------------------------------------------------------+
+
+Parameters
+''''''''''
+
++---------------------------+--------------------------------------+----------------------------------------------------+
+| Name                      | Type                                 | Description                                        |
++===========================+======================================+====================================================+
+| previousContractVersion   | System.String                        | The previous contract version.                     |
++---------------------------+--------------------------------------+----------------------------------------------------+
+| registration              | AElf.Types.SmartContractRegistration | The registration of the smart contract to update.  |
++---------------------------+--------------------------------------+----------------------------------------------------+
+
+.. _AElf-Sdk-CSharp-CSharpDeploySmartContract:
+
+DeploySmartContract(address,registration,name) ``method``
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+Summary
+'''''''
+
+Deploy a new smart contract with contract version(only the genesis contract can call it).
+
+Returns
+'''''''
+
++-----------------------+------------------------+-------------------------------------------------------+
+| Name                  | Type                   | Description                                           |
++=======================+========================+=======================================================+
+| ContractVersion       | System.String          | The verison of smart contract to update.              |
++-----------------------+------------------------+-------------------------------------------------------+
+| IsSubsequentVersion   | System.boolean         | Whether the contract version is a subsequent version  |
++-----------------------+------------------------+-------------------------------------------------------+
+
+Parameters
+''''''''''
+
++----------------+---------------------------------------+----------------------------------------------------+
+| Name           | Type                                  | Description                                        |
++================+=======================================+====================================================+
+| address        | AElf.Types.Address                    | The address of new smart contract.                 |
++----------------+---------------------------------------+----------------------------------------------------+
+| name           | AElf.Types.Hash                       | The hash value of the smart contract name.         |
++----------------+---------------------------------------+----------------------------------------------------+
+| registration   | AElf.Types.SmartContractRegistration  | The registration of the smart contract to update.  |
++----------------+---------------------------------------+----------------------------------------------------+
+
+.. _AElf-Sdk-CSharp-CSharpUpdateSmartContract:
+
+UpdateSmartContract(address,registration,name,previousContractVersion) ``method``
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+Summary
+'''''''
+
+Update a smart contract with contract version (only the genesis contract can call it).
+
+Returns
+'''''''
+
++-----------------------+------------------------+-------------------------------------------------------+
+| Name                  | Type                   | Description                                           |
++=======================+========================+=======================================================+
+| ContractVersion       | System.String          | The verison of smart contract to update.              |
++-----------------------+------------------------+-------------------------------------------------------+
+| IsSubsequentVersion   | System.Boolean         | Whether the contract version is a subsequent version. |
++-----------------------+------------------------+-------------------------------------------------------+
+
+Parameters
+''''''''''
+
++----------------------------+---------------------------------------+----------------------------------------------------------+
+| Name                       | Type                                  | Description                                              |
++============================+=======================================+==========================================================+
+| address                    | AElf.Types.Address                    | The address of smart contract to update.                 |
++----------------------------+---------------------------------------+----------------------------------------------------------+
+| name                       | AElf.Types.Hash                       | The hash value of the smart contract name to update.     |
++----------------------------+---------------------------------------+----------------------------------------------------------+
+| registration               | AElf.Types.SmartContractRegistration  | The registration of the smart contract to update.        |
++----------------------------+---------------------------------------+----------------------------------------------------------+
+| previousContractVersion    | System.String                         | The previous contract version.                           |
++----------------------------+---------------------------------------+----------------------------------------------------------+
+
+.. _AElf-Sdk-CSharp-CSharpECVrfVerify:
+
+ECVrfVerify(pubKey,alpha,pi,beta) ``method``
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+Summary
+'''''''
+
+Verify the ECVrf proof.
+
+Returns
+'''''''
+
+The verified result and the VRF hash output.
+
+Parameters
+''''''''''
+
++----------------------------+---------------------------------------+----------------------------------------------------------+
+| Name                       | Type                                  | Description                                              |
++============================+=======================================+==========================================================+
+| pubKey                     | byte[]                                | The public key.                                          |
++----------------------------+---------------------------------------+----------------------------------------------------------+
+| alpha                      | byte[]                                | The VRF hash input.                                      |
++----------------------------+---------------------------------------+----------------------------------------------------------+
+| pi                         | byte[]                                | The proof to be verified.                                |
++----------------------------+---------------------------------------+----------------------------------------------------------+
+| beta                       | byte[]                                | The VRF hash output.                                     |
++----------------------------+---------------------------------------+----------------------------------------------------------+
+
 
 .. _AElf-Sdk-CSharp-CSharpSmartContract:
 
