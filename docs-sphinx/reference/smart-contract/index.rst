@@ -1,5 +1,5 @@
 Smart Contract
-===================
+==============
 
 This section gives the usages, explanations, and implementations of current
 system contracts. It’s not meant to be exhaustive. With some useful methods
@@ -8,8 +8,6 @@ developing user contracts.
 
 
 .. toctree::
-   :caption: Smart Contract
-   :maxdepth: 1
 
    Genesis Contract <genesis-contract>
    Consensus Contract <consensus-contract>
