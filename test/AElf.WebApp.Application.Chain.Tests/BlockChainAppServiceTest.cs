@@ -1682,9 +1682,9 @@ public sealed class BlockChainAppServiceTest : WebAppTestBase
         };
         var response = await PostResponseAsObjectAsync<CalculateTransactionFeeOutput>("/api/blockChain/CalculateTransactionFee", parameters);
         response.Success.ShouldBe(true);
-        response.TransactionFeeList[0].ChargingAddress.ShouldBe(transaction.From.ToBase58());
-        response.TransactionFeeList[0].Fee.First().Key.ShouldBe("ELF");
-        response.TransactionFeeList[0].Fee.First().Value.ShouldBeGreaterThan(10000000L);
+        response.TransactionFees.ChargingAddress.ShouldBe(transaction.From.ToBase58());
+        response.TransactionFees.Fee.First().Key.ShouldBe("ELF");
+        response.TransactionFees.Fee.First().Value.ShouldBeGreaterThan(10000000L);
         response.TransactionFee.First().Key.ShouldBe("ELF");
         response.TransactionFee.First().Value.ShouldBeGreaterThan(10000000L);
 
