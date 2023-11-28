@@ -78,6 +78,18 @@ public class CalculateFunctionTest
         }.ToLogEvent());
         transactionResult.Logs.Add(new TransactionFeeCharged
         {
+            ChargingAddress = SampleAddress.AddressList[0],
+            Amount = 3,
+            Symbol = "USDT"
+        }.ToLogEvent());
+        transactionResult.Logs.Add(new TransactionFeeCharged
+        {
+            ChargingAddress = SampleAddress.AddressList[0],
+            Amount = 4,
+            Symbol = "USDT"
+        }.ToLogEvent());
+        transactionResult.Logs.Add(new TransactionFeeCharged
+        {
             ChargingAddress = SampleAddress.AddressList[1],
             Amount = 3,
             Symbol = "TEST"
@@ -91,7 +103,8 @@ public class CalculateFunctionTest
         var feeDic = transactionResult.GetChargedTransactionFees();
         feeDic.Count.ShouldBe(2);
         feeDic.Keys.First().ShouldBe(SampleAddress.AddressList[0]);
-        feeDic.Values.First()["ELF"].ShouldBe(3);        
+        feeDic.Values.First()["ELF"].ShouldBe(3);   
+        feeDic.Values.First()["USDT"].ShouldBe(7);
         feeDic.Keys.Last().ShouldBe(SampleAddress.AddressList[1]);
         feeDic.Values.Last()["TEST"].ShouldBe(7);
     }
