@@ -4,7 +4,39 @@
 
 Genesis Contract, also known as the Zero Contract, is mainly used to deploy and maintain smart contracts running on the aelf blockchain.
 
-## Deploy and update contracts
+This contract will be deployed first when aelf blockchain launched so that it can be used to deploy other smart contracts.
+
+To achieve this purpose, the Genesis Contract implements the following methods defined in `acs0.proto`:
+
+```protobuf
+service ACS0 {
+    // Deploy a system smart contract on chain and return the address of the system contract deployed.
+    rpc DeploySystemSmartContract (SystemContractDeploymentInput) returns (aelf.Address) {
+    }
+    
+    // Deploy a smart contract on chain and return the address of the contract deployed.
+    rpc DeploySmartContract (ContractDeploymentInput) returns (aelf.Address) {
+    }
+    
+    // Update a smart contract on chain.
+    rpc UpdateSmartContract (ContractUpdateInput) returns (aelf.Address) {
+    }
+    
+    // and others.
+    // ...
+}
+```
+
+Therefore, developers can deploy (and update) their own smart contracts by interacting with the Genesis Contract.
+
+In this article, we will discuss:
+
+- Implementation of deploy and update contracts
+- How the contract will be loaded to the smart contract execution environment
+- The current process of deploying and updating aelf smart contracts
+- Other details of the Genesis Contract
+
+## `SmartContractRegistration` and `ContractInfo`
 
 There is a critical data structure defined in `aelf/core.proto`, called SmartContractRegistration:
 
@@ -36,7 +68,8 @@ However, each `SmartContractRegistration` entity is not a one-to-one corresponde
 public MappedState<Hash, SmartContractRegistration> SmartContractRegistrations { get; set; }
 ```
 
-The `SmartContractRegistration` entity can be fetched by the hash value of the contract code. It is only written once when deploying the contract.
+The `SmartContractRegistration` entity can be fetched by the hash value of the contract code.
+It is only written once when deploying the contract.
 
 The data structure that corresponds one-to-one with contracts is called `ContractInfo`.
 Structure `ContractInfo` is defined in `acs0.proto`.
@@ -72,6 +105,43 @@ From the `code_hash` field of `ContractInfo`, it is not difficult to guess:
 
 1. When trying to retrieve the contract code, the `code_hash` of ContractInfo is first read, and then the contract code itself is read from the `State.SmartContractRegistrations` mapped state.
 2. Upgrading a contract on aelf is replacing the `code_hash` of `ContractInfo`.
+
+## Deploy and update contracts
+
+To deploy a smart contract to aelf, developers need to interact with the `DeploySmartContract` or `DeployUserSmartContract` defined by `acs0` and implemented by the Genesis Contract.
+The differences between these two methods will be explained later.
+
+When executing the deployment method, the contract code will be stored in the StateDb through the structure we mentioned before: `SmartContractRegistration`.
+More specifically, it is the `code` field.
+
+If developer's smart contract is written by C#, the `category` should be `0`.
+The execution environment will select which runtime to load the contract code into based on the `category` field.
+
+And the `code_hash` is a unique identifier for the contract code.
+For C# smart contract, the code hash is calculated by the Genesis Contract during deployment.
+
+After the contract code is saved in StateDb, another field is used to store the relevant information of the contract.
+The structure is also mentioned before:  `ContractInfo`.
+There is a `code_hash` field defined in this structure, make it possible to use `GetContractInfo` method to get the contract information of provided contract address,
+then use `GetSmartContractRegistrationByCodeHash` method to get contract code via contract code hash.
+In addition, the contract code can also be obtained through method `GetSmartContractRegistrationByAddress`.
+
+As for updating the contract code, the contract information (`ContractInfo`) can be directly modified through method `UpdateSmartContract`,
+then aelf smart contract execution environment can obtain the new contract code via new contract hash from the Genesis Contract in the future.
+
+## Execution of contract code
+
+Although the execution process of the contract is unrelated to the Genesis Contract.
+Developers may be concerned about how their contract code will be consumed in the future after deployment.
+Therefore, here are some brief explanations.
+
+![Contract Execution](contract-execution.png)
+
+As shown in the above figure, assuming that the contract code has been stored in the Genesis Contract.
+When a caller tries to call a method of the contract, within the aelf node, the corresponding `SmartContractRegistration` will be obtained from the Genesis Contract, the contract code will be extracted, encapsulated as an Executive type, for the contract execution environment to call. 
+After completing the call, return the transaction result to the caller.
+
+Upgrading the contract will change the `SmartContractRegistration` obtained during the above process, so it is feasible to upgrade the deployed contract in aelf.
 
 ## Calculation of contract address
 

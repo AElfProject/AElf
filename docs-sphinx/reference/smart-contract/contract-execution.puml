@@ -1,0 +1,11 @@
+@startuml
+autonumber
+
+Caller -> TransactionExecutionService: Transaction
+TransactionExecutionService -> SmartContractExecutiveService: Call Execute method
+SmartContractExecutiveService -> GenesisContract: Call GetSmartContractRegistrationByAddress method
+GenesisContract --> SmartContractExecutiveService: SmartContractRegistration instance
+SmartContractExecutiveService --> TransactionExecutionService: Executive instance
+TransactionExecutionService --> Caller: Transaction Result
+
+@enduml
