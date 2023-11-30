@@ -1,0 +1,21 @@
+@startuml
+start
+:GetConsensusCommand;
+if (MinerList contains provided pubkey?) then (false)
+  :Nothing;
+  stop
+else (true)
+    if (Timeslot for this BP already passed?) then (false)
+      if (Has this BP produced enough tiny blocks?) then (false)
+        :TinyBlock;
+        stop
+      else (true)
+      :NextRound;
+      stop
+      endif
+    else (true)
+    :NextRound;
+    stop
+    endif
+
+@enduml
