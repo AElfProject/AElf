@@ -173,11 +173,15 @@ var contractAddress = AddressHelper.ComputeContractAddress(deployer, salt);
 
 ### Deploy contract with audit
 
+![Deploy Contract With Audit](deploy-contract-with-audit.png)
+
 The current pipeline starts with Propose, which generates a parliamentary proposal.
 When more than 2/3 of the BPs agree to deploy/update, a new proposal is released to request code inspection.
 Finally, after the code audition is passed, the real contract deployment/upgrade will be achieved through the proposal of releasing the code inspection.
 
 ### Deploy contract without audit
+
+![Deploy Contract Without Audit](deploy-contract-without-audit.png)
 
 Developers send deployment/update user contract transactions, generate a parliamentary CodeCheck proposal, and when more than 2/3 of the BPs conduct code checks and pass, achieve real contract deployment/upgrade through the proposal of automatically releasing code checks.
 
