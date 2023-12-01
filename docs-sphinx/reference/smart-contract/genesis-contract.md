@@ -214,4 +214,4 @@ Assert(contractInfo.IsSubsequentVersion,
 - Already proposed. Duplicate deployment request.
 
 ## Usage
-Check the `deploy` command of [aelf-command](../cli/methods.md).
+Check the `deploy` command of [aelf-command](https://docs.aelf.io/en/latest/reference/cli/methods.html#deploy-deploy-a-smart-contract).
