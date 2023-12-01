@@ -26,7 +26,7 @@ public class SiloExecutionAElfModule : AbpModule
         context.Services.AddSingleton<ISmartContractExecutiveService, SmartContractExecutiveService>();
     }
 
-    public override void OnApplicationInitialization(ApplicationInitializationContext context)
+    public override void OnPreApplicationInitialization(ApplicationInitializationContext context)
     {
         StartOrleans(context.ServiceProvider);
     }
@@ -54,8 +54,8 @@ public class SiloExecutionAElfModule : AbpModule
                     options.ClusterId = configuration["Orleans:ClusterId"];
                     options.ServiceId = configuration["Orleans:ServiceId"];
                 })
-                /*.ConfigureApplicationParts(parts =>
-                    parts.AddApplicationPart(typeof(CAServerGrainsModule).Assembly).WithReferences())*/
+                .ConfigureApplicationParts(parts =>
+                    parts.AddApplicationPart(typeof(SiloExecutionAElfModule).Assembly).WithReferences())
                 .ConfigureLogging(builder => builder.AddProvider(o.GetService<ILoggerProvider>()))
                 .Build();
         });
@@ -64,6 +64,8 @@ public class SiloExecutionAElfModule : AbpModule
     private static void StartOrleans(IServiceProvider serviceProvider)
     {
         var client = serviceProvider.GetRequiredService<IClusterClient>();
+        if(client.IsInitialized)
+            return;
         AsyncHelper.RunSync(async () => await client.Connect());
     }
 

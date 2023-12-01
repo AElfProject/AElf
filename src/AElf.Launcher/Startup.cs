@@ -4,12 +4,14 @@ using System.Linq;
 using AElf.Blockchains.MainChain;
 using AElf.Blockchains.SideChain;
 using AElf.Kernel;
+using AElf.Kernel.SmartContract.Orleans;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
+using Volo.Abp.Modularity.PlugIns;
 
 namespace AElf.Launcher;
 
@@ -60,7 +62,10 @@ public class Startup
 
     private static void AddApplication<T>(IServiceCollection services) where T : IAbpModule
     {
-        services.AddApplication<T>();
+        services.AddApplicationAsync<T>(options =>
+        {
+            options.PlugInSources.AddTypes(typeof(SiloExecutionAElfModule));
+        });
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
