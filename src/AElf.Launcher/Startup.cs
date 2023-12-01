@@ -56,16 +56,24 @@ public class Startup
                 if (_configuration["CorsOrigins"] != "*") builder.AllowCredentials();
             });
         });
-//        AddApplication<SiloExecutionAElfModule>(services);
-
     }
 
-    private static void AddApplication<T>(IServiceCollection services) where T : IAbpModule
+    private void AddApplication<T>(IServiceCollection services) where T : IAbpModule
     {
-        services.AddApplicationAsync<T>(options =>
+        var launcherType = _configuration.GetValue("SiloOrStandalone", LauncherType.Standalone);
+        switch (launcherType)
         {
-            options.PlugInSources.AddTypes(typeof(SiloExecutionAElfModule));
-        });
+            case LauncherType.Silo:
+                services.AddApplicationAsync<T>(options =>
+                {
+                    options.PlugInSources.AddTypes(typeof(SiloExecutionAElfModule));
+                });
+                break;
+            default:
+                services.AddApplicationAsync<T>();
+                break;
+        }
+        
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

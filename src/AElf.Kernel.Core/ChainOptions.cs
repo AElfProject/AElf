@@ -19,3 +19,15 @@ public enum NetType
     TestNet,
     CustomNet
 }
+
+public enum LauncherType
+{
+    Standalone,
+    Silo
+}
+
+public enum LaunchProgram
+{
+    BP,
+    Silo
+}

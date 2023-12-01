@@ -19,7 +19,7 @@ public class SiloExecutionAElfModule : AbpModule
     public override void ConfigureServices(ServiceConfigurationContext context)
     {
         var configuration = context.Services.GetConfiguration();
-        //ConfigureOrleans(context, configuration); 
+        ConfigureOrleans(context, configuration); 
         context.Services.AddSingleton<IPlainTransactionExecutingService, SiloTransactionExecutingService>();
         context.Services.AddSingleton<IPlainTransactionExecutingGrain, PlainTransactionExecutingGrain>();
         context.Services.AddSingleton<ISiloClusterClientContext, SiloClusterClientContext>();
@@ -38,6 +38,11 @@ public class SiloExecutionAElfModule : AbpModule
 
     private static void ConfigureOrleans(ServiceConfigurationContext context, IConfiguration configuration)
     {
+        var launcherType = configuration.GetValue("LaunchProgram", LaunchProgram.BP);
+        if (launcherType != LaunchProgram.BP)
+        {
+            return;
+        }
         context.Services.AddSingleton<IClusterClient>(o =>
         {
             return new ClientBuilder()
@@ -57,6 +62,12 @@ public class SiloExecutionAElfModule : AbpModule
                 .ConfigureApplicationParts(parts =>
                     parts.AddApplicationPart(typeof(SiloExecutionAElfModule).Assembly).WithReferences())
                 .ConfigureLogging(builder => builder.AddProvider(o.GetService<ILoggerProvider>()))
+                .Configure<PerformanceTuningOptions>(opt =>
+                {
+                    opt.MinDotNetThreadPoolSize = 20480;
+                    opt.MinIOThreadPoolSize = 20480;
+                    opt.DefaultConnectionLimit = 40960;
+                })
                 .Build();
         });
     }

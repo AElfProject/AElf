@@ -44,6 +44,10 @@
         <None Include="bin\Debug\net6.0\appsetting.ParallelExecution.json" />
         <None Include="obj\Debug\net6.0\appsetting.ParallelExecution.json" />
         <None Include="obj\Debug\net7.0\appsetting.ParallelExecution.json" />
+        <Content Update="appsettings.SideChain.MainNet.json">
+          <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
     </ItemGroup>
     
     <ItemGroup>
