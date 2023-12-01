@@ -6,7 +6,7 @@ Genesis Contract, also known as the Zero Contract, is mainly used to deploy and 
 
 This contract will be deployed first when aelf blockchain launched so that it can be used to deploy other smart contracts.
 
-To achieve this purpose, the Genesis Contract implements the following methods defined in [acs0](../acs/acs0.rst):
+To achieve this purpose, the Genesis Contract implements the following methods defined in [acs0](https://docs.aelf.io/en/latest/reference/acs/acs0.html):
 
 ```protobuf
 service ACS0 {
@@ -72,7 +72,7 @@ The `SmartContractRegistration` entity can be fetched by the hash value of the c
 It is only written once when deploying the contract.
 
 The data structure that corresponds one-to-one with contracts is called `ContractInfo`.
-Structure `ContractInfo` is defined in [acs0](../acs/acs0.rst).
+Structure `ContractInfo` is defined in [acs0](https://docs.aelf.io/en/latest/reference/acs/acs0.html).
 
 ```C#
 message ContractInfo
@@ -108,7 +108,7 @@ From the `code_hash` field of `ContractInfo`, it is not difficult to guess:
 
 ## Deploy and update contracts
 
-To deploy a smart contract to aelf, developers need to interact with the `DeploySmartContract` or `DeployUserSmartContract` defined by [acs0](../acs/acs0.rst) and implemented by the Genesis Contract.
+To deploy a smart contract to aelf, developers need to interact with the `DeploySmartContract` or `DeployUserSmartContract` defined by [acs0](https://docs.aelf.io/en/latest/reference/acs/acs0.html) and implemented by the Genesis Contract.
 The differences between these two methods will be explained later.
 
 When executing the deployment method, the contract code will be stored in the StateDb through the structure we mentioned before: `SmartContractRegistration`.

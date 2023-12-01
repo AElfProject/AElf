@@ -28,7 +28,7 @@ what kind of compliance should the state of the consensus contract change to?
    
 ## How AEDPoS Contract implemented
 
-The five questions raised in the previous section are all answered by AEDPoS Contract via implementing interfaces defined in [acs4](../acs/acs4.rst).
+The five questions raised in the previous section are all answered by AEDPoS Contract via implementing interfaces defined in [acs4](https://docs.aelf.io/en/latest/reference/acs/acs4.html).
 
 ### GetConsensusCommand
 
@@ -367,3 +367,108 @@ This method is used to verify whether the execution result is consistent with Co
 We will also check if the information in this round has been modified. 
 If it has been modified, whether the modification is appropriate. 
 (For example, if there is a BP replacement in this round, there will be modifications. At this time, we will verify whether the replacement result is correct.)
+
+
+### Last Irreversible Block
+
+#### Definition of LIB
+
+Irreversible block:
+
+In any blockchain, the newly generated block has the possibility of being reversed. 
+A new block needs to undergo a certain amount of confirmation, that is, some subsequent blocks are generated on the blockchain to ensure that it is valid and that other network participants have agreed on the validity of the block. 
+Once a block has been confirmed enough, it is considered irreversible, that is, it is impossible to change or revoke the transaction content.
+
+The consensus mechanism of aelf will select a past block as the latest irreversible block (Last Irreversable Block) through double confirmation. 
+The information of this block will be recorded in the Chain structure in ChainDb.
+
+That is, two properties in the `Chain` data structure: `last_irreversible_block_hash` and `last_irreversible_block_height`.
+
+```protobuf
+{
+  "ChainId": "tDVV",
+  "Branches": {
+    "21a6058fe1419042c6a9f780734fab175694052f966667b992a151af5d65d751": 17122469
+  },
+  "NotLinkedBlocks": {},
+  "LongestChainHeight": 17122469,
+  "LongestChainHash": "21a6058fe1419042c6a9f780734fab175694052f966667b992a151af5d65d751",
+  "GenesisBlockHash": "564892c8e1cddfb2ddd27e06992324f16fc833e5152bfd95e01b0f4971677131",
+  "GenesisContractAddress": "2dtnkWDyJJXeDRcREhKSZHrYdDGMbn3eus5KYpXonfoTygFHZm",
+  "LastIrreversibleBlockHash": "a5678d99ccda03b861d1c63fde7ce27ec484c74f1cc349119e08ac86b3ac5aea",
+  "LastIrreversibleBlockHeight": 17122160,
+  "BestChainHash": "21a6058fe1419042c6a9f780734fab175694052f966667b992a151af5d65d751",
+  "BestChainHeight": 17122469
+}
+```
+
+### Generation of LIB
+
+During the block production process, BP hints at the current height as LIB by observing the filling status of the time slots in the last two rounds. 
+If the filling status of the time slots is ideal, the height of the last block (`UpdateValue`) will be hinted at when the BP block is produced.
+
+- If in a time slot, the corresponding BP has produced at least one block, we say that the time slot has been filled.
+
+When the progress of this round exceeds 2/3, on the premise that the number of hints is sufficient, 
+take one-third of the position of the LIB implied by the previous round and this round have all produced blocks, 
+and set it to the latest LIB.
+
+BPs will attempt to set up LIB during the execution of `UpdateValue` transactions.
+
+AElf node will start the process of setting LIB after the AEDPoS Contract throws the event `IrreversibleBlockFound`.
+
+The confirmation of LIB means that the block of aelf blockchain has got the manuscript ready. 
+Blocks before the height of LIB (< LIB height) are irreversible blocks.
+
+### Calculation of LIB
+
+Assuming that current aelf network has 5 bps.
+
+In Round 9:
+- BP1 produced block from 101 (UpdateValue) to 108
+  - implies that the LIB height is 101
+- BP2 produced block from 109 (UpdateValue) to 116
+  - implies that the LIB height is 109
+- BP3 produced block from 117 (UpdateValue) to 124
+  - implies that the LIB height is 117
+- BP4 produced block from 125 (UpdateValue) to 132
+  - implies that the LIB height is 125 - assuming the LIB height is set to 84
+- BP5 produced block from 133 (UpdateValue) to 140
+  - implies that the LIB height is 133
+- BP1 as the EBP, produced block from 141(NextRound) to 148
+  - not implies LIB height
+
+In Round 10:
+- BP5 produced block from 149 (UpdateValue) to 156 
+- implies that the LIB height is 149
+- BP4 produced block from 157 (UpdateValue) to 164
+  - implies that the LIB height is 157
+- BP3 produced block from 165 (UpdateValue) to 172
+  - implies that the LIB height is 165
+- BP2 produced block from 173 (UpdateValue) to 180
+  - implies that the LIB height is 173 (the progress of this round is more than 2/3)
+
+  - It will be carried out in the 197th block.
+    - The nodes that have produced blocks in this round are BP2, BP3, BP4, BP5. The height implied in the previous round was 109,117,125,133. 
+    - The nodes that have produced blocks in this round + the previous round are (BP2, BP3, BP4, BP5) 4 > = BP quantity (5) * 2/3 + 1 == > returns LIBHeight = 117
+
+    - Node throws log:
+> Finished calculation of lib height: 117
+New lib height: 117
+
+Throw event: `IrreversibleBlockFound`, trigger IrreversibleBlockFoundLogEventProcessor
+Modify `last_irreversible_block_hash` and `last_irreversible_block_height` data in Chain
+
+
+- BP1 produced block from 181 (UpdateValue) to 188
+  - implies that the LIB height is 181
+- BP5 as the EBP, produced block from 189(NextRound) to 196
+
+![LIB Calculation](lib-calculation.png)
+
+
+Block confirmation time:
+
+- Height 85 After the block is produced, it is set to an irreversible block at height 173, 89 blocks, which takes about 44.5 seconds
+- Height 117 is set as an irreversible block after block production to height 173, 67 blocks, which takes about 33.5 seconds
+
