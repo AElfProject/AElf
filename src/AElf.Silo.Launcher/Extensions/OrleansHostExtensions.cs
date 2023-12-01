@@ -15,7 +15,8 @@ public static class OrleansHostExtensions
 {
     public static IHostBuilder UseOrleansSnapshot(this IHostBuilder hostBuilder)
     {
-        var configuration = new ConfigurationBuilder()
+        
+        var configuration = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory())
             .AddJsonFile("appsettings.json")
             .Build();
         if (configuration == null) throw new ArgumentNullException(nameof(configuration));
