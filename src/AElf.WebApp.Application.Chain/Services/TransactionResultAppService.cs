@@ -104,7 +104,7 @@ public class TransactionResultAppService : AElfAppService, ITransactionResultApp
         }
         
         var failedTransactionResult =
-            await _transactionResultProxyService.TransactionResultQueryService.GetFailedTransactionResultAsync(
+            await _transactionResultProxyService.TransactionFailedResultService.GetFailedTransactionResultAsync(
                 transactionIdHash);
         if (failedTransactionResult != null)
         {
