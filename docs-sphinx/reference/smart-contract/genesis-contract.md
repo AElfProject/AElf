@@ -135,7 +135,7 @@ Although the execution process of the contract is unrelated to the Genesis Contr
 Developers may be concerned about how their contract code will be consumed in the future after deployment.
 Therefore, here are some brief explanations.
 
-![Contract Execution](contract-execution.png)
+![Contract Execution](images/contract-execution.png)
 
 As shown in the above figure, assuming that the contract code has been stored in the Genesis Contract.
 When a caller tries to call a method of the contract, within the aelf node, the corresponding `SmartContractRegistration` will be obtained from the Genesis Contract, the contract code will be extracted, encapsulated as an Executive type, for the contract execution environment to call. 
@@ -173,7 +173,7 @@ var contractAddress = AddressHelper.ComputeContractAddress(deployer, salt);
 
 ### Deploy contract with audit
 
-![Deploy Contract With Audit](deploy-contract-with-audit.png)
+![Deploy Contract With Audit](images/deploy-contract-with-audit.png)
 
 The current pipeline starts with Propose, which generates a parliamentary proposal.
 When more than 2/3 of the BPs agree to deploy/update, a new proposal is released to request code inspection.
@@ -181,7 +181,7 @@ Finally, after the code audition is passed, the real contract deployment/upgrade
 
 ### Deploy contract without audit
 
-![Deploy Contract Without Audit](deploy-contract-without-audit.png)
+![Deploy Contract Without Audit](images/deploy-contract-without-audit.png)
 
 Developers send deployment/update user contract transactions, generate a parliamentary CodeCheck proposal, and when more than 2/3 of the BPs conduct code checks and pass, achieve real contract deployment/upgrade through the proposal of automatically releasing code checks.
 

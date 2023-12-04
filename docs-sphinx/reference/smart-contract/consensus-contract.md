@@ -210,7 +210,7 @@ Then, the AElfConsensusBehaviour will be used to determine the next block time a
 The following figure briefly illustrates the implementation of this method, but lacks some details.
 You can combine it with the code for more details if interested.
 
-![GetConsensusCommand](get-consensus-behaiviour.png)
+![GetConsensusCommand](images/get-consensus-behaiviour.png)
 
 ##### GetConsensusCommand - UpdateValue(WithoutPreviousInValue)
 
@@ -369,9 +369,9 @@ If it has been modified, whether the modification is appropriate.
 (For example, if there is a BP replacement in this round, there will be modifications. At this time, we will verify whether the replacement result is correct.)
 
 
-### Last Irreversible Block
+## Last Irreversible Block
 
-#### Definition of LIB
+### Definition of LIB
 
 Irreversible block:
 
@@ -466,9 +466,70 @@ Modify `last_irreversible_block_hash` and `last_irreversible_block_height` data 
 
 ![LIB Calculation](lib-calculation.png)
 
-
 Block confirmation time:
 
 - Height 85 After the block is produced, it is set to an irreversible block at height 173, 89 blocks, which takes about 44.5 seconds
 - Height 117 is set as an irreversible block after block production to height 173, 67 blocks, which takes about 33.5 seconds
 
+## AElf Consensus Schedule
+
+### Trigger of consensus mechanism
+
+Trigger consensus mechanism means call `GetConsensusCommand` method to get next mining information and set a related event that will be executed in the future.
+There are a total of **four** types of logic that trigger the consensus mechanism. 
+
+Multiple effective triggering of consensus will not cause bugs: 
+for example, after completing one trigger, the consensus module informs the aelf BP node that blocks can be produced after 10s (via `GetConsensusCommand` method), 
+and triggers again after 2s. 
+The consensus module will inform the node that blocks can be produced after 8s and reset the time scheduler. 
+If triggered again after 4s, the consensus may inform the node that blocks can be produced after 20s, 
+which is possible in the current implementation (occurring in the complement logic of the extra time slot).
+
+This section will list all four types of logic of triggering consensus schedule.
+
+#### Trigger consensus mechanism when node starts
+
+Code: `BlockchainNodeContextService.StartAsync`.
+
+During the startup of the aelf node, the presence of the consensus module appears after confirming that there is a Chain-type data in the local ChainDb.
+
+Before this, the node probes whether the Chain structure can be obtained in ChainDb. 
+If it can, roll back to lib and start synchronizing blocks based on lib. If not, it means that ChainDb was empty before. At this point, the node's mission is to construct a Genesis block based on the AElf. Blockchains. * project they choose, and then initialize the Chain structure and put it into ChainDb.
+
+#### Trigger consensus mechanism after completing block synchronization
+
+Code: `FullBlockchainService.SetBestChain`.
+
+1. The node receives a block from the network, completes verification, execution, and re-verification, and the block is about to be confirmed and synchronized locally. 
+At this time, it attempts to set the BestChain information to the Chain structure.
+Then trigger the consensus mechanism.
+   - For example: GrpcServerService.BlockBroadcastStream -> BlockReceivedEvent -> BlockReceivedEventHandler.HandleEventAsync -> BlockSyncService.SyncByBlockAsync -> EnqueueAttachBlockJob -> BlockSyncAttachService.AttachBlockWithTransactionsAsync, put the logic of validating block to the UpdateChainQueue -> BlockAttachService.AttachBlockAsync -> BlockExecutionResultProcessingService.ProcessBlockExecutionResultAsync -> FullBlockchainService.SetBestChain
+2. The node has produced a block by itself, but still needs to complete verification, execution, and re-verification before it can be synchronized to the local.
+   - For example: ConsensusService.- > ConsensusRequestMiningEventData - > ConsensusRequestMiningEventHandler. HandleEventAsync - > After generating the block (whether successful or failed)
+
+#### Re-trigger the consensus mechanism after an exception occurs during the block generation process
+
+Code: `ConsensusRequestMiningEventHandler.HandleEventAsync`.
+
+If somehow failed to generate block, aelf node will try to trigger consensus mechanism again.
+
+#### Re-trigger consensus mechanism after consensus verification fails
+
+Code:
+- `ConsensusService.ValidateConsensusBeforeExecutionAsync`
+- `ConsensusService.ValidateConsensusAfterExecutionAsync`
+
+If the consensus information verification fails, aelf node will try to trigger consensus mechanism again.
+
+### Time scheduling for block production
+
+There are currently two implementations of time scheduling (implementing the `IConsensusScheduler` interface), **Rx.Net** and **FluentScheduler**.
+
+The aelf MainNet now is using the Rx.Net implementation.
+
+The `IConsensusScheduler` interface provides two methods:
+- `NewEvent`, with countdown milliseconds and a structure containing the instructions needed for block generation: `ConsensusRequestMiningEventData`
+- `CancelCurrentEvent`, used to cancel the block production task that is currently in countdown.
+
+Calling `NewEvent` will mount a timed task for producing blocks and enter the countdown.
+When the countdown is complete, a `ConsensusRequestMiningEventData` event is published for `ConsensusRequestMiningEventHandler` to handle.
