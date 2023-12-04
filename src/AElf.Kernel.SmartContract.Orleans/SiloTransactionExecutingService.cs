@@ -14,7 +14,7 @@ public class SiloTransactionExecutingService : IPlainTransactionExecutingService
     private readonly ILogger<SiloTransactionExecutingService> _logger;
     private readonly IClusterClient _clusterClient;
     private readonly IConfiguration _configuration;
-    private readonly int _defaultSiloInstanceCount = 20;
+    private readonly int _defaultSiloInstanceCount = 2;
     private readonly int _grainActivation = 10;
     
     public SiloTransactionExecutingService(ISiloClusterClientContext siloClusterClientContext, ILogger<SiloTransactionExecutingService> logger, IClusterClient clusterClient, IConfiguration configuration)
