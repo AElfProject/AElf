@@ -1,13 +1,9 @@
-Creating Smart Contracts
-========================
+Developing Smart Contracts
+==========================
 
-This article will guide you on how to use AElf-developer-tools to implement a smart contract.
-It uses the **GreeterContract** as an example, which is already included in contract templates.
+This article will guide you on how to develop a smart contract, 
+and it uses the **GreeterContract** as an example.
 With the concepts presented in this article, you will be able to create your own basic contract.
-
-In this section, you will be guided on how to use AElf-Tools and Templates to implement a smart contract.
-We will use the **GreeterContract** as an example to demonstrate how to develop a simple contract based on it.
-We will also introduce you to the concepts of aelf smart contracts.
 
 **Steps for developing smart contracts**
 
@@ -23,17 +19,11 @@ smart contract; this process contains essentially four steps:
 -  **Define the contract**: The methods and types required in your contract 
    should be defined in a protobuf file following the typical protobuf syntax.
 
--  **Implement contract code**: implement the logic for the contract
-   methods.
+-  **Implement contract code**: Implement the logic for the contract methods.
 
 The ``Greeter`` contract is a very simple contract that exposes an
 ``AddGreeters`` method to add a new greeter to ``GreeterList``, and a 
 ``GetGreeters`` method to get all of greeters.
-
-This tutorial demonstrates how to develop a smart contract using the C# contract SDK.
-You can learn more about it
-`here <https://docs.aelf.io/en/latest/reference/contract-sdk/index.html>`__.
-AElf-developer-tools and contract templates will automatically add the reference to the SDK.
 
 Install template
 ----------------
@@ -45,7 +35,7 @@ and installing them locally. Run the following command to install it.
 
     dotnet new install AElf.ContractTemplates
 
-After installation, you can use 'dotnet new uninstall' to verify the presence of this template locally.
+After installation, you can use ``dotnet new uninstall`` to verify the presence of this template locally.
 
 ::
 
@@ -80,8 +70,8 @@ the contract name will be ``GreeterContract``. And the namespace of the project 
 
     dotnet new aelf -n GreeterContract -N AElf.Contracts.Greeter
       
-    After running dotnet new command, we can get a new project generated base on template. 
-    The project structure is as follows.
+After running dotnet new command, we can get a new project generated base on template. 
+The project structure is as follows.
 
 ::
 
@@ -108,7 +98,7 @@ the contract name will be ``GreeterContract``. And the namespace of the project 
 The src folder
 ^^^^^^^^^^^^^^
 
-The **src** folder contains several protobuf files used to describe blockchain smart contract methods 
+The **src** folder contains several protobuf files used to describe smart contract methods 
 and data structures. It also includes specific implementations of smart contract methods and 
 definition files for managing contract state in communication with the blockchain. For example, GreeterContractState.cs is one such file.
 
@@ -387,7 +377,143 @@ The aelf.csharp_state option allows the contract author to specify the namespace
 To implement a state class, you need to inherit from the ContractState class provided by the C# SDK. 
 When defining properties under the state, we follow a generic approach:
 
-- To save and read a single object: use SingletonState<ClassType>.
-- To save and read a key-value pair: use MappedState<KeyClassType, ValueClassType>.
+- To save and read a single object: use ``SingletonState<ClassType>``.
+- To save and read a key-value pair: use ``MappedState<KeyClassType, ValueClassType>``.
 
-After becoming familiar with all state usages, you can also use StringState as an alternative to SingletonState<ClassType>.
+After becoming familiar with all state usages, you can also use ``StringState`` as an alternative to ``SingletonState<ClassType>``.
+
+Testing Smart Contracts
+-----------------------
+
+This tutorial will demonstrate how to test the GreeterContract for reference.
+
+AElf Contract TestKit is a testing framework designed specifically for testing AElf smart contracts. With this framework, 
+you can simulate the execution of a transaction by constructing a stub of a smart contract and utilize the methods provided 
+by the Stub instance (corresponding to the contract's Action methods) for executing transactions and 
+queries (corresponding to the Views methods of the contract) to obtain transaction execution results in the test case.
+
+As you can observe, the test code is located within the test folder. Typically, this test folder contains a project file (.csproj) 
+and at least two .cs files. The project file serves as a standard C# xUnit test project file, with additional references included as needed.
+
+::
+
+    test
+    ├── GreeterContract.Tests.csproj
+    ├── GreeterContractTests.cs
+    ├── Protobuf
+    │   ├── message
+    │   │   └── authority_info.proto
+    │   └── stub
+    │       └── hello_world_contract.proto
+    └── _Setup.cs
+
+**Steps of testing smart contracts**
+The testing process closely mirrors the development process and generally consists of the following steps:
+
+- Defining the Contract: All the required methods and types for your contract should be defined in a protobuf file. These definitions are identical to those in the src folder, and you can simply copy them to the test folder.
+- Setting up the Testing Context: To conduct local contract testing, it's essential to simulate the execution of a transaction by creating a stub. In this step, you will configure the necessary context and stub components needed for testing.
+- Implementing Contract Unit Test Code: Create the logic for unit test methods, which will test the contract's functionality and ensure it works as expected.
+
+Defining the contract
+^^^^^^^^^^^^^^^^^^^^^
+
+The Protobuf folder within the test directory serves a similar purpose to the src directory but with slightly different folder names. 
+For the Protobuf section within the test folder, the following applies:
+
+- message: The proto files contained in the message folder are used to define common properties that can be imported and utilized by other proto files.
+- stub: The stub folder houses contract proto files dedicated to unit testing. Additionally, it may contain other proto files that this test proto file depends on and imports.
+
+::
+
+    test
+    └── Protobuf
+        ├── message
+        │   └── authority_info.proto
+        └── stub
+            └── hello_world_contract.proto
+
+You can copy the necessary proto files from the src folder and paste them into the stub folder. It's important to ensure that 
+contract proto files from the src folder and any dependent proto files are correctly placed in the stub directory.
+
+Setting up testing context
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+To locally test contract methods, you need to establish the context required for testing. This process primarily 
+involves obtaining the stub for the contract. Below is the content of the **_Setup.cs** file:
+
+.. code:: csharp
+
+    using AElf.Cryptography.ECDSA;
+    using AElf.Testing.TestBase;
+    
+    namespace AElf.Contracts.Greeter
+    {
+        // The Module class load the context required for unit testing
+        public class Module : ContractTestModule<GreeterContract>
+        {
+        }
+        // The TestBase class inherit ContractTestBase class, it defines Stub classes and gets instances required for unit testing
+        public class TestBase : ContractTestBase<Module>
+        {
+            // The Stub class for unit testing
+            internal readonly GreeterContractContainer.GreeterContractStub GreeterContractStub;
+            // A key pair that can be used to interact with the contract instance
+            private ECKeyPair DefaultKeyPair => Accounts[0].KeyPair;
+    
+            public TestBase()
+            {
+                GreeterContractStub = GetGreeterContractContractStub(DefaultKeyPair);
+            }
+            private GreeterContractContainer.GreeterContractStub GetGreeterContractContractStub(ECKeyPair senderKeyPair)
+            {
+                return GetTester<GreeterContractContainer.GreeterContractStub>(ContractAddress, senderKeyPair);
+            }
+        }   
+    }
+
+In this code, TestBase inherits ContractTestBase<Module> and defines a contract stub within the class. 
+It also obtains a key pair from the AElf contract TestKit framework. In the constructor, the address and 
+key pair parameters are provided, and the "GetTester" method is used to retrieve the contract stub.
+
+Implement contract unit test code
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Now comes the easy part: the test class only needs to inherit from TestBase. Once you've done that, 
+you can proceed to write the unit test implementations you require.
+
+In this section, you can use the ``AddGreetersTest`` method to save a message to the state. Following that, 
+you can call the ``GetGreeters`` method to retrieve the message from the state. Finally, you can compare the retrieved message 
+with the originally input message to verify whether the values match.
+
+.. code:: csharp
+
+    using System.Threading.Tasks;
+    using Google.Protobuf.WellKnownTypes;
+    using Shouldly;
+    using Xunit;
+    
+    namespace AElf.Contracts.Greeter
+    {
+        // This class is unit test class, and it inherit TestBase. Write your unit test code inside it
+        public class GreeterContractTests : TestBase
+        {
+            [Fact]
+            public async Task AddGreetersTest()
+            {
+                // Arrange
+                var user1 = new StringValue { Value = "Tom" };
+                var user2 = new StringValue { Value = "Jerry" };
+                var expectList = new GreeterList();
+                expectList.Greeter.Add(user1.Value);
+                expectList.Greeter.Add(user2.Value);
+    
+                // Act
+                await GreeterContractStub.AddGreeters.SendAsync(user1);
+                await GreeterContractStub.AddGreeters.SendAsync(user2);
+    
+                // Assert
+                var greeterList = await GreeterContractStub.GetGreeters.CallAsync(new Empty());
+                greeterList.ShouldBe(expectList);
+            }
+        }
+    }
