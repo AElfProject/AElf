@@ -96,9 +96,6 @@ public class PlainTransactionExecutingGrain : Grain, IPlainTransactionExecutingG
         {
             Logger.LogError(e, "Failed while executing txs in block");
             throw;
-        }finally
-        {
-            DeactivateOnIdle();
         }
     }
 

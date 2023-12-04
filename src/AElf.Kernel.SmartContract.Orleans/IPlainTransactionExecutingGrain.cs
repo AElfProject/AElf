@@ -3,7 +3,7 @@ using Orleans;
 
 namespace AElf.Kernel.SmartContract.Orleans;
 
-public interface IPlainTransactionExecutingGrain : IGrainWithGuidKey
+public interface IPlainTransactionExecutingGrain : IGrainWithStringKey
 {
     Task<List<ExecutionReturnSet>> ExecuteAsync(TransactionExecutingDto transactionExecutingDto,
         CancellationToken cancellationToken);
