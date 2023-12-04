@@ -51,13 +51,17 @@ public class SiloExecutionAElfModule : AbpModule
                 .UseMongoDBClustering(options =>
                 {
                     options.DatabaseName = configuration["Orleans:DataBase"];
-                    ;
                     options.Strategy = MongoDBMembershipStrategy.SingleDocument;
                 })
                 .Configure<ClusterOptions>(options =>
                 {
                     options.ClusterId = configuration["Orleans:ClusterId"];
                     options.ServiceId = configuration["Orleans:ServiceId"];
+                })
+                .Configure<GatewayOptions>(options =>
+                {
+                    options.PreferedGatewayIndex = -1;
+                    options.GatewayListRefreshPeriod = TimeSpan.FromSeconds(1);
                 })
                 .ConfigureApplicationParts(parts =>
                     parts.AddApplicationPart(typeof(SiloExecutionAElfModule).Assembly).WithReferences())
