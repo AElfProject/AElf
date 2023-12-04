@@ -14,8 +14,9 @@ public class SiloTransactionExecutingService : IPlainTransactionExecutingService
     private readonly ILogger<SiloTransactionExecutingService> _logger;
     private readonly IClusterClient _clusterClient;
     private readonly IConfiguration _configuration;
-
-
+    private readonly int _defaultSiloInstanceCount = 20;
+    private readonly int _grainActivation = 10;
+    
     public SiloTransactionExecutingService(ISiloClusterClientContext siloClusterClientContext, ILogger<SiloTransactionExecutingService> logger, IClusterClient clusterClient, IConfiguration configuration)
     {
         _logger = logger;
@@ -33,7 +34,8 @@ public class SiloTransactionExecutingService : IPlainTransactionExecutingService
     {
         try
         {
-            string id = "PlainTransactionExecutingService" + transactionExecutingDto.BlockHeader.Height % 20;;
+            var siloInstanceCount = _configuration.GetValue("SiloInstanceCount", _defaultSiloInstanceCount);
+            string id = "PlainTransactionExecutingService" + transactionExecutingDto.BlockHeader.Height % (siloInstanceCount * _grainActivation);
             var grain = _siloClusterClientContext.GetClusterClient().GetGrain<IPlainTransactionExecutingGrain>(id);
             var result = await grain.ExecuteAsync(transactionExecutingDto, cancellationToken);
             return result;
