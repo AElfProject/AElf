@@ -62,8 +62,30 @@ message TransferInput {
     string memo = 4;
 }
 ```
-For example, if you use `aelf-command` tool described [here](https://aelf-ean.readthedocs.io/en/latest/reference/cli/index.html):
+For example, if you use `aelf-command` tool described [here](https://aelf-ean.readthedocs.io/en/latest/reference/cli/index.html), this command will help you transfer your tokens:
 ```Bash
 aelf-command send AElf.ContractNames.Token Transfer '{"symbol": "ELF", "to": "C91b1SF5mMbenHZTfdfbJSkJcK7HMjeiuwfQu8qYjGsESanXR", "amount": "1000000"}'
 ```
+
+If you're developing an aelf contract, after initializing the reference contract stub `State.TokenContract.Value` (by setting its address), you can do this:
+
+```C#
+State.TokenContract.Transfer.Send(new TransferInput
+{
+    To = receiverAddress,
+    Amount = amount,
+    Symbol = symbol
+});
+```
+
+This will transfer tokens **from your contract** to the account of `receiverAddress`.
+
+If your intention was not to transfer tokens from your contract, then you may consider to use `TransferFrom` method.
+
+### TransferFrom
+
+Users can transfer tokens from one account to another account by calling the TransferFrom method.
+
+Of course, the initiator of this transaction needs to obtain authorization to **from** account in advance, 
+and the authorization method will be discussed later.
 
