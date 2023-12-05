@@ -214,11 +214,11 @@ Syntax, imports and namespace
 The first line specifies the syntax used in this protobuf file. We recommend using proto3 for your contracts. 
 Next, you will notice that this contract specifies some imports. Let's briefly describe them:
 
-- aelf/options.proto: Contracts can use AElf-specific options. This file contains the definitions, including options like is_view that we will use later.
+- aelf/options.proto: Contracts can use aelf specific options. This file contains the definitions, including options like is_view that we will use later.
 - empty.proto, wrappers.proto: These are proto files imported directly from the protobuf library. They are useful for defining things like an empty return value and wrappers around common types, such as strings.
 
 The last line specifies an option that determines the target namespace of the generated code. In this case, 
-the generated code will be placed in the AElf.Contracts.Greeter namespace.
+the generated code will be placed in the **AElf.Contracts.Greeter** namespace.
 
 Service definitions
 ^^^^^^^^^^^^^^^^^^^
@@ -382,12 +382,12 @@ When defining properties under the state, we follow a generic approach:
 
 After becoming familiar with all state usages, you can also use ``StringState`` as an alternative to ``SingletonState<ClassType>``.
 
-Testing Smart Contracts
+Testing smart contracts
 -----------------------
 
 This tutorial will demonstrate how to test the GreeterContract for reference.
 
-AElf Contract TestKit is a testing framework designed specifically for testing AElf smart contracts. With this framework, 
+``AElf.ContractTestKit`` is a testing framework designed specifically for testing aelf smart contracts. With this framework, 
 you can simulate the execution of a transaction by constructing a stub of a smart contract and utilize the methods provided 
 by the Stub instance (corresponding to the contract's Action methods) for executing transactions and 
 queries (corresponding to the Views methods of the contract) to obtain transaction execution results in the test case.
@@ -472,8 +472,8 @@ involves obtaining the stub for the contract. Below is the content of the **_Set
     }
 
 In this code, TestBase inherits ContractTestBase<Module> and defines a contract stub within the class. 
-It also obtains a key pair from the AElf contract TestKit framework. In the constructor, the address and 
-key pair parameters are provided, and the "GetTester" method is used to retrieve the contract stub.
+It also obtains a key pair from the ``AElf.ContractTestKit`` framework. In the constructor, the address and 
+key pair parameters are provided, and the ``GetTester`` method is used to retrieve the contract stub.
 
 Implement contract unit test code
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
