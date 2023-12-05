@@ -21,7 +21,7 @@ public class SiloExecutionAElfModule : AbpModule
         var configuration = context.Services.GetConfiguration();
         ConfigureOrleans(context, configuration); 
         context.Services.AddSingleton<IPlainTransactionExecutingService, SiloTransactionExecutingService>();
-        context.Services.AddSingleton<IPlainTransactionExecutingGrain, PlainTransactionExecutingGrain>();
+        context.Services.AddTransient<IPlainTransactionExecutingGrain, PlainTransactionExecutingGrain>();
         context.Services.AddSingleton<ISiloClusterClientContext, SiloClusterClientContext>();
         context.Services.AddSingleton<ISmartContractExecutiveService, SmartContractExecutiveService>();
     }
@@ -68,9 +68,9 @@ public class SiloExecutionAElfModule : AbpModule
                 .ConfigureLogging(builder => builder.AddProvider(o.GetService<ILoggerProvider>()))
                 .Configure<PerformanceTuningOptions>(opt =>
                 {
-                    opt.MinDotNetThreadPoolSize = 20480;
-                    opt.MinIOThreadPoolSize = 20480;
-                    opt.DefaultConnectionLimit = 40960;
+                    opt.MinDotNetThreadPoolSize = 1000;
+                    opt.MinIOThreadPoolSize = 1000;
+                    opt.DefaultConnectionLimit = 1000;
                 })
                 .Build();
         });
