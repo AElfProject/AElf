@@ -65,6 +65,12 @@ public static class OrleansHostExtensions
                     options.DeathVoteExpirationTimeout = TimeSpan.FromSeconds(1);
                     options.ProbeTimeout = TimeSpan.FromSeconds(1);
                 })
+                .Configure<GrainCollectionOptions>(options =>
+                {
+                    options.DeactivationTimeout = TimeSpan.FromMinutes(1);
+                    options.CollectionAge = TimeSpan.FromMinutes(2);
+                    options.CollectionQuantum = TimeSpan.FromMinutes(1);
+                })
                 // .AddMemoryGrainStorage("PubSubStore")
                 .ConfigureApplicationParts(parts => parts.AddFromApplicationBaseDirectory())
                 .UseDashboard(options =>
