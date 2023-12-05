@@ -53,7 +53,7 @@ Note: Token creation can **only** be happened in the aelf **MainChain**.
 
 The input type of `Create` method is:
 
-```protobuf
+```
 message CreateInput {
     // The symbol of the token.
     string symbol = 1;
@@ -81,7 +81,7 @@ message CreateInput {
 For example, if you use **aelf-command** tool described [here](https://aelf-ean.readthedocs.io/en/latest/reference/cli/index.html), 
 this command will help you create a new type of token:
 
-```Bash
+```
 aelf-command send AElf.ContractNames.Token Create '{"symbol": "NEW_TOKEN_SYMBOL", "tokenName": "New Token Name", "totalSupply": "1000000000", "decimals": "8"}'
 ```
 
@@ -89,7 +89,7 @@ After the new token is successfully created, users can obtain relevant informati
 
 The input type of `GetTokenInfo` method is:
 
-```protobuf
+```
 message GetTokenInfoInput {
     // The symbol of token.
     string symbol = 1;
@@ -104,7 +104,7 @@ aelf-command call AElf.ContractNames.Token GetTokenInfo '{"symbol": "NEW_TOKEN_S
 
 For instance, to get the token information of **ELF**, the interaction will be like:
 
-```Bash
+```
 aelf-command call AElf.ContractNames.Token GetTokenInfo '{"symbol": "ELF"}'             
 
 ? Enter the the URI of an AElf node: https://aelf-public-node.aelf.io
@@ -154,7 +154,7 @@ message IssueInput {
 
 You can use the `send` command of **aelf-command** tool complete the issue process:
 
-```Bash
+```
 aelf-command send AElf.ContractNames.Token Issue '{"symbol": "NEW_TOKEN_SYMBOL", "amount": "1000000000", "to": "2WNUjzNPyd7dBwo9a5KG56AXfPCdwmcydXv4kDyTyFZwTum5nd"}'
 ```
 
@@ -172,14 +172,14 @@ message GetBalanceInput {
 }
 ```
 
-```Bash
+```
 aelf-command call AElf.ContractNames.Token GetBalance '{"symbol": "NEW_TOKEN_SYMBOL", "owner": "2WNUjzNPyd7dBwo9a5KG56AXfPCdwmcydXv4kDyTyFZwTum5nd"}'
 ```
 
 In addition, if developers wish to place the logic of the token issue in their own smart contract, 
 they can place the **Issue** operation in an appropriate position in the code through cross contract calls.
 
-```C#
+```
 // If this code has been executed since the contract deployment, then it can be skipped.
 State.TokenContract.Value = Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
 
@@ -193,7 +193,7 @@ State.TokenContract.Issue.Send(new IssueInput
 
 or:
 
-```C#
+```
 var tokenContractAddress = Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
 Context.SendInline(tokenContractAddress, "Issue", new IssueInput
 {
@@ -221,7 +221,7 @@ The URL should be put the `external_info` filed via a specific key: **__nft_imag
 
 For example, developers can use the following code to create a NFT Collection named **HELLO** in their contract code:
 
-```C#
+```
 State.TokenContract.Create.Send(new CreateInput
 {
     Symbol = "HELLO-0",
@@ -245,7 +245,7 @@ State.TokenContract.Create.Send(new CreateInput
 
 Next, through the same `Create` method, users can create NFTs for the "Hello" NFT Collection.
 
-```C#
+```
 State.TokenContract.Create.Send(new CreateInput
 {
     Symbol = "HELLO-0001",
@@ -290,14 +290,16 @@ message TransferInput {
     string memo = 4;
 }
 ```
+
 For example, if you use `aelf-command` tool described [here](https://aelf-ean.readthedocs.io/en/latest/reference/cli/index.html), this command will help you transfer your tokens:
-```Bash
+
+```
 aelf-command send AElf.ContractNames.Token Transfer '{"symbol": "ELF", "to": "C91b1SF5mMbenHZTfdfbJSkJcK7HMjeiuwfQu8qYjGsESanXR", "amount": "1000000"}'
 ```
 
 If you're developing an aelf contract, after initializing the reference contract stub `State.TokenContract.Value` (by setting its address), you can do this:
 
-```C#
+```
 State.TokenContract.Transfer.Send(new TransferInput
 {
     Symbol = symbol,
