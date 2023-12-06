@@ -1,9 +1,6 @@
 ﻿using AElf.Kernel;
-using AElf.Kernel.Infrastructure;
 using AElf.Modularity;
-using AElf.Types;
 using AElf.WebApp.Application.Chain.Infrastructure;
-using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.AutoMapper;
 using Volo.Abp.Modularity;
@@ -26,19 +23,5 @@ public class ChainApplicationWebAppAElfModule : AElfModule
         context.Services
             .AddSingleton<ITransactionResultStatusCacheProvider, TransactionResultStatusCacheProvider>();
 
-        context.Services.AddStoreKeyPrefixProvide<TransactionFailedResult>("tf");
-    }
-}
-
-public static class StoreKeyPrefixProviderServiceCollectionExtensions
-{
-    public static IServiceCollection AddStoreKeyPrefixProvide<T>(
-        this IServiceCollection serviceCollection, string prefix)
-        where T : IMessage<T>, new()
-    {
-        serviceCollection.AddTransient<IStoreKeyPrefixProvider<T>>(c =>
-            new FastStoreKeyPrefixProvider<T>(prefix));
-
-        return serviceCollection;
     }
 }

@@ -22,6 +22,7 @@ public class TransactionOptions
     /// <summary>
     ///     Configuration whether to save failed transaction results
     /// </summary>
-    public bool SaveFailedResult { get; set; }
+    public bool SaveInvalidTransactionResult { get; set; }
+
     
 }

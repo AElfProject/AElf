@@ -3,13 +3,13 @@ using AElf.Kernel.Blockchain.Domain;
 using AElf.Types;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.WebApp.Application.Chain.Services;
+namespace AElf.Kernel.TransactionPool.Application;
 
 
 public interface ITransactionFailedResultService
 {
-    Task AddFailedTransactionResultsAsync(Hash transactionId, TransactionFailedResult transactionResult);
-    Task<TransactionFailedResult> GetFailedTransactionResultAsync(Hash transactionId);
+    Task AddFailedTransactionResultsAsync(TransactionValidationFailure transactionResult);
+    Task<TransactionValidationFailure> GetFailedTransactionResultAsync(Hash transactionId);
 }
 
 public class TransactionFailedResultService : ITransactionFailedResultService, ITransientDependency
@@ -20,14 +20,13 @@ public class TransactionFailedResultService : ITransactionFailedResultService, I
     {
         _transactionFailedResultManager = transactionFailedResultManager;
     }
-
-
-    public async Task AddFailedTransactionResultsAsync(Hash transactionId, TransactionFailedResult transactionResult)
+    
+    public async Task AddFailedTransactionResultsAsync(TransactionValidationFailure transactionResult)
     {
-        await _transactionFailedResultManager.AddFailedTransactionResultAsync(transactionId, transactionResult);
+        await _transactionFailedResultManager.AddFailedTransactionResultAsync(transactionResult);
     }
 
-    public async Task<TransactionFailedResult> GetFailedTransactionResultAsync(Hash transactionId)
+    public async Task<TransactionValidationFailure> GetFailedTransactionResultAsync(Hash transactionId)
     {
         return await _transactionFailedResultManager.GetFailedTransactionResultAsync(transactionId);
     }

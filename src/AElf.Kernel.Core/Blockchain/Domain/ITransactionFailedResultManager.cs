@@ -6,33 +6,28 @@ namespace AElf.Kernel.Blockchain.Domain;
 
 public interface ITransactionFailedResultManager
 {
-    Task AddFailedTransactionResultAsync(Hash transactionId, TransactionFailedResult transactionResult);
-    Task<TransactionFailedResult> GetFailedTransactionResultAsync(Hash transactionId);
+    Task AddFailedTransactionResultAsync(TransactionValidationFailure transactionResult);
+    Task<TransactionValidationFailure> GetFailedTransactionResultAsync(Hash transactionId);
 }
 
 public class TransactionFailedResultManager : ITransactionFailedResultManager
 {
-    private readonly IBlockchainStore<TransactionFailedResult> _transactionFailedResultStore;
+    private readonly IBlockchainStore<TransactionValidationFailure> _transactionFailedResultStore;
 
-    public TransactionFailedResultManager(IBlockchainStore<TransactionFailedResult> transactionFailedResultStore)
+    public TransactionFailedResultManager(IBlockchainStore<TransactionValidationFailure> transactionFailedResultStore)
     {
         _transactionFailedResultStore = transactionFailedResultStore;
     }
 
-    public async Task AddFailedTransactionResultAsync(Hash transactionId, TransactionFailedResult transactionResult)
+    public async Task AddFailedTransactionResultAsync(TransactionValidationFailure transactionResult)
     {
-        await _transactionFailedResultStore.SetAsync(transactionId.ToStorageKey(), transactionResult);
+        await _transactionFailedResultStore.SetAsync(transactionResult.TransactionId.ToStorageKey(), transactionResult);
     }
 
 
-    public async Task<TransactionFailedResult> GetFailedTransactionResultAsync(Hash transactionId)
+    public async Task<TransactionValidationFailure> GetFailedTransactionResultAsync(Hash transactionId)
     {
-        var failedResult = await _transactionFailedResultStore.GetAsync(transactionId.ToStorageKey());
-        if (failedResult != null)
-        {
-            failedResult.TransactionId = transactionId;
-        }
-        return failedResult;
+        return await _transactionFailedResultStore.GetAsync(transactionId.ToStorageKey());
     }
 
 }

@@ -1,6 +1,5 @@
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.TransactionPool.Application;
-using AElf.WebApp.Application.Chain.Services;
 
 namespace AElf.WebApp.Application.Chain;
 

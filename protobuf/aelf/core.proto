@@ -72,7 +72,7 @@ message TransactionResult {
     string error = 10;
 }
 
-message TransactionFailedResult {
+message TransactionValidationFailure{
     // The transaction id.
     Hash transaction_id = 1;
     // The transaction result status.
