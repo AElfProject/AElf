@@ -9,7 +9,7 @@
         <Description>Core Kernel types.</Description>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
-        <DefineConstants>TRACE;DEBUG;NETSTANDARD2_1;DEBUG;NETSTANDARD2_1</DefineConstants>
+        <DefineConstants>TRACE;DEBUG;NETSTANDARD2_0;DEBUG;NETSTANDARD2_0</DefineConstants>
         <Optimize>true</Optimize>
     </PropertyGroup>
     <ItemGroup>
