@@ -464,7 +464,7 @@ Modify `last_irreversible_block_hash` and `last_irreversible_block_height` data 
   - implies that the LIB height is 181
 - BP5 as the EBP, produced block from 189(NextRound) to 196
 
-![LIB Calculation](lib-calculation.png)
+![LIB Calculation](images/lib-calculation.png)
 
 Block confirmation time:
 
