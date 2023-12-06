@@ -98,7 +98,7 @@ message GetTokenInfoInput {
 
 You can use the `call` command of **aelf-command** tool to get the token information:
 
-```protobuf
+```
 aelf-command call AElf.ContractNames.Token GetTokenInfo '{"symbol": "NEW_TOKEN_SYMBOL"}'
 ```
 
@@ -276,7 +276,7 @@ so there will be no further explanation here.
 
 Users can transfer their own tokens by calling the Transfer method.
 
-The input type is:
+The input type of `Transfer` method is:
 
 ```protobuf
 message TransferInput {
@@ -300,6 +300,9 @@ aelf-command send AElf.ContractNames.Token Transfer '{"symbol": "ELF", "to": "C9
 If you're developing an aelf contract, after initializing the reference contract stub `State.TokenContract.Value` (by setting its address), you can do this:
 
 ```
+// If this code has been executed since the contract deployment, then it can be skipped.
+State.TokenContract.Value = Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
+
 State.TokenContract.Transfer.Send(new TransferInput
 {
     Symbol = symbol,
@@ -314,8 +317,180 @@ If your intention was not to transfer tokens from your contract, then you may co
 
 ### TransferFrom
 
-Users can transfer tokens from one account to another account by calling the TransferFrom method.
+Users can transfer tokens from one account to another account by calling the `TransferFrom` method.
 
-Of course, the initiator of this transaction needs to obtain authorization to **from** account in advance, 
-and the authorization method will be discussed later.
+Of course, the initiator of this transaction needs to obtain authorization to **from** account in advance via `Approve` method, 
+we will discuss this authorization method later.
 
+In the context of TransferFrom：
+- **from** will be the transfer.
+- **to** will be the token receiver.
+
+The input type of `TransferFrom` method is:
+
+```
+message TransferFromInput {
+    // The source address of the token.
+    aelf.Address from = 1;
+    // The destination address of the token.
+    aelf.Address to = 2;
+    // The symbol of the token to transfer.
+    string symbol = 3;
+    // The amount to transfer.
+    int64 amount = 4;
+    // The memo.
+    string memo = 5;
+}
+```
+
+If you have obtained an amount of approved value from the **"from"** account, 
+you can send a `TransferFrom` transaction using the aelf-command tool.
+
+```
+aelf-command send AElf.ContractNames.Token TransferFrom '{"symbol": "ELF", "from": "C91b1SF5mMbenHZTfdfbJSkJcK7HMjeiuwfQu8qYjGsESanXR", "to": "2WNUjzNPyd7dBwo9a5KG56AXfPCdwmcydXv4kDyTyFZwTum5nd", "amount": "1000000"}'
+```
+
+Of course, it should be noted that the transfer amount cannot exceed the approved amount.
+
+When developing aelf smart contracts, it is often necessary to use the `TransferFrom` method to manipulate tokens:
+
+```
+// If this code has been executed since the contract deployment, then it can be skipped.
+State.TokenContract.Value = Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
+
+State.TokenContract.TransferFrom.Send(new TransferFromInput
+{
+    Symbol = symbol,
+    From = fromAddress,
+    To = toAddress,
+    Amount = amount
+});
+```
+
+### Approve
+
+Users can use this method to approve whether an amount of token from an account can be spent by a third-party account.
+
+The `Approve` transaction's signer account will be the **"from"** account in the `TransferFrom` method.
+And the "spender" account will have the right to transfer tokens from the **"from"** account.
+
+The input type of `Approve` method is:
+
+```
+message ApproveInput {
+    // The address that allowance will be increased. 
+    aelf.Address spender = 1;
+    // The symbol of token to approve.
+    string symbol = 2;
+    // The amount of token to approve.
+    int64 amount = 3;
+}
+```
+
+If you're using the aelf-command tool:
+
+```
+aelf-command send AElf.ContractNames.Token Approve '{"symbol": "ELF", "spender": "C91b1SF5mMbenHZTfdfbJSkJcK7HMjeiuwfQu8qYjGsESanXR", "amount": "1000000"}'
+```
+
+Next, you can use the `call` command of aelf-command tool to check the allowance via `GetAllowance` method.
+
+The input type of `GetAllowance` method is:
+```protobuf
+message GetAllowanceInput {
+    // The symbol of token.
+    string symbol = 1;
+    // The address of the token owner.
+    aelf.Address owner = 2;
+    // The address of the spender.
+    aelf.Address spender = 3;
+}
+```
+
+```
+aelf-command call AElf.ContractNames.Token GetAllowance '{"symbol": "ELF", "owner": "2WNUjzNPyd7dBwo9a5KG56AXfPCdwmcydXv4kDyTyFZwTum5nd", "spender": "C91b1SF5mMbenHZTfdfbJSkJcK7HMjeiuwfQu8qYjGsESanXR"}'
+```
+
+### UnApprove
+
+The **sponsor** (The **"from"** account in `TransferFrom` method) can use the `UnApprove` method to decrease the allowance of a **spender** account.
+
+If the previous allowance was 100000, the sponsor can reduce the allowance by 50000 through the `UnApprove` method, then the allowance will be changed to 50000.
+
+The input type of `UnApprove` method is:
+
+```
+message UnApproveInput {
+    // The address that allowance will be decreased. 
+    aelf.Address spender = 1;
+    // The symbol of token to un-approve.
+    string symbol = 2;
+    // The amount of token to un-approve.
+    int64 amount = 3;
+}
+```
+
+If the `amount` filed of the input parameter exceeds or equals the allowance, then the allowance will become 0.
+
+If you're using the aelf-command tool:
+
+```
+aelf-command send AElf.ContractNames.Token UnApprove '{"symbol": "ELF", "spender": "C91b1SF5mMbenHZTfdfbJSkJcK7HMjeiuwfQu8qYjGsESanXR", "amount": "1000000"}'
+```
+
+Remember to call the `GetAllowance` method to check the new allowance, ensure that the allowance has changed.
+
+### Burn
+
+If a token is burnable, then any token holder can burn their own tokens through `Burn` method.
+
+Whether a token can be burned can be queried by calling `GetTokenInfo` method.
+
+Like if you‘re trying to get the **TokenInfo** of **ELF**:
+
+```
+aelf-command call AElf.ContractNames.Token GetTokenInfo '{"symbol": "ELF"}'
+```
+
+The response will be :
+
+```
+AElf [Info]: 
+Result:
+{
+  "symbol": "ELF",
+  "tokenName": "Native Token",
+  "supply": "99616865842269247",
+  "totalSupply": "100000000000000000",
+  "decimals": 8,
+  "issuer": "cxZuMcWFE7we6CNESgh9Y4M6n7eM5JgFAgVMPrTNEv9wFEvQp",
+  "isBurnable": true,
+  "issueChainId": 9992731,
+  "issued": "100000000000000000",
+  "externalInfo": null,
+  "owner": null
+} 
+```
+
+Note this line: 
+```
+"isBurnable": true,
+```
+Which means the ELF token can be burned.
+
+The input type of `Burn` method is:
+
+```
+message BurnInput {
+    // The symbol of token to burn.
+    string symbol = 1;
+    // The amount of token to burn.
+    int64 amount = 2;
+}
+```
+
+If you're using the aelf-command tool:
+
+```
+aelf-command send AElf.ContractNames.Token Burn '{"symbol": "ELF", "amount": "100"}'
+```
