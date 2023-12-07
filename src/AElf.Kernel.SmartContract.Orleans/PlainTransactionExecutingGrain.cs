@@ -38,9 +38,13 @@ public class PlainTransactionExecutingGrain : Grain, IPlainTransactionExecutingG
     public async Task<List<ExecutionReturnSet>> ExecuteAsync(TransactionExecutingDto transactionExecutingDto,
         CancellationToken cancellationToken)
     {
+        var startAll = DateTime.Now;
+        var start = DateTime.Now;
+        var end = DateTime.Now;
+        var uuid = Guid.NewGuid().ToString();
         try
         {
-            Logger.LogInformation($"PlainTransactionExecutingGrain.ExecuteAsync, groupType:{transactionExecutingDto.GroupType}, height: {transactionExecutingDto.BlockHeader.Height},txCount:{transactionExecutingDto.Transactions.Count()}");
+            Logger.LogInformation($"{uuid},start - PlainTransactionExecutingGrain.ExecuteAsync, groupType:{transactionExecutingDto.GroupType}, height: {transactionExecutingDto.BlockHeader.Height},txCount:{transactionExecutingDto.Transactions.Count()}");
             _defaultContractZeroCodeProvider.SetDefaultContractZeroRegistrationByType(typeof(BasicContractZero));
 
             var groupStateCache = transactionExecutingDto.PartialBlockStateSet.ToTieredStateCache();
@@ -64,11 +68,18 @@ public class PlainTransactionExecutingGrain : Grain, IPlainTransactionExecutingG
                     OriginTransactionId = transaction.GetHash()
                 };
                 try
-                {
+                { 
+                    start = DateTime.Now;
                     var transactionExecutionTask = Task.Run(() => ExecuteOneAsync(singleTxExecutingDto,
                         cancellationToken), cancellationToken);
-
+                    end = DateTime.Now;
+                    Logger.LogInformation($"{uuid}, - PlainTransactionExecutingGrain.ExecuteAsync--ExecuteOneAsync, time: {(end - start).TotalMilliseconds} ms");
+                    start = DateTime.Now;
                     trace = await transactionExecutionTask.WithCancellation(cancellationToken);
+                    end = DateTime.Now;
+                    Logger.LogInformation($"{uuid}, - PlainTransactionExecutingGrain.ExecuteAsync--WithCancellation, time: {(end - start).TotalMilliseconds} ms");
+
+
                 }
                 catch (OperationCanceledException)
                 {
@@ -84,9 +95,14 @@ public class PlainTransactionExecutingGrain : Grain, IPlainTransactionExecutingG
 #if DEBUG
                 if (!string.IsNullOrEmpty(trace.Error)) Logger.LogInformation("{Error}", trace.Error);
 #endif
+                start = DateTime.Now;
                 var result = GetTransactionResult(trace, transactionExecutingDto.BlockHeader.Height);
-
+                end = DateTime.Now;
+                Logger.LogInformation($"{uuid}, - PlainTransactionExecutingGrain.ExecuteAsync--GetTransactionResult, time: {(end - start).TotalMilliseconds} ms");
+                start = DateTime.Now;
                 var returnSet = GetReturnSet(trace, result);
+                end = DateTime.Now;
+                Logger.LogInformation($"{uuid}, - PlainTransactionExecutingGrain.ExecuteAsync--GetReturnSet, time: {(end - start).TotalMilliseconds} ms");
                 returnSets.Add(returnSet);
             }
 
@@ -96,6 +112,9 @@ public class PlainTransactionExecutingGrain : Grain, IPlainTransactionExecutingG
         {
             Logger.LogError(e, "Failed while executing txs in block");
             throw;
+        }finally{
+            end = DateTime.Now;
+            Logger.LogInformation($"{uuid},end - PlainTransactionExecutingGrain.ExecuteAsync, time: {(end - startAll).TotalMilliseconds} ms");
         }
     }
 
