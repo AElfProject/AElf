@@ -593,7 +593,7 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
     public override Empty ModifyTokenIssuerAndOwner(ModifyTokenIssuerAndOwnerInput input)
     {
         Assert(!State.TokenIssuerAndOwnerModificationDisabled.Value, "Set token issuer and owner disabled.");
-        Assert(string.IsNullOrWhiteSpace(input.Symbol), "Invalid input symbol.");
+        Assert(!string.IsNullOrWhiteSpace(input.Symbol), "Invalid input symbol.");
         Assert(input.Issuer != null && !input.Issuer.Value.IsNullOrEmpty(), "Invalid input issuer.");
         Assert(input.Owner != null && !input.Owner.Value.IsNullOrEmpty(), "Invalid input owner.");
 
