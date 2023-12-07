@@ -163,6 +163,16 @@ service TokenContractImpl {
     rpc GetTransactionFeeDelegateInfo(GetTransactionFeeDelegateInfoInput) returns (token.TransactionFeeDelegations){
         option (aelf.is_view) = true;
     }
+    
+    rpc ModifyTokenIssuerAndOwner(ModifyTokenIssuerAndOwnerInput) returns (google.protobuf.Empty) {
+    }
+    
+    rpc SetTokenIssuerAndOwnerModificationEnabled(google.protobuf.BoolValue) returns (google.protobuf.Empty) {
+    }
+    
+    rpc GetTokenIssuerAndOwnerModificationEnabled(google.protobuf.Empty) returns (google.protobuf.BoolValue) {
+        option (aelf.is_view) = true;
+    }
 }
 
 message AdvanceResourceTokenInput {
@@ -415,4 +425,10 @@ message TransactionFeeDelegateInfoCancelled {
     aelf.Address delegatee = 2 ;
     aelf.Address caller = 3 ;
     DelegateTransactionList delegate_transaction_list = 4;
+}
+
+message ModifyTokenIssuerAndOwnerInput {
+    string symbol = 1;
+    aelf.Address issuer = 2;
+    aelf.Address owner = 3;
 }
