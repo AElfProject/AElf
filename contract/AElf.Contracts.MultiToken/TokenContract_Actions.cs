@@ -594,7 +594,7 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
     {
         Assert(!State.TokenIssuerAndOwnerModificationDisabled.Value, "Set token issuer and owner disabled.");
         Assert(!string.IsNullOrWhiteSpace(input.Symbol), "Invalid input symbol.");
-        Assert(input.Issuer != null && !input.Issuer.Value.IsNullOrEmpty(), "Invalid input issuer.");
+        Assert(input.Issuer != null && !input.Issuer.Value.IsNullOrEmpty(), "InBvalid input issuer.");
         Assert(input.Owner != null && !input.Owner.Value.IsNullOrEmpty(), "Invalid input owner.");
 
         var tokenInfo = State.TokenInfos[input.Symbol];
@@ -609,18 +609,21 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
         return new Empty();
     }
 
-    public override Empty SetTokenIssuerAndOwnerModificationEnabled(BoolValue input)
+    public override Empty SetTokenIssuerAndOwnerModificationDisabled(SetTokenIssuerAndOwnerModificationDisabledInput input)
     {
         AssertSenderAddressWith(GetDefaultParliamentController().OwnerAddress);
         Assert(input != null, "Invalid input.");
 
-        State.TokenIssuerAndOwnerModificationDisabled.Value = input.Value;
+        State.TokenIssuerAndOwnerModificationDisabled.Value = input.Disabled;
 
         return new Empty();
     }
 
     public override BoolValue GetTokenIssuerAndOwnerModificationEnabled(Empty input)
     {
-        return new BoolValue { Value = State.TokenIssuerAndOwnerModificationDisabled.Value };
+        return new BoolValue
+        {
+            Value = !State.TokenIssuerAndOwnerModificationDisabled.Value
+        };
     }
 }
