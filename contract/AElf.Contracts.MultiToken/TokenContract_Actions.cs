@@ -609,12 +609,12 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
         return new Empty();
     }
 
-    public override Empty SetTokenIssuerAndOwnerModificationDisabled(SetTokenIssuerAndOwnerModificationDisabledInput input)
+    public override Empty SetTokenIssuerAndOwnerModificationEnabled(SetTokenIssuerAndOwnerModificationEnabledInput input)
     {
         AssertSenderAddressWith(GetDefaultParliamentController().OwnerAddress);
         Assert(input != null, "Invalid input.");
 
-        State.TokenIssuerAndOwnerModificationDisabled.Value = input.Disabled;
+        State.TokenIssuerAndOwnerModificationDisabled.Value = !input.Enabled;
 
         return new Empty();
     }
