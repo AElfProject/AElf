@@ -379,6 +379,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TestContract
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.VirtualTransactionEventContract.Tests", "test\AElf.Contracts.VirtualTransactionEventContract.Tests\AElf.Contracts.VirtualTransactionEventContract.Tests.csproj", "{6981684D-450C-412B-9082-0B0A67A679B9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Keystore", "src\AElf.Keystore\AElf.Keystore.csproj", "{40CCAFD0-0D2C-4EE9-87AF-24EB688D9456}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Keystore.Tests", "test\AElf.Keystore.Tests\AElf.Keystore.Tests.csproj", "{86A68D4F-FD77-4B0E-AEE8-DE074DC44BCD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -1089,6 +1093,14 @@ Global
 		{6981684D-450C-412B-9082-0B0A67A679B9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6981684D-450C-412B-9082-0B0A67A679B9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6981684D-450C-412B-9082-0B0A67A679B9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{40CCAFD0-0D2C-4EE9-87AF-24EB688D9456}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{40CCAFD0-0D2C-4EE9-87AF-24EB688D9456}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{40CCAFD0-0D2C-4EE9-87AF-24EB688D9456}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{40CCAFD0-0D2C-4EE9-87AF-24EB688D9456}.Release|Any CPU.Build.0 = Release|Any CPU
+		{86A68D4F-FD77-4B0E-AEE8-DE074DC44BCD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{86A68D4F-FD77-4B0E-AEE8-DE074DC44BCD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{86A68D4F-FD77-4B0E-AEE8-DE074DC44BCD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{86A68D4F-FD77-4B0E-AEE8-DE074DC44BCD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1280,5 +1292,7 @@ Global
 		{64498F8C-B827-4E1C-B5FB-4B9188C839A8} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
 		{0F10B838-C363-4F55-A5BB-B7F9F80565AB} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
 		{6981684D-450C-412B-9082-0B0A67A679B9} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
+		{40CCAFD0-0D2C-4EE9-87AF-24EB688D9456} = {798BAA50-825B-4DD9-83E2-77A9EE6EBE09}
+		{86A68D4F-FD77-4B0E-AEE8-DE074DC44BCD} = {4E54480A-D155-43ED-9736-1A5BE7957211}
 	EndGlobalSection
 EndGlobal
