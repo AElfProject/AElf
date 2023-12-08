@@ -594,7 +594,7 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
     {
         Assert(!State.TokenIssuerAndOwnerModificationDisabled.Value, "Set token issuer and owner disabled.");
         Assert(!string.IsNullOrWhiteSpace(input.Symbol), "Invalid input symbol.");
-        Assert(input.Issuer != null && !input.Issuer.Value.IsNullOrEmpty(), "InBvalid input issuer.");
+        Assert(input.Issuer != null && !input.Issuer.Value.IsNullOrEmpty(), "Invalid input issuer.");
         Assert(input.Owner != null && !input.Owner.Value.IsNullOrEmpty(), "Invalid input owner.");
 
         var tokenInfo = State.TokenInfos[input.Symbol];
