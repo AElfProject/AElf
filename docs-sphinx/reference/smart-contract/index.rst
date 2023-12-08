@@ -5,8 +5,8 @@ Smart Contract
 
    Genesis Contract <genesis-contract>
    Consensus Contract <consensus-contract>
-   Multi Token Contract <multi-token-contract>
-   Cross chain Contract <cross-chain-contract>
+   MultiToken Contract <multi-token-contract>
+   Cross Chain Contract <cross-chain-contract>
    Vote Contract <vote-contract>
    Profit Contract <profit-contract>
    Election Contract <election-contract>

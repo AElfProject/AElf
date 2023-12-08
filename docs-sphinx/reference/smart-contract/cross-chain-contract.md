@@ -1,4 +1,4 @@
-# Cross Chain Contract
+# CrossChain Contract
 
 ## Overview
 

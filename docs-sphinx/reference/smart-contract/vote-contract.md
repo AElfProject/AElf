@@ -49,6 +49,12 @@ message VotingItem {
 }
 ```
 
+The field `voting_item_id` is the unique identifier of a voting event.
+And this voting event can only accept tokens of symbol is `accepted_currency` as valid votes.
+Of course, this token need to be created in the MultiToken Contract.
+
+The `options` filed records all the valid options of current voting event for voters to vote.
+
 To create a new voting event, users can send a `Register` transaction to Vote Contract.
 
 The input type of `Register` method is:
