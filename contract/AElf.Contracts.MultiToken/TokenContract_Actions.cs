@@ -600,9 +600,9 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
         var tokenInfo = State.TokenInfos[input.Symbol];
 
         Assert(tokenInfo != null, "Token is not found.");
-        Assert(tokenInfo.Owner == null, "Can only set token which does not have owner.");
         Assert(tokenInfo.Issuer == Context.Sender, "Only token issuer can set token issuer and owner.");
-
+        Assert(tokenInfo.Owner == null, "Can only set token which does not have owner.");
+        
         tokenInfo.Issuer = input.Issuer;
         tokenInfo.Owner = input.Owner;
 
