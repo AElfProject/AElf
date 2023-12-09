@@ -600,27 +600,30 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
         var tokenInfo = State.TokenInfos[input.Symbol];
 
         Assert(tokenInfo != null, "Token is not found.");
-        Assert(tokenInfo.Owner == null, "Can only set token which does not have owner.");
         Assert(tokenInfo.Issuer == Context.Sender, "Only token issuer can set token issuer and owner.");
-
+        Assert(tokenInfo.Owner == null, "Can only set token which does not have owner.");
+        
         tokenInfo.Issuer = input.Issuer;
         tokenInfo.Owner = input.Owner;
 
         return new Empty();
     }
 
-    public override Empty SetTokenIssuerAndOwnerModificationEnabled(BoolValue input)
+    public override Empty SetTokenIssuerAndOwnerModificationEnabled(SetTokenIssuerAndOwnerModificationEnabledInput input)
     {
         AssertSenderAddressWith(GetDefaultParliamentController().OwnerAddress);
         Assert(input != null, "Invalid input.");
 
-        State.TokenIssuerAndOwnerModificationDisabled.Value = input.Value;
+        State.TokenIssuerAndOwnerModificationDisabled.Value = !input.Enabled;
 
         return new Empty();
     }
 
     public override BoolValue GetTokenIssuerAndOwnerModificationEnabled(Empty input)
     {
-        return new BoolValue { Value = State.TokenIssuerAndOwnerModificationDisabled.Value };
+        return new BoolValue
+        {
+            Value = !State.TokenIssuerAndOwnerModificationDisabled.Value
+        };
     }
 }

@@ -167,7 +167,7 @@ service TokenContractImpl {
     rpc ModifyTokenIssuerAndOwner(ModifyTokenIssuerAndOwnerInput) returns (google.protobuf.Empty) {
     }
     
-    rpc SetTokenIssuerAndOwnerModificationEnabled(google.protobuf.BoolValue) returns (google.protobuf.Empty) {
+    rpc SetTokenIssuerAndOwnerModificationEnabled(SetTokenIssuerAndOwnerModificationEnabledInput) returns (google.protobuf.Empty) {
     }
     
     rpc GetTokenIssuerAndOwnerModificationEnabled(google.protobuf.Empty) returns (google.protobuf.BoolValue) {
@@ -431,4 +431,8 @@ message ModifyTokenIssuerAndOwnerInput {
     string symbol = 1;
     aelf.Address issuer = 2;
     aelf.Address owner = 3;
+}
+
+message SetTokenIssuerAndOwnerModificationEnabledInput{
+    bool enabled = 1;
 }
