@@ -58,19 +58,19 @@ public class SiloExecutionAElfModule : AbpModule
                     options.ClusterId = configuration["Orleans:ClusterId"];
                     options.ServiceId = configuration["Orleans:ServiceId"];
                 })
-                .Configure<GatewayOptions>(options =>
+                /*.Configure<GatewayOptions>(options =>
                 {
                     options.PreferedGatewayIndex = -1;
                     options.GatewayListRefreshPeriod = TimeSpan.FromSeconds(1);
-                })
+                })*/
                 .ConfigureApplicationParts(parts =>
                     parts.AddApplicationPart(typeof(SiloExecutionAElfModule).Assembly).WithReferences())
                 .ConfigureLogging(builder => builder.AddProvider(o.GetService<ILoggerProvider>()))
                 .Configure<PerformanceTuningOptions>(opt =>
                 {
-                    opt.MinDotNetThreadPoolSize = 1000;
-                    opt.MinIOThreadPoolSize = 1000;
-                    opt.DefaultConnectionLimit = 1000;
+                    opt.MinDotNetThreadPoolSize = 100;
+                    opt.MinIOThreadPoolSize = 100;
+                    opt.DefaultConnectionLimit = 100;
                 })
                 .Build();
         });
