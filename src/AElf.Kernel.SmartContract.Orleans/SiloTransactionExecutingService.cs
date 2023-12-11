@@ -37,8 +37,12 @@ public class SiloTransactionExecutingService : IPlainTransactionExecutingService
             var siloInstanceCount = _configuration.GetValue("SiloInstanceCount", _defaultSiloInstanceCount);
             string id = "PlainTransactionExecutingService" + transactionExecutingDto.BlockHeader.Height % (siloInstanceCount * _grainActivation);
             var grain = _siloClusterClientContext.GetClusterClient().GetGrain<IPlainTransactionExecutingGrain>(id);
-            var result = await grain.ExecuteAsync(transactionExecutingDto, cancellationToken);
-            return result;
+            Task<List<ExecutionReturnSet>> t1 = Task.Run(async () =>
+            {
+                var result = await grain.ExecuteAsync(transactionExecutingDto, cancellationToken);
+                return result;
+            });
+            return await t1;
         }
         catch (Exception e)
         {
