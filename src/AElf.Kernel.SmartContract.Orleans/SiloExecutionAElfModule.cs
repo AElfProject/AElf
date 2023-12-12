@@ -21,7 +21,7 @@ public class SiloExecutionAElfModule : AbpModule
         var configuration = context.Services.GetConfiguration();
         ConfigureOrleans(context, configuration); 
         context.Services.AddSingleton<IPlainTransactionExecutingService, SiloTransactionExecutingService>();
-        context.Services.AddTransient<IPlainTransactionExecutingGrain, PlainTransactionExecutingGrain>();
+        context.Services.AddSingleton<IPlainTransactionExecutingGrain, PlainTransactionExecutingGrain>();
         context.Services.AddSingleton<ISiloClusterClientContext, SiloClusterClientContext>();
         context.Services.AddSingleton<ISmartContractExecutiveService, SmartContractExecutiveService>();
     }
@@ -58,11 +58,11 @@ public class SiloExecutionAElfModule : AbpModule
                     options.ClusterId = configuration["Orleans:ClusterId"];
                     options.ServiceId = configuration["Orleans:ServiceId"];
                 })
-                /*.Configure<GatewayOptions>(options =>
+                .Configure<GatewayOptions>(options =>
                 {
                     options.PreferedGatewayIndex = -1;
                     options.GatewayListRefreshPeriod = TimeSpan.FromSeconds(1);
-                })*/
+                })
                 .ConfigureApplicationParts(parts =>
                     parts.AddApplicationPart(typeof(SiloExecutionAElfModule).Assembly).WithReferences())
                 .ConfigureLogging(builder => builder.AddProvider(o.GetService<ILoggerProvider>()))

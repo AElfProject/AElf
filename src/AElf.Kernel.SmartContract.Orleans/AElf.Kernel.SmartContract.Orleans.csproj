@@ -10,11 +10,11 @@
     <ItemGroup>
        <!-- <PackageReference Include="AElf.AElfNode.EventHandler.BackgroundJob" Version="1.1.9" />-->
         <!--<PackageReference Include="Microsoft.Extensions.Http" Version="6.0.0" />-->
-        <PackageReference Include="Microsoft.Orleans.CodeGenerator.MSBuild" Version="3.7.1">
+        <PackageReference Include="Microsoft.Orleans.CodeGenerator.MSBuild" Version="3.6.5">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Microsoft.Orleans.Core.Abstractions" Version="3.7.1" />
+        <PackageReference Include="Microsoft.Orleans.Core.Abstractions" Version="3.6.5" />
         <PackageReference Include="MongoDB.Bson" Version="2.17.1" />
         <PackageReference Include="Orleans.Providers.MongoDB" Version="3.8.0" />
 <!--        <PackageReference Include="AElf.Sdk.CSharp" Version="1.5.0" />-->
@@ -65,7 +65,7 @@
 
     <ItemGroup>
       <Reference Include="Orleans.Core">
-        <HintPath>..\..\..\..\..\.nuget\packages\microsoft.orleans.core\3.7.1\lib\net6.0\Orleans.Core.dll</HintPath>
+        <HintPath>..\..\..\..\..\.nuget\packages\microsoft.orleans.core\3.6.5\lib\net6.0\Orleans.Core.dll</HintPath>
       </Reference>
     </ItemGroup>
 

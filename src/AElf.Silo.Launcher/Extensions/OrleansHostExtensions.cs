@@ -60,11 +60,11 @@ public static class OrleansHostExtensions
                     options.ClusterId = configSection.GetValue<string>("ClusterId");
                     options.ServiceId = configSection.GetValue<string>("ServiceId");
                 })
-                /*.Configure<ClusterMembershipOptions>(options =>
+                .Configure<ClusterMembershipOptions>(options =>
                 {
                     options.DeathVoteExpirationTimeout = TimeSpan.FromSeconds(1);
                     options.ProbeTimeout = TimeSpan.FromSeconds(1);
-                })*/
+                })
                 .Configure<GrainCollectionOptions>(options =>
                 {
                     options.DeactivationTimeout = TimeSpan.FromMinutes(1);
