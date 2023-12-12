@@ -21,7 +21,7 @@ In this article, we will discuss:
 
 - How to create a profit scheme
 - How to manage shares of beneficiaries
-- How to distribute profits
+- How to contribute and distribute profits
 - Application of Profit Contract in AElf Economic System
 - Profit Contract method explanation
 
@@ -173,4 +173,104 @@ Transaction: ab97bd5a3d42e2f8ab3d2f3e02019fe232369380791e4c90180c54b318630f9d is
 As you can see from the event message:
 - The SchemeId is `616a605c4221c82bd5c88a7279fbcff4d23b4951010acbbbee24a6afc2b63599`.
 - The VirtualAddress is `Vpb3LDUnkgrVetF1RADywdLbXQ5fY95VeLymgVsM7ti1XUyh4`.
+
+## How to manage shares of beneficiaries
+
+There are two types of profits beneficiaries:
+
+- Normal beneficiary, which means that someone can operate the account through a private key.
+- Sub profit scheme, just like the profit scheme created above. 
+And the sub profit scheme can be allocated a certain share of profits like the normal beneficiary.
+
+If you're going to add a new normal beneficiary, you can send an `AddBeneficiary` transaction:
+
+```
+aelf-command send AElf.ContractNames.Profit AddBeneficiary
+? Enter the the URI of an AElf node: https://aelf-test-node.aelf.io
+? Enter a valid wallet address, if you don't have, create one by aelf-command create: 2WNUjzNPyd7dBwo9a5KG
+56AXfPCdwmcydXv4kDyTyFZwTum5nd
+? Enter the password you typed when creating a wallet: ********
+✔ Fetching contract successfully!
+
+If you need to pass file contents as a parameter, you can enter the relative or absolute path of the file
+
+Enter the params one by one, type `Enter` to skip optional param:
+? Enter the required param <schemeId>: 616a605c4221c82bd5c88a7279fbcff4d23b4951010acbbbee24a6afc2b63599
+? Enter the required param <beneficiaryShare.beneficiary>: 2HeW7S9HZrbRJZeivMppUuUY3djhWdfVnP5zrDsz8wqq6hK
+MfT
+? Enter the required param <beneficiaryShare.shares>: 1
+? Enter the required param <endPeriod>: 10
+? Enter the required param <profitDetailId>:
+The params you entered is:
+{
+  "schemeId": "616a605c4221c82bd5c88a7279fbcff4d23b4951010acbbbee24a6afc2b63599",
+  "beneficiaryShare": {
+    "beneficiary": "2HeW7S9HZrbRJZeivMppUuUY3djhWdfVnP5zrDsz8wqq6hKMfT",
+    "shares": 1
+  },
+  "endPeriod": 10
+}
+✔ Succeed!
+AElf [Info]:
+Result:
+{
+  "TransactionId": "3afa8abf9560815ce43a8d585aa3e1a432711171a0ec2a002b7ba621dfe92dc0"
+}
+✔ Succeed!
+```
+
+Then the profit scheme will have the first beneficiary `2HeW7S9HZrbRJZeivMppUuUY3djhWdfVnP5zrDsz8wqq6hKMfT`, 
+and the shares of this beneficiary is 1.
+
+If you no longer add other beneficiaries, 
+the next time the profit scheme is released, 
+this account will receive all profits; 
+If another beneficiary with a share of 1 is added, 
+the two beneficiaries will share the profits equally.
+
+Now if you use the `GetScheme` method to check your profit scheme:
+
+```
+aelf-command call AElf.ContractNames.Profit GetScheme
+? Enter the the URI of an AElf node: https://aelf-test-node.aelf.io
+? Enter a valid wallet address, if you don't have, create one by aelf-command create: 2WNUjzNPyd7dBwo9a5KG
+56AXfPCdwmcydXv4kDyTyFZwTum5nd
+? Enter the password you typed when creating a wallet: ********
+✔ Fetching contract successfully!
+
+If you need to pass file contents as a parameter, you can enter the relative or absolute path of the file
+
+Enter the params one by one, type `Enter` to skip optional param:
+? Enter the required param <value>: 616a605c4221c82bd5c88a7279fbcff4d23b4951010acbbbee24a6afc2b63599
+The params you entered is:
+"616a605c4221c82bd5c88a7279fbcff4d23b4951010acbbbee24a6afc2b63599"
+✔ Calling method successfully!
+AElf [Info]:
+Result:
+{
+  "subSchemes": [],
+  "cachedDelayTotalShares": {},
+  "receivedTokenSymbols": [],
+  "virtualAddress": "Vpb3LDUnkgrVetF1RADywdLbXQ5fY95VeLymgVsM7ti1XUyh4",
+  "totalShares": "1",
+  "manager": "2WNUjzNPyd7dBwo9a5KG56AXfPCdwmcydXv4kDyTyFZwTum5nd",
+  "currentPeriod": "1",
+  "canRemoveBeneficiaryDirectly": true,
+  "profitReceivingDuePeriodCount": "10",
+  "isReleaseAllBalanceEveryTimeByDefault": true,
+  "schemeId": "616a605c4221c82bd5c88a7279fbcff4d23b4951010acbbbee24a6afc2b63599",
+  "delayDistributePeriodCount": 0
+}
+✔ Succeed!
+```
+
+You can see the `totalShares` now is 1.
+
+If you want to add multiple beneficiaries at once, you can use the `AddBeneficiaries` method.
+Then these beneficiaries will share the same `endPeriod`.
+
+And if you want to add sub profit schemes as a beneficiary, instead of providing the beneficiary address,
+you need to provide the `subSchemeId` and `subSchemeShares`. 
+No need to provide `endPeriod` in this case because the lasting period of sub profit schemes will be forever by default
+until you remove it via a `RemoveSubScheme` transaction.
 
