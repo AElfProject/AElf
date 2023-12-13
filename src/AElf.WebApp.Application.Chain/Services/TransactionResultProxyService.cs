@@ -7,21 +7,21 @@ public interface ITransactionResultProxyService
 {
     ITransactionPoolService TransactionPoolService { get; }
     ITransactionResultQueryService TransactionResultQueryService { get; }
-    ITransactionFailedResultService TransactionFailedResultService { get; }
+    ITransactionInvalidResultService TransactionInvalidResultService { get; }
 }
 
 public class TransactionResultProxyService : ITransactionResultProxyService
 {
     public TransactionResultProxyService(ITransactionPoolService transactionPoolService,
         ITransactionResultQueryService transactionResultQueryService, 
-        ITransactionFailedResultService transactionFailedResultService)
+        ITransactionInvalidResultService transactionInvalidResultService)
     {
         TransactionPoolService = transactionPoolService;
         TransactionResultQueryService = transactionResultQueryService;
-        TransactionFailedResultService = transactionFailedResultService;
+        TransactionInvalidResultService = transactionInvalidResultService;
     }
 
     public ITransactionPoolService TransactionPoolService { get; set; }
     public ITransactionResultQueryService TransactionResultQueryService { get; set; }
-    public ITransactionFailedResultService TransactionFailedResultService { get; }
+    public ITransactionInvalidResultService TransactionInvalidResultService { get; }
 }

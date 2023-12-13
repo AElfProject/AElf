@@ -19,25 +19,25 @@ public class TransactionValidationStatusFailedEventHandler :
         TransactionResultStatus.Failed, TransactionResultStatus.NodeValidationFailed, TransactionResultStatus.Conflict
     };
 
-    private readonly ITransactionFailedResultService _transactionFailedResultService;
+    private readonly ITransactionInvalidResultService _transactionInvalidResultService;
     private readonly TransactionOptions _transactionOptions;
 
     public TransactionValidationStatusFailedEventHandler(
         IOptionsMonitor<TransactionOptions> transactionOptionsMonitor, 
-        ITransactionFailedResultService transactionFailedResultService)
+        ITransactionInvalidResultService transactionInvalidResultService)
     {
-        _transactionFailedResultService = transactionFailedResultService;
+        _transactionInvalidResultService = transactionInvalidResultService;
         _transactionOptions = transactionOptionsMonitor.CurrentValue;
     }
 
     public Task HandleEventAsync(TransactionValidationStatusChangedEvent eventData)
     {
         if (!FailStatus.Contains(eventData.TransactionResultStatus)) return Task.CompletedTask; 
-        if (!_transactionOptions.SaveInvalidTransactionResult) return Task.CompletedTask; 
+        if (!_transactionOptions.StoreInvalidTransactionResultEnabled) return Task.CompletedTask; 
         
         // save to storage
-        _transactionFailedResultService.AddFailedTransactionResultsAsync(
-            new TransactionValidationFailure
+        _transactionInvalidResultService.AddFailedTransactionResultsAsync(
+            new InvalidTransactionResult
             {
                 TransactionId = eventData.TransactionId,
                 Status = eventData.TransactionResultStatus,
