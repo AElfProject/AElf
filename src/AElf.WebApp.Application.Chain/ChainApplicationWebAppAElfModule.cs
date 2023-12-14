@@ -22,6 +22,5 @@ public class ChainApplicationWebAppAElfModule : AElfModule
 
         context.Services
             .AddSingleton<ITransactionResultStatusCacheProvider, TransactionResultStatusCacheProvider>();
-
     }
 }

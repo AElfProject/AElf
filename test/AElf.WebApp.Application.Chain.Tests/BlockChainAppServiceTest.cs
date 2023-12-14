@@ -1842,7 +1842,7 @@ public sealed class BlockChainAppServiceTest : WebAppTestBase
         });
         
         var invalidResult = await _transactionResultProxyService.TransactionInvalidResultService
-            .GetFailedTransactionResultAsync(txId);
+            .GetTransactionInvalidResultAsync(txId);
         invalidResult.ShouldNotBeNull();
         invalidResult.Status.ShouldBe(TransactionResultStatus.NodeValidationFailed);
         invalidResult.Error.ShouldBe("tx error");
