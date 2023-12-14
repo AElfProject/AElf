@@ -6,28 +6,28 @@ namespace AElf.Kernel.Blockchain.Domain;
 
 public interface ITransactionInvalidResultManager
 {
-    Task AddFailedTransactionResultAsync(InvalidTransactionResult transactionResult);
-    Task<InvalidTransactionResult> GetFailedTransactionResultAsync(Hash transactionId);
+    Task AddTransactionInvalidResultAsync(InvalidTransactionResult transactionResult);
+    Task<InvalidTransactionResult> GetTransactionInvalidResultAsync(Hash transactionId);
 }
 
 public class TransactionInvalidResultManager : ITransactionInvalidResultManager
 {
-    private readonly IBlockchainStore<InvalidTransactionResult> _transactionFailedResultStore;
+    private readonly IBlockchainStore<InvalidTransactionResult> _transactionInvalidResultStore;
 
-    public TransactionInvalidResultManager(IBlockchainStore<InvalidTransactionResult> transactionFailedResultStore)
+    public TransactionInvalidResultManager(IBlockchainStore<InvalidTransactionResult> transactionInvalidResultStore)
     {
-        _transactionFailedResultStore = transactionFailedResultStore;
+        _transactionInvalidResultStore = transactionInvalidResultStore;
     }
 
-    public async Task AddFailedTransactionResultAsync(InvalidTransactionResult transactionResult)
+    public async Task AddTransactionInvalidResultAsync(InvalidTransactionResult transactionResult)
     {
-        await _transactionFailedResultStore.SetAsync(transactionResult.TransactionId.ToStorageKey(), transactionResult);
+        await _transactionInvalidResultStore.SetAsync(transactionResult.TransactionId.ToStorageKey(), transactionResult);
     }
 
 
-    public async Task<InvalidTransactionResult> GetFailedTransactionResultAsync(Hash transactionId)
+    public async Task<InvalidTransactionResult> GetTransactionInvalidResultAsync(Hash transactionId)
     {
-        return await _transactionFailedResultStore.GetAsync(transactionId.ToStorageKey());
+        return await _transactionInvalidResultStore.GetAsync(transactionId.ToStorageKey());
     }
 
 }

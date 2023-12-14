@@ -23,11 +23,11 @@ public class TransactionInvalidResultService : ITransactionInvalidResultService,
     
     public async Task AddFailedTransactionResultsAsync(InvalidTransactionResult transactionResult)
     {
-        await _transactionInvalidResultManager.AddFailedTransactionResultAsync(transactionResult);
+        await _transactionInvalidResultManager.AddTransactionInvalidResultAsync(transactionResult);
     }
 
     public async Task<InvalidTransactionResult> GetTransactionInvalidResultAsync(Hash transactionId)
     {
-        return await _transactionInvalidResultManager.GetFailedTransactionResultAsync(transactionId);
+        return await _transactionInvalidResultManager.GetTransactionInvalidResultAsync(transactionId);
     }
 }
