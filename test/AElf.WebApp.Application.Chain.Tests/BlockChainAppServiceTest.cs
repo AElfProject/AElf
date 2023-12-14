@@ -1830,10 +1830,10 @@ public sealed class BlockChainAppServiceTest : WebAppTestBase
     }
 
     [Fact]
-    public async Task TransactionInvalidResultTest()
+    public async Task InvalidTransactionResultTest()
     {
         
-        var txId = HashHelper.ComputeFrom("TransactionInvalidResultTest");
+        var txId = HashHelper.ComputeFrom("InvalidTransactionResultTest");
         await _transactionExecutionValidationFailedEventHandler.HandleEventAsync(new TransactionValidationStatusChangedEvent
         {
             TransactionId = txId,
@@ -1841,8 +1841,8 @@ public sealed class BlockChainAppServiceTest : WebAppTestBase
             Error = "tx error"
         });
         
-        var invalidResult = await _transactionResultProxyService.TransactionInvalidResultService
-            .GetTransactionInvalidResultAsync(txId);
+        var invalidResult = await _transactionResultProxyService.InvalidTransactionResultService
+            .GetInvalidTransactionResultAsync(txId);
         invalidResult.ShouldNotBeNull();
         invalidResult.Status.ShouldBe(TransactionResultStatus.NodeValidationFailed);
         invalidResult.Error.ShouldBe("tx error");
