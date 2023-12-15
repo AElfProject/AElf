@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using System.Runtime;
 using AElf.Silo.Launcher.Extensions;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
@@ -45,6 +46,7 @@ internal class Program
         try
         {
             CreateHostBuilder(args).Build().Run();
+            GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
         }
         catch (Exception e)
         {

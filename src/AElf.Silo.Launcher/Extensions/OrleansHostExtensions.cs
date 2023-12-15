@@ -1,4 +1,5 @@
 using System.Net;
+using System.Runtime;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -70,6 +71,20 @@ public static class OrleansHostExtensions
                     options.DeactivationTimeout = TimeSpan.FromMinutes(1);
                     options.CollectionAge = TimeSpan.FromMinutes(2);
                     options.CollectionQuantum = TimeSpan.FromMinutes(1);
+                }).Configure<PerformanceTuningOptions>(opt =>
+                {
+                    //opt.Expect100Continue = true;
+                    //opt.UseNagleAlgorithm = true;
+                    opt.MinDotNetThreadPoolSize = 20480;
+                    opt.MinIOThreadPoolSize = 200;
+                    opt.DefaultConnectionLimit = 200;
+                })
+                .Configure<SchedulingOptions>(opt =>
+                {
+                    opt.MaxActiveThreads = 200;
+                }).Configure<SiloMessagingOptions>(opt =>
+                {
+                    opt.ResponseTimeout = TimeSpan.FromSeconds(10);
                 })
                 // .AddMemoryGrainStorage("PubSubStore")
                 .ConfigureApplicationParts(parts => parts.AddFromApplicationBaseDirectory())

@@ -68,9 +68,19 @@ public class SiloExecutionAElfModule : AbpModule
                 .ConfigureLogging(builder => builder.AddProvider(o.GetService<ILoggerProvider>()))
                 .Configure<PerformanceTuningOptions>(opt =>
                 {
-                    opt.MinDotNetThreadPoolSize = 100;
-                    opt.MinIOThreadPoolSize = 100;
-                    opt.DefaultConnectionLimit = 100;
+                    //opt.Expect100Continue = true;
+                    //opt.UseNagleAlgorithm = true;
+                    opt.MinDotNetThreadPoolSize = 20480;
+                    opt.MinIOThreadPoolSize = 200;
+                    opt.DefaultConnectionLimit = 200;
+                })
+                .Configure<SchedulingOptions>(opt =>
+                {
+                    opt.MaxActiveThreads = 200;
+                })
+                .Configure<ClientMessagingOptions>(opt =>
+                {
+                    opt.ResponseTimeout = TimeSpan.FromSeconds(10);
                 })
                 .Build();
         });

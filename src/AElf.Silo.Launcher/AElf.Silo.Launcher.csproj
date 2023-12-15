@@ -8,12 +8,13 @@
         <RootNamespace>AElf.Silo.Launcher</RootNamespace>
         <ServerGarbageCollection>true</ServerGarbageCollection>
         <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
+        <LargeObjectHeapCompactionMode>CompactOnce</LargeObjectHeapCompactionMode>
     </PropertyGroup>
 
     <ItemGroup>
         <PackageReference Include="JsonNet.PrivateSettersContractResolvers" Version="1.0.0" />
-        <PackageReference Include="Microsoft.Orleans.OrleansTelemetryConsumers.Linux" Version="3.6.5" />
-        <PackageReference Include="Microsoft.Orleans.Server" Version="3.6.5" />
+        <PackageReference Include="Microsoft.Orleans.OrleansTelemetryConsumers.Linux" Version="3.7.1" />
+        <PackageReference Include="Microsoft.Orleans.Server" Version="3.7.1" />
         <PackageReference Include="Orleans.Providers.MongoDB" Version="3.8.0" />
         <PackageReference Include="OrleansDashboard" Version="3.6.2" />
         <PackageReference Include="Serilog.AspNetCore" Version="5.0.0" />
