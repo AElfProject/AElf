@@ -120,7 +120,7 @@ public class PlainTransactionExecutingGrain : Grain, IPlainTransactionExecutingG
         }
     }
 
-    private  bool TryUpdateStateCache(TransactionTrace trace, TieredStateCache groupStateCache)
+    private static bool TryUpdateStateCache(TransactionTrace trace, TieredStateCache groupStateCache)
     {
         if (trace == null)
             return false;
@@ -143,7 +143,7 @@ public class PlainTransactionExecutingGrain : Grain, IPlainTransactionExecutingG
         return true;
     }
 
-    private void AddToTransactionStateSets(List<TransactionExecutingStateSet> transactionExecutingStateSets,
+    private static void AddToTransactionStateSets(List<TransactionExecutingStateSet> transactionExecutingStateSets,
         RepeatedField<TransactionTrace> traces)
     {
         transactionExecutingStateSets.AddRange(traces.Where(p => p.IsSuccessful())
@@ -458,7 +458,7 @@ public class PlainTransactionExecutingGrain : Grain, IPlainTransactionExecutingG
         return returnSet;
     }
 
-    private List<T> GetUniquePlugins<T>(IEnumerable<T> plugins)
+    private static List<T> GetUniquePlugins<T>(IEnumerable<T> plugins)
     {
         // One instance per type
         return plugins.ToLookup(p => p.GetType()).Select(coll => coll.First()).ToList();

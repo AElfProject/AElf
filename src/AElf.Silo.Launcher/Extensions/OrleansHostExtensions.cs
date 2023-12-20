@@ -73,8 +73,6 @@ public static class OrleansHostExtensions
                     options.CollectionQuantum = TimeSpan.FromMinutes(1);
                 }).Configure<PerformanceTuningOptions>(opt =>
                 {
-                    //opt.Expect100Continue = true;
-                    //opt.UseNagleAlgorithm = true;
                     opt.MinDotNetThreadPoolSize = 20480;
                     opt.MinIOThreadPoolSize = 200;
                     opt.DefaultConnectionLimit = 200;

@@ -46,7 +46,6 @@ internal class Program
         try
         {
             CreateHostBuilder(args).Build().Run();
-            GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
         }
         catch (Exception e)
         {
