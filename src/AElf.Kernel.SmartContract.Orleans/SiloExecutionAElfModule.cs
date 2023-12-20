@@ -66,7 +66,7 @@ public class SiloExecutionAElfModule : AbpModule
                 .ConfigureApplicationParts(parts =>
                     parts.AddApplicationPart(typeof(SiloExecutionAElfModule).Assembly).WithReferences())
                 .ConfigureLogging(builder => builder.AddProvider(o.GetService<ILoggerProvider>()))
-                .Configure<PerformanceTuningOptions>(opt =>
+                /*.Configure<PerformanceTuningOptions>(opt =>
                 {
                     //opt.Expect100Continue = true;
                     //opt.UseNagleAlgorithm = true;
@@ -77,11 +77,11 @@ public class SiloExecutionAElfModule : AbpModule
                 .Configure<SchedulingOptions>(opt =>
                 {
                     opt.MaxActiveThreads = 200;
-                })
-                .Configure<ClientMessagingOptions>(opt =>
+                })*/
+                /*.Configure<ClientMessagingOptions>(opt =>
                 {
                     opt.ResponseTimeout = TimeSpan.FromSeconds(10);
-                })
+                })*/
                 .Build();
         });
     }

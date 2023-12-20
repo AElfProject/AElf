@@ -71,7 +71,8 @@ public static class OrleansHostExtensions
                     options.DeactivationTimeout = TimeSpan.FromMinutes(1);
                     options.CollectionAge = TimeSpan.FromMinutes(2);
                     options.CollectionQuantum = TimeSpan.FromMinutes(1);
-                }).Configure<PerformanceTuningOptions>(opt =>
+                })
+                /*.Configure<PerformanceTuningOptions>(opt =>
                 {
                     opt.MinDotNetThreadPoolSize = 20480;
                     opt.MinIOThreadPoolSize = 200;
@@ -83,7 +84,7 @@ public static class OrleansHostExtensions
                 }).Configure<SiloMessagingOptions>(opt =>
                 {
                     opt.ResponseTimeout = TimeSpan.FromSeconds(10);
-                })
+                })*/
                 // .AddMemoryGrainStorage("PubSubStore")
                 .ConfigureApplicationParts(parts => parts.AddFromApplicationBaseDirectory())
                 .UseDashboard(options =>
