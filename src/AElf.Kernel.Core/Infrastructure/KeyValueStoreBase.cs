@@ -93,12 +93,6 @@ public abstract class KeyValueStoreBase<TKeyValueDbContext, T> : IKeyValueStore<
     {
         await _collection.RemoveAllAsync(keys);
     }
-
-    public Task RemoveByHeightAsync(long height)
-    {
-        throw new NotImplementedException();
-    }
-
     private static byte[] Serialize(T value)
     {
         return value?.ToByteArray();

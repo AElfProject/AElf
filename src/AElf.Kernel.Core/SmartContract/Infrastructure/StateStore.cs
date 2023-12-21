@@ -16,6 +16,8 @@ public interface INotModifiedCachedStateStore<T> : IStateStore<T>
     where T : IMessage<T>, new()
 {
     Task SetWithCacheAsync(string key, T value);
+
+    Task RemoveByHeightAsync(long height);
 }
 
 public class NotModifiedCachedStateStore<T> : INotModifiedCachedStateStore<T>

@@ -10,6 +10,4 @@ public interface IKeyValueStore<T>
     Task<bool> IsExistsAsync(string key);
     Task<List<T>> GetAllAsync(List<string> keys);
     Task RemoveAllAsync(List<string> keys);
-    
-    Task RemoveByHeightAsync(long height);
 }
