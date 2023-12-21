@@ -38,6 +38,8 @@ public interface IBlockStateSetManger
     Task<ChainStateInfo> GetChainStateInfoAsync();
     Task<BlockStateSet> GetBlockStateSetAsync(Hash blockHash);
     Task RemoveBlockStateSetsAsync(IList<Hash> blockStateHashes);
+    Task RemoveBlockStateSetsByHeightAsync(long blockStateHeight);
+
 }
 
 public interface IBlockchainExecutedDataManager
@@ -275,6 +277,11 @@ public class BlockStateSetManger : IBlockStateSetManger, ITransientDependency
     public async Task RemoveBlockStateSetsAsync(IList<Hash> blockStateHashes)
     {
         await BlockStateSets.RemoveAllAsync(blockStateHashes.Select(b => b.ToStorageKey()).ToList());
+    }
+    
+    public async Task RemoveBlockStateSetsByHeightAsync(long blockStateHeight)
+    {
+        await BlockStateSets.RemoveByHeightAsync(blockStateHeight);
     }
 
     public async Task<ChainStateInfo> GetChainStateInfoAsync()

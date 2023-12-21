@@ -3,6 +3,7 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Events;
+using Newtonsoft.Json;
 using Volo.Abp.EventBus.Local;
 
 namespace AElf.Kernel;
@@ -39,6 +40,8 @@ public class NewIrreversibleBlockFoundEventHandler : ILocalEventHandler<NewIrrev
 
     public Task HandleEventAsync(NewIrreversibleBlockFoundEvent eventData)
     {
+        Logger.LogInformation($"NewIrreversibleBlockFoundGrainEventHandler.HandleEventAsync,eventData:{JsonConvert.SerializeObject(eventData)}");
+
         _taskQueueManager.Enqueue(async () =>
         {
             await _blockchainStateService.MergeBlockStateAsync(eventData.BlockHeight,

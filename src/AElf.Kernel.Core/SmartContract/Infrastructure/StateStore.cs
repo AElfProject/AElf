@@ -89,6 +89,25 @@ public class NotModifiedCachedStateStore<T> : INotModifiedCachedStateStore<T>
 
         await _stateStoreImplementation.RemoveAllAsync(keys);
     }
+    
+    public async Task RemoveByHeightAsync(long height)
+    {
+        var keys = new List<string>();
+        foreach (KeyValuePair<string, T> kv in _cache)
+        {
+            if (kv.Value is BlockStateSet blockStateSet)
+            {
+                if (blockStateSet.BlockHeight <= height)
+                {
+                    keys.Add(kv.Key);
+                    _cache.TryRemove(kv.Key, out _);
+                }
+            }
+        }
+        await _stateStoreImplementation.RemoveAllAsync(keys);
+
+    }
+    
 
     public async Task SetWithCacheAsync(string key, T value)
     {

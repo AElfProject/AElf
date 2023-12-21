@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using AElf.Database;
 
@@ -91,6 +92,11 @@ public abstract class KeyValueStoreBase<TKeyValueDbContext, T> : IKeyValueStore<
     public virtual async Task RemoveAllAsync(List<string> keys)
     {
         await _collection.RemoveAllAsync(keys);
+    }
+
+    public Task RemoveByHeightAsync(long height)
+    {
+        throw new NotImplementedException();
     }
 
     private static byte[] Serialize(T value)
