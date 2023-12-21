@@ -9,16 +9,14 @@ public class PlainTransactionCacheClearGrain : Grain, IPlainTransactionCacheClea
 {
     public ILogger<PlainTransactionCacheClearGrain> Logger { get; set; }
     private readonly ISmartContractExecutiveService _smartContractExecutiveService;
-    private readonly ITaskQueueManager _taskQueueManager;
     private readonly IBlockchainStateService _blockchainStateService;
 
 
-    public PlainTransactionCacheClearGrain(ITaskQueueManager taskQueueManager,
+    public PlainTransactionCacheClearGrain(
         IBlockchainStateService blockchainStateService,
         ISmartContractExecutiveService smartContractExecutiveService,
         ILogger<PlainTransactionCacheClearGrain> logger)
     {
-        _taskQueueManager = taskQueueManager;
         _blockchainStateService = blockchainStateService;
         _smartContractExecutiveService = smartContractExecutiveService;
         Logger = logger;
