@@ -7,7 +7,7 @@ using Volo.Abp.EventBus.Local;
 
 namespace AElf.Kernel.SmartContract.Orleans;
 
-public class SiloTransactionExecutingService : IPlainTransactionExecutingService, ISingletonDependency
+public class SiloTransactionExecutingService : IPlainTransactionExecutingService
 {
 
     private readonly ISiloClusterClientContext _siloClusterClientContext;
@@ -25,7 +25,7 @@ public class SiloTransactionExecutingService : IPlainTransactionExecutingService
         _configuration = configuration;
     }
 
-    public ILogger<PlainTransactionExecutingService> Logger { get; set; }
+    
 
     public ILocalEventBus LocalEventBus { get; set; }
 
@@ -42,7 +42,7 @@ public class SiloTransactionExecutingService : IPlainTransactionExecutingService
         }
         catch (Exception e)
         {
-            Logger.LogError(e, "SiloTransactionExecutingService.ExecuteAsync: Failed while executing txs in block");
+            _logger.LogError(e, "SiloTransactionExecutingService.ExecuteAsync: Failed while executing txs in block");
             throw;
         }
     }
