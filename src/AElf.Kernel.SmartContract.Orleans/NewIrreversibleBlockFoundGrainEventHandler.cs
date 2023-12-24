@@ -14,26 +14,19 @@ namespace AElf.Kernel.SmartContract.Orleans;
 public class NewIrreversibleBlockFoundGrainEventHandler : ILocalEventHandler<NewIrreversibleBlockFoundEvent>,
     ITransientDependency
 {
-    private readonly IBlockchainStateService _blockchainStateService;
-    private readonly ISmartContractExecutiveService _smartContractExecutiveService;
     private readonly ITaskQueueManager _taskQueueManager;
-    private readonly int _defaultSiloInstanceCount = 2;
-    private readonly int _grainActivation = 10;
-    private readonly IConfiguration _configuration;
     private readonly ISiloClusterClientContext _siloClusterClientContext;
+    private readonly IPlainTransactionExecutingGrainProvider _plainTransactionExecutingGrainProvider;
 
     public NewIrreversibleBlockFoundGrainEventHandler(ITaskQueueManager taskQueueManager,
-        IBlockchainStateService blockchainStateService,
-        ISmartContractExecutiveService smartContractExecutiveService,
-        IConfiguration configuration,
-        ISiloClusterClientContext siloClusterClientContext)
+        ISiloClusterClientContext siloClusterClientContext,
+        IPlainTransactionExecutingGrainProvider plainTransactionExecutingGrainProvider)
     {
         _taskQueueManager = taskQueueManager;
-        _blockchainStateService = blockchainStateService;
-        _smartContractExecutiveService = smartContractExecutiveService;
-        _configuration = configuration;
         _siloClusterClientContext = siloClusterClientContext;
         Logger = NullLogger<NewIrreversibleBlockFoundGrainEventHandler>.Instance;
+        _plainTransactionExecutingGrainProvider = plainTransactionExecutingGrainProvider;
+
     }
 
     public ILogger<NewIrreversibleBlockFoundGrainEventHandler> Logger { get; set; }
@@ -41,7 +34,7 @@ public class NewIrreversibleBlockFoundGrainEventHandler : ILocalEventHandler<New
 
     public Task HandleEventAsync(NewIrreversibleBlockFoundEvent eventData)
     {
-        Logger.Info($"NewIrreversibleBlockFoundGrainEventHandler.HandleEventAsync,eventData:{JsonConvert.SerializeObject(eventData)}");
+        Logger.Debug($"NewIrreversibleBlockFoundGrainEventHandler.HandleEventAsync,eventData:{JsonConvert.SerializeObject(eventData)}");
         if (eventData.BlockHeight <= 100)
         {
             return Task.CompletedTask;
@@ -49,10 +42,11 @@ public class NewIrreversibleBlockFoundGrainEventHandler : ILocalEventHandler<New
 
         _taskQueueManager.Enqueue(async () =>
         {
-            var siloInstanceCount = _configuration.GetValue("SiloInstanceCount", _defaultSiloInstanceCount);
-            string id = "PlainTransactionCacheClearGrain" + eventData.BlockHeight % (siloInstanceCount * _grainActivation);
-            var grain = _siloClusterClientContext.GetClusterClient().GetGrain<IPlainTransactionCacheClearGrain>(id);
-            await grain.CleanChainAsync(eventData.BlockHeight);
+           var id = _plainTransactionExecutingGrainProvider.TryGetGrainId(typeof(NewIrreversibleBlockFoundGrainEventHandler).Name, 
+               out var pool);
+           var grain = _siloClusterClientContext.GetClusterClient().GetGrain<IPlainTransactionCacheClearGrain>(typeof(NewIrreversibleBlockFoundGrainEventHandler).Name + id);
+           pool.Add(id);
+           await grain.CleanChainAsync(eventData.BlockHeight);
         }, KernelConstants.ChainCleaningQueueName);
         return Task.CompletedTask;
     }

@@ -24,6 +24,8 @@ public class SiloExecutionAElfModule : AbpModule
         context.Services.AddSingleton<IPlainTransactionExecutingGrain, PlainTransactionExecutingGrain>();
         context.Services.AddSingleton<ISiloClusterClientContext, SiloClusterClientContext>();
         context.Services.AddSingleton<ISmartContractExecutiveService, SmartContractExecutiveService>();
+        context.Services.AddSingleton<IPlainTransactionExecutingGrainProvider, PlainTransactionExecutingGrainProvider>();
+
     }
 
     public override void OnPreApplicationInitialization(ApplicationInitializationContext context)
