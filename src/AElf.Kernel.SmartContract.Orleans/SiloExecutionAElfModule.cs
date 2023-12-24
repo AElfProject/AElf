@@ -61,7 +61,7 @@ public class SiloExecutionAElfModule : AbpModule
                 .Configure<GatewayOptions>(options =>
                 {
                     options.PreferedGatewayIndex = -1;
-                    options.GatewayListRefreshPeriod = TimeSpan.FromSeconds(1);
+                    options.GatewayListRefreshPeriod = TimeSpan.FromSeconds(10);
                 })
                 .ConfigureApplicationParts(parts =>
                     parts.AddApplicationPart(typeof(SiloExecutionAElfModule).Assembly).WithReferences())
@@ -80,7 +80,7 @@ public class SiloExecutionAElfModule : AbpModule
                 })
                 .Configure<ClientMessagingOptions>(opt =>
                 {
-                    opt.ResponseTimeout = TimeSpan.FromSeconds(10);
+                    opt.ResponseTimeout = TimeSpan.FromSeconds(30);
                 })
                 .Build();
         });

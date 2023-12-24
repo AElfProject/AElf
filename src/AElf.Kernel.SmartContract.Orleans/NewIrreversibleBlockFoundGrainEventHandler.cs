@@ -42,6 +42,10 @@ public class NewIrreversibleBlockFoundGrainEventHandler : ILocalEventHandler<New
     public Task HandleEventAsync(NewIrreversibleBlockFoundEvent eventData)
     {
         Logger.Info($"NewIrreversibleBlockFoundGrainEventHandler.HandleEventAsync,eventData:{JsonConvert.SerializeObject(eventData)}");
+        if (eventData.BlockHeight <= 100)
+        {
+            return Task.CompletedTask;
+        }
 
         _taskQueueManager.Enqueue(async () =>
         {
