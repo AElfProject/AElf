@@ -7,6 +7,7 @@ using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.SmartContract.Domain;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus.Local;
 
@@ -90,6 +91,8 @@ public class FullBlockchainExecutingService : IBlockchainExecutingService, ITran
             return blockExecutedSet;
         Logger.LogDebug(
             $"Block execution failed. Expected: {block}, actual: {executedBlock}");
+        Logger.LogDebug(
+            $"Block execution failed. Expected: {JsonConvert.SerializeObject(block)}, actual: {JsonConvert.SerializeObject(executedBlock)}");
         return null;
     }
 
