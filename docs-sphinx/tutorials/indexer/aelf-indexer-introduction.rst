@@ -2,7 +2,8 @@ Introduction
 ============
 
 "Indexing" refers to the process of synchronizing block data from AElf blockchain 
-nodes to a locally centralized ElasticSearch environment for storage. 
+nodes to a locally centralized ElasticSearch environment for storage.
+ 
 This system then provides various data interfaces. Whether you are a dApp 
 developer looking to build exciting applications on the AElf blockchain or just 
 curious about how the AElf node's scanning system operates, this document is suitable 
@@ -14,7 +15,7 @@ Overall Workflow
 The overall workflow of the indexer, starting from the AElf nodes, pushing block 
 data to the DApp, getting the desired on-chain data.
 
-.. image:: ./docs-sphinx/resources/indexer-overall.png
+.. image:: ././resources/indexer-overall.png
    :alt: Overall Workflow
 
 1. AElf Node Push
