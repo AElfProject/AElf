@@ -40,14 +40,14 @@ public class NewIrreversibleBlockFoundGrainEventHandler : ILocalEventHandler<New
             return Task.CompletedTask;
         }
 
-        _taskQueueManager.Enqueue(async () =>
+        /*_taskQueueManager.Enqueue(async () =>
         {
            var id = _plainTransactionExecutingGrainProvider.TryGetGrainId(typeof(NewIrreversibleBlockFoundGrainEventHandler).Name, 
                out var pool);
            var grain = _siloClusterClientContext.GetClusterClient().GetGrain<IPlainTransactionCacheClearGrain>(typeof(NewIrreversibleBlockFoundGrainEventHandler).Name + id);
            pool.Add(id);
            await grain.CleanChainAsync(eventData.BlockHeight);
-        }, KernelConstants.ChainCleaningQueueName);
+        }, KernelConstants.ChainCleaningQueueName);*/
         return Task.CompletedTask;
     }
 }
