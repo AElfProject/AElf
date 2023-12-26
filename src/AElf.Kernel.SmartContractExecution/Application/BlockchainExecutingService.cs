@@ -95,28 +95,28 @@ public class FullBlockchainExecutingService : IBlockchainExecutingService, ITran
             $"Block execution failed. Expected: {JsonConvert.SerializeObject(block)}, actual: {JsonConvert.SerializeObject(executedBlock)}");
         Logger.LogDebug(
             $"Block execution failed. Expected: Height: {block.Height}," +
-            $" TransactionIds: {block.TransactionIds.Select(i => i.ToHex())}, " +
-            $"Header:{block.Header.Version}" +
+            $" TransactionIds: {block.TransactionIds.Select(i => i.ToHex()).Aggregate((i,j)=>i+","+j)}, " +
+            $"Header:{block.Header.Version}," +
             $"ChainId: {block.Header.ChainId}, " +
             $"PreviousBlockHash: {block.Header.PreviousBlockHash.ToHex()}, " +
             $"MerkleTreeRootOfTransactions: {block.Header.MerkleTreeRootOfTransactions.ToHex()}, " +
             $"MerkleTreeRootOfWorldState: {block.Header.MerkleTreeRootOfWorldState.ToHex()}, " +
-            $"Bloom: {block.Header.Bloom.ToHex()}, " +
+            $"Bloom: {block.Header.Bloom}, " +
             $"Height: {block.Header.Height}, " +
             $"Time: {JsonConvert.SerializeObject(block.Header.Time)}, " +
-            $"ExtraData: {block.Header.ExtraData["CrossChain"].ToHex()}, " +
-            $"ExtraData: {block.Header.ExtraData["Consensus"].ToHex()}, " +
-            $"ExtraData: {block.Header.ExtraData["SystemTransactionCount"].Select(i => i.ToString())}, " +
+            $"CrossChain: {block.Header.ExtraData["CrossChain"]}, " +
+            $"Consensus: {block.Header.ExtraData["Consensus"]}, " +
+            $"SystemTransactionCount: {block.Header.ExtraData["SystemTransactionCount"].Select(i => i.ToString()).Aggregate((i,j)=>i+","+j)}, " +
             $"MerkleTreeRootOfTransactionStatus: {block.Header.MerkleTreeRootOfTransactionStatus.ToHex()}, " +
             $"SignerPubkey: {block.Header.SignerPubkey.ToHex()}, " +
             $"Signature: {block.Header.Signature.ToHex()}, " +
             $"Body.TransactionsCount: {block.Body.TransactionsCount}, " +
-            $"Body.TransactionIds: {block.Body.TransactionIds.Select(i => i.ToHex())}");
+            $"Body.TransactionIds: {block.Body.TransactionIds.Select(i => i.ToHex()).Aggregate((i,j)=>i+","+j)}");
 
         Logger.LogDebug(
             $"Block execution failed. actual: Height: {executedBlock.Height}," +
-            $" TransactionIds: {executedBlock.TransactionIds.Select(i => i.ToHex())}, " +
-            $"Header:{executedBlock.Header.Version}" +
+            $" TransactionIds: {executedBlock.TransactionIds.Select(i => i.ToHex()).Aggregate((i,j)=>i+","+j)}, " +
+            $"Header:{executedBlock.Header.Version}," +
             $"ChainId: {executedBlock.Header.ChainId}, " +
             $"PreviousBlockHash: {executedBlock.Header.PreviousBlockHash.ToHex()}, " +
             $"MerkleTreeRootOfTransactions: {executedBlock.Header.MerkleTreeRootOfTransactions.ToHex()}, " +
@@ -124,14 +124,14 @@ public class FullBlockchainExecutingService : IBlockchainExecutingService, ITran
             $"Bloom: {executedBlock.Header.Bloom}, " +
             $"Height: {executedBlock.Header.Height}, " +
             $"Time: {JsonConvert.SerializeObject(executedBlock.Header.Time)}, " +
-            $"ExtraData: {executedBlock.Header.ExtraData["CrossChain"].ToHex()}, " +
-            $"ExtraData: {executedBlock.Header.ExtraData["Consensus"].ToHex()}, " +
-            $"ExtraData: {executedBlock.Header.ExtraData["SystemTransactionCount"].Select(i => i.ToString())}, " +
+            $"CrossChain: {executedBlock.Header.ExtraData["CrossChain"]}, " +
+            $"Consensus: {executedBlock.Header.ExtraData["Consensus"]}, " +
+            $"SystemTransactionCount: {executedBlock.Header.ExtraData["SystemTransactionCount"].Select(i => i.ToString()).Aggregate((i,j)=>i+","+j)}, " +
             $"MerkleTreeRootOfTransactionStatus: {executedBlock.Header.MerkleTreeRootOfTransactionStatus.ToHex()}, " +
             $"SignerPubkey: {executedBlock.Header.SignerPubkey.ToHex()}, " +
             $"Signature: {executedBlock.Header.Signature.ToHex()}, " +
             $"Body.TransactionsCount: {executedBlock.Body.TransactionsCount}, " +
-            $"Body.TransactionIds: {executedBlock.Body.TransactionIds.Select(i => i.ToHex())}");
+            $"Body.TransactionIds: {executedBlock.Body.TransactionIds.Select(i => i.ToHex()).Aggregate((i,j)=>i+","+j)}");
         return null;
     }
 
