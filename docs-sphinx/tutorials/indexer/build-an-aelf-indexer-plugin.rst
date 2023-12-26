@@ -25,7 +25,7 @@ The URL and port correspond to the server address where the AElf Indexer AuthSer
 
 **Request Body** (x-www-form-urlencoded):
 
-.. code-block:: json
+.. code-block:: text
 
   grant_type:client_credentials
   scope:AElfIndexer
@@ -76,24 +76,25 @@ Request Header: Authorization Bearer {access_token}
 
 Parameters Explanation:
 
-+----------------------+---------------------------------------------------------------+
-| Parameter            | Description                                                   |
-+======================+===============================================================+
++----------------------+----------------------------------------------------------------+
+| Parameter            | Description                                                    |
++======================+================================================================+
 | ChainId              | The AElf chain ID to subscribe, e.g., AElf mainchain is AElf,  |
-|                      | sidechain is tDVV.                                            |
-+----------------------+---------------------------------------------------------------+
+|                      | sidechain is tDVV.                                             |
++----------------------+----------------------------------------------------------------+
 | StartBlockNumber     | The initial push block height for subscription, usually this   |
 |                      | will be the block height of the contract deployed.             |
-+----------------------+---------------------------------------------------------------+
++----------------------+----------------------------------------------------------------+
 | OnlyConfirmedBlock   | Whether only confirmed blocks are subscribed or not.           |
-+----------------------+---------------------------------------------------------------+
-| FilterType           | The type of block data to be subscribed. Currently, the indexer |
++----------------------+----------------------------------------------------------------+
+| FilterType           | The type of block data to be subscribed. Currently, the indexer|
 |                      | system categorizes a complete block data into three levels of  |
-|                      | data structures: Block, Transaction, and Logevent. For details, |
-|                      | refer to the Scanning Data Structure Example.                   |
-+----------------------+---------------------------------------------------------------+
+|                      | data structures: Block, Transaction, and Logevent. For details,|
+|                      | refer to the Scanning Data Structure Example.                  |
++----------------------+----------------------------------------------------------------+
 | SubscribeEvents      | The subscribed events.                                         |
-+----------------------+---------------------------------------------------------------+
++----------------------+----------------------------------------------------------------+
+
 
 After successfully calling the API, the version of subscription will be returned, e.g. ``932e5a54b6044e049cf939607b248d89``
 
@@ -149,7 +150,7 @@ Request Header: Authorization Bearer {access_token}
 This API is used to replace current subscription version by new version. After a new subscription is created, 
 it will be at "newVersion". When it's ready to use, this API is required to be called to upgrade it to currentVersion.
 
-.. image:: ././resources/subscription_version.jpeg
+.. image:: subscription_version.jpeg
    :alt: Subscription Version    
 
 Request Header: Authorization Bearer {access_token}     
@@ -187,7 +188,7 @@ Having understood the working principle of the AElf Indexer, you will find that 
 enable a DApp to request data from the AElf Indexer, the main task is to develop a 
 client interface plugin.
 
-.. image:: ././resources/indexer-plugin.png
+.. image:: indexer-plugin.png
    :alt: Indexer Plugin
 
 The following will use a sample as an example to explain in detail how to develop a client interface plugin.
@@ -683,7 +684,7 @@ for processing, adhering to the pre-subscribed requirements, and simultaneously 
 to external entities. The GraphQL interface address will be ``http://URL:{port}/AElfIndexer_DApp/SampleSchema/graphql``
 This playground can check whether the indexer works properly, e.g. The playground for bingogame indexer:
 
-.. image:: ././resources/playground.png
+.. image:: playground.png
    :alt: Playground
 
 Conclusion
