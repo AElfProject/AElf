@@ -24,6 +24,7 @@ Welcome to AElf's official documentation!
    Running a side chain <tutorials/cross-chain/index>
    Running AElf on the cloud <tutorials/cloud/index>
    Smart Contract Developing Demos <tutorials/smart-contract-demos/index>
+   Building an indexer plugin <tutorials/indexer/index>
 
 
 .. toctree::

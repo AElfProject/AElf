@@ -33,6 +33,7 @@ The URL and port correspond to the server address where the AElf Indexer AuthSer
   client_secret:1q2w3e*
 
 **Response**:
+
 .. code-block:: json
 
   {
@@ -40,6 +41,7 @@ The URL and port correspond to the server address where the AElf Indexer AuthSer
     "token_type": "Bearer",
     "expires_in": 3593
   }
+
   
 The access_token is the authentication token. It is required when making specific subscription requests to the Subscription API.
 
