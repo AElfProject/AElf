@@ -15,7 +15,7 @@ Overall Workflow
 The overall workflow of the indexer, starting from the AElf nodes, pushing block 
 data to the DApp, getting the desired on-chain data.
 
-.. image:: ././resources/indexer-overall.png
+.. image:: indexer-overall.png
    :alt: Overall Workflow
 
 1. AElf Node Push
