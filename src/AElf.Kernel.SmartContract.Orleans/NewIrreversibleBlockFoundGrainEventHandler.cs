@@ -35,10 +35,10 @@ public class NewIrreversibleBlockFoundGrainEventHandler : ILocalEventHandler<New
     public Task HandleEventAsync(NewIrreversibleBlockFoundEvent eventData)
     {
         Logger.Debug($"NewIrreversibleBlockFoundGrainEventHandler.HandleEventAsync,eventData:{JsonConvert.SerializeObject(eventData)}");
-        if (eventData.BlockHeight <= 100)
+        /*if (eventData.BlockHeight <= 100)
         {
             return Task.CompletedTask;
-        }
+        }*/
 
         _taskQueueManager.Enqueue(async () =>
         {
@@ -47,7 +47,7 @@ public class NewIrreversibleBlockFoundGrainEventHandler : ILocalEventHandler<New
            var grain = _siloClusterClientContext.GetClusterClient().GetGrain<IPlainTransactionCacheClearGrain>(typeof(NewIrreversibleBlockFoundGrainEventHandler).Name + id);
            pool.Add(id);
            await grain.CleanChainAsync(eventData.BlockHeight);
-        }, KernelConstants.ChainCleaningQueueName);
+        }, KernelConstants.MergeBlockStateQueueName);
         return Task.CompletedTask;
     }
 }
