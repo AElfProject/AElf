@@ -285,15 +285,18 @@ public class TxHub : ITxHub, ISingletonDependency
 
         if (!queuedTransaction.Transaction.VerifyExpiration(_bestChainHeight))
         {
-            await PublishTransactionNodeValidationFailedEventAsync(queuedTransaction.TransactionId,
-                $"Transaction expired.Transaction RefBlockNumber is {queuedTransaction.Transaction.RefBlockNumber},best chain height is {_bestChainHeight}");
+            var messge =
+                $"Transaction expired.Transaction RefBlockNumber is {queuedTransaction.Transaction.RefBlockNumber},best chain height is {_bestChainHeight}";
+            await PublishTransactionNodeValidationFailedEventAsync(queuedTransaction.TransactionId, messge);
+            Logger.LogDebug("{Message}", messge);
             return false;
         }
 
         if (_allTransactions.Count >= _transactionOptions.PoolLimit)
         {
-            await PublishTransactionNodeValidationFailedEventAsync(queuedTransaction.TransactionId,
-                "Transaction Pool is full.");
+            var messge = "Transaction Pool is full.";
+            await PublishTransactionNodeValidationFailedEventAsync(queuedTransaction.TransactionId, messge);
+            Logger.LogDebug("{Message}", messge);
             return false;
         }
 
@@ -304,7 +307,11 @@ public class TxHub : ITxHub, ISingletonDependency
 
     private async Task<QueuedTransaction> AcceptTransactionAsync(QueuedTransaction queuedTransaction)
     {
-        if (!await VerifyTransactionAcceptableAsync(queuedTransaction)) return null;
+        if (!await VerifyTransactionAcceptableAsync(queuedTransaction))
+        {
+            Logger.LogDebug("Verify transaction {TransactionId} acceptable failed", queuedTransaction.TransactionId);
+            return null;
+        }
 
         var validationResult =
             await _transactionValidationService.ValidateTransactionWhileCollectingAsync(new ChainContext
