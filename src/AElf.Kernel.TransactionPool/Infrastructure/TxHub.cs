@@ -309,7 +309,7 @@ public class TxHub : ITxHub, ISingletonDependency
     {
         if (!await VerifyTransactionAcceptableAsync(queuedTransaction))
         {
-            Logger.LogDebug("Verify transaction {TransactionId} acceptable failed", queuedTransaction.TransactionId);
+            Logger.LogDebug("Verify transaction {TransactionId} acceptable failed", queuedTransaction.TransactionId.ToHex());
             return null;
         }
 
