@@ -36,7 +36,7 @@ public class TransactionValidationStatusFailedEventHandler :
         if (!_transactionOptions.StoreInvalidTransactionResultEnabled) return; 
         
         // save to storage
-        await _invalidTransactionResultService.AddInvalidTransactionResultsAsync(
+        await _invalidTransactionResultService.AddInvalidTransactionResultAsync(
             new InvalidTransactionResult
             {
                 TransactionId = eventData.TransactionId,

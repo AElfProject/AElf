@@ -6,7 +6,7 @@ namespace AElf.Kernel.Blockchain.Domain;
 
 public interface IInvalidTransactionResultManager
 {
-    Task AddInvalidTransactionResultAsync(InvalidTransactionResult transactionResult);
+    Task AddInvalidTransactionResultAsync(InvalidTransactionResult invalidTransactionResult);
     Task<InvalidTransactionResult> GetInvalidTransactionResultAsync(Hash transactionId);
 }
 
@@ -19,9 +19,10 @@ public class InvalidTransactionResultManager : IInvalidTransactionResultManager
         _invalidTransactionResultStore = invalidTransactionResultStore;
     }
 
-    public async Task AddInvalidTransactionResultAsync(InvalidTransactionResult transactionResult)
+    public async Task AddInvalidTransactionResultAsync(InvalidTransactionResult invalidTransactionResult)
     {
-        await _invalidTransactionResultStore.SetAsync(transactionResult.TransactionId.ToStorageKey(), transactionResult);
+        await _invalidTransactionResultStore.SetAsync(invalidTransactionResult.TransactionId.ToStorageKey(),
+            invalidTransactionResult);
     }
 
 
@@ -29,5 +30,4 @@ public class InvalidTransactionResultManager : IInvalidTransactionResultManager
     {
         return await _invalidTransactionResultStore.GetAsync(transactionId.ToStorageKey());
     }
-
 }
