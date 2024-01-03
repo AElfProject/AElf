@@ -450,7 +450,8 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
         var originalTransaction = Transaction.Parser.ParseFrom(input.TransactionBytes);
 
         AssertCrossChainTransaction(originalTransaction, tokenContractAddress, nameof(ValidateTokenInfoExists));
-        var originalTransactionId = originalTransaction.GetHash();
+        var originalTransactionId =
+            input.InlineTransactionId != null ? input.InlineTransactionId : originalTransaction.GetHash();
         CrossChainVerify(originalTransactionId, input.ParentChainHeight, input.FromChainId, input.MerklePath);
         var validateTokenInfoExistsInput =
             ValidateTokenInfoExistsInput.Parser.ParseFrom(originalTransaction.Params);
@@ -542,8 +543,8 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
     public override Empty CrossChainReceiveToken(CrossChainReceiveTokenInput input)
     {
         var transferTransaction = Transaction.Parser.ParseFrom(input.TransferTransactionBytes);
-        var transferTransactionId = transferTransaction.GetHash();
-
+        var transferTransactionId =
+            input.InlineTransactionId != null ? input.InlineTransactionId : transferTransaction.GetHash();
         Assert(!State.VerifiedCrossChainTransferTransaction[transferTransactionId],
             "Token already claimed.");
 

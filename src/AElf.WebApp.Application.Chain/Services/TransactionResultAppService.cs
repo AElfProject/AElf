@@ -28,6 +28,8 @@ public interface ITransactionResultAppService
         int limit = 10);
 
     Task<MerklePathDto> GetMerklePathByTransactionIdAsync(string transactionId);
+
+    Task<MerklePathDto> GetMerklePathByTransactionIdAsync(string transactionId, string inlineTransactionId);
 }
 
 public class TransactionResultAppService : AElfAppService, ITransactionResultAppService
@@ -160,10 +162,20 @@ public class TransactionResultAppService : AElfAppService, ITransactionResultApp
     /// <returns></returns>
     public async Task<MerklePathDto> GetMerklePathByTransactionIdAsync(string transactionId)
     {
+        return await GetMerklePathByTransactionIdAsync(transactionId, null);
+    }
+
+    public async Task<MerklePathDto> GetMerklePathByTransactionIdAsync(string transactionId, string inlineTransactionId)
+    {
         Hash transactionIdHash;
+        Hash inlineTransactionIdHash = null;
         try
         {
             transactionIdHash = Hash.LoadFromHex(transactionId);
+            if (!inlineTransactionId.IsNullOrEmpty())
+            {
+                inlineTransactionIdHash = Hash.LoadFromHex(inlineTransactionId);
+            }
         }
         catch
         {
@@ -174,15 +186,22 @@ public class TransactionResultAppService : AElfAppService, ITransactionResultApp
         var transactionResult = await GetMinedTransactionResultAsync(transactionIdHash);
         var blockHash = transactionResult.BlockHash;
         var blockInfo = await _blockchainService.GetBlockByHashAsync(blockHash);
-        var transactionIds = blockInfo.Body.TransactionIds;
-        var index = transactionIds.IndexOf(transactionIdHash);
-        if (index == -1) throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
-        var leafNodes = await GetLeafNodesAsync(blockInfo.TransactionIds);
+        Hash currentLeafNode;
+        if (inlineTransactionIdHash != null)
+        {
+            currentLeafNode = GetHashCombiningTransactionAndStatus(inlineTransactionIdHash, transactionResult.Status);
+        }
+        else
+        {
+            currentLeafNode = GetHashCombiningTransactionAndStatus(transactionIdHash, transactionResult.Status);
+        }
 
+        var leafNodes = await GetLeafNodesAsync(blockInfo.TransactionIds);
+        var index = leafNodes.IndexOf(currentLeafNode);
+        if (index == -1) throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
         var binaryMerkleTree = BinaryMerkleTree.FromLeafNodes(leafNodes);
         var path = binaryMerkleTree.GenerateMerklePath(index);
         var merklePath = _objectMapper.Map<MerklePath, MerklePathDto>(path);
-
         return merklePath;
     }
 
@@ -267,11 +286,48 @@ public class TransactionResultAppService : AElfAppService, ITransactionResultApp
             transactionResultList.Add(result);
         }
 
-        var transactionResultSet = transactionResultList.Select(txResult => (txResult.TransactionId, txResult.Status));
+        var transactionResultSet = transactionResultList.Select(txResult => (txResult.TransactionId, txResult.Status,
+            txResult.Logs.Where(
+                log => log.Name.Equals(nameof(VirtualTransactionCreated))).ToList()));
         var leafNodes = new List<Hash>();
-        foreach (var (txId, status) in transactionResultSet)
+        foreach (var (txId, status, logEvents) in transactionResultSet)
+        {
+           
             leafNodes.Add(GetHashCombiningTransactionAndStatus(txId, status));
+            if (status != TransactionResultStatus.Mined || !logEvents.Any())
+            {
+                continue;
+            }
 
+            foreach (var logEvent in logEvents)
+            {
+                var originTransactionId =
+                    VirtualTransactionCreated.Parser.ParseFrom(logEvent.Indexed[5]).OriginTransactionId;
+                if (originTransactionId == null)
+                {
+                    // only SendVirtualInlineOnBlock has originTransactionId
+                    continue;
+                }
+
+                var from = VirtualTransactionCreated.Parser.ParseFrom(logEvent.Indexed[1]).From;
+                var to = VirtualTransactionCreated.Parser.ParseFrom(logEvent.Indexed[2]).To;
+                var methodName = VirtualTransactionCreated.Parser.ParseFrom(logEvent.Indexed[3]).MethodName;
+                var logNum = VirtualTransactionCreated.Parser.ParseFrom(logEvent.Indexed[6]).LogNum;
+                var param = VirtualTransactionCreated.Parser.ParseFrom(logEvent.NonIndexed).Params;
+                var inlineTransaction = new Transaction
+                {
+                    From = from,
+                    To = to,
+                    MethodName = methodName,
+                    Params = param
+                };
+
+                var inlineTransactionId = HashHelper.ConcatAndCompute(inlineTransaction.GetHash(),
+                    HashHelper.ComputeFrom(ByteArrayHelper.ConcatArrays(originTransactionId.ToByteArray(),
+                        logNum.ToBytes())));
+                leafNodes.Add(GetHashCombiningTransactionAndStatus(inlineTransactionId, status));
+            }
+        }
         return leafNodes;
     }
 

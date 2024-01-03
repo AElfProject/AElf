@@ -462,6 +462,9 @@ message CrossChainReceiveTokenInput {
     bytes transfer_transaction_bytes = 3;
     // The merkle path created from the transfer transaction.
     aelf.MerklePath merkle_path = 4;
+    // inline transaction id when CrossChainTransfer inline
+    aelf.Hash inline_transaction_id = 5;
+
 }
 
 message IsInWhiteListInput {
@@ -555,6 +558,8 @@ message CrossChainCreateTokenInput {
     bytes transaction_bytes = 3;
     // The merkle path created from the transaction that created the transaction.
     aelf.MerklePath merkle_path = 4;
+    // inline transaction id when ValidateTokenInfoExists inline
+    aelf.Hash inline_transaction_id = 5;
 }
 
 message InitializeFromParentChainInput {

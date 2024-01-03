@@ -19,6 +19,9 @@
         <ContractMessage Include="..\..\protobuf\acs1.proto">
             <Link>Protobuf\Proto\acs1.proto</Link>
         </ContractMessage>
+        <ContractMessage Include="..\..\protobuf\virtual_transaction.proto">
+            <Link>Protobuf\Proto\virtual_transaction.proto</Link>
+        </ContractMessage>
     </ItemGroup>
     <ItemGroup>
         <CommonMessage Include="..\..\protobuf\execution.proto">

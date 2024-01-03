@@ -183,11 +183,48 @@ public class BlockExecutingService : IBlockExecutingService, ITransientDependenc
     {
         Logger.LogTrace("Start transaction status merkle tree root calculation.");
         var executionReturnSet = blockExecutionReturnSet.Select(executionReturn =>
-            (executionReturn.TransactionId, executionReturn.Status));
+            (executionReturn.TransactionId, executionReturn.Status,
+                executionReturn.TransactionResult.Logs.Where(log =>
+                    log.Name.Equals(nameof(VirtualTransactionCreated)))));
         var nodes = new List<Hash>();
-        foreach (var (transactionId, status) in executionReturnSet)
+        foreach (var (transactionId, status, logEvents) in executionReturnSet)
+        {
             nodes.Add(GetHashCombiningTransactionAndStatus(transactionId, status));
+            var enumerable = logEvents.ToList();
+            if (status != TransactionResultStatus.Mined || !enumerable.Any())
+            {
+                continue;
+            }
 
+            foreach (var logEvent in enumerable)
+            {
+                var originTransactionId =
+                    VirtualTransactionCreated.Parser.ParseFrom(logEvent.Indexed[5]).OriginTransactionId;
+                if (originTransactionId == null)
+                {
+                    // only SendVirtualInlineOnBlock has originTransactionId
+                    continue;
+                }
+
+                var from = VirtualTransactionCreated.Parser.ParseFrom(logEvent.Indexed[1]).From;
+                var to = VirtualTransactionCreated.Parser.ParseFrom(logEvent.Indexed[2]).To;
+                var methodName = VirtualTransactionCreated.Parser.ParseFrom(logEvent.Indexed[3]).MethodName;
+                var logNum = VirtualTransactionCreated.Parser.ParseFrom(logEvent.Indexed[6]).LogNum;
+                var param = VirtualTransactionCreated.Parser.ParseFrom(logEvent.NonIndexed).Params;
+                var inlineTransaction = new Transaction
+                {
+                    From = from,
+                    To = to,
+                    MethodName = methodName,
+                    Params = param
+                };
+
+                var inlineTransactionId = HashHelper.ConcatAndCompute(inlineTransaction.GetHash(),
+                    HashHelper.ComputeFrom(ByteArrayHelper.ConcatArrays(originTransactionId.ToByteArray(),
+                        logNum.ToBytes())));
+                nodes.Add(GetHashCombiningTransactionAndStatus(inlineTransactionId, status));
+            }
+        }
         return BinaryMerkleTree.FromLeafNodes(nodes).Root;
     }
 
