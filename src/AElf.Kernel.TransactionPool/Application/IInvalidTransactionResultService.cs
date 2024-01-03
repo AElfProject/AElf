@@ -8,7 +8,7 @@ namespace AElf.Kernel.TransactionPool.Application;
 
 public interface IInvalidTransactionResultService
 {
-    Task AddInvalidTransactionResultAsync(InvalidTransactionResult transactionResult);
+    Task AddInvalidTransactionResultAsync(InvalidTransactionResult invalidTransactionResult);
     Task<InvalidTransactionResult> GetInvalidTransactionResultAsync(Hash transactionId);
 }
 
@@ -21,9 +21,9 @@ public class InvalidTransactionResultService : IInvalidTransactionResultService,
         _invalidTransactionResultManager = invalidTransactionResultManager;
     }
     
-    public async Task AddInvalidTransactionResultAsync(InvalidTransactionResult transactionResult)
+    public async Task AddInvalidTransactionResultAsync(InvalidTransactionResult invalidTransactionResult)
     {
-        await _invalidTransactionResultManager.AddInvalidTransactionResultAsync(transactionResult);
+        await _invalidTransactionResultManager.AddInvalidTransactionResultAsync(invalidTransactionResult);
     }
 
     public async Task<InvalidTransactionResult> GetInvalidTransactionResultAsync(Hash transactionId)
