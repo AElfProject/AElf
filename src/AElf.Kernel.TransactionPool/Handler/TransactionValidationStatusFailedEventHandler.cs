@@ -41,16 +41,8 @@ public class TransactionValidationStatusFailedEventHandler :
             {
                 TransactionId = eventData.TransactionId,
                 Status = eventData.TransactionResultStatus,
-                Error = TakeErrorMessage(eventData.Error)
+                Error = eventData.Error
             });
-    }
-    
-    private string TakeErrorMessage(string transactionResultError)
-    {
-        if (string.IsNullOrWhiteSpace(transactionResultError))
-            return null;
-        using var stringReader = new StringReader(transactionResultError);
-        return stringReader.ReadLine();
     }
     
 }

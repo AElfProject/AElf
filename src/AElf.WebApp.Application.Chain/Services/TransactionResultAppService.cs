@@ -114,13 +114,13 @@ public class TransactionResultAppService : AElfAppService, ITransactionResultApp
             if (failedTransactionResult != null)
             {
                 output.Status = failedTransactionResult.Status.ToString().ToUpper();
-                output.Error = failedTransactionResult.Error;
+                output.Error = TransactionErrorResolver.TakeErrorMessage(failedTransactionResult.Error,
+                    _webAppOptions.IsDebugMode);
                 return output;
             }
         }
 
         return output;
-        
     }
 
     /// <summary>
@@ -325,7 +325,8 @@ public class TransactionResultAppService : AElfAppService, ITransactionResultApp
         try
         {
             var parameters = methodDescriptor.InputType.Parser.ParseFrom(@params);
-            transaction.Params = JsonFormatter.ToDiagnosticString(parameters);;
+            transaction.Params = JsonFormatter.ToDiagnosticString(parameters);
+            ;
         }
         catch (Exception exception)
         {
