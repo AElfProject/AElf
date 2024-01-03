@@ -253,6 +253,30 @@ public class CSharpSmartContractContext : ISmartContractBridgeContext
             methodName, args, logTransaction);
     }
 
+    public Hash SendVirtualInlineOnBlockBySystemContract(Hash fromVirtualAddress, Address toAddress, string methodName,
+        ByteString args)
+    {
+        return SmartContractBridgeContextImplementation.SendVirtualInlineOnBlockBySystemContract(fromVirtualAddress,
+            toAddress,
+            methodName, args);
+    }
+
+    public Hash SendVirtualInlineOnBlock(Hash fromVirtualAddress, Address toAddress, string methodName,
+        ByteString args)
+    {
+        return SmartContractBridgeContextImplementation.SendVirtualInlineOnBlock(fromVirtualAddress,
+            toAddress,
+            methodName, args);
+    }
+
+    public Hash GetInlineTransactionId(Transaction inlineTransaction, Hash originTransactionId,
+        Int32 virtualTransactionLogNum)
+    {
+        return SmartContractBridgeContextImplementation.GetInlineTransactionId(inlineTransaction,
+            originTransactionId,
+            virtualTransactionLogNum);
+    }
+
     /// <summary>
     ///     Converts a virtual address to a contract address with the contract address.
     /// </summary>
