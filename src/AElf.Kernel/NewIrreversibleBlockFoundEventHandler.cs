@@ -40,8 +40,6 @@ public class NewIrreversibleBlockFoundEventHandler : ILocalEventHandler<NewIrrev
 
     public Task HandleEventAsync(NewIrreversibleBlockFoundEvent eventData)
     {
-        Logger.LogInformation($"NewIrreversibleBlockFoundGrainEventHandler.HandleEventAsync,eventData:{JsonConvert.SerializeObject(eventData)}");
-
         _taskQueueManager.Enqueue(async () =>
         {
             await _blockchainStateService.MergeBlockStateAsync(eventData.BlockHeight,

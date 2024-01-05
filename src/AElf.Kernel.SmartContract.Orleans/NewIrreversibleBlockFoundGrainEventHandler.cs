@@ -12,19 +12,14 @@ public class NewIrreversibleBlockFoundGrainEventHandler : ILocalEventHandler<New
 {
     private readonly ITaskQueueManager _taskQueueManager;
     private readonly ISiloClusterClientContext _siloClusterClientContext;
-
+    public ILocalEventBus LocalEventBus { get; set; }
     public NewIrreversibleBlockFoundGrainEventHandler(ITaskQueueManager taskQueueManager,
         ISiloClusterClientContext siloClusterClientContext)
     {
         _taskQueueManager = taskQueueManager;
         _siloClusterClientContext = siloClusterClientContext;
-        Logger = NullLogger<NewIrreversibleBlockFoundGrainEventHandler>.Instance;
 
     }
-
-    public ILogger<NewIrreversibleBlockFoundGrainEventHandler> Logger { get; set; }
-    public ILocalEventBus LocalEventBus { get; set; }
-
     public Task HandleEventAsync(NewIrreversibleBlockFoundEvent eventData)
     {
         _taskQueueManager.Enqueue(async () =>

@@ -6,7 +6,7 @@ namespace AElf.Kernel.SmartContract.Orleans;
 
 public class PlainTransactionCleanChainGrain : Grain, IPlainTransactionCleanChainGrain
 {
-    public ILogger<PlainTransactionCleanChainGrain> Logger { get; set; }
+    private readonly ILogger<PlainTransactionCleanChainGrain> _logger;
     private readonly ISmartContractExecutiveService _smartContractExecutiveService;
     private readonly IBlockchainStateService _blockchainStateService;
 
@@ -18,12 +18,12 @@ public class PlainTransactionCleanChainGrain : Grain, IPlainTransactionCleanChai
     {
         _blockchainStateService = blockchainStateService;
         _smartContractExecutiveService = smartContractExecutiveService;
-        Logger = logger;
+        _logger = logger;
     }
     
     public async Task CleanChainStateAsync(long blockStateHeight)
     {
-        Logger.LogDebug("PlainTransactionCleanChainGrain.CleanChainStateAsync,eventData:{blockStateHeight}",blockStateHeight);
+        _logger.LogDebug("PlainTransactionCleanChainGrain.CleanChainStateAsync,eventData:{blockStateHeight}",blockStateHeight);
         await _blockchainStateService.RemoveBlockStateSetsByHeightAsync(blockStateHeight);
         _smartContractExecutiveService.CleanIdleExecutive();
     }
