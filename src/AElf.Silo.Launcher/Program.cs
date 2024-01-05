@@ -1,5 +1,4 @@
 ﻿using System.Reflection;
-using System.Runtime;
 using AElf.Silo.Launcher.Extensions;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;

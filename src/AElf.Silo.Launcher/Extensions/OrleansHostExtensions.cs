@@ -1,5 +1,4 @@
 using System.Net;
-using System.Runtime;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -45,7 +44,6 @@ public static class OrleansHostExtensions
 
                     op.ConfigureJsonSerializerSettings = jsonSettings =>
                     {
-                        // jsonSettings.ContractResolver = new PrivateSetterContractResolver();
                         jsonSettings.NullValueHandling = NullValueHandling.Include;
                         jsonSettings.DefaultValueHandling = DefaultValueHandling.Populate;
                         jsonSettings.ObjectCreationHandling = ObjectCreationHandling.Replace;

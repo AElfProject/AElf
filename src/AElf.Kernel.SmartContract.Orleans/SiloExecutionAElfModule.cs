@@ -1,7 +1,6 @@
 using AElf.Kernel.SmartContract.Application;
 using AElf.Runtime.CSharp;
 using Microsoft.Extensions.Configuration;
-//using AutoMapper.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Orleans;

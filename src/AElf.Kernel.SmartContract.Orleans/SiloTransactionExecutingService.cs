@@ -28,11 +28,11 @@ public class SiloTransactionExecutingService : IPlainTransactionExecutingService
     {
         try
         {
-            var id = _plainTransactionExecutingGrainProvider.TryGetGrainId(typeof(SiloTransactionExecutingService).Name, 
+            var id = _plainTransactionExecutingGrainProvider.TryGetGrainId(nameof(SiloTransactionExecutingService), 
                 out var pool);
-            var grain = _siloClusterClientContext.GetClusterClient().GetGrain<IPlainTransactionExecutingGrain>(typeof(SiloTransactionExecutingService).Name + id);
+            var grain = _siloClusterClientContext.GetClusterClient().GetGrain<IPlainTransactionExecutingGrain>(nameof(SiloTransactionExecutingService) + id);
             var result = await grain.ExecuteAsync(transactionExecutingDto, cancellationToken);
-            pool.Add(id);
+            _plainTransactionExecutingGrainProvider.AddGrainId(pool, id);
             return result;
         }
         catch (Exception e)

@@ -12,12 +12,9 @@ using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee;
 using AElf.Kernel.SmartContract.ExecutionPluginForResourceFee;
 using AElf.Kernel.SmartContract.Orleans;
 using AElf.Kernel.Token;
-using AElf.OS;
 using AElf.RuntimeSetup;
-using AElf.WebApp.Application.Chain;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Volo.Abp.AspNetCore;
 using Volo.Abp.Autofac;
 using Volo.Abp.Modularity;
@@ -65,8 +62,6 @@ public class AElfSiloLauncherModule : AbpModule
             option.ChainType = chainType;
             option.NetType = netType;
         });
-
-        context.Services.AddHostedService<SiloTransactionExecutingHost>();
 
         Configure<HostSmartContractBridgeContextOptions>(options =>
         {

@@ -6,15 +6,13 @@ using AElf.Types;
 using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using Orleans;
-using Orleans.Runtime;
 
 namespace AElf.Kernel.SmartContract.Orleans;
 
 public class PlainTransactionExecutingGrain : Grain, IPlainTransactionExecutingGrain
 {
-    public ILogger<PlainTransactionExecutingGrain> Logger { get; set; }
+    private readonly ILogger<PlainTransactionExecutingGrain> _logger;
     private readonly ISmartContractExecutiveService _smartContractExecutiveService;
     private readonly List<IPreExecutionPlugin> _prePlugins;
     private readonly List<IPostExecutionPlugin> _postPlugins;
@@ -31,20 +29,17 @@ public class PlainTransactionExecutingGrain : Grain, IPlainTransactionExecutingG
         _transactionContextFactory = transactionContextFactory;
         _prePlugins = GetUniquePlugins(prePlugins);
         _postPlugins = GetUniquePlugins(postPlugins);
-        Logger = logger;
+        _logger = logger;
         _defaultContractZeroCodeProvider = defaultContractZeroCodeProvider;
     }
 
     public async Task<List<ExecutionReturnSet>> ExecuteAsync(TransactionExecutingDto transactionExecutingDto,
         CancellationToken cancellationToken)
     {
-        var startAll = DateTime.Now;
-        var start = DateTime.Now;
-        var end = DateTime.Now;
-        var uuid = Guid.NewGuid().ToString();
         try
         {
-            Logger.LogInformation($"{uuid},start - PlainTransactionExecutingGrain.ExecuteAsync, groupType:{transactionExecutingDto.GroupType}, height: {transactionExecutingDto.BlockHeader.Height},txCount:{transactionExecutingDto.Transactions.Count()}");
+            _logger.LogDebug("PlainTransactionExecutingGrain.ExecuteAsync, groupType:{groupType}, height: {height},txCount:{count}",
+                transactionExecutingDto.GroupType, transactionExecutingDto.BlockHeader.Height, transactionExecutingDto.Transactions.Count());
             _defaultContractZeroCodeProvider.SetDefaultContractZeroRegistrationByType(typeof(BasicContractZero));
 
             var groupStateCache = transactionExecutingDto.PartialBlockStateSet.ToTieredStateCache();
@@ -69,21 +64,14 @@ public class PlainTransactionExecutingGrain : Grain, IPlainTransactionExecutingG
                 };
                 try
                 { 
-                    start = DateTime.Now;
                     var transactionExecutionTask = Task.Run(() => ExecuteOneAsync(singleTxExecutingDto,
                         cancellationToken), cancellationToken);
-                    end = DateTime.Now;
-                    Logger.LogInformation($"{uuid}, - PlainTransactionExecutingGrain.ExecuteAsync--ExecuteOneAsync, time: {(end - start).TotalMilliseconds} ms");
-                    start = DateTime.Now;
                     trace = await transactionExecutionTask.WithCancellation(cancellationToken);
-                    end = DateTime.Now;
-                    Logger.LogInformation($"{uuid}, - PlainTransactionExecutingGrain.ExecuteAsync--WithCancellation, time: {(end - start).TotalMilliseconds} ms");
-
 
                 }
                 catch (OperationCanceledException)
                 {
-                    Logger.LogTrace("Transaction canceled");
+                    _logger.LogTrace("Transaction canceled");
                     if (cancellationToken.IsCancellationRequested)
                         break;
                     continue;
@@ -93,16 +81,10 @@ public class PlainTransactionExecutingGrain : Grain, IPlainTransactionExecutingG
                 if (!TryUpdateStateCache(trace, groupStateCache))
                     break;
 #if DEBUG
-                if (!string.IsNullOrEmpty(trace.Error)) Logger.LogInformation("{Error}", trace.Error);
+                if (!string.IsNullOrEmpty(trace.Error)) _logger.LogInformation("{Error}", trace.Error);
 #endif
-                start = DateTime.Now;
                 var result = GetTransactionResult(trace, transactionExecutingDto.BlockHeader.Height);
-                end = DateTime.Now;
-                Logger.LogInformation($"{uuid}, - PlainTransactionExecutingGrain.ExecuteAsync--GetTransactionResult, time: {(end - start).TotalMilliseconds} ms");
-                start = DateTime.Now;
                 var returnSet = GetReturnSet(trace, result);
-                end = DateTime.Now;
-                Logger.LogInformation($"{uuid}, - PlainTransactionExecutingGrain.ExecuteAsync--GetReturnSet, time: {(end - start).TotalMilliseconds} ms");
                 returnSets.Add(returnSet);
             }
 
@@ -110,13 +92,8 @@ public class PlainTransactionExecutingGrain : Grain, IPlainTransactionExecutingG
         }
         catch (Exception e)
         {
-            Logger.LogError(e, "Failed while executing txs in block");
+            _logger.LogError(e, "Failed while executing txs in block");
             throw;
-        }finally{
-            end = DateTime.Now;
-            Logger.LogInformation($"{uuid},end - PlainTransactionExecutingGrain.ExecuteAsync, time: {(end - startAll).TotalMilliseconds} ms");
-            //DeactivateOnIdle();
-           //DelayDeactivation(TimeSpan.FromMinutes(1));
         }
     }
 
@@ -217,7 +194,7 @@ public class PlainTransactionExecutingGrain : Grain, IPlainTransactionExecutingG
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "Transaction execution failed");
+            _logger.LogError(ex, "Transaction execution failed");
             txContext.Trace.ExecutionStatus = ExecutionStatus.ContractError;
             txContext.Trace.Error += ex + "\n";
             throw;

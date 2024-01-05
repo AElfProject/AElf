@@ -4,7 +4,6 @@ using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
-using AElf.Kernel.SmartContract.Orleans;
 
 namespace AElf.Kernel.SmartContract.Parallel;
 
