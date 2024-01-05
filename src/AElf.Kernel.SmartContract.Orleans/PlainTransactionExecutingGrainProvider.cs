@@ -6,9 +6,9 @@ namespace AElf.Kernel.SmartContract.Orleans;
 
 public interface IPlainTransactionExecutingGrainProvider
 {
-    int TryGetGrainId(string type,out ConcurrentBag<int> pool);
+    int TryGetGrainId(string type);
     
-    void AddGrainId(ConcurrentBag<int> pool, int id);
+    void AddGrainId(string type, int id);
 }
 
 public class PlainTransactionExecutingGrainProvider : IPlainTransactionExecutingGrainProvider, ISingletonDependency
@@ -22,9 +22,9 @@ public class PlainTransactionExecutingGrainProvider : IPlainTransactionExecuting
     {
         _logger = logger;
     }
-    public int TryGetGrainId(string type,out ConcurrentBag<int> pool)
+    public int TryGetGrainId(string type)
     {
-        if (!_poolDictionary.TryGetValue(type, out pool))
+        if (!_poolDictionary.TryGetValue(type, out var pool))
         {
             pool = new ConcurrentBag<int>();
             for (int i = 0; i < _initialIdCount; i++)
@@ -53,8 +53,11 @@ public class PlainTransactionExecutingGrainProvider : IPlainTransactionExecuting
         return id;
     }
 
-    public void AddGrainId(ConcurrentBag<int> pool, int id)
-    { 
-        pool.Add(id);
+    public void AddGrainId(string type, int id)
+    {
+        if (!_poolDictionary.TryGetValue(type, out var pool))
+        {
+            pool.Add(id);
+        }
     }
 }

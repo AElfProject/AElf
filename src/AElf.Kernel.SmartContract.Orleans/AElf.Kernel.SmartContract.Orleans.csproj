@@ -30,10 +30,4 @@
         <Folder Include="State" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Reference Include="Orleans.Core">
-        <HintPath>..\..\..\..\..\.nuget\packages\microsoft.orleans.core\3.7.1\lib\net6.0\Orleans.Core.dll</HintPath>
-      </Reference>
-    </ItemGroup>
-
 </Project>

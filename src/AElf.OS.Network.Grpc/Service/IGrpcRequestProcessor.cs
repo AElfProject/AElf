@@ -107,7 +107,7 @@ public class GrpcRequestProcessor : IGrpcRequestProcessor, ISingletonDependency
         }
 
         Logger.LogDebug(
-            $"Received lib announce hash: {announcement.LibHash}, height {announcement.LibHeight} from {peerPubkey}.");
+            $"Received lib announce hash: {announcement.LibHash.ToHex()}, height {announcement.LibHeight} from {peerPubkey}.");
 
         var peer = TryGetPeerByPubkey(peerPubkey);
 
