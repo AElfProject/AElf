@@ -59,7 +59,7 @@ internal class Program
         return Host.CreateDefaultBuilder(args)
             .ConfigureLogging(builder => { builder.ClearProviders(); })
             .ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup<Startup>(); })
-            .UseOrleansSnapshot()
+            .UseOrleans()
             .UseAutofac();
     }
 }

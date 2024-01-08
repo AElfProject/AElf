@@ -13,7 +13,7 @@ namespace AElf.Silo.Launcher.Extensions;
 
 public static class OrleansHostExtensions
 {
-    public static IHostBuilder UseOrleansSnapshot(this IHostBuilder hostBuilder)
+    public static IHostBuilder UseOrleans(this IHostBuilder hostBuilder)
     {
         
         var configuration = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory())
