@@ -63,6 +63,9 @@ service ProfitContract {
     // Reset the manager of a scheme.
     rpc ResetManager (ResetManagerInput) returns (google.protobuf.Empty) {
     }
+    
+    rpc SetMaximumProfitReceivingPeriodCount(google.protobuf.Int32Value) returns (google.protobuf.Empty) {
+    }
 
     // Get all schemes managed by the specified manager.
     rpc GetManagingSchemeIds (GetManagingSchemeIdsInput) returns (CreatedSchemeIds) {
@@ -96,6 +99,10 @@ service ProfitContract {
 
     // Query all profit (up to 10 periods).
     rpc GetProfitsMap (ClaimProfitsInput) returns (ReceivedProfitsMap) {
+        option (aelf.is_view) = true;
+    }
+    
+    rpc GetMaximumProfitReceivingPeriodCount(google.protobuf.Empty) returns (google.protobuf.Int32Value) {
         option (aelf.is_view) = true;
     }
 }

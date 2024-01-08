@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.CSharp.Core;
 using AElf.Types;
+using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
 
@@ -1678,6 +1679,47 @@ public partial class ProfitContractTests
             var scheme = await ProfitContractStub.GetScheme.CallAsync(schemeId);
             details.Details.First().LastProfitPeriod.ShouldBe(scheme.CurrentPeriod);
         }
+    }
+
+
+    [Fact]
+    public async Task MaximumProfitReceivingPeriodCount_Test()
+    {
+        var maximumProfitReceivingPeriodCount =
+            await ProfitContractStub.GetMaximumProfitReceivingPeriodCount.CallAsync(new Empty());
+        maximumProfitReceivingPeriodCount.Value.ShouldBe(ProfitContractTestConstants
+            .DefaultMaximumProfitReceivingPeriodCountOfOneTime);
+        var maxPeriodCount = 10;
+        var result = await ProfitContractStub.SetMaximumProfitReceivingPeriodCount.SendWithExceptionAsync(new Int32Value
+        {
+            Value = maxPeriodCount
+        });
+        result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+        result.TransactionResult.Error.ShouldContain("No permission");
+
+        var defaultOrganizationAddress =
+            await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+        var proposalId = await CreateProposalAsync(ProfitContractAddress,
+            defaultOrganizationAddress, nameof(ProfitContractStub.SetMaximumProfitReceivingPeriodCount), new Int32Value
+            {
+                Value = 0
+            });
+        await ApproveWithMinersAsync(proposalId);
+        result = await ParliamentContractStub.Release.SendWithExceptionAsync(proposalId);
+        result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+        result.TransactionResult.Error.ShouldContain("Invalid maximum profit receiving period count");
+
+        proposalId = await CreateProposalAsync(ProfitContractAddress,
+            defaultOrganizationAddress, nameof(ProfitContractStub.SetMaximumProfitReceivingPeriodCount), new Int32Value
+            {
+                Value = maxPeriodCount
+            });
+        await ApproveWithMinersAsync(proposalId);
+        await ParliamentContractStub.Release.SendAsync(proposalId);
+
+        maximumProfitReceivingPeriodCount =
+            await ProfitContractStub.GetMaximumProfitReceivingPeriodCount.CallAsync(new Empty());
+        maximumProfitReceivingPeriodCount.Value.ShouldBe(maxPeriodCount);
     }
 
     private async Task ContributeProfits(Hash schemeId, long amount = 100)

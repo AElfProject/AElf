@@ -133,4 +133,12 @@ public partial class ProfitContract
             Value = { profitsDict }
         };
     }
+
+    public override Int32Value GetMaximumProfitReceivingPeriodCount(Empty input)
+    {
+        return new Int32Value
+        {
+            Value = GetMaximumProfitReceivingPeriodCount()
+        };
+    }
 }
