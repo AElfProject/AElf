@@ -30,7 +30,7 @@ Users vote for nodes
 
 Users can visit `this site <https://explorer.aelf.io/vote/election>`__ and vote for candidate nodes at Governance - Vote - Node Table.
 
-The top 2N+1 nodes will be elected as the BPs, where N starts from 8 in 2022 and increases by 1 each year.
+The top 2N+1 nodes become BPs, and the top 5*(2N+1) nodes become candidate nodes, where N starts from 8 in 2022 and increases by 1 each year.
 
 BPs are elected
 ---------------
