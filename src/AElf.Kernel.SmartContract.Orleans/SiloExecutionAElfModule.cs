@@ -1,4 +1,6 @@
+using AElf.Contracts.Genesis;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Runtime.CSharp;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -30,6 +32,9 @@ public class SiloExecutionAElfModule : AbpModule
     public override void OnPreApplicationInitialization(ApplicationInitializationContext context)
     {
         StartOrleans(context.ServiceProvider);
+        var _defaultContractZeroCodeProvider = context.ServiceProvider.GetService<IDefaultContractZeroCodeProvider>();
+        AsyncHelper.RunSync(async () => {_defaultContractZeroCodeProvider.SetDefaultContractZeroRegistrationByType(typeof(BasicContractZero));
+        });
     }
 
     public override void OnApplicationShutdown(ApplicationShutdownContext context)

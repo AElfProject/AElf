@@ -40,7 +40,7 @@ public class PlainTransactionExecutingGrain : Grain, IPlainTransactionExecutingG
         {
             _logger.LogDebug("PlainTransactionExecutingGrain.ExecuteAsync, groupType:{groupType}, height: {height},txCount:{count}",
                 transactionExecutingDto.GroupType, transactionExecutingDto.BlockHeader.Height, transactionExecutingDto.Transactions.Count());
-            _defaultContractZeroCodeProvider.SetDefaultContractZeroRegistrationByType(typeof(BasicContractZero));
+           // _defaultContractZeroCodeProvider.SetDefaultContractZeroRegistrationByType(typeof(BasicContractZero));
 
             var groupStateCache = transactionExecutingDto.PartialBlockStateSet.ToTieredStateCache();
             var groupChainContext = new ChainContextWithTieredStateCache(
