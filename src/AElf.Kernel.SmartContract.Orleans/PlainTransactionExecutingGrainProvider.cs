@@ -6,58 +6,41 @@ namespace AElf.Kernel.SmartContract.Orleans;
 
 public interface IPlainTransactionExecutingGrainProvider
 {
-    int TryGetGrainId(string type);
+    int TryGetGrainId();
     
-    void AddGrainId(string type, int id);
+    void AddGrainId(int id);
 }
 
 public class PlainTransactionExecutingGrainProvider : IPlainTransactionExecutingGrainProvider, ISingletonDependency
 {
-    private readonly ConcurrentDictionary<string, ConcurrentBag<int>> _poolDictionary = new();
-    private readonly ConcurrentDictionary<string, int> _poolCurrentId = new();
-    private readonly int _initialIdCount = 10;
+    private int _poolCurrentId = 0;
     private readonly ILogger<PlainTransactionExecutingGrainProvider> _logger;
+    private readonly ConcurrentBag<int> _pool = new();
 
     public PlainTransactionExecutingGrainProvider(ILogger<PlainTransactionExecutingGrainProvider> logger)
     {
         _logger = logger;
     }
-    public int TryGetGrainId(string type)
+    public int TryGetGrainId()
     {
-        if (!_poolDictionary.TryGetValue(type, out var pool))
+        if (!_pool.TryTake(out var id))
         {
-            pool = new ConcurrentBag<int>();
-            for (int i = 0; i < _initialIdCount; i++)
-            {
-                pool.Add(i);
-            }
-            _poolDictionary[type] = pool;
-            _poolCurrentId[type] = pool.Count-1;
-            _logger.LogDebug("Create new pool for {type}",type);
-        }
-
-        if (!pool.TryTake(out var id))
-        {
-            if (_poolCurrentId[type] == int.MaxValue)
+            if (_poolCurrentId == int.MaxValue)
             {
                 id = 0;
             }
             else
             {
-                id = _poolCurrentId[type] + 1;
+                id = _poolCurrentId + 1;
             }
-            _poolCurrentId[type] = id;
-            pool.Add(id);
-            _logger.LogDebug("Create new Id for {type}-{id}",type,id);
+            _poolCurrentId = id;
+            _logger.LogDebug("Create new Id for {id}",id);
         }
         return id;
     }
 
-    public void AddGrainId(string type, int id)
+    public void AddGrainId(int id)
     {
-        if (!_poolDictionary.TryGetValue(type, out var pool))
-        {
-            pool.Add(id);
-        }
+        _pool.Add(id);
     }
 }

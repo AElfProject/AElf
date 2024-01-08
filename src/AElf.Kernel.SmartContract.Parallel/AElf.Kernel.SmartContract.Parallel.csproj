@@ -23,6 +23,5 @@
     <ItemGroup>
         <ProjectReference Include="..\AElf.Kernel.SmartContract.Orleans\AElf.Kernel.SmartContract.Orleans.csproj" />
         <ProjectReference Include="..\AElf.Kernel.TransactionPool\AElf.Kernel.TransactionPool.csproj" />
-        <ProjectReference Include="..\AElf.Kernel\AElf.Kernel.csproj" />
     </ItemGroup>
 </Project>
