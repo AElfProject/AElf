@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Linq;
 using AElf.Kernel.Infrastructure;
 
 namespace AElf.Kernel.SmartContract.Infrastructure;
@@ -16,14 +17,12 @@ public interface INotModifiedCachedStateStore<T> : IStateStore<T>
     where T : IMessage<T>, new()
 {
     Task SetWithCacheAsync(string key, T value);
-
-    Task RemoveByHeightAsync(long height);
 }
 
 public class NotModifiedCachedStateStore<T> : INotModifiedCachedStateStore<T>
     where T : class, IMessage<T>, new()
 {
-    private readonly ConcurrentDictionary<string, T> _cache = new();
+    protected ConcurrentDictionary<string, T> _cache = new();
     private readonly IStateStore<T> _stateStoreImplementation;
 
     public NotModifiedCachedStateStore(IStateStore<T> stateStoreImplementation)
@@ -92,25 +91,6 @@ public class NotModifiedCachedStateStore<T> : INotModifiedCachedStateStore<T>
         await _stateStoreImplementation.RemoveAllAsync(keys);
     }
     
-    public async Task RemoveByHeightAsync(long height)
-    {
-        var keys = new List<string>();
-        foreach (KeyValuePair<string, T> kv in _cache)
-        {
-            if (kv.Value is BlockStateSet blockStateSet)
-            {
-                if (blockStateSet.BlockHeight <= height)
-                {
-                    keys.Add(kv.Key);
-                    _cache.TryRemove(kv.Key, out _);
-                }
-            }
-        }
-        await _stateStoreImplementation.RemoveAllAsync(keys);
-
-    }
-    
-
     public async Task SetWithCacheAsync(string key, T value)
     {
         await SetAsync(key, value);

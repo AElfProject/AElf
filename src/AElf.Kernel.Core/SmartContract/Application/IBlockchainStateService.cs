@@ -14,7 +14,6 @@ public interface IBlockchainStateService
     Task SetBlockStateSetAsync(BlockStateSet blockStateSet);
 
     Task RemoveBlockStateSetsAsync(IList<Hash> blockStateHashes);
-    Task RemoveBlockStateSetsByHeightAsync(long blockStateHeight);
 }
 
 public interface IBlockchainExecutedDataService
@@ -184,10 +183,4 @@ public class BlockchainStateService : IBlockchainStateService
     {
         await _blockStateSetManger.RemoveBlockStateSetsAsync(blockStateHashes);
     }
-    
-    public async Task RemoveBlockStateSetsByHeightAsync(long blockStateHeight)
-    {
-        await _blockStateSetManger.RemoveBlockStateSetsByHeightAsync(blockStateHeight);
-    }
-
 }

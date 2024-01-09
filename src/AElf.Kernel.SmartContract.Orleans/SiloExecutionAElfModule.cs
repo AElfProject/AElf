@@ -25,8 +25,11 @@ public class SiloExecutionAElfModule : AbpModule
         context.Services.AddSingleton<IPlainTransactionExecutingGrain, PlainTransactionExecutingGrain>();
         context.Services.AddSingleton<ISiloClusterClientContext, SiloClusterClientContext>();
         context.Services.AddSingleton<ISmartContractExecutiveService, SmartContractExecutiveService>();
-        context.Services.AddSingleton<IPlainTransactionExecutingGrainProvider, PlainTransactionExecutingGrainProvider>();
-
+        context.Services.AddSingleton<IPlainTransactionExecutingGrainProvider, PlainTransactionExecutingGrainProvider>(); 
+        context.Services.AddSingleton<IBlockStateSetCachedStateStore, BlockStateSetCachedStateStore>();
+        context.Services.AddSingleton<INotModifiedCachedStateStore<BlockStateSet>, BlockStateSetCachedStateStore>(provider =>
+            provider.GetRequiredService<IBlockStateSetCachedStateStore>() as BlockStateSetCachedStateStore);
+        context.Services.AddTransient<IStateStore<BlockStateSet>, StateStore<BlockStateSet>>();
     }
 
     public override void OnPreApplicationInitialization(ApplicationInitializationContext context)
@@ -69,8 +72,6 @@ public class SiloExecutionAElfModule : AbpModule
                     options.PreferedGatewayIndex = -1;
                     options.GatewayListRefreshPeriod = TimeSpan.FromSeconds(10);
                 })
-                .ConfigureApplicationParts(parts =>
-                    parts.AddApplicationPart(typeof(SiloExecutionAElfModule).Assembly).WithReferences())
                 .ConfigureLogging(builder => builder.AddProvider(o.GetService<ILoggerProvider>()))
                 .Configure<PerformanceTuningOptions>(opt =>
                 {

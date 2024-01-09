@@ -1,10 +1,4 @@
-using AElf.Contracts.Genesis;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContract.Domain;
-using AElf.Kernel.SmartContract.Infrastructure;
-using AElf.Types;
-using Google.Protobuf.Collections;
-using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Orleans;
 
