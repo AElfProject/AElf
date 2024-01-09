@@ -25,9 +25,3 @@ public enum LauncherType
     Standalone,
     Silo
 }
-
-public enum LaunchProgram
-{
-    BP,
-    Silo
-}

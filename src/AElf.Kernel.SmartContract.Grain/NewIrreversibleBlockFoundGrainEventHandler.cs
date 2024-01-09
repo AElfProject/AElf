@@ -1,11 +1,10 @@
 using AElf.Kernel.Blockchain.Events;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
+using AElf.Kernel.SmartContract.Orleans;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus;
 using Volo.Abp.EventBus.Local;
 
-namespace AElf.Kernel.SmartContract.Orleans;
+namespace AElf.Kernel.SmartContract.Grain;
 
 public class NewIrreversibleBlockFoundGrainEventHandler : ILocalEventHandler<NewIrreversibleBlockFoundEvent>,
     ITransientDependency

@@ -2,7 +2,7 @@ using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.Kernel.SmartContract.Orleans;
+namespace AElf.Kernel.SmartContract.Grain;
 
 public interface IPlainTransactionExecutingGrainProvider
 {

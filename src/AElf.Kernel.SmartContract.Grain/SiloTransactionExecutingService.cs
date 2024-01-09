@@ -1,10 +1,11 @@
 using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContract.Orleans;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Orleans;
 using Volo.Abp.EventBus.Local;
 
-namespace AElf.Kernel.SmartContract.Orleans;
+namespace AElf.Kernel.SmartContract.Grain;
 
 public class SiloTransactionExecutingService : IPlainTransactionExecutingService
 {

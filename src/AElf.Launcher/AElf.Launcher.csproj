@@ -13,6 +13,7 @@
         <None Update="appsettings.SideChain.MainNet.json">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
+        <ProjectReference Include="..\AElf.Kernel.SmartContract.Grain\AElf.Kernel.SmartContract.Grain.csproj" />
     </ItemGroup>
     <ItemGroup>
         <PackageReference Include="Volo.Abp.AspNetCore.Mvc" Version="5.2.2" />

@@ -1,6 +1,6 @@
 using Orleans;
 
-namespace AElf.Kernel.SmartContract.Orleans;
+namespace AElf.Kernel.SmartContract.Grain;
 
 public class SiloClusterClientContext : ISiloClusterClientContext
 {
