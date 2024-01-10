@@ -769,18 +769,19 @@ public partial class ProfitContract : ProfitContractImplContainer.ProfitContract
         Context.LogDebug(() =>
             $"Profitable details: {profitableDetails.Aggregate("\n", (profit1, profit2) => profit1.ToString() + "\n" + profit2)}");
 
+        var profitableDetailCount =
+            Math.Min(ProfitContractConstants.ProfitReceivingLimitForEachTime, profitableDetails.Count);
+        var maxProfitReceivingPeriodCount = GetMaximumPeriodCountForProfitableDetail(profitableDetailCount);
         // Only can get profit from last profit period to actual last period (profit.CurrentPeriod - 1),
         // because current period not released yet.
-        for (var i = 0;
-             i < Math.Min(ProfitContractConstants.ProfitReceivingLimitForEachTime, profitableDetails.Count);
-             i++)
+        for (var i = 0; i < profitableDetailCount; i++)
         {
             var profitDetail = profitableDetails[i];
             if (profitDetail.LastProfitPeriod == 0)
                 // This detail never performed profit before.
                 profitDetail.LastProfitPeriod = profitDetail.StartPeriod;
 
-            ProfitAllPeriods(scheme, profitDetail, beneficiary);
+            ProfitAllPeriods(scheme, profitDetail, beneficiary, maxProfitReceivingPeriodCount);
         }
 
         var profitDetailsToRemove = profitableDetails
@@ -807,6 +808,14 @@ public partial class ProfitContract : ProfitContractImplContainer.ProfitContract
         return new Empty();
     }
 
+    private int GetMaximumPeriodCountForProfitableDetail(int profitableDetailCount)
+    {
+        var maxPeriodCount = GetMaximumProfitReceivingPeriodCount();
+        return maxPeriodCount > profitableDetailCount && profitableDetailCount > 0
+            ? maxPeriodCount.Div(profitableDetailCount)
+            : 1;
+    }
+
     public override Empty SetMaximumProfitReceivingPeriodCount(Int32Value input)
     {
         ValidateContractState(State.ParliamentContract, SmartContractConstants.ParliamentContractSystemName);
@@ -817,7 +826,7 @@ public partial class ProfitContract : ProfitContractImplContainer.ProfitContract
         return new Empty();
     }
 
-    private Dictionary<string, long> ProfitAllPeriods(Scheme scheme, ProfitDetail profitDetail, Address beneficiary,
+    private Dictionary<string, long> ProfitAllPeriods(Scheme scheme, ProfitDetail profitDetail, Address beneficiary, int maxProfitReceivingPeriodCount,
         bool isView = false, string targetSymbol = null)
     {
         var profitsMap = new Dictionary<string, long>();
@@ -828,11 +837,10 @@ public partial class ProfitContract : ProfitContractImplContainer.ProfitContract
         foreach (var symbol in symbols)
         {
             var totalAmount = 0L;
-            var maximumProfitReceivingPeriodCount = GetMaximumProfitReceivingPeriodCount();
             var targetPeriod = Math.Min(scheme.CurrentPeriod - 1, profitDetail.EndPeriod);
             var maxProfitPeriod = profitDetail.EndPeriod == long.MaxValue
-                ? Math.Min(scheme.CurrentPeriod - 1, profitDetail.LastProfitPeriod.Add(maximumProfitReceivingPeriodCount))
-                : Math.Min(targetPeriod, profitDetail.LastProfitPeriod.Add(maximumProfitReceivingPeriodCount));
+                ? Math.Min(scheme.CurrentPeriod - 1, maxProfitReceivingPeriodCount)
+                : Math.Min(targetPeriod, profitDetail.LastProfitPeriod.Add(maxProfitReceivingPeriodCount));
             for (var period = profitDetail.LastProfitPeriod; period <= maxProfitPeriod; period++)
             {
                 var periodToPrint = period;

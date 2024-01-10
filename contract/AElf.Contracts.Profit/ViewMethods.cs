@@ -79,14 +79,16 @@ public partial class ProfitContract
 
         var amount = 0L;
 
-        for (var i = 0;
-             i < Math.Min(ProfitContractConstants.ProfitReceivingLimitForEachTime, availableDetails.Count);
-             i++)
+        var profitableDetailCount =
+            Math.Min(ProfitContractConstants.ProfitReceivingLimitForEachTime, availableDetails.Count);
+        var maxProfitReceivingPeriodCount = GetMaximumPeriodCountForProfitableDetail(profitableDetailCount);
+        
+        for (var i = 0;i < profitableDetailCount; i++)
         {
             var profitDetail = availableDetails[i];
             if (profitDetail.LastProfitPeriod == 0) profitDetail.LastProfitPeriod = profitDetail.StartPeriod;
 
-            var profitsDict = ProfitAllPeriods(profitItem, profitDetail, beneficiary, true,
+            var profitsDict = ProfitAllPeriods(profitItem, profitDetail, beneficiary,maxProfitReceivingPeriodCount, true,
                 input.Symbol);
             amount = amount.Add(profitsDict[input.Symbol]);
         }
@@ -111,16 +113,18 @@ public partial class ProfitContract
                 ? d.EndPeriod >= d.StartPeriod
                 : d.EndPeriod >= d.LastProfitPeriod)
         ).ToList();
+        
+        var profitableDetailCount =
+            Math.Min(ProfitContractConstants.ProfitReceivingLimitForEachTime, availableDetails.Count);
+        var maxProfitReceivingPeriodCount = GetMaximumPeriodCountForProfitableDetail(profitableDetailCount);
 
         var profitsDict = new Dictionary<string, long>();
-        for (var i = 0;
-             i < Math.Min(ProfitContractConstants.ProfitReceivingLimitForEachTime, availableDetails.Count);
-             i++)
+        for (var i = 0; i < profitableDetailCount; i++)
         {
             var profitDetail = availableDetails[i];
             if (profitDetail.LastProfitPeriod == 0) profitDetail.LastProfitPeriod = profitDetail.StartPeriod;
 
-            var profitsDictForEachProfitDetail = ProfitAllPeriods(scheme, profitDetail, beneficiary, true);
+            var profitsDictForEachProfitDetail = ProfitAllPeriods(scheme, profitDetail, beneficiary, maxProfitReceivingPeriodCount,true);
             foreach (var kv in profitsDictForEachProfitDetail)
                 if (profitsDict.ContainsKey(kv.Key))
                     profitsDict[kv.Key] = profitsDict[kv.Key].Add(kv.Value);
