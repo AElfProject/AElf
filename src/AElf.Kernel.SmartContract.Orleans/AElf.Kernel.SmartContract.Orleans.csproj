@@ -21,9 +21,4 @@
         <ProjectReference Include="..\AElf.Kernel.SmartContract.Grains\AElf.Kernel.SmartContract.Grains.csproj" />
         <ProjectReference Include="..\AElf.Kernel.SmartContract\AElf.Kernel.SmartContract.csproj" />
     </ItemGroup>
-
-    <ItemGroup>
-        <Folder Include="State" />
-    </ItemGroup>
-
 </Project>
