@@ -3,8 +3,8 @@
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
-        <RootNamespace>AElf.Kernel.SmartContract.Grain</RootNamespace>
-        <PackageId>AElf.Kernel.SmartContract.Grain</PackageId>
+        <RootNamespace>AElf.Kernel.SmartContract.Grains</RootNamespace>
+        <PackageId>AElf.Kernel.SmartContract.Grains</PackageId>
     </PropertyGroup>
 
     <ItemGroup>

@@ -6,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp;
 using Volo.Abp.Modularity;
 
-namespace AElf.Kernel.SmartContract.Grain;
+namespace AElf.Kernel.SmartContract.Grains;
 
 [DependsOn(typeof(CSharpRuntimeAElfModule), typeof(SmartContractAElfModule))]
 public class SiloExecutionAElfModule : AbpModule

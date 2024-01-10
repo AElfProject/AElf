@@ -64,7 +64,7 @@
       <ProjectReference Include="..\AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold\AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold.csproj" />
       <ProjectReference Include="..\AElf.Kernel.SmartContract.ExecutionPluginForMethodFee\AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.csproj" />
       <ProjectReference Include="..\AElf.Kernel.SmartContract.ExecutionPluginForResourceFee\AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.csproj" />
-      <ProjectReference Include="..\AElf.Kernel.SmartContract.Grain\AElf.Kernel.SmartContract.Grain.csproj" />
+      <ProjectReference Include="..\AElf.Kernel.SmartContract.Grains\AElf.Kernel.SmartContract.Grains.csproj" />
       <ProjectReference Include="..\AElf.OS.Core\AElf.OS.Core.csproj" />
       <ProjectReference Include="..\AElf.RuntimeSetup\AElf.RuntimeSetup.csproj" />
       <ProjectReference Include="..\AElf.WebApp.Application.Chain\AElf.WebApp.Application.Chain.csproj" />

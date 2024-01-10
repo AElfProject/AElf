@@ -1,6 +1,6 @@
 using AElf.Kernel.SmartContract.Application;
 using Microsoft.Extensions.Logging;
-namespace AElf.Kernel.SmartContract.Grain;
+namespace AElf.Kernel.SmartContract.Grains;
 
 public class PlainTransactionExecutingGrain : Orleans.Grain, IPlainTransactionExecutingGrain
 {
