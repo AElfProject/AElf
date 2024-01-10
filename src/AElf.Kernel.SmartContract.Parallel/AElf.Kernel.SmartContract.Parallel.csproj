@@ -7,10 +7,7 @@
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Description>Service module for parallel execution.</Description>
     </PropertyGroup>
-
-    <ItemGroup>
-    </ItemGroup>
-
+    
     <ItemGroup>
         <CommonMessage Include="..\..\protobuf\parallel_execution.proto">
             <Link>Protobuf\Proto\parallel_execution.proto</Link>

@@ -1,19 +1,18 @@
 using AElf.Kernel.SmartContract.Application;
 using Microsoft.Extensions.Logging;
-using Orleans;
 
-namespace AElf.Kernel.SmartContract.Orleans;
+namespace AElf.Kernel.SmartContract.Grain;
 
-public class PlainTransactionCleanChainGrain : Grain, IPlainTransactionCleanChainGrain
+public class CleanChainGrain : Orleans.Grain, ICleanChainGrain
 {
-    private readonly ILogger<PlainTransactionCleanChainGrain> _logger;
+    private readonly ILogger<CleanChainGrain> _logger;
     private readonly ISmartContractExecutiveService _smartContractExecutiveService;
     private readonly IBlockStateSetCachedStateStore _blockStateSetCachedStateStore;
 
 
-    public PlainTransactionCleanChainGrain(
+    public CleanChainGrain(
         ISmartContractExecutiveService smartContractExecutiveService,
-        ILogger<PlainTransactionCleanChainGrain> logger,
+        ILogger<CleanChainGrain> logger,
         IBlockStateSetCachedStateStore blockStateSetCachedStateStore)
     {
         _smartContractExecutiveService = smartContractExecutiveService;
@@ -21,10 +20,10 @@ public class PlainTransactionCleanChainGrain : Grain, IPlainTransactionCleanChai
         _blockStateSetCachedStateStore = blockStateSetCachedStateStore;
     }
     
-    public async Task CleanChainStateAsync(long blockStateHeight)
+    public async Task CleanCacheAsync(long blockHeight)
     {
-        _logger.LogDebug("PlainTransactionCleanChainGrain.CleanChainStateAsync,eventData:{blockStateHeight}",blockStateHeight);
-        await _blockStateSetCachedStateStore.RemoveCache(blockStateHeight);
+        _logger.LogDebug("CleanChainGrain.CleanCacheAsync,eventData:{blockHeight}",blockHeight);
+        await _blockStateSetCachedStateStore.RemoveCacheAsync(blockHeight);
         _smartContractExecutiveService.CleanIdleExecutive();
     }
 }

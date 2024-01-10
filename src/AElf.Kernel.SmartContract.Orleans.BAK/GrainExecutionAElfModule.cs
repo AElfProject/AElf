@@ -1,7 +1,4 @@
-using AElf.Contracts.Genesis;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContract.Infrastructure;
-using AElf.Kernel.SmartContract.Orleans;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -14,7 +11,6 @@ using Volo.Abp.Threading;
 
 namespace AElf.Kernel.SmartContract.Grain;
 
-[DependsOn(typeof(SiloExecutionAElfModule))]
 public class GrainExecutionAElfModule : AbpModule
 {
     public override void ConfigureServices(ServiceConfigurationContext context)
@@ -28,9 +24,6 @@ public class GrainExecutionAElfModule : AbpModule
     public override void OnPreApplicationInitialization(ApplicationInitializationContext context)
     {
         StartOrleans(context.ServiceProvider);
-        var _defaultContractZeroCodeProvider = context.ServiceProvider.GetService<IDefaultContractZeroCodeProvider>();
-        AsyncHelper.RunSync(async () => {_defaultContractZeroCodeProvider.SetDefaultContractZeroRegistrationByType(typeof(BasicContractZero));
-        });
     }
 
     public override void OnApplicationShutdown(ApplicationShutdownContext context)

@@ -1,11 +1,10 @@
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContract.Orleans;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Orleans;
 using Volo.Abp.EventBus.Local;
 
-namespace AElf.Kernel.SmartContract.Grain;
+namespace AElf.Kernel.SmartContract.Orleans;
 
 public class SiloTransactionExecutingService : IPlainTransactionExecutingService
 {
@@ -29,10 +28,9 @@ public class SiloTransactionExecutingService : IPlainTransactionExecutingService
     {
         try
         {
-            var id = _plainTransactionExecutingGrainProvider.TryGetGrainId();
-            var grain = _siloClusterClientContext.GetClusterClient().GetGrain<IPlainTransactionExecutingGrain>(nameof(SiloTransactionExecutingService) + id);
+            var grain = _plainTransactionExecutingGrainProvider.GetGrain();
             var result = await grain.ExecuteAsync(transactionExecutingDto, cancellationToken);
-            _plainTransactionExecutingGrainProvider.AddGrainId(id);
+            _plainTransactionExecutingGrainProvider.PutGrain(grain);
             return result;
         }
         catch (Exception e)

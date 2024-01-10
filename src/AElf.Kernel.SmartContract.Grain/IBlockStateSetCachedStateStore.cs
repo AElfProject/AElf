@@ -1,10 +1,10 @@
 using AElf.Kernel.SmartContract.Infrastructure;
 
-namespace AElf.Kernel.SmartContract.Orleans;
+namespace AElf.Kernel.SmartContract.Grain;
 
 public interface IBlockStateSetCachedStateStore : INotModifiedCachedStateStore<BlockStateSet>
 {
-    Task RemoveCache(long height);
+    Task RemoveCacheAsync(long height);
 }
 public class BlockStateSetCachedStateStore : NotModifiedCachedStateStore<BlockStateSet>,IBlockStateSetCachedStateStore
 {
@@ -12,7 +12,7 @@ public class BlockStateSetCachedStateStore : NotModifiedCachedStateStore<BlockSt
     {
     }
     
-    public async Task RemoveCache(long height)
+    public Task RemoveCacheAsync(long height)
     {
         var keys = new List<string>();
         foreach (var kv in _cache)
@@ -22,5 +22,7 @@ public class BlockStateSetCachedStateStore : NotModifiedCachedStateStore<BlockSt
                 _cache.TryRemove(kv.Key, out _);
             }
         }
+
+        return Task.CompletedTask;
     }
 }

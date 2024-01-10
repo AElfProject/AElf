@@ -6,13 +6,13 @@ using Volo.Abp.EventBus.Local;
 
 namespace AElf.Kernel.SmartContract.Grain;
 
-public class NewIrreversibleBlockFoundGrainEventHandler : ILocalEventHandler<NewIrreversibleBlockFoundEvent>,
+public class NewIrreversibleBlockFoundEventHandler : ILocalEventHandler<NewIrreversibleBlockFoundEvent>,
     ITransientDependency
 {
     private readonly ITaskQueueManager _taskQueueManager;
     private readonly ISiloClusterClientContext _siloClusterClientContext;
     public ILocalEventBus LocalEventBus { get; set; }
-    public NewIrreversibleBlockFoundGrainEventHandler(ITaskQueueManager taskQueueManager,
+    public NewIrreversibleBlockFoundEventHandler(ITaskQueueManager taskQueueManager,
         ISiloClusterClientContext siloClusterClientContext)
     {
         _taskQueueManager = taskQueueManager;
@@ -23,8 +23,8 @@ public class NewIrreversibleBlockFoundGrainEventHandler : ILocalEventHandler<New
     {
         _taskQueueManager.Enqueue(async () =>
         {
-           var grain = _siloClusterClientContext.GetClusterClient().GetGrain<IPlainTransactionCleanChainGrain>("CleanChain");
-           await grain.CleanChainStateAsync(eventData.BlockHeight);
+           var grain = _siloClusterClientContext.GetClusterClient().GetGrain<ICleanChainGrain>("CleanCache");
+           await grain.CleanCacheAsync(eventData.BlockHeight);
         }, KernelConstants.MergeBlockStateQueueName);
         return Task.CompletedTask;
     }

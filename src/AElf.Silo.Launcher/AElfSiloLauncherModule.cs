@@ -10,7 +10,7 @@ using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold;
 using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee;
 using AElf.Kernel.SmartContract.ExecutionPluginForResourceFee;
-using AElf.Kernel.SmartContract.Orleans;
+using AElf.Kernel.SmartContract.Grain;
 using AElf.Kernel.Token;
 using AElf.RuntimeSetup;
 using Microsoft.Extensions.Configuration;

@@ -7,11 +7,11 @@ namespace AElf.Kernel.SmartContract.Orleans;
 public class PlainTransactionExecutingGrain : Grain, IPlainTransactionExecutingGrain
 {
     private readonly ILogger<PlainTransactionExecutingGrain> _logger;
-    private readonly PlainTransactionExecutingService _plainTransactionExecutingService;
+    private readonly IPlainTransactionExecutingService _plainTransactionExecutingService;
 
 
     public PlainTransactionExecutingGrain(ILogger<PlainTransactionExecutingGrain> logger,
-        PlainTransactionExecutingService plainTransactionExecutingService)
+        IPlainTransactionExecutingService plainTransactionExecutingService)
     {
         _logger = logger;
         _plainTransactionExecutingService = plainTransactionExecutingService;
