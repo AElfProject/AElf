@@ -2,12 +2,12 @@ using Volo.Abp;
 
 namespace AElf.Kernel.SmartContract.Grains;
 
-public class SiloTransactionExecutingHost : ISiloTransactionExecutingHost
+public class SiloHostService : ISiloHostService
 {
     private readonly IAbpApplicationWithExternalServiceProvider _application;
     private readonly IServiceProvider _serviceProvider;
 
-    public SiloTransactionExecutingHost(
+    public SiloHostService(
         IAbpApplicationWithExternalServiceProvider application,
         IServiceProvider serviceProvider)
     {
