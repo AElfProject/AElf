@@ -383,7 +383,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Silo.Launcher", "src\A
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContract.Orleans", "src\AElf.Kernel.SmartContract.Orleans\AElf.Kernel.SmartContract.Orleans.csproj", "{3AAF0C72-1DD7-44B8-AC78-34885EB7FFC4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContract.Grain", "src\AElf.Kernel.SmartContract.Grain\AElf.Kernel.SmartContract.Grain.csproj", "{BD2A0826-79F8-46DF-99C7-49A4E45DB397}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContract.Grains", "src\AElf.Kernel.SmartContract.Grains\AElf.Kernel.SmartContract.Grains.csproj", "{2A106C95-A247-4047-9A80-49F921C27E90}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -1103,10 +1103,10 @@ Global
 		{3AAF0C72-1DD7-44B8-AC78-34885EB7FFC4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3AAF0C72-1DD7-44B8-AC78-34885EB7FFC4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3AAF0C72-1DD7-44B8-AC78-34885EB7FFC4}.Release|Any CPU.Build.0 = Release|Any CPU
-		{BD2A0826-79F8-46DF-99C7-49A4E45DB397}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{BD2A0826-79F8-46DF-99C7-49A4E45DB397}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{BD2A0826-79F8-46DF-99C7-49A4E45DB397}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{BD2A0826-79F8-46DF-99C7-49A4E45DB397}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2A106C95-A247-4047-9A80-49F921C27E90}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2A106C95-A247-4047-9A80-49F921C27E90}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2A106C95-A247-4047-9A80-49F921C27E90}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2A106C95-A247-4047-9A80-49F921C27E90}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1300,6 +1300,6 @@ Global
 		{6981684D-450C-412B-9082-0B0A67A679B9} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
 		{81AFEFAB-F4C5-4F1D-85F5-FADBB3EB1ACF} = {798BAA50-825B-4DD9-83E2-77A9EE6EBE09}
 		{3AAF0C72-1DD7-44B8-AC78-34885EB7FFC4} = {90B310B4-C2DB-419E-B5EE-97FA096B62CC}
-		{BD2A0826-79F8-46DF-99C7-49A4E45DB397} = {90B310B4-C2DB-419E-B5EE-97FA096B62CC}
+		{2A106C95-A247-4047-9A80-49F921C27E90} = {90B310B4-C2DB-419E-B5EE-97FA096B62CC}
 	EndGlobalSection
 EndGlobal
