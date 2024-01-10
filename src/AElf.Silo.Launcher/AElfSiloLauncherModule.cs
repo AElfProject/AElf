@@ -41,7 +41,7 @@ public class AElfSiloLauncherModule : AbpModule
 {
     public override void ConfigureServices(ServiceConfigurationContext context)
     {
-        context.Services.AddHostedService<SiloTransactionExecutingHost>();
+        context.Services.AddHostedService<SiloHostService>();
     }
 
     public override void PreConfigureServices(ServiceConfigurationContext context)
