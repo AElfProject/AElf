@@ -11,7 +11,7 @@ using Volo.Abp.Threading;
 
 namespace AElf.Kernel.SmartContract.Orleans;
 
-public class GrainExecutionAElfModule : AbpModule
+public class SiloExecutionAElfModule : AbpModule
 {
     public override void ConfigureServices(ServiceConfigurationContext context)
     {

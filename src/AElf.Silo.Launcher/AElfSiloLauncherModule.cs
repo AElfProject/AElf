@@ -33,7 +33,7 @@ namespace AElf.Silo.Launcher;
     typeof(RuntimeSetupAElfModule),
     typeof(GovernmentSystemAElfModule),
     typeof(EconomicSystemAElfModule),
-    typeof(SiloExecutionAElfModule),
+    typeof(GrainExecutionAElfModule),
     typeof(CoreConsensusAElfModule),
     typeof(AbpAspNetCoreModule)
 )]

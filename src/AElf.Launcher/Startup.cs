@@ -67,7 +67,7 @@ public class Startup
             case LauncherType.Silo:
                 services.AddApplicationAsync<T>(options =>
                 {
-                    options.PlugInSources.AddTypes(typeof(GrainExecutionAElfModule));
+                    options.PlugInSources.AddTypes(typeof(SiloExecutionAElfModule));
                 });
                 break;
             default:

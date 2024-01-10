@@ -9,7 +9,7 @@ using Volo.Abp.Modularity;
 namespace AElf.Kernel.SmartContract.Grains;
 
 [DependsOn(typeof(CSharpRuntimeAElfModule), typeof(SmartContractAElfModule))]
-public class SiloExecutionAElfModule : AbpModule
+public class GrainExecutionAElfModule : AbpModule
 {
     public override void ConfigureServices(ServiceConfigurationContext context)
     {
