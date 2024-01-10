@@ -61,27 +61,18 @@ public static class OrleansHostExtensions
                 })
                 .Configure<ClusterMembershipOptions>(options =>
                 {
-                    options.DeathVoteExpirationTimeout = TimeSpan.FromSeconds(Constants.DeathVoteExpirationTimeout);
-                    options.ProbeTimeout = TimeSpan.FromSeconds(Constants.ProbeTimeout);
+                    options.DeathVoteExpirationTimeout = TimeSpan.FromSeconds(SiloConstants.DeathVoteExpirationTimeout);
+                    options.ProbeTimeout = TimeSpan.FromSeconds(SiloConstants.ProbeTimeout);
                 })
                 .Configure<GrainCollectionOptions>(options =>
                 {
-                    options.DeactivationTimeout = TimeSpan.FromMinutes(Constants.DeactivationTimeout);
-                    options.CollectionAge = TimeSpan.FromMinutes(Constants.CollectionAge);
-                    options.CollectionQuantum = TimeSpan.FromMinutes(Constants.CollectionQuantum);
+                    options.DeactivationTimeout = TimeSpan.FromMinutes(SiloConstants.DeactivationTimeout);
+                    options.CollectionAge = TimeSpan.FromMinutes(SiloConstants.CollectionAge);
+                    options.CollectionQuantum = TimeSpan.FromMinutes(SiloConstants.CollectionQuantum);
                 })
-                .Configure<PerformanceTuningOptions>(opt =>
+                .Configure<SiloMessagingOptions>(opt =>
                 {
-                    opt.MinDotNetThreadPoolSize = Constants.MinDotNetThreadPoolSize;
-                    opt.MinIOThreadPoolSize = Constants.MinIOThreadPoolSize;
-                    opt.DefaultConnectionLimit = Constants.DefaultConnectionLimit;
-                })
-                .Configure<SchedulingOptions>(opt =>
-                {
-                    opt.MaxActiveThreads = Constants.MaxActiveThreads;
-                }).Configure<SiloMessagingOptions>(opt =>
-                {
-                    opt.ResponseTimeout = TimeSpan.FromSeconds(Constants.ResponseTimeout);
+                    opt.ResponseTimeout = TimeSpan.FromSeconds(SiloConstants.ResponseTimeout);
                 })
                 .ConfigureApplicationParts(parts => parts.AddFromApplicationBaseDirectory())
                 .UseDashboard(options =>

@@ -3,7 +3,7 @@ using Mono.Cecil.Cil;
 
 namespace AElf.Silo.Launcher;
 
-public static class Constants
+public static class SiloConstants
 {
     public const int MinDotNetThreadPoolSize = 20480;
     public const int MinIOThreadPoolSize = 200;

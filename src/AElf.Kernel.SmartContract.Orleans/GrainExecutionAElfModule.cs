@@ -50,23 +50,13 @@ public class GrainExecutionAElfModule : AbpModule
                 })
                 .Configure<GatewayOptions>(options =>
                 {
-                    options.PreferedGatewayIndex = Constants.PreferedGatewayIndex;
-                    options.GatewayListRefreshPeriod = TimeSpan.FromSeconds(Constants.GatewayListRefreshPeriod);
+                    options.PreferedGatewayIndex = ClusterClientConstants.PreferedGatewayIndex;
+                    options.GatewayListRefreshPeriod = TimeSpan.FromSeconds(ClusterClientConstants.GatewayListRefreshPeriod);
                 })
                 .ConfigureLogging(builder => builder.AddProvider(o.GetService<ILoggerProvider>()))
-                .Configure<PerformanceTuningOptions>(opt =>
-                {
-                    opt.MinDotNetThreadPoolSize = Constants.MinDotNetThreadPoolSize;
-                    opt.MinIOThreadPoolSize = Constants.MinIOThreadPoolSize;
-                    opt.DefaultConnectionLimit = Constants.DefaultConnectionLimit;
-                })
-                .Configure<SchedulingOptions>(opt =>
-                {
-                    opt.MaxActiveThreads = Constants.MaxActiveThreads;
-                })
                 .Configure<ClientMessagingOptions>(opt =>
                 {
-                    opt.ResponseTimeout = TimeSpan.FromSeconds(Constants.ResponseTimeout);
+                    opt.ResponseTimeout = TimeSpan.FromSeconds(ClusterClientConstants.ResponseTimeout);
                 })
                 .Build();
         });
