@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Hosting;
 
-namespace AElf.Kernel.SmartContract.Grains;
+namespace AElf.Silo.Launcher;
 
 public interface ISiloHostService : IHostedService
 {

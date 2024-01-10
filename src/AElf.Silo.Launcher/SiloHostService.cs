@@ -1,6 +1,6 @@
 using Volo.Abp;
 
-namespace AElf.Kernel.SmartContract.Grains;
+namespace AElf.Silo.Launcher;
 
 public class SiloHostService : ISiloHostService
 {
