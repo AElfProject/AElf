@@ -1,5 +1,5 @@
 using AElf.Kernel.Blockchain.Events;
-using AElf.Kernel.SmartContract.Grain;
+using AElf.Kernel.SmartContract.Grains;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus;
 using Volo.Abp.EventBus.Local;
@@ -23,7 +23,7 @@ public class NewIrreversibleBlockFoundEventHandler : ILocalEventHandler<NewIrrev
     {
         _taskQueueManager.Enqueue(async () =>
         {
-           var grain = _siloClusterClientContext.GetClusterClient().GetGrain<ICleanChainGrain>("CleanCache");
+           var grain = _siloClusterClientContext.GetClusterClient().GetGrain<ICleanCacheGrain>("CleanCache");
            await grain.CleanCacheAsync(eventData.BlockHeight);
         }, KernelConstants.MergeBlockStateQueueName);
         return Task.CompletedTask;

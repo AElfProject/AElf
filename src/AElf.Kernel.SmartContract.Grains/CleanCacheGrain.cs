@@ -1,18 +1,18 @@
 using AElf.Kernel.SmartContract.Application;
 using Microsoft.Extensions.Logging;
 
-namespace AElf.Kernel.SmartContract.Grain;
+namespace AElf.Kernel.SmartContract.Grains;
 
-public class CleanChainGrain : Orleans.Grain, ICleanChainGrain
+public class CleanCacheGrain : Orleans.Grain, ICleanCacheGrain
 {
-    private readonly ILogger<CleanChainGrain> _logger;
+    private readonly ILogger<CleanCacheGrain> _logger;
     private readonly ISmartContractExecutiveService _smartContractExecutiveService;
     private readonly IBlockStateSetCachedStateStore _blockStateSetCachedStateStore;
 
 
-    public CleanChainGrain(
+    public CleanCacheGrain(
         ISmartContractExecutiveService smartContractExecutiveService,
-        ILogger<CleanChainGrain> logger,
+        ILogger<CleanCacheGrain> logger,
         IBlockStateSetCachedStateStore blockStateSetCachedStateStore)
     {
         _smartContractExecutiveService = smartContractExecutiveService;

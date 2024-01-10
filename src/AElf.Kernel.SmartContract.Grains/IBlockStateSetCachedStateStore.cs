@@ -1,6 +1,6 @@
 using AElf.Kernel.SmartContract.Infrastructure;
 
-namespace AElf.Kernel.SmartContract.Grain;
+namespace AElf.Kernel.SmartContract.Grains;
 
 public interface IBlockStateSetCachedStateStore : INotModifiedCachedStateStore<BlockStateSet>
 {

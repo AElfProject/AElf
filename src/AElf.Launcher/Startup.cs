@@ -4,7 +4,7 @@ using System.Linq;
 using AElf.Blockchains.MainChain;
 using AElf.Blockchains.SideChain;
 using AElf.Kernel;
-using AElf.Kernel.SmartContract.Grain;
+using AElf.Kernel.SmartContract.Grains;
 using AElf.Kernel.SmartContract.Orleans;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Cors;

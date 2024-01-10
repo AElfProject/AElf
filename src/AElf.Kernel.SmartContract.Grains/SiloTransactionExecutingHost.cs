@@ -1,6 +1,6 @@
 using Volo.Abp;
 
-namespace AElf.Kernel.SmartContract.Grain;
+namespace AElf.Kernel.SmartContract.Grains;
 
 public class SiloTransactionExecutingHost : ISiloTransactionExecutingHost
 {
