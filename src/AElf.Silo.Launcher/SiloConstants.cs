@@ -1,14 +1,7 @@
-using System.Collections.Generic;
-using Mono.Cecil.Cil;
-
 namespace AElf.Silo.Launcher;
 
 public static class SiloConstants
 {
-    public const int MinDotNetThreadPoolSize = 20480;
-    public const int MinIOThreadPoolSize = 200;
-    public const int DefaultConnectionLimit = 200;
-
     public const int DeactivationTimeout = 1;
     public const int CollectionAge = 2;
     public const int CollectionQuantum = 1;
