@@ -839,7 +839,7 @@ public partial class ProfitContract : ProfitContractImplContainer.ProfitContract
             var totalAmount = 0L;
             var targetPeriod = Math.Min(scheme.CurrentPeriod - 1, profitDetail.EndPeriod);
             var maxProfitPeriod = profitDetail.EndPeriod == long.MaxValue
-                ? Math.Min(scheme.CurrentPeriod - 1, maxProfitReceivingPeriodCount)
+                ? Math.Min(scheme.CurrentPeriod - 1, profitDetail.LastProfitPeriod.Add(maxProfitReceivingPeriodCount))
                 : Math.Min(targetPeriod, profitDetail.LastProfitPeriod.Add(maxProfitReceivingPeriodCount));
             for (var period = profitDetail.LastProfitPeriod; period <= maxProfitPeriod; period++)
             {
