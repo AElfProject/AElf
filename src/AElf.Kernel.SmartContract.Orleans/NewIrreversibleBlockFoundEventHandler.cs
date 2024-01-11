@@ -23,22 +23,26 @@ public class NewIrreversibleBlockFoundEventHandler : ILocalEventHandler<NewIrrev
         _siloClusterClientContext = siloClusterClientContext;
         _logger = logger;
     }
-    public Task HandleEventAsync(NewIrreversibleBlockFoundEvent eventData)
+    public async Task HandleEventAsync(NewIrreversibleBlockFoundEvent eventData)
     {
         var managementGrain = _siloClusterClientContext.GetClusterClient().GetGrain<IManagementGrain>(0);
-        var siloHosts = managementGrain.GetHosts()?.Result;
+        var siloHosts = await managementGrain.GetHosts();
         var activeSiloCount = siloHosts?.Where(dic => dic.Value == SiloStatus.Active).ToList().Count;
         _logger.LogDebug("NewIrreversibleBlockFoundEventHandler.HandleEventAsync received block height: {0}, active silo count: {1}",
             eventData.BlockHeight, activeSiloCount);
         _taskQueueManager.Enqueue(async () =>
         {
+            var tasks = new List<Task>();
             for(var i=0; i<activeSiloCount; i++)
             {
-                var grain = _siloClusterClientContext.GetClusterClient().GetGrain<ICleanCacheGrain>(i);
-                await grain.CleanCacheAsync(eventData.BlockHeight);
+                var id = i;
+                tasks.Add(Task.Run(() =>
+                {
+                    var grain = _siloClusterClientContext.GetClusterClient().GetGrain<ICleanCacheGrain>(id);
+                    return grain.CleanCacheAsync(eventData.BlockHeight);
+                }));
             }
+            await Task.WhenAll(tasks);
         }, KernelConstants.MergeBlockStateQueueName);
-        
-        return Task.CompletedTask;
     }
 }
