@@ -17,7 +17,7 @@ public class BlockStateSetCachedStateStore : NotModifiedCachedStateStore<BlockSt
     
     public Task RemoveCacheAsync(long height)
     {
-        _logger.LogInformation("BlockStateSetCachedStateStore.RemoveCacheAsync-start height: {0} cacheCount:{1}",
+        _logger.LogDebug("BlockStateSetCachedStateStore.RemoveCacheAsync-start height: {0} cacheCount:{1}",
             height,_cache.Count);
         var keys = new List<string>();
         foreach (var kv in _cache)
@@ -27,7 +27,7 @@ public class BlockStateSetCachedStateStore : NotModifiedCachedStateStore<BlockSt
                 _cache.TryRemove(kv.Key, out _);
             }
         }
-        _logger.LogInformation("BlockStateSetCachedStateStore.RemoveCacheAsync-end height: {0} cacheCount:{1}",
+        _logger.LogDebug("BlockStateSetCachedStateStore.RemoveCacheAsync-end height: {0} cacheCount:{1}",
             height,_cache.Count);
         return Task.CompletedTask;
     }

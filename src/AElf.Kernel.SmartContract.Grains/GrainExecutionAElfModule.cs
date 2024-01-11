@@ -3,6 +3,8 @@ using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Runtime.CSharp;
 using Microsoft.Extensions.DependencyInjection;
+using Orleans.Runtime;
+using Orleans.Runtime.Placement;
 using Volo.Abp;
 using Volo.Abp.Modularity;
 
@@ -19,6 +21,9 @@ public class GrainExecutionAElfModule : AbpModule
             provider.GetRequiredService<IBlockStateSetCachedStateStore>() as BlockStateSetCachedStateStore);
         context.Services.AddTransient<IStateStore<BlockStateSet>, StateStore<BlockStateSet>>();
         context.Services.AddSingleton<IPlainTransactionExecutingService, PlainTransactionExecutingService>();
+        context.Services.AddSingletonNamedService<PlacementStrategy, CleanCacheStrategy>(nameof(CleanCacheStrategy));
+        context.Services.AddSingletonKeyedService<Type, IPlacementDirector, CleanCacheStrategyFixedSiloDirector>(
+            typeof(CleanCacheStrategy));
     }
     
     public override void OnApplicationInitialization(ApplicationInitializationContext context)
