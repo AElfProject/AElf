@@ -173,7 +173,7 @@ public partial class TokenContract
         return validatedAddress;
     }
 
-    private void AssertCrossChainTransaction(Transaction originalTransaction, Address validAddress,
+    private void AssertCrossChainTransaction(UnifiedTransaction originalTransaction, Address validAddress,
         params string[] validMethodNames)
     {
         var validateResult = validMethodNames.Contains(originalTransaction.MethodName)

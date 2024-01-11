@@ -447,7 +447,7 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
         Assert(tokenContractAddress != null,
             $"Token contract address of chain {ChainHelper.ConvertChainIdToBase58(input.FromChainId)} not registered.");
 
-        var originalTransaction = Transaction.Parser.ParseFrom(input.TransactionBytes);
+        var originalTransaction = UnifiedTransaction.Parser.ParseFrom(input.TransactionBytes);
 
         AssertCrossChainTransaction(originalTransaction, tokenContractAddress, nameof(ValidateTokenInfoExists));
         var originalTransactionId =
@@ -490,7 +490,7 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
     {
         CheckCrossChainTokenContractRegistrationControllerAuthority();
 
-        var originalTransaction = Transaction.Parser.ParseFrom(input.TransactionBytes);
+        var originalTransaction = UnifiedTransaction.Parser.ParseFrom(input.TransactionBytes);
         AssertCrossChainTransaction(originalTransaction, Context.GetZeroSmartContractAddress(input.FromChainId),
             nameof(ACS0Container.ACS0ReferenceState.ValidateSystemContractAddress));
 
@@ -542,9 +542,8 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
     /// <returns></returns>
     public override Empty CrossChainReceiveToken(CrossChainReceiveTokenInput input)
     {
-        var transferTransaction = Transaction.Parser.ParseFrom(input.TransferTransactionBytes);
-        var transferTransactionId =
-            input.InlineTransactionId != null ? input.InlineTransactionId : transferTransaction.GetHash();
+        var transferTransaction = UnifiedTransaction.Parser.ParseFrom(input.TransferTransactionBytes);
+        var transferTransactionId = transferTransaction.GetHash();
         Assert(!State.VerifiedCrossChainTransferTransaction[transferTransactionId],
             "Token already claimed.");
 

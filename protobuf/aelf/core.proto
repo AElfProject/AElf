@@ -22,6 +22,49 @@ message Transaction {
     bytes signature = 10000;
 }
 
+message InlineTransaction {
+    // The address of the sender of the transaction.
+    Address from = 1;
+    // The address of the contract when calling a contract.
+    Address to = 2;
+    // The name of a method in the smart contract at the To address.
+    string method_name = 5;
+    // The parameters to pass to the smart contract method.
+    bytes params = 6;
+    // When signing a transaction it’s actually a subset of the fields: from/to and the target method as well as 
+    // the parameter that were given. It also contains the reference block number and prefix.
+    bytes signature = 10000;
+
+    Hash origin_transaction_id = 1001;
+
+    int32 index = 1002;
+}
+
+message UnifiedTransaction {
+    // The address of the sender of the transaction.
+    Address from = 1;
+    // The address of the contract when calling a contract.
+    Address to = 2;
+    // The height of the referenced block hash.
+    int64 ref_block_number = 3;
+    // The first four bytes of the referenced block hash.
+    bytes ref_block_prefix = 4;
+    // The name of a method in the smart contract at the To address.
+    string method_name = 5;
+    // The parameters to pass to the smart contract method.
+    bytes params = 6;
+    // When signing a transaction it’s actually a subset of the fields: from/to and the target method as well as 
+    // the parameter that were given. It also contains the reference block number and prefix.
+    bytes signature = 10000;
+
+    Hash origin_transaction_id = 1001;
+
+    int32 index = 1002;
+}
+
+
+
+
 message StatePath {
     // The partial path of the state path.
     repeated string parts = 1;

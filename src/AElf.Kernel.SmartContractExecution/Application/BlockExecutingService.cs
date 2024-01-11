@@ -189,44 +189,57 @@ public class BlockExecutingService : IBlockExecutingService, ITransientDependenc
         var nodes = new List<Hash>();
         foreach (var (transactionId, status, logEvents) in executionReturnSet)
         {
-            nodes.Add(GetHashCombiningTransactionAndStatus(transactionId, status));
-            var enumerable = logEvents.ToList();
-            if (status != TransactionResultStatus.Mined || !enumerable.Any())
+            nodes.AddRange(GetTransactionHashList(status, transactionId, logEvents));
+        }
+
+        return BinaryMerkleTree.FromLeafNodes(nodes).Root;
+    }
+
+    private List<Hash> GetTransactionHashList(TransactionResultStatus status, Hash transactionId,
+        IEnumerable<LogEvent> logEvents)
+    {
+        var nodeList = new List<Hash>();
+        nodeList.Add(GetHashCombiningTransactionAndStatus(transactionId, status));
+        var enumerable = logEvents.ToList();
+        if (status != TransactionResultStatus.Mined || !enumerable.Any())
+        {
+            return nodeList;
+        }
+
+        foreach (var logEvent in enumerable)
+        {
+            var virtualTransactionCreated = new VirtualTransactionCreated();
+            for (int i = 0; i < logEvent.Indexed.Count; i++)
             {
+                virtualTransactionCreated.MergeFrom(logEvent.Indexed[i]);
+            }
+
+            virtualTransactionCreated.MergeFrom(logEvent.NonIndexed);
+            if (virtualTransactionCreated.OriginTransactionId == null)
+            {
+                // only SendVirtualInlineOnBlock has originTransactionId
                 continue;
             }
 
-            foreach (var logEvent in enumerable)
+            var inlineTransaction = new Transaction
             {
-                var originTransactionId =
-                    VirtualTransactionCreated.Parser.ParseFrom(logEvent.Indexed[5]).OriginTransactionId;
-                if (originTransactionId == null)
-                {
-                    // only SendVirtualInlineOnBlock has originTransactionId
-                    continue;
-                }
+                From = virtualTransactionCreated.From,
+                To = virtualTransactionCreated.To,
+                MethodName = virtualTransactionCreated.MethodName,
+                Params = virtualTransactionCreated.Params
+            };
+            var inlineTransactionId = HashHelper.ConcatAndCompute(inlineTransaction.GetHash(),
+                HashHelper.ComputeFrom(ByteArrayHelper.ConcatArrays(
+                    virtualTransactionCreated.OriginTransactionId.ToByteArray(),
+                    virtualTransactionCreated.LogNum.ToBytes())));
 
-                var from = VirtualTransactionCreated.Parser.ParseFrom(logEvent.Indexed[1]).From;
-                var to = VirtualTransactionCreated.Parser.ParseFrom(logEvent.Indexed[2]).To;
-                var methodName = VirtualTransactionCreated.Parser.ParseFrom(logEvent.Indexed[3]).MethodName;
-                var logNum = VirtualTransactionCreated.Parser.ParseFrom(logEvent.Indexed[6]).LogNum;
-                var param = VirtualTransactionCreated.Parser.ParseFrom(logEvent.NonIndexed).Params;
-                var inlineTransaction = new Transaction
-                {
-                    From = from,
-                    To = to,
-                    MethodName = methodName,
-                    Params = param
-                };
-
-                var inlineTransactionId = HashHelper.ConcatAndCompute(inlineTransaction.GetHash(),
-                    HashHelper.ComputeFrom(ByteArrayHelper.ConcatArrays(originTransactionId.ToByteArray(),
-                        logNum.ToBytes())));
-                nodes.Add(GetHashCombiningTransactionAndStatus(inlineTransactionId, status));
-            }
+            nodeList.Add(GetHashCombiningTransactionAndStatus(inlineTransactionId, status));
         }
-        return BinaryMerkleTree.FromLeafNodes(nodes).Root;
+
+        return nodeList;
     }
+    
+  
 
     private Hash CalculateTransactionMerkleTreeRoot(IEnumerable<Hash> transactionIds)
     {
