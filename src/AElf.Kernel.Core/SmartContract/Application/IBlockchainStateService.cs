@@ -131,8 +131,6 @@ public class BlockchainStateService : IBlockchainStateService
 
     public async Task MergeBlockStateAsync(long lastIrreversibleBlockHeight, Hash lastIrreversibleBlockHash)
     {
-        Logger.LogInformation("NewIrreversibleBlockFoundEventHandler.HandleEventAsync-BP-MergeBlockStateAsync received block height: {0}",
-            lastIrreversibleBlockHeight);
         var chainStateInfo = await _blockStateSetManger.GetChainStateInfoAsync();
         var firstHeightToMerge = chainStateInfo.BlockHeight == 0L
             ? AElfConstants.GenesisBlockHeight

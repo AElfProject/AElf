@@ -8,8 +8,8 @@ public class CleanCacheStrategyFixedSiloDirector : IPlacementDirector
 {
     public Task<SiloAddress> OnAddActivation(PlacementStrategy strategy, PlacementTarget target, IPlacementContext context)
     {
-        var silos = context.GetCompatibleSilos(target).OrderBy(s => s).ToArray();
-        var index = target.GrainIdentity.GetPrimaryKeyLong(out string keyExt) % silos.Length;
+        var silos = context.GetCompatibleSilos(target).ToArray();
+        var index = target.GrainIdentity.GetPrimaryKeyLong(out _) % silos.Length;
         return Task.FromResult(silos[index]);
     }
 }
