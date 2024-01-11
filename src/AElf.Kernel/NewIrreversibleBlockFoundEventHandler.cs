@@ -40,6 +40,8 @@ public class NewIrreversibleBlockFoundEventHandler : ILocalEventHandler<NewIrrev
 
     public Task HandleEventAsync(NewIrreversibleBlockFoundEvent eventData)
     {
+        Logger.LogInformation("NewIrreversibleBlockFoundEventHandler.HandleEventAsync-BP received block height: {0}",
+            eventData.BlockHeight);
         _taskQueueManager.Enqueue(async () =>
         {
             await _blockchainStateService.MergeBlockStateAsync(eventData.BlockHeight,
@@ -53,8 +55,12 @@ public class NewIrreversibleBlockFoundEventHandler : ILocalEventHandler<NewIrrev
 
     private void CleanChain(Hash irreversibleBlockHash, long irreversibleBlockHeight)
     {
+        Logger.LogInformation("NewIrreversibleBlockFoundEventHandler.HandleEventAsync-BP-CleanChain received block height: {0}",
+            irreversibleBlockHeight);
         _taskQueueManager.Enqueue(async () =>
         {
+            Logger.LogInformation("NewIrreversibleBlockFoundEventHandler.HandleEventAsync-BP-CleanChain run block height: {0}",
+                irreversibleBlockHeight);
             // Clean BlockStateSet
             var discardedBlockHashes = _chainBlockLinkService.GetCachedChainBlockLinks()
                 .Where(b => b.Height <= irreversibleBlockHeight).Select(b => b.BlockHash).ToList();

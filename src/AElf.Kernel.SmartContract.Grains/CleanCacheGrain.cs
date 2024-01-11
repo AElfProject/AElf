@@ -9,7 +9,6 @@ public class CleanCacheGrain : Orleans.Grain, ICleanCacheGrain
     private readonly ISmartContractExecutiveService _smartContractExecutiveService;
     private readonly IBlockStateSetCachedStateStore _blockStateSetCachedStateStore;
 
-
     public CleanCacheGrain(
         ISmartContractExecutiveService smartContractExecutiveService,
         ILogger<CleanCacheGrain> logger,
@@ -22,7 +21,7 @@ public class CleanCacheGrain : Orleans.Grain, ICleanCacheGrain
     
     public async Task CleanCacheAsync(long blockHeight)
     {
-        _logger.LogDebug("CleanChainGrain.CleanCacheAsync,eventData:{blockHeight}",blockHeight);
+        _logger.LogInformation("CleanChainGrain.CleanCacheAsync,eventData:{blockHeight}",blockHeight);
         await _blockStateSetCachedStateStore.RemoveCacheAsync(blockHeight);
         _smartContractExecutiveService.CleanIdleExecutive();
     }

@@ -1,4 +1,5 @@
 using AElf.Kernel.SmartContract.Infrastructure;
+using Microsoft.Extensions.Logging;
 
 namespace AElf.Kernel.SmartContract.Grains;
 
@@ -8,12 +9,16 @@ public interface IBlockStateSetCachedStateStore : INotModifiedCachedStateStore<B
 }
 public class BlockStateSetCachedStateStore : NotModifiedCachedStateStore<BlockStateSet>,IBlockStateSetCachedStateStore
 {
-    public BlockStateSetCachedStateStore(IStateStore<BlockStateSet> stateStoreImplementation) : base(stateStoreImplementation)
+    private readonly ILogger<BlockStateSetCachedStateStore> _logger;
+    public BlockStateSetCachedStateStore(IStateStore<BlockStateSet> stateStoreImplementation,  ILogger<BlockStateSetCachedStateStore> logger) : base(stateStoreImplementation)
     {
+        _logger = logger;
     }
     
     public Task RemoveCacheAsync(long height)
     {
+        _logger.LogInformation("BlockStateSetCachedStateStore.RemoveCacheAsync-start height: {0} cacheCount:{1}",
+            height,_cache.Count);
         var keys = new List<string>();
         foreach (var kv in _cache)
         {
@@ -22,7 +27,8 @@ public class BlockStateSetCachedStateStore : NotModifiedCachedStateStore<BlockSt
                 _cache.TryRemove(kv.Key, out _);
             }
         }
-
+        _logger.LogInformation("BlockStateSetCachedStateStore.RemoveCacheAsync-end height: {0} cacheCount:{1}",
+            height,_cache.Count);
         return Task.CompletedTask;
     }
 }
