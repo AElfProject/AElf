@@ -1,10 +1,13 @@
 using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContract.Grains;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Orleans;
 using Orleans.Configuration;
 using Orleans.Providers.MongoDB.Configuration;
+using Orleans.Runtime;
+using Orleans.Runtime.Placement;
 using Volo.Abp;
 using Volo.Abp.Modularity;
 using Volo.Abp.Threading;
@@ -19,6 +22,9 @@ public class SiloExecutionAElfModule : AbpModule
         ConfigureOrleans(context, configuration); 
         context.Services.AddSingleton<IPlainTransactionExecutingService, SiloTransactionExecutingService>();
         context.Services.AddSingleton<ISiloClusterClientContext, SiloClusterClientContext>();
+        context.Services.AddSingletonNamedService<PlacementStrategy, CleanCacheStrategy>(nameof(CleanCacheStrategy));
+        context.Services.AddSingletonKeyedService<Type, IPlacementDirector, CleanCacheStrategyFixedSiloDirector>(
+            typeof(CleanCacheStrategy));
     }
 
     public override void OnPreApplicationInitialization(ApplicationInitializationContext context)

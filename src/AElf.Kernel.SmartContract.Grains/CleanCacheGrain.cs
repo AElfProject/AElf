@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 
 namespace AElf.Kernel.SmartContract.Grains;
 
+[CleanCache]
 public class CleanCacheGrain : Orleans.Grain, ICleanCacheGrain
 {
     private readonly ILogger<CleanCacheGrain> _logger;
