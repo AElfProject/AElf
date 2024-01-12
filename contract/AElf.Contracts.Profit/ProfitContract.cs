@@ -808,11 +808,27 @@ public partial class ProfitContract : ProfitContractImplContainer.ProfitContract
         return new Empty();
     }
 
+    /// <summary>
+    /// This method calculates the maximum period count for a profitable detail
+    /// based on the number of profitable details and the maximum profit receiving period
+    /// For example:
+    /// If the number of profitable detail is 10 and the maximum profit receiving period is 100,
+    /// the maximum period count for a profitable detail will be 10.
+    /// If the number of profitable detail is 10 and the maximum profit receiving period is 5,
+    /// the maximum period count for a profitable detail will be 1.
+    /// </summary>
+    /// <param name="profitableDetailCount">The number of  profitable details</param>
+    /// <returns></returns>
     private int GetMaximumPeriodCountForProfitableDetail(int profitableDetailCount)
     {
+        // Get the maximum profit receiving period count
         var maxPeriodCount = GetMaximumProfitReceivingPeriodCount();
+        // Check if the maximum period count is greater than the profitable detail count
+        // and if the profitable detail count is greater than 0
         return maxPeriodCount > profitableDetailCount && profitableDetailCount > 0
+            // Divide the maximum period count by the profitable detail count
             ? maxPeriodCount.Div(profitableDetailCount)
+            // If the conditions are not met, return 1 as the maximum period count
             : 1;
     }
 
