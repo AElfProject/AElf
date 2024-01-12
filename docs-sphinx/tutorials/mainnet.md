@@ -21,11 +21,11 @@ The configuration requirements for BP and a full node are as follows:
 
 **Minimum Configuration**: 
 - c5.xlarge instance with 4 vCPU, 8GiB RAM, 1TB hard drive, and 5 Mbps bandwidth
-- n2 instance with 4 vCPU, 8GiB RAM, 1TB hard drive, and 5 Mbps bandwidth
+- N2 instance with 4 vCPU, 8GiB RAM, 1TB hard drive, and 5 Mbps bandwidth
 
 **Recommended Configuration**: 
 - c5.2xlarge instance with 8 vCPU, 16GiB RAM, 1TB hard drive, and 100 Mbps bandwidth
-- n2 instance with 8 vCPU, 16GiB RAM, 1TB hard drive, and 100 Mbps bandwidth
+- N2 instance with 8 vCPU, 16GiB RAM, 1TB hard drive, and 100 Mbps bandwidth
 
 Please note:
 - If you want to run a full node that doesn't participate in block production and governance, there is no requirement on how many nodes you should run.
