@@ -20,8 +20,13 @@ public class PlainTransactionExecutingGrain : Orleans.Grain, IPlainTransactionEx
     {
         try
         {
-            _logger.LogDebug("PlainTransactionExecutingGrain.ExecuteAsync, groupType:{groupType}, height: {height},txCount:{count}",
-                transactionExecutingDto.GroupType, transactionExecutingDto.BlockHeader.Height, transactionExecutingDto.Transactions.Count());
+            var txIds = "";
+            foreach (var transation in transactionExecutingDto.Transactions)
+            {
+                txIds = txIds + transation.GetHash().ToString() + ",";
+            }
+            _logger.LogDebug("PlainTransactionExecutingGrain.ExecuteAsync, groupType:{groupType}, height: {height},txCount:{count},txIds:{txIds}",
+                transactionExecutingDto.GroupType, transactionExecutingDto.BlockHeader.Height, transactionExecutingDto.Transactions.Count(), txIds);
 
            return await _plainTransactionExecutingService.ExecuteAsync(transactionExecutingDto, cancellationToken);
         }

@@ -84,8 +84,13 @@ public class TransactionGrouper : ITransactionGrouper, ISingletonDependency
             Logger.LogTrace("Completed transaction grouping.");
         }
 
+        var txIds = "";
+        foreach (var transation in transactions)
+        {
+            txIds = txIds + transation.GetHash().ToString() + ",";
+        }
         Logger.LogDebug(
-            $"From {transactions.Count} transactions, grouped {groupedTransactions.Parallelizables.Sum(p => p.Count)} txs into " +
+            $"From {transactions.Count} transactions,txIds {txIds}, grouped {groupedTransactions.Parallelizables.Sum(p => p.Count)} txs into " +
             $"{groupedTransactions.Parallelizables.Count} groups, left " +
             $"{groupedTransactions.NonParallelizables.Count} as non-parallelizable transactions.");
 
