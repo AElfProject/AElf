@@ -93,7 +93,7 @@ service ProfitContract {
     }
     
     // Query the amount of profit according to token symbol. (up to 10 periods).
-    rpc GetProfitAmount (GetProfitAmountInput) returns (google.protobuf.Int64Value) {
+    rpc GetProfitAmount (GetProfitAmountInput) returns (GetProfitAmountOutput) {
         option (aelf.is_view) = true;
     }
 
@@ -315,9 +315,16 @@ message GetProfitAmountInput {
     aelf.Address beneficiary = 3;
 }
 
+message GetProfitAmountOutput{
+    int64 all_profit_amount = 1;
+    int64 one_time_claimable_profit_amount = 2;
+}
+
 message ReceivedProfitsMap {
-    // The collection of profits received, token symbol -> amount.
-    map<string, int64> value = 1;
+    // The collection of all profits received, token symbol -> amount.
+    map<string, int64> all_profits_map = 1;
+    // The collection of claimable profits received, token symbol -> amount.
+    map<string, int64> one_time_claimable_profits_map = 2;
 }
 
 message SchemeCreated {

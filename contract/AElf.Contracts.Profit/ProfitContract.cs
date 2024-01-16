@@ -842,7 +842,7 @@ public partial class ProfitContract : ProfitContractImplContainer.ProfitContract
         return new Empty();
     }
 
-    private Dictionary<string, long> ProfitAllPeriods(Scheme scheme, ProfitDetail profitDetail, Address beneficiary, int maxProfitReceivingPeriodCount,
+    private Dictionary<string, long> ProfitAllPeriods(Scheme scheme, ProfitDetail profitDetail, Address beneficiary, long maxProfitReceivingPeriodCount,
         bool isView = false, string targetSymbol = null)
     {
         var profitsMap = new Dictionary<string, long>();

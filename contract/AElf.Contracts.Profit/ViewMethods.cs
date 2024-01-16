@@ -59,14 +59,14 @@ public partial class ProfitContract
         return HashHelper.XorAndCompute(schemeId, HashHelper.ComputeFrom(period));
     }
 
-    public override Int64Value GetProfitAmount(GetProfitAmountInput input)
+    public override GetProfitAmountOutput GetProfitAmount(GetProfitAmountInput input)
     {
         var profitItem = State.SchemeInfos[input.SchemeId];
         Assert(profitItem != null, "Scheme not found.");
         var beneficiary = input.Beneficiary ?? Context.Sender;
         var profitDetails = State.ProfitDetailsMap[input.SchemeId][beneficiary];
 
-        if (profitDetails == null) return new Int64Value { Value = 0 };
+        if (profitDetails == null) return new GetProfitAmountOutput { AllProfitAmount = 0, OneTimeClaimableProfitAmount = 0 };
 
         var profitVirtualAddress = Context.ConvertVirtualAddressToContractAddress(input.SchemeId);
 
@@ -77,7 +77,8 @@ public partial class ProfitContract
                 : d.EndPeriod >= d.LastProfitPeriod)
         ).ToList();
 
-        var amount = 0L;
+        var allProfitAmount = 0L;
+        var claimableProfitAmount = 0L;
 
         var profitableDetailCount =
             Math.Min(ProfitContractConstants.ProfitReceivingLimitForEachTime, availableDetails.Count);
@@ -88,12 +89,29 @@ public partial class ProfitContract
             var profitDetail = availableDetails[i];
             if (profitDetail.LastProfitPeriod == 0) profitDetail.LastProfitPeriod = profitDetail.StartPeriod;
 
-            var profitsDict = ProfitAllPeriods(profitItem, profitDetail, beneficiary,maxProfitReceivingPeriodCount, true,
+            var totalProfitsDictForEachProfitDetail = ProfitAllPeriods(profitItem, profitDetail, beneficiary,
+                profitDetail.EndPeriod.Sub(profitDetail.LastProfitPeriod), true, input.Symbol);
+            allProfitAmount =
+                allProfitAmount.Add(totalProfitsDictForEachProfitDetail.TryGetValue(input.Symbol, out var value)
+                    ? value
+                    : 0);
+            if(i >= profitableDetailCount) continue;
+            var claimableProfitsDictForEachProfitDetail = ProfitAllPeriods(profitItem, profitDetail, beneficiary,
+                maxProfitReceivingPeriodCount, true,
                 input.Symbol);
-            amount = amount.Add(profitsDict[input.Symbol]);
+
+            claimableProfitAmount =
+                claimableProfitAmount.Add(
+                    claimableProfitsDictForEachProfitDetail.TryGetValue(input.Symbol, out var claimableValue)
+                        ? claimableValue
+                        : 0);
         }
 
-        return new Int64Value { Value = amount };
+        return new GetProfitAmountOutput
+        {
+            AllProfitAmount = allProfitAmount,
+            OneTimeClaimableProfitAmount = claimableProfitAmount
+        };
     }
 
     public override ReceivedProfitsMap GetProfitsMap(ClaimProfitsInput input)
@@ -118,24 +136,34 @@ public partial class ProfitContract
             Math.Min(ProfitContractConstants.ProfitReceivingLimitForEachTime, availableDetails.Count);
         var maxProfitReceivingPeriodCount = GetMaximumPeriodCountForProfitableDetail(profitableDetailCount);
 
-        var profitsDict = new Dictionary<string, long>();
-        for (var i = 0; i < profitableDetailCount; i++)
+        var allProfitsDict = new Dictionary<string, long>();
+        var claimableProfitsDict = new Dictionary<string, long>();
+        for (var i = 0; i < availableDetails.Count; i++)
         {
             var profitDetail = availableDetails[i];
             if (profitDetail.LastProfitPeriod == 0) profitDetail.LastProfitPeriod = profitDetail.StartPeriod;
-
-            var profitsDictForEachProfitDetail = ProfitAllPeriods(scheme, profitDetail, beneficiary, maxProfitReceivingPeriodCount,true);
-            foreach (var kv in profitsDictForEachProfitDetail)
-                if (profitsDict.ContainsKey(kv.Key))
-                    profitsDict[kv.Key] = profitsDict[kv.Key].Add(kv.Value);
-                else
-                    profitsDict[kv.Key] = kv.Value;
+            
+            var totalProfitsDictForEachProfitDetail = ProfitAllPeriods(scheme, profitDetail, beneficiary, profitDetail.EndPeriod.Sub(profitDetail.LastProfitPeriod),true);
+            AddProfitToDict(allProfitsDict, totalProfitsDictForEachProfitDetail);
+            if(i >= profitableDetailCount) continue;
+            var claimableProfitsDictForEachProfitDetail = ProfitAllPeriods(scheme, profitDetail, beneficiary, maxProfitReceivingPeriodCount,true);
+            AddProfitToDict(claimableProfitsDict, claimableProfitsDictForEachProfitDetail);
         }
 
         return new ReceivedProfitsMap
         {
-            Value = { profitsDict }
+            AllProfitsMap = { allProfitsDict },
+            OneTimeClaimableProfitsMap = { claimableProfitsDict }
         };
+    }
+    
+    private void AddProfitToDict(Dictionary<string, long> profitsDict, Dictionary<string,long> profitsToAdd)
+    {
+        foreach (var kv in profitsToAdd)
+            if (profitsDict.ContainsKey(kv.Key))
+                profitsDict[kv.Key] = profitsDict[kv.Key].Add(kv.Value);
+            else
+                profitsDict[kv.Key] = kv.Value;
     }
 
     public override Int32Value GetMaximumProfitReceivingPeriodCount(Empty input)

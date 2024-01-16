@@ -1605,13 +1605,15 @@ public partial class ProfitContractTests
                 Symbol = tokenSymbol,
                 SchemeId = schemeId
             });
-            profitAmount.Value.ShouldBe(amount);
+            profitAmount.AllProfitAmount.ShouldBe(amount);
+            profitAmount.OneTimeClaimableProfitAmount.ShouldBe(amount);
             var profitMap = await ProfitContractStub.GetProfitsMap.CallAsync(new ClaimProfitsInput
             {
                 SchemeId = schemeId,
                 Beneficiary = receiver
             });
-            profitMap.Value[tokenSymbol].ShouldBe(amount);
+            profitMap.AllProfitsMap[tokenSymbol].ShouldBe(amount);
+            profitMap.OneTimeClaimableProfitsMap[tokenSymbol].ShouldBe(amount);
         }
 
         // after claim
@@ -1633,13 +1635,15 @@ public partial class ProfitContractTests
                 Symbol = tokenSymbol,
                 SchemeId = schemeId
             });
-            profitAmount.Value.ShouldBe(0);
+            profitAmount.AllProfitAmount.ShouldBe(0);
+            profitAmount.OneTimeClaimableProfitAmount.ShouldBe(0);
             var profitMap = await ProfitContractStub.GetProfitsMap.CallAsync(new ClaimProfitsInput
             {
                 SchemeId = schemeId,
                 Beneficiary = receiver
             });
-            profitMap.Value.ShouldNotContainKey(tokenSymbol);
+            profitMap.AllProfitsMap.ShouldNotContainKey(tokenSymbol);
+            profitMap.OneTimeClaimableProfitsMap.ShouldNotContainKey(tokenSymbol);
         }
 
         //second time
@@ -1659,13 +1663,15 @@ public partial class ProfitContractTests
                 Symbol = tokenSymbol,
                 SchemeId = schemeId
             });
-            profitAmount.Value.ShouldBe(amount);
+            profitAmount.AllProfitAmount.ShouldBe(amount);
+            profitAmount.OneTimeClaimableProfitAmount.ShouldBe(amount);
             var profitMap = await ProfitContractStub.GetProfitsMap.CallAsync(new ClaimProfitsInput
             {
                 SchemeId = schemeId,
                 Beneficiary = receiver
             });
-            profitMap.Value[tokenSymbol].ShouldBe(amount);
+            profitMap.AllProfitsMap[tokenSymbol].ShouldBe(amount);
+            profitMap.OneTimeClaimableProfitsMap[tokenSymbol].ShouldBe(amount);
 
             await ProfitContractStub.ClaimProfits.SendAsync(new ClaimProfitsInput
             {
