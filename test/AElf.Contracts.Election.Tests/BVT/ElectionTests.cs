@@ -653,7 +653,7 @@ public partial class ElectionContractTests : ElectionContractTestBase
                 SchemeId = ProfitItemsIds[ProfitType.CitizenWelfare],
                 Symbol = EconomicContractsTestConstants.NativeTokenSymbol
             });
-            profitAmountList.Add(profitAmount.Value);
+            profitAmountList.Add(profitAmount.AllProfitAmount);
         }
 
         weightList.First().Div(weightList.Last()).ShouldBe(profitAmountList.First().Div(profitAmountList.Last()));
@@ -737,7 +737,7 @@ public partial class ElectionContractTests : ElectionContractTestBase
                 SchemeId = ProfitItemsIds[ProfitType.CitizenWelfare],
                 Symbol = EconomicContractsTestConstants.NativeTokenSymbol
             });
-            profitAmountList.Add(profitAmount.Value);
+            profitAmountList.Add(profitAmount.AllProfitAmount);
         }
 
         profitAmountList.First().ShouldBe(profitAmountList.Last());
@@ -851,8 +851,8 @@ public partial class ElectionContractTests : ElectionContractTestBase
                     SchemeId = ProfitItemsIds[ProfitType.CitizenWelfare],
                     Symbol = EconomicContractsTestConstants.NativeTokenSymbol
                 });
-                profitList.Add(profitAmount.Value);
-                allProfitAmount += profitAmount.Value;
+                profitList.Add(profitAmount.AllProfitAmount);
+                allProfitAmount += profitAmount.AllProfitAmount;
             }
 
             profitList.First().ShouldBe(profitList.Last());
@@ -888,7 +888,7 @@ public partial class ElectionContractTests : ElectionContractTestBase
             SchemeId = ProfitItemsIds[ProfitType.CitizenWelfare],
             Symbol = EconomicContractsTestConstants.NativeTokenSymbol
         });
-        originProfitAmount.Value.ShouldBe(profitAmountList[term.Value - 1].Div(2));
+        originProfitAmount.AllProfitAmount.ShouldBe(profitAmountList[term.Value - 1].Div(2));
 
         var changeProfitAmount = await ProfitContractStub.GetProfitAmount.CallAsync(new GetProfitAmountInput
         {
@@ -896,7 +896,7 @@ public partial class ElectionContractTests : ElectionContractTestBase
             SchemeId = ProfitItemsIds[ProfitType.CitizenWelfare],
             Symbol = EconomicContractsTestConstants.NativeTokenSymbol
         });
-        changeProfitAmount.Value.ShouldBe(profitAmountList[term.Value - 1].Div(2)
+        changeProfitAmount.AllProfitAmount.ShouldBe(profitAmountList[term.Value - 1].Div(2)
             .Add(citizenAmount.AmountsMap[EconomicContractsTestConstants.NativeTokenSymbol]));
     }
 
@@ -993,7 +993,7 @@ public partial class ElectionContractTests : ElectionContractTestBase
         var profitsClaimedEvents = claimResult.TransactionResult.Logs.Where(l => l.Name.Equals("ProfitsClaimed"))
             .Select(l => l.NonIndexed);
         var logEvents = profitsClaimedEvents.Select(e => ProfitsClaimed.Parser.ParseFrom(e));
-        logEvents.Sum(e => e.Amount).ShouldBe(profitAmount.Value);
+        logEvents.Sum(e => e.Amount).ShouldBe(profitAmount.AllProfitAmount);
     }
 
     [Fact]
@@ -1177,14 +1177,14 @@ public partial class ElectionContractTests : ElectionContractTestBase
                 SchemeId = ProfitItemsIds[ProfitType.CitizenWelfare],
                 Symbol = EconomicContractsTestConstants.NativeTokenSymbol
             });
-            profitAll += profitAmount.Value;
+            profitAll += profitAmount.AllProfitAmount;
             var claimResult = await voter.ClaimProfits.SendAsync(new ClaimProfitsInput
             {
                 SchemeId = ProfitItemsIds[ProfitType.CitizenWelfare]
             });
             claimResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             var afterBalance = await GetNativeTokenBalance(votersKeyPairs[i].PublicKey);
-            afterBalance.ShouldBe(balance.Add(profitAmount.Value));
+            afterBalance.ShouldBe(balance.Add(profitAmount.AllProfitAmount));
         }
 
         // 

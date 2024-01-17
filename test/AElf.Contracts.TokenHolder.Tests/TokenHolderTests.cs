@@ -409,9 +409,9 @@ public partial class TokenHolderTests : TokenHolderContractTestBase
             Beneficiary = Starter,
             SchemeId = schemeId
         });
-        profitMap.Value.Count.ShouldBe(2);
-        profitMap.Value.ContainsKey(nativeTokenSymbol).ShouldBeTrue();
-        profitMap.Value[nativeTokenSymbol].ShouldBe(amount);
+        profitMap.AllProfitsMap.Count.ShouldBe(2);
+        profitMap.AllProfitsMap.ContainsKey(nativeTokenSymbol).ShouldBeTrue();
+        profitMap.AllProfitsMap[nativeTokenSymbol].ShouldBe(amount);
         var schemeInfoInProfit = await ProfitContractStub.GetScheme.CallAsync(schemeId);
         var schemeInfoInTokenHolder = await TokenHolderContractStub.GetScheme.CallAsync(Starter);
         schemeInfoInProfit.CurrentPeriod.ShouldBe(2);

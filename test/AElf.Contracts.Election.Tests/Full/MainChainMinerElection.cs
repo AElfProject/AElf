@@ -63,7 +63,7 @@ public partial class ElectionContractTests
         {
             SchemeId = ProfitItemsIds[ProfitType.CitizenWelfare],
             Symbol = "ELF"
-        })).Value;
+        })).AllProfitAmount;
         profitBalance.ShouldBeGreaterThan(24000000);
     }
 }

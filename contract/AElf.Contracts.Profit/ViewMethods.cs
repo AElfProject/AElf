@@ -84,7 +84,7 @@ public partial class ProfitContract
             Math.Min(ProfitContractConstants.ProfitReceivingLimitForEachTime, availableDetails.Count);
         var maxProfitReceivingPeriodCount = GetMaximumPeriodCountForProfitableDetail(profitableDetailCount);
         
-        for (var i = 0;i < profitableDetailCount; i++)
+        for (var i = 0;i < availableDetails.Count; i++)
         {
             var profitDetail = availableDetails[i];
             if (profitDetail.LastProfitPeriod == 0) profitDetail.LastProfitPeriod = profitDetail.StartPeriod;
