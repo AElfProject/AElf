@@ -3,13 +3,21 @@ Operations
 
 The process of becoming a BP is as follows:
 
-1. Interested parties set up nodes.
+1. Set up nodes.
 
-2. Nodes participate in the BP election.
+2. Participate in BP election using nodes.
 
-3. Voters stake ELF tokens to vote for their preferred nodes.
+Note:
 
-4. BPs are elected based on the number of votes they accumulate and serve a seven-day term until the next election cycle begins. (The top 2N+1 nodes become BPs, and the top 5*(2N+1) nodes become candidate nodes).
+- Voters stake ELF tokens to vote for their preferred nodes.
+
+- Outcome of election:
+
+  1. Block Producer - elected based on top 2N+1
+  
+  2. Candidate Nodes - elected based on top 5*(2N+1) 
+  
+  3. Nodes
 
 Set up nodes
 ------------
