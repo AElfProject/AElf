@@ -26,17 +26,25 @@ public class SiloTransactionExecutingService : IPlainTransactionExecutingService
     public async Task<List<ExecutionReturnSet>> ExecuteAsync(TransactionExecutingDto transactionExecutingDto,
         CancellationToken cancellationToken)
     {
+        DateTime startTime = default;
+        DateTime endTime= default;;
         try
         {
+            startTime = DateTime.UtcNow;
             var grain = _plainTransactionExecutingGrainProvider.GetGrain();
             var result = await grain.ExecuteAsync(transactionExecutingDto, cancellationToken);
             _plainTransactionExecutingGrainProvider.PutGrain(grain);
+            endTime = DateTime.UtcNow;
             return result;
         }
         catch (Exception e)
         {
             _logger.LogError(e, "SiloTransactionExecutingService.ExecuteAsync: Failed while executing txs in block");
             throw;
+        }
+        finally
+        {
+            _logger.LogDebug("BP ExecuteAsync finished usetime:{}", (endTime- startTime).TotalMilliseconds);
         }
     }
 }
