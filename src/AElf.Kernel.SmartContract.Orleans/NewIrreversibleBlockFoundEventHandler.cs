@@ -28,7 +28,7 @@ public class NewIrreversibleBlockFoundEventHandler : ILocalEventHandler<NewIrrev
         var managementGrain = _siloClusterClientContext.GetClusterClient().GetGrain<IManagementGrain>(0);
         var siloHosts = await managementGrain.GetHosts();
         var activeSiloCount = siloHosts?.Where(dic => dic.Value == SiloStatus.Active).ToList().Count;
-        _logger.LogDebug("NewIrreversibleBlockFoundEventHandler.HandleEventAsync received block height: {0}, active silo count: {1}",
+        _logger.LogDebug("received block height: {0}, active silo count: {1}",
             eventData.BlockHeight, activeSiloCount);
         _taskQueueManager.Enqueue(async () =>
         {

@@ -20,7 +20,7 @@ public class PlainTransactionExecutingGrain : Orleans.Grain, IPlainTransactionEx
     {
         try
         {
-            _logger.LogDebug("PlainTransactionExecutingGrain.ExecuteAsync, groupType:{groupType}, height: {height},txCount:{count}",
+            _logger.LogDebug("groupType:{groupType}, height: {height},txCount:{count}",
                 transactionExecutingDto.GroupType, transactionExecutingDto.BlockHeader.Height, transactionExecutingDto.Transactions.Count());
 
            return await _plainTransactionExecutingService.ExecuteAsync(transactionExecutingDto, cancellationToken);

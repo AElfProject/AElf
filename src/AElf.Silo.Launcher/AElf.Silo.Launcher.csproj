@@ -27,33 +27,7 @@
     <ItemGroup>
         <Content Include="appsettings.json">
             <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </Content>
-        <Content Update="appsettings.Development.json">
-            <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </Content>
-        <Content Update="appsetting.ParallelExecution.json">
-            <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </Content>
-        <Content Include="appsettings.MainChain.MainNet.json">
-            <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </Content>
-        <Content Include="appsettings.MainChain.TestNet.json">
-            <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </Content>
-        <None Include="bin\Debug\net6.0\appsetting.ParallelExecution.json" />
-        <None Include="obj\Debug\net6.0\appsetting.ParallelExecution.json" />
-        <None Include="obj\Debug\net7.0\appsetting.ParallelExecution.json" />
-        <Content Update="appsettings.SideChain.MainNet.json">
-          <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
     </ItemGroup>
     

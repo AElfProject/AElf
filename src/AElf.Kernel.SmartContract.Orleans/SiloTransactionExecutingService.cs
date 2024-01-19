@@ -35,7 +35,7 @@ public class SiloTransactionExecutingService : IPlainTransactionExecutingService
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "SiloTransactionExecutingService.ExecuteAsync: Failed while executing txs in block");
+            _logger.LogError(e, "Failed while executing txs in block");
             throw;
         }
     }
