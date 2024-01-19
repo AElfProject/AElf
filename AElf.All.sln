@@ -383,7 +383,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Silo.Launcher", "src\A
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContract.Orleans", "src\AElf.Kernel.SmartContract.Orleans\AElf.Kernel.SmartContract.Orleans.csproj", "{3AAF0C72-1DD7-44B8-AC78-34885EB7FFC4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContract.Grains", "src\AElf.Kernel.SmartContract.Grains\AElf.Kernel.SmartContract.Grains.csproj", "{2A106C95-A247-4047-9A80-49F921C27E90}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContract.Orleans.Core", "src\AElf.Kernel.SmartContract.Orleans.Core\AElf.Kernel.SmartContract.Orleans.Core.csproj", "{2A106C95-A247-4047-9A80-49F921C27E90}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

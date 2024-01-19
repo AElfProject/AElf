@@ -1,6 +1,6 @@
 using Orleans;
 
-namespace AElf.Kernel.SmartContract.Grains;
+namespace AElf.Kernel.SmartContract.Orleans;
 
 public interface ICleanCacheGrain : IGrainWithIntegerKey
 {

@@ -1,7 +1,7 @@
 using AElf.Kernel.SmartContract.Infrastructure;
 using Microsoft.Extensions.Logging;
 
-namespace AElf.Kernel.SmartContract.Grains;
+namespace AElf.Kernel.SmartContract.Orleans;
 
 public interface IBlockStateSetCachedStateStore : INotModifiedCachedStateStore<BlockStateSet>
 {

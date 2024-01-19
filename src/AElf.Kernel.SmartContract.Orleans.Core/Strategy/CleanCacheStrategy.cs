@@ -1,7 +1,7 @@
 using Orleans.Placement;
 using Orleans.Runtime;
 
-namespace AElf.Kernel.SmartContract.Grains;
+namespace AElf.Kernel.SmartContract.Orleans.Strategy;
 
 [Serializable]
 public class CleanCacheStrategy :  PlacementStrategy

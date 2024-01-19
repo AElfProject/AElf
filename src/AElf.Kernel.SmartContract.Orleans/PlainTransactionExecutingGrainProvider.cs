@@ -1,5 +1,4 @@
 using System.Collections.Concurrent;
-using AElf.Kernel.SmartContract.Grains;
 using Microsoft.Extensions.Logging;
 using Orleans;
 using Volo.Abp.DependencyInjection;

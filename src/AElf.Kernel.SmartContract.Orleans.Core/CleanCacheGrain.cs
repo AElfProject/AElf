@@ -1,10 +1,11 @@
 using AElf.Kernel.SmartContract.Application;
-using Microsoft.Extensions.Logging;
+using AElf.Kernel.SmartContract.Orleans.Strategy;
+using Orleans;
 
-namespace AElf.Kernel.SmartContract.Grains;
+namespace AElf.Kernel.SmartContract.Orleans;
 
 [CleanCache]
-public class CleanCacheGrain : Orleans.Grain, ICleanCacheGrain
+public class CleanCacheGrain : Grain, ICleanCacheGrain
 {
     private readonly ISmartContractExecutiveService _smartContractExecutiveService;
     private readonly IBlockStateSetCachedStateStore _blockStateSetCachedStateStore;

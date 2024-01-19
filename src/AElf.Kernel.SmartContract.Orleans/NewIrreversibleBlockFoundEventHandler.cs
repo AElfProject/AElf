@@ -1,5 +1,4 @@
 using AElf.Kernel.Blockchain.Events;
-using AElf.Kernel.SmartContract.Grains;
 using Microsoft.Extensions.Logging;
 using Orleans.Runtime;
 using Volo.Abp.DependencyInjection;

@@ -1,7 +1,7 @@
 using Orleans.Runtime;
 using Orleans.Runtime.Placement;
 
-namespace AElf.Kernel.SmartContract.Grains;
+namespace AElf.Kernel.SmartContract.Orleans.Strategy;
 
 public class CleanCacheStrategyFixedSiloDirector : IPlacementDirector
 

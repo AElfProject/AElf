@@ -18,7 +18,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\AElf.Kernel.SmartContract.Grains\AElf.Kernel.SmartContract.Grains.csproj" />
+        <ProjectReference Include="..\AElf.Kernel.SmartContract.Orleans.Core\AElf.Kernel.SmartContract.Orleans.Core.csproj" />
         <ProjectReference Include="..\AElf.Kernel.SmartContract\AElf.Kernel.SmartContract.csproj" />
     </ItemGroup>
 </Project>

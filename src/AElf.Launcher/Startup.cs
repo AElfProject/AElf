@@ -4,7 +4,6 @@ using System.Linq;
 using AElf.Blockchains.MainChain;
 using AElf.Blockchains.SideChain;
 using AElf.Kernel;
-using AElf.Kernel.SmartContract.Grains;
 using AElf.Kernel.SmartContract.Orleans;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Cors;
@@ -67,7 +66,7 @@ public class Startup
             case LauncherType.Silo:
                 services.AddApplicationAsync<T>(options =>
                 {
-                    options.PlugInSources.AddTypes(typeof(SiloExecutionAElfModule));
+                    options.PlugInSources.AddTypes(typeof(SmartContractOrleansAElfModule));
                 });
                 break;
             default:

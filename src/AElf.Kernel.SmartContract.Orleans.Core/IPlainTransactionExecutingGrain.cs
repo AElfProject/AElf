@@ -1,7 +1,7 @@
 using AElf.Kernel.SmartContract.Application;
 using Orleans;
 
-namespace AElf.Kernel.SmartContract.Grains;
+namespace AElf.Kernel.SmartContract.Orleans;
 
 public interface IPlainTransactionExecutingGrain : IGrainWithGuidKey
 {
