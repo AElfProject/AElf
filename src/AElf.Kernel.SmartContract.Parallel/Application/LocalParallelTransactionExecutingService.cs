@@ -85,7 +85,8 @@ public class LocalParallelTransactionExecutingService : IParallelTransactionExec
             {
                 BlockHeader = blockHeader,
                 Transactions = txns,
-                PartialBlockStateSet = blockStateSet
+                PartialBlockStateSet = blockStateSet,
+                GroupType = GroupType.GROUP
             }, cancellationToken));
         var results = await Task.WhenAll(tasks);
         Logger.LogTrace("Executed parallelizables.");
@@ -108,7 +109,8 @@ public class LocalParallelTransactionExecutingService : IParallelTransactionExec
             {
                 Transactions = transactions,
                 BlockHeader = blockHeader,
-                PartialBlockStateSet = blockStateSet
+                PartialBlockStateSet = blockStateSet,
+                GroupType = GroupType.NONGROUP
             },
             cancellationToken);
 

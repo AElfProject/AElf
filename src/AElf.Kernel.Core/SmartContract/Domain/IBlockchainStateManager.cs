@@ -276,7 +276,7 @@ public class BlockStateSetManger : IBlockStateSetManger, ITransientDependency
     {
         await BlockStateSets.RemoveAllAsync(blockStateHashes.Select(b => b.ToStorageKey()).ToList());
     }
-
+    
     public async Task<ChainStateInfo> GetChainStateInfoAsync()
     {
         var chainStateInfo = await _chainStateInfoCollection.GetAsync(_chainId.ToStorageKey());

@@ -379,6 +379,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TestContract
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.VirtualTransactionEventContract.Tests", "test\AElf.Contracts.VirtualTransactionEventContract.Tests\AElf.Contracts.VirtualTransactionEventContract.Tests.csproj", "{6981684D-450C-412B-9082-0B0A67A679B9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Silo.Launcher", "src\AElf.Silo.Launcher\AElf.Silo.Launcher.csproj", "{81AFEFAB-F4C5-4F1D-85F5-FADBB3EB1ACF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContract.Orleans", "src\AElf.Kernel.SmartContract.Orleans\AElf.Kernel.SmartContract.Orleans.csproj", "{3AAF0C72-1DD7-44B8-AC78-34885EB7FFC4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContract.Orleans.Core", "src\AElf.Kernel.SmartContract.Orleans.Core\AElf.Kernel.SmartContract.Orleans.Core.csproj", "{2A106C95-A247-4047-9A80-49F921C27E90}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -1089,6 +1095,18 @@ Global
 		{6981684D-450C-412B-9082-0B0A67A679B9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6981684D-450C-412B-9082-0B0A67A679B9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6981684D-450C-412B-9082-0B0A67A679B9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{81AFEFAB-F4C5-4F1D-85F5-FADBB3EB1ACF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{81AFEFAB-F4C5-4F1D-85F5-FADBB3EB1ACF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{81AFEFAB-F4C5-4F1D-85F5-FADBB3EB1ACF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{81AFEFAB-F4C5-4F1D-85F5-FADBB3EB1ACF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3AAF0C72-1DD7-44B8-AC78-34885EB7FFC4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3AAF0C72-1DD7-44B8-AC78-34885EB7FFC4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3AAF0C72-1DD7-44B8-AC78-34885EB7FFC4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3AAF0C72-1DD7-44B8-AC78-34885EB7FFC4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2A106C95-A247-4047-9A80-49F921C27E90}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2A106C95-A247-4047-9A80-49F921C27E90}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2A106C95-A247-4047-9A80-49F921C27E90}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2A106C95-A247-4047-9A80-49F921C27E90}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1280,5 +1298,8 @@ Global
 		{64498F8C-B827-4E1C-B5FB-4B9188C839A8} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
 		{0F10B838-C363-4F55-A5BB-B7F9F80565AB} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
 		{6981684D-450C-412B-9082-0B0A67A679B9} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
+		{81AFEFAB-F4C5-4F1D-85F5-FADBB3EB1ACF} = {798BAA50-825B-4DD9-83E2-77A9EE6EBE09}
+		{3AAF0C72-1DD7-44B8-AC78-34885EB7FFC4} = {90B310B4-C2DB-419E-B5EE-97FA096B62CC}
+		{2A106C95-A247-4047-9A80-49F921C27E90} = {90B310B4-C2DB-419E-B5EE-97FA096B62CC}
 	EndGlobalSection
 EndGlobal

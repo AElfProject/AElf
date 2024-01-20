@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Linq;
 using AElf.Kernel.Infrastructure;
 
 namespace AElf.Kernel.SmartContract.Infrastructure;
@@ -21,7 +22,7 @@ public interface INotModifiedCachedStateStore<T> : IStateStore<T>
 public class NotModifiedCachedStateStore<T> : INotModifiedCachedStateStore<T>
     where T : class, IMessage<T>, new()
 {
-    private readonly ConcurrentDictionary<string, T> _cache = new();
+    protected ConcurrentDictionary<string, T> _cache = new();
     private readonly IStateStore<T> _stateStoreImplementation;
 
     public NotModifiedCachedStateStore(IStateStore<T> stateStoreImplementation)
@@ -89,7 +90,7 @@ public class NotModifiedCachedStateStore<T> : INotModifiedCachedStateStore<T>
 
         await _stateStoreImplementation.RemoveAllAsync(keys);
     }
-
+    
     public async Task SetWithCacheAsync(string key, T value)
     {
         await SetAsync(key, value);

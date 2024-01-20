@@ -92,7 +92,6 @@ public abstract class KeyValueStoreBase<TKeyValueDbContext, T> : IKeyValueStore<
     {
         await _collection.RemoveAllAsync(keys);
     }
-
     private static byte[] Serialize(T value)
     {
         return value?.ToByteArray();
