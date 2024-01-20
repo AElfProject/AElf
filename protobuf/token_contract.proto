@@ -632,19 +632,6 @@ message TotalResourceTokensMap
     map<string, int64> value = 1;
 }
 
-message ChangeTokenIssuerInput
-{
-    // The token symbol.
-    string symbol = 1;
-    // The new token issuer for change.
-    aelf.Address new_token_Issuer = 2;
-}
-
-message ResetExternalInfoInput {
-    string symbol = 1;
-    ExternalInfo external_info = 2;
-}
-
 message StringList {
     repeated string value = 1;
 }
@@ -851,12 +838,6 @@ message CrossChainReceived {
     int64 parent_chain_height = 8;
     // The id of transfer transaction.
     aelf.Hash transfer_transaction_id =9;
-}
-
-message ExternalInfoChanged {
-    option (aelf.is_event) = true;
-    string symbol = 1;
-    ExternalInfo external_info = 2;
 }
 
 message TransactionFeeDelegationAdded {

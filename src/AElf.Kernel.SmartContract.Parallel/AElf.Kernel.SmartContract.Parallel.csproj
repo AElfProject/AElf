@@ -1,5 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
-    <Import Project="..\..\common.props"/>
+    <Import Project="..\..\common.props" />
 
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
@@ -7,10 +7,7 @@
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Description>Service module for parallel execution.</Description>
     </PropertyGroup>
-
-    <ItemGroup>
-    </ItemGroup>
-
+    
     <ItemGroup>
         <CommonMessage Include="..\..\protobuf\parallel_execution.proto">
             <Link>Protobuf\Proto\parallel_execution.proto</Link>
@@ -21,6 +18,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\AElf.Kernel.TransactionPool\AElf.Kernel.TransactionPool.csproj"/>
+        <ProjectReference Include="..\AElf.Kernel.SmartContract.Orleans\AElf.Kernel.SmartContract.Orleans.csproj" />
+        <ProjectReference Include="..\AElf.Kernel.TransactionPool\AElf.Kernel.TransactionPool.csproj" />
     </ItemGroup>
 </Project>
