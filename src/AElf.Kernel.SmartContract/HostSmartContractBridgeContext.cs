@@ -270,7 +270,15 @@ public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, I
         };
         TransactionContext.Trace.InlineTransactions.Add(transaction);
         var inlineTransactionId =
-            GetInlineTransactionId(transaction, OriginTransactionId, TransactionContext.Trace.Logs.Count);
+            new InlineTransaction
+            {
+                From = transaction.From,
+                To = transaction.To,
+                MethodName = transaction.MethodName,
+                Params = transaction.Params,
+                OriginTransactionId = OriginTransactionId,
+                Index = TransactionContext.Trace.Logs.Count
+            }.GetHash();
         FireVirtualTransactionLogEvent(fromVirtualAddress, transaction, OriginTransactionId);
         return inlineTransactionId;
     }
@@ -314,7 +322,15 @@ public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, I
         };
         TransactionContext.Trace.InlineTransactions.Add(transaction);
         var inlineTransactionId =
-            GetInlineTransactionId(transaction, OriginTransactionId, TransactionContext.Trace.Logs.Count);
+            new InlineTransaction
+            {
+                From = transaction.From,
+                To = transaction.To,
+                MethodName = transaction.MethodName,
+                Params = transaction.Params,
+                OriginTransactionId = OriginTransactionId,
+                Index = TransactionContext.Trace.Logs.Count
+            }.GetHash();
         FireVirtualTransactionLogEvent(fromVirtualAddress, transaction, OriginTransactionId);
         return inlineTransactionId;
     }
@@ -337,13 +353,6 @@ public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, I
         FireLogEvent(log.ToLogEvent(Self));
     }
 
-    public Hash GetInlineTransactionId(Transaction inlineTransaction, Hash originTransactionId,
-        Int32 virtualTransactionLogNum)
-    {
-        return HashHelper.ConcatAndCompute(inlineTransaction.GetHash(),
-            HashHelper.ComputeFrom(ByteArrayHelper.ConcatArrays(originTransactionId.ToByteArray(),
-                virtualTransactionLogNum.ToBytes())));
-    }
 
     public Address ConvertVirtualAddressToContractAddress(Hash virtualAddress, Address contractAddress)
     {

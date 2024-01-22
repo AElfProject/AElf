@@ -268,15 +268,6 @@ public class CSharpSmartContractContext : ISmartContractBridgeContext
             toAddress,
             methodName, args);
     }
-
-    public Hash GetInlineTransactionId(Transaction inlineTransaction, Hash originTransactionId,
-        Int32 virtualTransactionLogNum)
-    {
-        return SmartContractBridgeContextImplementation.GetInlineTransactionId(inlineTransaction,
-            originTransactionId,
-            virtualTransactionLogNum);
-    }
-
     /// <summary>
     ///     Converts a virtual address to a contract address with the contract address.
     /// </summary>

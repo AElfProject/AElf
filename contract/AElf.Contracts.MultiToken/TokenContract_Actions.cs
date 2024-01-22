@@ -450,8 +450,7 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
         var originalTransaction = UnifiedTransaction.Parser.ParseFrom(input.TransactionBytes);
 
         AssertCrossChainTransaction(originalTransaction, tokenContractAddress, nameof(ValidateTokenInfoExists));
-        var originalTransactionId =
-            input.InlineTransactionId != null ? input.InlineTransactionId : originalTransaction.GetHash();
+        var originalTransactionId = originalTransaction.GetHash();
         CrossChainVerify(originalTransactionId, input.ParentChainHeight, input.FromChainId, input.MerklePath);
         var validateTokenInfoExistsInput =
             ValidateTokenInfoExistsInput.Parser.ParseFrom(originalTransaction.Params);

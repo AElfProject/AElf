@@ -27,9 +27,7 @@ public interface ITransactionResultAppService
     Task<List<TransactionResultDto>> GetTransactionResultsAsync(string blockHash, int offset = 0,
         int limit = 10);
 
-    Task<MerklePathDto> GetMerklePathByTransactionIdAsync(string transactionId);
-
-    Task<MerklePathDto> GetMerklePathByInlineTransactionId(string transactionId, string inlineTransactionId);
+    Task<MerklePathDto> GetMerklePathByTransactionIdAsync(string transactionId, string inlineTransactionId);
 }
 
 public class TransactionResultAppService : AElfAppService, ITransactionResultAppService
@@ -159,13 +157,9 @@ public class TransactionResultAppService : AElfAppService, ITransactionResultApp
     ///     Get the merkle path of a transaction.
     /// </summary>
     /// <param name="transactionId"></param>
+    /// <param name="inlineTransactionId"></param>
     /// <returns></returns>
-    public async Task<MerklePathDto> GetMerklePathByTransactionIdAsync(string transactionId)
-    {
-        return await GetMerklePathByInlineTransactionId(transactionId, null);
-    }
-
-    public async Task<MerklePathDto> GetMerklePathByInlineTransactionId(string transactionId,
+    public async Task<MerklePathDto> GetMerklePathByTransactionIdAsync(string transactionId,
         string inlineTransactionId)
     {
         Hash transactionIdHash;
@@ -187,16 +181,8 @@ public class TransactionResultAppService : AElfAppService, ITransactionResultApp
         var transactionResult = await GetMinedTransactionResultAsync(transactionIdHash);
         var blockHash = transactionResult.BlockHash;
         var blockInfo = await _blockchainService.GetBlockByHashAsync(blockHash);
-        Hash currentLeafNode;
-        if (inlineTransactionIdHash != null)
-        {
-            currentLeafNode = GetHashCombiningTransactionAndStatus(inlineTransactionIdHash, transactionResult.Status);
-        }
-        else
-        {
-            currentLeafNode = GetHashCombiningTransactionAndStatus(transactionIdHash, transactionResult.Status);
-        }
-
+        Hash currentLeafNode = GetHashCombiningTransactionAndStatus(
+            inlineTransactionIdHash != null ? inlineTransactionIdHash : transactionIdHash, transactionResult.Status);
         var leafNodes = await GetLeafNodesAsync(blockInfo.TransactionIds);
         var index = leafNodes.IndexOf(currentLeafNode);
         if (index == -1) throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
@@ -324,18 +310,15 @@ public class TransactionResultAppService : AElfAppService, ITransactionResultApp
                 continue;
             }
 
-            var inlineTransaction = new Transaction
+            var inlineTransactionId = new InlineTransaction
             {
                 From = virtualTransactionCreated.From,
                 To = virtualTransactionCreated.To,
                 MethodName = virtualTransactionCreated.MethodName,
-                Params = virtualTransactionCreated.Params
-            };
-            var inlineTransactionId = HashHelper.ConcatAndCompute(inlineTransaction.GetHash(),
-                HashHelper.ComputeFrom(ByteArrayHelper.ConcatArrays(
-                    virtualTransactionCreated.OriginTransactionId.ToByteArray(),
-                    virtualTransactionCreated.LogNum.ToBytes())));
-
+                Params = virtualTransactionCreated.Params,
+                OriginTransactionId = virtualTransactionCreated.OriginTransactionId,
+                Index = virtualTransactionCreated.LogNum
+            }.GetHash();
             nodeList.Add(GetHashCombiningTransactionAndStatus(inlineTransactionId, status));
         }
 

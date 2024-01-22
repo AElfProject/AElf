@@ -84,9 +84,6 @@ public interface ISmartContractBridgeContext
     Address ConvertVirtualAddressToContractAddressWithContractHashName(Hash virtualAddress,
         Address contractAddress);
 
-    public Hash GetInlineTransactionId(Transaction inlineTransaction, Hash originTransactionId,
-        Int32 virtualTransactionLogNum);
-
     Address GetZeroSmartContractAddress();
 
     Address GetZeroSmartContractAddress(int chainId);

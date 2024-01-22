@@ -221,18 +221,15 @@ public class BlockExecutingService : IBlockExecutingService, ITransientDependenc
                 continue;
             }
 
-            var inlineTransaction = new Transaction
+            var inlineTransactionId = new InlineTransaction
             {
                 From = virtualTransactionCreated.From,
                 To = virtualTransactionCreated.To,
                 MethodName = virtualTransactionCreated.MethodName,
-                Params = virtualTransactionCreated.Params
-            };
-            var inlineTransactionId = HashHelper.ConcatAndCompute(inlineTransaction.GetHash(),
-                HashHelper.ComputeFrom(ByteArrayHelper.ConcatArrays(
-                    virtualTransactionCreated.OriginTransactionId.ToByteArray(),
-                    virtualTransactionCreated.LogNum.ToBytes())));
-
+                Params = virtualTransactionCreated.Params,
+                OriginTransactionId = virtualTransactionCreated.OriginTransactionId,
+                Index = virtualTransactionCreated.LogNum
+            }.GetHash();
             nodeList.Add(GetHashCombiningTransactionAndStatus(inlineTransactionId, status));
         }
 

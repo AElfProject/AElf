@@ -23,7 +23,7 @@ namespace AElf.Types
             if (string.IsNullOrEmpty(MethodName))
                 return false;
 
-            if (OriginTransactionId == null || Index == 0)
+            if (OriginTransactionId == null)
                 return false;
             return true;
         }
