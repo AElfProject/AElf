@@ -115,11 +115,6 @@ definition files for managing contract state in communication with the blockchai
 The test folder
 ^^^^^^^^^^^^^^^
 
-The test folder similarly contains a proto subfolder, along with a setup file used to establish 
-the unit testing environment for blockchain smart contracts. It defines test module classes and a base test class, 
-facilitating context loading, stub class retrieval, and stub acquisition methods. As a result, these classes and 
-methods are employed in unit tests to conduct various tests on the smart contract.
-
 Similarly, the **test** folder contains a proto subfolder, along with a setup file used to establish 
 the unit testing environment for blockchain smart contracts. It defines test module classes and a base test class, 
 facilitating context loading, stub class retrieval, and stub acquisition methods. These classes and methods are 
@@ -271,7 +266,6 @@ Custom types
 
 A brief summary follows:
 
-- Use the **aelf.is_event** option to indicate that the type will trigger an event.
 - Use **repeated** to denote a collection of items of the same type.
 
 Implement contract code
@@ -345,7 +339,7 @@ Asserting
     Assert(!string.IsNullOrWhiteSpace(input.Value), "Invalid name.");
 
 When writing a smart contract, it is often useful and recommended to validate the input. AElf smart contracts can utilize 
-the ``Assert`` method defined in the base smart contract class to implement this pattern. For example, in the following method, 
+the ``Assert`` method defined in the base smart contract class to implement this pattern. For example, in the above method, 
 validation checks if the input string is null or consists only of white spaces. If this condition evaluates to false, 
 the transaction execution will be terminated.
 
