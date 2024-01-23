@@ -1227,4 +1227,80 @@ public partial class MultiTokenContractTests
         checkTokenInfo.IsBurnable.ShouldBe(createTokenInput.IsBurnable);
         checkTokenInfo.ExternalInfo.Value.ShouldBe(createTokenInput.ExternalInfo.Value);
     }
+
+    [Fact]
+    public async Task TokenIssuerAndOwnerModification_Test()
+    {
+        var result = await TokenContractStub.ModifyTokenIssuerAndOwner.SendWithExceptionAsync(new ModifyTokenIssuerAndOwnerInput());
+        result.TransactionResult.Error.ShouldContain("Invalid input symbol.");
+        
+        result = await TokenContractStub.ModifyTokenIssuerAndOwner.SendWithExceptionAsync(new ModifyTokenIssuerAndOwnerInput
+        {
+            Symbol = "TEST"
+        });
+        result.TransactionResult.Error.ShouldContain("Invalid input issuer.");
+        
+        result = await TokenContractStub.ModifyTokenIssuerAndOwner.SendWithExceptionAsync(new ModifyTokenIssuerAndOwnerInput
+        {
+            Symbol = "TEST",
+            Issuer = DefaultAddress
+        });
+        result.TransactionResult.Error.ShouldContain("Invalid input owner.");
+        
+        result = await TokenContractStub.ModifyTokenIssuerAndOwner.SendWithExceptionAsync(new ModifyTokenIssuerAndOwnerInput
+        {
+            Symbol = "TEST",
+            Issuer = DefaultAddress,
+            Owner = DefaultAddress
+        });
+        result.TransactionResult.Error.ShouldContain("Token is not found.");
+        
+        result = await TokenContractStubUser.ModifyTokenIssuerAndOwner.SendWithExceptionAsync(new ModifyTokenIssuerAndOwnerInput
+        {
+            Symbol = DefaultSymbol,
+            Issuer = DefaultAddress,
+            Owner = DefaultAddress
+        });
+        result.TransactionResult.Error.ShouldContain("Only token issuer can set token issuer and owner.");
+        
+        result = await TokenContractStub.ModifyTokenIssuerAndOwner.SendWithExceptionAsync(new ModifyTokenIssuerAndOwnerInput
+        {
+            Symbol = DefaultSymbol,
+            Issuer = DefaultAddress,
+            Owner = DefaultAddress
+        });
+        result.TransactionResult.Error.ShouldContain("Can only set token which does not have owner.");
+        
+        var output = await TokenContractStub.GetTokenIssuerAndOwnerModificationEnabled.CallAsync(new Empty());
+        output.Value.ShouldBeTrue();
+        
+        result = await TokenContractStub.SetTokenIssuerAndOwnerModificationEnabled.SendWithExceptionAsync(
+            new SetTokenIssuerAndOwnerModificationEnabledInput
+            {
+                Enabled = false
+            });
+        result.TransactionResult.Error.ShouldContain("Unauthorized behavior.");
+        
+        var defaultParliament = await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+        var proposalId = await CreateProposalAsync(TokenContractAddress,
+            defaultParliament, nameof(TokenContractStub.SetTokenIssuerAndOwnerModificationEnabled),
+            new SetTokenIssuerAndOwnerModificationEnabledInput
+            {
+                Enabled = false
+            });
+        await ApproveWithMinersAsync(proposalId);
+        await ParliamentContractStub.Release.SendAsync(proposalId);
+        
+        output = await TokenContractStub.GetTokenIssuerAndOwnerModificationEnabled.CallAsync(new Empty());
+        output.Value.ShouldBeFalse();
+        
+        result = await TokenContractStub.ModifyTokenIssuerAndOwner.SendWithExceptionAsync(new ModifyTokenIssuerAndOwnerInput
+        {
+            Symbol = DefaultSymbol,
+            Issuer = DefaultAddress,
+            Owner = DefaultAddress
+        });
+        result.TransactionResult.Error.ShouldContain("Set token issuer and owner disabled.");
+
+    }
 }
