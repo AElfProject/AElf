@@ -47,22 +47,17 @@ public class SmartContractExecutiveService : ISmartContractExecutiveService, ISi
     {
         var stopwatch = Stopwatch.StartNew();
         if (address == null) throw new ArgumentNullException(nameof(address));
-
         var pool = _smartContractExecutiveProvider.GetPool(address);
-        stopwatch.Stop();
-        Logger.LogDebug("Get executive pool time{Time}",stopwatch.ElapsedMilliseconds);
-        
-        stopwatch.Start();
         var smartContractRegistration = await GetSmartContractRegistrationAsync(chainContext, address);
         stopwatch.Stop();
-        Logger.LogDebug("Get smart contract registration time{Time}",stopwatch.ElapsedMilliseconds);
-
+        Logger.LogDebug("GetSmartContractRegistrationAsync time{Time} Address {Address}", stopwatch.ElapsedMilliseconds,
+            address);
         if (!pool.TryTake(out var executive))
         {
             stopwatch.Start();
             executive = await GetExecutiveAsync(smartContractRegistration);
             stopwatch.Stop();
-            Logger.LogDebug("Get smart contract executive time{Time}",stopwatch.ElapsedMilliseconds);
+            Logger.LogDebug("GetExecutiveAsync time{Time} Address {Address}", stopwatch.ElapsedMilliseconds, address);
         }
         else if (smartContractRegistration.CodeHash != executive.ContractHash)
         {
@@ -91,7 +86,7 @@ public class SmartContractExecutiveService : ISmartContractExecutiveService, ISi
                 return;
             }
 
-            Logger.LogDebug($"Lost an executive (no registration {address})");
+            Logger.LogDebug($"Lost an executive (no registration {address} ExecutiveClearLimit {ExecutiveClearLimit})");
         }
         else
         {
@@ -121,7 +116,8 @@ public class SmartContractExecutiveService : ISmartContractExecutiveService, ISi
                 TimestampHelper.GetUtcNow() - TimestampHelper.DurationFromSeconds(ExecutiveExpirationTime))
             {
                 if (executiveBag.TryTake(out _))
-                    Logger.LogDebug($"Cleaned an idle executive for address {executivePool.Key}.");
+                    Logger.LogDebug(
+                        $"Cleaned an idle executive for address {executivePool.Key} ExecutiveClearLimit {ExecutiveClearLimit}.");
 
                 if (executiveBag.IsEmpty)
                     toBeRemoved.Add(executivePool.Key);
@@ -134,18 +130,11 @@ public class SmartContractExecutiveService : ISmartContractExecutiveService, ISi
 
     private async Task<IExecutive> GetExecutiveAsync(SmartContractRegistration reg)
     {
-        var stopwatch = Stopwatch.StartNew();
+      
         // get runner
         var runner = _smartContractRunnerContainer.GetRunner(reg.Category);
-        stopwatch.Stop();
-        Logger.LogDebug("Get smart contract runner time{Time}",stopwatch.ElapsedMilliseconds);
-
-        stopwatch.Start();
         // run smartContract executive info and return executive
         var executive = await runner.RunAsync(reg);
-        stopwatch.Stop();
-        Logger.LogDebug("Run smart contract executive time{Time}",stopwatch.ElapsedMilliseconds);
-
         var context = _hostSmartContractBridgeContextService.Create();
         executive.SetHostSmartContractBridgeContext(context);
         return executive;
