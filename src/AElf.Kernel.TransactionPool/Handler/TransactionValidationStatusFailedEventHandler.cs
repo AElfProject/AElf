@@ -23,7 +23,7 @@ public class TransactionValidationStatusFailedEventHandler :
     private readonly TransactionOptions _transactionOptions;
 
     public TransactionValidationStatusFailedEventHandler(
-        IOptionsMonitor<TransactionOptions> transactionOptionsMonitor, 
+        IOptionsMonitor<TransactionOptions> transactionOptionsMonitor,
         IInvalidTransactionResultService invalidTransactionResultService)
     {
         _invalidTransactionResultService = invalidTransactionResultService;
@@ -32,9 +32,9 @@ public class TransactionValidationStatusFailedEventHandler :
 
     public async Task HandleEventAsync(TransactionValidationStatusChangedEvent eventData)
     {
-        if (!_failStatus.Contains(eventData.TransactionResultStatus)) return; 
-        if (!_transactionOptions.StoreInvalidTransactionResultEnabled) return; 
-        
+        if (!_failStatus.Contains(eventData.TransactionResultStatus) ||
+            !_transactionOptions.StoreInvalidTransactionResultEnabled) return;
+
         // save to storage
         await _invalidTransactionResultService.AddInvalidTransactionResultAsync(
             new InvalidTransactionResult
@@ -44,5 +44,4 @@ public class TransactionValidationStatusFailedEventHandler :
                 Error = eventData.Error
             });
     }
-    
 }
