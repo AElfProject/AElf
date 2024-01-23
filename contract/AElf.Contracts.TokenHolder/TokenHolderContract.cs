@@ -271,7 +271,7 @@ public partial class TokenHolderContract : TokenHolderContractImplContainer.Toke
         });
         return new ReceivedProfitsMap
         {
-            Value = { profitsMap.AllProfitsMap }
+            Value = { profitsMap.Value }
         };
     }
 

@@ -59,14 +59,56 @@ public partial class ProfitContract
         return HashHelper.XorAndCompute(schemeId, HashHelper.ComputeFrom(period));
     }
 
-    public override GetProfitAmountOutput GetProfitAmount(GetProfitAmountInput input)
+    public override Int64Value GetProfitAmount(GetProfitAmountInput input)
     {
         var profitItem = State.SchemeInfos[input.SchemeId];
         Assert(profitItem != null, "Scheme not found.");
         var beneficiary = input.Beneficiary ?? Context.Sender;
         var profitDetails = State.ProfitDetailsMap[input.SchemeId][beneficiary];
 
-        if (profitDetails == null) return new GetProfitAmountOutput { AllProfitAmount = 0, OneTimeClaimableProfitAmount = 0 };
+        if (profitDetails == null) return new Int64Value { Value = 0 };
+
+        // ReSharper disable once PossibleNullReferenceException
+        var availableDetails = profitDetails.Details.Where(d =>
+            d.LastProfitPeriod < profitItem.CurrentPeriod && (d.LastProfitPeriod == 0
+                ? d.EndPeriod >= d.StartPeriod
+                : d.EndPeriod >= d.LastProfitPeriod)
+        ).ToList();
+
+        var amount = 0L;
+
+        var profitableDetailCount =
+            Math.Min(ProfitContractConstants.ProfitReceivingLimitForEachTime, availableDetails.Count);
+        var maxProfitReceivingPeriodCount = GetMaximumPeriodCountForProfitableDetail(profitableDetailCount);
+        
+        for (var i = 0;i < profitableDetailCount; i++)
+        {
+            var profitDetail = availableDetails[i];
+            if (profitDetail.LastProfitPeriod == 0) profitDetail.LastProfitPeriod = profitDetail.StartPeriod;
+            
+            var profitsDictForEachProfitDetail = ProfitAllPeriods(profitItem, profitDetail, beneficiary,
+                maxProfitReceivingPeriodCount, true,
+                input.Symbol);
+
+            amount = amount.Add(profitsDictForEachProfitDetail.TryGetValue(input.Symbol, out var value)
+                ? value
+                : 0);
+        }
+
+        return new Int64Value
+        {
+            Value = amount
+        };
+    }
+
+    public override GetAllProfitAmountOutput GetAllProfitAmount(GetAllProfitAmountInput input)
+    {
+        var profitItem = State.SchemeInfos[input.SchemeId];
+        Assert(profitItem != null, "Scheme not found.");
+        var beneficiary = input.Beneficiary ?? Context.Sender;
+        var profitDetails = State.ProfitDetailsMap[input.SchemeId][beneficiary];
+
+        if (profitDetails == null) return new GetAllProfitAmountOutput { AllProfitAmount = 0, OneTimeClaimableProfitAmount = 0 };
 
         var profitVirtualAddress = Context.ConvertVirtualAddressToContractAddress(input.SchemeId);
 
@@ -107,7 +149,7 @@ public partial class ProfitContract
                         : 0);
         }
 
-        return new GetProfitAmountOutput
+        return new GetAllProfitAmountOutput
         {
             AllProfitAmount = allProfitAmount,
             OneTimeClaimableProfitAmount = claimableProfitAmount
@@ -123,7 +165,41 @@ public partial class ProfitContract
 
         if (profitDetails == null) return new ReceivedProfitsMap();
 
-        var profitVirtualAddress = Context.ConvertVirtualAddressToContractAddress(input.SchemeId);
+        // ReSharper disable once PossibleNullReferenceException
+        var availableDetails = profitDetails.Details.Where(d =>
+            d.LastProfitPeriod < scheme.CurrentPeriod && (d.LastProfitPeriod == 0
+                ? d.EndPeriod >= d.StartPeriod
+                : d.EndPeriod >= d.LastProfitPeriod)
+        ).ToList();
+        
+        var profitableDetailCount =
+            Math.Min(ProfitContractConstants.ProfitReceivingLimitForEachTime, availableDetails.Count);
+        var maxProfitReceivingPeriodCount = GetMaximumPeriodCountForProfitableDetail(profitableDetailCount);
+
+        var profitsDict = new Dictionary<string, long>();
+        for (var i = 0; i < profitableDetailCount; i++)
+        {
+            var profitDetail = availableDetails[i];
+            if (profitDetail.LastProfitPeriod == 0) profitDetail.LastProfitPeriod = profitDetail.StartPeriod;
+            
+            var profitsDictForEachProfitDetail = ProfitAllPeriods(scheme, profitDetail, beneficiary, maxProfitReceivingPeriodCount,true);
+            AddProfitToDict(profitsDict, profitsDictForEachProfitDetail);
+        }
+
+        return new ReceivedProfitsMap
+        {
+            Value = { profitsDict }
+        };
+    }
+
+    public override GetAllProfitsMapOutput GetAllProfitsMap(GetAllProfitsMapInput input)
+    {
+        var scheme = State.SchemeInfos[input.SchemeId];
+        Assert(scheme != null, "Scheme not found.");
+        var beneficiary = input.Beneficiary ?? Context.Sender;
+        var profitDetails = State.ProfitDetailsMap[input.SchemeId][beneficiary];
+
+        if (profitDetails == null) return new GetAllProfitsMapOutput();
 
         // ReSharper disable once PossibleNullReferenceException
         var availableDetails = profitDetails.Details.Where(d =>
@@ -150,7 +226,7 @@ public partial class ProfitContract
             AddProfitToDict(claimableProfitsDict, claimableProfitsDictForEachProfitDetail);
         }
 
-        return new ReceivedProfitsMap
+        return new GetAllProfitsMapOutput
         {
             AllProfitsMap = { allProfitsDict },
             OneTimeClaimableProfitsMap = { claimableProfitsDict }

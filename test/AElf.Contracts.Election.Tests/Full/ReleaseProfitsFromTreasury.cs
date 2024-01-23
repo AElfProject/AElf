@@ -387,7 +387,7 @@ public partial class ElectionContractTests
             {
                 SchemeId = ProfitItemsIds[ProfitType.CitizenWelfare],
                 Symbol = EconomicContractsTestConstants.NativeTokenSymbol
-            })).OneTimeClaimableProfitAmount;
+            })).Value;
             profitAmount.ShouldBeGreaterThan(0);
 
             var profitResult = await profitTester.ClaimProfits.SendAsync(new ClaimProfitsInput
@@ -425,7 +425,7 @@ public partial class ElectionContractTests
                 {
                     SchemeId = ProfitItemsIds[ProfitType.BasicMinerReward],
                     Symbol = "ELF"
-                })).AllProfitAmount;
+                })).Value;
                 basicMinerRewardAmount.ShouldBeGreaterThan(0);
 
                 //flexible Shares - 10%
@@ -433,7 +433,7 @@ public partial class ElectionContractTests
                 {
                     SchemeId = ProfitItemsIds[ProfitType.FlexibleReward],
                     Symbol = "ELF"
-                })).AllProfitAmount;
+                })).Value;
                 flexibleRewardWeight.ShouldBeGreaterThan(0);
 
                 //welcome Shares - 10%
@@ -441,7 +441,7 @@ public partial class ElectionContractTests
                 {
                     SchemeId = ProfitItemsIds[ProfitType.WelcomeReward],
                     Symbol = "ELF"
-                })).AllProfitAmount;
+                })).Value;
                 welcomeBalance.ShouldBe(0);
 
                 //backup Shares - 20%
@@ -449,7 +449,7 @@ public partial class ElectionContractTests
                 {
                     SchemeId = ProfitItemsIds[ProfitType.BackupSubsidy],
                     Symbol = "ELF"
-                })).AllProfitAmount;
+                })).Value;
                 backupBalance.ShouldBeGreaterThan(0);
 
                 //Profit all
@@ -505,7 +505,7 @@ public partial class ElectionContractTests
                 {
                     SchemeId = ProfitItemsIds[ProfitType.BasicMinerReward],
                     Symbol = "ELF"
-                })).AllProfitAmount;
+                })).Value;
                 basicMinerRewardAmount.ShouldBeGreaterThan(0);
 
                 //flexible Shares - 75%
@@ -513,7 +513,7 @@ public partial class ElectionContractTests
                 {
                     SchemeId = ProfitItemsIds[ProfitType.FlexibleReward],
                     Symbol = "ELF"
-                })).AllProfitAmount;
+                })).Value;
                 flexibleRewardWeight.ShouldBe(0);
 
                 //welcome Shares - 5%
@@ -521,7 +521,7 @@ public partial class ElectionContractTests
                 {
                     SchemeId = ProfitItemsIds[ProfitType.WelcomeReward],
                     Symbol = "ELF"
-                })).AllProfitAmount;
+                })).Value;
                 welcomeBalance.ShouldBe(0);
 
                 //backup Shares - 5%
@@ -529,7 +529,7 @@ public partial class ElectionContractTests
                 {
                     SchemeId = ProfitItemsIds[ProfitType.BackupSubsidy],
                     Symbol = "ELF"
-                })).AllProfitAmount;
+                })).Value;
                 backupBalance.ShouldBeGreaterThan(0);
 
                 //Profit all
@@ -640,7 +640,7 @@ public partial class ElectionContractTests
         {
             SchemeId = ProfitItemsIds[type],
             Symbol = EconomicContractsTestConstants.NativeTokenSymbol
-        })).OneTimeClaimableProfitAmount;
+        })).Value;
     }
 
     private async Task<long> GetReleasedAmount()
