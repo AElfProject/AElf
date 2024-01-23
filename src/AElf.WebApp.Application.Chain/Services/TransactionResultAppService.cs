@@ -116,7 +116,6 @@ public class TransactionResultAppService : AElfAppService, ITransactionResultApp
                 output.Status = failedTransactionResult.Status.ToString().ToUpper();
                 output.Error = TransactionErrorResolver.TakeErrorMessage(failedTransactionResult.Error,
                     _webAppOptions.IsDebugMode);
-                return output;
             }
         }
 
