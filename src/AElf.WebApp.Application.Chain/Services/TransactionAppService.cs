@@ -25,7 +25,7 @@ using Volo.Abp.ObjectMapping;
 namespace AElf.WebApp.Application.Chain;
 
 public interface ITransactionAppService
-{
+{   
     Task<string> ExecuteTransactionAsync(ExecuteTransactionDto input);
 
     Task<string> ExecuteRawTransactionAsync(ExecuteRawTransactionDto input);
