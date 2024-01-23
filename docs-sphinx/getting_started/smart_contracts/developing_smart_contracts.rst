@@ -8,6 +8,7 @@ With the concepts presented in this article, you will be able to create your own
 **Steps for developing smart contracts**
 
 The following content will walk you through the basics of writing a
+
 smart contract; this process contains essentially five steps:
 
 -  **Install template**: Install the aelf smart contract templates
