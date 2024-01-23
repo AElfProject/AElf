@@ -65,7 +65,7 @@ public partial class ProfitContract
 
         return new Int64Value
         {
-            Value = output.OneTimeClaimableProfitAmount
+            Value = output.AllProfitAmount
         };
     }
 
@@ -133,7 +133,7 @@ public partial class ProfitContract
 
         return new ReceivedProfitsMap
         {
-            Value = { output.OneTimeClaimableProfitsMap }
+            Value = { output.AllProfitsMap }
         };
     }
 
