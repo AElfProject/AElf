@@ -103,10 +103,8 @@ public class TransactionResultAppService : AElfAppService, ITransactionResultApp
             output.Status = validationStatus.TransactionResultStatus.ToString().ToUpper();
             output.Error =
                 TransactionErrorResolver.TakeErrorMessage(validationStatus.Error, _webAppOptions.IsDebugMode);
-            return output;
         }
-
-        if (_transactionOptions.StoreInvalidTransactionResultEnabled)
+        else if (_transactionOptions.StoreInvalidTransactionResultEnabled)
         {
             var failedTransactionResult =
                 await _transactionResultProxyService.InvalidTransactionResultService.GetInvalidTransactionResultAsync(
