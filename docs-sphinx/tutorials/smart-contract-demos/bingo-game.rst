@@ -144,18 +144,9 @@ bingo_contract.proto file is as follows:
         int64 bingo_block_height = 6;
     }
 
-You need to delete ``hello_world_contract.proto`` first. Then create a new proto file, and write the definition content. 
-The contract/reference/base proto files need to be placed different directories. Please refer to the following rules (If there is no corresponding folder, you can create it yourself).
-
-For Protobuf under the **src** folder:
-- contract: the contract folder is used to store definition proto file of contract.
-- message: the proto files under the message folder are used to define some common properties for import and use by other proto files.
-- reference: the reference folder is used to store the proto files of the referenced contract.
-- base: the reference folder is used to store the basic proto files, such as ACS (aelf standard contract) proto files.
-
-Begin by deleting the ``hello_world_contract.proto`` file. Afterward, create a new proto file and define its contents. 
-It's important to organize your proto files according to the following rules. If the corresponding folders do not exist, 
-you can create them as needed.
+Begin by removing the ``hello_world_contract.proto`` file. Subsequently, generate a new proto file and define its content. 
+Ensure that the proto files for contracts, references, and base are stored in separate directories.
+Adhere to the following guidelines, and create any necessary folders if they do not already exist.
 
 For Protobuf files under the **src** folder:
 
@@ -223,7 +214,7 @@ Write Test
 ----------
 
 Due to the token transfer involved in this test, it's essential to construct not only the stub for the Bingo contract 
-but also the stub for the Token contract. Ensure that the code referenced in the .csproj file for the proto file is as follows:
+but also the stub for the Token contract. Please ensure that the Token contract proto file is located in the stub directory.
 
 ::
 

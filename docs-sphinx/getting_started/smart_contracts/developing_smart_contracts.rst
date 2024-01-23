@@ -8,7 +8,8 @@ With the concepts presented in this article, you will be able to create your own
 **Steps for developing smart contracts**
 
 The following content will walk you through the basics of writing a
-smart contract; this process contains essentially four steps:
+
+smart contract; this process contains essentially five steps:
 
 -  **Install template**: Install the aelf smart contract templates
    locally using the dotnet command.
@@ -20,6 +21,8 @@ smart contract; this process contains essentially four steps:
    should be defined in a protobuf file following the typical protobuf syntax.
 
 -  **Implement contract code**: Implement the logic for the contract methods.
+
+-  **Testing smart contracts**: Unit tests for contracts.
 
 The ``Greeter`` contract is a very simple contract that exposes an
 ``AddGreeters`` method to add a new greeter to ``GreeterList``, and a 
@@ -104,7 +107,7 @@ definition files for managing contract state in communication with the blockchai
 
 ::
 
-    test
+    src
     ├── GreeterContract.cs
     ├── GreeterContract.csproj
     ├── GreeterContractState.cs
@@ -113,11 +116,6 @@ definition files for managing contract state in communication with the blockchai
 The test folder
 ^^^^^^^^^^^^^^^
 
-The test folder similarly contains a proto subfolder, along with a setup file used to establish 
-the unit testing environment for blockchain smart contracts. It defines test module classes and a base test class, 
-facilitating context loading, stub class retrieval, and stub acquisition methods. As a result, these classes and 
-methods are employed in unit tests to conduct various tests on the smart contract.
-
 Similarly, the **test** folder contains a proto subfolder, along with a setup file used to establish 
 the unit testing environment for blockchain smart contracts. It defines test module classes and a base test class, 
 facilitating context loading, stub class retrieval, and stub acquisition methods. These classes and methods are 
@@ -125,7 +123,7 @@ employed in unit tests to conduct various tests on the smart contract.
 
 ::
 
-    src
+    test
     ├── _Setup.cs
     ├── GreeterContract.Tests.csproj
     ├── GreeterContractTests.cs
@@ -269,7 +267,6 @@ Custom types
 
 A brief summary follows:
 
-- Use the **aelf.is_event** option to indicate that the type will trigger an event.
 - Use **repeated** to denote a collection of items of the same type.
 
 Implement contract code
@@ -343,7 +340,7 @@ Asserting
     Assert(!string.IsNullOrWhiteSpace(input.Value), "Invalid name.");
 
 When writing a smart contract, it is often useful and recommended to validate the input. AElf smart contracts can utilize 
-the ``Assert`` method defined in the base smart contract class to implement this pattern. For example, in the following method, 
+the ``Assert`` method defined in the base smart contract class to implement this pattern. For example, in the above method, 
 validation checks if the input string is null or consists only of white spaces. If this condition evaluates to false, 
 the transaction execution will be terminated.
 
