@@ -55,8 +55,9 @@ public sealed class ExecutionPluginForMethodFeeWithForkTest : ExecutionPluginFor
                 Memo = Guid.NewGuid().ToString(),
                 To = SampleAddress.AddressList[0]
             });
+        var fromAddress = Address.FromPublicKey(Tester.KeyPair.PublicKey);
         var transactionResult = await Tester.GetTransactionResultAsync(result.Item2.GetHash());
-        var targetFee = transactionResult.GetChargedTransactionFees().First().Value;
+        var targetFee = transactionResult.GetChargedTransactionFees()[fromAddress].First().Value;
 
         var transactionFeesMap = await GetTransactionFeesMapAsync(new ChainContext
         {
@@ -97,7 +98,7 @@ public sealed class ExecutionPluginForMethodFeeWithForkTest : ExecutionPluginFor
                     To = SampleAddress.AddressList[0]
                 });
             transactionResult = await Tester.GetTransactionResultAsync(result.Item2.GetHash());
-            var fee = transactionResult.GetChargedTransactionFees().First().Value;
+            var fee = transactionResult.GetChargedTransactionFees()[fromAddress].First().Value;
             transactionFeesMap = await GetTransactionFeesMapAsync(new ChainContext
             {
                 BlockHash = result.Item1.GetHash(), BlockHeight = result.Item1.Height

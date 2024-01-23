@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using AElf.Contracts.MultiToken;
 using AElf.CSharp.Core.Extension;
@@ -65,30 +66,47 @@ public class CalculateFunctionTest
         var transactionResult = new TransactionResult();
         transactionResult.Logs.Add(new TransactionFeeCharged
         {
+            ChargingAddress = SampleAddress.AddressList[0],
             Amount = 1,
             Symbol = "ELF"
         }.ToLogEvent());
         transactionResult.Logs.Add(new TransactionFeeCharged
         {
+            ChargingAddress = SampleAddress.AddressList[0],
             Amount = 2,
             Symbol = "ELF"
         }.ToLogEvent());
         transactionResult.Logs.Add(new TransactionFeeCharged
         {
+            ChargingAddress = SampleAddress.AddressList[0],
+            Amount = 3,
+            Symbol = "USDT"
+        }.ToLogEvent());
+        transactionResult.Logs.Add(new TransactionFeeCharged
+        {
+            ChargingAddress = SampleAddress.AddressList[0],
+            Amount = 4,
+            Symbol = "USDT"
+        }.ToLogEvent());
+        transactionResult.Logs.Add(new TransactionFeeCharged
+        {
+            ChargingAddress = SampleAddress.AddressList[1],
             Amount = 3,
             Symbol = "TEST"
         }.ToLogEvent());
         transactionResult.Logs.Add(new TransactionFeeCharged
         {
+            ChargingAddress = SampleAddress.AddressList[1],
             Amount = 4,
             Symbol = "TEST"
         }.ToLogEvent());
         var feeDic = transactionResult.GetChargedTransactionFees();
         feeDic.Count.ShouldBe(2);
-        feeDic.Keys.First().ShouldBe("ELF");
-        feeDic.Values.First().ShouldBe(3);
-        feeDic.Keys.Last().ShouldBe("TEST");
-        feeDic.Values.Last().ShouldBe(7);
+        feeDic.Keys.First().ShouldBe(SampleAddress.AddressList[0]);
+        feeDic.Values.First()["ELF"].ShouldBe(3);   
+        feeDic.Values.First()["USDT"].ShouldBe(7);
+        feeDic.Keys.Last().ShouldBe(SampleAddress.AddressList[1]);
+        feeDic.Values.Last()["TEST"].ShouldBe(7);
     }
 
     [Fact]
