@@ -19,7 +19,7 @@ Each DApp that requires an indexer should apply for a corresponding client ID an
 
 Upon obtaining the client ID and key pre-allocated by the AElf Indexer, you can initiate an authentication authorization request to the Indexer, obtaining an authentication token (Token) upon successful verification.
 
-**Post request address** : http://URL:{Port}/connect/token
+**Post request address** : ``http://URL:{Port}/connect/token``
 
 The URL and port correspond to the server address where the AElf Indexer AuthServer service is located. Please contact AElf to get it.
 
@@ -49,7 +49,7 @@ The access_token is the authentication token. It is required when making specifi
 
 By sending a request to the Subscription API, you inform the Indexer system that your DApp needs to subscribe to specific blocks, transactions, or events. Subsequently, when the interface plugin subscribes to the Indexer client, the Indexer system filters out the specified blocks/transactions/events and pushes them to the corresponding interface plugin.
 
-**Post request address** : http://URL:{Port}/api/app/subscription
+**Post request address** : ``http://URL:{Port}/api/app/subscription``
 
 Request Mode：raw
 
@@ -106,7 +106,7 @@ Note down this version number, as it will be used in the development of the clie
 
 If you need to view all the initiated subscription information, you can query it through the following API.
 
-**Get request address** : http://URL:{Port}/api/app/subscription
+**Get request address** : ``http://URL:{Port}/api/app/subscription``
 
 Request Header: Authorization Bearer {access_token}
 
@@ -139,7 +139,7 @@ Request Header: Authorization Bearer {access_token}
 
 **Stop Running Subscription**
 
-**Post request address** : http://URL:{port}/api/app/block-scan/stop?version={subscription_version}
+**Post request address** : ``http://URL:{port}/api/app/block-scan/stop?version={subscription_version}``
  
 This API is used to stop running subscriptions.
 
@@ -147,7 +147,7 @@ Request Header: Authorization Bearer {access_token}
                
 **Replace Running Subscription by New Subscription**
 
-**Post request address** :  http://URL:{port}/api/app/block-scan/upgrade
+**Post request address** :  ``http://URL:{port}/api/app/block-scan/upgrade``
  
 This API is used to replace current subscription version by new version. After a new subscription is created, 
 it will be at "newVersion". When it's ready to use, this API is required to be called to upgrade it to currentVersion.
@@ -159,7 +159,7 @@ Request Header: Authorization Bearer {access_token}
 
 **Update Running Subscription**
 
-**Post request address** : http://URL:{Port}/api/app/subscription/{Version}
+**Post request address** : ``http://URL:{Port}/api/app/subscription/{Version}``
 
 Request Mode：raw
 
