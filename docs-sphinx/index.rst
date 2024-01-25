@@ -55,7 +55,7 @@ Welcome to AElf's official documentation!
    Smart Contract API <reference/smart-contract-api/index>
    Acs Introduction <reference/acs/index>
    Command-line Interface <reference/cli/index>
-
+   Smart Contract <reference/smart-contract/index>
 
 .. toctree::
    :caption: Resources

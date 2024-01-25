@@ -1,0 +1,13 @@
+@startuml
+
+autonumber
+
+participant "User" as U
+participant "Chain A MultiToken Contract" as A
+participant "Chain B MultiToken Contract" as B
+
+U -> A: CrossChainTransfer
+A --> U:
+U -> B: CrossChainReceiveToken
+
+@enduml
