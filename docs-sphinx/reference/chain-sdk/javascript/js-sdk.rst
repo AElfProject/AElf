@@ -30,7 +30,7 @@ After that you need to create a aelf instance and set a provider.
 
 .. code:: javascript
 
-   // in brower use: <script src="https://unpkg.com/aelf-sdk@lastest/dist/aelf.umd.js"></script>
+   // in brower use: <script src="https://unpkg.com/aelf-sdk@latest/dist/aelf.umd.js"></script>
    // in node.js use: const AElf = require('aelf-sdk');
    const aelf = new AElf(new AElf.providers.HttpProvider('http://127.0.0.1:8000'));
 
