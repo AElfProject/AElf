@@ -1,0 +1,16 @@
+@startuml
+
+autonumber
+
+Developer -> GenesisContract: DeployUserSmartContract \n/UpdateUserSmartContract
+GenesisContract -> ParliamentContract: CreateProposalBySystemContract
+ParliamentContract -> ParliamentContract: CreateNewProposal \n(ContractZero.PerformDeployUserSmartContract \n/ContractZero.PerformUpdateUserSmartContract)
+ParliamentContract -> BlockProducer: ProposalCreated event
+BlockProducer -> ParliamentContract: Approve \n(Automatically by aelf node)
+
+BlockProducer -> GenesisContract: Approve>=2/3 \nReleaseApprovedUserSamrtContract \n(Automatically by aelf node)
+GenesisContract -> ParliamentContract: Release
+ParliamentContract -> GenesisContract: PerformDeployUserSmartContract \n/PerformUpdateUserSmartContract
+
+
+@enduml

@@ -1,0 +1,23 @@
+@startuml
+
+autonumber
+
+Developer -> GenesisContract: ProposeNewContract / ProposeUpdateContract
+GenesisContract -> ParliamentContract: CreateProposalBySystemContract
+ParliamentContract -> ParliamentContract: CreateNewProposal \n(GenesisContract.ProposeContractCodeCheck)
+ParliamentContract -> BlockProducer: ProposalCreated event
+BlockProducer -> ParliamentContract: Approve >= 2/3 \n(ContractZero.ProposeContractCodeCheck)
+ParliamentContract -> Developer: ReceiptCreated event
+Developer -> GenesisContract: ReleaseApprovedContract
+GenesisContract -> ParliamentContract: Release
+ParliamentContract -> ParliamentContract: CreateProposalBySystemContract
+ParliamentContract -> ParliamentContract: CreateNewProposal \n(ContractZero.DeploySmartContract \n/ContractZero.UpdateSmartContract)
+ParliamentContract -> BlockProducer: ProposalCreated event
+BlockProducer -> ParliamentContract: Approve \n(Automatically by aelf node)
+ParliamentContract -> Developer: ReceiptCreated event
+Developer -> GenesisContract: ReleaseCodeCheckedContract
+GenesisContract -> ParliamentContract: Release
+ParliamentContract -> GenesisContract: DeploySmartContract \n/UpdateSmartContract
+
+
+@enduml
