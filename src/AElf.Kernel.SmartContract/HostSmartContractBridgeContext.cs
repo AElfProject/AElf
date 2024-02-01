@@ -255,11 +255,11 @@ public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, I
         };
         TransactionContext.Trace.InlineTransactions.Add(transaction);
         if (!logTransaction) return;
-        FireVirtualTransactionLogEvent(fromVirtualAddress, transaction, null);
+        FireVirtualTransactionLogEvent(fromVirtualAddress, transaction);
     }
 
-    public Hash SendVirtualInlineOnBlock(Hash fromVirtualAddress, Address toAddress, string methodName,
-        ByteString args)
+    public void SendVirtualInline(Hash fromVirtualAddress, Address toAddress, string methodName,
+        ByteString args, bool logTransaction, bool blockTransaction)
     {
         var transaction = new Transaction
         {
@@ -269,18 +269,16 @@ public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, I
             Params = args
         };
         TransactionContext.Trace.InlineTransactions.Add(transaction);
-        var inlineTransactionId =
-            new InlineTransaction
-            {
-                From = transaction.From,
-                To = transaction.To,
-                MethodName = transaction.MethodName,
-                Params = transaction.Params,
-                OriginTransactionId = OriginTransactionId,
-                Index = TransactionContext.Trace.Logs.Count
-            }.GetHash();
-        FireVirtualTransactionLogEvent(fromVirtualAddress, transaction, OriginTransactionId);
-        return inlineTransactionId;
+        if (!logTransaction) return;
+        if (blockTransaction)
+        {
+            FireVirtualTransactionBlockedLogEvent(fromVirtualAddress, transaction);
+        }
+        else
+        {
+            FireVirtualTransactionLogEvent(fromVirtualAddress, transaction);
+        }
+
     }
 
     public void SendVirtualInlineBySystemContract(Hash fromVirtualAddress, Address toAddress, string methodName,
@@ -307,10 +305,33 @@ public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, I
         };
         TransactionContext.Trace.InlineTransactions.Add(transaction);
         if (!logTransaction) return;
-        FireVirtualTransactionLogEvent(fromVirtualAddress, transaction, null);
+        FireVirtualTransactionLogEvent(fromVirtualAddress, transaction);
     }
 
-    public Hash SendVirtualInlineOnBlockBySystemContract(Hash fromVirtualAddress, Address toAddress, string methodName,
+    public void SendVirtualInlineBySystemContract(Hash fromVirtualAddress, Address toAddress, string methodName,
+        ByteString args,
+        bool logTransaction, bool blockTransaction)
+    {
+        var transaction = new Transaction
+        {
+            From = ConvertVirtualAddressToContractAddressWithContractHashName(fromVirtualAddress, Self),
+            To = toAddress,
+            MethodName = methodName,
+            Params = args
+        };
+        TransactionContext.Trace.InlineTransactions.Add(transaction);
+        if (!logTransaction) return;
+        if (blockTransaction)
+        {
+            FireVirtualTransactionBlockedLogEvent(fromVirtualAddress, transaction);
+        }
+        else
+        {
+            FireVirtualTransactionLogEvent(fromVirtualAddress, transaction);
+        }
+    }
+
+    public void SendVirtualInlineOnBlockBySystemContract(Hash fromVirtualAddress, Address toAddress, string methodName,
         ByteString args)
     {
         var transaction = new Transaction
@@ -321,23 +342,24 @@ public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, I
             Params = args
         };
         TransactionContext.Trace.InlineTransactions.Add(transaction);
-        var inlineTransactionId =
-            new InlineTransaction
-            {
-                From = transaction.From,
-                To = transaction.To,
-                MethodName = transaction.MethodName,
-                Params = transaction.Params,
-                OriginTransactionId = OriginTransactionId,
-                Index = TransactionContext.Trace.Logs.Count
-            }.GetHash();
-        FireVirtualTransactionLogEvent(fromVirtualAddress, transaction, OriginTransactionId);
-        return inlineTransactionId;
+        FireVirtualTransactionLogEvent(fromVirtualAddress, transaction);
     }
 
+    private void FireVirtualTransactionBlockedLogEvent(Hash fromVirtualAddress, Transaction transaction)
+    {
+        var log = new VirtualTransactionBlocked()
+        {
+            From = transaction.From,
+            To = transaction.To,
+            VirtualHash = fromVirtualAddress,
+            MethodName = transaction.MethodName,
+            Params = transaction.Params,
+            Signatory = Sender
+        };
+        FireLogEvent(log.ToLogEvent(Self));
+    }
 
-    private void FireVirtualTransactionLogEvent(Hash fromVirtualAddress, Transaction transaction,
-        Hash originTransactionId)
+    private void FireVirtualTransactionLogEvent(Hash fromVirtualAddress, Transaction transaction)
     {
         var log = new VirtualTransactionCreated
         {
@@ -346,9 +368,7 @@ public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, I
             VirtualHash = fromVirtualAddress,
             MethodName = transaction.MethodName,
             Params = transaction.Params,
-            Signatory = Sender,
-            OriginTransactionId = originTransactionId,
-            LogNum = TransactionContext.Trace.Logs.Count
+            Signatory = Sender
         };
         FireLogEvent(log.ToLogEvent(Self));
     }

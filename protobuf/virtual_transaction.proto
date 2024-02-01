@@ -17,6 +17,14 @@ message VirtualTransactionCreated {
   string method_name = 4 [(aelf.is_indexed) = true];
   bytes params = 5;
   aelf.Address signatory = 6 [(aelf.is_indexed) = true];
-  aelf.Hash OriginTransactionId = 7 [(aelf.is_indexed) = true];
-  int32 LogNum = 8 [(aelf.is_indexed) = true];
+}
+
+message VirtualTransactionBlocked {
+  option (aelf.is_event) = true;
+  aelf.Hash virtual_hash = 1 [(aelf.is_indexed) = true];
+  aelf.Address from = 2 [(aelf.is_indexed) = true];
+  aelf.Address to = 3 [(aelf.is_indexed) = true];
+  string method_name = 4 [(aelf.is_indexed) = true];
+  bytes params = 5;
+  aelf.Address signatory = 6 [(aelf.is_indexed) = true];
 }

@@ -227,7 +227,13 @@ public class CSharpSmartContractContext : ISmartContractBridgeContext
         SmartContractBridgeContextImplementation.SendVirtualInline(fromVirtualAddress, toAddress, methodName,
             args,logTransaction);
     }
-    
+
+    public void SendVirtualInline(Hash fromVirtualAddress, Address toAddress, string methodName,
+        ByteString args, bool logTransaction, bool blockTransaction)
+    {
+        SmartContractBridgeContextImplementation.SendVirtualInline(fromVirtualAddress, toAddress,
+            methodName, args, logTransaction, blockTransaction);
+    }
 
     /// <summary>
     ///     Sends a virtual inline transaction to another contract. This method is only available to system smart contract.
@@ -253,21 +259,14 @@ public class CSharpSmartContractContext : ISmartContractBridgeContext
             methodName, args, logTransaction);
     }
 
-    public Hash SendVirtualInlineOnBlockBySystemContract(Hash fromVirtualAddress, Address toAddress, string methodName,
-        ByteString args)
+    public void SendVirtualInlineBySystemContract(Hash fromVirtualAddress, Address toAddress, string methodName,
+        ByteString args, bool logTransaction, bool blockTransaction)
     {
-        return SmartContractBridgeContextImplementation.SendVirtualInlineOnBlockBySystemContract(fromVirtualAddress,
-            toAddress,
-            methodName, args);
+        SmartContractBridgeContextImplementation.SendVirtualInlineBySystemContract(fromVirtualAddress, toAddress,
+            methodName, args, logTransaction, blockTransaction);
     }
 
-    public Hash SendVirtualInlineOnBlock(Hash fromVirtualAddress, Address toAddress, string methodName,
-        ByteString args)
-    {
-        return SmartContractBridgeContextImplementation.SendVirtualInlineOnBlock(fromVirtualAddress,
-            toAddress,
-            methodName, args);
-    }
+    
     /// <summary>
     ///     Converts a virtual address to a contract address with the contract address.
     /// </summary>

@@ -295,29 +295,24 @@ public class TransactionResultAppService : AElfAppService, ITransactionResultApp
             return nodeList;
         }
 
-        foreach (var logEvent in enumerable)
+        for (int i = 0; i < enumerable.Count; i++)
         {
-            var virtualTransactionCreated = new VirtualTransactionCreated();
-            for (int i = 0; i < logEvent.Indexed.Count; i++)
+            var logEvent = enumerable[i];
+            var virtualTransactionBlocked = new VirtualTransactionBlocked();
+            foreach (var t in logEvent.Indexed)
             {
-                virtualTransactionCreated.MergeFrom(logEvent.Indexed[i]);
+                virtualTransactionBlocked.MergeFrom(t);
             }
 
-            virtualTransactionCreated.MergeFrom(logEvent.NonIndexed);
-            if (virtualTransactionCreated.OriginTransactionId == null)
-            {
-                // only SendVirtualInlineOnBlock has originTransactionId
-                continue;
-            }
-
+            virtualTransactionBlocked.MergeFrom(logEvent.NonIndexed);
             var inlineTransactionId = new InlineTransaction
             {
-                From = virtualTransactionCreated.From,
-                To = virtualTransactionCreated.To,
-                MethodName = virtualTransactionCreated.MethodName,
-                Params = virtualTransactionCreated.Params,
-                OriginTransactionId = virtualTransactionCreated.OriginTransactionId,
-                Index = virtualTransactionCreated.LogNum
+                From = virtualTransactionBlocked.From,
+                To = virtualTransactionBlocked.To,
+                MethodName = virtualTransactionBlocked.MethodName,
+                Params = virtualTransactionBlocked.Params,
+                OriginTransactionId = transactionId,
+                Index = i + 1
             }.GetHash();
             nodeList.Add(GetHashCombiningTransactionAndStatus(inlineTransactionId, status));
         }
