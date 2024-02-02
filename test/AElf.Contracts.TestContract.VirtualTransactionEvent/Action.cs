@@ -12,6 +12,8 @@ public partial class VirtualTransactionEventTestContract : VirtualTransactionEve
         Context.SendVirtualInline(virtualHash,input.To,input.MethodName,input.Args,true);
         var virtualHash1 = HashHelper.ComputeFrom("virtual");
         Context.SendVirtualInline(virtualHash1,input.To,input.MethodName,input.Args,false);
+        var virtualHash2 = HashHelper.ComputeFrom("virtualBlocked");
+        Context.SendVirtualInline(virtualHash2, input.To, input.MethodName, input.Args, true, true);
         return new Empty();
     }
 
