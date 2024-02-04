@@ -1,0 +1,16 @@
+@startuml
+
+autonumber
+
+participant "SideChain CrossChain Contract" as SC
+participant "SideChain" as S
+participant "MainChain" as M
+participant "MainChain CrossChain Contract" as MC
+
+S -> S: RequestChainInitializationDataAsync
+S -> M: RequestChainInitializationDataFromParentChain
+M -> MC: GetChainInitializationData
+MC -> S: GetInitializeMethodList
+S -> SC: Initialize
+
+@enduml
