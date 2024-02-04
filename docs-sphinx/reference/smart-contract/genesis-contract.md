@@ -31,14 +31,21 @@ Therefore, developers can deploy (and update) their own smart contracts by inter
 
 In this article, we will discuss:
 
+- States related to smart contracts
 - Implementation of deploy and update contracts
 - How the contract will be loaded to the smart contract execution environment
 - The current process of deploying and updating aelf smart contracts
 - Other details of the Genesis Contract
 
-## `SmartContractRegistration` and `ContractInfo`
+## States related to smart contracts
 
-There is a critical data structure defined in `aelf/core.proto`, called SmartContractRegistration:
+On aelf, each contract has the ability to read and write the general ledgers through a State
+defined by a protobuf message.
+
+The Genesis Contract uses `SmartContractRegistration` and `ContractInfo` states 
+to store contract information in the general ledger of the aelf blockchain.
+
+The data structure of `SmartContractRegistration` is defined in `aelf/core.proto`:
 
 ```C#
 message SmartContractRegistration {
@@ -62,7 +69,7 @@ message SmartContractRegistration {
 ```
 Smart Contract code is stored in the `code` field.
 
-However, each `SmartContractRegistration` entity is not a one-to-one correspondence with the contract, and its storage structure is:
+We use the `State.SmartContractRegistrations` to access stored `SmartContractRegistration` entities, the key is the `code_hash` of one contract.
 
 ```C#
 public MappedState<Hash, SmartContractRegistration> SmartContractRegistrations { get; set; }
@@ -171,13 +178,21 @@ var contractAddress = AddressHelper.ComputeContractAddress(deployer, salt);
 
 ## Contract deployment and update process
 
+Deploy contract with audit that 
+you must wait for the Parliament members review and manually approve your contract 
+before it can enter the actual deployment process.
+
+Deploy contract without audit can directly deploy your contract, 
+but the cost is that your contract must inherit from acs12,
+which is a standard for pre-defining how contract fees should be charged when executing your contract methods.
+
 ### Deploy contract with audit
 
 ![Deploy Contract With Audit](images/deploy-contract-with-audit.png)
 
 The current pipeline starts with Propose, which generates a parliamentary proposal.
 When more than 2/3 of the BPs agree to deploy/update, a new proposal is released to request code inspection.
-Finally, after the code audition is passed, the real contract deployment/upgrade will be achieved through the proposal of releasing the code inspection.
+Finally, after the code audit has passed, the real contract deployment/upgrade will be achieved through the proposal of releasing the code inspection.
 
 ### Deploy contract without audit
 
