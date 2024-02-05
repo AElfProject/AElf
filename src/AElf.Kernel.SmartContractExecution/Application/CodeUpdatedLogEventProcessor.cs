@@ -13,7 +13,7 @@ namespace AElf.Kernel.SmartContractExecution.Application;
 public class CodeUpdatedLogEventProcessor : LogEventProcessorBase, IBlockAcceptedLogEventProcessor
 {
     private readonly ISmartContractAddressService _smartContractAddressService;
-    private ILocalEventBus LocalEventBus { get; set; }
+    public ILocalEventBus LocalEventBus { get; set; }
 
     public CodeUpdatedLogEventProcessor(ISmartContractAddressService smartContractAddressService)
     {

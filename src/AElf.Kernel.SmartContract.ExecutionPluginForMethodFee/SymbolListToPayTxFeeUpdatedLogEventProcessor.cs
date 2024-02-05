@@ -13,7 +13,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee;
 internal class SymbolListToPayTxFeeUpdatedLogEventProcessor : LogEventProcessorBase, IBlockAcceptedLogEventProcessor
 {
     private readonly ISmartContractAddressService _smartContractAddressService;
-    private ILocalEventBus LocalEventBus { get; set; }
+    public ILocalEventBus LocalEventBus { get; set; }
 
     public SymbolListToPayTxFeeUpdatedLogEventProcessor(ISmartContractAddressService smartContractAddressService)
     {

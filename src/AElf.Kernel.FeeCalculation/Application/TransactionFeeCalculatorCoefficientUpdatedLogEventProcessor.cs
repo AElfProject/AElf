@@ -16,7 +16,7 @@ namespace AElf.Kernel.FeeCalculation.Application;
 public class TransactionFeeCalculatorCoefficientUpdatedLogEventProcessor : LogEventProcessorBase,
     IBlockAcceptedLogEventProcessor
 {
-    private ILocalEventBus LocalEventBus { get; set; }
+    public ILocalEventBus LocalEventBus { get; set; }
     private readonly ISmartContractAddressService _smartContractAddressService;
 
     public TransactionFeeCalculatorCoefficientUpdatedLogEventProcessor(
