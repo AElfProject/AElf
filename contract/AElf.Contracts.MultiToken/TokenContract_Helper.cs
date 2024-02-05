@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using AElf.Contracts.Parliament;
 using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
@@ -14,20 +15,19 @@ namespace AElf.Contracts.MultiToken;
 
 public partial class TokenContract
 {
-    private static bool IsValidSymbolChar(char character)
+    private static bool IsValidSymbol(string symbol)
     {
-        return (character >= 'A' && character <= 'Z') || (character >= '0' && character <= '9') ||
-               character == TokenContractConstants.NFTSymbolSeparator;
+        return Regex.IsMatch(symbol, "^[a-zA-Z0-9]+-?[0-9]*$");
     }
 
-    private bool IsValidItemIdChar(char character)
+    private bool IsValidItemId(string symbolItemId)
     {
-        return character >= '0' && character <= '9';
+        return Regex.IsMatch(symbolItemId, "^[0-9]+$");
     }
 
-    private bool IsValidCreateSymbolChar(char character)
+    private bool IsValidCreateSymbol(string symbol)
     {
-        return character >= 'A' && character <= 'Z';
+        return Regex.IsMatch(symbol, "^[a-zA-Z0-9]+$");
     }
 
     private TokenInfo AssertValidToken(string symbol, long amount)
@@ -40,7 +40,7 @@ public partial class TokenContract
 
     private void AssertValidSymbolAndAmount(string symbol, long amount)
     {
-        Assert(!string.IsNullOrEmpty(symbol) && symbol.All(IsValidSymbolChar),
+        Assert(!string.IsNullOrEmpty(symbol) && IsValidSymbol(symbol),
             "Invalid symbol.");
         Assert(amount > 0, "Invalid amount.");
     }
@@ -184,7 +184,7 @@ public partial class TokenContract
     private void RegisterTokenInfo(TokenInfo tokenInfo)
     {
         CheckTokenExists(tokenInfo.Symbol);
-        Assert(!string.IsNullOrEmpty(tokenInfo.Symbol) && tokenInfo.Symbol.All(IsValidSymbolChar),
+        Assert(!string.IsNullOrEmpty(tokenInfo.Symbol) && IsValidSymbol(tokenInfo.Symbol),
             "Invalid symbol.");
         Assert(!string.IsNullOrEmpty(tokenInfo.TokenName), "Token name can neither be null nor empty.");
         Assert(tokenInfo.TotalSupply > 0, "Invalid total supply.");

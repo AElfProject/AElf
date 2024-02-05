@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Globalization;
 using System.Linq;
+using System.Text.RegularExpressions;
 using AElf.Contracts.MultiToken;
 using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
@@ -321,8 +322,7 @@ public partial class TokenConverterContract : TokenConverterContractImplContaine
 
     private static bool IsValidSymbol(string symbol)
     {
-        return symbol.Length > 0 &&
-               symbol.All(c => c >= 'A' && c <= 'Z');
+        return Regex.IsMatch(symbol, "^[a-zA-Z0-9]+$");
     }
 
     private static bool IsValidBaseSymbol(string symbol)

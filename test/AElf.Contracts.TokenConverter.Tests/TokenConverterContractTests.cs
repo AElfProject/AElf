@@ -84,7 +84,7 @@ public partial class TokenConverterContractTests : TokenConverterTestBase
         //Base token symbol is invalid.
         {
             var input = GetLegalInitializeInput();
-            input.BaseTokenSymbol = "elf1";
+            input.BaseTokenSymbol = "elf1<>";
             var result = (await DefaultStub.Initialize.SendWithExceptionAsync(input)).TransactionResult;
             result.Status.ShouldBe(TransactionResultStatus.Failed);
             result.Error.Contains("Base token symbol is invalid.").ShouldBeTrue();
@@ -111,7 +111,7 @@ public partial class TokenConverterContractTests : TokenConverterTestBase
         //Invalid connector symbol
         {
             var input = GetLegalInitializeInput();
-            input.Connectors[0].Symbol = "write";
+            input.Connectors[0].Symbol = "write-0";
             var result = (await DefaultStub.Initialize.SendWithExceptionAsync(input)).TransactionResult;
             result.Status.ShouldBe(TransactionResultStatus.Failed);
             result.Error.Contains("Invalid symbol.").ShouldBeTrue();

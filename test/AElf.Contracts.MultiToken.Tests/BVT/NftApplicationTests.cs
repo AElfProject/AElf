@@ -243,8 +243,23 @@ public partial class MultiTokenContractTests
                 ExternalInfo = input.ExternalInfo,
                 Owner = input.Owner
             });
-            
-            var result = await TokenContractStub.Create.SendWithExceptionAsync(seedInput);;
+
+            var result = await TokenContractStub.Create.SendAsync(seedInput);
+            result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+            seedInput = BuildSeedCreateInput(new CreateInput
+            {
+                Symbol = "ABC123()",
+                TokenName = input.TokenName,
+                TotalSupply = input.TotalSupply,
+                Decimals = input.Decimals,
+                Issuer = input.Issuer,
+                IssueChainId = input.IssueChainId,
+                ExternalInfo = input.ExternalInfo,
+                Owner = input.Owner
+            });
+
+            result = await TokenContractStub.Create.SendWithExceptionAsync(seedInput);
             result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             result.TransactionResult.Error.ShouldContain("Invalid Symbol input");
         }
