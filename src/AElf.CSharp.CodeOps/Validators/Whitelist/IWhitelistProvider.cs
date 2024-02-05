@@ -37,6 +37,7 @@ public class WhitelistProvider : IWhitelistProvider
             .Assembly(System.Reflection.Assembly.Load("System.Runtime.Extensions"), Trust.Partial)
             .Assembly(System.Reflection.Assembly.Load("System.Private.CoreLib"), Trust.Partial)
             .Assembly(System.Reflection.Assembly.Load("System.ObjectModel"), Trust.Partial)
+            .Assembly(System.Reflection.Assembly.Load("System.Text.RegularExpressions"), Trust.Partial)
             .Assembly(System.Reflection.Assembly.Load("System.Linq"), Trust.Full)
             .Assembly(System.Reflection.Assembly.Load("System.Linq.Expressions"), Trust.Full)
             .Assembly(System.Reflection.Assembly.Load("System.Collections"), Trust.Full)
@@ -142,6 +143,7 @@ public class WhitelistProvider : IWhitelistProvider
                     .Member(nameof(Encoding.UTF8), Permission.Allowed)
                     .Member(nameof(Encoding.UTF8.GetByteCount), Permission.Allowed)))
             .Namespace("System.Numerics", Permission.Allowed)
+            .Namespace("System.Text.RegularExpressions", Permission.Allowed)
             ;
     }
 
