@@ -275,7 +275,7 @@ public class TransactionResultAppService : AElfAppService, ITransactionResultApp
 
         var transactionResultSet = transactionResultList.Select(txResult => (txResult.TransactionId, txResult.Status,
             txResult.Logs.Where(
-                log => log.Name.Equals(nameof(VirtualTransactionCreated))).ToList()));
+                log => log.Name.Equals(nameof(VirtualTransactionBlocked))).ToList()));
         var leafNodes = new List<Hash>();
         foreach (var (txId, status, logEvents) in transactionResultSet)
         {
