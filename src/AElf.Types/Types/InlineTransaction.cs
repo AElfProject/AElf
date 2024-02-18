@@ -32,13 +32,7 @@ namespace AElf.Types
         {
             if (!VerifyFields())
                 throw new InvalidOperationException($"Invalid transaction: {this}");
-
-            if (Signature.IsEmpty)
-                return this.ToByteArray();
-
-            var transaction = Clone();
-            transaction.Signature = ByteString.Empty;
-            return transaction.ToByteArray();
+            return this.ToByteArray();
         }
     }
 }
