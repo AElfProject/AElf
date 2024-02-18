@@ -1,6 +1,4 @@
 using System.Threading.Tasks;
-using AElf.CSharp.Core.Extension;
-using AElf.Kernel.Infrastructure;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Events;
 using AElf.Standards.ACS0;
@@ -42,7 +40,7 @@ public class ContractDeployedLogEventProcessor : LogEventProcessorBase, IBlockAc
 
     protected override async Task ProcessLogEventAsync(Block block, LogEvent logEvent)
     {
-        await LocalEventBus.PublishAsync(new LogEventDataEvent
+        await LocalEventBus.PublishAsync(new LogEventContextData
         {
             Block = block,
             LogEvent = logEvent

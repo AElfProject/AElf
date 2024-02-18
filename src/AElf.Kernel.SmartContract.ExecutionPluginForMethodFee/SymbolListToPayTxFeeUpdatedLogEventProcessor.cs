@@ -43,7 +43,7 @@ internal class SymbolListToPayTxFeeUpdatedLogEventProcessor : LogEventProcessorB
 
     protected override async Task ProcessLogEventAsync(Block block, LogEvent logEvent)
     {
-        await LocalEventBus.PublishAsync(new LogEventDataEvent
+        await LocalEventBus.PublishAsync(new LogEventContextData
         {
             Block = block,
             LogEvent = logEvent

@@ -5,5 +5,5 @@ namespace AElf.Kernel.SmartContract.Orleans;
 
 public interface ILogEventDataGrain : IGrainWithIntegerKey
 {
-    Task SubscribeLogEventDataEventAsync(LogEventDataEvent eventData);
+    Task ProcessLogEventAsync(LogEventContextData eventContextData);
 }

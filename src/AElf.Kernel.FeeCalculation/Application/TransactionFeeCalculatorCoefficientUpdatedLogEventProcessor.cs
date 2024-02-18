@@ -1,8 +1,5 @@
 ﻿using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
-using AElf.CSharp.Core.Extension;
-using AElf.Kernel.FeeCalculation.Extensions;
-using AElf.Kernel.FeeCalculation.Infrastructure;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Events;
 using AElf.Kernel.Token;
@@ -50,7 +47,7 @@ public class TransactionFeeCalculatorCoefficientUpdatedLogEventProcessor : LogEv
 
     protected override async Task ProcessLogEventAsync(Block block, LogEvent logEvent)
     {
-        await LocalEventBus.PublishAsync(new LogEventDataEvent
+        await LocalEventBus.PublishAsync(new LogEventContextData
         {
             Block = block,
             LogEvent = logEvent
