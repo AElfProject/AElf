@@ -22,9 +22,11 @@ public class CoreSmartContractOrleansAElfModule : AbpModule
             provider.GetRequiredService<IBlockStateSetCachedStateStore>() as BlockStateSetCachedStateStore);
         context.Services.AddTransient<IStateStore<BlockStateSet>, StateStore<BlockStateSet>>();
         context.Services.AddSingleton<IPlainTransactionExecutingService, PlainTransactionExecutingService>();
-        context.Services.AddSingletonNamedService<PlacementStrategy, CleanCacheStrategy>(nameof(CleanCacheStrategy));
-        context.Services.AddSingletonKeyedService<Type, IPlacementDirector, CleanCacheStrategyFixedSiloDirector>(
-            typeof(CleanCacheStrategy));
+        context.Services.AddSingletonNamedService<PlacementStrategy, UniformDistributionStrategy>(
+            nameof(UniformDistributionStrategy));
+        context.Services
+            .AddSingletonKeyedService<Type, IPlacementDirector, UniformDistributionStrategyStrategyFixedSiloDirector>(
+                typeof(UniformDistributionStrategy));
     }
     
     public override void OnApplicationInitialization(ApplicationInitializationContext context)

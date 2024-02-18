@@ -5,7 +5,7 @@ using Volo.Abp.EventBus.Local;
 
 namespace AElf.Kernel.SmartContract.Orleans;
 
-[CleanCache]
+[UniformDistribution]
 public class LogEventDataGrain : Grain, ILogEventDataGrain
 {
     public ILocalEventBus LocalEventBus { get; set; }
