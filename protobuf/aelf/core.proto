@@ -31,12 +31,9 @@ message InlineTransaction {
     string method_name = 5;
     // The parameters to pass to the smart contract method.
     bytes params = 6;
-    // When signing a transaction it’s actually a subset of the fields: from/to and the target method as well as 
-    // the parameter that were given. It also contains the reference block number and prefix.
-    bytes signature = 10000;
-
+    
     Hash origin_transaction_id = 1001;
-
+    
     int32 index = 1002;
 }
 
