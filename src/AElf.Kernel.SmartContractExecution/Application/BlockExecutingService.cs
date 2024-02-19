@@ -10,6 +10,7 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Domain;
+using AElf.Kernel.SmartContractExecution.Extensions;
 using AElf.Types;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
@@ -182,70 +183,20 @@ public class BlockExecutingService : IBlockExecutingService, ITransientDependenc
     private Hash CalculateTransactionStatusMerkleTreeRoot(List<ExecutionReturnSet> blockExecutionReturnSet)
     {
         Logger.LogTrace("Start transaction status merkle tree root calculation.");
-        var executionReturnSet = blockExecutionReturnSet.Select(executionReturn =>
-            (executionReturn.TransactionId, executionReturn.Status,
-                executionReturn.TransactionResult.Logs.Where(log =>
-                    log.Name.Equals(nameof(VirtualTransactionBlocked)))));
+        var transactionResults = blockExecutionReturnSet.Select(executionReturn =>
+            executionReturn.TransactionResult);
+        
         var nodes = new List<Hash>();
-        foreach (var (transactionId, status, logEvents) in executionReturnSet)
+        foreach (var transactionResult in transactionResults)
         {
-            nodes.AddRange(GetTransactionHashList(status, transactionId, logEvents));
+            nodes.AddRange(transactionResult.GetLeafNodeList());
         }
-
         return BinaryMerkleTree.FromLeafNodes(nodes).Root;
     }
-
-    private List<Hash> GetTransactionHashList(TransactionResultStatus status, Hash transactionId,
-        IEnumerable<LogEvent> logEvents)
-    {
-        var nodeList = new List<Hash>();
-        nodeList.Add(GetHashCombiningTransactionAndStatus(transactionId, status));
-        var enumerable = logEvents.ToList();
-        if (status != TransactionResultStatus.Mined || !enumerable.Any())
-        {
-            return nodeList;
-        }
-
-        for (int i = 0; i < enumerable.Count; i++)
-        {
-            var logEvent = enumerable[i];
-            var virtualTransactionBlocked = new VirtualTransactionBlocked();
-            foreach (var t in logEvent.Indexed)
-            {
-                virtualTransactionBlocked.MergeFrom(t);
-            }
-
-            virtualTransactionBlocked.MergeFrom(logEvent.NonIndexed);
-            var inlineTransactionId = new InlineTransaction
-            {
-                From = virtualTransactionBlocked.From,
-                To = virtualTransactionBlocked.To,
-                MethodName = virtualTransactionBlocked.MethodName,
-                Params = virtualTransactionBlocked.Params,
-                OriginTransactionId = transactionId,
-                Index = i + 1
-            }.GetHash();
-            nodeList.Add(GetHashCombiningTransactionAndStatus(inlineTransactionId, status));
-        }
-
-        return nodeList;
-    }
-    
-  
-
     private Hash CalculateTransactionMerkleTreeRoot(IEnumerable<Hash> transactionIds)
     {
         Logger.LogTrace("Start transaction merkle tree root calculation.");
         return BinaryMerkleTree.FromLeafNodes(transactionIds).Root;
-    }
-
-    private Hash GetHashCombiningTransactionAndStatus(Hash txId,
-        TransactionResultStatus executionReturnStatus)
-    {
-        // combine tx result status
-        var rawBytes = ByteArrayHelper.ConcatArrays(txId.ToByteArray(),
-            EncodingHelper.EncodeUtf8(executionReturnStatus.ToString()));
-        return HashHelper.ComputeFrom(rawBytes);
     }
 
     private BlockStateSet CreateBlockStateSet(Hash previousBlockHash, long blockHeight,

@@ -7,6 +7,7 @@ using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContractExecution.Extensions;
 using AElf.Types;
 using AElf.WebApp.Application.Chain.Dto;
 using AElf.WebApp.Application.Chain.Infrastructure;
@@ -266,60 +267,14 @@ public class TransactionResultAppService : AElfAppService, ITransactionResultApp
 
     private async Task<List<Hash>> GetLeafNodesAsync(IEnumerable<Hash> transactionIds)
     {
-        var transactionResultList = new List<TransactionResult>();
+        var leafNodes = new List<Hash>();
         foreach (var item in transactionIds)
         {
             var result = await GetTransactionResultAsync(item);
-            transactionResultList.Add(result);
-        }
-
-        var transactionResultSet = transactionResultList.Select(txResult => (txResult.TransactionId, txResult.Status,
-            txResult.Logs.Where(
-                log => log.Name.Equals(nameof(VirtualTransactionBlocked))).ToList()));
-        var leafNodes = new List<Hash>();
-        foreach (var (txId, status, logEvents) in transactionResultSet)
-        {
-            leafNodes.AddRange(GetTransactionHashList(status, txId, logEvents));
+            leafNodes.AddRange(result.GetLeafNodeList());
         }
         return leafNodes;
     }
-
-    private List<Hash> GetTransactionHashList(TransactionResultStatus status, Hash transactionId,
-        IEnumerable<LogEvent> logEvents)
-    {
-        var nodeList = new List<Hash>();
-        nodeList.Add(GetHashCombiningTransactionAndStatus(transactionId, status));
-        var enumerable = logEvents.ToList();
-        if (status != TransactionResultStatus.Mined || !enumerable.Any())
-        {
-            return nodeList;
-        }
-
-        for (int i = 0; i < enumerable.Count; i++)
-        {
-            var logEvent = enumerable[i];
-            var virtualTransactionBlocked = new VirtualTransactionBlocked();
-            foreach (var t in logEvent.Indexed)
-            {
-                virtualTransactionBlocked.MergeFrom(t);
-            }
-
-            virtualTransactionBlocked.MergeFrom(logEvent.NonIndexed);
-            var inlineTransactionId = new InlineTransaction
-            {
-                From = virtualTransactionBlocked.From,
-                To = virtualTransactionBlocked.To,
-                MethodName = virtualTransactionBlocked.MethodName,
-                Params = virtualTransactionBlocked.Params,
-                OriginTransactionId = transactionId,
-                Index = i + 1
-            }.GetHash();
-            nodeList.Add(GetHashCombiningTransactionAndStatus(inlineTransactionId, status));
-        }
-
-        return nodeList;
-    }
-
 
     private Hash GetHashCombiningTransactionAndStatus(Hash txId,
         TransactionResultStatus executionReturnStatus)
