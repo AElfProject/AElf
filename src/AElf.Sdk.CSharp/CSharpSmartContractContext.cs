@@ -221,18 +221,20 @@ public class CSharpSmartContractContext : ISmartContractBridgeContext
         SmartContractBridgeContextImplementation.SendVirtualInline(fromVirtualAddress, toAddress, methodName,
             args);
     }
-    
-    public void SendVirtualInline(Hash fromVirtualAddress, Address toAddress, string methodName, ByteString args,bool logTransaction)
+
+    public void SendVirtualInline(Hash fromVirtualAddress, Address toAddress, string methodName,
+        ByteString args, bool logTransaction)
     {
-        SmartContractBridgeContextImplementation.SendVirtualInline(fromVirtualAddress, toAddress, methodName,
+        SmartContractBridgeContextImplementation.SendVirtualInline(fromVirtualAddress, toAddress,
+            methodName,
             args,logTransaction);
     }
 
-    public void SendVirtualInline(Hash fromVirtualAddress, Address toAddress, string methodName,
-        ByteString args, bool logTransaction, bool blockTransaction)
+    public void SendVirtualInlineWithLogEvent(Hash fromVirtualAddress, Address toAddress, string methodName,
+        ByteString args)
     {
-        SmartContractBridgeContextImplementation.SendVirtualInline(fromVirtualAddress, toAddress,
-            methodName, args, logTransaction, blockTransaction);
+        SmartContractBridgeContextImplementation.SendVirtualInlineWithLogEvent(fromVirtualAddress, toAddress,
+            methodName, args);
     }
 
     /// <summary>
@@ -259,11 +261,13 @@ public class CSharpSmartContractContext : ISmartContractBridgeContext
             methodName, args, logTransaction);
     }
 
-    public void SendVirtualInlineBySystemContract(Hash fromVirtualAddress, Address toAddress, string methodName,
-        ByteString args, bool logTransaction, bool blockTransaction)
+    public void SendVirtualInlineWithLogEventBySystemContract(Hash fromVirtualAddress, Address toAddress,
+        string methodName,
+        ByteString args)
     {
-        SmartContractBridgeContextImplementation.SendVirtualInlineBySystemContract(fromVirtualAddress, toAddress,
-            methodName, args, logTransaction, blockTransaction);
+        SmartContractBridgeContextImplementation.SendVirtualInlineWithLogEventBySystemContract(fromVirtualAddress,
+            toAddress,
+            methodName, args);
     }
 
     

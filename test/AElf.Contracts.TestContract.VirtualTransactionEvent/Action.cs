@@ -9,11 +9,11 @@ public partial class VirtualTransactionEventTestContract : VirtualTransactionEve
     public override Empty FireVirtualTransactionEventTest(FireVirtualTransactionEventTestInput input)
     {
         var virtualHash = HashHelper.ComputeFrom("test");
-        Context.SendVirtualInline(virtualHash,input.To,input.MethodName,input.Args,true);
+        Context.SendVirtualInline(virtualHash, input.To, input.MethodName, input.Args, true);
         var virtualHash1 = HashHelper.ComputeFrom("virtual");
-        Context.SendVirtualInline(virtualHash1,input.To,input.MethodName,input.Args,false);
+        Context.SendVirtualInline(virtualHash1, input.To, input.MethodName, input.Args, false);
         var virtualHash2 = HashHelper.ComputeFrom("virtualBlocked");
-        Context.SendVirtualInline(virtualHash2, input.To, input.MethodName, input.Args, true, true);
+        Context.SendVirtualInlineWithLogEvent(virtualHash2, input.To, input.MethodName, input.Args);
         return new Empty();
     }
 
