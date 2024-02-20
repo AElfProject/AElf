@@ -263,6 +263,8 @@ public partial class TokenContract
     {
         if (symbolType == SymbolType.Token)
             Assert(symbol.Length <= TokenContractConstants.SymbolMaxLength, "Invalid token symbol length");
+        
+        // there is a max length of 30 for NFT symbol, limiting the amount of sub NFTs that can be created
         if (symbolType == SymbolType.Nft || symbolType == SymbolType.NftCollection)
             Assert(symbol.Length <= TokenContractConstants.NFTSymbolMaxLength, "Invalid NFT symbol length");
     }
