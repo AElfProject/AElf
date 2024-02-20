@@ -12,6 +12,8 @@ namespace AElf.Kernel.SmartContractExecution.Application;
 public class ContractDeployedHandler : LogEventContextHandler
 {
     private readonly ISmartContractAddressService _smartContractAddressService;
+    private readonly ISmartContractExecutiveService _smartContractExecutiveService;
+
     public ILogger<ContractDeployedHandler> Logger { get; set; }
 
 
@@ -19,10 +21,11 @@ public class ContractDeployedHandler : LogEventContextHandler
         ISmartContractRegistrationProvider smartContractRegistrationProvider,
         ISmartContractRegistrationInStateProvider smartContractRegistrationInStateProvider,
         ISmartContractExecutiveService smartContractExecutiveService
-    ) : base(smartContractAddressService, smartContractRegistrationProvider,
-        smartContractRegistrationInStateProvider, smartContractExecutiveService)
+    ) : base(smartContractRegistrationProvider,
+        smartContractRegistrationInStateProvider)
     {
         _smartContractAddressService = smartContractAddressService;
+        _smartContractExecutiveService = smartContractExecutiveService;
         Logger = NullLogger<ContractDeployedHandler>.Instance;
     }
 
@@ -41,6 +44,8 @@ public class ContractDeployedHandler : LogEventContextHandler
         var contractDeployed = new ContractDeployed();
         contractDeployed.MergeFrom(logEvent);
         await SetSmartContractRegistrationAsync(chainContext, contractDeployed.Address);
+        if (chainContext.BlockHeight > AElfConstants.GenesisBlockHeight)
+            _smartContractExecutiveService.CleanExecutive(contractDeployed.Address);
         if (contractDeployed.Name != null)
         {
             await _smartContractAddressService.SetSmartContractAddressAsync(chainContext,

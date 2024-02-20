@@ -9,20 +9,15 @@ namespace AElf.Kernel.SmartContractExecution.Application;
 
 public abstract class LogEventContextHandler : ILocalEventHandler<LogEventContextData>, ITransientDependency
 {
-    private readonly ISmartContractAddressService _smartContractAddressService;
-    private readonly ISmartContractExecutiveService _smartContractExecutiveService;
+
     private readonly ISmartContractRegistrationInStateProvider _smartContractRegistrationInStateProvider;
     private readonly ISmartContractRegistrationProvider _smartContractRegistrationProvider;
 
-    public LogEventContextHandler(ISmartContractAddressService smartContractAddressService,
-        ISmartContractRegistrationProvider smartContractRegistrationProvider,
-        ISmartContractRegistrationInStateProvider smartContractRegistrationInStateProvider,
-        ISmartContractExecutiveService smartContractExecutiveService)
+    public LogEventContextHandler(ISmartContractRegistrationProvider smartContractRegistrationProvider,
+        ISmartContractRegistrationInStateProvider smartContractRegistrationInStateProvider)
     {
-        _smartContractAddressService = smartContractAddressService;
         _smartContractRegistrationProvider = smartContractRegistrationProvider;
         _smartContractRegistrationInStateProvider = smartContractRegistrationInStateProvider;
-        _smartContractExecutiveService = smartContractExecutiveService;
     }
 
     public async Task HandleEventAsync(LogEventContextData logEventContext)
@@ -49,8 +44,6 @@ public abstract class LogEventContextHandler : ILocalEventHandler<LogEventContex
 
         await _smartContractRegistrationProvider.SetSmartContractRegistrationAsync(chainContext, address,
             smartContractRegistration);
-        if (chainContext.BlockHeight > AElfConstants.GenesisBlockHeight)
-            _smartContractExecutiveService.CleanExecutive(address);
     }
 
     protected abstract bool IsInterestedAsync(LogEvent logEvent);
