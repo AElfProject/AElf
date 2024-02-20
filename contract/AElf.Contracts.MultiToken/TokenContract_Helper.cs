@@ -191,6 +191,7 @@ public partial class TokenContract
         Assert(tokenInfo.Issuer != null, "Invalid issuer address.");
         Assert(tokenInfo.Owner != null, "Invalid owner address.");
         State.TokenInfos[tokenInfo.Symbol] = tokenInfo;
+        State.InsensitiveTokenExisting[tokenInfo.Symbol.ToUpper()] = true;
     }
 
     private void CrossChainVerify(Hash transactionId, long parentChainHeight, int chainId, MerklePath merklePath)
@@ -257,6 +258,7 @@ public partial class TokenContract
         var empty = new TokenInfo();
         var existing = State.TokenInfos[symbol];
         Assert(existing == null || existing.Equals(empty), "Token already exists.");
+        Assert(!State.InsensitiveTokenExisting[symbol.ToUpper()], "Token already exists.");
     }
 
     private void CheckSymbolLength(string symbol, SymbolType symbolType)

@@ -9,6 +9,7 @@ public partial class TokenContractState : ContractState
 
     public StringState ChainPrimaryTokenSymbol { get; set; }
     public MappedState<string, TokenInfo> TokenInfos { get; set; }
+    public MappedState<string, bool> InsensitiveTokenExisting { get; set; }
     public MappedState<string, string> SymbolSeedMap { get; set; }
     public MappedState<Address, string, long> Balances { get; set; }
     public MappedState<Address, Address, string, long> Allowances { get; set; }
