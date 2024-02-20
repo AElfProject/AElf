@@ -14,15 +14,16 @@ namespace AElf.Contracts.MultiToken;
 
 public partial class TokenContract
 {
-    private static bool IsValidSymbolChar(char character)
-    {
-        return (character >= 'A' && character <= 'Z') || (character >= '0' && character <= '9') ||
-               character == TokenContractConstants.NFTSymbolSeparator;
-    }
-
     private bool IsValidItemIdChar(char character)
     {
         return character >= '0' && character <= '9';
+    }
+    
+    // For checking if a sub item id is valid
+    // e.g. AELFIE-1-1337 is valid but AELFIE-1-0 is invalid as 0 represents a collection and there should not be any collection in a sub item
+    private bool IsValidSubItemIdChar(char character)
+    {
+        return character >= '1' && character <= '9';
     }
 
     private bool IsValidCreateSymbolChar(char character)
@@ -40,8 +41,8 @@ public partial class TokenContract
 
     private void AssertValidSymbolAndAmount(string symbol, long amount)
     {
-        Assert(!string.IsNullOrEmpty(symbol) && symbol.All(IsValidSymbolChar),
-            "Invalid symbol.");
+        Assert(!string.IsNullOrEmpty(symbol), "Invalid symbol.");
+        AssertSymbolIsValid(symbol);
         Assert(amount > 0, "Invalid amount.");
     }
 
@@ -184,8 +185,8 @@ public partial class TokenContract
     private void RegisterTokenInfo(TokenInfo tokenInfo)
     {
         CheckTokenExists(tokenInfo.Symbol);
-        Assert(!string.IsNullOrEmpty(tokenInfo.Symbol) && tokenInfo.Symbol.All(IsValidSymbolChar),
-            "Invalid symbol.");
+        Assert(!string.IsNullOrEmpty(tokenInfo.Symbol), "Invalid symbol.");
+        AssertSymbolIsValid(tokenInfo.Symbol);
         Assert(!string.IsNullOrEmpty(tokenInfo.TokenName), "Token name can neither be null nor empty.");
         Assert(tokenInfo.TotalSupply > 0, "Invalid total supply.");
         Assert(tokenInfo.Issuer != null, "Invalid issuer address.");

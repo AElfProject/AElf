@@ -91,12 +91,9 @@ public partial class TokenContract
         var words = symbol.Split(TokenContractConstants.NFTSymbolSeparator);
         const int tokenSymbolLength = 1;
         if (words.Length == tokenSymbolLength) return null;
-        Assert(words.Length >= 2, "Invalid NFT symbol input");
-        for (var i = 1; i < words.Length; ++i)
-        {
-            var word = words[i];
-            Assert(word.Length > 0 && word.All(IsValidItemIdChar), "Invalid NFT Symbol input");
-        }
+
+        AssertNFTSymbolIsValid(words);
+        
         return symbol == $"{words[0]}-0" ? null : $"{words[0]}-0";
     }
 
