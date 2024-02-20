@@ -18,13 +18,6 @@ public partial class TokenContract
     {
         return character >= '0' && character <= '9';
     }
-    
-    // For checking if a sub item id is valid
-    // e.g. AELFIE-1-1337 is valid but AELFIE-1-0 is invalid as 0 represents a collection and there should not be any collection in a sub item
-    private bool IsValidSubItemIdChar(char character)
-    {
-        return character >= '1' && character <= '9';
-    }
 
     private bool IsValidCreateSymbolChar(char character)
     {

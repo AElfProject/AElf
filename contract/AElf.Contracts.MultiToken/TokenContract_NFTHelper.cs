@@ -50,7 +50,7 @@ public partial class TokenContract
         for (var i = 2; i < splitSymbols.Length; ++i)
         {
             var word = splitSymbols[i];
-            Assert(word.Length > 0 && word.All(IsValidSubItemIdChar), "Invalid NFT Symbol input");
+            Assert(word.Length > 0 && word[0] != '0' && word.All(IsValidItemIdChar), "Invalid NFT Symbol input");
         }
     }
 
