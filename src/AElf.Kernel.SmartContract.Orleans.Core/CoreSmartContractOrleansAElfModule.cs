@@ -25,7 +25,7 @@ public class CoreSmartContractOrleansAElfModule : AbpModule
         context.Services.AddSingletonNamedService<PlacementStrategy, UniformDistributionStrategy>(
             nameof(UniformDistributionStrategy));
         context.Services
-            .AddSingletonKeyedService<Type, IPlacementDirector, UniformDistributionStrategyStrategyFixedSiloDirector>(
+            .AddSingletonKeyedService<Type, IPlacementDirector, UniformDistributionStrategyFixedSiloDirector>(
                 typeof(UniformDistributionStrategy));
     }
     
