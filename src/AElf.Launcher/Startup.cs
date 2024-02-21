@@ -9,6 +9,8 @@ using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Trace;
 using Volo.Abp.Modularity;
 
 namespace AElf.Launcher;
@@ -54,6 +56,27 @@ public class Startup
                 if (_configuration["CorsOrigins"] != "*") builder.AllowCredentials();
             });
         });
+
+        services.AddOpenTelemetry()
+            .WithTracing(builder =>
+            {
+                builder
+                    .AddSource("AElf")
+                    .SetSampler(new AlwaysOnSampler())
+                    //.AddHttpClientInstrumentation()
+                    .AddAspNetCoreInstrumentation();
+
+                builder.AddConsoleExporter();
+            })
+            .WithMetrics(builder =>
+            {
+                builder
+                    .AddMeter("AElf")
+                    //.AddHttpClientInstrumentation()
+                    .AddAspNetCoreInstrumentation();
+
+                builder.AddConsoleExporter();
+            });
     }
 
     private static void AddApplication<T>(IServiceCollection services) where T : IAbpModule

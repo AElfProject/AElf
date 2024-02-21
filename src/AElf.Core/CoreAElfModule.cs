@@ -20,6 +20,7 @@ public class CoreAElfModule : AElfModule
     {
         context.Services.AddTransient(typeof(IServiceContainer<>),
             typeof(ServiceContainerFactory<>));
+        context.Services.AddSingleton<Instrumentation>();
     }
 }
 

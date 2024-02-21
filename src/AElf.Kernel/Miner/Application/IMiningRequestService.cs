@@ -1,4 +1,6 @@
 using System;
+using System.Diagnostics;
+using System.Diagnostics.Metrics;
 using AElf.CSharp.Core.Extension;
 using Google.Protobuf.WellKnownTypes;
 
@@ -21,10 +23,16 @@ public class ConsensusRequestMiningDto
 public class MiningRequestService : IMiningRequestService
 {
     private readonly IMinerService _minerService;
+    private readonly Counter<long> _miningDurationCounter;
+    private readonly Counter<long> _timeslotDurationCounter;
 
-    public MiningRequestService(IMinerService minerService)
+    public MiningRequestService(IMinerService minerService, Instrumentation instrumentation)
     {
         _minerService = minerService;
+        _miningDurationCounter = instrumentation.MiningDurationCounter;
+        _timeslotDurationCounter = instrumentation.TimeslotDurationCounter;
+
+        Logger = NullLogger<MiningRequestService>.Instance;
     }
 
     public ILogger<MiningRequestService> Logger { get; set; }
@@ -65,6 +73,10 @@ public class MiningRequestService : IMiningRequestService
 
     private Duration CalculateBlockMiningDuration(Timestamp blockTime, Duration expectedDuration)
     {
-        return blockTime + expectedDuration - TimestampHelper.GetUtcNow();
+        var duration = blockTime + expectedDuration - TimestampHelper.GetUtcNow();
+        Logger.LogCritical($"Mining duration: {duration}");
+        _miningDurationCounter.Add(duration.Milliseconds());
+        _timeslotDurationCounter.Add(500);
+        return duration;
     }
 }

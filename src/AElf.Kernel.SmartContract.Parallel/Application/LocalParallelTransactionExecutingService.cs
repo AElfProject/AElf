@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.Metrics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,15 +19,22 @@ public class LocalParallelTransactionExecutingService : IParallelTransactionExec
 {
     private readonly ITransactionGrouper _grouper;
     private readonly IPlainTransactionExecutingService _planTransactionExecutingService;
+    private readonly ActivitySource _activitySource;
+    private readonly Counter<long> _receivedTxsCounter;
+    private readonly Counter<long> _executedTxsCounter;
 
     public LocalParallelTransactionExecutingService(ITransactionGrouper grouper,
         IPlainTransactionExecutingService planTransactionExecutingService,
-        ISystemTransactionExtraDataProvider systemTransactionExtraDataProvider)
+        ISystemTransactionExtraDataProvider systemTransactionExtraDataProvider,
+        Instrumentation instrumentation)
     {
         _grouper = grouper;
         _planTransactionExecutingService = planTransactionExecutingService;
         EventBus = NullLocalEventBus.Instance;
         Logger = NullLogger<LocalParallelTransactionExecutingService>.Instance;
+        _activitySource = instrumentation.ActivitySource;
+        _receivedTxsCounter = instrumentation.ReceivedTxCounter;
+        _executedTxsCounter = instrumentation.ExecutedTxCounter;
     }
 
     public ILogger<LocalParallelTransactionExecutingService> Logger { get; set; }
@@ -38,12 +47,18 @@ public class LocalParallelTransactionExecutingService : IParallelTransactionExec
         var transactions = transactionExecutingDto.Transactions.ToList();
         var blockHeader = transactionExecutingDto.BlockHeader;
 
+        using var scope = Logger.BeginScope("{Id}", blockHeader.Height);
+        using var activity = _activitySource.StartActivity();
+        _receivedTxsCounter.Add(transactions.Count);
+
         var chainContext = new ChainContext
         {
             BlockHash = blockHeader.PreviousBlockHash,
             BlockHeight = blockHeader.Height - 1
         };
         var groupedTransactions = await _grouper.GroupAsync(chainContext, transactions);
+
+        activity?.AddTag("tx grouped", groupedTransactions.Parallelizables.Count);
 
         var returnSets = new List<ExecutionReturnSet>();
 
@@ -65,6 +80,8 @@ public class LocalParallelTransactionExecutingService : IParallelTransactionExec
 
         Logger.LogTrace("Merged results from transactions without contract.");
         returnSets.AddRange(transactionWithoutContractReturnSets);
+        _executedTxsCounter.Add(
+            returnSets.Count(r => r.Status == TransactionResultStatus.Mined));
 
         if (conflictingSets.Count > 0 &&
             returnSets.Count + conflictingSets.Count == transactionExecutingDto.Transactions.Count())
