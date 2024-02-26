@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using AElf.Kernel.Blockchain.Events;
 using Microsoft.Extensions.Logging;
 using Orleans.Runtime;
@@ -14,16 +15,23 @@ public class NewIrreversibleBlockFoundEventHandler : ILocalEventHandler<NewIrrev
     private readonly ITaskQueueManager _taskQueueManager;
     private readonly ISiloClusterClientContext _siloClusterClientContext;
     public ILocalEventBus LocalEventBus { get; set; }
+    private readonly ActivitySource _activitySource;
+
     public NewIrreversibleBlockFoundEventHandler(ITaskQueueManager taskQueueManager,
         ISiloClusterClientContext siloClusterClientContext,
-        ILogger<NewIrreversibleBlockFoundEventHandler> logger)
+        ILogger<NewIrreversibleBlockFoundEventHandler> logger,
+        Instrumentation instrumentation)
     {
         _taskQueueManager = taskQueueManager;
         _siloClusterClientContext = siloClusterClientContext;
         _logger = logger;
+        _activitySource = instrumentation.ActivitySource;
     }
+
     public async Task HandleEventAsync(NewIrreversibleBlockFoundEvent eventData)
     {
+        using var activity = _activitySource.StartActivity();
+
         var managementGrain = _siloClusterClientContext.GetClusterClient().GetGrain<IManagementGrain>(0);
         var siloHosts = await managementGrain.GetHosts();
         var activeSiloCount = siloHosts?.Where(dic => dic.Value == SiloStatus.Active).ToList().Count;
@@ -32,7 +40,7 @@ public class NewIrreversibleBlockFoundEventHandler : ILocalEventHandler<NewIrrev
         _taskQueueManager.Enqueue(async () =>
         {
             var tasks = new List<Task>();
-            for(var i=0; i<activeSiloCount; i++)
+            for (var i = 0; i < activeSiloCount; i++)
             {
                 var id = i;
                 tasks.Add(Task.Run(() =>
@@ -41,6 +49,7 @@ public class NewIrreversibleBlockFoundEventHandler : ILocalEventHandler<NewIrrev
                     return grain.CleanCacheAsync(eventData.BlockHeight);
                 }));
             }
+
             await Task.WhenAll(tasks);
         }, KernelConstants.MergeBlockStateQueueName);
     }

@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using AElf.Kernel.SmartContract.Application;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -12,13 +13,16 @@ public class SiloTransactionExecutingService : IPlainTransactionExecutingService
     private readonly ISiloClusterClientContext _siloClusterClientContext;
     private readonly ILogger<SiloTransactionExecutingService> _logger;
     private readonly IPlainTransactionExecutingGrainProvider _plainTransactionExecutingGrainProvider;
-    
+    private readonly ActivitySource _activitySource;
+
     public SiloTransactionExecutingService(ISiloClusterClientContext siloClusterClientContext, ILogger<SiloTransactionExecutingService> logger, IClusterClient clusterClient, IConfiguration configuration,
-        IPlainTransactionExecutingGrainProvider plainTransactionExecutingGrainProvider)
+        IPlainTransactionExecutingGrainProvider plainTransactionExecutingGrainProvider,
+        Instrumentation instrumentation)
     {
         _logger = logger;
         _siloClusterClientContext = siloClusterClientContext;
         _plainTransactionExecutingGrainProvider = plainTransactionExecutingGrainProvider;
+        _activitySource = instrumentation.ActivitySource;
     }
 
     public ILocalEventBus LocalEventBus { get; set; }
@@ -28,6 +32,8 @@ public class SiloTransactionExecutingService : IPlainTransactionExecutingService
     {
         try
         {
+            using var activity = _activitySource.StartActivity();
+
             var grain = _plainTransactionExecutingGrainProvider.GetGrain();
             var result = await grain.ExecuteAsync(transactionExecutingDto, cancellationToken);
             _plainTransactionExecutingGrainProvider.PutGrain(grain);

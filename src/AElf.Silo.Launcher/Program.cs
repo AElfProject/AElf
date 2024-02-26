@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using OpenTelemetry.Logs;
+using OpenTelemetry.Resources;
 
 namespace AElf.Silo.Launcher;
 
@@ -57,7 +59,17 @@ internal class Program
     private static IHostBuilder CreateHostBuilder(string[] args)
     {
         return Host.CreateDefaultBuilder(args)
-            .ConfigureLogging(builder => { builder.ClearProviders(); })
+            .ConfigureLogging(builder =>
+            {
+                builder.ClearProviders();
+                builder.AddOpenTelemetry(options =>
+                {
+                    var resourceBuilder = ResourceBuilder.CreateDefault();
+                    resourceBuilder.AddService("aelf-otel-silo");
+                    options.SetResourceBuilder(resourceBuilder);
+                    options.AddConsoleExporter();
+                });
+            })
             .ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup<Startup>(); })
             .UseOrleans()
             .UseAutofac();
