@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
@@ -38,9 +39,12 @@ public class TxHub : ITxHub, ISingletonDependency
 
     private ConcurrentDictionary<Hash, QueuedTransaction> _validatedTransactions = new();
 
+    private readonly ActivitySource _activitySource;
+
     public TxHub(ITransactionManager transactionManager, IBlockchainService blockchainService,
         IOptionsSnapshot<TransactionOptions> transactionOptions,
-        ITransactionValidationService transactionValidationService)
+        ITransactionValidationService transactionValidationService,
+        Instrumentation instrumentation)
     {
         Logger = NullLogger<TxHub>.Instance;
         _transactionManager = transactionManager;
@@ -49,6 +53,8 @@ public class TxHub : ITxHub, ISingletonDependency
         LocalEventBus = NullLocalEventBus.Instance;
         _transactionOptions = transactionOptions.Value;
         _processTransactionJobs = CreateQueuedTransactionBufferBlock();
+        
+        _activitySource = instrumentation.ActivitySource;
     }
 
     public ILogger<TxHub> Logger { get; set; }
@@ -57,6 +63,7 @@ public class TxHub : ITxHub, ISingletonDependency
 
     public async Task<ExecutableTransactionSet> GetExecutableTransactionSetAsync(Hash blockHash, int transactionCount)
     {
+        using var activity = _activitySource.StartActivity();
         var output = new ExecutableTransactionSet
         {
             PreviousBlockHash = _bestChainHash,

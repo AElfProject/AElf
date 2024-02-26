@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
@@ -20,11 +21,13 @@ public class BlockAttachService : IBlockAttachService, ITransientDependency
     private readonly IBlockchainService _blockchainService;
     private readonly IBlockExecutionResultProcessingService _blockExecutionResultProcessingService;
     private readonly IChainBlockLinkService _chainBlockLinkService;
+    private readonly ActivitySource _activitySource;
 
     public BlockAttachService(IBlockchainService blockchainService,
         IBlockchainExecutingService blockchainExecutingService,
         IChainBlockLinkService chainBlockLinkService,
-        IBlockExecutionResultProcessingService blockExecutionResultProcessingService)
+        IBlockExecutionResultProcessingService blockExecutionResultProcessingService,
+        Instrumentation instrumentation)
     {
         _blockchainService = blockchainService;
         _blockchainExecutingService = blockchainExecutingService;
@@ -32,12 +35,15 @@ public class BlockAttachService : IBlockAttachService, ITransientDependency
         _blockExecutionResultProcessingService = blockExecutionResultProcessingService;
 
         Logger = NullLogger<BlockAttachService>.Instance;
+        _activitySource = instrumentation.ActivitySource;
     }
 
     public ILogger<BlockAttachService> Logger { get; set; }
 
     public async Task AttachBlockAsync(Block block)
     {
+        using var activity = _activitySource.StartActivity();
+
         var chain = await _blockchainService.GetChainAsync();
 
         var status = await _blockchainService.AttachBlockToChainAsync(chain, block);

@@ -10,6 +10,8 @@ using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Trace;
 using Volo.Abp.Modularity;
 using Volo.Abp.Modularity.PlugIns;
 
@@ -56,6 +58,25 @@ public class Startup
                 if (_configuration["CorsOrigins"] != "*") builder.AllowCredentials();
             });
         });
+
+        services.AddOpenTelemetry()
+            .WithTracing(builder =>
+            {
+                builder
+                    .AddSource("AElf")
+                    .SetSampler(new AlwaysOnSampler())
+                    .AddAspNetCoreInstrumentation();
+
+                builder.AddConsoleExporter();
+            })
+            .WithMetrics(builder =>
+            {
+                builder
+                    .AddMeter("AElf")
+                    .AddAspNetCoreInstrumentation();
+
+                builder.AddConsoleExporter();
+            });
     }
 
     private void AddApplication<T>(IServiceCollection services) where T : IAbpModule

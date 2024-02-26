@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Txn.Application;
@@ -13,13 +14,16 @@ public class TransactionValidationService : ITransactionValidationService, ITran
 {
     private readonly IBlockchainService _blockchainService;
     private readonly IEnumerable<ITransactionValidationProvider> _transactionValidationProviders;
+    private readonly ActivitySource _activitySource;
 
     public TransactionValidationService(
         IEnumerable<ITransactionValidationProvider> transactionValidationProviders,
-        IBlockchainService blockchainService)
+        IBlockchainService blockchainService,
+        Instrumentation instrumentation)
     {
         _transactionValidationProviders = transactionValidationProviders;
         _blockchainService = blockchainService;
+        _activitySource = instrumentation.ActivitySource;
 
         Logger = NullLogger<TransactionValidationService>.Instance;
     }
@@ -35,6 +39,8 @@ public class TransactionValidationService : ITransactionValidationService, ITran
     public async Task<bool> ValidateTransactionWhileCollectingAsync(IChainContext chainContext,
         Transaction transaction)
     {
+        using var activity = _activitySource.StartActivity();
+
         foreach (var provider in _transactionValidationProviders)
         {
             if (await provider.ValidateTransactionAsync(transaction, chainContext)) continue;

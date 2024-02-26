@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,13 +22,16 @@ public class TransactionGrouper : ITransactionGrouper, ISingletonDependency
 {
     private readonly GrouperOptions _options;
     private readonly IResourceExtractionService _resourceExtractionService;
+    private readonly ActivitySource _activitySource;
 
     public TransactionGrouper(IResourceExtractionService resourceExtractionService,
-        IOptionsSnapshot<GrouperOptions> options)
+        IOptionsSnapshot<GrouperOptions> options,
+        Instrumentation instrumentation)
     {
         _resourceExtractionService = resourceExtractionService;
         _options = options.Value;
         Logger = NullLogger<TransactionGrouper>.Instance;
+        _activitySource = instrumentation.ActivitySource;
     }
 
     public ILogger<TransactionGrouper> Logger { get; set; }
@@ -36,6 +40,7 @@ public class TransactionGrouper : ITransactionGrouper, ISingletonDependency
     {
         Logger.LogTrace("Entered GroupAsync");
 
+        using var activity = _activitySource.StartActivity();
         var toBeGrouped = GetTransactionsToBeGrouped(transactions, out var groupedTransactions);
 
         using (var cts = new CancellationTokenSource(_options.GroupingTimeOut))

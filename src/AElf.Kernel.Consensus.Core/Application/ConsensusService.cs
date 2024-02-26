@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.CSharp.Core.Extension;
@@ -28,10 +29,13 @@ internal class ConsensusService : IConsensusService, ISingletonDependency
 
     private Timestamp _nextMiningTime;
 
+    private readonly ActivitySource _activitySource;
+
     public ConsensusService(IConsensusScheduler consensusScheduler,
         IContractReaderFactory<ConsensusContractContainer.ConsensusContractStub> contractReaderFactory,
         ITriggerInformationProvider triggerInformationProvider,
-        IBlockTimeProvider blockTimeProvider, IConsensusReaderContextService consensusReaderContextService)
+        IBlockTimeProvider blockTimeProvider, IConsensusReaderContextService consensusReaderContextService,
+        Instrumentation instrumentation)
     {
         _contractReaderFactory = contractReaderFactory;
         _triggerInformationProvider = triggerInformationProvider;
@@ -41,6 +45,8 @@ internal class ConsensusService : IConsensusService, ISingletonDependency
 
         Logger = NullLogger<ConsensusService>.Instance;
         LocalEventBus = NullLocalEventBus.Instance;
+
+        _activitySource = instrumentation.ActivitySource;
     }
 
     public ILocalEventBus LocalEventBus { get; set; }
@@ -54,6 +60,7 @@ internal class ConsensusService : IConsensusService, ISingletonDependency
     /// <returns></returns>
     public async Task TriggerConsensusAsync(ChainContext chainContext)
     {
+        using var activity = _activitySource.StartActivity();
         var now = TimestampHelper.GetUtcNow();
         _blockTimeProvider.SetBlockTime(now, chainContext.BlockHash);
 
@@ -107,6 +114,8 @@ internal class ConsensusService : IConsensusService, ISingletonDependency
     public async Task<bool> ValidateConsensusBeforeExecutionAsync(ChainContext chainContext,
         byte[] consensusExtraData)
     {
+        using var activity = _activitySource.StartActivity();
+
         var now = TimestampHelper.GetUtcNow();
         _blockTimeProvider.SetBlockTime(now, chainContext.BlockHash);
 
@@ -145,6 +154,8 @@ internal class ConsensusService : IConsensusService, ISingletonDependency
     public async Task<bool> ValidateConsensusAfterExecutionAsync(ChainContext chainContext,
         byte[] consensusExtraData)
     {
+        using var activity = _activitySource.StartActivity();
+
         var now = TimestampHelper.GetUtcNow();
         _blockTimeProvider.SetBlockTime(now, chainContext.BlockHash);
 
@@ -182,6 +193,8 @@ internal class ConsensusService : IConsensusService, ISingletonDependency
     /// <returns></returns>
     public async Task<byte[]> GetConsensusExtraDataAsync(ChainContext chainContext)
     {
+        using var activity = _activitySource.StartActivity();
+
         _blockTimeProvider.SetBlockTime(_nextMiningTime, chainContext.BlockHash);
 
         Logger.LogDebug(
@@ -203,6 +216,8 @@ internal class ConsensusService : IConsensusService, ISingletonDependency
     /// <returns></returns>
     public async Task<List<Transaction>> GenerateConsensusTransactionsAsync(ChainContext chainContext)
     {
+        using var activity = _activitySource.StartActivity();
+
         _blockTimeProvider.SetBlockTime(_nextMiningTime, chainContext.BlockHash);
 
         Logger.LogDebug(

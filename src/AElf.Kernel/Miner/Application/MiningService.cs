@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using AElf.Kernel.Account.Application;
@@ -19,13 +20,15 @@ public class MiningService : IMiningService
     private readonly IBlockGenerationService _blockGenerationService;
     private readonly ISystemTransactionExtraDataProvider _systemTransactionExtraDataProvider;
     private readonly ISystemTransactionGenerationService _systemTransactionGenerationService;
+    private readonly ActivitySource _activitySource;
 
     public MiningService(IAccountService accountService,
         IBlockGenerationService blockGenerationService,
         ISystemTransactionGenerationService systemTransactionGenerationService,
         IBlockExecutingService blockExecutingService,
         IBlockchainService blockchainService,
-        ISystemTransactionExtraDataProvider systemTransactionExtraDataProvider)
+        ISystemTransactionExtraDataProvider systemTransactionExtraDataProvider,
+        Instrumentation instrumentation)
     {
         Logger = NullLogger<MiningService>.Instance;
         _blockGenerationService = blockGenerationService;
@@ -34,6 +37,7 @@ public class MiningService : IMiningService
         _accountService = accountService;
         _blockchainService = blockchainService;
         _systemTransactionExtraDataProvider = systemTransactionExtraDataProvider;
+        _activitySource = instrumentation.ActivitySource;
 
         EventBus = NullLocalEventBus.Instance;
     }
@@ -45,6 +49,8 @@ public class MiningService : IMiningService
     public async Task<BlockExecutedSet> MineAsync(RequestMiningDto requestMiningDto, List<Transaction> transactions,
         Timestamp blockTime)
     {
+        using var activity = _activitySource.StartActivity();
+
         try
         {
             using var cts = new CancellationTokenSource();

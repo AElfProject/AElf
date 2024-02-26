@@ -1,4 +1,6 @@
 using System;
+using System.Diagnostics;
+using System.Diagnostics.Metrics;
 using System.Linq;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Blockchain.Events;
@@ -141,15 +143,19 @@ public class FullBlockchainService : IFullBlockchainService, ITransientDependenc
     private readonly IBlockManager _blockManager;
     private readonly IChainManager _chainManager;
     private readonly ITransactionManager _transactionManager;
+    private readonly ActivitySource _activitySource;
+    private readonly Counter<long> _getChainCounter;
 
     public FullBlockchainService(IChainManager chainManager, IBlockManager blockManager,
-        ITransactionManager transactionManager)
+        ITransactionManager transactionManager, Instrumentation instrumentation)
     {
         Logger = NullLogger<FullBlockchainService>.Instance;
         _chainManager = chainManager;
         _blockManager = blockManager;
         _transactionManager = transactionManager;
         LocalEventBus = NullLocalEventBus.Instance;
+        _activitySource = instrumentation.ActivitySource;
+        _getChainCounter = instrumentation.GetChainCounter;
     }
 
     public ILocalEventBus LocalEventBus { get; set; }
@@ -180,12 +186,16 @@ public class FullBlockchainService : IFullBlockchainService, ITransientDependenc
 
     public async Task AddBlockAsync(Block block)
     {
+        using var activity = _activitySource.StartActivity();
+
         await _blockManager.AddBlockBodyAsync(block.Header.GetHash(), block.Body);
         await _blockManager.AddBlockHeaderAsync(block.Header);
     }
 
     public async Task AddTransactionsAsync(IEnumerable<Transaction> transactions)
     {
+        using var activity = _activitySource.StartActivity();
+
         await _transactionManager.AddTransactionsAsync(transactions.ToList());
     }
 
@@ -401,6 +411,8 @@ public class FullBlockchainService : IFullBlockchainService, ITransientDependenc
 
     public async Task<Chain> GetChainAsync()
     {
+        using var activity = _activitySource.StartActivity();
+        _getChainCounter.Add(1);
         return await _chainManager.GetAsync();
     }
 
