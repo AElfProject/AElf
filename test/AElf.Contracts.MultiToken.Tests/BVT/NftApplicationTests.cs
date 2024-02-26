@@ -184,6 +184,30 @@ public partial class MultiTokenContractTests
         return symbols;
     }
 
+    private async Task CreateNftFailed()
+    {
+        var collectionInfo = NftCollection1155Info;
+        collectionInfo.IssueChainId = 123;
+        var createCollectionRes = await CreateNftCollectionAsync(collectionInfo);
+        createCollectionRes.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        Nft1155Info.IssueChainId = 123;
+        var createNft2Res = await TokenContractStub.Create.SendWithExceptionAsync(new CreateInput
+        {
+            Symbol = $"{collectionInfo.Symbol}{Nft1155Info.Symbol}",
+            TokenName = Nft1155Info.TokenName,
+            TotalSupply = Nft1155Info.TotalSupply,
+            Decimals = Nft1155Info.Decimals,
+            Issuer = Nft1155Info.Issuer,
+            IsBurnable = Nft1155Info.IsBurnable,
+            IssueChainId = Nft1155Info.IssueChainId,
+            ExternalInfo = Nft1155Info.ExternalInfo,
+            Owner = Nft1155Info.Issuer
+        });
+        createNft2Res.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+        createNft2Res.TransactionResult.Error.Contains("NFT create ChainId must be collection's issue chainId")
+            .ShouldBeTrue();
+    }
+
     private void AssertTokenEqual(TokenCreated log, TokenInfo input)
     {
         Assert.Equal(log.TokenName, input.TokenName);
@@ -202,6 +226,12 @@ public partial class MultiTokenContractTests
     public async Task MultiTokenContract_Create_1155Nft_Test()
     {
         await CreateNftCollectionAndNft();
+    }
+
+    [Fact(DisplayName = "[MultiToken_Nft] Create 1155 nfts failed.")]
+    public async Task MultiTokenContract_Create_1155Nft_failed_Test()
+    {
+        await CreateNftFailed();
     }
 
     [Fact(DisplayName = "[MultiToken_Nft] Create 721 nfts.")]

@@ -32,8 +32,6 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
     /// <returns></returns>
     public override Empty Create(CreateInput input)
     {
-        // can not call create on side chain
-        Assert(State.SideChainCreator.Value == null, "Failed to create token if side chain creator already set.");
         var inputSymbolType = GetCreateInputSymbolType(input.Symbol);
         if (input.Owner == null)
         {
@@ -61,6 +59,12 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
                 long balance = State.Balances[Context.Sender][symbolSeed];
                 DoTransferFrom(Context.Sender, Context.Self, Context.Self, symbolSeed, balance, "");
                 Burn(Context.Self, symbolSeed, balance);
+            }
+            else
+            {
+                // can not call create on side chain
+                Assert(State.SideChainCreator.Value == null,
+                    "Failed to create token if side chain creator already set.");
             }
         }
 
