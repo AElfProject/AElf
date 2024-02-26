@@ -37,7 +37,7 @@ public partial class TokenContract
             CheckSymbolLength(ownedSymbol, ownedSymbolType);
             CheckTokenAndCollectionExists(ownedSymbol);
             CheckSymbolSeed(ownedSymbol);
-            State.SymbolSeedMap[ownedSymbol] = input.Symbol;
+            State.SymbolSeedMap[ownedSymbol.ToUpper()] = input.Symbol;
         }
 
         return CreateToken(input, SymbolType.Nft);
@@ -45,7 +45,7 @@ public partial class TokenContract
 
     private void CheckSymbolSeed(string ownedSymbol)
     {
-        var oldSymbolSeed = State.SymbolSeedMap[ownedSymbol];
+        var oldSymbolSeed = State.SymbolSeedMap[ownedSymbol.ToUpper()];
 
         Assert(oldSymbolSeed == null || !State.TokenInfos[oldSymbolSeed].ExternalInfo.Value
                    .TryGetValue(TokenContractConstants.SeedExpireTimeExternalInfoKey,
