@@ -127,7 +127,7 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
 
 
     /// <summary>
-    ///     Set primary token symbol.
+    ///     SetSymbolSeed primary token symbol.
     /// </summary>
     /// <param name="input"></param>
     /// <returns></returns>
@@ -472,7 +472,7 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
             Owner = validateTokenInfoExistsInput.Owner ?? validateTokenInfoExistsInput.Issuer
         };
         RegisterTokenInfo(tokenInfo);
-
+        SetSymbolSeed(tokenInfo);
         Context.Fire(new TokenCreated
         {
             Symbol = validateTokenInfoExistsInput.Symbol,
@@ -487,6 +487,17 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
         });
 
         return new Empty();
+    }
+
+    private void SetSymbolSeed(TokenInfo tokenInfo)
+    {
+        var collectionSymbol = GetNftCollectionSymbol(tokenInfo.Symbol);
+        if (collectionSymbol == TokenContractConstants.SeedCollectionSymbol && tokenInfo.ExternalInfo != null &&
+            tokenInfo.ExternalInfo.Value.TryGetValue(TokenContractConstants.SeedOwnedSymbolExternalInfoKey,
+                out var ownedSymbol))
+        {
+            State.SymbolSeedMap[ownedSymbol] = tokenInfo.Symbol;
+        }
     }
 
     public override Empty RegisterCrossChainTokenContractAddress(RegisterCrossChainTokenContractAddressInput input)
