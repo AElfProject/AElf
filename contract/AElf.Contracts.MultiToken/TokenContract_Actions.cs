@@ -491,13 +491,18 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
 
     private void SetSymbolSeed(TokenInfo tokenInfo)
     {
-        var collectionSymbol = GetNftCollectionSymbol(tokenInfo.Symbol);
-        if (collectionSymbol == TokenContractConstants.SeedCollectionSymbol && tokenInfo.ExternalInfo != null &&
+        if (GetNftCollectionSymbol(tokenInfo.Symbol) == TokenContractConstants.SeedCollectionSymbol &&
+            tokenInfo.ExternalInfo != null &&
             tokenInfo.ExternalInfo.Value.TryGetValue(TokenContractConstants.SeedOwnedSymbolExternalInfoKey,
-                out var ownedSymbol))
+                out var ownedSymbol) &&
+            tokenInfo.ExternalInfo.Value.TryGetValue(TokenContractConstants.SeedExpireTimeExternalInfoKey,
+                out var expirationTime) &&
+            long.TryParse(expirationTime, out var expirationTimeLong) &&
+            Context.CurrentBlockTime.Seconds <= expirationTimeLong)
         {
             State.SymbolSeedMap[ownedSymbol] = tokenInfo.Symbol;
         }
+
     }
 
     public override Empty RegisterCrossChainTokenContractAddress(RegisterCrossChainTokenContractAddressInput input)
