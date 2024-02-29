@@ -251,16 +251,28 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
 
     public override Empty Approve(ApproveInput input)
     {
-        AssertValidInputAddress(input.Spender);
-        AssertValidToken(input.Symbol, input.Amount);
-        State.Allowances[Context.Sender][input.Spender][input.Symbol] = input.Amount;
+        Approve(input.Spender, input.Symbol, input.Amount);
+        return new Empty();
+    }
+
+    private void Approve(Address spender, string symbol, long amount)
+    {
+        AssertValidInputAddress(spender);
+        AssertValidToken(symbol, amount);
+        State.Allowances[Context.Sender][spender][symbol] = amount;
         Context.Fire(new Approved
         {
             Owner = Context.Sender,
-            Spender = input.Spender,
-            Symbol = input.Symbol,
-            Amount = input.Amount
+            Spender = spender,
+            Symbol = symbol,
+            Amount = amount
         });
+    }
+
+    public override Empty BatchApprove(BatchApproveInput input)
+    {
+        Assert(input.Value.Count <= GetMaximumBatchApproveCount(), "Exceeds the maximum batch approve count.");
+        foreach (var approve in input.Value) Approve(approve.Spender, approve.Symbol, approve.Amount);
         return new Empty();
     }
 
@@ -625,5 +637,29 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
         {
             Value = !State.TokenIssuerAndOwnerModificationDisabled.Value
         };
+    }
+
+    public override Empty SetMaximumBatchApproveCount(Int32Value input)
+    {
+        AssertSenderAddressWith(GetDefaultParliamentController().OwnerAddress);
+        Assert(input.Value != 0, "Invalid input.");
+        State.MaximumBatchApproveCount.Value = input.Value;
+        return new Empty();
+    }
+
+    public override Int32Value GetMaximumBatchApproveCount(Empty input)
+    {
+        return new Int32Value
+        {
+            Value = GetMaximumBatchApproveCount()
+        };
+    }
+
+    private int GetMaximumBatchApproveCount()
+    {
+        var maximumBatchApproveCount = State.MaximumBatchApproveCount.Value == 0
+            ? TokenContractConstants.DefaultMaximumBatchApproveCount
+            : State.MaximumBatchApproveCount.Value;
+        return maximumBatchApproveCount;
     }
 }

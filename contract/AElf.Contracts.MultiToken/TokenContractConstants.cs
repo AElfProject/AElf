@@ -22,4 +22,5 @@ public static class TokenContractConstants
     public const string SeedCollectionSymbol = "SEED-0";
     public const string SeedOwnedSymbolExternalInfoKey = "__seed_owned_symbol";
     public const string SeedExpireTimeExternalInfoKey = "__seed_exp_time";
+    public const int DefaultMaximumBatchApproveCount = 10;
 }

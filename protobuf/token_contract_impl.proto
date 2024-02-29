@@ -83,6 +83,11 @@ service TokenContractImpl {
     rpc RemoveTransactionFeeFreeAllowancesConfig (RemoveTransactionFeeFreeAllowancesConfigInput) returns (google.protobuf.Empty) {
     }
 
+    rpc SetMaximumBatchApproveCount (google.protobuf.Int32Value) returns (google.protobuf.Empty) {
+        
+    }
+    
+
     // Delegatee sets the delegation and related information of the delegator based on a transaction.
     rpc SetTransactionFeeDelegateInfos (SetTransactionFeeDelegateInfosInput) returns (google.protobuf.Empty){
     }
@@ -172,6 +177,10 @@ service TokenContractImpl {
     
     rpc GetTokenIssuerAndOwnerModificationEnabled(google.protobuf.Empty) returns (google.protobuf.BoolValue) {
         option (aelf.is_view) = true;
+    }
+
+    rpc GetMaximumBatchApproveCount (google.protobuf.Empty) returns (google.protobuf.Int32Value) {
+
     }
 }
 
