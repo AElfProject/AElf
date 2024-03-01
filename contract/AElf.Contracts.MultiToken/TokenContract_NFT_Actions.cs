@@ -9,13 +9,11 @@ public partial class TokenContract
 {
     private Empty CreateNFTCollection(CreateInput input)
     {
-        AssertNFTCreateInput(input);
         return CreateToken(input, SymbolType.NftCollection);
     }
 
     private Empty CreateNFTInfo(CreateInput input)
     {
-        AssertNFTCreateInput(input);
         var nftCollectionInfo = AssertNftCollectionExist(input.Symbol);
         input.IssueChainId = input.IssueChainId == 0 ? nftCollectionInfo.IssueChainId : input.IssueChainId;
         Assert(

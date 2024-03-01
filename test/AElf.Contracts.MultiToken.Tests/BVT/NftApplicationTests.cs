@@ -244,22 +244,6 @@ public partial class MultiTokenContractTests
     public async Task MultiTokenContract_Create_NFTCollection_Input_Check_Test()
     {
         var input = NftCollection721Info;
-        // Decimals check
-        {
-            var result = await CreateMutiTokenWithExceptionAsync(TokenContractStub, new CreateInput
-            {
-                Symbol = $"{input.Symbol}0",
-                TokenName = input.TokenName,
-                TotalSupply = input.TotalSupply,
-                Decimals = 8,
-                Issuer = input.Issuer,
-                IssueChainId = input.IssueChainId,
-                ExternalInfo = input.ExternalInfo,
-                Owner = input.Owner
-            });
-            result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            result.TransactionResult.Error.ShouldContain("NFT's decimals must be 0");
-        }
         // Symbol check
         {
             var seedInput = BuildSeedCreateInput( new CreateInput
@@ -319,21 +303,6 @@ public partial class MultiTokenContractTests
         await CreateNftCollectionAsync(NftCollection721Info);
         var input = Nft721Info;
 
-        // Decimals check
-        {
-            var result = await CreateMutiTokenWithExceptionAsync(TokenContractStub, new CreateInput
-            {
-                Symbol = "GHJ-0",
-                TokenName = input.TokenName,
-                TotalSupply = input.TotalSupply,
-                Decimals = 8,
-                Issuer = input.Issuer,
-                IssueChainId = input.IssueChainId,
-                ExternalInfo = input.ExternalInfo
-            });
-            result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            result.TransactionResult.Error.ShouldContain("NFT's decimals must be 0");
-        }
         // Symbol check
         {
             var result = await CreateSeedNftWithExceptionAsync(TokenContractStub, new CreateInput
