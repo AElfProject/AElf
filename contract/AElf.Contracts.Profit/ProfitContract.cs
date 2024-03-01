@@ -769,18 +769,19 @@ public partial class ProfitContract : ProfitContractImplContainer.ProfitContract
         Context.LogDebug(() =>
             $"Profitable details: {profitableDetails.Aggregate("\n", (profit1, profit2) => profit1.ToString() + "\n" + profit2)}");
 
+        var profitableDetailCount =
+            Math.Min(ProfitContractConstants.ProfitReceivingLimitForEachTime, profitableDetails.Count);
+        var maxProfitReceivingPeriodCount = GetMaximumPeriodCountForProfitableDetail(profitableDetailCount);
         // Only can get profit from last profit period to actual last period (profit.CurrentPeriod - 1),
         // because current period not released yet.
-        for (var i = 0;
-             i < Math.Min(ProfitContractConstants.ProfitReceivingLimitForEachTime, profitableDetails.Count);
-             i++)
+        for (var i = 0; i < profitableDetailCount; i++)
         {
             var profitDetail = profitableDetails[i];
             if (profitDetail.LastProfitPeriod == 0)
                 // This detail never performed profit before.
                 profitDetail.LastProfitPeriod = profitDetail.StartPeriod;
 
-            ProfitAllPeriods(scheme, profitDetail, beneficiary);
+            ProfitAllPeriods(scheme, profitDetail, beneficiary, maxProfitReceivingPeriodCount);
         }
 
         var profitDetailsToRemove = profitableDetails
@@ -807,7 +808,41 @@ public partial class ProfitContract : ProfitContractImplContainer.ProfitContract
         return new Empty();
     }
 
-    private Dictionary<string, long> ProfitAllPeriods(Scheme scheme, ProfitDetail profitDetail, Address beneficiary,
+    /// <summary>
+    /// This method calculates the maximum period count for a profitable detail
+    /// based on the number of profitable details and the maximum profit receiving period
+    /// For example:
+    /// If the number of profitable detail is 10 and the maximum profit receiving period is 100,
+    /// the maximum period count for a profitable detail will be 10.
+    /// If the number of profitable detail is 10 and the maximum profit receiving period is 5,
+    /// the maximum period count for a profitable detail will be 1.
+    /// </summary>
+    /// <param name="profitableDetailCount">The number of  profitable details</param>
+    /// <returns></returns>
+    private int GetMaximumPeriodCountForProfitableDetail(int profitableDetailCount)
+    {
+        // Get the maximum profit receiving period count
+        var maxPeriodCount = GetMaximumProfitReceivingPeriodCount();
+        // Check if the maximum period count is greater than the profitable detail count
+        // and if the profitable detail count is greater than 0
+        return maxPeriodCount > profitableDetailCount && profitableDetailCount > 0
+            // Divide the maximum period count by the profitable detail count
+            ? maxPeriodCount.Div(profitableDetailCount)
+            // If the conditions are not met, return 1 as the maximum period count
+            : 1;
+    }
+
+    public override Empty SetMaximumProfitReceivingPeriodCount(Int32Value input)
+    {
+        ValidateContractState(State.ParliamentContract, SmartContractConstants.ParliamentContractSystemName);
+        Assert(Context.Sender == State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty()),
+            "No permission.");
+        Assert(input.Value > 0, "Invalid maximum profit receiving period count.");
+        State.MaximumProfitReceivingPeriodCount.Value = input.Value;
+        return new Empty();
+    }
+
+    private Dictionary<string, long> ProfitAllPeriods(Scheme scheme, ProfitDetail profitDetail, Address beneficiary, long maxProfitReceivingPeriodCount,
         bool isView = false, string targetSymbol = null)
     {
         var profitsMap = new Dictionary<string, long>();
@@ -818,13 +853,11 @@ public partial class ProfitContract : ProfitContractImplContainer.ProfitContract
         foreach (var symbol in symbols)
         {
             var totalAmount = 0L;
-            for (var period = profitDetail.LastProfitPeriod;
-                 period <= (profitDetail.EndPeriod == long.MaxValue
-                     ? Math.Min(scheme.CurrentPeriod - 1,
-                         profitDetail.LastProfitPeriod.Add(ProfitContractConstants
-                             .MaximumProfitReceivingPeriodCountOfOneTime))
-                     : Math.Min(scheme.CurrentPeriod - 1, profitDetail.EndPeriod));
-                 period++)
+            var targetPeriod = Math.Min(scheme.CurrentPeriod - 1, profitDetail.EndPeriod);
+            var maxProfitPeriod = profitDetail.EndPeriod == long.MaxValue
+                ? Math.Min(scheme.CurrentPeriod - 1, profitDetail.LastProfitPeriod.Add(maxProfitReceivingPeriodCount))
+                : Math.Min(targetPeriod, profitDetail.LastProfitPeriod.Add(maxProfitReceivingPeriodCount));
+            for (var period = profitDetail.LastProfitPeriod; period <= maxProfitPeriod; period++)
             {
                 var periodToPrint = period;
                 var detailToPrint = profitDetail;
@@ -884,6 +917,15 @@ public partial class ProfitContract : ProfitContractImplContainer.ProfitContract
         profitDetail.LastProfitPeriod = lastProfitPeriod;
 
         return profitsMap;
+    }
+    
+    private int GetMaximumProfitReceivingPeriodCount()
+    {
+        var maxPeriodCount = State.MaximumProfitReceivingPeriodCount.Value;
+        maxPeriodCount = maxPeriodCount == 0
+            ? ProfitContractConstants.DefaultMaximumProfitReceivingPeriodCountOfOneTime
+            : maxPeriodCount;
+        return maxPeriodCount;
     }
 
     private void ValidateContractState(ContractReferenceState state, string contractSystemName)
