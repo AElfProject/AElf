@@ -272,15 +272,14 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
     public override Empty BatchApprove(BatchApproveInput input)
     {
         Assert(input != null && input.Value != null, "Invalid input .");
+        Assert(input.Value.Count <= GetMaxBatchApproveCount(), "Exceeds the maximum batch approve count.");
         foreach (var approve in input.Value)
         {
             AssertValidInputAddress(approve.Spender);
             AssertValidToken(approve.Symbol, approve.Amount);
         }
-
         var approveInputList = input.Value.GroupBy(approve => approve.Symbol + approve.Spender, approve => approve)
             .Select(approve => approve.Last()).ToList();
-        Assert(approveInputList.Count <= GetMaxBatchApproveCount(), "Exceeds the maximum batch approve count.");
         foreach (var approve in approveInputList)
             Approve(approve.Spender, approve.Symbol, approve.Amount);
         return new Empty();
