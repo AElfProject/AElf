@@ -642,7 +642,7 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
     public override Empty SetMaximumBatchApproveCount(Int32Value input)
     {
         AssertSenderAddressWith(GetDefaultParliamentController().OwnerAddress);
-        Assert(input.Value != 0, "Invalid input.");
+        Assert(input.Value > 0, "Invalid input.");
         State.MaximumBatchApproveCount.Value = input.Value;
         return new Empty();
     }
