@@ -222,6 +222,47 @@ public partial class MultiTokenContractTests
             Symbol = SymbolForTest
         });
         treasuryAllowanceOutput.Allowance.ShouldBe(5000L);
+
+        approveBasisResult = (await TokenContractStub.BatchApprove.SendAsync(new BatchApproveInput
+        {
+            Value =
+            {
+                new ApproveInput
+                {
+                    Symbol = SymbolForTest,
+                    Amount = 1000L,
+                    Spender = BasicFunctionContractAddress
+                },
+                new ApproveInput
+                {
+                    Symbol = SymbolForTest,
+                    Amount = 3000L,
+                    Spender = BasicFunctionContractAddress
+                },
+                new ApproveInput
+                {
+                    Symbol = SymbolForTest,
+                    Amount = 3000L,
+                    Spender = TreasuryContractAddress
+                }
+            }
+        })).TransactionResult;
+        approveBasisResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        basicAllowanceOutput = await TokenContractStub.GetAllowance.CallAsync(new GetAllowanceInput
+        {
+            Owner = DefaultAddress,
+            Spender = BasicFunctionContractAddress,
+            Symbol = SymbolForTest
+        });
+        basicAllowanceOutput.Allowance.ShouldBe(3000L);
+
+        treasuryAllowanceOutput = await TokenContractStub.GetAllowance.CallAsync(new GetAllowanceInput
+        {
+            Owner = DefaultAddress,
+            Spender = TreasuryContractAddress,
+            Symbol = SymbolForTest
+        });
+        treasuryAllowanceOutput.Allowance.ShouldBe(3000L);
     }
 
     [Fact]
@@ -246,6 +287,7 @@ public partial class MultiTokenContractTests
         await ParliamentContractStub.Release.SendAsync(proposalId);
         maximumBatchApproveCountOutput = await TokenContractStub.GetMaximumBatchApproveCount.CallAsync(new Empty());
         maximumBatchApproveCountOutput.Value.ShouldBe(1);
+        await CreateTokenAndIssue();
         var approveBasisResult = (await TokenContractStub.BatchApprove.SendWithExceptionAsync(new BatchApproveInput
         {
             Value =

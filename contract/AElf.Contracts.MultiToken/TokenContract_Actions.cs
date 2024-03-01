@@ -251,14 +251,14 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
 
     public override Empty Approve(ApproveInput input)
     {
+        AssertValidInputAddress(input.Spender);
+        AssertValidToken(input.Symbol, input.Amount);
         Approve(input.Spender, input.Symbol, input.Amount);
         return new Empty();
     }
 
     private void Approve(Address spender, string symbol, long amount)
     {
-        AssertValidInputAddress(spender);
-        AssertValidToken(symbol, amount);
         State.Allowances[Context.Sender][spender][symbol] = amount;
         Context.Fire(new Approved
         {
@@ -271,8 +271,18 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
 
     public override Empty BatchApprove(BatchApproveInput input)
     {
-        Assert(input.Value.Count <= GetMaximumBatchApproveCount(), "Exceeds the maximum batch approve count.");
-        foreach (var approve in input.Value) Approve(approve.Spender, approve.Symbol, approve.Amount);
+        Assert(input != null && input.Value != null, "Invalid input .");
+        foreach (var approve in input.Value)
+        {
+            AssertValidInputAddress(approve.Spender);
+            AssertValidToken(approve.Symbol, approve.Amount);
+        }
+
+        var approveInputList = input.Value.GroupBy(approve => approve.Symbol + approve.Spender, approve => approve)
+            .Select(approve => approve.Last()).ToList();
+        Assert(approveInputList.Count <= GetMaximumBatchApproveCount(), "Exceeds the maximum batch approve count.");
+        foreach (var approve in approveInputList)
+            Approve(approve.Spender, approve.Symbol, approve.Amount);
         return new Empty();
     }
 
