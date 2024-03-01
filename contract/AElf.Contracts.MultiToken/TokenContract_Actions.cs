@@ -127,7 +127,7 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
 
 
     /// <summary>
-    ///     SetSymbolSeed primary token symbol.
+    ///     Set primary token symbol.
     /// </summary>
     /// <param name="input"></param>
     /// <returns></returns>
