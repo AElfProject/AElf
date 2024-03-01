@@ -268,24 +268,24 @@ public partial class MultiTokenContractTests
     [Fact]
     public async Task MultiTokenContract_SetMaximumBatchApproveCount_Test()
     {
-        var result = await TokenContractStub.SetMaximumBatchApproveCount.SendWithExceptionAsync(new Int32Value
+        var result = await TokenContractStub.SetMaxBatchApproveCount.SendWithExceptionAsync(new Int32Value
         {
             Value = 1
         });
         result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
         result.TransactionResult.Error.ShouldContain("Unauthorized behavior");
-        var maximumBatchApproveCountOutput = await TokenContractStub.GetMaximumBatchApproveCount.CallAsync(new Empty());
-        maximumBatchApproveCountOutput.Value.ShouldBe(10);
+        var maximumBatchApproveCountOutput = await TokenContractStub.GetMaxBatchApproveCount.CallAsync(new Empty());
+        maximumBatchApproveCountOutput.Value.ShouldBe(100);
         var defaultParliament = await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
         var proposalId = await CreateProposalAsync(TokenContractAddress,
-            defaultParliament, nameof(TokenContractStub.SetMaximumBatchApproveCount),
+            defaultParliament, nameof(TokenContractStub.SetMaxBatchApproveCount),
             new Int32Value
             {
                 Value = 1
             });
         await ApproveWithMinersAsync(proposalId);
         await ParliamentContractStub.Release.SendAsync(proposalId);
-        maximumBatchApproveCountOutput = await TokenContractStub.GetMaximumBatchApproveCount.CallAsync(new Empty());
+        maximumBatchApproveCountOutput = await TokenContractStub.GetMaxBatchApproveCount.CallAsync(new Empty());
         maximumBatchApproveCountOutput.Value.ShouldBe(1);
         await CreateTokenAndIssue();
         var approveBasisResult = (await TokenContractStub.BatchApprove.SendWithExceptionAsync(new BatchApproveInput

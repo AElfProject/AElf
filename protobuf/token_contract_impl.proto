@@ -83,7 +83,7 @@ service TokenContractImpl {
     rpc RemoveTransactionFeeFreeAllowancesConfig (RemoveTransactionFeeFreeAllowancesConfigInput) returns (google.protobuf.Empty) {
     }
 
-    rpc SetMaximumBatchApproveCount (google.protobuf.Int32Value) returns (google.protobuf.Empty) {
+    rpc SetMaxBatchApproveCount (google.protobuf.Int32Value) returns (google.protobuf.Empty) {
         
     }
     
@@ -179,7 +179,7 @@ service TokenContractImpl {
         option (aelf.is_view) = true;
     }
 
-    rpc GetMaximumBatchApproveCount (google.protobuf.Empty) returns (google.protobuf.Int32Value) {
+    rpc GetMaxBatchApproveCount (google.protobuf.Empty) returns (google.protobuf.Int32Value) {
 
     }
 }
