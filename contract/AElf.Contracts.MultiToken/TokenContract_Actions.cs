@@ -50,6 +50,9 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
         AssertValidCreateInput(input, symbolType);
         if (symbolType == SymbolType.Token || symbolType == SymbolType.NftCollection)
         {
+            // can not call create on side chain
+            Assert(State.SideChainCreator.Value == null,
+                "Failed to create token if side chain creator already set.");
             if (!IsAddressInCreateWhiteList(Context.Sender) &&
                 input.Symbol != TokenContractConstants.SeedCollectionSymbol)
             {
@@ -59,12 +62,6 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
                 long balance = State.Balances[Context.Sender][symbolSeed];
                 DoTransferFrom(Context.Sender, Context.Self, Context.Self, symbolSeed, balance, "");
                 Burn(Context.Self, symbolSeed, balance);
-            }
-            else
-            {
-                // can not call create on side chain
-                Assert(State.SideChainCreator.Value == null,
-                    "Failed to create token if side chain creator already set.");
             }
         }
 
@@ -472,7 +469,6 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
             Owner = validateTokenInfoExistsInput.Owner ?? validateTokenInfoExistsInput.Issuer
         };
         RegisterTokenInfo(tokenInfo);
-        SetSymbolSeed(tokenInfo);
         Context.Fire(new TokenCreated
         {
             Symbol = validateTokenInfoExistsInput.Symbol,
@@ -489,21 +485,6 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
         return new Empty();
     }
 
-    private void SetSymbolSeed(TokenInfo tokenInfo)
-    {
-        if (GetNftCollectionSymbol(tokenInfo.Symbol) == TokenContractConstants.SeedCollectionSymbol &&
-            tokenInfo.ExternalInfo != null &&
-            tokenInfo.ExternalInfo.Value.TryGetValue(TokenContractConstants.SeedOwnedSymbolExternalInfoKey,
-                out var ownedSymbol) &&
-            tokenInfo.ExternalInfo.Value.TryGetValue(TokenContractConstants.SeedExpireTimeExternalInfoKey,
-                out var expirationTime) &&
-            long.TryParse(expirationTime, out var expirationTimeLong) &&
-            Context.CurrentBlockTime.Seconds <= expirationTimeLong)
-        {
-            State.SymbolSeedMap[ownedSymbol] = tokenInfo.Symbol;
-        }
-
-    }
 
     public override Empty RegisterCrossChainTokenContractAddress(RegisterCrossChainTokenContractAddressInput input)
     {
