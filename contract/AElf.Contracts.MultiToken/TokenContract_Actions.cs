@@ -272,7 +272,7 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
     public override Empty BatchApprove(BatchApproveInput input)
     {
         Assert(input != null && input.Value != null, "Invalid input .");
-        Assert(input.Value.Count <= GetMaxBatchApproveCount(), "Exceeds the maximum batch approve count.");
+        Assert(input.Value.Count <= GetMaxBatchApproveCount(), "Exceeds the max batch approve count.");
         foreach (var approve in input.Value)
         {
             AssertValidInputAddress(approve.Spender);
@@ -652,7 +652,7 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
     {
         AssertSenderAddressWith(GetDefaultParliamentController().OwnerAddress);
         Assert(input.Value > 0, "Invalid input.");
-        State.MaximumBatchApproveCount.Value = input.Value;
+        State.MaxBatchApproveCount.Value = input.Value;
         return new Empty();
     }
 
@@ -666,9 +666,9 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
 
     private int GetMaxBatchApproveCount()
     {
-        var maximumBatchApproveCount = State.MaximumBatchApproveCount.Value == 0
+        var maxBatchApproveCount = State.MaxBatchApproveCount.Value == 0
             ? TokenContractConstants.DefaultMaxBatchApproveCount
-            : State.MaximumBatchApproveCount.Value;
-        return maximumBatchApproveCount;
+            : State.MaxBatchApproveCount.Value;
+        return maxBatchApproveCount;
     }
 }

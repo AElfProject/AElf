@@ -307,7 +307,7 @@ public partial class MultiTokenContractTests
             }
         })).TransactionResult;
         approveBasisResult.Status.ShouldBe(TransactionResultStatus.Failed);
-        approveBasisResult.Error.ShouldContain("Exceeds the maximum batch approve count");
+        approveBasisResult.Error.ShouldContain("Exceeds the max batch approve count");
     }
 
     [Fact(DisplayName = "[MultiToken] Approve token out of owner's balance")]
