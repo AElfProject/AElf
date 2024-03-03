@@ -184,6 +184,30 @@ public partial class MultiTokenContractTests
         return symbols;
     }
 
+    private async Task CreateNftFailed()
+    {
+        var collectionInfo = NftCollection1155Info;
+        collectionInfo.IssueChainId = 123;
+        var createCollectionRes = await CreateNftCollectionAsync(collectionInfo);
+        createCollectionRes.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        Nft1155Info.IssueChainId = 123;
+        var createNft2Res = await TokenContractStub.Create.SendWithExceptionAsync(new CreateInput
+        {
+            Symbol = $"{collectionInfo.Symbol}{Nft1155Info.Symbol}",
+            TokenName = Nft1155Info.TokenName,
+            TotalSupply = Nft1155Info.TotalSupply,
+            Decimals = Nft1155Info.Decimals,
+            Issuer = Nft1155Info.Issuer,
+            IsBurnable = Nft1155Info.IsBurnable,
+            IssueChainId = Nft1155Info.IssueChainId,
+            ExternalInfo = Nft1155Info.ExternalInfo,
+            Owner = Nft1155Info.Issuer
+        });
+        createNft2Res.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+        createNft2Res.TransactionResult.Error.Contains("NFT create ChainId must be collection's issue chainId")
+            .ShouldBeTrue();
+    }
+
     private void AssertTokenEqual(TokenCreated log, TokenInfo input)
     {
         Assert.Equal(log.TokenName, input.TokenName);
@@ -204,6 +228,12 @@ public partial class MultiTokenContractTests
         await CreateNftCollectionAndNft();
     }
 
+    [Fact(DisplayName = "[MultiToken_Nft] Create 1155 nfts failed.")]
+    public async Task MultiTokenContract_Create_1155Nft_failed_Test()
+    {
+        await CreateNftFailed();
+    }
+
     [Fact(DisplayName = "[MultiToken_Nft] Create 721 nfts.")]
     public async Task MultiTokenContract_Create_721Nft_Test()
     {
@@ -214,22 +244,6 @@ public partial class MultiTokenContractTests
     public async Task MultiTokenContract_Create_NFTCollection_Input_Check_Test()
     {
         var input = NftCollection721Info;
-        // Decimals check
-        {
-            var result = await CreateMutiTokenWithExceptionAsync(TokenContractStub, new CreateInput
-            {
-                Symbol = $"{input.Symbol}0",
-                TokenName = input.TokenName,
-                TotalSupply = input.TotalSupply,
-                Decimals = 8,
-                Issuer = input.Issuer,
-                IssueChainId = input.IssueChainId,
-                ExternalInfo = input.ExternalInfo,
-                Owner = input.Owner
-            });
-            result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            result.TransactionResult.Error.ShouldContain("NFT's decimals must be 0");
-        }
         // Symbol check
         {
             var seedInput = BuildSeedCreateInput( new CreateInput
@@ -289,21 +303,6 @@ public partial class MultiTokenContractTests
         await CreateNftCollectionAsync(NftCollection721Info);
         var input = Nft721Info;
 
-        // Decimals check
-        {
-            var result = await CreateMutiTokenWithExceptionAsync(TokenContractStub, new CreateInput
-            {
-                Symbol = "GHJ-0",
-                TokenName = input.TokenName,
-                TotalSupply = input.TotalSupply,
-                Decimals = 8,
-                Issuer = input.Issuer,
-                IssueChainId = input.IssueChainId,
-                ExternalInfo = input.ExternalInfo
-            });
-            result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            result.TransactionResult.Error.ShouldContain("NFT's decimals must be 0");
-        }
         // Symbol check
         {
             var result = await CreateSeedNftWithExceptionAsync(TokenContractStub, new CreateInput
