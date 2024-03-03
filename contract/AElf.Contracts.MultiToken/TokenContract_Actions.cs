@@ -32,8 +32,6 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
     /// <returns></returns>
     public override Empty Create(CreateInput input)
     {
-        // can not call create on side chain
-        Assert(State.SideChainCreator.Value == null, "Failed to create token if side chain creator already set.");
         var inputSymbolType = GetCreateInputSymbolType(input.Symbol);
         if (input.Owner == null)
         {
@@ -52,6 +50,9 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
         AssertValidCreateInput(input, symbolType);
         if (symbolType == SymbolType.Token || symbolType == SymbolType.NftCollection)
         {
+            // can not call create on side chain
+            Assert(State.SideChainCreator.Value == null,
+                "Failed to create token if side chain creator already set.");
             if (!IsAddressInCreateWhiteList(Context.Sender) &&
                 input.Symbol != TokenContractConstants.SeedCollectionSymbol)
             {
@@ -489,7 +490,6 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
             Owner = validateTokenInfoExistsInput.Owner ?? validateTokenInfoExistsInput.Issuer
         };
         RegisterTokenInfo(tokenInfo);
-
         Context.Fire(new TokenCreated
         {
             Symbol = validateTokenInfoExistsInput.Symbol,
@@ -505,6 +505,7 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
 
         return new Empty();
     }
+
 
     public override Empty RegisterCrossChainTokenContractAddress(RegisterCrossChainTokenContractAddressInput input)
     {

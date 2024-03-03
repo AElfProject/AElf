@@ -1138,16 +1138,21 @@ public partial class MultiTokenContractTests
             });
         await ApproveWithMinersAsync(proposalId);
         await ParliamentContractStub.Release.SendAsync(proposalId);
-        var createTokenRet = await TokenContractStub.Create.SendWithExceptionAsync(new CreateInput
-        {
-            Symbol = "ALI",
-            TokenName = "Ali",
-            Decimals = 4,
-            TotalSupply = 100_000,
-            Issuer = DefaultAddress,
-            Owner = DefaultAddress
-        });
-        createTokenRet.TransactionResult.Error.ShouldContain(
+
+        proposalId = await CreateProposalAsync(TokenContractAddress,
+            defaultParliament, nameof(TokenContractStub.Create),
+            new CreateInput
+            {
+                Symbol = "ALI",
+                TokenName = "Ali",
+                Decimals = 4,
+                TotalSupply = 100_000,
+                Issuer = DefaultAddress,
+                Owner = DefaultAddress
+            });
+        await ApproveWithMinersAsync(proposalId);
+        var createTokenRe = await ParliamentContractStub.Release.SendWithExceptionAsync(proposalId);
+        createTokenRe.TransactionResult.Error.ShouldContain(
             "Failed to create token if side chain creator already set.");
     }
 
