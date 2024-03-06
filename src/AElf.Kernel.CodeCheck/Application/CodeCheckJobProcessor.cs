@@ -77,6 +77,7 @@ public class CodeCheckJobProcessor : ICodeCheckJobProcessor, ISingletonDependenc
                 codeCheckJob => codeCheckJob.BucketIndex == index);
             _codeCheckProcessesJobTransformBlock.Add(processCodeCheckJobTransformBlock);
         }
+        updateBucketIndexTransformBlock.LinkTo(DataflowBlock.NullTarget<CodeCheckJob>());
 
         return updateBucketIndexTransformBlock;
     }
