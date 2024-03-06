@@ -17,6 +17,7 @@ public static class NftCollectionMetaFields
     public static string BaseUriKey = "__nft_base_uri";
     public static string NftType = "__nft_type";
     public const string IsItemIdReuseKey = "__nft_is_item_id_reuse";
+    public const string NftCreateChainIdExternalInfoKey = "__nft_create_chain_id";
 }
 
 public static class NftInfoMetaFields
@@ -186,11 +187,28 @@ public partial class MultiTokenContractTests
 
     private async Task CreateNftFailed()
     {
-        var collectionInfo = NftCollection1155Info;
-        collectionInfo.IssueChainId = 123;
+        var collectionInfo = new TokenInfo
+        {
+            Symbol = NftCollection1155Info.Symbol,
+            TokenName = NftCollection1155Info.TokenName,
+            TotalSupply = NftCollection1155Info.TotalSupply,
+            Decimals = NftCollection1155Info.Decimals,
+            Issuer = NftCollection1155Info.Issuer,
+            IssueChainId = NftCollection1155Info.IssueChainId,
+            ExternalInfo = new ExternalInfo()
+            {
+                Value =
+                {
+                    {
+                        NftCollectionMetaFields.NftCreateChainIdExternalInfoKey,
+                        "1234"
+                    }
+                }
+            },
+            Owner = NftCollection1155Info.Issuer
+        };
         var createCollectionRes = await CreateNftCollectionAsync(collectionInfo);
         createCollectionRes.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-        Nft1155Info.IssueChainId = 123;
         var createNft2Res = await TokenContractStub.Create.SendWithExceptionAsync(new CreateInput
         {
             Symbol = $"{collectionInfo.Symbol}{Nft1155Info.Symbol}",
@@ -204,7 +222,7 @@ public partial class MultiTokenContractTests
             Owner = Nft1155Info.Issuer
         });
         createNft2Res.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-        createNft2Res.TransactionResult.Error.Contains("NFT create ChainId must be collection's issue chainId")
+        createNft2Res.TransactionResult.Error.Contains("NFT create ChainId must be collection's NFT create chainId")
             .ShouldBeTrue();
     }
 
@@ -377,7 +395,7 @@ public partial class MultiTokenContractTests
                 Owner = input.Owner
             });
             result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            result.TransactionResult.Error.ShouldContain("NFT create ChainId must be collection's issue chainId");
+            result.TransactionResult.Error.ShouldContain("NFT issue ChainId must be collection's issue chainId");
         }
     }
 
