@@ -171,6 +171,145 @@ public partial class MultiTokenContractTests
         basicAllowanceOutput.Allowance.ShouldBe(2000L);
     }
 
+    [Fact(DisplayName = "[MultiToken] BatchApprove token to Contract")]
+    public async Task MultiTokenContract_BatchApprove_ContractAddress_Test()
+    {
+        await CreateTokenAndIssue();
+        var approveBasisResult = (await TokenContractStub.BatchApprove.SendAsync(new BatchApproveInput
+        {
+            Value =
+            {
+                new ApproveInput
+                {
+                    Symbol = SymbolForTest,
+                    Amount = 2000L,
+                    Spender = BasicFunctionContractAddress
+                },
+                new ApproveInput
+                {
+                    Symbol = SymbolForTest,
+                    Amount = 1000L,
+                    Spender = OtherBasicFunctionContractAddress
+                },
+                new ApproveInput
+                {
+                    Symbol = SymbolForTest,
+                    Amount = 5000L,
+                    Spender = TreasuryContractAddress
+                }
+            }
+        })).TransactionResult;
+        approveBasisResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+        var basicAllowanceOutput = await TokenContractStub.GetAllowance.CallAsync(new GetAllowanceInput
+        {
+            Owner = DefaultAddress,
+            Spender = BasicFunctionContractAddress,
+            Symbol = SymbolForTest
+        });
+        basicAllowanceOutput.Allowance.ShouldBe(2000L);
+        var otherBasicAllowanceOutput = await TokenContractStub.GetAllowance.CallAsync(new GetAllowanceInput
+        {
+            Owner = DefaultAddress,
+            Spender = OtherBasicFunctionContractAddress,
+            Symbol = SymbolForTest
+        });
+        otherBasicAllowanceOutput.Allowance.ShouldBe(1000L);
+        var treasuryAllowanceOutput = await TokenContractStub.GetAllowance.CallAsync(new GetAllowanceInput
+        {
+            Owner = DefaultAddress,
+            Spender = TreasuryContractAddress,
+            Symbol = SymbolForTest
+        });
+        treasuryAllowanceOutput.Allowance.ShouldBe(5000L);
+
+        approveBasisResult = (await TokenContractStub.BatchApprove.SendAsync(new BatchApproveInput
+        {
+            Value =
+            {
+                new ApproveInput
+                {
+                    Symbol = SymbolForTest,
+                    Amount = 1000L,
+                    Spender = BasicFunctionContractAddress
+                },
+                new ApproveInput
+                {
+                    Symbol = SymbolForTest,
+                    Amount = 3000L,
+                    Spender = BasicFunctionContractAddress
+                },
+                new ApproveInput
+                {
+                    Symbol = SymbolForTest,
+                    Amount = 3000L,
+                    Spender = TreasuryContractAddress
+                }
+            }
+        })).TransactionResult;
+        approveBasisResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        basicAllowanceOutput = await TokenContractStub.GetAllowance.CallAsync(new GetAllowanceInput
+        {
+            Owner = DefaultAddress,
+            Spender = BasicFunctionContractAddress,
+            Symbol = SymbolForTest
+        });
+        basicAllowanceOutput.Allowance.ShouldBe(3000L);
+
+        treasuryAllowanceOutput = await TokenContractStub.GetAllowance.CallAsync(new GetAllowanceInput
+        {
+            Owner = DefaultAddress,
+            Spender = TreasuryContractAddress,
+            Symbol = SymbolForTest
+        });
+        treasuryAllowanceOutput.Allowance.ShouldBe(3000L);
+    }
+
+    [Fact]
+    public async Task MultiTokenContract_SetMaximumBatchApproveCount_Test()
+    {
+        var result = await TokenContractStub.SetMaxBatchApproveCount.SendWithExceptionAsync(new Int32Value
+        {
+            Value = 1
+        });
+        result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+        result.TransactionResult.Error.ShouldContain("Unauthorized behavior");
+        var maximumBatchApproveCountOutput = await TokenContractStub.GetMaxBatchApproveCount.CallAsync(new Empty());
+        maximumBatchApproveCountOutput.Value.ShouldBe(100);
+        var defaultParliament = await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+        var proposalId = await CreateProposalAsync(TokenContractAddress,
+            defaultParliament, nameof(TokenContractStub.SetMaxBatchApproveCount),
+            new Int32Value
+            {
+                Value = 1
+            });
+        await ApproveWithMinersAsync(proposalId);
+        await ParliamentContractStub.Release.SendAsync(proposalId);
+        maximumBatchApproveCountOutput = await TokenContractStub.GetMaxBatchApproveCount.CallAsync(new Empty());
+        maximumBatchApproveCountOutput.Value.ShouldBe(1);
+        await CreateTokenAndIssue();
+        var approveBasisResult = (await TokenContractStub.BatchApprove.SendWithExceptionAsync(new BatchApproveInput
+        {
+            Value =
+            {
+                new ApproveInput
+                {
+                    Symbol = SymbolForTest,
+                    Amount = 2000L,
+                    Spender = BasicFunctionContractAddress
+                },
+                new ApproveInput
+                {
+                    Symbol = SymbolForTest,
+                    Amount = 1000L,
+                    Spender = OtherBasicFunctionContractAddress
+                }
+            }
+        })).TransactionResult;
+        approveBasisResult.Status.ShouldBe(TransactionResultStatus.Failed);
+        approveBasisResult.Error.ShouldContain("Exceeds the max batch approve count");
+    }
+
     [Fact(DisplayName = "[MultiToken] Approve token out of owner's balance")]
     public async Task MultiTokenContract_Approve_OutOfAmount_Test()
     {

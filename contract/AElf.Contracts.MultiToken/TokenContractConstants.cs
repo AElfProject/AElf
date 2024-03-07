@@ -23,4 +23,5 @@ public static class TokenContractConstants
     public const string SeedOwnedSymbolExternalInfoKey = "__seed_owned_symbol";
     public const string SeedExpireTimeExternalInfoKey = "__seed_exp_time";
     public const string NftCreateChainIdExternalInfoKey = "__nft_create_chain_id";
+    public const int DefaultMaxBatchApproveCount = 100;
 }
