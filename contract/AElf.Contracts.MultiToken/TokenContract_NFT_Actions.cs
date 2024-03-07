@@ -19,9 +19,6 @@ public partial class TokenContract
         Assert(
             input.IssueChainId == nftCollectionInfo.IssueChainId,
             "NFT issue ChainId must be collection's issue chainId");
-       
-        var owner = nftCollectionInfo.Owner ?? nftCollectionInfo.Issuer;
-        Assert(Context.Sender == owner && owner == input.Owner, "NFT owner must be collection's owner");
         if (nftCollectionInfo.ExternalInfo != null && nftCollectionInfo.ExternalInfo.Value.TryGetValue(
                 TokenContractConstants.NftCreateChainIdExternalInfoKey,
                 out var nftCreateChainId) && long.TryParse(nftCreateChainId, out var nftCreateChainIdLong))
@@ -34,7 +31,9 @@ public partial class TokenContract
             Assert(State.SideChainCreator.Value == null,
                 "Failed to create token if side chain creator already set.");
         }
-
+        
+        var owner = nftCollectionInfo.Owner ?? nftCollectionInfo.Issuer;
+        Assert(Context.Sender == owner && owner == input.Owner, "NFT owner must be collection's owner");
         if (nftCollectionInfo.Symbol == TokenContractConstants.SeedCollectionSymbol)
         {
             Assert(input.Decimals == 0 && input.TotalSupply == 1, "SEED must be unique.");
