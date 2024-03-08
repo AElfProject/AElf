@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using AElf.Kernel.SmartContract.Application;
 using Microsoft.Extensions.Logging;
 using Orleans;
@@ -22,10 +23,14 @@ public class PlainTransactionExecutingGrain : Grain, IPlainTransactionExecutingG
     {
         try
         {
-            _logger.LogDebug("groupType:{groupType}, height: {height},txCount:{count}",
-                transactionExecutingDto.GroupType, transactionExecutingDto.BlockHeader.Height, transactionExecutingDto.Transactions.Count());
-
-           return await _plainTransactionExecutingService.ExecuteAsync(transactionExecutingDto, cancellationToken);
+            var stopwatch = Stopwatch.StartNew();
+            var executionReturnSet =
+                await _plainTransactionExecutingService.ExecuteAsync(transactionExecutingDto, cancellationToken);
+            _logger.LogDebug("groupType:{groupType}, height: {height},txCount:{count}, time: {time}ms",
+                transactionExecutingDto.GroupType, transactionExecutingDto.BlockHeader.Height,
+                transactionExecutingDto.Transactions.Count(),
+                stopwatch.ElapsedMilliseconds);
+            return executionReturnSet;
         }
         catch (Exception e)
         {
