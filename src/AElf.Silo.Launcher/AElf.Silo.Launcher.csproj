@@ -42,5 +42,6 @@
       <ProjectReference Include="..\AElf.OS.Core\AElf.OS.Core.csproj" />
       <ProjectReference Include="..\AElf.RuntimeSetup\AElf.RuntimeSetup.csproj" />
       <ProjectReference Include="..\AElf.WebApp.Application.Chain\AElf.WebApp.Application.Chain.csproj" />
+        <ProjectReference Include="..\AElf.Kernel.SmartContractExecution\AElf.Kernel.SmartContractExecution.csproj"/>
     </ItemGroup>
 </Project>

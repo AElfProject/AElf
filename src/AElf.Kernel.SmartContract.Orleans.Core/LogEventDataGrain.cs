@@ -8,15 +8,15 @@ namespace AElf.Kernel.SmartContract.Orleans;
 [UniformDistribution]
 public class LogEventDataGrain : Grain, ILogEventDataGrain
 {
-    public ILocalEventBus LocalEventBus { get; set; }
+    private ILocalEventBus _localEventBus;
 
-    public LogEventDataGrain()
+    public LogEventDataGrain(ILocalEventBus localEventBus)
     {
-        LocalEventBus = NullLocalEventBus.Instance;
+        _localEventBus = localEventBus;
     }
 
     public async Task ProcessLogEventAsync(LogEventContextData eventContextData)
     {
-        await LocalEventBus.PublishAsync(eventContextData);
+        await _localEventBus.PublishAsync(eventContextData);
     }
 }

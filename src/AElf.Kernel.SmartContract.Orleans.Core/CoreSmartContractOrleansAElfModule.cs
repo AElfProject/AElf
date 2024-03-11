@@ -7,11 +7,13 @@ using Microsoft.Extensions.DependencyInjection;
 using Orleans.Runtime;
 using Orleans.Runtime.Placement;
 using Volo.Abp;
+using Volo.Abp.EventBus;
 using Volo.Abp.Modularity;
 
 namespace AElf.Kernel.SmartContract.Orleans;
 
 [DependsOn(typeof(CSharpRuntimeAElfModule), typeof(SmartContractAElfModule))]
+[DependsOn(typeof(AbpEventBusModule))]
 public class CoreSmartContractOrleansAElfModule : AbpModule
 {
     public override void ConfigureServices(ServiceConfigurationContext context)
