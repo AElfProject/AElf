@@ -15,5 +15,6 @@ public class CoreConsensusAElfModule : AElfModule
         context.Services.AddTransient<IBlockExtraDataProvider, ConsensusExtraDataProvider>();
         context.Services.AddSingleton<IConsensusExtraDataProvider, ConsensusExtraDataProvider>();
         context.Services.AddTransient<IBlockValidationProvider, ConsensusValidationProvider>();
+        Configure<MiningTimeOptions>(context.Services.GetConfiguration().GetSection("MiningTime"));
     }
 }

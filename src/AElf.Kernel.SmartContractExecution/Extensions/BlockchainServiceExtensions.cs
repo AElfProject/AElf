@@ -11,9 +11,8 @@ public static class BlockchainServiceExtensions
     public static async Task<List<Block>> GetBlocksAsync(this IBlockchainService blockchainService,
         IEnumerable<Hash> blockHashes)
     {
-        var list = blockHashes
-            .Select(async blockHash => await blockchainService.GetBlockByHashAsync(blockHash));
-
-        return (await Task.WhenAll(list)).ToList();
+        var tasks = blockHashes.Select(blockchainService.GetBlockByHashAsync);
+        var blocks = await Task.WhenAll(tasks);
+        return blocks.ToList();
     }
 }

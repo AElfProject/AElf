@@ -110,8 +110,13 @@ public class ContractAuditorTests : CSharpCodeOpsTestBase
         Should.NotThrow(() => _auditor.Audit(ReadPatchedContractCode(typeof(TokenContract)), true));
         var codeOpsOptions = GetRequiredService<IOptionsMonitor<CSharpCodeOpsOptions>>();
         codeOpsOptions.CurrentValue.AuditTimeoutDuration = 0;
-        Should.Throw<ContractAuditTimeoutException>(() =>
-            _auditor.Audit(ReadPatchedContractCode(typeof(TokenContract)), true));
+        var exception =
+            Assert.Throws<AggregateException>(
+                () => _auditor.Audit(ReadPatchedContractCode(typeof(TokenContract)), true));
+        foreach (var ex in exception.InnerExceptions)
+        {
+            ex.GetType().ShouldBe(typeof(ContractAuditTimeoutException));
+        }
     }
 
     [Fact]
