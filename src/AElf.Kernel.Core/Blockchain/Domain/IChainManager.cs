@@ -217,8 +217,8 @@ public class ChainManager : IChainManager, ISingletonDependency
 
         await _chains.SetAsync(chain.Id.ToStorageKey(), chain);
 
-        Logger.LogInformation($"Attach {chainBlockLink.BlockHash} to longest chain, status: {status}, " +
-                              $"longest chain height: {chain.LongestChainHeight}, longest chain hash: {chain.LongestChainHash}");
+        // Logger.LogInformation($"Attach {chainBlockLink.BlockHash} to longest chain, status: {status}, " +
+        //                       $"longest chain height: {chain.LongestChainHeight}, longest chain hash: {chain.LongestChainHash}");
 
         return status;
     }
