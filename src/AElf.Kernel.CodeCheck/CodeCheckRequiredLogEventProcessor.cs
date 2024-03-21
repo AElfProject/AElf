@@ -40,6 +40,7 @@ public class CodeCheckRequiredLogEventProcessor : LogEventProcessorBase, IBlocks
     public override async Task ProcessAsync(Block block, Dictionary<TransactionResult, List<LogEvent>> logEventsMap)
     {
         Logger.LogInformation("Start handling CodeCheckRequired log event.");
+        var blockHash = block.GetHash();
         foreach (var events in logEventsMap)
         {
             var transactionResult = events.Key;
@@ -55,7 +56,7 @@ public class CodeCheckRequiredLogEventProcessor : LogEventProcessorBase, IBlocks
                 var code = eventData.Code.ToByteArray();
                 var sendResult = await _codeCheckJobProcessor.SendAsync(new CodeCheckJob
                 {
-                    BlockHash = block.GetHash(),
+                    BlockHash = blockHash,
                     BlockHeight = block.Height,
                     ContractCode = code,
                     ContractCategory = eventData.Category,
@@ -69,7 +70,7 @@ public class CodeCheckRequiredLogEventProcessor : LogEventProcessorBase, IBlocks
                 {
                     Logger.LogError(
                         "Unable to perform code check. BlockHash: {BlockHash}, BlockHeight: {BlockHeight}, CodeHash: {CodeHash}, ProposalId: {ProposalId}",
-                        block.GetHash(), block.Height, HashHelper.ComputeFrom(code).ToHex(), proposalId.ToHex());
+                        blockHash, block.Height, HashHelper.ComputeFrom(code).ToHex(), proposalId.ToHex());
                 }
             }
         }

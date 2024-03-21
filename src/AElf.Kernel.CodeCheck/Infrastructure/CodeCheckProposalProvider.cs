@@ -1,6 +1,5 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 using AElf.Kernel.CodeCheck.Application;
 
 namespace AElf.Kernel.CodeCheck.Infrastructure;
@@ -11,25 +10,20 @@ public class CodeCheckProposalProvider : ICodeCheckProposalProvider, ISingletonD
 
     public void AddProposal(Hash proposalId, Hash proposalInputHash, long height)
     {
-        // keep the higher block index 
-        _proposalsToRelease.AddOrUpdate(proposalId, new CodeCheckProposal
+        var newProposal = new CodeCheckProposal
         {
             ProposalId = proposalId,
             ProposedContractInputHash = proposalInputHash,
             BlockHeight = height
-        }, (hash, proposal) => proposal.BlockHeight >= height
-            ? proposal
-            : new CodeCheckProposal
-            {
-                ProposalId = proposalId,
-                BlockHeight = height,
-                ProposedContractInputHash = proposalInputHash
-            });
+        };
+
+        _proposalsToRelease.AddOrUpdate(proposalId, newProposal,
+            (hash, proposal) => proposal.BlockHeight >= height ? proposal : newProposal);
     }
 
-    public List<CodeCheckProposal> GetAllProposals()
+    public IEnumerable<CodeCheckProposal> GetAllProposals()
     {
-        return _proposalsToRelease.Values.ToList();
+        return _proposalsToRelease.Values;
     }
 
     public bool TryGetProposalCreatedHeight(Hash proposalId, out long height)
