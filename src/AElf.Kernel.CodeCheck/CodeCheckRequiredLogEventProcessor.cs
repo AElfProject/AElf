@@ -56,7 +56,7 @@ public class CodeCheckRequiredLogEventProcessor : LogEventProcessorBase, IBlocks
                         .ProposalId;
 
                     var code = eventData.Code.ToByteArray();
-                    var sendResult = await _codeCheckJobProcessor.SendAsync(new CodeCheckJob
+                    var codeCheckJob = new CodeCheckJob
                     {
                         BlockHash = block.GetHash(),
                         BlockHeight = block.Height,
@@ -66,7 +66,9 @@ public class CodeCheckRequiredLogEventProcessor : LogEventProcessorBase, IBlocks
                         IsUserContract = eventData.IsUserContract,
                         CodeCheckProposalId = proposalId,
                         ProposedContractInputHash = eventData.ProposedContractInputHash
-                    });
+                    };
+                    var sendResult = await _codeCheckJobProcessor.SendAsync(codeCheckJob);
+                    Logger.LogInformation($"Sent code check job: {codeCheckJob}");
 
                     if (!sendResult)
                     {
