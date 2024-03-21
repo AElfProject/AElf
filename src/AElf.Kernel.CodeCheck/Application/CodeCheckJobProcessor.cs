@@ -23,7 +23,7 @@ public class CodeCheckJobProcessor : ICodeCheckJobProcessor, ISingletonDependenc
     private readonly ICodeCheckService _codeCheckService;
     private readonly IProposalService _proposalService;
     private readonly ICodeCheckProposalService _codeCheckProposalService;
-    
+
     public ILogger<CodeCheckJobProcessor> Logger { get; set; }
 
     public CodeCheckJobProcessor(IOptionsSnapshot<CodeCheckOptions> codeCheckOptions,
@@ -61,7 +61,7 @@ public class CodeCheckJobProcessor : ICodeCheckJobProcessor, ISingletonDependenc
                 BoundedCapacity = Math.Max(_codeCheckOptions.MaxBoundedCapacity, 1),
                 MaxDegreeOfParallelism = _codeCheckOptions.MaxDegreeOfParallelism
             });
-        
+
         _codeCheckProcessesJobTransformBlock = new List<ActionBlock<CodeCheckJob>>();
         for (var i = 0; i < _codeCheckOptions.MaxDegreeOfParallelism; i++)
         {
@@ -72,9 +72,7 @@ public class CodeCheckJobProcessor : ICodeCheckJobProcessor, ISingletonDependenc
                     BoundedCapacity = Math.Max(_codeCheckOptions.MaxBoundedCapacity, 1),
                     EnsureOrdered = false
                 });
-            var index = i;
-            updateBucketIndexTransformBlock.LinkTo(processCodeCheckJobTransformBlock, linkOptions,
-                codeCheckJob => codeCheckJob.BucketIndex == index);
+            updateBucketIndexTransformBlock.LinkTo(processCodeCheckJobTransformBlock, linkOptions);
             _codeCheckProcessesJobTransformBlock.Add(processCodeCheckJobTransformBlock);
         }
 
@@ -83,19 +81,16 @@ public class CodeCheckJobProcessor : ICodeCheckJobProcessor, ISingletonDependenc
 
     private async Task ProcessCodeCheckJobAsync(CodeCheckJob job)
     {
-        Logger.LogInformation("Processing code check job started.");
         try
         {
             var codeCheckResult = await _codeCheckService.PerformCodeCheckAsync(job.ContractCode, job.BlockHash,
                 job.BlockHeight, job.ContractCategory, job.IsSystemContract, job.IsUserContract);
 
             var codeHash = HashHelper.ComputeFrom(job.ContractCode);
-            Logger.LogInformation("Code check result: {codeCheckResult}, code hash: {codeHash}", codeCheckResult,
-                codeHash.ToHex());
 
             if (!codeCheckResult)
             {
-                Logger.LogError("Code check failed.");
+                Logger.LogError("Code check failed for code hash: {codeHash}", codeHash.ToHex());
                 return;
             }
 
@@ -116,20 +111,15 @@ public class CodeCheckJobProcessor : ICodeCheckJobProcessor, ISingletonDependenc
         catch (Exception e)
         {
             Logger.LogError("Error while processing code check job: {e}", e);
+            throw;
         }
-
-        Logger.LogInformation("Processing code check job ended.");
     }
 
     private CodeCheckJob UpdateBucketIndex(CodeCheckJob job)
     {
-        var assemblyLoadContext = new AssemblyLoadContext(null, true);
-        var assembly = assemblyLoadContext.LoadFromStream(new MemoryStream(job.ContractCode));
-        
         job.BucketIndex =
-            Math.Abs(HashHelper.ComputeFrom(assembly.GetName().Name).ToInt64() % _codeCheckOptions.MaxDegreeOfParallelism);
-        assemblyLoadContext.Unload();
-        
+            Math.Abs(HashHelper.ComputeFrom(job.ContractCode).ToInt64() % _codeCheckOptions.MaxDegreeOfParallelism);
+
         return job;
     }
 }

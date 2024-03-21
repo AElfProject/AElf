@@ -74,7 +74,7 @@ public class CodeCheckRequiredLogEventProcessor : LogEventProcessorBase, IBlocks
                     {
                         Logger.LogError(
                             "Unable to perform code check. BlockHash: {BlockHash}, BlockHeight: {BlockHeight}, CodeHash: {CodeHash}, ProposalId: {ProposalId}",
-                            block.GetHash(), block.Height, HashHelper.ComputeFrom(code).ToHex(), proposalId.ToHex());
+                            block.GetHash().ToHex(), block.Height, HashHelper.ComputeFrom(code).ToHex(), proposalId.ToHex());
                     }
                 }
                 catch (Exception e)

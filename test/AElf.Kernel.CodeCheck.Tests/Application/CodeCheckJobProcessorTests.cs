@@ -114,7 +114,7 @@ public class CodeCheckJobProcessorTests: CodeCheckParallelTestBase
         codeHashExists.ShouldBeFalse();
     }
 
-    [Fact(Skip = "Only fails in ci and resolves later.")]
+    [Fact]
     public async Task CodeCheck_Parallel_Test()
     {
         var block = MockBlock();
