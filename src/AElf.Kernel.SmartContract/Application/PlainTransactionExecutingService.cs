@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -135,14 +136,16 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
     {
         if (singleTxExecutingDto.IsCancellable)
             cancellationToken.ThrowIfCancellationRequested();
-
+        var stopwatch = Stopwatch.StartNew();
         var txContext = CreateTransactionContext(singleTxExecutingDto);
         var trace = txContext.Trace;
-
+        stopwatch.Stop();
+        Logger.LogDebug("CreateTransactionContext time{Time} ",
+            stopwatch.ElapsedMilliseconds);
         var internalStateCache = new TieredStateCache(singleTxExecutingDto.ChainContext.StateCache);
         var internalChainContext =
             new ChainContextWithTieredStateCache(singleTxExecutingDto.ChainContext, internalStateCache);
-
+        stopwatch.Start();
         IExecutive executive;
         try
         {
@@ -157,6 +160,9 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
             return trace;
         }
 
+        stopwatch.Stop();
+        Logger.LogDebug("GetExecutiveAsync time{Time} ", stopwatch.ElapsedMilliseconds);
+        stopwatch.Start();
         try
         {
             #region PreTransaction
@@ -207,6 +213,8 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
                 singleTxExecutingDto.Transaction.To, executive);
         }
 
+        stopwatch.Stop();
+        Logger.LogDebug("ApplyAsync time{Time} ", stopwatch.ElapsedMilliseconds);
         return trace;
     }
 

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.SmartContract.Infrastructure;
@@ -44,19 +45,28 @@ public class SmartContractExecutiveService : ISmartContractExecutiveService, ISi
 
     public async Task<IExecutive> GetExecutiveAsync(IChainContext chainContext, Address address)
     {
+        var stopwatch = Stopwatch.StartNew();
         if (address == null) throw new ArgumentNullException(nameof(address));
-
         var pool = _smartContractExecutiveProvider.GetPool(address);
         var smartContractRegistration = await GetSmartContractRegistrationAsync(chainContext, address);
-
+        stopwatch.Stop();
+        Logger.LogDebug("GetSmartContractRegistrationAsync time{Time} Address {Address}", stopwatch.ElapsedMilliseconds,
+            address);
         if (!pool.TryTake(out var executive))
         {
+            stopwatch.Start();
             executive = await GetExecutiveAsync(smartContractRegistration);
+            stopwatch.Stop();
+            Logger.LogDebug("GetExecutiveAsync time{Time} Address {Address}", stopwatch.ElapsedMilliseconds, address);
         }
         else if (smartContractRegistration.CodeHash != executive.ContractHash)
         {
+            stopwatch.Start();
             _smartContractExecutiveProvider.TryRemove(address, out _);
             executive = await GetExecutiveAsync(smartContractRegistration);
+            stopwatch.Stop();
+            Logger.LogDebug("Remove old executive,and get smart contract executive time{Time}",
+                stopwatch.ElapsedMilliseconds);
         }
 
         return executive;
