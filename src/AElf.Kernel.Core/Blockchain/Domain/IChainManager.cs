@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Kernel.Infrastructure;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace AElf.Kernel.Blockchain.Domain;
 
@@ -49,6 +50,7 @@ public class ChainManager : IChainManager, ISingletonDependency
     private readonly IChainBlockLinkCacheProvider _chainBlockLinkCacheProvider;
     private readonly IBlockchainStore<ChainBlockLink> _chainBlockLinks;
     private readonly IBlockchainStore<Chain> _chains;
+    private readonly IMemoryCache _cache;
 
     private readonly IStaticChainInformationProvider _staticChainInformationProvider;
 
@@ -63,6 +65,7 @@ public class ChainManager : IChainManager, ISingletonDependency
         _chainBlockIndexes = chainBlockIndexes;
         _staticChainInformationProvider = staticChainInformationProvider;
         _chainBlockLinkCacheProvider = chainBlockLinkCacheProvider;
+        _cache = new MemoryCache(new MemoryCacheOptions());
     }
 
     private int ChainId => _staticChainInformationProvider.ChainId;
@@ -103,13 +106,19 @@ public class ChainManager : IChainManager, ISingletonDependency
         await SetChainBlockIndexAsync(AElfConstants.GenesisBlockHeight, genesisBlock);
 
         await _chains.SetAsync(ChainId.ToStorageKey(), chain);
-
+        
+        // Update the cache.
+        _cache.Set(ChainId, chain);
         return chain;
     }
 
     public async Task<Chain> GetAsync()
     {
-        var chain = await _chains.GetAsync(ChainId.ToStorageKey());
+        if (!_cache.TryGetValue(ChainId, out Chain chain))
+        {
+            chain = await _chains.GetAsync(ChainId.ToStorageKey());
+            _cache.Set(ChainId, chain);
+        }
         return chain;
     }
 
@@ -322,6 +331,9 @@ public class ChainManager : IChainManager, ISingletonDependency
         chain.BestChainHash = bestChainHash;
 
         await _chains.SetAsync(chain.Id.ToStorageKey(), chain);
+
+        // Update the cache.
+        _cache.Set(ChainId, chain);
     }
 
     public int GetChainId()
@@ -464,6 +476,9 @@ public class ChainManager : IChainManager, ISingletonDependency
 
         Logger.LogInformation($"Rollback to height {chain.BestChainHeight}, hash {chain.BestChainHash}.");
         await _chains.SetAsync(chain.Id.ToStorageKey(), chain);
+
+        // Update the cache.
+        _cache.Set(ChainId, chain);
 
         return chain;
     }
