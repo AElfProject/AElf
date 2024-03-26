@@ -49,19 +49,14 @@ public class SmartContractExecutiveService : ISmartContractExecutiveService, ISi
         if (address == null) throw new ArgumentNullException(nameof(address));
         var pool = _smartContractExecutiveProvider.GetPool(address);
         var smartContractRegistration = await GetSmartContractRegistrationAsync(chainContext, address);
-        stopwatch.Stop();
-        Logger.LogDebug("GetSmartContractRegistrationAsync time{Time} Address {Address}", stopwatch.ElapsedMilliseconds,
-            address);
         if (!pool.TryTake(out var executive))
         {
-            stopwatch.Start();
             executive = await GetExecutiveAsync(smartContractRegistration);
             stopwatch.Stop();
             Logger.LogDebug("GetExecutiveAsync time{Time} Address {Address}", stopwatch.ElapsedMilliseconds, address);
         }
         else if (smartContractRegistration.CodeHash != executive.ContractHash)
         {
-            stopwatch.Start();
             _smartContractExecutiveProvider.TryRemove(address, out _);
             executive = await GetExecutiveAsync(smartContractRegistration);
             stopwatch.Stop();

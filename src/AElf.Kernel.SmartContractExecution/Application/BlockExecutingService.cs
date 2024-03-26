@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
@@ -55,6 +56,7 @@ public class BlockExecutingService : IBlockExecutingService, ITransientDependenc
         CancellationToken cancellationToken)
     {
         Logger.LogTrace("Entered ExecuteBlockAsync");
+        var stopwatch = Stopwatch.StartNew();
         var nonCancellable = nonCancellableTransactions.ToList();
         var cancellable = cancellableTransactions.ToList();
         var nonCancellableReturnSets =
@@ -62,12 +64,15 @@ public class BlockExecutingService : IBlockExecutingService, ITransientDependenc
                 new TransactionExecutingDto { BlockHeader = blockHeader, Transactions = nonCancellable },
                 CancellationToken.None);
         Logger.LogTrace("Executed non-cancellable txs");
-
+        stopwatch.Stop();
+        Logger.LogDebug("Executed non-cancellable time{Time} ",
+            stopwatch.ElapsedMilliseconds);
         var returnSetCollection = new ExecutionReturnSetCollection(nonCancellableReturnSets);
         var cancellableReturnSets = new List<ExecutionReturnSet>();
 
         if (!cancellationToken.IsCancellationRequested && cancellable.Count > 0)
         {
+            stopwatch.Start();
             cancellableReturnSets = await _transactionExecutingService.ExecuteAsync(
                 new TransactionExecutingDto
                 {
@@ -78,8 +83,13 @@ public class BlockExecutingService : IBlockExecutingService, ITransientDependenc
                 cancellationToken);
             returnSetCollection.AddRange(cancellableReturnSets);
             Logger.LogTrace("Executed cancellable txs");
+            stopwatch.Stop();
+            Logger.LogDebug("Executed non-cancellable time{Time} ",
+                stopwatch.ElapsedMilliseconds);
+           
         }
 
+       
         var executedCancellableTransactions = new HashSet<Hash>(cancellableReturnSets.Select(x => x.TransactionId));
         var allExecutedTransactions =
             nonCancellable.Concat(cancellable.Where(x => executedCancellableTransactions.Contains(x.GetHash())))
@@ -88,15 +98,19 @@ public class BlockExecutingService : IBlockExecutingService, ITransientDependenc
             CreateBlockStateSet(blockHeader.PreviousBlockHash, blockHeader.Height, returnSetCollection);
         var block = await FillBlockAfterExecutionAsync(blockHeader, allExecutedTransactions, returnSetCollection,
             blockStateSet);
-
+        stopwatch.Start();
         // set txn results
         var transactionResults = await SetTransactionResultsAsync(returnSetCollection, block.Header);
-
+        stopwatch.Stop();
+        Logger.LogDebug("SetTransactionResultsAsync time{Time} ",
+            stopwatch.ElapsedMilliseconds);
+        stopwatch.Start();
         // set blocks state
         blockStateSet.BlockHash = block.GetHash();
         Logger.LogTrace("Set block state set.");
         await _blockchainStateService.SetBlockStateSetAsync(blockStateSet);
-
+        Logger.LogDebug("SetBlockStateSetAsync time{Time} ",
+            stopwatch.ElapsedMilliseconds);
         // handle execution cases 
         await CleanUpReturnSetCollectionAsync(block.Header, returnSetCollection);
 
