@@ -130,44 +130,28 @@ public class FullBlockchainExecutingService : IBlockchainExecutingService, ITran
     {
         var blockHash = block.GetHash();
         // Set the other blocks as bad block if found the first bad block
-        var stopwatch = Stopwatch.StartNew();
+        
       
         if (!await _blockValidationService.ValidateBlockBeforeExecuteAsync(block))
         {
             Logger.LogDebug($"Block validate fails before execution. block hash : {blockHash}");
             return null;
         }
-
-        stopwatch.Stop();
-        Logger.LogDebug("ValidateBlockBeforeExecuteAsync time{Time} ",
-            stopwatch.ElapsedMilliseconds);
-        stopwatch.Start();
+       
         var blockExecutedSet = await ExecuteBlockAsync(block);
         if (blockExecutedSet == null)
         {
             Logger.LogDebug($"Block execution failed. block hash : {blockHash}");
             return null;
         }
-
-        stopwatch.Stop();
-        Logger.LogDebug("FullBlockchainExecutingService.ExecuteBlockAsync time{Time} ",
-            stopwatch.ElapsedMilliseconds);
-        stopwatch.Start();
         if (!await _blockValidationService.ValidateBlockAfterExecuteAsync(block))
         {
             Logger.LogDebug($"Block validate fails after execution. block hash : {blockHash}");
             return null;
         }
-
-        stopwatch.Stop();
-        Logger.LogDebug("ValidateBlockAfterExecuteAsync time{Time} ",
-            stopwatch.ElapsedMilliseconds);
-        stopwatch.Start();
+      
         await _transactionResultService.ProcessTransactionResultAfterExecutionAsync(block.Header,
             block.Body.TransactionIds.ToList());
-        stopwatch.Stop();
-        Logger.LogDebug("ProcessTransactionResultAfterExecutionAsync time{Time} ",
-            stopwatch.ElapsedMilliseconds);
         return blockExecutedSet;
     }
 }
