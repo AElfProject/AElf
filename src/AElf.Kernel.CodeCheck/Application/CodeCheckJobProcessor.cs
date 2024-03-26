@@ -72,7 +72,9 @@ public class CodeCheckJobProcessor : ICodeCheckJobProcessor, ISingletonDependenc
                     BoundedCapacity = Math.Max(_codeCheckOptions.MaxBoundedCapacity, 1),
                     EnsureOrdered = false
                 });
-            updateBucketIndexTransformBlock.LinkTo(processCodeCheckJobTransformBlock, linkOptions);
+            var index = i;
+            updateBucketIndexTransformBlock.LinkTo(processCodeCheckJobTransformBlock, linkOptions,
+                codeCheckJob => codeCheckJob.BucketIndex == index);
             _codeCheckProcessesJobTransformBlock.Add(processCodeCheckJobTransformBlock);
         }
 
