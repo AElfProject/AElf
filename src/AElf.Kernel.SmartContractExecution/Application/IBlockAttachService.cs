@@ -39,16 +39,11 @@ public class BlockAttachService : IBlockAttachService, ITransientDependency
     }
 
     public ILogger<BlockAttachService> Logger { get; set; }
-
     public async Task AttachBlockAsync(Block block)
     {
         using var activity = _activitySource.StartActivity();
         var stopwatch = Stopwatch.StartNew();
         var chain = await _blockchainService.GetChainAsync();
-        stopwatch.Stop();
-        Logger.LogDebug("GetChainAsync time{Time} ",
-            stopwatch.ElapsedMilliseconds);
-        stopwatch.Start();
         var status = await _blockchainService.AttachBlockToChainAsync(chain, block);
         stopwatch.Stop();
         Logger.LogDebug("AttachBlockToChainAsync time{Time} ",

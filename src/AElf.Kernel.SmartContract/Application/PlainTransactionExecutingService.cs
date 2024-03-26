@@ -136,16 +136,12 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
     {
         if (singleTxExecutingDto.IsCancellable)
             cancellationToken.ThrowIfCancellationRequested();
-        var stopwatch = Stopwatch.StartNew();
         var txContext = CreateTransactionContext(singleTxExecutingDto);
         var trace = txContext.Trace;
-        stopwatch.Stop();
-        Logger.LogDebug("CreateTransactionContext time{Time} ",
-            stopwatch.ElapsedMilliseconds);
+       
         var internalStateCache = new TieredStateCache(singleTxExecutingDto.ChainContext.StateCache);
         var internalChainContext =
             new ChainContextWithTieredStateCache(singleTxExecutingDto.ChainContext, internalStateCache);
-        stopwatch.Start();
         IExecutive executive;
         try
         {
@@ -159,10 +155,6 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
             txContext.Trace.Error += "Invalid contract address.\n";
             return trace;
         }
-
-        stopwatch.Stop();
-        Logger.LogDebug("GetExecutiveAsync time{Time} ", stopwatch.ElapsedMilliseconds);
-        stopwatch.Start();
         try
         {
             #region PreTransaction
@@ -212,9 +204,6 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
             await _smartContractExecutiveService.PutExecutiveAsync(singleTxExecutingDto.ChainContext,
                 singleTxExecutingDto.Transaction.To, executive);
         }
-
-        stopwatch.Stop();
-        Logger.LogDebug("ApplyAsync time{Time} ", stopwatch.ElapsedMilliseconds);
         return trace;
     }
 
