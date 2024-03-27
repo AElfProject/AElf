@@ -12,9 +12,9 @@ public class BlockParallelExecutingService : BlockExecutingService
 {
     public BlockParallelExecutingService(ITransactionExecutingService transactionExecutingService,
         IBlockchainStateService blockchainStateService, ITransactionResultService transactionResultService,
-        ISystemTransactionExtraDataProvider systemTransactionExtraDataProvider) : base(
+        ISystemTransactionExtraDataProvider systemTransactionExtraDataProvider, Instrumentation instrumentation) : base(
         transactionExecutingService, blockchainStateService, transactionResultService,
-        systemTransactionExtraDataProvider)
+        systemTransactionExtraDataProvider, instrumentation)
     {
     }
 

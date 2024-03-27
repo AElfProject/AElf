@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.Kernel.Blockchain.Application;
@@ -16,16 +17,19 @@ internal class DonateResourceTokenValidationProvider : IBlockValidationProvider
 
     private readonly ISmartContractAddressService _smartContractAddressService;
     private readonly ITotalResourceTokensMapsProvider _totalResourceTokensMapsProvider;
+    private readonly ActivitySource _activitySource;   
 
     public DonateResourceTokenValidationProvider(ITotalResourceTokensMapsProvider totalResourceTokensMapsProvider,
         ISmartContractAddressService smartContractAddressService,
-        IContractReaderFactory<TokenContractImplContainer.TokenContractImplStub> contractReaderFactory)
+        IContractReaderFactory<TokenContractImplContainer.TokenContractImplStub> contractReaderFactory,
+        Instrumentation instrumentation)
     {
         _totalResourceTokensMapsProvider = totalResourceTokensMapsProvider;
         _smartContractAddressService = smartContractAddressService;
         _contractReaderFactory = contractReaderFactory;
 
         Logger = NullLogger<DonateResourceTokenValidationProvider>.Instance;
+        _activitySource = instrumentation.ActivitySource;
     }
 
     public ILogger<DonateResourceTokenValidationProvider> Logger { get; set; }
@@ -57,6 +61,7 @@ internal class DonateResourceTokenValidationProvider : IBlockValidationProvider
     /// <returns></returns>
     public async Task<bool> ValidateBlockAfterExecuteAsync(IBlock block)
     {
+        using var activity = _activitySource.StartActivity();
         if (block.Header.Height == AElfConstants.GenesisBlockHeight) return true;
 
         var tokenContractAddress =

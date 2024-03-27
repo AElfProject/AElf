@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.Kernel.Blockchain.Application;
@@ -16,16 +17,19 @@ internal class ClaimTransactionFeesValidationProvider : IBlockValidationProvider
 
     private readonly ISmartContractAddressService _smartContractAddressService;
     private readonly ITotalTransactionFeesMapProvider _totalTransactionFeesMapProvider;
+    private readonly ActivitySource _activitySource;
 
     public ClaimTransactionFeesValidationProvider(ITotalTransactionFeesMapProvider totalTransactionFeesMapProvider,
         ISmartContractAddressService smartContractAddressService,
-        IContractReaderFactory<TokenContractImplContainer.TokenContractImplStub> contractReaderFactory)
+        IContractReaderFactory<TokenContractImplContainer.TokenContractImplStub> contractReaderFactory,
+        Instrumentation instrumentation)
     {
         _totalTransactionFeesMapProvider = totalTransactionFeesMapProvider;
         _smartContractAddressService = smartContractAddressService;
         _contractReaderFactory = contractReaderFactory;
 
         Logger = NullLogger<ClaimTransactionFeesValidationProvider>.Instance;
+        _activitySource = instrumentation.ActivitySource;
     }
 
     public ILogger<ClaimTransactionFeesValidationProvider> Logger { get; set; }
@@ -57,6 +61,9 @@ internal class ClaimTransactionFeesValidationProvider : IBlockValidationProvider
     /// <returns></returns>
     public async Task<bool> ValidateBlockAfterExecuteAsync(IBlock block)
     {
+        using var activity = _activitySource.StartActivity();
+
+        var now = TimestampHelper.GetUtcNow();
         var tokenContractAddress =
             await _smartContractAddressService.GetAddressByContractNameAsync(new ChainContext
             {

@@ -42,34 +42,23 @@ public class BlockAttachService : IBlockAttachService, ITransientDependency
     public async Task AttachBlockAsync(Block block)
     {
         using var activity = _activitySource.StartActivity();
-        var stopwatch = Stopwatch.StartNew();
+        
         var chain = await _blockchainService.GetChainAsync();
         var status = await _blockchainService.AttachBlockToChainAsync(chain, block);
-        stopwatch.Stop();
-        Logger.LogDebug("AttachBlockToChainAsync time{Time} ",
-            stopwatch.ElapsedMilliseconds);
         if (!status.HasFlag(BlockAttachOperationStatus.LongestChainFound))
         {
             Logger.LogDebug($"Try to attach to chain but the status is {status}.");
             return;
         }
-
-        stopwatch.Start();
         var notExecutedChainBlockLinks =
             await _chainBlockLinkService.GetNotExecutedChainBlockLinksAsync(chain.LongestChainHash);
         var notExecutedBlocks =
             await _blockchainService.GetBlocksAsync(notExecutedChainBlockLinks.Select(l => l.BlockHash));
-        stopwatch.Stop();
-        Logger.LogDebug("GetNotExecutedChainBlockLinksAsync time{Time} ",
-            stopwatch.ElapsedMilliseconds);
+       
         var executionResult = new BlockExecutionResult();
         try
         {
-            stopwatch.Start();
             executionResult = await _blockchainExecutingService.ExecuteBlocksAsync(notExecutedBlocks);
-            stopwatch.Stop();
-            Logger.LogDebug("blockchainExecutingService.ExecuteBlocksAsync time{Time} ",
-                stopwatch.ElapsedMilliseconds);
         }
         catch (Exception e)
         {

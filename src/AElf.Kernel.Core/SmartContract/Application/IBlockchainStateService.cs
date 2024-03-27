@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Linq;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Domain;
@@ -26,6 +27,7 @@ public interface IBlockchainExecutedDataService
 public class BlockchainExecutedDataService : IBlockchainExecutedDataService
 {
     private readonly IBlockchainExecutedDataManager _blockchainExecutedDataManager;
+    private readonly ActivitySource _activitySource;
 
     public BlockchainExecutedDataService(IBlockchainExecutedDataManager blockchainExecutedDataManager)
     {
@@ -118,13 +120,17 @@ public class BlockchainStateService : IBlockchainStateService
 {
     private readonly IBlockchainService _blockchainService;
     private readonly IBlockStateSetManger _blockStateSetManger;
+    private readonly ActivitySource _activitySource;
+
 
     public BlockchainStateService(IBlockchainService blockchainService,
-        IBlockStateSetManger blockStateSetManger)
+        IBlockStateSetManger blockStateSetManger, Instrumentation instrumentation)
     {
         _blockchainService = blockchainService;
         _blockStateSetManger = blockStateSetManger;
         Logger = NullLogger<BlockchainStateService>.Instance;
+        _activitySource = instrumentation.ActivitySource;
+        
     }
 
     public ILogger<BlockchainStateService> Logger { get; set; }

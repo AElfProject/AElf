@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Linq;
 using AElf.CSharp.Core.Extension;
 using AElf.Kernel.Blockchain.Application;
@@ -12,17 +13,19 @@ internal class CodeCheckValidationProvider : IBlockValidationProvider
     private readonly ICheckedCodeHashProvider _checkedCodeHashProvider;
     private readonly IContractReaderFactory<ACS0Container.ACS0Stub> _contractReaderFactory;
     private readonly ISmartContractAddressService _smartContractAddressService;
-
+    private readonly ActivitySource _activitySource;
     public CodeCheckValidationProvider(ISmartContractAddressService smartContractAddressService,
         IContractReaderFactory<ACS0Container.ACS0Stub> contractReaderFactory,
         ICheckedCodeHashProvider checkedCodeHashProvider,
-        IOptionsSnapshot<CodeCheckOptions> codeCheckOptions)
+        IOptionsSnapshot<CodeCheckOptions> codeCheckOptions,
+        Instrumentation instrumentation)
     {
         _smartContractAddressService = smartContractAddressService;
         _contractReaderFactory = contractReaderFactory;
         _checkedCodeHashProvider = checkedCodeHashProvider;
 
         Logger = NullLogger<CodeCheckValidationProvider>.Instance;
+        _activitySource = instrumentation.ActivitySource;
     }
 
     public ILogger<CodeCheckValidationProvider> Logger { get; set; }
@@ -39,6 +42,8 @@ internal class CodeCheckValidationProvider : IBlockValidationProvider
 
     public async Task<bool> ValidateBlockAfterExecuteAsync(IBlock block)
     {
+        using var activity = _activitySource.StartActivity();
+
         if (block.Header.Height == AElfConstants.GenesisBlockHeight) return true;
 
         var genesisContractAddress = _smartContractAddressService.GetZeroSmartContractAddress();

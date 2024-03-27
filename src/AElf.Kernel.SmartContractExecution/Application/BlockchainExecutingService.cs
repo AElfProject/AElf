@@ -20,11 +20,13 @@ public class FullBlockchainExecutingService : IBlockchainExecutingService, ITran
     private readonly IBlockStateSetManger _blockStateSetManger;
     private readonly IBlockValidationService _blockValidationService;
     private readonly ITransactionResultService _transactionResultService;
+    private readonly ActivitySource _activitySource;
 
     public FullBlockchainExecutingService(IBlockchainService blockchainService,
         IBlockValidationService blockValidationService,
         IBlockExecutingService blockExecutingService,
-        ITransactionResultService transactionResultService, IBlockStateSetManger blockStateSetManger)
+        ITransactionResultService transactionResultService, IBlockStateSetManger blockStateSetManger,
+        Instrumentation instrumentation)
     {
         _blockchainService = blockchainService;
         _blockValidationService = blockValidationService;
@@ -33,6 +35,7 @@ public class FullBlockchainExecutingService : IBlockchainExecutingService, ITran
         _blockStateSetManger = blockStateSetManger;
 
         LocalEventBus = NullLocalEventBus.Instance;
+        _activitySource = instrumentation.ActivitySource;
     }
 
     public ILocalEventBus LocalEventBus { get; set; }
@@ -128,6 +131,7 @@ public class FullBlockchainExecutingService : IBlockchainExecutingService, ITran
     /// <returns>Block processing result is true if succeed, otherwise false.</returns>
     private async Task<BlockExecutedSet> ProcessBlockAsync(Block block)
     {
+        using var activity = _activitySource.StartActivity();
         var blockHash = block.GetHash();
         // Set the other blocks as bad block if found the first bad block
         

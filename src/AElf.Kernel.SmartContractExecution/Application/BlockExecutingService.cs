@@ -25,17 +25,20 @@ public class BlockExecutingService : IBlockExecutingService, ITransientDependenc
     private readonly ISystemTransactionExtraDataProvider _systemTransactionExtraDataProvider;
     private readonly ITransactionExecutingService _transactionExecutingService;
     private readonly ITransactionResultService _transactionResultService;
+    private readonly ActivitySource _activitySource;
 
     public BlockExecutingService(ITransactionExecutingService transactionExecutingService,
         IBlockchainStateService blockchainStateService,
         ITransactionResultService transactionResultService,
-        ISystemTransactionExtraDataProvider systemTransactionExtraDataProvider)
+        ISystemTransactionExtraDataProvider systemTransactionExtraDataProvider,
+        Instrumentation instrumentation)
     {
         _transactionExecutingService = transactionExecutingService;
         _blockchainStateService = blockchainStateService;
         _transactionResultService = transactionResultService;
         _systemTransactionExtraDataProvider = systemTransactionExtraDataProvider;
         EventBus = NullLocalEventBus.Instance;
+        _activitySource = instrumentation.ActivitySource;
     }
 
     public ILocalEventBus EventBus { get; set; }
@@ -55,8 +58,7 @@ public class BlockExecutingService : IBlockExecutingService, ITransientDependenc
         IEnumerable<Transaction> nonCancellableTransactions, IEnumerable<Transaction> cancellableTransactions,
         CancellationToken cancellationToken)
     {
-        Logger.LogTrace("Entered ExecuteBlockAsync");
-        var stopwatch = Stopwatch.StartNew();
+        using var activity = _activitySource.StartActivity();
         var nonCancellable = nonCancellableTransactions.ToList();
         var cancellable = cancellableTransactions.ToList();
         var nonCancellableReturnSets =
@@ -64,15 +66,12 @@ public class BlockExecutingService : IBlockExecutingService, ITransientDependenc
                 new TransactionExecutingDto { BlockHeader = blockHeader, Transactions = nonCancellable },
                 CancellationToken.None);
         Logger.LogTrace("Executed non-cancellable txs");
-        stopwatch.Stop();
-        Logger.LogDebug("Executed non-cancellable time{Time} ",
-            stopwatch.ElapsedMilliseconds);
+       
         var returnSetCollection = new ExecutionReturnSetCollection(nonCancellableReturnSets);
         var cancellableReturnSets = new List<ExecutionReturnSet>();
 
         if (!cancellationToken.IsCancellationRequested && cancellable.Count > 0)
         {
-            stopwatch.Start();
             cancellableReturnSets = await _transactionExecutingService.ExecuteAsync(
                 new TransactionExecutingDto
                 {
@@ -82,9 +81,6 @@ public class BlockExecutingService : IBlockExecutingService, ITransientDependenc
                 },
                 cancellationToken);
             returnSetCollection.AddRange(cancellableReturnSets);
-            stopwatch.Stop();
-            Logger.LogDebug("Executed cancellable time{Time} ",
-                stopwatch.ElapsedMilliseconds);
            
         }
 
@@ -97,20 +93,15 @@ public class BlockExecutingService : IBlockExecutingService, ITransientDependenc
             CreateBlockStateSet(blockHeader.PreviousBlockHash, blockHeader.Height, returnSetCollection);
         var block = await FillBlockAfterExecutionAsync(blockHeader, allExecutedTransactions, returnSetCollection,
             blockStateSet);
-        stopwatch.Start();
+        
         // set txn results
         var transactionResults = await SetTransactionResultsAsync(returnSetCollection, block.Header);
-        stopwatch.Stop();
-        Logger.LogDebug("SetTransactionResultsAsync time{Time} ",
-            stopwatch.ElapsedMilliseconds);
-        stopwatch.Start();
+       
         // set blocks state
         blockStateSet.BlockHash = block.GetHash();
         Logger.LogTrace("Set block state set.");
         await _blockchainStateService.SetBlockStateSetAsync(blockStateSet);
-        stopwatch.Stop();
-        Logger.LogDebug("SetBlockStateSetAsync time{Time} ",
-            stopwatch.ElapsedMilliseconds);
+    
         // handle execution cases 
         await CleanUpReturnSetCollectionAsync(block.Header, returnSetCollection);
 
@@ -249,6 +240,7 @@ public class BlockExecutingService : IBlockExecutingService, ITransientDependenc
     private async Task<List<TransactionResult>> SetTransactionResultsAsync(
         ExecutionReturnSetCollection executionReturnSetCollection, BlockHeader blockHeader)
     {
+        using var activity = _activitySource.StartActivity();
         //save all transaction results
         var results = executionReturnSetCollection.GetExecutionReturnSetList()
             .Select(p =>

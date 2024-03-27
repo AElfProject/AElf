@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Threading.Tasks;
 using AElf.CrossChain.Indexing.Application;
 using AElf.CSharp.Core.Extension;
@@ -17,16 +18,18 @@ public class CrossChainValidationProvider : IBlockValidationProvider
     private readonly ICrossChainIndexingDataService _crossChainIndexingDataService;
     private readonly ICrossChainRequestService _crossChainRequestService;
     private readonly ISmartContractAddressService _smartContractAddressService;
-
+    private readonly ActivitySource _activitySource;
     public CrossChainValidationProvider(ICrossChainIndexingDataService crossChainIndexingDataService,
         IBlockExtraDataService blockExtraDataService, ISmartContractAddressService smartContractAddressService,
-        ICrossChainRequestService crossChainRequestService)
+        ICrossChainRequestService crossChainRequestService,
+        Instrumentation instrumentation)
     {
         _crossChainIndexingDataService = crossChainIndexingDataService;
         _blockExtraDataService = blockExtraDataService;
         _smartContractAddressService = smartContractAddressService;
         _crossChainRequestService = crossChainRequestService;
         LocalEventBus = NullLocalEventBus.Instance;
+        _activitySource = instrumentation.ActivitySource;
     }
 
     public ILocalEventBus LocalEventBus { get; set; }
@@ -48,6 +51,8 @@ public class CrossChainValidationProvider : IBlockValidationProvider
 
     public async Task<bool> ValidateBlockAfterExecuteAsync(IBlock block)
     {
+        using var activity = _activitySource.StartActivity();
+   
         if (block.Header.Height == AElfConstants.GenesisBlockHeight)
             return true;
 
