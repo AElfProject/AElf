@@ -34,6 +34,10 @@ public class ExecutionObserverThresholdProvider : BlockExecutedDataBaseProvider<
                                            SmartContractConstants.ExecutionBranchThreshold;
         var callCountObserverThreshold = GetBlockExecutedData(blockIndex, CallCountThresholdKey)?.Value ??
                                          SmartContractConstants.ExecutionBranchThreshold;
+        var branchCountObserverThresholdValue = GetBlockExecutedData(blockIndex, BranchCountThresholdKey)?.Value;
+        var callCountObserverThresholdValue = GetBlockExecutedData(blockIndex, BranchCountThresholdKey)?.Value;
+        Logger.LogDebug(
+            $"ExecutionObserverThreshold value branchCountObserverThresholdValue {branchCountObserverThresholdValue}. callCountObserverThresholdValue {callCountObserverThresholdValue}");
         return new ExecutionObserverThreshold
         {
             ExecutionBranchThreshold = branchCountObserverThreshold,

@@ -82,9 +82,8 @@ public class BlockExecutingService : IBlockExecutingService, ITransientDependenc
                 },
                 cancellationToken);
             returnSetCollection.AddRange(cancellableReturnSets);
-            Logger.LogTrace("Executed cancellable txs");
             stopwatch.Stop();
-            Logger.LogDebug("Executed non-cancellable time{Time} ",
+            Logger.LogDebug("Executed cancellable time{Time} ",
                 stopwatch.ElapsedMilliseconds);
            
         }
@@ -109,6 +108,7 @@ public class BlockExecutingService : IBlockExecutingService, ITransientDependenc
         blockStateSet.BlockHash = block.GetHash();
         Logger.LogTrace("Set block state set.");
         await _blockchainStateService.SetBlockStateSetAsync(blockStateSet);
+        stopwatch.Stop();
         Logger.LogDebug("SetBlockStateSetAsync time{Time} ",
             stopwatch.ElapsedMilliseconds);
         // handle execution cases 

@@ -78,11 +78,7 @@ public class BlockAttachService : IBlockAttachService, ITransientDependency
         }
         finally
         {
-            stopwatch.Start();
             await _blockExecutionResultProcessingService.ProcessBlockExecutionResultAsync(chain, executionResult);
-            stopwatch.Stop();
-            Logger.LogDebug("ProcessBlockExecutionResultAsync time{Time} ",
-                stopwatch.ElapsedMilliseconds);
         }
     }
 }

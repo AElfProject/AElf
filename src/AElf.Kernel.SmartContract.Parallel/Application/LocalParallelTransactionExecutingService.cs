@@ -43,11 +43,10 @@ public class LocalParallelTransactionExecutingService : IParallelTransactionExec
     public async Task<List<ExecutionReturnSet>> ExecuteAsync(TransactionExecutingDto transactionExecutingDto,
         CancellationToken cancellationToken)
     {
-        var stopwatch = Stopwatch.StartNew();
+      
         Logger.LogTrace("Entered parallel ExecuteAsync.");
         var transactions = transactionExecutingDto.Transactions.ToList();
         var blockHeader = transactionExecutingDto.BlockHeader;
-
         using var scope = Logger.BeginScope("{Id}", blockHeader.Height);
         using var activity = _activitySource.StartActivity();
         _receivedTxsCounter.Add(transactions.Count);
@@ -58,13 +57,9 @@ public class LocalParallelTransactionExecutingService : IParallelTransactionExec
             BlockHeight = blockHeader.Height - 1
         };
         var groupedTransactions = await _grouper.GroupAsync(chainContext, transactions);
-        stopwatch.Stop();
-        Logger.LogDebug("LocalParallelTransactionExecutingServiceGroupAsync time{Time} ",
-            stopwatch.ElapsedMilliseconds);
         activity?.AddTag("tx grouped", groupedTransactions.Parallelizables.Count);
-        
         var returnSets = new List<ExecutionReturnSet>();
-        stopwatch.Start();
+       
         var mergeResult = await ExecuteParallelizableTransactionsAsync(groupedTransactions.Parallelizables,
             blockHeader, transactionExecutingDto.PartialBlockStateSet, cancellationToken);
         returnSets.AddRange(mergeResult.ExecutionReturnSets);
@@ -72,17 +67,14 @@ public class LocalParallelTransactionExecutingService : IParallelTransactionExec
 
         var returnSetCollection = new ExecutionReturnSetCollection(returnSets);
         var updatedPartialBlockStateSet = GetUpdatedBlockStateSet(returnSetCollection, transactionExecutingDto);
-        stopwatch.Stop();
-        Logger.LogDebug("ExecuteParallelizableTransactionsAsync time{Time} ",
-            stopwatch.ElapsedMilliseconds);
-        stopwatch.Start();
+
+        var stopwatch = Stopwatch.StartNew();
         var nonParallelizableReturnSets = await ExecuteNonParallelizableTransactionsAsync(
             groupedTransactions.NonParallelizables, blockHeader,
             updatedPartialBlockStateSet, cancellationToken);
         stopwatch.Stop();
         Logger.LogDebug("ExecuteNonParallelizableTransactionsAsync time{Time} ",
             stopwatch.ElapsedMilliseconds);
-        stopwatch.Start();
         returnSets.AddRange(nonParallelizableReturnSets);
 
         var transactionWithoutContractReturnSets = ProcessTransactionsWithoutContract(
