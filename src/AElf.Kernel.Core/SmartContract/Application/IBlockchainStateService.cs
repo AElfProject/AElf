@@ -27,7 +27,6 @@ public interface IBlockchainExecutedDataService
 public class BlockchainExecutedDataService : IBlockchainExecutedDataService
 {
     private readonly IBlockchainExecutedDataManager _blockchainExecutedDataManager;
-    private readonly ActivitySource _activitySource;
 
     public BlockchainExecutedDataService(IBlockchainExecutedDataManager blockchainExecutedDataManager)
     {
@@ -182,6 +181,7 @@ public class BlockchainStateService : IBlockchainStateService
 
     public async Task SetBlockStateSetAsync(BlockStateSet blockStateSet)
     {
+        using var activity = _activitySource.StartActivity();
         await _blockStateSetManger.SetBlockStateSetAsync(blockStateSet);
     }
 
