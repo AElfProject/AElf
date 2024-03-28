@@ -65,4 +65,6 @@ public partial class TokenContractState : ContractState
     public SingletonState<Address> VoteContractAddress { get; set; }
     
     public SingletonState<bool> TokenIssuerAndOwnerModificationDisabled { get; set; }
+
+    public SingletonState<int> MaxBatchApproveCount { get; set; }
 }
