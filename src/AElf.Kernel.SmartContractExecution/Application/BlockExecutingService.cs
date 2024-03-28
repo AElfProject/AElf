@@ -59,6 +59,7 @@ public class BlockExecutingService : IBlockExecutingService, ITransientDependenc
         CancellationToken cancellationToken)
     {
         using var activity = _activitySource.StartActivity();
+        var stopwatch = Stopwatch.StartNew();
         var nonCancellable = nonCancellableTransactions.ToList();
         var cancellable = cancellableTransactions.ToList();
         var nonCancellableReturnSets =
@@ -66,12 +67,15 @@ public class BlockExecutingService : IBlockExecutingService, ITransientDependenc
                 new TransactionExecutingDto { BlockHeader = blockHeader, Transactions = nonCancellable },
                 CancellationToken.None);
         Logger.LogTrace("Executed non-cancellable txs");
-       
+        stopwatch.Stop();
+        Logger.LogDebug("Executed non-cancellable time{Time} ",
+            stopwatch.ElapsedMilliseconds);
         var returnSetCollection = new ExecutionReturnSetCollection(nonCancellableReturnSets);
         var cancellableReturnSets = new List<ExecutionReturnSet>();
 
         if (!cancellationToken.IsCancellationRequested && cancellable.Count > 0)
         {
+            stopwatch.Start();
             cancellableReturnSets = await _transactionExecutingService.ExecuteAsync(
                 new TransactionExecutingDto
                 {
@@ -81,7 +85,9 @@ public class BlockExecutingService : IBlockExecutingService, ITransientDependenc
                 },
                 cancellationToken);
             returnSetCollection.AddRange(cancellableReturnSets);
-           
+            stopwatch.Stop();
+            Logger.LogDebug("Executed cancellable time{Time} ",
+                stopwatch.ElapsedMilliseconds);
         }
 
        
