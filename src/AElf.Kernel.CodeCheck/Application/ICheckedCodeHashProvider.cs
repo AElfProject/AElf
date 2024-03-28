@@ -17,10 +17,10 @@ internal class CheckedCodeHashProvider : BlockExecutedDataBaseProvider<ContractC
 
     public CheckedCodeHashProvider(
         ICachedBlockchainExecutedDataService<ContractCodeHashMap> cachedBlockchainExecutedDataService,
-        IOptionsSnapshot<CodeCheckOptions> codeCheckOptions) :
+        IOptionsMonitor<CodeCheckOptions> codeCheckOptions) :
         base(cachedBlockchainExecutedDataService)
     {
-        _codeCheckOptions = codeCheckOptions.Value;
+        _codeCheckOptions = codeCheckOptions.CurrentValue;
         Logger = NullLogger<CheckedCodeHashProvider>.Instance;
     }
 

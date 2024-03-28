@@ -68,18 +68,19 @@ public class CodeCheckRequiredLogEventProcessor : LogEventProcessorBase, IBlocks
                         ProposedContractInputHash = eventData.ProposedContractInputHash
                     };
                     var sendResult = await _codeCheckJobProcessor.SendAsync(codeCheckJob);
-                    Logger.LogInformation($"Sent code check job: {codeCheckJob}");
 
                     if (!sendResult)
                     {
                         Logger.LogError(
                             "Unable to perform code check. BlockHash: {BlockHash}, BlockHeight: {BlockHeight}, CodeHash: {CodeHash}, ProposalId: {ProposalId}",
-                            block.GetHash().ToHex(), block.Height, HashHelper.ComputeFrom(code).ToHex(), proposalId.ToHex());
+                            block.GetHash().ToHex(), block.Height, HashHelper.ComputeFrom(code).ToHex(),
+                            proposalId.ToHex());
                     }
                 }
                 catch (Exception e)
                 {
                     Logger.LogError("Error while processing CodeCheckRequired log event. {0}", e);
+                    throw new CodeCheckJobException($"Error while processing CodeCheckRequired log event. {e}");
                 }
             }
         }
