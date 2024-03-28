@@ -61,7 +61,8 @@ internal class DonateResourceTokenValidationProvider : IBlockValidationProvider
     /// <returns></returns>
     public async Task<bool> ValidateBlockAfterExecuteAsync(IBlock block)
     {
-        using var activity = _activitySource.StartActivity();
+        using var activity =
+            _activitySource.StartActivity("DonateResourceTokenValidationProvider.ValidateBlockAfterExecuteAsync");
         if (block.Header.Height == AElfConstants.GenesisBlockHeight) return true;
 
         var tokenContractAddress =

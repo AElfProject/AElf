@@ -42,7 +42,8 @@ internal class CodeCheckValidationProvider : IBlockValidationProvider
 
     public async Task<bool> ValidateBlockAfterExecuteAsync(IBlock block)
     {
-        using var activity = _activitySource.StartActivity();
+        using var activity =
+            _activitySource.StartActivity("CodeCheckValidationProvider.ValidateBlockAfterExecuteAsync");
 
         if (block.Header.Height == AElfConstants.GenesisBlockHeight) return true;
 

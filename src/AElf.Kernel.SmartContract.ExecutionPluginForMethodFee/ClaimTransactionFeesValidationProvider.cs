@@ -61,7 +61,8 @@ internal class ClaimTransactionFeesValidationProvider : IBlockValidationProvider
     /// <returns></returns>
     public async Task<bool> ValidateBlockAfterExecuteAsync(IBlock block)
     {
-        using var activity = _activitySource.StartActivity();
+        using var activity =
+            _activitySource.StartActivity("ClaimTransactionFeesValidationProvider.ValidateBlockAfterExecuteAsync");
 
         var now = TimestampHelper.GetUtcNow();
         var tokenContractAddress =
