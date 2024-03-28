@@ -28,3 +28,12 @@ message VirtualTransactionBlocked {
   bytes params = 5;
   aelf.Address signatory = 6 [(aelf.is_indexed) = true];
 }
+
+message VirtualTransactionBlockedWhiteListItem {
+  aelf.Address address = 1 ;
+  string event_name = 2 ;
+}
+
+message VirtualTransactionBlockedWhiteList {
+  repeated VirtualTransactionBlockedWhiteListItem items = 1;
+}
