@@ -32,8 +32,6 @@ public class SiloTransactionExecutingService : IPlainTransactionExecutingService
     {
         try
         {
-            using var activity = _activitySource.StartActivity();
-
             var grain = _plainTransactionExecutingGrainProvider.GetGrain();
             var result = await grain.ExecuteAsync(transactionExecutingDto, cancellationToken);
             _plainTransactionExecutingGrainProvider.PutGrain(grain);
