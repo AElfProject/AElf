@@ -83,6 +83,11 @@ service TokenContractImpl {
     rpc RemoveTransactionFeeFreeAllowancesConfig (RemoveTransactionFeeFreeAllowancesConfigInput) returns (google.protobuf.Empty) {
     }
 
+    rpc SetMaxBatchApproveCount (google.protobuf.Int32Value) returns (google.protobuf.Empty) {
+        
+    }
+    
+
     // Delegatee sets the delegation and related information of the delegator based on a transaction.
     rpc SetTransactionFeeDelegateInfos (SetTransactionFeeDelegateInfosInput) returns (google.protobuf.Empty){
     }
@@ -162,6 +167,20 @@ service TokenContractImpl {
     // Get delegation according to the delegator,transaction and delegatee.
     rpc GetTransactionFeeDelegateInfo(GetTransactionFeeDelegateInfoInput) returns (token.TransactionFeeDelegations){
         option (aelf.is_view) = true;
+    }
+    
+    rpc ModifyTokenIssuerAndOwner(ModifyTokenIssuerAndOwnerInput) returns (google.protobuf.Empty) {
+    }
+    
+    rpc SetTokenIssuerAndOwnerModificationEnabled(SetTokenIssuerAndOwnerModificationEnabledInput) returns (google.protobuf.Empty) {
+    }
+    
+    rpc GetTokenIssuerAndOwnerModificationEnabled(google.protobuf.Empty) returns (google.protobuf.BoolValue) {
+        option (aelf.is_view) = true;
+    }
+
+    rpc GetMaxBatchApproveCount (google.protobuf.Empty) returns (google.protobuf.Int32Value) {
+
     }
 }
 
@@ -415,4 +434,14 @@ message TransactionFeeDelegateInfoCancelled {
     aelf.Address delegatee = 2 ;
     aelf.Address caller = 3 ;
     DelegateTransactionList delegate_transaction_list = 4;
+}
+
+message ModifyTokenIssuerAndOwnerInput {
+    string symbol = 1;
+    aelf.Address issuer = 2;
+    aelf.Address owner = 3;
+}
+
+message SetTokenIssuerAndOwnerModificationEnabledInput{
+    bool enabled = 1;
 }

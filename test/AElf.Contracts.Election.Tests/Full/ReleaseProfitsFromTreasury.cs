@@ -383,11 +383,11 @@ public partial class ElectionContractTests
             })).Balance;
 
             var profitTester = GetProfitContractTester(VoterKeyPairs[0]);
-            var profitAmount = (await profitTester.GetProfitAmount.CallAsync(new GetProfitAmountInput
+            var profitAmount = (await profitTester.GetAllProfitAmount.CallAsync(new GetAllProfitAmountInput
             {
                 SchemeId = ProfitItemsIds[ProfitType.CitizenWelfare],
                 Symbol = EconomicContractsTestConstants.NativeTokenSymbol
-            })).Value;
+            })).OneTimeClaimableProfitAmount;
             profitAmount.ShouldBeGreaterThan(0);
 
             var profitResult = await profitTester.ClaimProfits.SendAsync(new ClaimProfitsInput
@@ -636,11 +636,11 @@ public partial class ElectionContractTests
                 break;
         }
 
-        return (await stub.GetProfitAmount.CallAsync(new GetProfitAmountInput
+        return (await stub.GetAllProfitAmount.CallAsync(new GetAllProfitAmountInput
         {
             SchemeId = ProfitItemsIds[type],
             Symbol = EconomicContractsTestConstants.NativeTokenSymbol
-        })).Value;
+        })).OneTimeClaimableProfitAmount;
     }
 
     private async Task<long> GetReleasedAmount()
