@@ -40,7 +40,10 @@ service TokenContract {
     // enabling the Spender to call TransferFrom.
     rpc Approve (ApproveInput) returns (google.protobuf.Empty) {
     }
-
+    
+    rpc BatchApprove (BatchApproveInput) returns (google.protobuf.Empty) {
+    }
+    
     // This is the reverse operation for Approve, it will decrease the allowance.
     rpc UnApprove (UnApproveInput) returns (google.protobuf.Empty) {
     }
@@ -354,6 +357,9 @@ message ApproveInput {
     // The amount of token to approve.
     int64 amount = 3;
 }
+message BatchApproveInput {
+    repeated ApproveInput value = 1;
+}
 
 message UnApproveInput {
     // The address that allowance will be decreased. 
@@ -632,19 +638,6 @@ message TotalResourceTokensMap
     map<string, int64> value = 1;
 }
 
-message ChangeTokenIssuerInput
-{
-    // The token symbol.
-    string symbol = 1;
-    // The new token issuer for change.
-    aelf.Address new_token_Issuer = 2;
-}
-
-message ResetExternalInfoInput {
-    string symbol = 1;
-    ExternalInfo external_info = 2;
-}
-
 message StringList {
     repeated string value = 1;
 }
@@ -851,12 +844,6 @@ message CrossChainReceived {
     int64 parent_chain_height = 8;
     // The id of transfer transaction.
     aelf.Hash transfer_transaction_id =9;
-}
-
-message ExternalInfoChanged {
-    option (aelf.is_event) = true;
-    string symbol = 1;
-    ExternalInfo external_info = 2;
 }
 
 message TransactionFeeDelegationAdded {
