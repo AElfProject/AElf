@@ -256,7 +256,7 @@ public partial class TokenContract
     private void CheckTokenExists(string symbol)
     {
         var empty = new TokenInfo();
-        // check past token
+        // check old token
         var existing = State.TokenInfos[symbol.ToUpper()];
         Assert(existing == null || existing.Equals(empty), "Token already exists.");
         // check new token
