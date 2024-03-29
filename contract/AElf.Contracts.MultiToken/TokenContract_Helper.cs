@@ -82,8 +82,7 @@ public partial class TokenContract
 
     private static bool IsValidApproveSymbolChar(char character)
     {
-        return (character >= 'A' && character <= 'Z') || (character >= '0' && character <= '9') ||
-               character == TokenContractConstants.NFTSymbolSeparator ||
+        return IsValidSymbolChar(character) ||
                character == TokenContractConstants.GlobalAllowanceIdentifier;
     }
     
