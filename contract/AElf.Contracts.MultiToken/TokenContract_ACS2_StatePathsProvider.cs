@@ -44,8 +44,6 @@ public partial class TokenContract
                 {
                     WritePaths =
                     {
-                        GetPath(nameof(TokenContractState.Allowances), args.From.ToString(), txn.From.ToString(),
-                            args.Symbol),
                         GetPath(nameof(TokenContractState.Balances), args.From.ToString(), args.Symbol),
                         GetPath(nameof(TokenContractState.Balances), args.To.ToString(), args.Symbol),
                         GetPath(nameof(TokenContractState.LockWhiteLists), args.Symbol, txn.From.ToString())
@@ -57,7 +55,7 @@ public partial class TokenContract
                         GetPath(nameof(TokenContractState.TransactionFeeFreeAllowancesSymbolList))
                     }
                 };
-
+                AddPathForAllowance(resourceInfo, txn.From.ToString(), args.From.ToString(), args.Symbol);
                 AddPathForTransactionFee(resourceInfo, txn.From.ToString(), txn.MethodName);
                 AddPathForDelegatees(resourceInfo, txn.From, txn.To, txn.MethodName);
                 AddPathForTransactionFeeFreeAllowance(resourceInfo, txn.From);
@@ -70,6 +68,17 @@ public partial class TokenContract
         }
     }
 
+    private void AddPathForAllowance(ResourceInfo resourceInfo, string txFrom, string spender, string symbol)
+    {
+        resourceInfo.WritePaths.Add(GetPath(nameof(TokenContractState.Allowances), txFrom, spender, symbol));
+        resourceInfo.WritePaths.Add(GetPath(nameof(TokenContractState.Allowances), txFrom, spender,
+            GetGlobalAllowanceSymbol()));
+        if (GetSymbolType(symbol) == SymbolType.Nft || GetSymbolType(symbol) == SymbolType.NftCollection)
+        {
+            resourceInfo.WritePaths.Add(GetPath(nameof(TokenContractState.Allowances), txFrom, spender,
+                GetNftGlobalAllowanceSymbol(symbol)));
+        }
+    }
 
     private void AddPathForTransactionFee(ResourceInfo resourceInfo, string from, string methodName)
     {

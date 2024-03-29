@@ -32,7 +32,7 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
     /// <returns></returns>
     public override Empty Create(CreateInput input)
     {
-        var inputSymbolType = GetCreateInputSymbolType(input.Symbol);
+        var inputSymbolType = GetSymbolType(input.Symbol);
         if (input.Owner == null)
         {
             input.Owner = input.Issuer;
@@ -253,7 +253,7 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
     public override Empty Approve(ApproveInput input)
     {
         AssertValidInputAddress(input.Spender);
-        AssertValidToken(input.Symbol, input.Amount);
+        AssertValidApproveTokenAndAmount(input.Symbol, input.Amount);
         Approve(input.Spender, input.Symbol, input.Amount);
         return new Empty();
     }
@@ -277,7 +277,7 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
         foreach (var approve in input.Value)
         {
             AssertValidInputAddress(approve.Spender);
-            AssertValidToken(approve.Symbol, approve.Amount);
+            AssertValidApproveTokenAndAmount(approve.Symbol, approve.Amount);
         }
         var approveInputList = input.Value.GroupBy(approve => approve.Symbol + approve.Spender, approve => approve)
             .Select(approve => approve.Last()).ToList();
@@ -289,7 +289,7 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
     public override Empty UnApprove(UnApproveInput input)
     {
         AssertValidInputAddress(input.Spender);
-        AssertValidToken(input.Symbol, input.Amount);
+        AssertValidApproveTokenAndAmount(input.Symbol, input.Amount);
         var oldAllowance = State.Allowances[Context.Sender][input.Spender][input.Symbol];
         var amountOrAll = Math.Min(input.Amount, oldAllowance);
         State.Allowances[Context.Sender][input.Spender][input.Symbol] = oldAllowance.Sub(amountOrAll);

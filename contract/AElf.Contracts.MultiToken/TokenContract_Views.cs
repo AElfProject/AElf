@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -48,12 +49,22 @@ public partial class TokenContract
     [View]
     public override GetAllowanceOutput GetAllowance(GetAllowanceInput input)
     {
+        var allowance = State.Allowances[input.Owner][input.Spender][input.Symbol];
+        if (!input.Symbol.Contains(TokenContractConstants.GlobalAllowanceIdentifier))
+        {
+            var symbolType = GetSymbolType(input.Symbol);
+            allowance = Math.Max(allowance, GetGlobalAllowance(input.Owner,input.Spender,out _));
+            if (symbolType == SymbolType.Nft || symbolType == SymbolType.NftCollection)
+            {
+                allowance = Math.Max(allowance, GetNftGlobalAllowance(input.Owner, input.Spender, input.Symbol, out _));
+            }
+        }
         return new GetAllowanceOutput
         {
             Symbol = input.Symbol,
             Owner = input.Owner,
             Spender = input.Spender,
-            Allowance = State.Allowances[input.Owner][input.Spender][input.Symbol]
+            Allowance = allowance
         };
     }
 

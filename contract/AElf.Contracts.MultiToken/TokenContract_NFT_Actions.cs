@@ -43,7 +43,7 @@ public partial class TokenContract
                        out var expirationTime)
                    && long.TryParse(expirationTime, out var expirationTimeLong) &&
                    Context.CurrentBlockTime.Seconds <= expirationTimeLong, "Invalid ownedSymbol.");
-            var ownedSymbolType = GetCreateInputSymbolType(ownedSymbol);
+            var ownedSymbolType = GetSymbolType(ownedSymbol);
             Assert(ownedSymbolType != SymbolType.Nft, "Invalid OwnedSymbol.");
             CheckSymbolLength(ownedSymbol, ownedSymbolType);
             CheckTokenAndCollectionExists(ownedSymbol);
@@ -73,7 +73,7 @@ public partial class TokenContract
         AssertValidInputAddress(to);
         
         // First check allowance.
-        var allowance = State.Allowances[from][spender][symbol];
+        var allowance = GetAllowance(from, spender, symbol, amount, out var allowanceSymbol);
         if (allowance < amount)
         {
             if (IsInWhiteList(new IsInWhiteListInput { Symbol = symbol, Address = spender }).Value)
@@ -92,7 +92,54 @@ public partial class TokenContract
         DoTransfer(from, to, symbol, amount, memo);
         DealWithExternalInfoDuringTransfer(new TransferFromInput()
             { From = from, To = to, Symbol = symbol, Amount = amount, Memo = memo });
-        State.Allowances[from][spender][symbol] = allowance.Sub(amount);
+        State.Allowances[from][spender][allowanceSymbol] = allowance.Sub(amount);
+    }
+
+    private long GetAllowance(Address from, Address spender, string sourceSymbol, long amount,
+        out string allowanceSymbol)
+    {
+        allowanceSymbol = sourceSymbol;
+        var allowance = State.Allowances[from][spender][sourceSymbol];
+        if (allowance >= amount) return allowance;
+        var tokenType = GetSymbolType(sourceSymbol);
+        if (tokenType == SymbolType.Token)
+        {
+            allowance = GetGlobalAllowance(from, spender, out allowanceSymbol);
+        }
+        else
+        {
+            allowance = GetNftGlobalAllowance(from, spender, sourceSymbol, out allowanceSymbol);
+            if (allowance >= amount) return allowance;
+            allowance = GetGlobalAllowance(from, spender, out allowanceSymbol);
+        }
+
+        return allowance;
+    }
+    
+
+    private long GetGlobalAllowance(Address from, Address spender, out string allowanceSymbol)
+    {
+        allowanceSymbol = GetGlobalAllowanceSymbol();
+        return State.Allowances[from][spender][allowanceSymbol];
+    }
+
+    private long GetNftGlobalAllowance(Address from, Address spender, string sourceSymbol,
+        out string allowanceSymbol)
+    {
+        allowanceSymbol = GetNftGlobalAllowanceSymbol(sourceSymbol);
+        return State.Allowances[from][spender][allowanceSymbol];
+    }
+
+    private string GetNftGlobalAllowanceSymbol(string sourceSymbol)
+    {
+        // "AAA-*"
+        return $"{sourceSymbol.Split(TokenContractConstants.NFTSymbolSeparator)[0]}-{TokenContractConstants.GlobalAllowanceIdentifier}";
+    }
+
+    private string GetGlobalAllowanceSymbol()
+    {
+        // "*"
+        return TokenContractConstants.GlobalAllowanceIdentifier.ToString();
     }
 
 
