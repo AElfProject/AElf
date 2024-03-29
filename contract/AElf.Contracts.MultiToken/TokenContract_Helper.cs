@@ -80,7 +80,7 @@ public partial class TokenContract
         return $"{symbolPrefix}-{TokenContractConstants.CollectionSymbolSuffix}";
     }
 
-    private static bool IsValidApproveSymbolChar(char character)
+    private bool IsValidApproveSymbolChar(char character)
     {
         return IsValidSymbolChar(character) ||
                character == TokenContractConstants.GlobalAllowanceIdentifier;
