@@ -8,8 +8,8 @@
         <Description>Fee Calculation Project.</Description>
     </PropertyGroup>
     <ItemGroup>
-        <ProjectReference Include="..\AElf.Kernel.SmartContract\AElf.Kernel.SmartContract.csproj"/>
-        <ProjectReference Include="..\AElf.Kernel.Token\AElf.Kernel.Token.csproj"/>
+        <ProjectReference Include="..\AElf.Kernel.SmartContract\AElf.Kernel.SmartContract.csproj" />
+        <ProjectReference Include="..\AElf.Kernel.Token\AElf.Kernel.Token.csproj" />
     </ItemGroup>
     <ItemGroup>
         <ContractBase Include="..\..\protobuf\token_contract.proto">

@@ -1,28 +1,26 @@
 ﻿using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
-using AElf.CSharp.Core.Extension;
-using AElf.Kernel.FeeCalculation.Extensions;
-using AElf.Kernel.FeeCalculation.Infrastructure;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContract.Events;
 using AElf.Kernel.Token;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Volo.Abp.EventBus.Local;
 
 namespace AElf.Kernel.FeeCalculation.Application;
 
 public class TransactionFeeCalculatorCoefficientUpdatedLogEventProcessor : LogEventProcessorBase,
     IBlockAcceptedLogEventProcessor
 {
-    private readonly ICalculateFunctionProvider _calculateFunctionProvider;
+    public ILocalEventBus LocalEventBus { get; set; }
     private readonly ISmartContractAddressService _smartContractAddressService;
 
     public TransactionFeeCalculatorCoefficientUpdatedLogEventProcessor(
-        ISmartContractAddressService smartContractAddressService,
-        ICalculateFunctionProvider calculateFunctionProvider)
+        ISmartContractAddressService smartContractAddressService)
     {
         _smartContractAddressService = smartContractAddressService;
-        _calculateFunctionProvider = calculateFunctionProvider;
+        LocalEventBus = NullLocalEventBus.Instance;
         Logger = NullLogger<TransactionFeeCalculatorCoefficientUpdatedLogEventProcessor>.Instance;
     }
 
@@ -49,12 +47,10 @@ public class TransactionFeeCalculatorCoefficientUpdatedLogEventProcessor : LogEv
 
     protected override async Task ProcessLogEventAsync(Block block, LogEvent logEvent)
     {
-        var eventData = new CalculateFeeAlgorithmUpdated();
-        eventData.MergeFrom(logEvent);
-        await _calculateFunctionProvider.AddCalculateFunctions(new BlockIndex
+        await LocalEventBus.PublishAsync(new LogEventContextData
         {
-            BlockHash = block.GetHash(),
-            BlockHeight = block.Height
-        }, eventData.AllTypeFeeCoefficients.ToCalculateFunctionDictionary());
+            Block = block,
+            LogEvent = logEvent
+        });
     }
 }
