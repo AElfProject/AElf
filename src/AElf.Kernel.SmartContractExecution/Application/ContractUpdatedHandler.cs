@@ -31,7 +31,7 @@ public class ContractUpdatedHandler : LogEventContextHandler
     {
         var address = _smartContractAddressService.GetZeroSmartContractAddress();
         if (address == null) return false;
-        if (logEvent.Address.Equals(address) && logEvent.Name.Equals(nameof(CodeUpdated)))
+        if (address.Equals(logEvent.Address) && logEvent.Name.Equals(nameof(CodeUpdated)))
             return true;
         return false;
     }

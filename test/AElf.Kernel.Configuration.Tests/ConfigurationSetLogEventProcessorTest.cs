@@ -12,7 +12,7 @@ using Xunit;
 
 namespace AElf.Kernel.Configuration.Tests;
 
-public partial class ConfigurationServiceTest
+public partial class ConfigurationServiceTest 
 {
     [Fact]
     public async Task GetInterestedEventAsync_Without_DeployContract_Test()
@@ -62,6 +62,7 @@ public partial class ConfigurationServiceTest
     [Fact]
     public async Task ProcessLogEventAsync_Test()
     {
+        await DeployContractsAsync();
         var blockTransactionLimitConfigurationProcessor = GetRequiredService<IConfigurationProcessor>();
         var configurationName = blockTransactionLimitConfigurationProcessor.ConfigurationName;
         var key = configurationName;
@@ -75,6 +76,7 @@ public partial class ConfigurationServiceTest
             Value = value.ToByteString()
         };
         var logEvent = setting.ToLogEvent();
+        logEvent.Address = ConfigurationContractAddress;
         var chain = await _blockchainService.GetChainAsync();
         var block = await _blockchainService.GetBlockByHeightInBestChainBranchAsync(chain.BestChainHeight);
         var configurationSetLogEventProcessor = GetRequiredService<IBlockAcceptedLogEventProcessor>();
