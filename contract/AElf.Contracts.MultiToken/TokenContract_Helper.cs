@@ -40,39 +40,39 @@ public partial class TokenContract
 
     private void AssertValidApproveTokenAndAmount(string symbol, long amount)
     {
-        Assert(!string.IsNullOrEmpty(symbol) && symbol.All(IsValidApproveSymbolChar),
-            "Invalid symbol.");
         Assert(amount > 0, "Invalid amount.");
-        var approveSymbol = GetApproveSymbol(symbol);
-        if (approveSymbol.All(IsValidGlobalAllowanceIdentifier)) return;
-        var tokenInfo = State.TokenInfos[approveSymbol];
-        Assert(tokenInfo != null && !string.IsNullOrEmpty(tokenInfo.Symbol),
-            $"Token is not found. {symbol},{approveSymbol}");
+        AssertApproveToken(symbol);
     }
 
-    private string GetApproveSymbol(string symbol)
+    private void ValidTokenExists(string symbol)
     {
+        var tokenInfo = State.TokenInfos[symbol];
+        Assert(tokenInfo != null && !string.IsNullOrEmpty(tokenInfo.Symbol),
+            $"Token is not found. {symbol}");
+    }
+    
+    private void AssertApproveToken(string symbol)
+    {
+        Assert(!string.IsNullOrEmpty(symbol) && symbol.All(IsValidApproveSymbolChar) && CheckAllSymbolIdentifierCount(symbol),
+            "Invalid symbol.");
         var words = symbol.Split(TokenContractConstants.NFTSymbolSeparator);
         Assert(words[0].Length > 0, "Invalid symbol length.");
         if (words.Length == 1)
         {
-            Assert(
-                words[0].All(IsValidApproveTokenSymbolChar) && CheckGlobalAllowanceIdentifierCount(words[0]),
-                "Invalid token symbol.");
-            return symbol;
+            if (words[0].All(IsValidAllSymbolIdentifier)) return;
+            ValidTokenExists(words[0]);
         }
-
         Assert(words.Length == 2, "Invalid symbol length.");
         Assert(
             words[0].All(IsValidCreateSymbolChar) &&
-            words[1].Length > 0 && words[1].All(IsValidApproveItemIdChar) &&
-            CheckGlobalAllowanceIdentifierCount(words[1]), "Invalid NFT Symbol.");
-        return words[1].All(IsValidGlobalAllowanceIdentifier) ? GetCollectionSymbol(words[0]) : symbol;
+            words[1].Length > 0 && words[1].All(IsValidApproveItemIdChar), "Invalid NFT Symbol.");
+        var nftSymbol = words[1].All(IsValidAllSymbolIdentifier) ? GetCollectionSymbol(words[0]) : symbol;
+        ValidTokenExists(nftSymbol);
     }
 
-    private bool CheckGlobalAllowanceIdentifierCount(string word)
+    private bool CheckAllSymbolIdentifierCount(string word)
     {
-        return word.Count(c => c.Equals(TokenContractConstants.GlobalAllowanceIdentifier)) <= 1;
+        return word.Count(c => c.Equals(TokenContractConstants.AllSymbolIdentifier)) <= 1;
     }
 
     private string GetCollectionSymbol(string symbolPrefix)
@@ -83,22 +83,17 @@ public partial class TokenContract
     private bool IsValidApproveSymbolChar(char character)
     {
         return IsValidSymbolChar(character) ||
-               character == TokenContractConstants.GlobalAllowanceIdentifier;
-    }
-    
-    private bool IsValidApproveTokenSymbolChar(char character)
-    {
-        return IsValidCreateSymbolChar(character) || character == TokenContractConstants.GlobalAllowanceIdentifier;
+               character == TokenContractConstants.AllSymbolIdentifier;
     }
 
     private bool IsValidApproveItemIdChar(char character)
     {
-        return IsValidItemIdChar(character) || character == TokenContractConstants.GlobalAllowanceIdentifier;
+        return IsValidItemIdChar(character) || character == TokenContractConstants.AllSymbolIdentifier;
     }
 
-    private bool IsValidGlobalAllowanceIdentifier(char character)
+    private bool IsValidAllSymbolIdentifier(char character)
     {
-        return character == TokenContractConstants.GlobalAllowanceIdentifier;
+        return character == TokenContractConstants.AllSymbolIdentifier;
     }
 
     private void AssertValidSymbolAndAmount(string symbol, long amount)

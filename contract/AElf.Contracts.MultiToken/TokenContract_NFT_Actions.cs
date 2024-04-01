@@ -104,22 +104,22 @@ public partial class TokenContract
         var tokenType = GetSymbolType(sourceSymbol);
         if (tokenType == SymbolType.Token)
         {
-            allowance = GetGlobalAllowance(from, spender, out allowanceSymbol);
+            allowance = GetAllSymbolAllowance(from, spender, out allowanceSymbol);
         }
         else
         {
             allowance = GetNftGlobalAllowance(from, spender, sourceSymbol, out allowanceSymbol);
             if (allowance >= amount) return allowance;
-            allowance = GetGlobalAllowance(from, spender, out allowanceSymbol);
+            allowance = GetAllSymbolAllowance(from, spender, out allowanceSymbol);
         }
 
         return allowance;
     }
     
 
-    private long GetGlobalAllowance(Address from, Address spender, out string allowanceSymbol)
+    private long GetAllSymbolAllowance(Address from, Address spender, out string allowanceSymbol)
     {
-        allowanceSymbol = GetGlobalAllowanceSymbol();
+        allowanceSymbol = GetAllSymbolIdentifier();
         return State.Allowances[from][spender][allowanceSymbol];
     }
 
@@ -133,13 +133,13 @@ public partial class TokenContract
     private string GetNftGlobalAllowanceSymbol(string sourceSymbol)
     {
         // "AAA-*"
-        return $"{sourceSymbol.Split(TokenContractConstants.NFTSymbolSeparator)[0]}-{TokenContractConstants.GlobalAllowanceIdentifier}";
+        return $"{sourceSymbol.Split(TokenContractConstants.NFTSymbolSeparator)[0]}-{TokenContractConstants.AllSymbolIdentifier}";
     }
 
-    private string GetGlobalAllowanceSymbol()
+    private string GetAllSymbolIdentifier()
     {
         // "*"
-        return TokenContractConstants.GlobalAllowanceIdentifier.ToString();
+        return TokenContractConstants.AllSymbolIdentifier.ToString();
     }
 
 
