@@ -53,47 +53,29 @@ public partial class TokenContract
     
     private void AssertApproveToken(string symbol)
     {
-        Assert(!string.IsNullOrEmpty(symbol) && symbol.All(IsValidApproveSymbolChar) && CheckAllSymbolIdentifierCount(symbol),
-            "Invalid symbol.");
+        Assert(!string.IsNullOrEmpty(symbol), "Symbol can not be null.");
         var words = symbol.Split(TokenContractConstants.NFTSymbolSeparator);
-        Assert(words[0].Length > 0, "Invalid symbol length.");
+        var symbolPrefix = words[0];
+        var allSymbolIdentifier = GetAllSymbolIdentifier();
+        Assert(symbolPrefix.Length > 0 && (symbolPrefix.All(IsValidCreateSymbolChar) || symbolPrefix.Equals(allSymbolIdentifier)), "Invalid symbol.");
         if (words.Length == 1)
         {
-            if (words[0].All(IsValidAllSymbolIdentifier)) return;
-            ValidTokenExists(words[0]);
+            if (!symbolPrefix.Equals(allSymbolIdentifier))
+            {
+                ValidTokenExists(symbolPrefix);
+            }
+            return;
         }
         Assert(words.Length == 2, "Invalid symbol length.");
-        Assert(
-            words[0].All(IsValidCreateSymbolChar) &&
-            words[1].Length > 0 && words[1].All(IsValidApproveItemIdChar), "Invalid NFT Symbol.");
-        var nftSymbol = words[1].All(IsValidAllSymbolIdentifier) ? GetCollectionSymbol(words[0]) : symbol;
+        var itemId = words[1];
+        Assert(itemId.Length > 0 && (itemId.All(IsValidItemIdChar) || itemId.Equals(allSymbolIdentifier)), "Invalid NFT Symbol.");
+        var nftSymbol = itemId.Equals(allSymbolIdentifier) ? GetCollectionSymbol(symbolPrefix) : symbol;
         ValidTokenExists(nftSymbol);
     }
-
-    private bool CheckAllSymbolIdentifierCount(string word)
-    {
-        return word.Count(c => c.Equals(TokenContractConstants.AllSymbolIdentifier)) <= 1;
-    }
-
+    
     private string GetCollectionSymbol(string symbolPrefix)
     {
         return $"{symbolPrefix}-{TokenContractConstants.CollectionSymbolSuffix}";
-    }
-
-    private bool IsValidApproveSymbolChar(char character)
-    {
-        return IsValidSymbolChar(character) ||
-               character == TokenContractConstants.AllSymbolIdentifier;
-    }
-
-    private bool IsValidApproveItemIdChar(char character)
-    {
-        return IsValidItemIdChar(character) || character == TokenContractConstants.AllSymbolIdentifier;
-    }
-
-    private bool IsValidAllSymbolIdentifier(char character)
-    {
-        return character == TokenContractConstants.AllSymbolIdentifier;
     }
 
     private void AssertValidSymbolAndAmount(string symbol, long amount)

@@ -45,29 +45,52 @@ public partial class TokenContract
             Balance = GetBalance(input.Owner, input.Symbol)
         };
     }
-
+    
     [View]
     public override GetAllowanceOutput GetAllowance(GetAllowanceInput input)
     {
-        var allowance = State.Allowances[input.Owner][input.Spender][input.Symbol];
-        if (!input.Symbol.Contains(TokenContractConstants.AllSymbolIdentifier))
-        {
-            var symbolType = GetSymbolType(input.Symbol);
-            allowance = Math.Max(allowance, GetAllSymbolAllowance(input.Owner,input.Spender,out _));
-            if (symbolType == SymbolType.Nft || symbolType == SymbolType.NftCollection)
-            {
-                allowance = Math.Max(allowance, GetNftGlobalAllowance(input.Owner, input.Spender, input.Symbol, out _));
-            }
-        }
         return new GetAllowanceOutput
         {
             Symbol = input.Symbol,
             Owner = input.Owner,
             Spender = input.Spender,
-            Allowance = allowance
+            Allowance = State.Allowances[input.Owner][input.Spender][input.Symbol]
         };
     }
 
+    [View]
+    public override GetAllowanceOutput GetAvailableAllowance(GetAllowanceInput input)
+    {
+        var result = new GetAllowanceOutput
+        {
+            Symbol = input.Symbol,
+            Owner = input.Owner,
+            Spender = input.Spender,
+        };
+        var symbol = input.Symbol;
+        var allowance = State.Allowances[input.Owner][input.Spender][symbol];
+        if (CheckSymbolIdentifier(symbol))
+        {
+            result.Allowance = allowance;
+            return result;
+        }
+        var symbolType = GetSymbolType(symbol);
+        allowance = Math.Max(allowance, GetAllSymbolAllowance(input.Owner,input.Spender,out _));
+        if (symbolType == SymbolType.Nft || symbolType == SymbolType.NftCollection)
+        {
+            allowance = Math.Max(allowance, GetNftSymbolAllowance(input.Owner, input.Spender, symbol, out _));
+        }
+        result.Allowance = allowance;
+        return result;
+    }
+
+    private bool CheckSymbolIdentifier(string symbol)
+    {
+        var words = symbol.Split(TokenContractConstants.NFTSymbolSeparator);
+        var allSymbolIdentifier = GetAllSymbolIdentifier();
+        return words[0].Equals(allSymbolIdentifier) || (words.Length > 1 && words[1].Equals(allSymbolIdentifier));
+    }
+    
     public override BoolValue IsInWhiteList(IsInWhiteListInput input)
     {
         return new BoolValue { Value = State.LockWhiteLists[input.Symbol][input.Address] };

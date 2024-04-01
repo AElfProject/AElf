@@ -576,14 +576,32 @@ public partial class MultiTokenContractTests
             Spender = User1Address,
             Symbol = "ABC-1"
         });
-        allowance.Allowance.ShouldBe(1000);
+        allowance.Allowance.ShouldBe(0);
         allowance = await TokenContractStub.GetAllowance.CallAsync(new GetAllowanceInput
         {
             Owner = DefaultAddress,
             Spender = User1Address,
             Symbol = "ELF"
         });
-        allowance.Allowance.ShouldBe(1000);
+        allowance.Allowance.ShouldBe(0);
+        {
+            var realAllowance = await TokenContractStub.GetAvailableAllowance.CallAsync(new GetAllowanceInput
+            {
+                Owner = DefaultAddress,
+                Spender = User1Address,
+                Symbol = "ABC-1"
+            });
+            realAllowance.Allowance.ShouldBe(1000);
+        }
+        {
+            var realAllowance = await TokenContractStub.GetAvailableAllowance.CallAsync(new GetAllowanceInput
+            {
+                Owner = DefaultAddress,
+                Spender = User1Address,
+                Symbol = "ELF"
+            });
+            realAllowance.Allowance.ShouldBe(1000);
+        }
         var user1Stub =
             GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, User1KeyPair);
         var result2 = await user1Stub.TransferFrom.SendAsync(new TransferFromInput
@@ -595,7 +613,16 @@ public partial class MultiTokenContractTests
             To = User1Address
         }); 
         result2.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-        allowance = await TokenContractStub.GetAllowance.CallAsync(new GetAllowanceInput
+        {
+            var realAllowance = await TokenContractStub.GetAllowance.CallAsync(new GetAllowanceInput
+            {
+                Owner = DefaultAddress,
+                Spender = User1Address,
+                Symbol = "ABC-1"
+            });
+            realAllowance.Allowance.ShouldBe(0);
+        }
+        allowance = await TokenContractStub.GetAvailableAllowance.CallAsync(new GetAllowanceInput
         {
             Owner = DefaultAddress,
             Spender = User1Address,
@@ -647,14 +674,23 @@ public partial class MultiTokenContractTests
             Symbol = "ABC-*",
             Spender = User1Address
         });
-        var allowance = await TokenContractStub.GetAllowance.CallAsync(new GetAllowanceInput
+        {
+            var realAllowance = await TokenContractStub.GetAllowance.CallAsync(new GetAllowanceInput
+            {
+                Owner = DefaultAddress,
+                Spender = User1Address,
+                Symbol = "ABC-1"
+            });
+            realAllowance.Allowance.ShouldBe(0);
+        }
+        var allowance = await TokenContractStub.GetAvailableAllowance.CallAsync(new GetAllowanceInput
         {
             Owner = DefaultAddress,
             Spender = User1Address,
             Symbol = "ABC-1"
         });
         allowance.Allowance.ShouldBe(1000);
-        allowance = await TokenContractStub.GetAllowance.CallAsync(new GetAllowanceInput
+        allowance = await TokenContractStub.GetAvailableAllowance.CallAsync(new GetAllowanceInput
         {
             Owner = DefaultAddress,
             Spender = User1Address,
@@ -672,7 +708,7 @@ public partial class MultiTokenContractTests
             To = User1Address
         }); 
         result2.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-        allowance = await TokenContractStub.GetAllowance.CallAsync(new GetAllowanceInput
+        allowance = await TokenContractStub.GetAvailableAllowance.CallAsync(new GetAllowanceInput
         {
             Owner = DefaultAddress,
             Spender = User1Address,
@@ -705,14 +741,32 @@ public partial class MultiTokenContractTests
             Spender = User1Address,
             Symbol = "SSS"
         });
-        allowance.Allowance.ShouldBe(100_00000000);
+        allowance.Allowance.ShouldBe(0);
+        {
+            var realAllowance = await TokenContractStub.GetAvailableAllowance.CallAsync(new GetAllowanceInput
+            {
+                Owner = DefaultAddress,
+                Spender = User1Address,
+                Symbol = "SSS"
+            });
+            realAllowance.Allowance.ShouldBe(100_00000000);
+        }
         allowance = await TokenContractStub.GetAllowance.CallAsync(new GetAllowanceInput
         {
             Owner = DefaultAddress,
             Spender = User1Address,
             Symbol = "ELF"
         });
-        allowance.Allowance.ShouldBe(100_00000000);
+        allowance.Allowance.ShouldBe(0);
+        {
+            var realAllowance = await TokenContractStub.GetAvailableAllowance.CallAsync(new GetAllowanceInput
+            {
+                Owner = DefaultAddress,
+                Spender = User1Address,
+                Symbol = "SSS"
+            });
+            realAllowance.Allowance.ShouldBe(100_00000000);
+        }
         var user1Stub =
             GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, User1KeyPair);
         var result2 = await user1Stub.TransferFrom.SendAsync(new TransferFromInput
@@ -724,7 +778,7 @@ public partial class MultiTokenContractTests
             To = User1Address
         }); 
         result2.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-        allowance = await TokenContractStub.GetAllowance.CallAsync(new GetAllowanceInput
+        allowance = await TokenContractStub.GetAvailableAllowance.CallAsync(new GetAllowanceInput
         {
             Owner = DefaultAddress,
             Spender = User1Address,
@@ -794,14 +848,23 @@ public partial class MultiTokenContractTests
             Symbol = "*",
             Amount = 200_000000000
         });
-        allowance = await TokenContractStub.GetAllowance.CallAsync(new GetAllowanceInput
+        {
+            var realAllowance = await TokenContractStub.GetAllowance.CallAsync(new GetAllowanceInput
+            {
+                Owner = DefaultAddress,
+                Spender = User1Address,
+                Symbol = "SSS"
+            });
+            realAllowance.Allowance.ShouldBe(100_000000000);
+        }
+        allowance = await TokenContractStub.GetAvailableAllowance.CallAsync(new GetAllowanceInput
         {
             Owner = DefaultAddress,
             Spender = User1Address,
             Symbol = "SSS"
         });
         allowance.Allowance.ShouldBe(200_000000000);
-        allowance = await TokenContractStub.GetAllowance.CallAsync(new GetAllowanceInput
+        allowance = await TokenContractStub.GetAvailableAllowance.CallAsync(new GetAllowanceInput
         {
             Owner = DefaultAddress,
             Spender = User1Address,
@@ -814,7 +877,7 @@ public partial class MultiTokenContractTests
             Symbol = "*",
             Amount = 20_000000000
         });
-        allowance = await TokenContractStub.GetAllowance.CallAsync(new GetAllowanceInput
+        allowance = await TokenContractStub.GetAvailableAllowance.CallAsync(new GetAllowanceInput
         {
             Owner = DefaultAddress,
             Spender = User1Address,
@@ -834,7 +897,7 @@ public partial class MultiTokenContractTests
                 Symbol = "SSS*",
                 Amount = 100_000000000
             });
-            executionResult.TransactionResult.Error.ShouldContain("Token is not found");
+            executionResult.TransactionResult.Error.ShouldContain("Invalid symbol.");
         }
         {
             var executionResult = await TokenContractStub.Approve.SendWithExceptionAsync(new ApproveInput
@@ -843,7 +906,16 @@ public partial class MultiTokenContractTests
                 Symbol = "SSS**",
                 Amount = 100_000000000
             });
-            executionResult.TransactionResult.Error.ShouldContain("Invalid token symbol.");
+            executionResult.TransactionResult.Error.ShouldContain("Invalid symbol.");
+        }
+        {
+            var executionResult = await TokenContractStub.Approve.SendWithExceptionAsync(new ApproveInput
+            {
+                Spender = User1Address,
+                Symbol = "*-*",
+                Amount = 100_000000000
+            });
+            executionResult.TransactionResult.Error.ShouldContain("Token is not found");
         }
     }
     
@@ -865,7 +937,7 @@ public partial class MultiTokenContractTests
                 Symbol = "AB*-*",
                 Amount = 100_000000000
             });
-            executionResult.TransactionResult.Error.ShouldContain("Invalid NFT Symbol");
+            executionResult.TransactionResult.Error.ShouldContain("Invalid Symbol");
         }
         {
             var executionResult = await TokenContractStub.Approve.SendWithExceptionAsync(new ApproveInput
@@ -874,7 +946,7 @@ public partial class MultiTokenContractTests
                 Symbol = "ABC-*9",
                 Amount = 100_000000000
             });
-            executionResult.TransactionResult.Error.ShouldContain("Token is not found");
+            executionResult.TransactionResult.Error.ShouldContain("Invalid NFT Symbol.");
         }
     }
 
