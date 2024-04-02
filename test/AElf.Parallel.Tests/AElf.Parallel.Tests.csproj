@@ -1,18 +1,18 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
         <IsPackable>false</IsPackable>
         <!--Conflict with contract-->
         <NoWarn>0436</NoWarn>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="Moq" Version="4.14.5"/>
+        <PackageReference Include="Moq" Version="4.14.5" />
         <PackageReference Include="coverlet.collector" Version="3.2.0">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
         </PackageReference>
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.4.1" />
-        <PackageReference Include="Shouldly" Version="4.0.3"/>
+        <PackageReference Include="Shouldly" Version="4.0.3" />
         <PackageReference Include="xunit" Version="2.4.2" />
         <PackageReference Include="xunit.runner.console" Version="2.4.2">
   <PrivateAssets>all</PrivateAssets>
@@ -24,8 +24,8 @@
 </PackageReference>
     </ItemGroup>
     <ItemGroup>
-        <ProjectReference Include="..\..\test\AElf.OS.Core.Tests\AElf.OS.Core.Tests.csproj"/>
-        <ProjectReference Include="..\..\src\AElf.Kernel.SmartContract.Parallel\AElf.Kernel.SmartContract.Parallel.csproj"/>
+        <ProjectReference Include="..\..\test\AElf.OS.Core.Tests\AElf.OS.Core.Tests.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Kernel.SmartContract.Parallel\AElf.Kernel.SmartContract.Parallel.csproj" />
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\..\contract\AElf.Contracts.Consensus.AEDPoS\AElf.Contracts.Consensus.AEDPoS.csproj">

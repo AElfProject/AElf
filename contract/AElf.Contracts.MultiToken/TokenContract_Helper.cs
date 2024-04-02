@@ -40,7 +40,7 @@ public partial class TokenContract
 
     private void AssertValidSymbolAndAmount(string symbol, long amount)
     {
-        Assert(!string.IsNullOrEmpty(symbol) && symbol.All(IsValidSymbolChar),
+        Assert(!string.IsNullOrEmpty(symbol) && symbol.All(s => IsValidSymbolChar(s)),
             "Invalid symbol.");
         Assert(amount > 0, "Invalid amount.");
     }
@@ -184,7 +184,7 @@ public partial class TokenContract
     private void RegisterTokenInfo(TokenInfo tokenInfo)
     {
         CheckTokenExists(tokenInfo.Symbol);
-        Assert(!string.IsNullOrEmpty(tokenInfo.Symbol) && tokenInfo.Symbol.All(IsValidSymbolChar),
+        Assert(!string.IsNullOrEmpty(tokenInfo.Symbol) && tokenInfo.Symbol.All(s => IsValidSymbolChar(s)),
             "Invalid symbol.");
         Assert(!string.IsNullOrEmpty(tokenInfo.TokenName), "Token name can neither be null nor empty.");
         Assert(tokenInfo.TotalSupply > 0, "Invalid total supply.");

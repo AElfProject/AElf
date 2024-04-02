@@ -1,8 +1,8 @@
-<Project Sdk="Microsoft.NET.Sdk">
-    <Import Project="..\..\common.props"/>
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="..\..\common.props" />
 
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
         <NoWarn>$(NoWarn);1591</NoWarn>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <PackageId>AElf.WebApp.Application.Net</PackageId>
@@ -11,12 +11,12 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\AElf.OS.Core\AElf.OS.Core.csproj"/>
-        <ProjectReference Include="..\AElf.WebApp.Application.Core\AElf.WebApp.Application.Core.csproj"/>
+        <ProjectReference Include="..\AElf.OS.Core\AElf.OS.Core.csproj" />
+        <ProjectReference Include="..\AElf.WebApp.Application.Core\AElf.WebApp.Application.Core.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Volo.Abp.AspNetCore.Mvc" Version="5.2.2"/>
+        <PackageReference Include="Volo.Abp.AspNetCore.Mvc" Version="8.0.5" />
     </ItemGroup>
 
 </Project>

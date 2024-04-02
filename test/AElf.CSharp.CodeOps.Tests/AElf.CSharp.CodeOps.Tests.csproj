@@ -1,7 +1,7 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
         <RootNamespace>AElf.CSharp.CodeOps</RootNamespace>
         <IsPackable>false</IsPackable>
     </PropertyGroup>
@@ -13,9 +13,9 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.11.0"/>
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.11.0" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.4.1" />
-        <PackageReference Include="Shouldly" Version="4.0.3"/>
+        <PackageReference Include="Shouldly" Version="4.0.3" />
         <PackageReference Include="xunit" Version="2.4.2" />
         <PackageReference Include="xunit.runner.console" Version="2.4.2">
   <PrivateAssets>all</PrivateAssets>
@@ -25,30 +25,30 @@
   <PrivateAssets>all</PrivateAssets>
   <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
 </PackageReference>
-        <PackageReference Include="Mono.Cecil" Version="0.11.4"/>
+        <PackageReference Include="Mono.Cecil" Version="0.11.4" />
     </ItemGroup>
     <ItemGroup>
-        <ProjectReference Include="..\..\contract\AElf.Contracts.Association\AElf.Contracts.Association.csproj"/>
-        <ProjectReference Include="..\..\contract\AElf.Contracts.Configuration\AElf.Contracts.Configuration.csproj"/>
-        <ProjectReference Include="..\..\contract\AElf.Contracts.Consensus.AEDPoS\AElf.Contracts.Consensus.AEDPoS.csproj"/>
-        <ProjectReference Include="..\..\contract\AElf.Contracts.CrossChain\AElf.Contracts.CrossChain.csproj"/>
-        <ProjectReference Include="..\..\contract\AElf.Contracts.Economic\AElf.Contracts.Economic.csproj"/>
-        <ProjectReference Include="..\..\contract\AElf.Contracts.Election\AElf.Contracts.Election.csproj"/>
-        <ProjectReference Include="..\..\contract\AElf.Contracts.Genesis\AElf.Contracts.Genesis.csproj"/>
-        <ProjectReference Include="..\..\contract\AElf.Contracts.MultiToken\AElf.Contracts.MultiToken.csproj"/>
-        <ProjectReference Include="..\..\contract\AElf.Contracts.Parliament\AElf.Contracts.Parliament.csproj"/>
-        <ProjectReference Include="..\..\contract\AElf.Contracts.Profit\AElf.Contracts.Profit.csproj"/>
-        <ProjectReference Include="..\..\contract\AElf.Contracts.Referendum\AElf.Contracts.Referendum.csproj"/>
-        <ProjectReference Include="..\..\contract\AElf.Contracts.TokenConverter\AElf.Contracts.TokenConverter.csproj"/>
-        <ProjectReference Include="..\..\contract\AElf.Contracts.Treasury\AElf.Contracts.Treasury.csproj"/>
-        <ProjectReference Include="..\..\contract\AElf.Contracts.Vote\AElf.Contracts.Vote.csproj"/>
-        <ProjectReference Include="..\..\src\AElf.Core\AElf.Core.csproj"/>
-        <ProjectReference Include="..\..\src\AElf.Runtime.CSharp\AElf.Runtime.CSharp.csproj"/>
-        <ProjectReference Include="..\AElf.Contracts.TestContract.TransactionFees\AElf.Contracts.TestContract.TransactionFees.csproj"/>
-        <ProjectReference Include="..\AElf.Kernel.SmartContract.Tests\AElf.Kernel.SmartContract.Tests.csproj"/>
-        <ProjectReference Include="..\AElf.Runtime.CSharp.Tests.BadContract\AElf.Runtime.CSharp.Tests.BadContract.csproj"/>
-        <ProjectReference Include="..\AElf.Runtime.CSharp.Tests.TestContract\AElf.Runtime.CSharp.Tests.TestContract.csproj"/>
-        <ProjectReference Include="..\..\src\AElf.CSharp.CodeOps\AElf.CSharp.CodeOps.csproj"/>
+        <ProjectReference Include="..\..\contract\AElf.Contracts.Association\AElf.Contracts.Association.csproj" />
+        <ProjectReference Include="..\..\contract\AElf.Contracts.Configuration\AElf.Contracts.Configuration.csproj" />
+        <ProjectReference Include="..\..\contract\AElf.Contracts.Consensus.AEDPoS\AElf.Contracts.Consensus.AEDPoS.csproj" />
+        <ProjectReference Include="..\..\contract\AElf.Contracts.CrossChain\AElf.Contracts.CrossChain.csproj" />
+        <ProjectReference Include="..\..\contract\AElf.Contracts.Economic\AElf.Contracts.Economic.csproj" />
+        <ProjectReference Include="..\..\contract\AElf.Contracts.Election\AElf.Contracts.Election.csproj" />
+        <ProjectReference Include="..\..\contract\AElf.Contracts.Genesis\AElf.Contracts.Genesis.csproj" />
+        <ProjectReference Include="..\..\contract\AElf.Contracts.MultiToken\AElf.Contracts.MultiToken.csproj" />
+        <ProjectReference Include="..\..\contract\AElf.Contracts.Parliament\AElf.Contracts.Parliament.csproj" />
+        <ProjectReference Include="..\..\contract\AElf.Contracts.Profit\AElf.Contracts.Profit.csproj" />
+        <ProjectReference Include="..\..\contract\AElf.Contracts.Referendum\AElf.Contracts.Referendum.csproj" />
+        <ProjectReference Include="..\..\contract\AElf.Contracts.TokenConverter\AElf.Contracts.TokenConverter.csproj" />
+        <ProjectReference Include="..\..\contract\AElf.Contracts.Treasury\AElf.Contracts.Treasury.csproj" />
+        <ProjectReference Include="..\..\contract\AElf.Contracts.Vote\AElf.Contracts.Vote.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Core\AElf.Core.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Runtime.CSharp\AElf.Runtime.CSharp.csproj" />
+        <ProjectReference Include="..\AElf.Contracts.TestContract.TransactionFees\AElf.Contracts.TestContract.TransactionFees.csproj" />
+        <ProjectReference Include="..\AElf.Kernel.SmartContract.Tests\AElf.Kernel.SmartContract.Tests.csproj" />
+        <ProjectReference Include="..\AElf.Runtime.CSharp.Tests.BadContract\AElf.Runtime.CSharp.Tests.BadContract.csproj" />
+        <ProjectReference Include="..\AElf.Runtime.CSharp.Tests.TestContract\AElf.Runtime.CSharp.Tests.TestContract.csproj" />
+        <ProjectReference Include="..\..\src\AElf.CSharp.CodeOps\AElf.CSharp.CodeOps.csproj" />
     </ItemGroup>
 
 </Project>
