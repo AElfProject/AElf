@@ -108,7 +108,7 @@ public partial class TokenContract
         }
         else
         {
-            allowance = GetNftSymbolAllowance(from, spender, sourceSymbol, out allowanceSymbol);
+            allowance = GetNftCollectionAllSymbolAllowance(from, spender, sourceSymbol, out allowanceSymbol);
             if (allowance >= amount) return allowance;
             allowance = GetAllSymbolAllowance(from, spender, out allowanceSymbol);
         }
@@ -123,14 +123,14 @@ public partial class TokenContract
         return State.Allowances[from][spender][allowanceSymbol];
     }
 
-    private long GetNftSymbolAllowance(Address from, Address spender, string sourceSymbol,
+    private long GetNftCollectionAllSymbolAllowance(Address from, Address spender, string sourceSymbol,
         out string allowanceSymbol)
     {
-        allowanceSymbol = GetNftAllowanceSymbolIdentifier(sourceSymbol);
+        allowanceSymbol = GetNftCollectionAllSymbolIdentifier(sourceSymbol);
         return State.Allowances[from][spender][allowanceSymbol];
     }
 
-    private string GetNftAllowanceSymbolIdentifier(string sourceSymbol)
+    private string GetNftCollectionAllSymbolIdentifier(string sourceSymbol)
     {
         // "AAA-*"
         return $"{sourceSymbol.Split(TokenContractConstants.NFTSymbolSeparator)[0]}-{TokenContractConstants.AllSymbolIdentifier}";

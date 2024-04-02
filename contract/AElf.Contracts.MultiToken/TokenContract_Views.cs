@@ -78,7 +78,7 @@ public partial class TokenContract
         allowance = Math.Max(allowance, GetAllSymbolAllowance(input.Owner,input.Spender,out _));
         if (symbolType == SymbolType.Nft || symbolType == SymbolType.NftCollection)
         {
-            allowance = Math.Max(allowance, GetNftSymbolAllowance(input.Owner, input.Spender, symbol, out _));
+            allowance = Math.Max(allowance, GetNftCollectionAllSymbolAllowance(input.Owner, input.Spender, symbol, out _));
         }
         result.Allowance = allowance;
         return result;

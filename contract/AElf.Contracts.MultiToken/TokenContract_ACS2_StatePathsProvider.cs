@@ -77,7 +77,7 @@ public partial class TokenContract
         if (symbolType == SymbolType.Nft || symbolType == SymbolType.NftCollection)
         {
             resourceInfo.WritePaths.Add(GetPath(nameof(TokenContractState.Allowances), from, spender,
-                GetNftAllowanceSymbolIdentifier(symbol)));
+                GetNftCollectionAllSymbolIdentifier(symbol)));
         }
     }
 
