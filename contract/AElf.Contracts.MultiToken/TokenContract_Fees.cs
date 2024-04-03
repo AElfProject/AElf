@@ -320,14 +320,14 @@ public partial class TokenContract
 
     private Dictionary<string, long> GetBaseFeeDictionary(MethodFees methodFees)
     {
-        return methodFees.Fees
+        return methodFees.Fees.Where(f => !string.IsNullOrEmpty(f.Symbol))
             .GroupBy(f => f.Symbol, f => f.BasicFee)
             .ToDictionary(g => g.Key, g => g.Sum());
     }
 
     private Dictionary<string, long> GetUserContractFeeDictionary(UserContractMethodFees fees)
     {
-        return fees.Fees
+        return fees.Fees.Where(f => !string.IsNullOrEmpty(f.Symbol)) 
             .GroupBy(f => f.Symbol, f => f.BasicFee)
             .ToDictionary(g => g.Key, g => g.Sum());
     }
