@@ -4,7 +4,7 @@ using Orleans;
 
 namespace AElf.Kernel.SmartContract.Orleans;
 
-[CleanCache]
+[UniformDistribution]
 public class CleanCacheGrain : Grain, ICleanCacheGrain
 {
     private readonly ISmartContractExecutiveService _smartContractExecutiveService;

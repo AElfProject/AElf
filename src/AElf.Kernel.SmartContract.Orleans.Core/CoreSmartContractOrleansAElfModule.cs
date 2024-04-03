@@ -7,11 +7,13 @@ using Microsoft.Extensions.DependencyInjection;
 using Orleans.Runtime;
 using Orleans.Runtime.Placement;
 using Volo.Abp;
+using Volo.Abp.EventBus;
 using Volo.Abp.Modularity;
 
 namespace AElf.Kernel.SmartContract.Orleans;
 
 [DependsOn(typeof(CSharpRuntimeAElfModule), typeof(SmartContractAElfModule))]
+[DependsOn(typeof(AbpEventBusModule))]
 public class CoreSmartContractOrleansAElfModule : AbpModule
 {
     public override void ConfigureServices(ServiceConfigurationContext context)
@@ -22,9 +24,11 @@ public class CoreSmartContractOrleansAElfModule : AbpModule
             provider.GetRequiredService<IBlockStateSetCachedStateStore>() as BlockStateSetCachedStateStore);
         context.Services.AddTransient<IStateStore<BlockStateSet>, StateStore<BlockStateSet>>();
         context.Services.AddSingleton<IPlainTransactionExecutingService, PlainTransactionExecutingService>();
-        context.Services.AddSingletonNamedService<PlacementStrategy, CleanCacheStrategy>(nameof(CleanCacheStrategy));
-        context.Services.AddSingletonKeyedService<Type, IPlacementDirector, CleanCacheStrategyFixedSiloDirector>(
-            typeof(CleanCacheStrategy));
+        context.Services.AddSingletonNamedService<PlacementStrategy, UniformDistributionStrategy>(
+            nameof(UniformDistributionStrategy));
+        context.Services
+            .AddSingletonKeyedService<Type, IPlacementDirector, UniformDistributionStrategyFixedSiloDirector>(
+                typeof(UniformDistributionStrategy));
     }
     
     public override void OnApplicationInitialization(ApplicationInitializationContext context)

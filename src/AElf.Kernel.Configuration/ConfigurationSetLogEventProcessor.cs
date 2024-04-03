@@ -1,21 +1,21 @@
 using System.Threading.Tasks;
 using AElf.Contracts.Configuration;
-using AElf.CSharp.Core.Extension;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContract.Events;
 using AElf.Types;
+using Volo.Abp.EventBus.Local;
 
 namespace AElf.Kernel.Configuration;
 
 public class ConfigurationSetLogEventProcessor : LogEventProcessorBase, IBlockAcceptedLogEventProcessor
 {
-    private readonly IConfigurationService _configurationService;
     private readonly ISmartContractAddressService _smartContractAddressService;
+    public ILocalEventBus LocalEventBus { get; set; }
 
-    public ConfigurationSetLogEventProcessor(ISmartContractAddressService smartContractAddressService,
-        IConfigurationService configurationService)
+    public ConfigurationSetLogEventProcessor(ISmartContractAddressService smartContractAddressService)
     {
         _smartContractAddressService = smartContractAddressService;
-        _configurationService = configurationService;
+        LocalEventBus = NullLocalEventBus.Instance;
     }
 
     public override async Task<InterestedEvent> GetInterestedEventAsync(IChainContext chainContext)
@@ -40,14 +40,10 @@ public class ConfigurationSetLogEventProcessor : LogEventProcessorBase, IBlockAc
 
     protected override async Task ProcessLogEventAsync(Block block, LogEvent logEvent)
     {
-        var configurationSet = new ConfigurationSet();
-        configurationSet.MergeFrom(logEvent);
-
-        await _configurationService.ProcessConfigurationAsync(configurationSet.Key, configurationSet.Value,
-            new BlockIndex
-            {
-                BlockHash = block.GetHash(),
-                BlockHeight = block.Height
-            });
+        await LocalEventBus.PublishAsync(new LogEventContextData
+        {
+            Block = block,
+            LogEvent = logEvent
+        });
     }
 }

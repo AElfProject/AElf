@@ -1,35 +1,29 @@
 using System.Threading.Tasks;
-using AElf.CSharp.Core.Extension;
-using AElf.Kernel.Infrastructure;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContract.Events;
 using AElf.Standards.ACS0;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Volo.Abp.EventBus.Local;
 
 namespace AElf.Kernel.SmartContractExecution.Application;
 
 public class ContractDeployedLogEventProcessor : LogEventProcessorBase, IBlockAcceptedLogEventProcessor
 {
     private readonly ISmartContractAddressService _smartContractAddressService;
-    private readonly ISmartContractExecutiveService _smartContractExecutiveService;
-    private readonly ISmartContractRegistrationInStateProvider _smartContractRegistrationInStateProvider;
-    private readonly ISmartContractRegistrationProvider _smartContractRegistrationProvider;
+    public ILocalEventBus LocalEventBus { get; set; }
 
-    public ContractDeployedLogEventProcessor(ISmartContractAddressService smartContractAddressService,
-        ISmartContractRegistrationProvider smartContractRegistrationProvider,
-        ISmartContractRegistrationInStateProvider smartContractRegistrationInStateProvider,
-        ISmartContractExecutiveService smartContractExecutiveService)
+    public ContractDeployedLogEventProcessor(ISmartContractAddressService smartContractAddressService)
     {
         _smartContractAddressService = smartContractAddressService;
-        _smartContractRegistrationProvider = smartContractRegistrationProvider;
-        _smartContractRegistrationInStateProvider = smartContractRegistrationInStateProvider;
-        _smartContractExecutiveService = smartContractExecutiveService;
-
         Logger = NullLogger<ContractDeployedLogEventProcessor>.Instance;
+        LocalEventBus = NullLocalEventBus.Instance;
     }
 
     public ILogger<ContractDeployedLogEventProcessor> Logger { get; set; }
+   
+
 
     public override Task<InterestedEvent> GetInterestedEventAsync(IChainContext chainContext)
     {
@@ -46,28 +40,10 @@ public class ContractDeployedLogEventProcessor : LogEventProcessorBase, IBlockAc
 
     protected override async Task ProcessLogEventAsync(Block block, LogEvent logEvent)
     {
-        var eventData = new ContractDeployed();
-        eventData.MergeFrom(logEvent);
-
-        var chainContext = new ChainContext
+        await LocalEventBus.PublishAsync(new LogEventContextData
         {
-            BlockHash = block.GetHash(),
-            BlockHeight = block.Height
-        };
-
-        var smartContractRegistration =
-            await _smartContractRegistrationInStateProvider.GetSmartContractRegistrationAsync(chainContext
-                , eventData.Address);
-
-        await _smartContractRegistrationProvider.SetSmartContractRegistrationAsync(chainContext, eventData.Address,
-            smartContractRegistration);
-        if (block.Height > AElfConstants.GenesisBlockHeight)
-            _smartContractExecutiveService.CleanExecutive(eventData.Address);
-
-        if (eventData.Name != null)
-            await _smartContractAddressService.SetSmartContractAddressAsync(chainContext, eventData.Name.ToStorageKey(),
-                eventData.Address);
-
-        Logger.LogDebug($"Deployed contract {eventData}");
+            Block = block,
+            LogEvent = logEvent
+        });
     }
 }
