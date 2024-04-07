@@ -2,7 +2,7 @@
     <Import Project="..\..\common.props"/>
 
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
         <PackageId>AElf.Contracts.Treasury</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Description>Treasury is a contract used to manage the finances of the system (dividend pool for

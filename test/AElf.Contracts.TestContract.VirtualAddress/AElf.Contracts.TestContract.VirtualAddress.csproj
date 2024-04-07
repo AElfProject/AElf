@@ -1,7 +1,7 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
         <PackageId>AElf.Contracts.TestContract.VirtualAddress</PackageId>
         <RootNamespace>AElf.Contracts.TestContract.VirtualAddress</RootNamespace>
         <IsPackable>false</IsPackable>

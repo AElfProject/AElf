@@ -55,8 +55,8 @@ public class MinerService : IMinerService
         }
 
         // Logger.LogInformation(
-        //     "Start mining with previous hash: {PreviousBlockHash}, previous height: {PreviousBlockHeight}",
-        //     previousBlockHash.ToHex(), previousBlockHeight);
+            // "Start mining with previous hash: {PreviousBlockHash}, previous height: {PreviousBlockHeight}",
+            // previousBlockHash.ToHex(), previousBlockHeight);
         return await _miningService.MineAsync(
             new RequestMiningDto
             {

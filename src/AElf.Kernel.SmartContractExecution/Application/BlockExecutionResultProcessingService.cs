@@ -54,7 +54,7 @@ public class BlockExecutionResultProcessingService : IBlockExecutionResultProces
         });
 
         // Logger.LogInformation(
-        //     $"Attach blocks to best chain, best chain hash: {chain.BestChainHash}, height: {chain.BestChainHeight}");
+            // $"Attach blocks to best chain, best chain hash: {chain.BestChainHash}, height: {chain.BestChainHeight}");
     }
 
     private async Task SetBlockExecutionStatusAsync(IEnumerable<Hash> blockHashes,
