@@ -79,12 +79,15 @@ public class MiningService : IMiningService
 
             block = blockExecutedSet.Block;
             await SignBlockAsync(block);
-            Logger.LogInformation("Generated block: {Block}, " +
-                                  "previous: {PreviousBlockHash}, " +
-                                  "executed transactions: {TransactionsCount}, " +
-                                  "not executed transactions {NotExecutedTransactionsCount}",
-                block.ToDiagnosticString(), block.Header.PreviousBlockHash.ToHex(), block.Body.TransactionsCount,
-                pending.Count + systemTransactions.Count - block.Body.TransactionsCount);
+            if (block.Body.TransactionsCount > 2)
+            {
+                Logger.LogInformation("Generated block: {Block}, " +
+                                      "previous: {PreviousBlockHash}, " +
+                                      "executed transactions: {TransactionsCount}, " +
+                                      "not executed transactions {NotExecutedTransactionsCount}",
+                    block.ToDiagnosticString(), block.Header.PreviousBlockHash.ToHex(), block.Body.TransactionsCount,
+                    pending.Count + systemTransactions.Count - block.Body.TransactionsCount);
+            }
             return blockExecutedSet;
         }
         catch (Exception e)

@@ -54,9 +54,9 @@ public class MinerService : IMinerService
             txList.AddRange(executableTransactionSet.Transactions);
         }
 
-        Logger.LogInformation(
-            "Start mining with previous hash: {PreviousBlockHash}, previous height: {PreviousBlockHeight}",
-            previousBlockHash.ToHex(), previousBlockHeight);
+        // Logger.LogInformation(
+            // "Start mining with previous hash: {PreviousBlockHash}, previous height: {PreviousBlockHeight}",
+            // previousBlockHash.ToHex(), previousBlockHeight);
         return await _miningService.MineAsync(
             new RequestMiningDto
             {
