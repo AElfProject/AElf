@@ -1391,7 +1391,7 @@ public partial class GenesisContractAuthTest : BasicContractZeroTestBase
             nameof(BasicContractZeroImplContainer.BasicContractZeroImplStub.GetCodeCheckProposalExpirationTimePeriod),
             new Empty());
         var proposalExpirationTime = Int32Value.Parser.ParseFrom(defaultTime);
-        Assert.True(proposalExpirationTime.Value == 600);
+        Assert.True(proposalExpirationTime.Value == 900);
 
         var byteResult = await Tester.CallContractMethodAsync(BasicContractZeroAddress,
             nameof(BasicContractZeroImplContainer.BasicContractZeroImplStub.GetContractDeploymentController),
