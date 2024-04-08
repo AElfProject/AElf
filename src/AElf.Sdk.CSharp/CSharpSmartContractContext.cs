@@ -48,6 +48,7 @@ public class CSharpSmartContractContext : ISmartContractBridgeContext
     /// <param name="logEvent">The event to fire.</param>
     public void FireLogEvent(LogEvent logEvent)
     {
+        logEvent.Address = Self;
         SmartContractBridgeContextImplementation.FireLogEvent(logEvent);
     }
 
