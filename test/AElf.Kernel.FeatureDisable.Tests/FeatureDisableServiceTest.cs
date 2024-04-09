@@ -1,4 +1,3 @@
-using AElf.Kernel.FeatureManager;
 using AElf.Modularity;
 using Volo.Abp.Modularity;
 
