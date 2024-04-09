@@ -140,7 +140,7 @@ public partial class TokenContract
         //configuration_key:UserContractMethod_contractAddress_methodName
         var spec = State.ConfigurationContract.GetConfiguration.Call(new StringValue
         {
-            Value = $"{TokenContractConstants.UserContractMethodFeeKey}_{contractAddress}_{methodName}"
+            Value = $"{TokenContractConstants.UserContractMethodFeeKey}_{contractAddress.ToBase58()}_{methodName}"
         });
         var fee = new UserContractMethodFees();
         if (!spec.Value.IsNullOrEmpty())
