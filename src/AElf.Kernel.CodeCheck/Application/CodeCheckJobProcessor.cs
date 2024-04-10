@@ -16,7 +16,7 @@ public interface ICodeCheckJobProcessor
 
 public class CodeCheckJobProcessor : ICodeCheckJobProcessor, ISingletonDependency
 {
-    private readonly TransformBlock<CodeCheckJob, CodeCheckJob> _codeCheckTransformBlock;
+    private TransformBlock<CodeCheckJob, CodeCheckJob> _codeCheckTransformBlock;
     private List<ActionBlock<CodeCheckJob>> _codeCheckProcessesJobTransformBlock;
     private readonly CodeCheckOptions _codeCheckOptions;
     private readonly ICheckedCodeHashProvider _checkedCodeHashProvider;
@@ -42,7 +42,18 @@ public class CodeCheckJobProcessor : ICodeCheckJobProcessor, ISingletonDependenc
 
     public async Task<bool> SendAsync(CodeCheckJob job)
     {
-        return await _codeCheckTransformBlock.SendAsync(job);
+        var codeCheckJobSendResult = await _codeCheckTransformBlock.SendAsync(job);
+        if (!codeCheckJobSendResult)
+        {
+            Logger.LogError(
+                $"Failed to send code check job. " +
+                $"Input count: {_codeCheckTransformBlock.InputCount}, " +
+                $"output count: {_codeCheckTransformBlock.OutputCount}");
+            Logger.LogError("Trying to recovery.");
+            _codeCheckTransformBlock = CreateCodeCheckBufferBlock();
+        }
+
+        return codeCheckJobSendResult;
     }
 
     public async Task CompleteAsync()
