@@ -49,8 +49,8 @@ public class CodeCheckJobProcessor : ICodeCheckJobProcessor, ISingletonDependenc
                 $"Failed to send code check job. " +
                 $"Input count: {_codeCheckTransformBlock.InputCount}, " +
                 $"output count: {_codeCheckTransformBlock.OutputCount}");
-            Logger.LogError("Trying to recovery.");
-            _codeCheckTransformBlock = CreateCodeCheckBufferBlock();
+            //Logger.LogError("Trying to recovery.");
+            //_codeCheckTransformBlock = CreateCodeCheckBufferBlock();
         }
 
         return codeCheckJobSendResult;
