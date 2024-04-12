@@ -1,8 +1,7 @@
-namespace AElf.CSharp.CodeOps.Validators.Whitelist
+namespace AElf.CSharp.CodeOps.Validators.Whitelist;
+
+public enum Permission
 {
-    public enum Permission
-    {
-        Allowed,
-        Denied
-    }
+    Allowed,
+    Denied
 }

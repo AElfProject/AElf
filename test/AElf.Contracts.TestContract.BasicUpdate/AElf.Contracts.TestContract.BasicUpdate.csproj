@@ -1,22 +1,23 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>netstandard2.0</TargetFramework>
+        <TargetFramework>net6.0</TargetFramework>
         <PackageId>AElf.Contracts.TestContract.BasicUpdate</PackageId>
+        <Version>1.3.0</Version>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
-      <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
+        <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
-      <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
+        <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\src\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj"/>
     </ItemGroup>
-    
+
     <ItemGroup>
         <CommonMessage Include="..\..\protobuf\authority_info.proto">
             <Link>Protobuf\Proto\authority_info.proto</Link>

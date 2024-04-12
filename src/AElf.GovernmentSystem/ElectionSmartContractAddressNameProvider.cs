@@ -3,14 +3,13 @@ using AElf.Kernel.SmartContract;
 using AElf.Types;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.GovernmentSystem
-{
-    public class ElectionSmartContractAddressNameProvider : ISmartContractAddressNameProvider, ISingletonDependency
-    {
-        public static Hash Name = HashHelper.ComputeFrom("AElf.ContractNames.Election");
+namespace AElf.GovernmentSystem;
 
-        public static readonly string StringName = Name.ToStorageKey();
-        public Hash ContractName => Name;
-        public string ContractStringName => StringName;
-    }
+public class ElectionSmartContractAddressNameProvider : ISmartContractAddressNameProvider, ISingletonDependency
+{
+    public static Hash Name = HashHelper.ComputeFrom("AElf.ContractNames.Election");
+
+    public static readonly string StringName = Name.ToStorageKey();
+    public Hash ContractName => Name;
+    public string ContractStringName => StringName;
 }

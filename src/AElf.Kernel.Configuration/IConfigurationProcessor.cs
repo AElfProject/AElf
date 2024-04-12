@@ -1,11 +1,10 @@
 using System.Threading.Tasks;
 using Google.Protobuf;
 
-namespace AElf.Kernel.Configuration
+namespace AElf.Kernel.Configuration;
+
+public interface IConfigurationProcessor
 {
-    public interface IConfigurationProcessor
-    {
-        string ConfigurationName { get; }
-        Task ProcessConfigurationAsync(ByteString byteString, BlockIndex blockIndex);
-    }
+    string ConfigurationName { get; }
+    Task ProcessConfigurationAsync(ByteString byteString, BlockIndex blockIndex);
 }

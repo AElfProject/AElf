@@ -3,16 +3,10 @@ using Google.Protobuf;
 
 namespace AElf.Types
 {
+
     public partial class Address : ICustomDiagnosticMessage, IComparable<Address>
     {
-        /// <summary>
-        /// Used to override IMessage's default string representation.
-        /// </summary>
-        /// <returns></returns>
-        public string ToDiagnosticString()
-        {
-            return $@"""{ToBase58()}""";
-        }
+        private string _formattedAddress;
 
         // Make private to avoid confusion
         private Address(byte[] bytes)
@@ -23,6 +17,22 @@ namespace AElf.Types
             Value = ByteString.CopyFrom(bytes);
         }
 
+        public int CompareTo(Address that)
+        {
+            if (that == null) throw new InvalidOperationException("Cannot compare address when address is null.");
+
+            return CompareAddress(this, that);
+        }
+
+        /// <summary>
+        ///     Used to override IMessage's default string representation.
+        /// </summary>
+        /// <returns></returns>
+        public string ToDiagnosticString()
+        {
+            return $@"""{ToBase58()}""";
+        }
+
         // TODO: It should be an address generation method of KeyPair, instead of Address.FromPublicKey
         public static Address FromPublicKey(byte[] bytes)
         {
@@ -31,7 +41,7 @@ namespace AElf.Types
         }
 
         /// <summary>
-        /// Loads the content value from 32-byte long byte array.
+        ///     Loads the content value from 32-byte long byte array.
         /// </summary>
         /// <param name="bytes"></param>
         /// <returns></returns>
@@ -48,7 +58,7 @@ namespace AElf.Types
         }
 
         /// <summary>
-        /// Dumps the content value to byte array.
+        ///     Dumps the content value to byte array.
         /// </summary>
         /// <returns></returns>
         public byte[] ToByteArray()
@@ -57,7 +67,7 @@ namespace AElf.Types
         }
 
         /// <summary>
-        /// Construct address from base58 encoded string.
+        ///     Construct address from base58 encoded string.
         /// </summary>
         /// <param name="inputStr"></param>
         /// <returns></returns>
@@ -65,9 +75,9 @@ namespace AElf.Types
         {
             return FromBytes(Base58CheckEncoding.Decode(inputStr));
         }
-        
+
         /// <summary>
-        /// Converts address into base58 representation.
+        ///     Converts address into base58 representation.
         /// </summary>
         /// <returns></returns>
         /// <exception cref="ArgumentException"></exception>
@@ -81,16 +91,6 @@ namespace AElf.Types
 
             var pubKeyHash = Base58CheckEncoding.Encode(Value.ToByteArray());
             return _formattedAddress = pubKeyHash;
-        }
-        
-        public int CompareTo(Address that)
-        {
-            if (that == null)
-            {
-                throw new InvalidOperationException("Cannot compare address when address is null.");
-            }
-
-            return CompareAddress(this, that);
         }
 
         public static bool operator ==(Address address1, Address address2)
@@ -116,25 +116,17 @@ namespace AElf.Types
         private static int CompareAddress(Address address1, Address address2)
         {
             if (address1 != null)
-            {
                 return address2 == null ? 1 : ByteStringHelper.Compare(address1.Value, address2.Value);
-            }
 
-            if (address2 == null)
-            {
-                return 0;
-            }
+            if (address2 == null) return 0;
 
             return -1;
         }
-
-        private string _formattedAddress;
     }
 
     public class ChainAddress
     {
-        public Address Address { get; }
-        public int ChainId { get; }
+        private string _formatted;
 
         public ChainAddress(Address address, int chainId)
         {
@@ -142,21 +134,19 @@ namespace AElf.Types
             ChainId = chainId;
         }
 
+        public Address Address { get; }
+        public int ChainId { get; }
+
         public static ChainAddress Parse(string chainAddressString, string symbol)
         {
             var arr = chainAddressString.Split('_');
-            if (arr[0] != symbol)
-            {
-                throw new ArgumentException("invalid chain address", nameof(chainAddressString));
-            }
+            if (arr[0] != symbol) throw new ArgumentException("invalid chain address", nameof(chainAddressString));
 
             var address = Address.FromBase58(arr[1]);
             var chainId = Base58CheckEncoding.Decode(arr[2]).ToInt32(false);
 
             return new ChainAddress(address, chainId);
         }
-
-        private string _formatted;
 
         public string GetFormatted(string addressPrefix, int chainId)
         {

@@ -4,32 +4,31 @@ using AElf.OS.BlockSync.Infrastructure;
 using AElf.OS.BlockSync.Types;
 using AElf.Types;
 
-namespace AElf.OS.BlockSync.Domain
+namespace AElf.OS.BlockSync.Domain;
+
+public class BlockDownloadJobManager : IBlockDownloadJobManager
 {
-    public class BlockDownloadJobManager : IBlockDownloadJobManager
+    private readonly IBlockDownloadJobStore _blockDownloadJobStore;
+
+    public BlockDownloadJobManager(IBlockDownloadJobStore blockDownloadJobStore)
     {
-        private readonly IBlockDownloadJobStore _blockDownloadJobStore;
+        _blockDownloadJobStore = blockDownloadJobStore;
+    }
 
-        public BlockDownloadJobManager(IBlockDownloadJobStore blockDownloadJobStore)
+    public async Task<string> EnqueueAsync(Hash syncBlockHash, long syncBlockHeight, int batchRequestBlockCount,
+        string suggestedPeerPubkey)
+    {
+        var blockDownloadJobInfo = new BlockDownloadJobInfo
         {
-            _blockDownloadJobStore = blockDownloadJobStore;
-        }
+            JobId = Guid.NewGuid().ToString(),
+            TargetBlockHash = syncBlockHash,
+            TargetBlockHeight = syncBlockHeight,
+            BatchRequestBlockCount = batchRequestBlockCount,
+            SuggestedPeerPubkey = suggestedPeerPubkey
+        };
 
-        public async Task<string> EnqueueAsync(Hash syncBlockHash, long syncBlockHeight, int batchRequestBlockCount,
-            string suggestedPeerPubkey)
-        {
-            var blockDownloadJobInfo = new BlockDownloadJobInfo
-            {
-                JobId = Guid.NewGuid().ToString(),
-                TargetBlockHash = syncBlockHash,
-                TargetBlockHeight = syncBlockHeight,
-                BatchRequestBlockCount = batchRequestBlockCount,
-                SuggestedPeerPubkey = suggestedPeerPubkey
-            };
+        var addResult = await _blockDownloadJobStore.AddAsync(blockDownloadJobInfo);
 
-            var addResult = await _blockDownloadJobStore.AddAsync(blockDownloadJobInfo);
-
-            return addResult ? blockDownloadJobInfo.JobId : null;
-        }
+        return addResult ? blockDownloadJobInfo.JobId : null;
     }
 }

@@ -5,133 +5,151 @@ using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Parliament;
 using AElf.Contracts.Profit;
+using AElf.Contracts.TestContract.VirtualAddress;
 using AElf.Contracts.TokenConverter;
 using AElf.Contracts.Treasury;
 using AElf.Contracts.Vote;
+using AElf.ContractTestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Volo.Abp.Threading;
 
-namespace AElf.Contracts.Election
+namespace AElf.Contracts.Election;
+
+public class ElectionContractTestBase : EconomicContractsTestBase
 {
-    public class ElectionContractTestBase : EconomicContractsTestBase
+    protected readonly IBlockTimeProvider BlockTimeProvider;
+
+    protected ElectionContractTestBase()
     {
-        private new void DeployAllContracts()
-        {
-            _ = TokenContractAddress;
-            _ = VoteContractAddress;
-            _ = ProfitContractAddress;
-            _ = EconomicContractAddress;
-            _ = ElectionContractAddress;
-            _ = TreasuryContractAddress;
-            _ = TransactionFeeChargingContractAddress;
-            _ = ParliamentContractAddress;
-            _ = TokenConverterContractAddress;
-            _ = ConsensusContractAddress;
-            _ = ReferendumContractAddress;
-            _ = TokenHolderContractAddress;
-            _ = AssociationContractAddress;
-        }
+        BlockTimeProvider = GetRequiredService<IBlockTimeProvider>();
+    }
+    
+    protected Hash MinerElectionVotingItemId;
 
-        protected void InitializeContracts()
-        {
-            DeployAllContracts();
+    internal BasicContractZeroImplContainer.BasicContractZeroImplStub BasicContractZeroStub =>
+        GetBasicContractTester(BootMinerKeyPair);
 
-            AsyncHelper.RunSync(InitializeParliamentContract);
-            AsyncHelper.RunSync(InitializeTreasuryConverter);
-            AsyncHelper.RunSync(InitializeElection);
-            AsyncHelper.RunSync(InitializeEconomicContract);
-            AsyncHelper.RunSync(InitializeToken);
-            AsyncHelper.RunSync(InitializeAElfConsensus);
-            AsyncHelper.RunSync(InitialMiningRewards);
+    internal TokenContractImplContainer.TokenContractImplStub TokenContractStub =>
+        GetTokenContractTester(BootMinerKeyPair);
 
-            MinerElectionVotingItemId = AsyncHelper.RunSync(() =>
-                ElectionContractStub.GetMinerElectionVotingItemId.CallAsync(new Empty()));
-        }
+    internal TokenConverterContractImplContainer.TokenConverterContractImplStub TokenConverterContractStub =>
+        GetTokenConverterContractTester(BootMinerKeyPair);
 
-        protected Hash MinerElectionVotingItemId;
+    internal VoteContractImplContainer.VoteContractImplStub VoteContractStub => GetVoteContractTester(BootMinerKeyPair);
 
-        internal new BasicContractZeroImplContainer.BasicContractZeroImplStub BasicContractZeroStub =>
-            GetBasicContractTester(BootMinerKeyPair);
+    internal ProfitContractImplContainer.ProfitContractImplStub ProfitContractStub =>
+        GetProfitContractTester(BootMinerKeyPair);
 
-        internal new TokenContractImplContainer.TokenContractImplStub TokenContractStub => GetTokenContractTester(BootMinerKeyPair);
+    internal ElectionContractImplContainer.ElectionContractImplStub ElectionContractStub =>
+        GetElectionContractTester(BootMinerKeyPair);
 
-        internal new TokenConverterContractImplContainer.TokenConverterContractImplStub TokenConverterContractStub =>
-            GetTokenConverterContractTester(BootMinerKeyPair);
+    internal AEDPoSContractImplContainer.AEDPoSContractImplStub AEDPoSContractStub =>
+        GetAEDPoSContractTester(BootMinerKeyPair);
 
-        internal new VoteContractImplContainer.VoteContractImplStub VoteContractStub => GetVoteContractTester(BootMinerKeyPair);
+    internal TreasuryContractImplContainer.TreasuryContractImplStub TreasuryContractStub =>
+        GetTreasuryContractTester(BootMinerKeyPair);
 
-        internal new ProfitContractImplContainer.ProfitContractImplStub ProfitContractStub =>
-            GetProfitContractTester(BootMinerKeyPair);
+    internal ParliamentContractImplContainer.ParliamentContractImplStub ParliamentContractStub =>
+        GetParliamentContractTester(BootMinerKeyPair);
 
-        internal new ElectionContractImplContainer.ElectionContractImplStub ElectionContractStub =>
-            GetElectionContractTester(BootMinerKeyPair);
+    internal EconomicContractImplContainer.EconomicContractImplStub EconomicContractStub =>
+        GetEconomicContractTester(BootMinerKeyPair);
 
-        internal new AEDPoSContractImplContainer.AEDPoSContractImplStub AEDPoSContractStub =>
-            GetAEDPoSContractTester(BootMinerKeyPair);
+    internal VirtualAddressContractContainer.VirtualAddressContractStub VirtualAddressContractStub =>
+        GetVirtualAddressContractTester(BootMinerKeyPair);
 
-        internal new TreasuryContractImplContainer.TreasuryContractImplStub TreasuryContractStub =>
-            GetTreasuryContractTester(BootMinerKeyPair);
+    private new void DeployAllContracts()
+    {
+        _ = TokenContractAddress;
+        _ = VoteContractAddress;
+        _ = ProfitContractAddress;
+        _ = EconomicContractAddress;
+        _ = ElectionContractAddress;
+        _ = TreasuryContractAddress;
+        _ = TransactionFeeChargingContractAddress;
+        _ = ParliamentContractAddress;
+        _ = TokenConverterContractAddress;
+        _ = ConsensusContractAddress;
+        _ = ReferendumContractAddress;
+        _ = TokenHolderContractAddress;
+        _ = AssociationContractAddress;
+    }
 
-        internal new ParliamentContractImplContainer.ParliamentContractImplStub ParliamentContractStub =>
-            GetParliamentContractTester(BootMinerKeyPair);
+    protected void InitializeContracts()
+    {
+        DeployAllContracts();
 
-        internal new EconomicContractImplContainer.EconomicContractImplStub EconomicContractStub =>
-            GetEconomicContractTester(BootMinerKeyPair);
+        AsyncHelper.RunSync(InitializeParliamentContract);
+        AsyncHelper.RunSync(InitializeTreasuryConverter);
+        AsyncHelper.RunSync(InitializeElection);
+        AsyncHelper.RunSync(InitializeEconomicContract);
+        AsyncHelper.RunSync(InitializeToken);
+        AsyncHelper.RunSync(InitializeAElfConsensus);
+        AsyncHelper.RunSync(InitialMiningRewards);
 
-        internal BasicContractZeroImplContainer.BasicContractZeroImplStub GetBasicContractTester(ECKeyPair keyPair)
-        {
-            return GetTester<BasicContractZeroImplContainer.BasicContractZeroImplStub>(ContractZeroAddress, keyPair);
-        }
+        MinerElectionVotingItemId = AsyncHelper.RunSync(() =>
+            ElectionContractStub.GetMinerElectionVotingItemId.CallAsync(new Empty()));
+    }
 
-        internal new TokenContractImplContainer.TokenContractImplStub GetTokenContractTester(ECKeyPair keyPair)
-        {
-            return GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, keyPair);
-        }
+    internal BasicContractZeroImplContainer.BasicContractZeroImplStub GetBasicContractTester(ECKeyPair keyPair)
+    {
+        return GetTester<BasicContractZeroImplContainer.BasicContractZeroImplStub>(ContractZeroAddress, keyPair);
+    }
 
-        internal new TokenConverterContractImplContainer.TokenConverterContractImplStub GetTokenConverterContractTester(
-            ECKeyPair keyPair)
-        {
-            return GetTester<TokenConverterContractImplContainer.TokenConverterContractImplStub>(TokenConverterContractAddress,
-                keyPair);
-        }
+    internal TokenContractImplContainer.TokenContractImplStub GetTokenContractTester(ECKeyPair keyPair)
+    {
+        return GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, keyPair);
+    }
 
-        internal new VoteContractImplContainer.VoteContractImplStub GetVoteContractTester(ECKeyPair keyPair)
-        {
-            return GetTester<VoteContractImplContainer.VoteContractImplStub>(VoteContractAddress, keyPair);
-        }
+    internal TokenConverterContractImplContainer.TokenConverterContractImplStub GetTokenConverterContractTester(
+        ECKeyPair keyPair)
+    {
+        return GetTester<TokenConverterContractImplContainer.TokenConverterContractImplStub>(
+            TokenConverterContractAddress,
+            keyPair);
+    }
 
-        internal new ProfitContractImplContainer.ProfitContractImplStub GetProfitContractTester(ECKeyPair keyPair)
-        {
-            return GetTester<ProfitContractImplContainer.ProfitContractImplStub>(ProfitContractAddress, keyPair);
-        }
+    internal VoteContractImplContainer.VoteContractImplStub GetVoteContractTester(ECKeyPair keyPair)
+    {
+        return GetTester<VoteContractImplContainer.VoteContractImplStub>(VoteContractAddress, keyPair);
+    }
 
-        internal new ElectionContractImplContainer.ElectionContractImplStub GetElectionContractTester(ECKeyPair keyPair)
-        {
-            return GetTester<ElectionContractImplContainer.ElectionContractImplStub>(ElectionContractAddress, keyPair);
-        }
+    internal ProfitContractImplContainer.ProfitContractImplStub GetProfitContractTester(ECKeyPair keyPair)
+    {
+        return GetTester<ProfitContractImplContainer.ProfitContractImplStub>(ProfitContractAddress, keyPair);
+    }
 
-        internal AEDPoSContractImplContainer.AEDPoSContractImplStub GetAEDPoSContractTester(ECKeyPair keyPair)
-        {
-            return GetTester<AEDPoSContractImplContainer.AEDPoSContractImplStub>(ConsensusContractAddress, keyPair);
-        }
+    internal ElectionContractImplContainer.ElectionContractImplStub GetElectionContractTester(ECKeyPair keyPair)
+    {
+        return GetTester<ElectionContractImplContainer.ElectionContractImplStub>(ElectionContractAddress, keyPair);
+    }
 
-        internal new TreasuryContractImplContainer.TreasuryContractImplStub GetTreasuryContractTester(ECKeyPair keyPair)
-        {
-            return GetTester<TreasuryContractImplContainer.TreasuryContractImplStub>(TreasuryContractAddress, keyPair);
-        }
+    internal AEDPoSContractImplContainer.AEDPoSContractImplStub GetAEDPoSContractTester(ECKeyPair keyPair)
+    {
+        return GetTester<AEDPoSContractImplContainer.AEDPoSContractImplStub>(ConsensusContractAddress, keyPair);
+    }
 
-        internal new ParliamentContractImplContainer.ParliamentContractImplStub GetParliamentContractTester(
-            ECKeyPair keyPair)
-        {
-            return GetTester<ParliamentContractImplContainer.ParliamentContractImplStub>(ParliamentContractAddress,
-                keyPair);
-        }
+    internal TreasuryContractImplContainer.TreasuryContractImplStub GetTreasuryContractTester(ECKeyPair keyPair)
+    {
+        return GetTester<TreasuryContractImplContainer.TreasuryContractImplStub>(TreasuryContractAddress, keyPair);
+    }
 
-        internal new EconomicContractImplContainer.EconomicContractImplStub GetEconomicContractTester(ECKeyPair keyPair)
-        {
-            return GetTester<EconomicContractImplContainer.EconomicContractImplStub>(EconomicContractAddress, keyPair);
-        }
+    internal ParliamentContractImplContainer.ParliamentContractImplStub GetParliamentContractTester(
+        ECKeyPair keyPair)
+    {
+        return GetTester<ParliamentContractImplContainer.ParliamentContractImplStub>(ParliamentContractAddress,
+            keyPair);
+    }
+
+    internal EconomicContractImplContainer.EconomicContractImplStub GetEconomicContractTester(ECKeyPair keyPair)
+    {
+        return GetTester<EconomicContractImplContainer.EconomicContractImplStub>(EconomicContractAddress, keyPair);
+    }
+    
+    internal VirtualAddressContractContainer.VirtualAddressContractStub GetVirtualAddressContractTester(ECKeyPair keyPair)
+    {
+        return GetTester<VirtualAddressContractContainer.VirtualAddressContractStub>(VirtualAddressContractAddress, keyPair);
     }
 }

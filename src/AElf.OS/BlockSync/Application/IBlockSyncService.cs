@@ -1,14 +1,12 @@
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.OS.BlockSync.Dto;
-using AElf.OS.Network;
 
-namespace AElf.OS.BlockSync.Application
+namespace AElf.OS.BlockSync.Application;
+
+public interface IBlockSyncService
 {
-    public interface IBlockSyncService
-    {
-        Task SyncByAnnouncementAsync(Chain chain, SyncAnnouncementDto syncAnnouncementDto);
+    Task SyncByAnnouncementAsync(Chain chain, SyncAnnouncementDto syncAnnouncementDto);
 
-        Task SyncByBlockAsync(Chain chain, SyncBlockDto syncBlockDto);
-    }
+    Task SyncByBlockAsync(Chain chain, SyncBlockDto syncBlockDto);
 }

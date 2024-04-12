@@ -5,35 +5,34 @@ using AElf.Types;
 using Shouldly;
 using Xunit;
 
-namespace AElf.Kernel.SmartContractExecution.Extensions
+namespace AElf.Kernel.SmartContractExecution.Extensions;
+
+public sealed class BlockchainServiceExtensionsTests : SmartContractExecutionTestBase
 {
-    public sealed class BlockchainServiceExtensionsTests : SmartContractExecutionTestBase
+    private readonly IBlockchainService _blockchainService;
+    private readonly KernelTestHelper _kernelTestHelper;
+
+    public BlockchainServiceExtensionsTests()
     {
-        private readonly IBlockchainService _blockchainService;
-        private readonly KernelTestHelper _kernelTestHelper;
+        _blockchainService = GetRequiredService<IBlockchainService>();
+        _kernelTestHelper = GetRequiredService<KernelTestHelper>();
+    }
 
-        public BlockchainServiceExtensionsTests()
+    [Fact]
+    public async Task GetBlocksAsync_Test()
+    {
+        var blockHashes = new List<Hash>();
+        var chain = await _kernelTestHelper.MockChainAsync();
+        var blockHash = chain.BestChainHash;
+        for (var i = 0; i < chain.BestChainHeight; i++)
         {
-            _blockchainService = GetRequiredService<IBlockchainService>();
-            _kernelTestHelper = GetRequiredService<KernelTestHelper>();
+            var block = await _blockchainService.GetBlockByHashAsync(blockHash);
+            if (block == null) break;
+            blockHashes.Add(blockHash);
+            blockHash = block.Header.PreviousBlockHash;
         }
 
-        [Fact]
-        public async Task GetBlocksAsync_Test()
-        {
-            var blockHashes = new List<Hash>();
-            var chain = await _kernelTestHelper.MockChainAsync();
-            var blockHash = chain.BestChainHash;
-            for (var i = 0; i < chain.BestChainHeight; i++)
-            {
-                var block = await _blockchainService.GetBlockByHashAsync(blockHash);
-                if(block == null) break;
-                blockHashes.Add(blockHash);
-                blockHash = block.Header.PreviousBlockHash;
-            }
-
-            var blocks = await _blockchainService.GetBlocksAsync(blockHashes);
-            blocks.Count.ShouldBe(blockHashes.Count);
-        }
+        var blocks = await _blockchainService.GetBlocksAsync(blockHashes);
+        blocks.Count.ShouldBe(blockHashes.Count);
     }
 }

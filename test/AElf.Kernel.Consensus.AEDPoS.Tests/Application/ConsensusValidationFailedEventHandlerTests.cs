@@ -2,28 +2,27 @@ using System.Threading.Tasks;
 using AElf.Kernel.Consensus.AEDPoS.Application;
 using Xunit;
 
-namespace AElf.Kernel.Consensus.DPoS.Tests.Application
+namespace AElf.Kernel.Consensus.DPoS.Tests.Application;
+
+public class ConsensusValidationFailedEventHandlerTests : AEDPoSTestBase
 {
-    public class ConsensusValidationFailedEventHandlerTests : AEDPoSTestBase
+    private readonly ConsensusValidationFailedEventHandler _consensusValidationFailedEventHandler;
+
+    public ConsensusValidationFailedEventHandlerTests()
     {
-        private readonly ConsensusValidationFailedEventHandler _consensusValidationFailedEventHandler;
+        _consensusValidationFailedEventHandler = GetRequiredService<ConsensusValidationFailedEventHandler>();
+    }
 
-        public ConsensusValidationFailedEventHandlerTests()
+    [Fact]
+    public async Task HandleEventAsync_Test()
+    {
+        var eventData = new ConsensusValidationFailedEventData
         {
-            _consensusValidationFailedEventHandler = GetRequiredService<ConsensusValidationFailedEventHandler>();
-        }
+            ValidationResultMessage = "Time slot already passed before execution."
+        };
+        await _consensusValidationFailedEventHandler.HandleEventAsync(eventData);
 
-        [Fact]
-        public async Task HandleEventAsync_Test()
-        {
-            var eventData = new ConsensusValidationFailedEventData()
-            {
-                ValidationResultMessage = "Time slot already passed before execution."
-            };
-            await _consensusValidationFailedEventHandler.HandleEventAsync(eventData);
-
-            eventData.ValidationResultMessage = "other message";
-            await _consensusValidationFailedEventHandler.HandleEventAsync(eventData);
-        }
+        eventData.ValidationResultMessage = "other message";
+        await _consensusValidationFailedEventHandler.HandleEventAsync(eventData);
     }
 }

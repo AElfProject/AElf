@@ -1,40 +1,39 @@
-using System.Linq;
 using System.Collections.Generic;
+using System.Linq;
 using AElf.Kernel;
 using AElf.Types;
 using Google.Protobuf;
 
-namespace AElf.OS.Network
+namespace AElf.OS.Network;
+
+public partial class BlockWithTransactions : IBlock, ICustomDiagnosticMessage
 {
-    public partial class BlockWithTransactions : IBlock, ICustomDiagnosticMessage
+    public IEnumerable<Transaction> FullTransactionList => Transactions;
+
+    public long Height => Header?.Height ?? 0;
+    public IEnumerable<Hash> TransactionIds => Transactions.Select(tx => tx.GetHash());
+
+    public BlockBody Body => new()
     {
-        partial void OnConstruction()
-        {
-            Header = new BlockHeader();
-        }
+        TransactionIds = { Transactions.Select(tx => tx.GetHash()).ToList() }
+    };
 
-        /// <summary>
-        /// Used to override IMessage's default string representation.
-        /// </summary>
-        /// <returns></returns>
-        public string ToDiagnosticString()
-        {
-            return $"{{ id: {GetHash()}, height: {Height} }}";
-        }
+    public Hash GetHash()
+    {
+        return Header.GetHash();
+    }
 
-        public IEnumerable<Transaction> FullTransactionList => Transactions;
-        public IEnumerable<Hash> TransactionIds => Transactions.Select(tx => tx.GetHash());
+    /// <summary>
+    ///     Used to override IMessage's default string representation.
+    /// </summary>
+    /// <returns></returns>
+    public string ToDiagnosticString()
+    {
+        return $"{{ id: {GetHash()}, height: {Height} }}";
+    }
 
-        public BlockBody Body => new BlockBody
-        {
-            TransactionIds = {Transactions.Select(tx => tx.GetHash()).ToList()}
-        };
-
-        public long Height => Header?.Height ?? 0;
-
-        public Hash GetHash()
-        {
-            return Header.GetHash();
-        }
+    partial void OnConstruction()
+    {
+        Header = new BlockHeader();
     }
 }

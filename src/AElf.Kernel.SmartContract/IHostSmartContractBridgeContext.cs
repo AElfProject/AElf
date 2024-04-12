@@ -1,16 +1,13 @@
 using System.Threading.Tasks;
-using AElf.Kernel.SmartContract;
-using AElf.Types;
 using Google.Protobuf;
 
-namespace AElf.Kernel.SmartContract
-{
-    public interface IHostSmartContractBridgeContext : ISmartContractBridgeContext
-    {
-        ITransactionContext TransactionContext { get; set; }
+namespace AElf.Kernel.SmartContract;
 
-        void Initialize(ITransactionContext transactionContext);
-        
-        Task<ByteString> GetStateAsync(string key);
-    }
+public interface IHostSmartContractBridgeContext : ISmartContractBridgeContext
+{
+    ITransactionContext TransactionContext { get; set; }
+
+    void Initialize(ITransactionContext transactionContext);
+
+    Task<ByteString> GetStateAsync(string key);
 }

@@ -2,18 +2,19 @@
     <Import Project="..\..\common.props" />
 
     <PropertyGroup>
-        <TargetFramework>netstandard2.0</TargetFramework>
+        <TargetFramework>net6.0</TargetFramework>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Description>Smart contract code operations like auditing, patching and validating.</Description>
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Mono.Cecil" Version="0.11.2" />
+        <PackageReference Include="Basic.Reference.Assemblies.Net60" Version="1.4.1" />
+        <PackageReference Include="Mono.Cecil" Version="0.11.4" />
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\AElf.Kernel.CodeCheck\AElf.Kernel.CodeCheck.csproj" />
-      <ProjectReference Include="..\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj" />
+        <ProjectReference Include="..\AElf.Kernel.CodeCheck\AElf.Kernel.CodeCheck.csproj" />
+        <ProjectReference Include="..\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj" />
     </ItemGroup>
 
 </Project>

@@ -8,110 +8,95 @@ using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace AElf.OS.BlockSync.Application
+namespace AElf.OS.BlockSync.Application;
+
+public class BlockSyncValidationService : IBlockSyncValidationService
 {
-    public class BlockSyncValidationService : IBlockSyncValidationService
+    private readonly IAnnouncementCacheProvider _announcementCacheProvider;
+    private readonly IBlockchainService _blockchainService;
+    private readonly IBlockValidationService _blockValidationService;
+
+    private readonly ITransactionValidationService _transactionValidationService;
+
+    public BlockSyncValidationService(IAnnouncementCacheProvider announcementCacheProvider,
+        IBlockValidationService blockValidationService,
+        ITransactionValidationService transactionValidationService,
+        IBlockchainService blockchainService)
     {
-        private readonly IAnnouncementCacheProvider _announcementCacheProvider;
-        private readonly IBlockValidationService _blockValidationService;
-        private readonly IBlockchainService _blockchainService;
+        Logger = NullLogger<BlockSyncValidationService>.Instance;
 
-        public ILogger<BlockSyncValidationService> Logger { get; set; }
+        _announcementCacheProvider = announcementCacheProvider;
+        _blockValidationService = blockValidationService;
+        _transactionValidationService = transactionValidationService;
+        _blockchainService = blockchainService;
+    }
 
-        private readonly ITransactionValidationService _transactionValidationService;
+    public ILogger<BlockSyncValidationService> Logger { get; set; }
 
-        public BlockSyncValidationService(IAnnouncementCacheProvider announcementCacheProvider,
-            IBlockValidationService blockValidationService,
-            ITransactionValidationService transactionValidationService,
-            IBlockchainService blockchainService)
+    public Task<bool> ValidateAnnouncementBeforeSyncAsync(Chain chain, BlockAnnouncement blockAnnouncement,
+        string senderPubKey)
+    {
+        if (blockAnnouncement.BlockHeight <= chain.LastIrreversibleBlockHeight)
         {
-            Logger = NullLogger<BlockSyncValidationService>.Instance;
-
-            _announcementCacheProvider = announcementCacheProvider;
-            _blockValidationService = blockValidationService;
-            _transactionValidationService = transactionValidationService;
-            _blockchainService = blockchainService;
+            Logger.LogDebug(
+                $"Receive lower header {{ hash: {blockAnnouncement.BlockHash}, height: {blockAnnouncement.BlockHeight} }} ignore.");
+            return Task.FromResult(false);
         }
 
-        public Task<bool> ValidateAnnouncementBeforeSyncAsync(Chain chain, BlockAnnouncement blockAnnouncement,
-            string senderPubKey)
+        if (!TryCacheNewAnnouncement(blockAnnouncement.BlockHash, blockAnnouncement.BlockHeight, senderPubKey))
+            return Task.FromResult(false);
+
+        return Task.FromResult(true);
+    }
+
+    public Task<bool> ValidateBlockBeforeSyncAsync(Chain chain, BlockWithTransactions blockWithTransactions,
+        string senderPubKey)
+    {
+        if (blockWithTransactions.Height <= chain.LastIrreversibleBlockHeight)
         {
-            if (blockAnnouncement.BlockHeight <= chain.LastIrreversibleBlockHeight)
-            {
-                Logger.LogDebug(
-                    $"Receive lower header {{ hash: {blockAnnouncement.BlockHash}, height: {blockAnnouncement.BlockHeight} }} ignore.");
-                return Task.FromResult(false);
-            }
-
-            if (!TryCacheNewAnnouncement(blockAnnouncement.BlockHash, blockAnnouncement.BlockHeight, senderPubKey))
-            {
-                return Task.FromResult(false);
-            }
-
-            return Task.FromResult(true);
+            Logger.LogDebug($"Receive lower block {blockWithTransactions} ignore.");
+            return Task.FromResult(false);
         }
 
-        public Task<bool> ValidateBlockBeforeSyncAsync(Chain chain, BlockWithTransactions blockWithTransactions,
-            string senderPubKey)
+        if (blockWithTransactions.Header.SignerPubkey.ToHex() != senderPubKey)
         {
-            if (blockWithTransactions.Height <= chain.LastIrreversibleBlockHeight)
-            {
-                Logger.LogDebug($"Receive lower block {blockWithTransactions} ignore.");
-                return Task.FromResult(false);
-            }
-
-            if (blockWithTransactions.Header.SignerPubkey.ToHex() != senderPubKey)
-            {
-                Logger.LogDebug($"Sender {senderPubKey} of block {blockWithTransactions} is incorrect.");
-                return Task.FromResult(false);
-            }
-
-            return Task.FromResult(true);
+            Logger.LogDebug($"Sender {senderPubKey} of block {blockWithTransactions} is incorrect.");
+            return Task.FromResult(false);
         }
 
-        public async Task<bool> ValidateBlockBeforeAttachAsync(BlockWithTransactions blockWithTransactions)
+        return Task.FromResult(true);
+    }
+
+    public async Task<bool> ValidateBlockBeforeAttachAsync(BlockWithTransactions blockWithTransactions)
+    {
+        if (!await _blockValidationService.ValidateBlockBeforeAttachAsync(blockWithTransactions)) return false;
+
+        if (!await ValidateTransactionAsync(blockWithTransactions)) return false;
+
+        return true;
+    }
+
+    private bool TryCacheNewAnnouncement(Hash blockHash, long blockHeight, string senderPubkey)
+    {
+        return _announcementCacheProvider.TryAddOrUpdateAnnouncementCache(blockHash, blockHeight, senderPubkey);
+    }
+
+    private async Task<bool> ValidateTransactionAsync(BlockWithTransactions blockWithTransactions)
+    {
+        foreach (var transaction in blockWithTransactions.Transactions)
         {
-            if (!await _blockValidationService.ValidateBlockBeforeAttachAsync(blockWithTransactions))
+            if (!transaction.VerifyExpiration(blockWithTransactions.Height - 1))
             {
+                Logger.LogDebug($"Transaction {transaction.GetHash()} expired.");
                 return false;
             }
 
-            if (!await ValidateTransactionAsync(blockWithTransactions))
-            {
-                return false;
-            }
+            // No need to validate again if this tx already in local database.
+            if (await _blockchainService.HasTransactionAsync(transaction.GetHash())) continue;
 
-            return true;
+            if (!await _transactionValidationService.ValidateTransactionWhileSyncingAsync(transaction)) return false;
         }
 
-        private bool TryCacheNewAnnouncement(Hash blockHash, long blockHeight, string senderPubkey)
-        {
-            return _announcementCacheProvider.TryAddOrUpdateAnnouncementCache(blockHash, blockHeight, senderPubkey);
-        }
-
-        private async Task<bool> ValidateTransactionAsync(BlockWithTransactions blockWithTransactions)
-        {
-            foreach (var transaction in blockWithTransactions.Transactions)
-            {
-                if (!transaction.VerifyExpiration(blockWithTransactions.Height - 1))
-                {
-                    Logger.LogDebug($"Transaction {transaction.GetHash()} expired.");
-                    return false;
-                }
-
-                // No need to validate again if this tx already in local database.
-                if (await _blockchainService.HasTransactionAsync(transaction.GetHash()))
-                {
-                    continue;
-                }
-
-                if (!await _transactionValidationService.ValidateTransactionWhileSyncingAsync(transaction))
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
+        return true;
     }
 }

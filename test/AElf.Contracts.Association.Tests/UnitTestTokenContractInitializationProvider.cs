@@ -9,54 +9,54 @@ using AElf.Types;
 using Google.Protobuf;
 using Microsoft.Extensions.Options;
 
-namespace AElf.Contracts.Association
+namespace AElf.Contracts.Association;
+
+public class UnitTestTokenContractInitializationProvider : TokenContractInitializationProvider
 {
-    public class UnitTestTokenContractInitializationProvider : TokenContractInitializationProvider
+    private readonly ConsensusOptions _consensusOptions;
+    private readonly EconomicOptions _economicOptions;
+
+    public UnitTestTokenContractInitializationProvider(
+        ITokenContractInitializationDataProvider tokenContractInitializationDataProvider,
+        IOptionsSnapshot<EconomicOptions> economicOptions, IOptionsSnapshot<ConsensusOptions> consensusOptions) : base(
+        tokenContractInitializationDataProvider)
     {
-        private readonly EconomicOptions _economicOptions;
-        private readonly ConsensusOptions _consensusOptions;
+        _economicOptions = economicOptions.Value;
+        _consensusOptions = consensusOptions.Value;
+    }
 
-        public UnitTestTokenContractInitializationProvider(
-            ITokenContractInitializationDataProvider tokenContractInitializationDataProvider,
-            IOptionsSnapshot<EconomicOptions> economicOptions,IOptionsSnapshot<ConsensusOptions> consensusOptions) : base(
-            tokenContractInitializationDataProvider)
+    public override List<ContractInitializationMethodCall> GetInitializeMethodList(byte[] contractCode)
+    {
+        var address = Address.FromPublicKey(
+            ByteArrayHelper.HexStringToByteArray(_consensusOptions.InitialMinerList[0]));
+        var list = new List<ContractInitializationMethodCall>
         {
-            _economicOptions = economicOptions.Value;
-            _consensusOptions = consensusOptions.Value;
-        }
-
-        public override List<ContractInitializationMethodCall> GetInitializeMethodList(byte[] contractCode)
-        {
-            var address = Address.FromPublicKey(
-                ByteArrayHelper.HexStringToByteArray(_consensusOptions.InitialMinerList[0]));
-            var list = new List<ContractInitializationMethodCall>
+            new()
             {
-                new ContractInitializationMethodCall
+                MethodName = nameof(TokenContractImplContainer.TokenContractImplStub.Create),
+                Params = new CreateInput
                 {
-                    MethodName = nameof(TokenContractImplContainer.TokenContractImplStub.Create),
-                    Params = new CreateInput
-                    {
-                        Decimals = _economicOptions.Decimals,
-                        Issuer = address,
-                        IsBurnable = _economicOptions.IsBurnable,
-                        Symbol = _economicOptions.Symbol,
-                        TokenName = _economicOptions.TokenName,
-                        TotalSupply = _economicOptions.TotalSupply,
-                    }.ToByteString(),
-                },
-                new ContractInitializationMethodCall
+                    Decimals = _economicOptions.Decimals,
+                    Issuer = address,
+                    Owner = address,
+                    IsBurnable = _economicOptions.IsBurnable,
+                    Symbol = _economicOptions.Symbol,
+                    TokenName = _economicOptions.TokenName,
+                    TotalSupply = _economicOptions.TotalSupply
+                }.ToByteString()
+            },
+            new()
+            {
+                MethodName = nameof(TokenContractImplContainer.TokenContractImplStub.Issue),
+                Params = new IssueInput
                 {
-                    MethodName = nameof(TokenContractImplContainer.TokenContractImplStub.Issue),
-                    Params = new IssueInput
-                    {
-                        Symbol = _economicOptions.Symbol,
-                        Amount = Convert.ToInt64(_economicOptions.TotalSupply * (1 - _economicOptions.DividendPoolRatio)),
-                        To = address,
-                        Memo = "Issue native token"
-                    }.ToByteString()
-                }
-            };
-            return list;
-        }
+                    Symbol = _economicOptions.Symbol,
+                    Amount = Convert.ToInt64(_economicOptions.TotalSupply * (1 - _economicOptions.DividendPoolRatio)),
+                    To = address,
+                    Memo = "Issue native token"
+                }.ToByteString()
+            }
+        };
+        return list;
     }
 }

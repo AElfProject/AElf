@@ -2,19 +2,20 @@
     <Import Project="..\..\common.props" />
 
     <PropertyGroup>
-        <TargetFramework>netstandard2.0</TargetFramework>
+        <TargetFramework>net6.0</TargetFramework>
         <PackageId>AElf.Contracts.MultiToken</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <Description>MultiToken is a contract that implements token functionality like creation, issuance and 
-            transfer.</Description>
+        <Description>MultiToken is a contract that implements token functionality like creation, issuance and
+            transfer.
+        </Description>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
-      <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
+        <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
-      <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
+        <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
     </PropertyGroup>
 
     <ItemGroup>
@@ -22,8 +23,11 @@
             <Link>Protobuf\Proto\authority_info.proto</Link>
         </CommonMessage>
     </ItemGroup>
-    
+
     <ItemGroup>
+        <ContractReference Include="..\..\protobuf\configuration_contract.proto">
+            <Link>Protobuf\Proto\reference\configuration_contract.proto</Link>
+        </ContractReference>
         <ContractReference Include="..\..\protobuf\acs0.proto">
             <Link>Protobuf\Proto\reference\acs0.proto</Link>
         </ContractReference>
@@ -47,6 +51,9 @@
         </ContractReference>
         <ContractReference Include="..\..\protobuf\aedpos_contract.proto">
             <Link>Protobuf\Proto\reference\aedpos_contract.proto</Link>
+        </ContractReference>
+        <ContractReference Include="..\..\protobuf\acs12.proto">
+            <Link>Protobuf\Proto\acs12.proto</Link>
         </ContractReference>
     </ItemGroup>
 

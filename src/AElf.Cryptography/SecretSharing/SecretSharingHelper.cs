@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using AElf.Types;
 
 namespace AElf.Cryptography.SecretSharing
 {
+
     /// <summary>
     ///     Implementation of Shamir's Secret Sharing: https://en.wikipedia.org/wiki/Shamir%27s_Secret_Sharing
     /// </summary>

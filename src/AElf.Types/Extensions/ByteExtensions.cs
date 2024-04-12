@@ -5,6 +5,7 @@ using Google.Protobuf;
 
 namespace AElf
 {
+
     public static class ByteExtensions
     {
         public static string ToPlainBase58(this byte[] value)
@@ -19,9 +20,9 @@ namespace AElf
 
         public static string ToHex(this byte[] bytes, bool withPrefix = false)
         {
-            int offset = withPrefix ? 2 : 0;
-            int length = bytes.Length * 2 + offset;
-            char[] c = new char[length];
+            var offset = withPrefix ? 2 : 0;
+            var length = bytes.Length * 2 + offset;
+            var c = new char[length];
 
             byte b;
 
@@ -33,11 +34,11 @@ namespace AElf
 
             for (int bx = 0, cx = offset; bx < bytes.Length; ++bx, ++cx)
             {
-                b = ((byte) (bytes[bx] >> 4));
-                c[cx] = (char) (b > 9 ? b + 0x37 + 0x20 : b + 0x30);
+                b = (byte)(bytes[bx] >> 4);
+                c[cx] = (char)(b > 9 ? b + 0x37 + 0x20 : b + 0x30);
 
-                b = ((byte) (bytes[bx] & 0x0F));
-                c[++cx] = (char) (b > 9 ? b + 0x37 + 0x20 : b + 0x30);
+                b = (byte)(bytes[bx] & 0x0F);
+                c[++cx] = (char)(b > 9 ? b + 0x37 + 0x20 : b + 0x30);
             }
 
             return new string(c);
@@ -48,7 +49,7 @@ namespace AElf
             var needReverse = !bigEndian ^ BitConverter.IsLittleEndian;
             return BitConverter.ToInt32(needReverse ? bytes.Reverse().ToArray() : bytes, 0);
         }
-        
+
         public static long ToInt64(this byte[] bytes, bool bigEndian)
         {
             var needReverse = !bigEndian ^ BitConverter.IsLittleEndian;
@@ -56,13 +57,13 @@ namespace AElf
         }
 
         /// <summary>
-        /// Calculates the hash for a byte array.
+        ///     Calculates the hash for a byte array.
         /// </summary>
         /// <param name="bytes"></param>
         /// <returns></returns>
         public static byte[] ComputeHash(this byte[] bytes)
         {
-            using (SHA256 sha256 = SHA256.Create())
+            using (var sha256 = SHA256.Create())
             {
                 return sha256.ComputeHash(bytes);
             }
@@ -79,7 +80,7 @@ namespace AElf
         }
 
         /// <summary>
-        /// Find subarray in the source array.
+        ///     Find subarray in the source array.
         /// </summary>
         /// <param name="array">Source array to search for needle.</param>
         /// <param name="needle">Needle we are searching for.</param>
@@ -88,7 +89,7 @@ namespace AElf
         /// <returns>Returns starting position of the needle if it was found or <b>-1</b> otherwise.</returns>
         public static int Find(this byte[] array, byte[] needle, int startIndex = 0)
         {
-            int needleLen = needle.Length;
+            var needleLen = needle.Length;
             var sourceLength = array.Length;
             int index;
 
@@ -104,21 +105,15 @@ namespace AElf
                 int i, p;
                 // check for needle
                 for (i = 0, p = index; i < needleLen; i++, p++)
-                {
                     if (array[p] != needle[i])
-                    {
                         break;
-                    }
-                }
 
                 if (i == needleLen)
-                {
                     // needle was found
                     return index;
-                }
 
                 // continue to search for needle
-                sourceLength -= (index - startIndex + 1);
+                sourceLength -= index - startIndex + 1;
                 startIndex = index + 1;
             }
 

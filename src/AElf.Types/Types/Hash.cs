@@ -7,13 +7,22 @@ using Google.Protobuf;
 // ReSharper disable once CheckNamespace
 namespace AElf.Types
 {
+
     public partial class Hash : ICustomDiagnosticMessage, IComparable<Hash>, IEnumerable<byte>
     {
         public static readonly Hash Empty = LoadFromByteArray(Enumerable.Range(0, AElfConstants.HashByteArrayLength)
             .Select(x => byte.MinValue).ToArray());
 
+        public int CompareTo(Hash that)
+        {
+            if (that == null)
+                throw new InvalidOperationException("Cannot compare hash when hash is null");
+
+            return CompareHash(this, that);
+        }
+
         /// <summary>
-        /// Used to override IMessage's default string representation.
+        ///     Used to override IMessage's default string representation.
         /// </summary>
         /// <returns></returns>
         public string ToDiagnosticString()
@@ -21,8 +30,18 @@ namespace AElf.Types
             return $@"""{ToHex()}""";
         }
 
+        public IEnumerator<byte> GetEnumerator()
+        {
+            return Value.GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+
         /// <summary>
-        /// Loads the content value from 32-byte long byte array.
+        ///     Loads the content value from 32-byte long byte array.
         /// </summary>
         /// <param name="bytes"></param>
         /// <returns></returns>
@@ -39,7 +58,7 @@ namespace AElf.Types
         }
 
         /// <summary>
-        /// Loads the content value represented in base64.
+        ///     Loads the content value represented in base64.
         /// </summary>
         /// <param name="base64"></param>
         /// <returns></returns>
@@ -50,7 +69,7 @@ namespace AElf.Types
         }
 
         /// <summary>
-        /// Loads the content value represented in hex string.
+        ///     Loads the content value represented in hex string.
         /// </summary>
         /// <param name="hex"></param>
         /// <returns></returns>
@@ -60,30 +79,30 @@ namespace AElf.Types
             var bytes = ByteArrayHelper.HexStringToByteArray(hex);
             return LoadFromByteArray(bytes);
         }
-        
+
         /// <summary>
-        /// Dumps the content value to byte array.
+        ///     Dumps the content value to byte array.
         /// </summary>
         /// <returns></returns>
         public byte[] ToByteArray()
         {
             return Value.ToByteArray();
         }
-        
+
         /// <summary>
-        /// Converts hash into hexadecimal representation.
+        ///     Converts hash into hexadecimal representation.
         /// </summary>
         /// <returns></returns>
         public string ToHex()
         {
             return Value.ToHex();
         }
-        
+
         /// <summary>
-        /// Converts hash into int64 value.
+        ///     Converts hash into int64 value.
         /// </summary>
         /// <returns></returns>
-        public Int64 ToInt64()
+        public long ToInt64()
         {
             return ToByteArray().ToInt64(true);
         }
@@ -108,37 +127,13 @@ namespace AElf.Types
             return CompareHash(h1, h2) > 0;
         }
 
-        public int CompareTo(Hash that)
-        {
-            if (that == null)
-                throw new InvalidOperationException("Cannot compare hash when hash is null");
-
-            return CompareHash(this, that);
-        }
-
         private static int CompareHash(Hash hash1, Hash hash2)
         {
-            if (hash1 != null)
-            {
-                return hash2 == null ? 1 : ByteStringHelper.Compare(hash1.Value, hash2.Value);
-            }
+            if (hash1 != null) return hash2 == null ? 1 : ByteStringHelper.Compare(hash1.Value, hash2.Value);
 
-            if (hash2 == null)
-            {
-                return 0;
-            }
+            if (hash2 == null) return 0;
 
             return -1;
-        }
-
-        public IEnumerator<byte> GetEnumerator()
-        {
-            return Value.GetEnumerator();
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
         }
     }
 }

@@ -1,0 +1,74 @@
+/**
+ * AirDrop contract.
+ */
+syntax = "proto3";
+
+package AirDrop;
+
+import "aelf/core.proto";
+import "aelf/options.proto";
+import "acs1.proto";
+import "acs2.proto";
+import "transaction_fee.proto";
+import "authority_info.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+
+option csharp_namespace = "AElf.Contracts.AirDrop";
+
+service AirDropContract {
+    option (aelf.csharp_state) = "AElf.Contracts.AirDrop.AirDropContractState";
+    option (aelf.base) = "acs1.proto";
+    option (aelf.base) = "acs2.proto";
+
+    rpc Deposit (DepositInput) returns (google.protobuf.Empty) {
+    }
+
+    rpc AirDrop (AirDropInput) returns (google.protobuf.Empty) {
+    }
+    
+    rpc Freeze (FreezeInput) returns (google.protobuf.Empty) {
+    }
+
+    rpc Unfreeze (UnfreezeInput) returns (google.protobuf.Empty) {
+    }
+    
+    rpc SpendAirDropToken (TransferInput) returns (google.protobuf.Empty) {
+    }
+}
+
+message DepositInput {
+    string symbol = 1;
+    int64 amount = 2;
+    bool is_unfreeze_by_default = 3;
+    aelf.Address sponsor = 4;
+}
+
+message AirDropInput {
+    string symbol = 1;
+    int64 amount = 2;
+    aelf.Address receiver = 3;
+}
+
+message FreezeInput {
+    string symbol = 1;
+    int64 amount = 2;
+    aelf.Address receiver = 3;
+}
+
+message UnfreezeInput {
+    string symbol = 1;
+    int64 amount = 2;
+    aelf.Address receiver = 3;
+}
+
+message TransferInput {
+    // The receiver of the token.
+    aelf.Address to = 1;
+    // The token symbol to transfer.
+    string symbol = 2;
+    // The amount to to transfer.
+    int64 amount = 3;
+    // The memo.
+    string memo = 4;
+}

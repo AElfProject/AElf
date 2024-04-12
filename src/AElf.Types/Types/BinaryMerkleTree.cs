@@ -4,6 +4,7 @@ using System.Linq;
 
 namespace AElf.Types
 {
+
     public partial class BinaryMerkleTree
     {
         public static BinaryMerkleTree FromLeafNodes(IEnumerable<Hash> leafNodes)
@@ -17,23 +18,20 @@ namespace AElf.Types
         }
 
         /// <summary>
-        /// Calculate merkle tree root from leaf node list.
+        ///     Calculate merkle tree root from leaf node list.
         /// </summary>
         /// <example>
-        /// For leave {0,1,2,3,4}, the tree should be like
-        ///          12
+        ///     For leave {0,1,2,3,4}, the tree should be like
+        ///     12
         ///     10 ------ 11
-        ///   6 -- 7    8 -- 9   
-        ///  0-1  2-3  4-5
-        /// in which {5,9} are copied from {4,8}, and {6,7,8,10,11,12} are calculated.
-        /// [12] is merkle tree root.
+        ///     6 -- 7    8 -- 9
+        ///     0-1  2-3  4-5
+        ///     in which {5,9} are copied from {4,8}, and {6,7,8,10,11,12} are calculated.
+        ///     [12] is merkle tree root.
         /// </example>
         private static void GenerateBinaryMerkleTreeNodesWithLeafNodes(IList<Hash> leafNodes)
         {
-            if (!leafNodes.Any())
-            {
-                return;
-            }
+            if (!leafNodes.Any()) return;
 
             if (leafNodes.Count % 2 == 1)
                 leafNodes.Add(leafNodes.Last());
@@ -65,9 +63,9 @@ namespace AElf.Types
         {
             if (Root == null || index >= LeafCount)
                 throw new InvalidOperationException("Cannot generate merkle path from incomplete binary merkle tree.");
-            MerklePath path = new MerklePath();
-            int indexOfFirstNodeInRow = 0;
-            int nodeCountInRow = LeafCount;
+            var path = new MerklePath();
+            var indexOfFirstNodeInRow = 0;
+            var nodeCountInRow = LeafCount;
             while (index < Nodes.Count - 1)
             {
                 Hash neighbor;
@@ -92,7 +90,7 @@ namespace AElf.Types
                 });
 
                 nodeCountInRow = nodeCountInRow % 2 == 0 ? nodeCountInRow : nodeCountInRow + 1;
-                int shift = (index - indexOfFirstNodeInRow) / 2;
+                var shift = (index - indexOfFirstNodeInRow) / 2;
                 indexOfFirstNodeInRow += nodeCountInRow;
                 index = indexOfFirstNodeInRow + shift;
                 nodeCountInRow /= 2;

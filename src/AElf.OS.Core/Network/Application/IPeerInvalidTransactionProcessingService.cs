@@ -1,10 +1,9 @@
 using System.Threading.Tasks;
 using AElf.Types;
 
-namespace AElf.OS.Network.Application
+namespace AElf.OS.Network.Application;
+
+public interface IPeerInvalidTransactionProcessingService
 {
-    public interface IPeerInvalidTransactionProcessingService
-    {
-        Task ProcessPeerInvalidTransactionAsync(Hash transactionId);
-    }
+    Task ProcessPeerInvalidTransactionAsync(Hash transactionId);
 }

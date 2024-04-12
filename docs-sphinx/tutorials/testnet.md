@@ -7,7 +7,7 @@ jump into the guides and tutorials you'll need to install the following
 tools and frameworks. For most of these dependencies we provide
 ready-to-use command line instructions. In case of problems or if you
 have more complex needs, we provide more information in the [Environment
-setup](../../getting-started/development-environment/environment-setup.md) section.
+setup](../../getting-started/development-environment/install.md) section.
 
 Summary of the steps to set up a node:
 
@@ -63,7 +63,7 @@ Restore the chain database from snapshot:
 ## state database : decompress and load the state database
 >> tar xvzf aelf-testnet-mainchain-statedb-*.tar.gz
 >> stop your state database instance (ssdb server)
->> cp -r aelf-testnet-mainchain-statedb-*/* /path/to/install/ssdb/var/
+>> cp -r aelf-testnet-mainchain-statedb-*/* /path/to/install/statedb/ssdb/var/
 >> start your state database instance
 >> enter ssdb console (ssdb-cli) use the "info" command to confirm that the data has been imported)
 ```
@@ -155,8 +155,8 @@ Next add the testnet mainchain nodes as peer (bootnode peers):
 {
     "Network": {
         "BootNodes": [
-            "testnet-mainchain-1.aelf.io:6800",
-            "testnet-mainchain-2.aelf.io:6800"
+            "xxx.xxxx.xxx.xxx:6800",
+            "..."
         ],
         "ListeningPort": 6800
     }
@@ -184,9 +184,9 @@ To run the node with Docker, enter the following commands:
 
 ``` bash
 ## pull AElf’s image and navigate to the template folder to execute the start script
->> docker pull aelf/node:testnet-v1.0.0-rc1
+>> docker pull aelf/node:testnet-v1.0.0
 >> cd /opt/aelf-node
->> sh aelf-node.sh start aelf/node:testnet-v1.0.0-rc1
+>> sh aelf-node.sh start aelf/node:testnet-v1.0.0
 ```
 
 to stop the node you can run:
@@ -201,23 +201,23 @@ Running a full node with the binary release
 Most of AElf is developed with dotnet core, so to run the binaries you
 will need to download and install the .NET Core SDK before you start:
 [Download .NET Core
-3.1](https://dotnet.microsoft.com/download/dotnet-core/3.1). For now
-AElf depends on version 3.1 of the SDK, on the provided link find the
+6.0](https://dotnet.microsoft.com/download/dotnet-core/6.0). For now
+AElf depends on version 6.0 of the SDK, on the provided link find the
 download for your platform, and install it.
 
 Get the latest release with the following commands:
 
 ``` bash
->> cd /tmp/ && wget https://github.com/AElfProject/AElf/releases/download/v1.0.0-rc1/aelf-v1.0.0-rc1.zip
->> unzip aelf-v1.0.0-rc1.zip
->> mv aelf-v1.0.0-rc1 /opt/aelf-node/
+>> cd /tmp/ && wget https://github.com/AElfProject/AElf/releases/download/v1.0.0-rc1/aelf.zip
+>> unzip aelf.zip
+>> mv aelf /opt/aelf-node/
 ```
 
 Enter the configuration folder and run the node:
 
 ``` bash
 >> cd /opt/aelf-node
->> dotnet aelf-v1.0.0-rc1/AElf.Launcher.dll
+>> dotnet aelf/AElf.Launcher.dll
 ```
 
 Running a full node with the source
@@ -226,9 +226,9 @@ Running a full node with the source
 The most convenient way is to directly use docker or the binary
 packages, but if you want you can compile from source code. First make
 sure the code version is consistent (current is release AELF
-v1.0.0-rc1), and secondly make sure to compile on a Ubuntu Linux
+v1.0.0), and secondly make sure to compile on a Ubuntu Linux
 machine (we recommend Ubuntu 18.04.2 LTS) and have dotnet core SDK
-version 3.1 installed. This is because different platforms or compilers
+version 6.0 installed. This is because different platforms or compilers
 will cause the dll hashes to be inconsistent with the current chain.
 
 Check the node
@@ -289,10 +289,9 @@ run script) for the side-chain:
 
     wget https://github.com/AElfProject/AElf/releases/download/v1.0.0-rc1/aelf-testnet-sidechain1.zip
 
-Each side chain has its own P2P network, you can find here some
-bootnodes that are available:
+Each side chain has its own P2P network, add the testnet sidechain nodes as peer:
 
-    sidechain1 bootnode → ["testnet-sidechain1-1.aelf.io:6800", "testnet-sidechain1-2.aelf.io:6800"]
+    bootnode → ["xxx.xxxx.xxx.xxx:6800", "..."]
 
 ``` json
 {

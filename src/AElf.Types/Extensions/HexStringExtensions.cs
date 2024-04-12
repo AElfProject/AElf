@@ -3,6 +3,7 @@ using Google.Protobuf;
 
 namespace AElf
 {
+
     public static class HexStringExtensions
     {
         [Obsolete("Use ByteStringHelper.FromHexString instead.")]

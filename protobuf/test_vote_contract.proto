@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+import "aelf/core.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+import "acs1.proto";
+
+option csharp_namespace = "AElf.Contracts.TestContract.Vote";
+
+service VoteContract {
+    option (aelf.csharp_state) = "AElf.Contracts.TestContract.Vote.VoteContractState";
+    option (aelf.base) = "acs1.proto";
+
+    rpc AddOption (AddOptionInput) returns (google.protobuf.Empty) {
+    }
+}
+
+message AddOptionInput {
+    aelf.Hash voting_item_id = 1;
+    aelf.Hash option = 2;
+}

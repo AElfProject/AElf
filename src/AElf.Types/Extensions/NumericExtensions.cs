@@ -3,6 +3,7 @@ using System.Linq;
 
 namespace AElf
 {
+
     public static class NumericExtensions
     {
         public static byte[] ToBytes(this long n, bool bigEndian = true)
@@ -10,7 +11,7 @@ namespace AElf
             var bytes = BitConverter.GetBytes(n);
             return GetBytesWithEndian(bytes, bigEndian);
         }
-        
+
         public static byte[] ToBytes(this ulong n, bool bigEndian = true)
         {
             var bytes = BitConverter.GetBytes(n);
@@ -22,7 +23,7 @@ namespace AElf
             var bytes = BitConverter.GetBytes(n);
             return GetBytesWithEndian(bytes, bigEndian);
         }
-        
+
         public static byte[] ToBytes(this uint n, bool bigEndian = true)
         {
             var bytes = BitConverter.GetBytes(n);

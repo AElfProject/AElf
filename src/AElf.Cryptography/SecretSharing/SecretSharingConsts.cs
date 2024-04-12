@@ -2,6 +2,7 @@ using System.Numerics;
 
 namespace AElf.Cryptography.SecretSharing
 {
+
     public static class SecretSharingConsts
     {
         public static readonly uint MaxBits = 1024;

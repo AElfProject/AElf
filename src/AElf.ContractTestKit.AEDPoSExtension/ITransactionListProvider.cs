@@ -2,12 +2,11 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Types;
 
-namespace AElf.ContractTestKit.AEDPoSExtension
+namespace AElf.ContractTestKit.AEDPoSExtension;
+
+public interface ITransactionListProvider
 {
-    public interface ITransactionListProvider
-    {
-        Task AddTransactionListAsync(List<Transaction> transactions);
-        Task<List<Transaction>> GetTransactionListAsync();
-        Task ResetAsync();
-    }
+    Task AddTransactionListAsync(List<Transaction> transactions);
+    Task<List<Transaction>> GetTransactionListAsync();
+    Task ResetAsync();
 }

@@ -4,15 +4,14 @@ using AElf.Kernel.SmartContract.Application;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Volo.Abp.Modularity;
 
-namespace AElf.Contracts.Election
+namespace AElf.Contracts.Election;
+
+[DependsOn(typeof(EconomicContractsTestModule))]
+public class ElectionContractTestModule : EconomicContractsTestModule
 {
-    [DependsOn(typeof(EconomicContractsTestModule))]
-    public class ElectionContractTestModule : EconomicContractsTestModule
+    public override void ConfigureServices(ServiceConfigurationContext context)
     {
-        public override void ConfigureServices(ServiceConfigurationContext context)
-        {
-            Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false );
-            context.Services.RemoveAll<IPreExecutionPlugin>();
-        }
+        Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false);
+        context.Services.RemoveAll<IPreExecutionPlugin>();
     }
 }

@@ -1,18 +1,18 @@
 ﻿using System;
-using System.Linq;
 
 namespace AElf
 {
+
     public static class ByteArrayHelper
     {
         public static byte[] HexStringToByteArray(string hex)
         {
             if (hex.Length >= 2 && hex[0] == '0' && (hex[1] == 'x' || hex[1] == 'X'))
                 hex = hex.Substring(2);
-            int numberChars = hex.Length;
-            byte[] bytes = new byte[numberChars / 2];
+            var numberChars = hex.Length;
+            var bytes = new byte[numberChars / 2];
 
-            for (int i = 0; i < numberChars; i += 2)
+            for (var i = 0; i < numberChars; i += 2)
                 bytes[i / 2] = Convert.ToByte(hex.Substring(i, 2), 16);
 
             return bytes;
@@ -30,9 +30,8 @@ namespace AElf
                 return false;
 
             for (var i = 0; i < b1.Length; i++)
-            {
-                if (b1[i] != b2[i]) return false;
-            }
+                if (b1[i] != b2[i])
+                    return false;
 
             return true;
         }

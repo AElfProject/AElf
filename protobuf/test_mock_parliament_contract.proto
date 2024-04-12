@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+import "aelf/options.proto";
+import "aelf/core.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+
+option csharp_namespace = "AElf.Contracts.TestContract.MockParliament";
+
+service MockParliamentContract {
+    option (aelf.csharp_state) = "AElf.Contracts.TestContract.MockParliament.MockParliamentContractState";
+
+    rpc Initialize(InitializeInput) returns (google.protobuf.Empty) {
+    }
+    
+    rpc GetDefaultOrganizationAddress (google.protobuf.Empty) returns (aelf.Address) {
+        option (aelf.is_view) = true;
+    }
+}
+
+message InitializeInput{
+    aelf.Address privileged_proposer = 1;
+    bool proposer_authority_required = 2;
+}

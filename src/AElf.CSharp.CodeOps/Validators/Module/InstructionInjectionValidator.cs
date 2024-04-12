@@ -5,75 +5,87 @@ using AElf.CSharp.CodeOps.Instructions;
 using Mono.Cecil;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.CSharp.CodeOps.Validators.Method
+namespace AElf.CSharp.CodeOps.Validators.Method;
+
+public class InstructionInjectionValidator : IValidator<ModuleDefinition>, ITransientDependency
 {
-    public class InstructionInjectionValidator : IValidator<ModuleDefinition>, ITransientDependency
+    private readonly IStateWrittenInstructionInjector _instructionInjector;
+
+    public InstructionInjectionValidator(IStateWrittenInstructionInjector instructionInjector)
     {
-        private readonly IStateWrittenInstructionInjector _instructionInjector;
+        _instructionInjector = instructionInjector;
+    }
 
-        public InstructionInjectionValidator(IStateWrittenInstructionInjector instructionInjector)
+    public bool SystemContactIgnored => true;
+
+    public IEnumerable<ValidationResult> Validate(ModuleDefinition moduleDefinition, CancellationToken ct)
+    {
+        if (ct.IsCancellationRequested)
+            throw new ContractAuditTimeoutException();
+
+        var result = new List<ValidationResult>();
+        foreach (var typ in moduleDefinition.Types)
         {
-            _instructionInjector = instructionInjector;
+            result.AddRange(ValidateType(typ, moduleDefinition));
         }
 
-        public bool SystemContactIgnored => true;
+        return result;
+    }
 
-        public IEnumerable<ValidationResult> Validate(ModuleDefinition moduleDefinition, CancellationToken ct)
+    private List<ValidationResult> ValidateType(TypeDefinition type, ModuleDefinition moduleDefinition)
+    {
+        var result = new List<ValidationResult>();
+
+        foreach (var method in type.Methods)
         {
-            if (ct.IsCancellationRequested)
-                throw new ContractAuditTimeoutException();
-
-            var result = new List<ValidationResult>();
-            foreach (var typ in moduleDefinition.Types)
-            {
-                result.AddRange(ValidateType(typ, moduleDefinition));
-            }
-            
-            return result;
+            result.AddRange(ValidateMethod(moduleDefinition, method));
         }
-        
-        private List<ValidationResult> ValidateType(TypeDefinition type, ModuleDefinition moduleDefinition)
+
+        foreach (var nestedType in type.NestedTypes)
         {
-            var result = new List<ValidationResult>();
-
-            foreach (var method in type.Methods)
-            {
-                result.AddRange(ValidateMethod(moduleDefinition, method));
-            }
-
-            foreach (var nestedType in type.NestedTypes)
-            {
-                result.AddRange(ValidateType(nestedType, moduleDefinition));
-            }
-
-            return result;
+            result.AddRange(ValidateType(nestedType, moduleDefinition));
         }
-        
-        private List<ValidationResult> ValidateMethod(ModuleDefinition moduleDefinition, MethodDefinition methodDefinition)
+
+        return result;
+    }
+
+    private List<ValidationResult> ValidateMethod(ModuleDefinition moduleDefinition, MethodDefinition methodDefinition)
+    {
+        if (!methodDefinition.HasBody)
+            return new List<ValidationResult>();
+        var isNotContractImplementation = !methodDefinition.DeclaringType.IsContractImplementation();
+
+        var result = new List<ValidationResult>();
+        foreach (var instruction in methodDefinition.Body.Instructions.Where(instruction =>
+                     _instructionInjector.IdentifyInstruction(instruction)).ToList())
         {
-            var result = new List<ValidationResult>();
-
-            if (!methodDefinition.HasBody)
-                return result;
-
-            foreach (var instruction in methodDefinition.Body.Instructions.Where(instruction =>
-                _instructionInjector.IdentifyInstruction(instruction)).ToList())
+            // TODO: https://github.com/AElfProject/AElf/issues/3387
+            if (isNotContractImplementation)
             {
-                if (_instructionInjector.ValidateInstruction(moduleDefinition, instruction))
-                    continue;
+                result.Add(new MethodCallInjectionValidationResult(
+                    $"{_instructionInjector.GetType()} validation failed. Updating state in non-contract class is not allowed."
+                ).WithInfo(
+                    methodDefinition.Name,
+                    methodDefinition.DeclaringType.Namespace,
+                    methodDefinition.DeclaringType.FullName,
+                    null
+                ));
+            }
+            else if (!_instructionInjector.ValidateInstruction(moduleDefinition, instruction))
+            {
                 result.Add(new MethodCallInjectionValidationResult(
                     $"{_instructionInjector.GetType()} validation failed.").WithInfo(methodDefinition.Name,
                     methodDefinition.DeclaringType.Namespace, methodDefinition.DeclaringType.FullName, null));
             }
+        }
 
-            return result;
-        }
+        return result;
     }
-    
-    public class MethodCallInjectionValidationResult : ValidationResult
+}
+
+public class MethodCallInjectionValidationResult : ValidationResult
+{
+    public MethodCallInjectionValidationResult(string message) : base(message)
     {
-        public MethodCallInjectionValidationResult(string message) : base(message)
-        {
-        }
     }
 }

@@ -1,7 +1,6 @@
-namespace AElf.CrossChain.Grpc
+namespace AElf.CrossChain.Grpc;
+
+public class GrpcCrossChainConstants
 {
-    public class GrpcCrossChainConstants
-    {
-        public const int MaximalIndexingCount = 32;
-    }
+    public const int MaximalIndexingCount = 32;
 }

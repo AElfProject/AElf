@@ -3,6 +3,7 @@ using System.Linq;
 
 namespace AElf
 {
+
     public static class ChainHelper
     {
         public static int GetChainId(long serialNumber)
@@ -10,7 +11,7 @@ namespace AElf
             // For 4 base58 chars use following range (2111 ~ zzzz):
             // Max: 57*58*58*58+57*58*58+57*58+57 = 11316496 (zzzz)
             // Min: 1*58*58*58+0*58*58+0*58+0 = 195112 (2111)
-            var validNUmber = (uint) serialNumber.GetHashCode() % 11316496;
+            var validNUmber = (uint)serialNumber.GetHashCode() % 11316496;
             if (validNUmber < 195112)
                 validNUmber += 195112;
 

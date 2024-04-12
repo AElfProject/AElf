@@ -1,7 +1,6 @@
-namespace AElf.Kernel
+namespace AElf.Kernel;
+
+public class BlockMinedEventData
 {
-    public class BlockMinedEventData
-    {
-        public BlockHeader BlockHeader { get; set; }
-    }
+    public BlockHeader BlockHeader { get; set; }
 }

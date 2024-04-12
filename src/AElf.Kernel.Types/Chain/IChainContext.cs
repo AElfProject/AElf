@@ -1,12 +1,9 @@
-﻿using AElf.Types;
+﻿namespace AElf.Kernel;
 
-namespace AElf.Kernel
+/// <summary>
+///     a running chain context
+/// </summary>
+public interface IChainContext : IBlockIndex
 {
-    /// <summary>
-    /// a running chain context
-    /// </summary>
-    public interface IChainContext : IBlockIndex
-    {
-        IStateCache StateCache { get; set; }
-    }
+    IStateCache StateCache { get; set; }
 }

@@ -94,6 +94,12 @@ message SmartContractRegistration {
     bool is_system_contract = 4;
     // The version of the current contract.
     int32 version = 5;
+    // The version of the contract.
+    string contract_version = 6;
+    // The address of the current contract.
+    Address contract_address = 7;
+    // Indicates if the contract is the user contract.
+    bool is_user_contract = 8;
 }
 
 message TransactionExecutingStateSet {
@@ -144,4 +150,8 @@ message BinaryMerkleTree {
     Hash root = 2;
     // The count of leaf node.
     int32 leaf_count = 3;
+}
+
+message BigIntValue {
+    string value = 1;
 }

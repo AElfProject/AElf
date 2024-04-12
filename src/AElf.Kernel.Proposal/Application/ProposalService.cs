@@ -8,42 +8,54 @@ using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.Kernel.Proposal.Application
+namespace AElf.Kernel.Proposal.Application;
+
+internal class ProposalService : IProposalService, ITransientDependency
 {
-    internal class ProposalService : IProposalService, ITransientDependency
+    private readonly IContractReaderFactory<ParliamentContractContainer.ParliamentContractStub>
+        _contractReaderFactory;
+
+    private readonly IProposalProvider _proposalProvider;
+    private readonly ISmartContractAddressService _smartContractAddressService;
+
+    public ProposalService(IProposalProvider proposalProvider,
+        ISmartContractAddressService smartContractAddressService,
+        IContractReaderFactory<ParliamentContractContainer.ParliamentContractStub> contractReaderFactory)
     {
-        private readonly IProposalProvider _proposalProvider;
-        private readonly ISmartContractAddressService _smartContractAddressService;
+        _proposalProvider = proposalProvider;
+        _smartContractAddressService = smartContractAddressService;
+        _contractReaderFactory = contractReaderFactory;
+    }
 
-        private readonly IContractReaderFactory<ParliamentContractContainer.ParliamentContractStub>
-            _contractReaderFactory;
+    public ILogger<ProposalService> Logger { get; set; }
 
-        public ILogger<ProposalService> Logger { get; set; }
+    public void AddNotApprovedProposal(Hash proposalId, long height)
+    {
+        _proposalProvider.AddProposal(proposalId, height);
+    }
 
-        private Task<Address> GetParliamentContractAddressAsync(IChainContext chainContext)
+    public async Task<List<Hash>> GetNotApprovedProposalIdListAsync(Address from, Hash blockHash, long blockHeight)
+    {
+        var proposalIdList = _proposalProvider.GetAllProposals();
+        var result = await _contractReaderFactory.Create(new ContractReaderContext
         {
-            return _smartContractAddressService.GetAddressByContractNameAsync(chainContext,
-                ParliamentSmartContractAddressNameProvider.StringName);
-        }
+            BlockHash = blockHash,
+            BlockHeight = blockHeight,
+            ContractAddress = await GetParliamentContractAddressAsync(new ChainContext
+            {
+                BlockHash = blockHash,
+                BlockHeight = blockHeight
+            }),
+            Sender = from
+        }).GetNotVotedProposals.CallAsync(new ProposalIdList { ProposalIds = { proposalIdList } });
 
-        public ProposalService(IProposalProvider proposalProvider,
-            ISmartContractAddressService smartContractAddressService,
-            IContractReaderFactory<ParliamentContractContainer.ParliamentContractStub> contractReaderFactory)
-        {
-            _proposalProvider = proposalProvider;
-            _smartContractAddressService = smartContractAddressService;
-            _contractReaderFactory = contractReaderFactory;
-        }
+        return result?.ProposalIds.ToList();
+    }
 
-        public void AddNotApprovedProposal(Hash proposalId, long height)
-        {
-            _proposalProvider.AddProposal(proposalId, height);
-        }
-
-        public async Task<List<Hash>> GetNotApprovedProposalIdListAsync(Address @from, Hash blockHash, long blockHeight)
-        {
-            var proposalIdList = _proposalProvider.GetAllProposals();
-            var result = await _contractReaderFactory.Create(new ContractReaderContext
+    public async Task ClearProposalByLibAsync(Hash blockHash, long blockHeight)
+    {
+        var proposalIdList = _proposalProvider.GetAllProposals();
+        var result = await _contractReaderFactory.Create(new ContractReaderContext
             {
                 BlockHash = blockHash,
                 BlockHeight = blockHeight,
@@ -51,39 +63,26 @@ namespace AElf.Kernel.Proposal.Application
                 {
                     BlockHash = blockHash,
                     BlockHeight = blockHeight
-                }),
-                Sender = from
-            }).GetNotVotedProposals.CallAsync(new ProposalIdList {ProposalIds = {proposalIdList}});
+                })
+            }).GetNotVotedPendingProposals
+            .CallAsync(new ProposalIdList { ProposalIds = { proposalIdList } });
 
-            return result?.ProposalIds.ToList();
-        }
+        if (result == null)
+            return;
 
-        public async Task ClearProposalByLibAsync(Hash blockHash, long blockHeight)
+        foreach (var proposalId in proposalIdList.Except(result.ProposalIds))
         {
-            var proposalIdList = _proposalProvider.GetAllProposals();
-            var result = await _contractReaderFactory.Create(new ContractReaderContext
-                {
-                    BlockHash = blockHash,
-                    BlockHeight = blockHeight,
-                    ContractAddress = await GetParliamentContractAddressAsync(new ChainContext
-                    {
-                        BlockHash = blockHash,
-                        BlockHeight = blockHeight
-                    })
-                }).GetNotVotedPendingProposals
-                .CallAsync(new ProposalIdList {ProposalIds = {proposalIdList}});
-            
-            if (result == null)
-                return;
-
-            foreach (var proposalId in proposalIdList.Except(result.ProposalIds))
-            {
-                if (!_proposalProvider.TryGetProposalCreatedHeight(proposalId, out var h) ||
-                    h > blockHeight)
-                    continue;
-                Logger.LogDebug($"Clear proposal {proposalId} by LIB hash {blockHash}, height {blockHeight}");
-                _proposalProvider.RemoveProposalById(proposalId);
-            }
+            if (!_proposalProvider.TryGetProposalCreatedHeight(proposalId, out var h) ||
+                h > blockHeight)
+                continue;
+            Logger.LogDebug($"Clear proposal {proposalId} by LIB hash {blockHash}, height {blockHeight}");
+            _proposalProvider.RemoveProposalById(proposalId);
         }
+    }
+
+    private Task<Address> GetParliamentContractAddressAsync(IChainContext chainContext)
+    {
+        return _smartContractAddressService.GetAddressByContractNameAsync(chainContext,
+            ParliamentSmartContractAddressNameProvider.StringName);
     }
 }

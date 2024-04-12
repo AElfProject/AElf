@@ -1,36 +1,91 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Reflection;
+using System.Threading.Tasks;
 using AElf.Kernel.SmartContract.Infrastructure;
+using AElf.Types;
+using Org.BouncyCastle.Security;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.Kernel.SmartContract.Application
+namespace AElf.Kernel.SmartContract.Application;
+
+public class SmartContractService : ISmartContractService, ITransientDependency
 {
-    public class SmartContractService : ISmartContractService, ITransientDependency
+    private readonly ISmartContractRunnerContainer _smartContractRunnerContainer;
+
+    public SmartContractService(
+        ISmartContractRunnerContainer smartContractRunnerContainer)
     {
-        private readonly ISmartContractAddressService _smartContractAddressService;
-        private readonly ISmartContractRunnerContainer _smartContractRunnerContainer;
+        _smartContractRunnerContainer = smartContractRunnerContainer;
+    }
 
-        public SmartContractService(ISmartContractAddressService smartContractAddressService,
-            ISmartContractRunnerContainer smartContractRunnerContainer)
+    /// <inheritdoc />
+    public Task DeployContractAsync(ContractDto contractDto)
+    {
+        CheckRunner(contractDto.SmartContractRegistration.Category);
+        return Task.CompletedTask;
+    }
+
+    public Task UpdateContractAsync(ContractDto contractDto)
+    {
+        return Task.CompletedTask;
+    }
+    
+    public async Task<ContractInfoDto> DeployContractAsync(SmartContractRegistration registration)
+    {
+        var contractVersion = await GetVersion(registration);
+        return new ContractInfoDto
         {
-            _smartContractAddressService = smartContractAddressService;
-            _smartContractRunnerContainer = smartContractRunnerContainer;
+            ContractVersion = contractVersion
+        };
+    }
+
+    public async Task<ContractInfoDto> UpdateContractAsync(string previousContractVersion,SmartContractRegistration registration)
+    {
+        var newContractVersion = await GetVersion(registration);
+        var isSubsequentVersion = CheckVersion(previousContractVersion,newContractVersion);
+        return new ContractInfoDto
+        {
+            ContractVersion = newContractVersion,
+            IsSubsequentVersion = isSubsequentVersion
+        };
+    }
+
+    public async Task<ContractVersionCheckDto> CheckContractVersionAsync(string previousContractVersion,SmartContractRegistration registration)
+    {
+        var newContractVersion = await GetVersion(registration);
+        var isSubsequentVersion = CheckVersion(previousContractVersion,newContractVersion);
+        return new ContractVersionCheckDto
+        {
+            IsSubsequentVersion = isSubsequentVersion
+        };
+    }
+
+    private void CheckRunner(int category)
+    {
+        _smartContractRunnerContainer.GetRunner(category);
+    }
+
+    private async Task<string> GetVersion(SmartContractRegistration registration)
+    {
+        var runner = _smartContractRunnerContainer.GetRunner(registration.Category);
+        var executive = await runner.RunAsync(registration);
+        var contractVersion = executive.ContractVersion;
+        return contractVersion;
+    }
+    
+    
+    private bool CheckVersion(string previousContractVersion,string newContractVersion)
+    {
+        if (newContractVersion.IsNullOrEmpty())
+        {
+            return false;
         }
 
-        /// <inheritdoc/>
-        public Task DeployContractAsync(ContractDto contractDto)
+        if (previousContractVersion.IsNullOrEmpty())
         {
-            CheckRunner(contractDto.SmartContractRegistration.Category);
-            return Task.CompletedTask;
+            return true;
         }
 
-        public Task UpdateContractAsync(ContractDto contractDto)
-        {
-            return Task.CompletedTask;
-        }
-
-        private void CheckRunner(int category)
-        {
-            _smartContractRunnerContainer.GetRunner(category);
-        }
+        return  new Version(previousContractVersion) < new Version(newContractVersion);
     }
 }

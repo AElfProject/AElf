@@ -1,14 +1,15 @@
-namespace AElf.CrossChain
-{
-    public class CrossChainRequestException : System.Exception
-    {
-        public CrossChainRequestException(string message) : base(message)
-        {
-        }
+using System;
 
-        public CrossChainRequestException(string message, System.Exception innerException) : base(message,
-            innerException)
-        {
-        }
+namespace AElf.CrossChain;
+
+public class CrossChainRequestException : Exception
+{
+    public CrossChainRequestException(string message) : base(message)
+    {
+    }
+
+    public CrossChainRequestException(string message, Exception innerException) : base(message,
+        innerException)
+    {
     }
 }

@@ -1,8 +1,7 @@
-namespace AElf.Kernel.SmartContract
+namespace AElf.Kernel.SmartContract;
+
+public class ContractOptions
 {
-    public class ContractOptions
-    {
-        public bool ContractDeploymentAuthorityRequired { get; set; } = true;
-        public string GenesisContractDir { get; set; }
-    }
+    public bool ContractDeploymentAuthorityRequired { get; set; } = true;
+    public string GenesisContractDir { get; set; }
 }
