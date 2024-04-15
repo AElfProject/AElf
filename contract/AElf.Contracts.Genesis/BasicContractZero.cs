@@ -401,6 +401,7 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
     public override Empty SetCodeCheckProposalExpirationTimePeriod(Int32Value input)
     {
         AssertSenderAddressWith(State.ContractDeploymentController.Value.OwnerAddress);
+        Assert(input.Value > 0, "Invalid expiration time period.");
         State.CodeCheckProposalExpirationTimePeriod.Value = input.Value;
         return new Empty();
     }
