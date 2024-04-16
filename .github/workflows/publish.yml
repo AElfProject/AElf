@@ -7,6 +7,9 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
+      - name: Check Dir
+        run: |
+          ls $GITHUB_WORKSPACE
       - name: Read version from version.props
         run: |
           version=$(grep -oP '<Version>\K[^<]+' $GITHUB_WORKSPACE/common.props)
