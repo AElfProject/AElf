@@ -24,7 +24,7 @@ jobs:
           fi
 
       - name: Pack
-        run: dotnet pack AElf.All.sln --configuration Release --output nupkgs /p:Version=$VERSION /p:Platform="Any CPU"
+        run: dotnet pack AElf.sln --configuration Release --output nupkgs /p:Version=$VERSION /p:Platform="Any CPU"
 
       - name: Publish NuGet packages
         uses: dansiegel/publish-nuget@v1.2
