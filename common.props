@@ -1,7 +1,7 @@
 <Project>
   <PropertyGroup>
     <PackageProjectUrl>https://aelf.io</PackageProjectUrl>
-    <Version>$(VersionSuffix)</Version>
+    <Version>1.7.0</Version>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/AElfProject/AElf/</RepositoryUrl>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
