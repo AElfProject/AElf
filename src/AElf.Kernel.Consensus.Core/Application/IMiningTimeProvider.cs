@@ -1,41 +1,50 @@
 using System.Threading.Tasks;
-using AElf.CSharp.Core.Extension;
-using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.Configuration;
-using Google.Protobuf;
+using AElf.Kernel.SmartContract.Application;
 using Google.Protobuf.WellKnownTypes;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.Consensus.Application;
 
 public interface IMiningTimeProvider
 {
-    Task<long> GetLimitMillisecondsOfMiningBlockAsync();
+    Task SetLimitMillisecondsOfMiningBlockAsync(IBlockIndex blockIndex, long limit);
+    Task<long> GetLimitMillisecondsOfMiningBlockAsync(IBlockIndex blockIndex);
 }
 
-public class MiningTimeProvider : IMiningTimeProvider, ISingletonDependency
+public class MiningTimeProvider : BlockExecutedDataBaseProvider<Int64Value>,
+    IMiningTimeProvider, ISingletonDependency
 {
-    private readonly IConfigurationService _configurationService;
-    private readonly IBlockchainService _blockchainService;
+    private const string BlockExecutedDataName = "LimitMillisecondsOfMiningBlock";
 
-    public MiningTimeProvider(IBlockchainService blockchainService, IConfigurationService configurationService)
+    public MiningTimeProvider(
+        ICachedBlockchainExecutedDataService<Int64Value> cachedBlockchainExecutedDataService) : base(
+        cachedBlockchainExecutedDataService)
     {
-        _blockchainService = blockchainService;
-        _configurationService = configurationService;
+        Logger = NullLogger<MiningTimeProvider>.Instance;
     }
 
-    public async Task<long> GetLimitMillisecondsOfMiningBlockAsync()
+    public ILogger<MiningTimeProvider> Logger { get; set; }
+
+    public Task<long> GetLimitMillisecondsOfMiningBlockAsync(IBlockIndex blockIndex)
     {
-        var chain = await _blockchainService.GetChainAsync();
-        var miningTimeBytes = await _configurationService.GetConfigurationDataAsync(
-            ConsensusConstants.MiningTimeConfigurationName,
-            new ChainContext
-            {
-                BlockHeight = chain.BestChainHeight,
-                BlockHash = chain.BestChainHash
-            });
-        var miningTime = new Int64Value();
-        miningTime.MergeFrom(miningTimeBytes);
-        return miningTime.Value;
+        var limit = GetBlockExecutedData(blockIndex);
+        return Task.FromResult(limit?.Value ?? 0);
+    }
+
+    public async Task SetLimitMillisecondsOfMiningBlockAsync(IBlockIndex blockIndex, long limit)
+    {
+        var blockTransactionLimit = new Int64Value
+        {
+            Value = limit
+        };
+        await AddBlockExecutedDataAsync(blockIndex, blockTransactionLimit);
+        Logger.LogDebug($"LimitMillisecondsOfMiningBlock has been changed to {limit}");
+    }
+
+    protected override string GetBlockExecutedDataName()
+    {
+        return BlockExecutedDataName;
     }
 }

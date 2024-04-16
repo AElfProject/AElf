@@ -15,6 +15,7 @@ using AElf.ContractTestKit.AEDPoSExtension;
 using AElf.EconomicSystem;
 using AElf.GovernmentSystem;
 using AElf.Kernel;
+using AElf.Kernel.Configuration;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Proposal;
 using AElf.Kernel.Token;
@@ -74,7 +75,8 @@ public class AEDPoSExtensionDemoTestBase : AEDPoSExtensionTestBase
             ParliamentSmartContractAddressNameProvider.Name,
             ElectionSmartContractAddressNameProvider.Name,
             AssociationSmartContractAddressNameProvider.Name,
-            ReferendumSmartContractAddressNameProvider.Name
+            ReferendumSmartContractAddressNameProvider.Name,
+            ConfigurationSmartContractAddressNameProvider.Name,
         }));
     }
 

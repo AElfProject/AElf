@@ -90,7 +90,11 @@ internal class ConsensusService : IConsensusService, ISingletonDependency
             ? new Duration { Seconds = ConsensusConstants.MaximumLeftMillisecondsForNextBlock }
             : leftMilliseconds;
 
-        var configuredMiningTime = await _miningTimeProvider.GetLimitMillisecondsOfMiningBlockAsync();
+        var configuredMiningTime = await _miningTimeProvider.GetLimitMillisecondsOfMiningBlockAsync(new BlockIndex
+        {
+            BlockHeight = chainContext.BlockHeight,
+            BlockHash = chainContext.BlockHash
+        });
         var limitMillisecondsOfMiningBlock = configuredMiningTime == 0
             ? _consensusCommand.LimitMillisecondsOfMiningBlock
             : configuredMiningTime;

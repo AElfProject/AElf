@@ -2,7 +2,6 @@ using AElf.Contracts.Configuration;
 using AElf.CSharp.Core.Extension;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.FeatureDisable.Core;
-using AElf.Kernel.FeatureManager.Tests;
 using AElf.Standards.ACS3;
 using AElf.TestBase;
 using Google.Protobuf;
