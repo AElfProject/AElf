@@ -30,7 +30,7 @@ jobs:
         run: |
           if [[ "${GITHUB_REF}" == "refs/heads/preview" ]]; then
             version=$(grep -oP '<Version>\K[^<]+' common.props)
-            echo "VERSION=$version-preview" >> $GITHUB_ENV
+            echo "VERSION=$version-preview.${GITHUB_RUN_NUMBER}" >> $GITHUB_ENV
           else
             version=$(grep -oP '<Version>\K[^<]+' common.props)
             echo "VERSION=$version" >> $GITHUB_ENV
