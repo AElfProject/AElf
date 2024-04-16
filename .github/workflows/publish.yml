@@ -9,7 +9,7 @@ jobs:
     steps:
       - name: Read version from version.props
         run: |
-          version=$(grep -oP '<Version>\K[^<]+' common.props)
+          version=$(grep -oP '<Version>\K[^<]+' $GITHUB_WORKSPACE/common.props)
           echo "VERSION=$version" >> $GITHUB_ENV
 
       - name: Determine if preview version
