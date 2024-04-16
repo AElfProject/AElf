@@ -28,15 +28,12 @@ jobs:
 
       - name: Read version from version.props
         run: |
-          version=$(grep -oP '<Version>\K[^<]+' common.props)
-          echo "VERSION=$version" >> $GITHUB_ENV
-
-      - name: Determine if preview version
-        run: |
           if [[ "${GITHUB_REF}" == "refs/heads/preview" ]]; then
-            echo "IS_PREVIEW=true" >> $GITHUB_ENV
+            version=$(grep -oP '<Version>\K[^<]+' common.props)
+            echo "VERSION=$version-preview" >> $GITHUB_ENV
           else
-            echo "IS_PREVIEW=false" >> $GITHUB_ENV
+            version=$(grep -oP '<Version>\K[^<]+' common.props)
+            echo "VERSION=$version" >> $GITHUB_ENV
           fi
 
       - name: Build project
