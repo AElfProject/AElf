@@ -30,6 +30,9 @@ jobs:
             echo "IS_PREVIEW=false" >> $GITHUB_ENV
           fi
 
+      - name: Build project
+        run: dotnet build --configuration Release /p:Version=$VERSION /p:Platform="Any CPU"
+
       - name: Pack
         run: dotnet pack AElf.All.sln --configuration Release --output nupkgs /p:Version=$VERSION /p:Platform="Any CPU"
 
