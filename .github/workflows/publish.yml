@@ -10,6 +10,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
+      - name: Install protoc
+        run: |
+          wget https://github.com/protocolbuffers/protobuf/releases/download/v3.11.4/protoc-3.11.4-linux-x86_64.zip
+          unzip protoc-3.11.4-linux-x86_64.zip -d protoc3
+          sudo mv protoc3/bin/* /usr/local/bin/
+          sudo mv protoc3/include/* /usr/local/include/
+
       - name: Read version from version.props
         run: |
           version=$(grep -oP '<Version>\K[^<]+' common.props)
