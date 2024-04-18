@@ -14,12 +14,6 @@ namespace AElf.Contracts.MultiToken;
 
 public partial class TokenContract
 {
-    private static bool IsValidSymbolChar(char character)
-    {
-        return (character >= 'A' && character <= 'Z') || (character >= '0' && character <= '9') ||
-               character == TokenContractConstants.NFTSymbolSeparator;
-    }
-
     private bool IsValidItemIdChar(char character)
     {
         return character >= '0' && character <= '9';
@@ -40,8 +34,8 @@ public partial class TokenContract
 
     private void AssertValidSymbolAndAmount(string symbol, long amount)
     {
-        Assert(!string.IsNullOrEmpty(symbol) && symbol.All(IsValidSymbolChar),
-            "Invalid symbol.");
+        Assert(!string.IsNullOrEmpty(symbol), "Invalid symbol.");
+        AssertSymbolIsValid(symbol);
         Assert(amount > 0, "Invalid amount.");
     }
 
@@ -184,8 +178,8 @@ public partial class TokenContract
     private void RegisterTokenInfo(TokenInfo tokenInfo)
     {
         CheckTokenExists(tokenInfo.Symbol);
-        Assert(!string.IsNullOrEmpty(tokenInfo.Symbol) && tokenInfo.Symbol.All(IsValidSymbolChar),
-            "Invalid symbol.");
+        Assert(!string.IsNullOrEmpty(tokenInfo.Symbol), "Invalid symbol.");
+        AssertSymbolIsValid(tokenInfo.Symbol);
         Assert(!string.IsNullOrEmpty(tokenInfo.TokenName), "Token name can neither be null nor empty.");
         Assert(tokenInfo.TotalSupply > 0, "Invalid total supply.");
         Assert(tokenInfo.Issuer != null, "Invalid issuer address.");
@@ -263,6 +257,8 @@ public partial class TokenContract
     {
         if (symbolType == SymbolType.Token)
             Assert(symbol.Length <= TokenContractConstants.SymbolMaxLength, "Invalid token symbol length");
+        
+        // there is a max length of 30 for NFT symbol, limiting the amount of sub NFTs that can be created
         if (symbolType == SymbolType.Nft || symbolType == SymbolType.NftCollection)
             Assert(symbol.Length <= TokenContractConstants.NFTSymbolMaxLength, "Invalid NFT symbol length");
     }

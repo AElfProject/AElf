@@ -115,6 +115,72 @@ public partial class MultiTokenContractTests
             }
         }
     };
+    
+    private TokenInfo SubNft1155Info => new()
+    {
+        Symbol = "1-12419",
+        TokenName = "Trump Digital Trading Card #12419",
+        TotalSupply = TotalSupply,
+        Decimals = 0,
+        Issuer = Accounts[0].Address,
+        IssueChainId = _chainId,
+        IsBurnable = false,
+        ExternalInfo = new ExternalInfo()
+        {
+            Value =
+            {
+                {
+                    NftInfoMetaFields.ImageUrlKey,
+                    "https://i.seadn.io/gcs/files/0f5cdfaaf687de2ebb5834b129a5bef3.png?auto=format&w=3840"
+                },
+                { NftInfoMetaFields.IsBurnedKey, "false" }
+            }
+        }
+    };
+    
+    private TokenInfo LongIdSubNft1155Info => new()
+    {
+        Symbol = "1-19-153-35-8-90-23-4-15-66",
+        TokenName = "Trump Digital Trading Card #1-19-153-35-8-90-23-4-15-60",
+        TotalSupply = TotalSupply,
+        Decimals = 0,
+        Issuer = Accounts[0].Address,
+        IssueChainId = _chainId,
+        IsBurnable = false,
+        ExternalInfo = new ExternalInfo()
+        {
+            Value =
+            {
+                {
+                    NftInfoMetaFields.ImageUrlKey,
+                    "https://i.seadn.io/gcs/files/0f5cdfaaf687de2ebb5834b129a5bef3.png?auto=format&w=3840"
+                },
+                { NftInfoMetaFields.IsBurnedKey, "false" }
+            }
+        }
+    };
+    
+    private TokenInfo ErroneousSubNft1155Info => new()
+    {
+        Symbol = "1-0",
+        TokenName = "Trump Digital Trading Card #12419",
+        TotalSupply = TotalSupply,
+        Decimals = 0,
+        Issuer = Accounts[0].Address,
+        IssueChainId = _chainId,
+        IsBurnable = false,
+        ExternalInfo = new ExternalInfo()
+        {
+            Value =
+            {
+                {
+                    NftInfoMetaFields.ImageUrlKey,
+                    "https://i.seadn.io/gcs/files/0f5cdfaaf687de2ebb5834b129a5bef3.png?auto=format&w=3840"
+                },
+                { NftInfoMetaFields.IsBurnedKey, "false" }
+            }
+        }
+    };
 
     private async Task<IExecutionResult<Empty>> CreateNftCollectionAsync(TokenInfo collectionInfo)
     {
@@ -313,6 +379,87 @@ public partial class MultiTokenContractTests
 
             result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
+    }
+    
+    [Fact(DisplayName = "[MultiToken_Nft] Create sub nft with valid id")]
+    public async Task MultiTokenContract_Create_Sub_Nft_With_Valid_Id_Test()
+    {
+        var symbols = new List<string>();
+        var collectionInfo = NftCollection1155Info;
+        var createCollectionRes = await CreateNftCollectionAsync(collectionInfo);
+        createCollectionRes.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        var collectionSymbolWords = AssertCreateCollection(createCollectionRes, collectionInfo, symbols);
+
+        var createNft2Res = await CreateNftAsync(collectionInfo.Symbol, SubNft1155Info);
+        createNft2Res.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        var createNft2Log = TokenCreated.Parser.ParseFrom(createNft2Res.TransactionResult.Logs
+            .First(l => l.Name == nameof(TokenCreated)).NonIndexed);
+        var nft2SymbolWords = createNft2Log.Symbol.Split("-");
+        Assert.True(nft2SymbolWords.Length == 3);
+        Assert.Equal(nft2SymbolWords[0], collectionSymbolWords[0]);
+        AssertTokenEqual(createNft2Log, SubNft1155Info);
+        symbols.Add(createNft2Log.Symbol);
+        createNft2Log.Symbol.ShouldBe(collectionInfo.Symbol + SubNft1155Info.Symbol);
+    }
+
+    private string[] AssertCreateCollection(IExecutionResult<Empty> createCollectionRes, TokenInfo collectionInfo, List<string> symbols)
+    {
+        var createCollectionLog = TokenCreated.Parser.ParseFrom(createCollectionRes.TransactionResult.Logs
+            .First(l => l.Name == nameof(TokenCreated)).NonIndexed);
+        var collectionSymbolWords = createCollectionLog.Symbol.Split("-");
+        Assert.True(collectionSymbolWords.Length == 2);
+        AssertTokenEqual(createCollectionLog, collectionInfo);
+        symbols.Add(createCollectionLog.Symbol);
+        createCollectionLog.Symbol.ShouldBe(collectionInfo.Symbol + "0");
+        return collectionSymbolWords;
+    }
+
+    [Fact(DisplayName = "[MultiToken_Nft] Create sub nft with long valid id")]
+    public async Task MultiTokenContract_Create_Sub_Nft_With_Long_Valid_Id_Test()
+    {
+        var symbols = new List<string>();
+        var collectionInfo = NftCollection1155Info;
+        var createCollectionRes = await CreateNftCollectionAsync(collectionInfo);
+        createCollectionRes.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        var collectionSymbolWords = AssertCreateCollection(createCollectionRes, collectionInfo, symbols);
+
+        var createNft2Res = await CreateNftAsync(collectionInfo.Symbol, LongIdSubNft1155Info);
+        createNft2Res.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        var createNft2Log = TokenCreated.Parser.ParseFrom(createNft2Res.TransactionResult.Logs
+            .First(l => l.Name == nameof(TokenCreated)).NonIndexed);
+        var nft2SymbolWords = createNft2Log.Symbol.Split("-");
+        Assert.True(nft2SymbolWords.Length == 11);
+        Assert.Equal(nft2SymbolWords[0], collectionSymbolWords[0]);
+        AssertTokenEqual(createNft2Log, LongIdSubNft1155Info);
+        symbols.Add(createNft2Log.Symbol);
+        createNft2Log.Symbol.ShouldBe(collectionInfo.Symbol + LongIdSubNft1155Info.Symbol);
+    }
+    
+    [Fact(DisplayName = "[MultiToken_Nft] Create sub nft with invalid id of 0")]
+    public async Task MultiTokenContract_Create_Sub_Nft_With_Invalid_Id_Test()
+    {
+        var symbols = new List<string>();
+        var collectionInfo = NftCollection1155Info;
+        var createCollectionRes = await CreateNftCollectionAsync(collectionInfo);
+        createCollectionRes.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        AssertCreateCollection(createCollectionRes, collectionInfo, symbols);
+
+        var createInput = new CreateInput
+        {
+            Symbol = $"{collectionInfo.Symbol}{ErroneousSubNft1155Info.Symbol}",
+            TokenName = ErroneousSubNft1155Info.TokenName,
+            TotalSupply = ErroneousSubNft1155Info.TotalSupply,
+            Decimals = ErroneousSubNft1155Info.Decimals,
+            Issuer = ErroneousSubNft1155Info.Issuer,
+            IsBurnable = ErroneousSubNft1155Info.IsBurnable,
+            IssueChainId = ErroneousSubNft1155Info.IssueChainId,
+            ExternalInfo = ErroneousSubNft1155Info.ExternalInfo,
+            Owner = ErroneousSubNft1155Info.Issuer
+        };
+        
+        var result = await TokenContractStub.Create.SendWithExceptionAsync(createInput);;
+        result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+        result.TransactionResult.Error.ShouldContain("Invalid NFT Symbol input");
     }
 
     [Fact(DisplayName = "[MultiToken_Nft] Create nft input check")]
