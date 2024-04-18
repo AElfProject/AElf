@@ -62,6 +62,8 @@ public class InstructionInjectionValidator : IValidator<ModuleDefinition>, ITran
             // TODO: https://github.com/AElfProject/AElf/issues/3387
             if (isNotContractImplementation)
             {
+                // Disable temporarily: https://github.com/AElfProject/AElf/issues/3540
+                /*
                 result.Add(new MethodCallInjectionValidationResult(
                     $"{_instructionInjector.GetType()} validation failed. Updating state in non-contract class is not allowed."
                 ).WithInfo(
@@ -69,7 +71,7 @@ public class InstructionInjectionValidator : IValidator<ModuleDefinition>, ITran
                     methodDefinition.DeclaringType.Namespace,
                     methodDefinition.DeclaringType.FullName,
                     null
-                ));
+                ));*/
             }
             else if (!_instructionInjector.ValidateInstruction(moduleDefinition, instruction))
             {
