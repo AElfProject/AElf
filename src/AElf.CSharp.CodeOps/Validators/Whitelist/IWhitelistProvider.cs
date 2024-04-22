@@ -54,6 +54,9 @@ public class WhitelistProvider : IWhitelistProvider
         whitelist
             // Selectively allowed types and members
             .Namespace("System", Permission.Denied, type => type
+                .Type(typeof(Attribute), Permission.Allowed)
+                .Type(typeof(AttributeTargets), Permission.Allowed)
+                .Type(typeof(AttributeUsageAttribute), Permission.Allowed)
                 .Type(typeof(Array), Permission.Denied, member => member
                     .Member(nameof(Array.AsReadOnly), Permission.Allowed))
                 .Type("Func`1", Permission.Allowed) // Required for protobuf generated code
