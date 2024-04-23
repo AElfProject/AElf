@@ -232,7 +232,7 @@ public class ContractStructureValidator : IValidator<ModuleDefinition>, ITransie
             return false;
         
         if(field.FieldType.Resolve().BaseType.FullName == typeof(StructuredState).FullName)
-            return true;
+            return false;
 
         // If not ContractReferenceState then it is not allowed
         return field.FieldType.Resolve().BaseType.FullName != typeof(ContractReferenceState).FullName;
