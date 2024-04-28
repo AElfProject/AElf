@@ -12,6 +12,9 @@ namespace AElf.Contracts.TokenConverter;
 public partial class TokenConverterContract : TokenConverterContractImplContainer.TokenConverterContractImplBase
 {
     private const string NtTokenPrefix = "nt";
+    private const string NewNtTokenPrefix = "(nt)";
+    public const string PayTxFeeSymbolListName = "SymbolListToPayTxFee";
+    public const string PayRentalSymbolListName = "SymbolListToPayRental";
 
     #region Actions
 
@@ -77,7 +80,7 @@ public partial class TokenConverterContract : TokenConverterContractImplContaine
         AssertPerformedByConnectorController();
         Assert(!string.IsNullOrEmpty(input.ResourceConnectorSymbol),
             "resource token symbol should not be empty");
-        var nativeConnectorSymbol = NtTokenPrefix.Append(input.ResourceConnectorSymbol);
+        var nativeConnectorSymbol = NewNtTokenPrefix.Append(input.ResourceConnectorSymbol);
         Assert(State.Connectors[input.ResourceConnectorSymbol] == null,
             "resource token symbol has existed");
         var resourceConnector = new Connector
@@ -301,6 +304,21 @@ public partial class TokenConverterContract : TokenConverterContractImplContaine
         AssertPerformedByConnectorController();
         Assert(CheckOrganizationExist(input), "new controller does not exist");
         State.ConnectorController.Value = input;
+        return new Empty();
+    }
+
+    public override Empty MigrateConnectorTokens(Empty input)
+    {
+        foreach (var resourceTokenSymbol in Context.Variables.GetStringArray(PayTxFeeSymbolListName)
+                     .Union(Context.Variables.GetStringArray(PayRentalSymbolListName)))
+        {
+            var newConnectorTokenSymbol = NewNtTokenPrefix.Append(resourceTokenSymbol);
+            var oldConnectorTokenSymbol = NtTokenPrefix.Append(resourceTokenSymbol);
+
+            // Migrate
+            State.Connectors[newConnectorTokenSymbol] = State.Connectors[oldConnectorTokenSymbol];
+        }
+
         return new Empty();
     }
 
