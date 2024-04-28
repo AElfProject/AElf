@@ -12,7 +12,7 @@ namespace AElf.Contracts.TokenConverter;
 public partial class TokenConverterContract : TokenConverterContractImplContainer.TokenConverterContractImplBase
 {
     private const string NtTokenPrefix = "nt";
-    private const string NewNtTokenPrefix = "(nt)";
+    private const string NewNtTokenPrefix = "(NT)";
     public const string PayTxFeeSymbolListName = "SymbolListToPayTxFee";
     public const string PayRentalSymbolListName = "SymbolListToPayRental";
 
@@ -313,10 +313,26 @@ public partial class TokenConverterContract : TokenConverterContractImplContaine
                      .Union(Context.Variables.GetStringArray(PayRentalSymbolListName)))
         {
             var newConnectorTokenSymbol = NewNtTokenPrefix.Append(resourceTokenSymbol);
-            var oldConnectorTokenSymbol = NtTokenPrefix.Append(resourceTokenSymbol);
+
+            if (State.Connectors[resourceTokenSymbol] == null)
+            {
+                continue;
+            }
+
+            var oldConnectorTokenSymbol = State.Connectors[resourceTokenSymbol].RelatedSymbol;
 
             // Migrate
-            State.Connectors[newConnectorTokenSymbol] = State.Connectors[oldConnectorTokenSymbol];
+
+            State.Connectors[resourceTokenSymbol].RelatedSymbol = newConnectorTokenSymbol;
+
+            if (State.Connectors[oldConnectorTokenSymbol] != null)
+            {
+                var connector = State.Connectors[oldConnectorTokenSymbol];
+                connector.Symbol = newConnectorTokenSymbol;
+                State.Connectors[newConnectorTokenSymbol] = connector;
+            }
+
+            State.DepositBalance[newConnectorTokenSymbol] = State.DepositBalance[oldConnectorTokenSymbol];
         }
 
         return new Empty();
