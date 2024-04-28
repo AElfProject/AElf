@@ -151,7 +151,10 @@ public class WhitelistProvider : IWhitelistProvider
                     .Member(nameof(Regex.Matches), Permission.Allowed)
                     .Member(nameof(Regex.Replace), Permission.Allowed)
                     .Member(nameof(Regex.Split), Permission.Allowed)
-                ))
+                )
+                .Type(nameof(MatchCollection), Permission.Allowed)
+                .Type(nameof(Match), Permission.Allowed)
+            )
             ;
     }
 
