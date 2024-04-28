@@ -13,7 +13,7 @@ public partial class TokenConverterContractTests
     [Fact]
     public async Task CanBuyResourceTokenAfterMigration()
     {
-        await CreateRamToken();
+        await CreateWriteToken();
         await InitializeTreasuryContractAsync();
         await InitializeTokenConverterContract();
         await PrepareToBuyAndSell();
@@ -73,7 +73,7 @@ public partial class TokenConverterContractTests
     [Fact]
     public async Task CanSellResourceTokenAfterMigration()
     {
-        await CreateRamToken();
+        await CreateWriteToken();
         await InitializeTreasuryContractAsync();
         await InitializeTokenConverterContract();
         await PrepareToBuyAndSell();
@@ -137,5 +137,18 @@ public partial class TokenConverterContractTests
 
         var balanceOfTesterTokenAfterSell = await GetBalanceAsync(NativeSymbol, DefaultSender);
         balanceOfTesterTokenAfterSell.ShouldBe(balanceOfTesterToken + amountToReceive - fee);
+    }
+
+    [Fact]
+    public async Task MigrateTwiceTest()
+    {
+        await CreateWriteToken();
+        await InitializeTreasuryContractAsync();
+        await InitializeTokenConverterContract();
+        await PrepareToBuyAndSell();
+
+        await DefaultStub.MigrateConnectorTokens.SendAsync(new Empty());
+        var result = await DefaultStub.MigrateConnectorTokens.SendWithExceptionAsync(new Empty());
+        result.TransactionResult.Error.ShouldContain("Already migrated.");
     }
 }

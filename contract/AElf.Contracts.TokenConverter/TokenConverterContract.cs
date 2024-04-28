@@ -321,6 +321,8 @@ public partial class TokenConverterContract : TokenConverterContractImplContaine
 
             var oldConnectorTokenSymbol = State.Connectors[resourceTokenSymbol].RelatedSymbol;
 
+            Assert(!oldConnectorTokenSymbol.StartsWith(NewNtTokenPrefix), "Already migrated.");
+
             // Migrate
 
             State.Connectors[resourceTokenSymbol].RelatedSymbol = newConnectorTokenSymbol;
