@@ -47,7 +47,7 @@ public partial class TokenContract
     {
         var oldSymbolSeed = State.SymbolSeedMap[ownedSymbol.ToUpper()];
 
-        Assert(oldSymbolSeed == null || !State.TokenInfos[oldSymbolSeed].ExternalInfo.Value
+        Assert(oldSymbolSeed == null || !GetTokenInfo(oldSymbolSeed).ExternalInfo.Value
                    .TryGetValue(TokenContractConstants.SeedExpireTimeExternalInfoKey,
                        out var oldSymbolSeedExpireTime) ||
                !long.TryParse(oldSymbolSeedExpireTime, out var symbolSeedExpireTime)
@@ -99,7 +99,7 @@ public partial class TokenContract
     {
         var collectionSymbol = GetNftCollectionSymbol(symbol);
         if (collectionSymbol == null) return null;
-        var collectionInfo = State.TokenInfos[collectionSymbol];
+        var collectionInfo = GetTokenInfo(collectionSymbol);
         Assert(collectionInfo != null, "NFT collection not exist");
         return collectionInfo;
     }
