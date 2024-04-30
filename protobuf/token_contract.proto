@@ -867,3 +867,9 @@ message SymbolAliasAdded {
     string symbol = 1 [(aelf.is_indexed) = true];
     string alias = 2 [(aelf.is_indexed) = true];
 }
+
+message SymbolAliasDeleted {
+    option (aelf.is_event) = true;
+    string symbol = 1 [(aelf.is_indexed) = true];
+    string alias = 2 [(aelf.is_indexed) = true];
+}

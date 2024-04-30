@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.Json;
 using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 using AElf.Standards.ACS0;
@@ -661,10 +660,7 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
         Assert(collectionTokenInfo.Owner == Context.Sender, "No permission.");
 
         collectionTokenInfo.ExternalInfo.Value[TokenContractConstants.TokenAliasExternalInfoKey]
-            = JsonSerializer.Serialize(new Dictionary<string, string>
-            {
-                { input.Symbol, input.Alias }
-            });
+            = $"{{\"{input.Symbol}\":\"{input.Alias}\"}}";
 
         SetTokenInfo(collectionTokenInfo);
 
@@ -687,8 +683,14 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
 
         if (maybePreviousTokenInfo != null && IsAliasSettingExists(maybePreviousTokenInfo))
         {
-            var (previousSymbol, _) = ExtractAliasSetting(maybePreviousTokenInfo);
+            var (previousSymbol, previousAlias) = ExtractAliasSetting(maybePreviousTokenInfo);
             State.SymbolAliasMap.Remove(previousSymbol);
+
+            Context.Fire(new SymbolAliasDeleted
+            {
+                Symbol = previousSymbol,
+                Alias = previousAlias
+            });
         }
 
         if (IsAliasSettingExists(newTokenInfo))
@@ -714,7 +716,10 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
     private KeyValuePair<string, string> ExtractAliasSetting(TokenInfo tokenInfo)
     {
         var tokenAliasSetting = tokenInfo.ExternalInfo.Value[TokenContractConstants.TokenAliasExternalInfoKey];
-        var aliasSetting = JsonSerializer.Deserialize<Dictionary<string, string>>(tokenAliasSetting);
-        return aliasSetting.First();
+        tokenAliasSetting = tokenAliasSetting.Trim('{', '}');
+        var parts = tokenAliasSetting.Split(':');
+        var key = parts[0].Trim().Trim('\"');
+        var value = parts[1].Trim().Trim('\"');
+        return new KeyValuePair<string, string>(key, value);
     }
 }
