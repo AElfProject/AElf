@@ -29,7 +29,7 @@ message BlockBody {
 
 ```
 
-A block is the aggregation of a BlockHeader and a BlockBody. The header contains metadata about the block itself. It also contains the the merkle roots of both the transactions and the world state. The block body is used to contain the transaction ids that where included in this block by the miner.
+A block is the aggregation of a BlockHeader and a BlockBody. The header contains metadata about the block itself. It also contains the merkle roots of both the transactions and the world state. The block body is used to contain the transaction ids that where included in this block by the miner.
 
 #### Block hash
 
