@@ -77,9 +77,10 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
             Owner = input.Owner
         };
 
-        if (symbolType is SymbolType.Token or SymbolType.NftCollection)
+        if (IsAliasSettingExists(tokenInfo))
         {
-            MaybeSetTokenAlias(tokenInfo);
+            Assert(symbolType == SymbolType.NftCollection, "Only NFT Collection can set alias.");
+            SetTokenAlias(tokenInfo);
         }
 
         CheckTokenExists(tokenInfo.Symbol);
@@ -647,18 +648,18 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
     public override Empty SetSymbolAlias(SetSymbolAliasInput input)
     {
         // Alias setting can only work for NFT Item for now.
+        // And the setting exists on the TokenInfo of the NFT Collection.
 
         // Can only happen on Main Chain.
         Assert(Context.ChainId == ChainHelper.ConvertBase58ToChainId("AELF"),
             "Symbol alias setting only works on MainChain.");
 
         var collectionSymbol = GetNftCollectionSymbol(input.Symbol);
-        
+
         // For now, token alias can only be set once.
         Assert(State.SymbolAliasMap[input.Alias] == null, $"Token alias {input.Alias} already exists.");
 
-        // Current Rule: Alias must be the collection symbol.
-        Assert(input.Alias == collectionSymbol);
+        CheckTokenAlias(input.Alias, collectionSymbol);
 
         var collectionTokenInfo = GetTokenInfo(collectionSymbol);
         if (collectionTokenInfo == null)
@@ -702,7 +703,10 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
             });
         }
 
-        MaybeSetTokenAlias(newTokenInfo);
+        if (IsAliasSettingExists(newTokenInfo))
+        {
+            SetTokenAlias(newTokenInfo);
+        }
     }
 
     private bool IsAliasSettingExists(TokenInfo tokenInfo)
@@ -722,18 +726,26 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
         return new KeyValuePair<string, string>(key, value);
     }
 
-    private void MaybeSetTokenAlias(TokenInfo tokenInfo)
+    private void SetTokenAlias(TokenInfo tokenInfo)
     {
-        if (IsAliasSettingExists(tokenInfo))
-        {
-            var (symbol, alias) = ExtractAliasSetting(tokenInfo);
-            State.SymbolAliasMap[symbol] = alias;
+        var (symbol, alias) = ExtractAliasSetting(tokenInfo);
+        State.SymbolAliasMap[symbol] = alias;
 
-            Context.Fire(new SymbolAliasAdded
-            {
-                Symbol = symbol,
-                Alias = alias
-            });
-        }
+        CheckTokenAlias(alias, GetNftCollectionSymbol(tokenInfo.Symbol));
+
+        Context.Fire(new SymbolAliasAdded
+        {
+            Symbol = symbol,
+            Alias = alias
+        });
+    }
+
+    private void CheckTokenAlias(string alias, string collectionSymbol)
+    {
+        // Current Rule: Alias must be the seed name.
+        var parts = collectionSymbol.Split(TokenContractConstants.NFTSymbolSeparator);
+        Assert(parts.Length == 2, $"Incorrect collection symbol: {collectionSymbol}.");
+        Assert(parts.Last() == TokenContractConstants.CollectionSymbolSuffix, "Incorrect collection symbol suffix.");
+        Assert(alias == parts.First(), $"Alias for an item of {collectionSymbol} cannot be {alias}.");
     }
 }
