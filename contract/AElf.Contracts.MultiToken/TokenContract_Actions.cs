@@ -76,6 +76,12 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
             ExternalInfo = input.ExternalInfo ?? new ExternalInfo(),
             Owner = input.Owner
         };
+
+        if (symbolType is SymbolType.Token or SymbolType.NftCollection)
+        {
+            MaybeSetTokenAlias(tokenInfo);
+        }
+
         CheckTokenExists(tokenInfo.Symbol);
         RegisterTokenInfo(tokenInfo);
         if (string.IsNullOrEmpty(State.NativeTokenSymbol.Value))
@@ -693,17 +699,7 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
             });
         }
 
-        if (IsAliasSettingExists(newTokenInfo))
-        {
-            var (newSymbol, newAlias) = ExtractAliasSetting(newTokenInfo);
-            State.SymbolAliasMap[newSymbol] = newAlias;
-
-            Context.Fire(new SymbolAliasAdded
-            {
-                Symbol = newSymbol,
-                Alias = newAlias
-            });
-        }
+        MaybeSetTokenAlias(newTokenInfo);
     }
 
     private bool IsAliasSettingExists(TokenInfo tokenInfo)
@@ -721,5 +717,20 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
         var key = parts[0].Trim().Trim('\"');
         var value = parts[1].Trim().Trim('\"');
         return new KeyValuePair<string, string>(key, value);
+    }
+
+    private void MaybeSetTokenAlias(TokenInfo tokenInfo)
+    {
+        if (IsAliasSettingExists(tokenInfo))
+        {
+            var (symbol, alias) = ExtractAliasSetting(tokenInfo);
+            State.SymbolAliasMap[symbol] = alias;
+
+            Context.Fire(new SymbolAliasAdded
+            {
+                Symbol = symbol,
+                Alias = alias
+            });
+        }
     }
 }
