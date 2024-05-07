@@ -653,6 +653,9 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
             "Symbol alias setting only works on MainChain.");
 
         var collectionSymbol = GetNftCollectionSymbol(input.Symbol);
+        
+        // For now, token alias can only be set once.
+        Assert(State.SymbolAliasMap[input.Alias] == null, $"Token alias {input.Alias} already exists.");
 
         // Current Rule: Alias must be the collection symbol.
         Assert(input.Alias == collectionSymbol);
