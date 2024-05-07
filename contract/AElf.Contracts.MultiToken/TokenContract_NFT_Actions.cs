@@ -84,7 +84,12 @@ public partial class TokenContract
         State.Allowances[from][spender][symbol] = allowance.Sub(amount);
     }
 
-
+    /// <summary>
+    /// ELF -> null
+    /// NFT-1 -> NFT-0
+    /// </summary>
+    /// <param name="inputSymbol"></param>
+    /// <returns>Return null if inputSymbol is not NFT.</returns>
     private string GetNftCollectionSymbol(string inputSymbol)
     {
         var symbol = inputSymbol;

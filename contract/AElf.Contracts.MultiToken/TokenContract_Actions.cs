@@ -742,6 +742,11 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
 
     private void CheckTokenAlias(string alias, string collectionSymbol)
     {
+        if (collectionSymbol == null)
+        {
+            throw new AssertionException("Token alias can only be set for NFT Item.");
+        }
+
         // Current Rule: Alias must be the seed name.
         var parts = collectionSymbol.Split(TokenContractConstants.NFTSymbolSeparator);
         Assert(parts.Length == 2, $"Incorrect collection symbol: {collectionSymbol}.");
