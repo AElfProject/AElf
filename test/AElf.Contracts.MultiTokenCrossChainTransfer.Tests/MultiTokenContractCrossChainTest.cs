@@ -400,7 +400,7 @@ public class MultiTokenContractCrossChainTest : MultiTokenContractCrossChainTest
 
         // Main chain create token
         await BootMinerChangeRoundAsync(AEDPoSContractStub, true);
-        var createTransaction = await CreateTransactionForTokenCreationWithAlias(TokenContractStub,
+        var createTransaction = await CreateTransactionForNFTCreation(TokenContractStub,
             DefaultAccount.Address, $"{NFTSymbolForTesting}-0", TokenContractAddress);
         var blockExecutedSet = await MineAsync(new List<Transaction> { createTransaction });
         var createResult = blockExecutedSet.TransactionResultMap[createTransaction.GetHash()];
@@ -438,6 +438,96 @@ public class MultiTokenContractCrossChainTest : MultiTokenContractCrossChainTest
         var alias = await SideChainTokenContractStub.GetTokenAlias.CallAsync(new StringValue
         {
             Value = $"{NFTSymbolForTesting}-{1}"
+        });
+        alias.Value.ShouldBe(NFTSymbolForTesting);
+    }
+    
+    [Fact]
+    public async Task SideChain_CrossChainSideChainCreateToken_SetAliasAndSyncAgain_Test()
+    {
+        await GenerateSideChainAsync();
+        await RegisterSideChainContractAddressOnMainChainAsync();
+
+        // Main chain create token
+        await BootMinerChangeRoundAsync(AEDPoSContractStub, true);
+        var createTransaction = await CreateTransactionForNFTCreation(TokenContractStub,
+            DefaultAccount.Address, $"{NFTSymbolForTesting}-0", TokenContractAddress, false);
+        var blockExecutedSet = await MineAsync(new List<Transaction> { createTransaction });
+        var createResult = blockExecutedSet.TransactionResultMap[createTransaction.GetHash()];
+        Assert.True(createResult.Status == TransactionResultStatus.Mined, createResult.Error);
+
+        // Sync for the first time
+        {
+            var createdTokenInfo = await TokenContractStub.GetTokenInfo.CallAsync(new GetTokenInfoInput
+            {
+                Symbol = $"{NFTSymbolForTesting}-0"
+            });
+            var tokenValidationTransaction = CreateTokenInfoValidationTransaction(createdTokenInfo,
+                TokenContractStub);
+
+            blockExecutedSet = await MineAsync(new List<Transaction> { tokenValidationTransaction });
+            var merklePath = GetTransactionMerklePathAndRoot(tokenValidationTransaction, out var blockRoot);
+            await IndexMainChainTransactionAsync(blockExecutedSet.Height, blockRoot, blockRoot);
+            var crossChainCreateTokenInput = new CrossChainCreateTokenInput
+            {
+                FromChainId = MainChainId,
+                ParentChainHeight = blockExecutedSet.Height,
+                TransactionBytes = tokenValidationTransaction.ToByteString(),
+                MerklePath = merklePath
+            };
+            // Side chain cross chain create
+            var executionResult =
+                await SideChainTokenContractStub.CrossChainCreateToken.SendAsync(crossChainCreateTokenInput);
+            executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined,
+                executionResult.TransactionResult.Error);
+        }
+        
+        // Set Alias
+        {
+            var setAliasTransaction = await TokenContractStub.SetSymbolAlias.SendAsync(new SetSymbolAliasInput
+            {
+                Symbol = $"{NFTSymbolForTesting}-1",
+                Alias = NFTSymbolForTesting
+            });
+            var setAliasResult = setAliasTransaction.TransactionResult;
+            setAliasResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        }
+        
+        // Sync for the second time
+        {
+            var createdTokenInfo = await TokenContractStub.GetTokenInfo.CallAsync(new GetTokenInfoInput
+            {
+                Symbol = $"{NFTSymbolForTesting}-0"
+            });
+            var tokenValidationTransaction = CreateTokenInfoValidationTransaction(createdTokenInfo,
+                TokenContractStub);
+
+            blockExecutedSet = await MineAsync(new List<Transaction> { tokenValidationTransaction });
+            var merklePath = GetTransactionMerklePathAndRoot(tokenValidationTransaction, out var blockRoot);
+            await IndexMainChainTransactionAsync(blockExecutedSet.Height, blockRoot, blockRoot);
+            var crossChainCreateTokenInput = new CrossChainCreateTokenInput
+            {
+                FromChainId = MainChainId,
+                ParentChainHeight = blockExecutedSet.Height,
+                TransactionBytes = tokenValidationTransaction.ToByteString(),
+                MerklePath = merklePath
+            };
+            // Side chain cross chain create
+            var executionResult =
+                await SideChainTokenContractStub.CrossChainCreateToken.SendAsync(crossChainCreateTokenInput);
+            executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined,
+                executionResult.TransactionResult.Error);
+        }
+
+        var newTokenInfo = await SideChainTokenContractStub.GetTokenInfo.CallAsync(new GetTokenInfoInput
+        {
+            Symbol = $"{NFTSymbolForTesting}-0"
+        });
+        newTokenInfo.TotalSupply.ShouldBe(_totalSupply);
+
+        var alias = await SideChainTokenContractStub.GetTokenAlias.CallAsync(new StringValue
+        {
+            Value = $"{NFTSymbolForTesting}-1"
         });
         alias.Value.ShouldBe(NFTSymbolForTesting);
     }
@@ -946,9 +1036,9 @@ public class MultiTokenContractCrossChainTest : MultiTokenContractCrossChainTest
         return tokenContractImplStub.Create.GetTransaction(input);
     }
 
-    private async Task<Transaction> CreateTransactionForTokenCreationWithAlias(
+    private async Task<Transaction> CreateTransactionForNFTCreation(
         TokenContractImplContainer.TokenContractImplStub tokenContractImplStub,
-        Address issuer, string symbol, Address lockWhiteAddress)
+        Address issuer, string symbol, Address lockWhiteAddress, bool withAlias = true)
     {
         await CreateSeedNftCollection(tokenContractImplStub, issuer);
         var tokenInfo = GetTokenInfo(symbol, issuer);
@@ -961,7 +1051,10 @@ public class MultiTokenContractCrossChainTest : MultiTokenContractCrossChainTest
             IsBurnable = tokenInfo.IsBurnable,
             TokenName = tokenInfo.TokenName,
             TotalSupply = tokenInfo.TotalSupply,
-            ExternalInfo = new ExternalInfo
+        };
+        if (withAlias)
+        {
+            input.ExternalInfo = new ExternalInfo
             {
                 Value =
                 {
@@ -972,8 +1065,9 @@ public class MultiTokenContractCrossChainTest : MultiTokenContractCrossChainTest
                         })
                     }
                 }
-            }
-        };
+            };
+        }
+
         await CreateSeedNftAsync(tokenContractImplStub, input, lockWhiteAddress);
         return tokenContractImplStub.Create.GetTransaction(input);
     }
