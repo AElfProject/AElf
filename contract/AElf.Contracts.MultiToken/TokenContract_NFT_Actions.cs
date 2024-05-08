@@ -86,17 +86,20 @@ public partial class TokenContract
     /// <summary>
     /// ELF -> null
     /// NFT-1 -> NFT-0
+    /// If isAllowCollection == true: NFT-0 -> NFT-0
+    /// If isAllowCollection == false: NFT-0 -> null
     /// </summary>
     /// <param name="inputSymbol"></param>
+    /// <param name="isAllowCollection"></param>
     /// <returns>Return null if inputSymbol is not NFT.</returns>
-    private string GetNftCollectionSymbol(string inputSymbol)
+    private string GetNftCollectionSymbol(string inputSymbol, bool isAllowCollection = false)
     {
         var symbol = inputSymbol;
         var words = symbol.Split(TokenContractConstants.NFTSymbolSeparator);
         const int tokenSymbolLength = 1;
         if (words.Length == tokenSymbolLength) return null;
         Assert(words.Length == 2 && IsValidItemId(words[1]), "Invalid NFT Symbol Input");
-        return symbol == $"{words[0]}-0" ? null : $"{words[0]}-0";
+        return symbol == $"{words[0]}-0" ? (isAllowCollection ? $"{words[0]}-0" : null) : $"{words[0]}-0";
     }
 
     private TokenInfo AssertNftCollectionExist(string symbol)

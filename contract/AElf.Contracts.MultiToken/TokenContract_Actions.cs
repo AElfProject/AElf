@@ -654,7 +654,7 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
         Assert(Context.ChainId == ChainHelper.ConvertBase58ToChainId("AELF"),
             "Symbol alias setting only works on MainChain.");
 
-        var collectionSymbol = GetNftCollectionSymbol(input.Symbol);
+        var collectionSymbol = GetNftCollectionSymbol(input.Symbol, true);
 
         // For now, token alias can only be set once.
         Assert(State.SymbolAliasMap[input.Alias] == null, $"Token alias {input.Alias} already exists.");

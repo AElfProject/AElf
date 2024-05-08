@@ -50,6 +50,47 @@ public partial class MultiTokenContractTests
             alias.Value.ShouldBe("TP-31175");
         }
     }
+    
+    [Fact]
+    public async Task SetTokenAlias_NFTCollection_CollectionSymbol_Test()
+    {
+        await CreateNftCollectionAndNft();
+        await TokenContractStub.SetSymbolAlias.SendAsync(new SetSymbolAliasInput
+        {
+            Symbol = "TP-0",
+            Alias = "TP"
+        });
+
+        {
+            // Check TokenInfo of NFT Collection.
+            var tokenInfo = await TokenContractStub.GetTokenInfo.CallAsync(new GetTokenInfoInput
+            {
+                Symbol = "TP-0"
+            });
+            tokenInfo.ExternalInfo.Value.ContainsKey(TokenAliasExternalInfoKey);
+            tokenInfo.ExternalInfo.Value[TokenAliasExternalInfoKey].ShouldBe("{\"TP-0\":\"TP\"}");
+        }
+
+        {
+            // Check TokenInfo of NFT Item.
+            var tokenInfo = await TokenContractStub.GetTokenInfo.CallAsync(new GetTokenInfoInput
+            {
+                Symbol = "TP"
+            });
+            tokenInfo.Symbol.ShouldBe("TP-0");
+        }
+
+        {
+            // Check alias.
+            var alias = await TokenContractStub.GetTokenAlias.CallAsync(new StringValue { Value = "TP-0" });
+            alias.Value.ShouldBe("TP");
+        }
+
+        {
+            var alias = await TokenContractStub.GetSymbolByAlias.CallAsync(new StringValue { Value = "TP" });
+            alias.Value.ShouldBe("TP-0");
+        }
+    }
 
     [Fact]
     public async Task SetTokenAlias_FT_Test()
