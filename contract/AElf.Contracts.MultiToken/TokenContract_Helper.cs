@@ -126,9 +126,10 @@ public partial class TokenContract
     private long GetBalance(Address address, string symbol)
     {
         AssertValidInputAddress(address);
-        Assert(!string.IsNullOrWhiteSpace(symbol), "Invalid symbol.");
+        var tokenInfo = GetTokenInfo(symbol);
+        Assert(!string.IsNullOrWhiteSpace(tokenInfo.Symbol), "Invalid symbol.");
         
-        return State.Balances[address][symbol];
+        return State.Balances[address][tokenInfo.Symbol];
     }
 
     // private MethodFeeFreeAllowance GetFreeFeeAllowance(MethodFeeFreeAllowances freeAllowances, string symbol)

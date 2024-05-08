@@ -55,7 +55,6 @@ public partial class TokenContract
             "OwnedSymbol has been created");
     }
 
-
     private void DoTransferFrom(Address from, Address to, Address spender, string symbol, long amount, string memo)
     {
         AssertValidInputAddress(from);
