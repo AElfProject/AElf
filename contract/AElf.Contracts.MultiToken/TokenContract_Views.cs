@@ -37,23 +37,25 @@ public partial class TokenContract
     [View]
     public override GetBalanceOutput GetBalance(GetBalanceInput input)
     {
+        var symbol = GetActualTokenSymbol(input.Symbol);
         return new GetBalanceOutput
         {
-            Symbol = input.Symbol,
+            Symbol = symbol,
             Owner = input.Owner,
-            Balance = GetBalance(input.Owner, input.Symbol)
+            Balance = GetBalance(input.Owner, symbol)
         };
     }
 
     [View]
     public override GetAllowanceOutput GetAllowance(GetAllowanceInput input)
     {
+        var symbol = GetActualTokenSymbol(input.Symbol);
         return new GetAllowanceOutput
         {
-            Symbol = input.Symbol,
+            Symbol = symbol,
             Owner = input.Owner,
             Spender = input.Spender,
-            Allowance = State.Allowances[input.Owner][input.Spender][input.Symbol]
+            Allowance = State.Allowances[input.Owner][input.Spender][symbol]
         };
     }
 
@@ -199,7 +201,6 @@ public partial class TokenContract
         };
     }
 
-
     public override StringList GetReservedExternalInfoKeyList(Empty input)
     {
         return new StringList
@@ -227,5 +228,23 @@ public partial class TokenContract
                address == GetDefaultParliamentController().OwnerAddress ||
                address == Context.GetContractAddressByName(SmartContractConstants.EconomicContractSystemName) ||
                address == Context.GetContractAddressByName(SmartContractConstants.CrossChainContractSystemName);
+    }
+
+    public override StringValue GetTokenAlias(StringValue input)
+    {
+        return new StringValue
+        {
+            Value = GetActualTokenSymbol(input.Value)
+        };
+    }
+
+    private string GetActualTokenSymbol(string aliasOrSymbol)
+    {
+        if (State.TokenInfos[aliasOrSymbol] == null)
+        {
+            return State.SymbolAliasMap[aliasOrSymbol];
+        }
+
+        return aliasOrSymbol;
     }
 }

@@ -178,14 +178,14 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
 
     public override Empty Transfer(TransferInput input)
     {
-        AssertValidToken(input.Symbol, input.Amount);
-        DoTransfer(Context.Sender, input.To, input.Symbol, input.Amount, input.Memo);
+        var tokenInfo = AssertValidToken(input.Symbol, input.Amount);
+        DoTransfer(Context.Sender, input.To, tokenInfo.Symbol, input.Amount, input.Memo);
         DealWithExternalInfoDuringTransfer(new TransferFromInput
         {
             From = Context.Sender,
             To = input.To,
             Amount = input.Amount,
-            Symbol = input.Symbol,
+            Symbol = tokenInfo.Symbol,
             Memo = input.Memo
         });
         return new Empty();
@@ -252,21 +252,21 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
 
     public override Empty TransferFrom(TransferFromInput input)
     {
-        AssertValidToken(input.Symbol, input.Amount);
-        DoTransferFrom(input.From, input.To, Context.Sender, input.Symbol, input.Amount, input.Memo);
+        var tokenInfo = AssertValidToken(input.Symbol, input.Amount);
+        DoTransferFrom(input.From, input.To, Context.Sender, tokenInfo.Symbol, input.Amount, input.Memo);
         return new Empty();
     }
 
     public override Empty Approve(ApproveInput input)
     {
         AssertValidInputAddress(input.Spender);
-        AssertValidToken(input.Symbol, input.Amount);
-        State.Allowances[Context.Sender][input.Spender][input.Symbol] = input.Amount;
+        var tokenInfo = AssertValidToken(input.Symbol, input.Amount);
+        State.Allowances[Context.Sender][input.Spender][tokenInfo.Symbol] = input.Amount;
         Context.Fire(new Approved
         {
             Owner = Context.Sender,
             Spender = input.Spender,
-            Symbol = input.Symbol,
+            Symbol = tokenInfo.Symbol,
             Amount = input.Amount
         });
         return new Empty();
@@ -275,15 +275,15 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
     public override Empty UnApprove(UnApproveInput input)
     {
         AssertValidInputAddress(input.Spender);
-        AssertValidToken(input.Symbol, input.Amount);
-        var oldAllowance = State.Allowances[Context.Sender][input.Spender][input.Symbol];
+        var tokenInfo = AssertValidToken(input.Symbol, input.Amount);
+        var oldAllowance = State.Allowances[Context.Sender][input.Spender][tokenInfo.Symbol];
         var amountOrAll = Math.Min(input.Amount, oldAllowance);
-        State.Allowances[Context.Sender][input.Spender][input.Symbol] = oldAllowance.Sub(amountOrAll);
+        State.Allowances[Context.Sender][input.Spender][tokenInfo.Symbol] = oldAllowance.Sub(amountOrAll);
         Context.Fire(new UnApproved
         {
             Owner = Context.Sender,
             Spender = input.Spender,
-            Symbol = input.Symbol,
+            Symbol = tokenInfo.Symbol,
             Amount = amountOrAll
         });
         return new Empty();
@@ -522,21 +522,21 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
     /// <returns></returns>
     public override Empty CrossChainTransfer(CrossChainTransferInput input)
     {
-        AssertValidToken(input.Symbol, input.Amount);
+        var tokenInfo = AssertValidToken(input.Symbol, input.Amount);
         AssertValidMemo(input.Memo);
-        var issueChainId = GetIssueChainId(input.Symbol);
+        var issueChainId = GetIssueChainId(tokenInfo.Symbol);
         Assert(issueChainId == input.IssueChainId, "Incorrect issue chain id.");
         var burnInput = new BurnInput
         {
             Amount = input.Amount,
-            Symbol = input.Symbol
+            Symbol = tokenInfo.Symbol
         };
         Burn(burnInput);
         Context.Fire(new CrossChainTransferred
         {
             From = Context.Sender,
             To = input.To,
-            Symbol = input.Symbol,
+            Symbol = tokenInfo.Symbol,
             Amount = input.Amount,
             IssueChainId = input.IssueChainId,
             Memo = input.Memo,
@@ -567,14 +567,14 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
         var transferSender = transferTransaction.From;
 
         var tokenInfo = AssertValidToken(symbol, amount);
-        var issueChainId = GetIssueChainId(symbol);
+        var issueChainId = GetIssueChainId(tokenInfo.Symbol);
         Assert(issueChainId == crossChainTransferInput.IssueChainId, "Incorrect issue chain id.");
         Assert(targetChainId == Context.ChainId, "Unable to claim cross chain token.");
         var registeredTokenContractAddress = State.CrossChainTransferWhiteList[input.FromChainId];
         AssertCrossChainTransaction(transferTransaction, registeredTokenContractAddress,
             nameof(CrossChainTransfer));
         Context.LogDebug(() =>
-            $"symbol == {symbol}, amount == {amount}, receivingAddress == {receivingAddress}, targetChainId == {targetChainId}");
+            $"symbol == {tokenInfo.Symbol}, amount == {amount}, receivingAddress == {receivingAddress}, targetChainId == {targetChainId}");
 
         CrossChainVerify(transferTransactionId, input.ParentChainHeight, input.FromChainId, input.MerklePath);
 
@@ -582,13 +582,13 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
         tokenInfo.Supply = tokenInfo.Supply.Add(amount);
         Assert(tokenInfo.Supply <= tokenInfo.TotalSupply, "Total supply exceeded");
         SetTokenInfo(tokenInfo);
-        ModifyBalance(receivingAddress, symbol, amount);
+        ModifyBalance(receivingAddress, tokenInfo.Symbol, amount);
 
         Context.Fire(new CrossChainReceived
         {
             From = transferSender,
             To = receivingAddress,
-            Symbol = symbol,
+            Symbol = tokenInfo.Symbol,
             Amount = amount,
             Memo = crossChainTransferInput.Memo,
             FromChainId = input.FromChainId,

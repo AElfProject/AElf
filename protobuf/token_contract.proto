@@ -229,6 +229,10 @@ service TokenContract {
     rpc GetTransactionFeeDelegationsOfADelegatee(GetTransactionFeeDelegationsOfADelegateeInput) returns(TransactionFeeDelegations){
         option (aelf.is_view) = true;
     }
+
+    rpc GetTokenAlias (google.protobuf.StringValue) returns (google.protobuf.StringValue) {
+        option (aelf.is_view) = true;
+    }
 }
 
 message TokenInfo {
