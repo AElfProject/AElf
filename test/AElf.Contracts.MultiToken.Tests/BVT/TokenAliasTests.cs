@@ -41,7 +41,12 @@ public partial class MultiTokenContractTests
 
         {
             // Check alias.
-            var alias = await TokenContractStub.GetTokenAlias.CallAsync(new StringValue { Value = "TP" });
+            var alias = await TokenContractStub.GetTokenAlias.CallAsync(new StringValue { Value = "TP-31175" });
+            alias.Value.ShouldBe("TP");
+        }
+
+        {
+            var alias = await TokenContractStub.GetSymbolByAlias.CallAsync(new StringValue { Value = "TP" });
             alias.Value.ShouldBe("TP-31175");
         }
     }
