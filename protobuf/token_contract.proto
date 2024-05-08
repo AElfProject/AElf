@@ -233,6 +233,10 @@ service TokenContract {
     rpc GetTokenAlias (google.protobuf.StringValue) returns (google.protobuf.StringValue) {
         option (aelf.is_view) = true;
     }
+
+    rpc GetSymbolByAlias (google.protobuf.StringValue) returns (google.protobuf.StringValue) {
+        option (aelf.is_view) = true;
+    }
 }
 
 message TokenInfo {

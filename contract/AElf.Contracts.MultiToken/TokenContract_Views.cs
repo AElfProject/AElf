@@ -232,6 +232,17 @@ public partial class TokenContract
 
     public override StringValue GetTokenAlias(StringValue input)
     {
+        var collectionSymbol = GetNftCollectionSymbol(input.Value);
+        var tokenInfo = GetTokenInfo(collectionSymbol);
+        var (_, alias) = ExtractAliasSetting(tokenInfo);
+        return new StringValue
+        {
+            Value = alias
+        };
+    }
+
+    public override StringValue GetSymbolByAlias(StringValue input)
+    {
         return new StringValue
         {
             Value = GetActualTokenSymbol(input.Value)
