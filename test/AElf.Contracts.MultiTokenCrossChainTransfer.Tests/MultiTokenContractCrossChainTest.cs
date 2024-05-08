@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using AElf.Contracts.Parliament;
 using AElf.ContractTestBase.ContractTestKit;
@@ -11,6 +12,7 @@ using AElf.Standards.ACS3;
 using AElf.Standards.ACS7;
 using AElf.Types;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
 
@@ -19,11 +21,13 @@ namespace AElf.Contracts.MultiToken;
 public class MultiTokenContractCrossChainTest : MultiTokenContractCrossChainTestBase
 {
     private const string SymbolForTesting = "ELFTEST";
+    private const string NFTSymbolForTesting = "ELFNFT";
     private const string NativeToken = "ELF";
     private static readonly long _totalSupply = 1000L;
     private readonly Hash _fakeBlockHeader = HashHelper.ComputeFrom("fakeBlockHeader");
     private readonly int _parentChainHeightOfCreation = 5;
     private readonly string sideChainSymbol = "STA";
+    public const string TokenAliasExternalInfoKey = "aelf_token_alias";
 
     #region register test
 
@@ -386,6 +390,56 @@ public class MultiTokenContractCrossChainTest : MultiTokenContractCrossChainTest
             .TransactionResult;
         Assert.True(result.Status == TransactionResultStatus.Failed);
         Assert.Contains("Invalid transaction", result.Error);
+    }
+
+    [Fact]
+    public async Task SideChain_CrossChainSideChainCreateToken_WithAlias_Test()
+    {
+        await GenerateSideChainAsync();
+        await RegisterSideChainContractAddressOnMainChainAsync();
+
+        // Main chain create token
+        await BootMinerChangeRoundAsync(AEDPoSContractStub, true);
+        var createTransaction = await CreateTransactionForTokenCreationWithAlias(TokenContractStub,
+            DefaultAccount.Address, $"{NFTSymbolForTesting}-0", TokenContractAddress);
+        var blockExecutedSet = await MineAsync(new List<Transaction> { createTransaction });
+        var createResult = blockExecutedSet.TransactionResultMap[createTransaction.GetHash()];
+        Assert.True(createResult.Status == TransactionResultStatus.Mined, createResult.Error);
+
+        var createdTokenInfo = await TokenContractStub.GetTokenInfo.CallAsync(new GetTokenInfoInput
+        {
+            Symbol = $"{NFTSymbolForTesting}-0"
+        });
+        var tokenValidationTransaction = CreateTokenInfoValidationTransaction(createdTokenInfo,
+            TokenContractStub);
+
+        blockExecutedSet = await MineAsync(new List<Transaction> { tokenValidationTransaction });
+        var merklePath = GetTransactionMerklePathAndRoot(tokenValidationTransaction, out var blockRoot);
+        await IndexMainChainTransactionAsync(blockExecutedSet.Height, blockRoot, blockRoot);
+        var crossChainCreateTokenInput = new CrossChainCreateTokenInput
+        {
+            FromChainId = MainChainId,
+            ParentChainHeight = blockExecutedSet.Height,
+            TransactionBytes = tokenValidationTransaction.ToByteString(),
+            MerklePath = merklePath
+        };
+        // Side chain cross chain create
+        var executionResult =
+            await SideChainTokenContractStub.CrossChainCreateToken.SendAsync(crossChainCreateTokenInput);
+        executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined,
+            executionResult.TransactionResult.Error);
+
+        var newTokenInfo = await SideChainTokenContractStub.GetTokenInfo.CallAsync(new GetTokenInfoInput
+        {
+            Symbol = $"{NFTSymbolForTesting}-0"
+        });
+        newTokenInfo.TotalSupply.ShouldBe(_totalSupply);
+
+        var alias = await SideChainTokenContractStub.GetTokenAlias.CallAsync(new StringValue
+        {
+            Value = $"{NFTSymbolForTesting}-{1}"
+        });
+        alias.Value.ShouldBe(NFTSymbolForTesting);
     }
 
     #endregion
@@ -892,11 +946,42 @@ public class MultiTokenContractCrossChainTest : MultiTokenContractCrossChainTest
         return tokenContractImplStub.Create.GetTransaction(input);
     }
 
+    private async Task<Transaction> CreateTransactionForTokenCreationWithAlias(
+        TokenContractImplContainer.TokenContractImplStub tokenContractImplStub,
+        Address issuer, string symbol, Address lockWhiteAddress)
+    {
+        await CreateSeedNftCollection(tokenContractImplStub, issuer);
+        var tokenInfo = GetTokenInfo(symbol, issuer);
+        var input = new CreateInput
+        {
+            Symbol = tokenInfo.Symbol,
+            Decimals = 0,
+            Issuer = tokenInfo.Issuer,
+            Owner = tokenInfo.Issuer,
+            IsBurnable = tokenInfo.IsBurnable,
+            TokenName = tokenInfo.TokenName,
+            TotalSupply = tokenInfo.TotalSupply,
+            ExternalInfo = new ExternalInfo
+            {
+                Value =
+                {
+                    {
+                        TokenAliasExternalInfoKey, JsonSerializer.Serialize(new Dictionary<string, string>
+                        {
+                            { $"{NFTSymbolForTesting}-{1}", NFTSymbolForTesting }
+                        })
+                    }
+                }
+            }
+        };
+        await CreateSeedNftAsync(tokenContractImplStub, input, lockWhiteAddress);
+        return tokenContractImplStub.Create.GetTransaction(input);
+    }
 
     private Transaction CreateTokenInfoValidationTransaction(TokenInfo createdTokenInfo,
         TokenContractImplContainer.TokenContractImplStub tokenContractImplStub)
     {
-        return tokenContractImplStub.ValidateTokenInfoExists.GetTransaction(new ValidateTokenInfoExistsInput
+        var input = new ValidateTokenInfoExistsInput
         {
             TokenName = createdTokenInfo.TokenName,
             Symbol = createdTokenInfo.Symbol,
@@ -905,8 +990,10 @@ public class MultiTokenContractCrossChainTest : MultiTokenContractCrossChainTest
             Owner = createdTokenInfo.Issuer,
             IsBurnable = createdTokenInfo.IsBurnable,
             TotalSupply = createdTokenInfo.TotalSupply,
-            IssueChainId = createdTokenInfo.IssueChainId
-        });
+            IssueChainId = createdTokenInfo.IssueChainId,
+        };
+        input.ExternalInfo.Add(createdTokenInfo.ExternalInfo.Value);
+        return tokenContractImplStub.ValidateTokenInfoExists.GetTransaction(input);
     }
 
     private TokenInfo GetTokenInfo(string symbol, Address issuer, bool isBurnable = true)

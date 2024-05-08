@@ -490,7 +490,7 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
             IsBurnable = validateTokenInfoExistsInput.IsBurnable,
             IssueChainId = validateTokenInfoExistsInput.IssueChainId,
             ExternalInfo = new ExternalInfo { Value = { validateTokenInfoExistsInput.ExternalInfo } },
-            Owner = tokenInfo.Owner
+            Owner = tokenInfo.Owner,
         });
 
         return new Empty();
@@ -689,18 +689,16 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
 
     private void SyncSymbolAliasFromTokenInfo(TokenInfo newTokenInfo)
     {
-        var maybePreviousTokenInfo = State.TokenInfos[newTokenInfo.Symbol].Clone();
+        var maybePreviousTokenInfo = State.TokenInfos[newTokenInfo.Symbol]?.Clone();
 
         if (maybePreviousTokenInfo != null && IsAliasSettingExists(maybePreviousTokenInfo))
         {
             var (previousSymbol, previousAlias) = ExtractAliasSetting(maybePreviousTokenInfo);
-            State.SymbolAliasMap.Remove(previousSymbol);
 
-            Context.Fire(new SymbolAliasDeleted
+            if (!string.IsNullOrEmpty(previousSymbol))
             {
-                Symbol = previousSymbol,
-                Alias = previousAlias
-            });
+                return;
+            }
         }
 
         if (IsAliasSettingExists(newTokenInfo))
@@ -723,6 +721,11 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
     /// <returns>(Symbol, Alias)</returns>
     private KeyValuePair<string, string> ExtractAliasSetting(TokenInfo tokenInfo)
     {
+        if (!tokenInfo.ExternalInfo.Value.ContainsKey(TokenContractConstants.TokenAliasExternalInfoKey))
+        {
+            return new KeyValuePair<string, string>(string.Empty, string.Empty);
+        }
+
         var tokenAliasSetting = tokenInfo.ExternalInfo.Value[TokenContractConstants.TokenAliasExternalInfoKey];
         tokenAliasSetting = tokenAliasSetting.Trim('{', '}');
         var parts = tokenAliasSetting.Split(':');
