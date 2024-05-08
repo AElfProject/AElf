@@ -79,7 +79,7 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
 
         if (IsAliasSettingExists(tokenInfo))
         {
-            Assert(symbolType == SymbolType.NftCollection, "Only NFT Collection can set alias.");
+            Assert(symbolType == SymbolType.NftCollection, "Token alias can only be set for NFT Item.");
             SetTokenAlias(tokenInfo);
         }
 

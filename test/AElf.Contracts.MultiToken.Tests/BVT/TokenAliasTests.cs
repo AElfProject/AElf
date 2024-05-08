@@ -6,7 +6,6 @@ using Xunit;
 
 namespace AElf.Contracts.MultiToken;
 
-
 public partial class MultiTokenContractTests
 {
     public const string TokenAliasExternalInfoKey = "aelf_token_alias";
@@ -51,7 +50,7 @@ public partial class MultiTokenContractTests
     public async Task SetTokenAlias_FT_Test()
     {
         await CreateNormalTokenAsync();
-        
+
         // Set token alias for FT.
         var result = await TokenContractStub.SetSymbolAlias.SendWithExceptionAsync(new SetSymbolAliasInput
         {
@@ -67,7 +66,7 @@ public partial class MultiTokenContractTests
         createCollectionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
         await CreateNftAsync(NftCollection1155WithAliasInfo.Symbol, Nft721Info);
-        
+
         {
             // Check alias.
             var alias = await TokenContractStub.GetTokenAlias.CallAsync(new StringValue { Value = "TP" });
@@ -82,6 +81,38 @@ public partial class MultiTokenContractTests
             });
             tokenInfo.Symbol.ShouldBe("TP-31175");
         }
+    }
+
+    [Fact]
+    public async Task CreateTokenWithAlias_FT_Test()
+    {
+        var createInput = new CreateInput
+        {
+            Symbol = AliceCoinTokenInfo.Symbol,
+            TokenName = AliceCoinTokenInfo.TokenName,
+            TotalSupply = AliceCoinTokenInfo.TotalSupply,
+            Decimals = AliceCoinTokenInfo.Decimals,
+            Issuer = AliceCoinTokenInfo.Issuer,
+            Owner = AliceCoinTokenInfo.Issuer,
+            IsBurnable = AliceCoinTokenInfo.IsBurnable,
+            LockWhiteList =
+            {
+                BasicFunctionContractAddress,
+                OtherBasicFunctionContractAddress,
+                TokenConverterContractAddress,
+                TreasuryContractAddress
+            },
+            ExternalInfo = new ExternalInfo
+            {
+                Value =
+                {
+                    { TokenAliasExternalInfoKey, "{\"ALICE-111\":\"ALICE\"}" }
+                }
+            }
+        };
+        await CreateSeedNftAsync(TokenContractStub, createInput);
+        var result = await TokenContractStub.Create.SendWithExceptionAsync(createInput);
+        result.TransactionResult.Error.ShouldContain("Token alias can only be set for NFT Item.");
     }
 
     [Fact]
@@ -104,19 +135,56 @@ public partial class MultiTokenContractTests
             });
             balance.Balance.ShouldBe(1);
         }
-        
+
         await TokenContractStub.Transfer.SendAsync(new TransferInput
         {
             // Transfer via alias.
             Symbol = "TP",
             Amount = 1,
-            To = Accounts[1].Address
+            To = User1Address
         });
 
         {
             var balance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
-                Owner = Accounts[1].Address,
+                Owner = User1Address,
+                Symbol = "TP"
+            });
+            balance.Balance.ShouldBe(1);
+        }
+    }
+
+    [Fact]
+    public async Task ApproveAndTransferFromViaAlias_Test()
+    {
+        await CreateTokenWithAlias_Test();
+
+        await TokenContractStub.Issue.SendAsync(new IssueInput
+        {
+            Symbol = "TP-31175",
+            Amount = 1,
+            To = DefaultAddress
+        });
+
+        await TokenContractStub.Approve.SendAsync(new ApproveInput
+        {
+            Symbol = "TP",
+            Amount = 1,
+            Spender = User1Address
+        });
+
+        await TokenContractStubUser.TransferFrom.SendAsync(new TransferFromInput
+        {
+            Symbol = "TP",
+            Amount = 1,
+            From = DefaultAddress,
+            To = User2Address,
+        });
+
+        {
+            var balance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Owner = User2Address,
                 Symbol = "TP"
             });
             balance.Balance.ShouldBe(1);
@@ -129,7 +197,7 @@ public partial class MultiTokenContractTests
         TokenName = "Trump Digital Trading Cards #1155",
         TotalSupply = TotalSupply,
         Decimals = 0,
-        Issuer = Accounts[0].Address,
+        Issuer = DefaultAddress,
         IssueChainId = _chainId,
         ExternalInfo = new ExternalInfo
         {
