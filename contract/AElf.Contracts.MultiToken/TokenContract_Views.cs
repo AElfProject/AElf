@@ -40,7 +40,7 @@ public partial class TokenContract
         var symbol = GetActualTokenSymbol(input.Symbol);
         return new GetBalanceOutput
         {
-            Symbol = symbol,
+            Symbol = input.Symbol,
             Owner = input.Owner,
             Balance = GetBalance(input.Owner, symbol)
         };
@@ -253,7 +253,7 @@ public partial class TokenContract
     {
         if (State.TokenInfos[aliasOrSymbol] == null)
         {
-            return State.SymbolAliasMap[aliasOrSymbol];
+            return State.SymbolAliasMap[aliasOrSymbol] ?? aliasOrSymbol;
         }
 
         return aliasOrSymbol;

@@ -115,8 +115,8 @@ public partial class MultiTokenContractTests
 
         {
             // Check alias.
-            var alias = await TokenContractStub.GetTokenAlias.CallAsync(new StringValue { Value = "TP" });
-            alias.Value.ShouldBe("TP-31175");
+            var alias = await TokenContractStub.GetTokenAlias.CallAsync(new StringValue { Value = "TP-31175" });
+            alias.Value.ShouldBe("TP");
         }
 
         {
@@ -235,6 +235,29 @@ public partial class MultiTokenContractTests
             });
             balance.Balance.ShouldBe(1);
         }
+    }
+
+    [Fact]
+    public async Task GetBalanceOfNotExistToken_Test()
+    {
+        var balance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+        {
+            Owner = User2Address,
+            Symbol = "TP"
+        });
+        balance.Balance.ShouldBe(0);
+    }
+
+    [Fact]
+    public async Task GetAllowanceOfNotExistToken_Test()
+    {
+        var allowance = await TokenContractStub.GetAllowance.CallAsync(new GetAllowanceInput
+        {
+            Owner = User2Address,
+            Symbol = "TP",
+            Spender = DefaultAddress
+        });
+        allowance.Allowance.ShouldBe(0);
     }
 
     private TokenInfo NftCollection1155WithAliasInfo => new()
