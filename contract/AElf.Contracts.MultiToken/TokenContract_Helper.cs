@@ -122,14 +122,12 @@ public partial class TokenContract
                                                                             fromAddress][t]).Seconds).ToList();
     }
 
-
     private long GetBalance(Address address, string symbol)
     {
         AssertValidInputAddress(address);
-        var tokenInfo = GetTokenInfo(symbol);
-        Assert(!string.IsNullOrWhiteSpace(tokenInfo.Symbol), "Invalid symbol.");
-        
-        return State.Balances[address][tokenInfo.Symbol];
+        var actualSymbol = GetActualTokenSymbol(symbol);
+        Assert(!string.IsNullOrWhiteSpace(actualSymbol), "Invalid symbol.");
+        return State.Balances[address][actualSymbol];
     }
 
     // private MethodFeeFreeAllowance GetFreeFeeAllowance(MethodFeeFreeAllowances freeAllowances, string symbol)
