@@ -287,7 +287,8 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
         foreach (var approve in input.Value)
         {
             AssertValidInputAddress(approve.Spender);
-            AssertValidApproveTokenAndAmount(approve.Symbol, approve.Amount);
+            var actualSymbol = GetActualTokenSymbol(approve.Symbol);
+            AssertValidApproveTokenAndAmount(actualSymbol, approve.Amount);
         }
         var approveInputList = input.Value.GroupBy(approve => approve.Symbol + approve.Spender, approve => approve)
             .Select(approve => approve.Last()).ToList();

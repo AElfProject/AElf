@@ -260,6 +260,101 @@ public partial class MultiTokenContractTests
         allowance.Allowance.ShouldBe(0);
     }
 
+    [Fact]
+    public async Task BatchApproveWithAlias_Test()
+    {
+        await SetTokenAlias_NFTCollection_Test();
+        await CreateTokenAndIssue();
+        var approveBasisResult = (await TokenContractStub.BatchApprove.SendAsync(new BatchApproveInput
+        {
+            Value =
+            {
+                new ApproveInput
+                {
+                    Symbol = SymbolForTest,
+                    Amount = 2000L,
+                    Spender = BasicFunctionContractAddress
+                },
+                new ApproveInput
+                {
+                    Symbol = "TP",
+                    Amount = 1000L,
+                    Spender = OtherBasicFunctionContractAddress
+                },
+                new ApproveInput
+                {
+                    Symbol = SymbolForTest,
+                    Amount = 5000L,
+                    Spender = TreasuryContractAddress
+                }
+            }
+        })).TransactionResult;
+        approveBasisResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+        var basicAllowanceOutput = await TokenContractStub.GetAllowance.CallAsync(new GetAllowanceInput
+        {
+            Owner = DefaultAddress,
+            Spender = BasicFunctionContractAddress,
+            Symbol = SymbolForTest
+        });
+        basicAllowanceOutput.Allowance.ShouldBe(2000L);
+        var otherBasicAllowanceOutput = await TokenContractStub.GetAllowance.CallAsync(new GetAllowanceInput
+        {
+            Owner = DefaultAddress,
+            Spender = OtherBasicFunctionContractAddress,
+            Symbol = "TP"
+        });
+        otherBasicAllowanceOutput.Allowance.ShouldBe(1000L);
+        var treasuryAllowanceOutput = await TokenContractStub.GetAllowance.CallAsync(new GetAllowanceInput
+        {
+            Owner = DefaultAddress,
+            Spender = TreasuryContractAddress,
+            Symbol = SymbolForTest
+        });
+        treasuryAllowanceOutput.Allowance.ShouldBe(5000L);
+
+        approveBasisResult = (await TokenContractStub.BatchApprove.SendAsync(new BatchApproveInput
+        {
+            Value =
+            {
+                new ApproveInput
+                {
+                    Symbol = "TP",
+                    Amount = 1000L,
+                    Spender = BasicFunctionContractAddress
+                },
+                new ApproveInput
+                {
+                    Symbol = SymbolForTest,
+                    Amount = 3000L,
+                    Spender = BasicFunctionContractAddress
+                },
+                new ApproveInput
+                {
+                    Symbol = SymbolForTest,
+                    Amount = 3000L,
+                    Spender = TreasuryContractAddress
+                }
+            }
+        })).TransactionResult;
+        approveBasisResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        basicAllowanceOutput = await TokenContractStub.GetAllowance.CallAsync(new GetAllowanceInput
+        {
+            Owner = DefaultAddress,
+            Spender = BasicFunctionContractAddress,
+            Symbol = SymbolForTest
+        });
+        basicAllowanceOutput.Allowance.ShouldBe(3000L);
+
+        treasuryAllowanceOutput = await TokenContractStub.GetAllowance.CallAsync(new GetAllowanceInput
+        {
+            Owner = DefaultAddress,
+            Spender = TreasuryContractAddress,
+            Symbol = SymbolForTest
+        });
+        treasuryAllowanceOutput.Allowance.ShouldBe(3000L);
+    }
+
     private TokenInfo NftCollection1155WithAliasInfo => new()
     {
         Symbol = "TP-",
