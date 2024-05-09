@@ -232,7 +232,7 @@ public partial class TokenContract
 
     public override StringValue GetTokenAlias(StringValue input)
     {
-        var collectionSymbol = GetNftCollectionSymbol(input.Value);
+        var collectionSymbol = GetNftCollectionSymbol(input.Value, true);
         var tokenInfo = GetTokenInfo(collectionSymbol);
         var (_, alias) = ExtractAliasSetting(tokenInfo);
         return new StringValue
