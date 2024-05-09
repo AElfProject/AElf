@@ -32,7 +32,7 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
     /// <returns></returns>
     public override Empty Create(CreateInput input)
     {
-        var inputSymbolType = GetCreateInputSymbolType(input.Symbol);
+        var inputSymbolType = GetSymbolType(input.Symbol);
         if (input.Owner == null)
         {
             input.Owner = input.Issuer;
