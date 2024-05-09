@@ -716,6 +716,11 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
                tokenInfo.ExternalInfo.Value.ContainsKey(TokenContractConstants.TokenAliasExternalInfoKey);
     }
 
+    /// <summary>
+    /// Extract alias setting from ExternalInfo.
+    /// </summary>
+    /// <param name="tokenInfo"></param>
+    /// <returns>(Symbol, Alias)</returns>
     private KeyValuePair<string, string> ExtractAliasSetting(TokenInfo tokenInfo)
     {
         var tokenAliasSetting = tokenInfo.ExternalInfo.Value[TokenContractConstants.TokenAliasExternalInfoKey];
@@ -729,9 +734,9 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
     private void SetTokenAlias(TokenInfo tokenInfo)
     {
         var (symbol, alias) = ExtractAliasSetting(tokenInfo);
-        State.SymbolAliasMap[symbol] = alias;
+        State.SymbolAliasMap[alias] = symbol;
 
-        CheckTokenAlias(alias, GetNftCollectionSymbol(tokenInfo.Symbol));
+        CheckTokenAlias(alias, tokenInfo.Symbol);
 
         Context.Fire(new SymbolAliasAdded
         {
