@@ -71,6 +71,8 @@ public partial class TokenContractState : ContractState
     
     public SingletonState<bool> TokenIssuerAndOwnerModificationDisabled { get; set; }
 
+    public SingletonState<int> MaxBatchApproveCount { get; set; }
+
     // Alias -> Actual Symbol
     public MappedState<string, string> SymbolAliasMap { get; set; }
 }

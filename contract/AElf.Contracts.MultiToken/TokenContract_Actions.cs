@@ -32,8 +32,6 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
     /// <returns></returns>
     public override Empty Create(CreateInput input)
     {
-        // can not call create on side chain
-        Assert(State.SideChainCreator.Value == null, "Failed to create token if side chain creator already set.");
         var inputSymbolType = GetCreateInputSymbolType(input.Symbol);
         if (input.Owner == null)
         {
@@ -52,6 +50,9 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
         AssertValidCreateInput(input, symbolType);
         if (symbolType == SymbolType.Token || symbolType == SymbolType.NftCollection)
         {
+            // can not call create on side chain
+            Assert(State.SideChainCreator.Value == null,
+                "Failed to create token if side chain creator already set.");
             if (!IsAddressInCreateWhiteList(Context.Sender) &&
                 input.Symbol != TokenContractConstants.SeedCollectionSymbol)
             {
@@ -261,14 +262,35 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
     {
         AssertValidInputAddress(input.Spender);
         var tokenInfo = AssertValidToken(input.Symbol, input.Amount);
-        State.Allowances[Context.Sender][input.Spender][tokenInfo.Symbol] = input.Amount;
+        Approve(input.Spender, tokenInfo.Symbol, input.Amount);
+        return new Empty();
+    }
+
+    private void Approve(Address spender, string symbol, long amount)
+    {
+        State.Allowances[Context.Sender][spender][symbol] = amount;
         Context.Fire(new Approved
         {
             Owner = Context.Sender,
-            Spender = input.Spender,
-            Symbol = tokenInfo.Symbol,
-            Amount = input.Amount
+            Spender = spender,
+            Symbol = symbol,
+            Amount = amount
         });
+    }
+
+    public override Empty BatchApprove(BatchApproveInput input)
+    {
+        Assert(input != null && input.Value != null && input.Value.Count > 0, "Invalid input .");
+        Assert(input.Value.Count <= GetMaxBatchApproveCount(), "Exceeds the max batch approve count.");
+        foreach (var approve in input.Value)
+        {
+            AssertValidInputAddress(approve.Spender);
+            AssertValidToken(approve.Symbol, approve.Amount);
+        }
+        var approveInputList = input.Value.GroupBy(approve => approve.Symbol + approve.Spender, approve => approve)
+            .Select(approve => approve.Last()).ToList();
+        foreach (var approve in approveInputList)
+            Approve(approve.Spender, approve.Symbol, approve.Amount);
         return new Empty();
     }
 
@@ -636,6 +658,29 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
         {
             Value = !State.TokenIssuerAndOwnerModificationDisabled.Value
         };
+    }
+    
+    public override Empty SetMaxBatchApproveCount(Int32Value input)
+    {
+        Assert(input.Value > 0, "Invalid input.");
+        AssertSenderAddressWith(GetDefaultParliamentController().OwnerAddress);
+        State.MaxBatchApproveCount.Value = input.Value;
+        return new Empty();
+    }
+
+    public override Int32Value GetMaxBatchApproveCount(Empty input)
+    {
+        return new Int32Value
+        {
+            Value = GetMaxBatchApproveCount()
+        };
+    }
+
+    private int GetMaxBatchApproveCount()
+    {
+        return State.MaxBatchApproveCount.Value == 0
+            ? TokenContractConstants.DefaultMaxBatchApproveCount
+            : State.MaxBatchApproveCount.Value;
     }
 
     /// <summary>
