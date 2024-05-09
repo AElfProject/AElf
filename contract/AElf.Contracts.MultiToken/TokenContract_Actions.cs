@@ -261,8 +261,9 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
     public override Empty Approve(ApproveInput input)
     {
         AssertValidInputAddress(input.Spender);
-        AssertValidApproveTokenAndAmount(input.Symbol, input.Amount);
-        Approve(input.Spender, input.Symbol, input.Amount);
+        var actualSymbol = GetActualTokenSymbol(input.Symbol);
+        AssertValidApproveTokenAndAmount(actualSymbol, input.Amount);
+        Approve(input.Spender, actualSymbol, input.Amount);
         return new Empty();
     }
 

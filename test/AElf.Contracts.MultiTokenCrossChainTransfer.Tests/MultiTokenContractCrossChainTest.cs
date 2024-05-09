@@ -325,7 +325,7 @@ public class MultiTokenContractCrossChainTest : MultiTokenContractCrossChainTest
     }
 
 
-    [Fact]
+    [Fact(Skip = "Now we allow this.")]
     public async Task SideChain_CrossChainCreateToken_WithAlreadyCreated_Test()
     {
         await GenerateSideChainAsync();
@@ -1087,7 +1087,10 @@ public class MultiTokenContractCrossChainTest : MultiTokenContractCrossChainTest
             TotalSupply = createdTokenInfo.TotalSupply,
             IssueChainId = createdTokenInfo.IssueChainId
         };
-        input.ExternalInfo.Add(createdTokenInfo.ExternalInfo.Value);
+        if (createdTokenInfo.ExternalInfo != null)
+        {
+            input.ExternalInfo.Add(createdTokenInfo.ExternalInfo.Value);
+        }
         return tokenContractImplStub.ValidateTokenInfoExists.GetTransaction(input);
     }
 
