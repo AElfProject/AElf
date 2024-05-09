@@ -58,14 +58,13 @@ public partial class TokenContract
     {
         var oldSymbolSeed = State.SymbolSeedMap[ownedSymbol];
 
-        Assert(oldSymbolSeed == null || !State.TokenInfos[oldSymbolSeed].ExternalInfo.Value
+        Assert(oldSymbolSeed == null || !GetTokenInfo(oldSymbolSeed).ExternalInfo.Value
                    .TryGetValue(TokenContractConstants.SeedExpireTimeExternalInfoKey,
                        out var oldSymbolSeedExpireTime) ||
                !long.TryParse(oldSymbolSeedExpireTime, out var symbolSeedExpireTime)
                || Context.CurrentBlockTime.Seconds > symbolSeedExpireTime,
             "OwnedSymbol has been created");
     }
-
 
     private void DoTransferFrom(Address from, Address to, Address spender, string symbol, long amount, string memo)
     {
@@ -142,22 +141,30 @@ public partial class TokenContract
         return TokenContractConstants.AllSymbolIdentifier.ToString();
     }
 
-
-    private string GetNftCollectionSymbol(string inputSymbol)
+    /// <summary>
+    /// ELF -> null
+    /// NFT-1 -> NFT-0
+    /// If isAllowCollection == true: NFT-0 -> NFT-0
+    /// If isAllowCollection == false: NFT-0 -> null
+    /// </summary>
+    /// <param name="inputSymbol"></param>
+    /// <param name="isAllowCollection"></param>
+    /// <returns>Return null if inputSymbol is not NFT.</returns>
+    private string GetNftCollectionSymbol(string inputSymbol, bool isAllowCollection = false)
     {
         var symbol = inputSymbol;
         var words = symbol.Split(TokenContractConstants.NFTSymbolSeparator);
         const int tokenSymbolLength = 1;
         if (words.Length == tokenSymbolLength) return null;
         Assert(words.Length == 2 && words[1].All(IsValidItemIdChar), "Invalid NFT Symbol Input");
-        return symbol == $"{words[0]}-0" ? null : $"{words[0]}-0";
+        return symbol == $"{words[0]}-0" ? (isAllowCollection ? $"{words[0]}-0" : null) : $"{words[0]}-0";
     }
 
     private TokenInfo AssertNftCollectionExist(string symbol)
     {
         var collectionSymbol = GetNftCollectionSymbol(symbol);
         if (collectionSymbol == null) return null;
-        var collectionInfo = State.TokenInfos[collectionSymbol];
+        var collectionInfo = GetTokenInfo(collectionSymbol);
         Assert(collectionInfo != null, "NFT collection not exist");
         return collectionInfo;
     }

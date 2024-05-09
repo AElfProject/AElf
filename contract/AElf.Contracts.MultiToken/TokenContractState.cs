@@ -8,6 +8,11 @@ public partial class TokenContractState : ContractState
     public StringState NativeTokenSymbol { get; set; }
 
     public StringState ChainPrimaryTokenSymbol { get; set; }
+
+    /// <summary>
+    /// WARNING: Use GetTokenInfo & SetTokenInfo to operate TokenInfos
+    /// due to token symbol alias feature.
+    /// </summary>
     public MappedState<string, TokenInfo> TokenInfos { get; set; }
     public MappedState<string, string> SymbolSeedMap { get; set; }
     public MappedState<Address, string, long> Balances { get; set; }
@@ -67,4 +72,7 @@ public partial class TokenContractState : ContractState
     public SingletonState<bool> TokenIssuerAndOwnerModificationDisabled { get; set; }
 
     public SingletonState<int> MaxBatchApproveCount { get; set; }
+
+    // Alias -> Actual Symbol
+    public MappedState<string, string> SymbolAliasMap { get; set; }
 }
