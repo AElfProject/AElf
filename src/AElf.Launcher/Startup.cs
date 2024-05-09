@@ -66,7 +66,7 @@ public class Startup
                     //.AddHttpClientInstrumentation()
                     .AddAspNetCoreInstrumentation();
 
-                builder.AddConsoleExporter();
+                // builder.AddConsoleExporter();
             })
             .WithMetrics(builder =>
             {
@@ -75,7 +75,8 @@ public class Startup
                     //.AddHttpClientInstrumentation()
                     .AddAspNetCoreInstrumentation();
 
-                builder.AddConsoleExporter();
+                // builder.AddConsoleExporter();
+                builder.AddPrometheusExporter();
             });
     }
 
@@ -95,6 +96,7 @@ public class Startup
         app.UseAuthentication();
         app.UseAuthorization();
         app.UseCors(DefaultCorsPolicyName);
+        app.UseOpenTelemetryPrometheusScrapingEndpoint();
 
         app.InitializeApplication();
     }

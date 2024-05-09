@@ -69,7 +69,7 @@ internal class Program
                     var resourceBuilder = ResourceBuilder.CreateDefault();
                     resourceBuilder.AddService("aelf-otel");
                     options.SetResourceBuilder(resourceBuilder);
-                    options.AddConsoleExporter();
+                    // options.AddConsoleExporter();
                 });
             })
             .ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup<Startup>(); })
