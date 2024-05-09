@@ -123,9 +123,12 @@ public partial class TokenContract
     private void AssertValidFeeToken(string symbol, long amount)
     {
         AssertValidSymbolAndAmount(symbol, amount);
-        if (State.TokenInfos[symbol] == null)
+        var tokenInfo = GetTokenInfo(symbol);
+        if (tokenInfo == null)
+        {
             throw new AssertionException("Token is not found");
-        Assert(State.TokenInfos[symbol].IsBurnable, $"Token {symbol} cannot set as method fee.");
+        }
+        Assert(tokenInfo.IsBurnable, $"Token {symbol} cannot set as method fee.");
     }
 
     #endregion

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 using AElf.Standards.ACS0;
@@ -76,6 +77,7 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
             ExternalInfo = input.ExternalInfo ?? new ExternalInfo(),
             Owner = input.Owner
         };
+        CheckTokenExists(tokenInfo.Symbol);
         RegisterTokenInfo(tokenInfo);
         if (string.IsNullOrEmpty(State.NativeTokenSymbol.Value))
         {
@@ -109,7 +111,7 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
     private void CheckSeedNFT(string symbolSeed, String symbol)
     {
         Assert(!string.IsNullOrEmpty(symbolSeed), "Seed NFT does not exist.");
-        var tokenInfo = State.TokenInfos[symbolSeed];
+        var tokenInfo = GetTokenInfo(symbolSeed);
         Assert(tokenInfo != null, "Seed NFT does not exist.");
         Assert(State.Balances[Context.Sender][symbolSeed] > 0, "Seed NFT balance is not enough.");
         Assert(tokenInfo.ExternalInfo != null && tokenInfo.ExternalInfo.Value.TryGetValue(
@@ -130,7 +132,7 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
     public override Empty SetPrimaryTokenSymbol(SetPrimaryTokenSymbolInput input)
     {
         Assert(State.ChainPrimaryTokenSymbol.Value == null, "Failed to set primary token symbol.");
-        Assert(!string.IsNullOrWhiteSpace(input.Symbol) && State.TokenInfos[input.Symbol] != null, "Invalid input symbol.");
+        Assert(!string.IsNullOrWhiteSpace(input.Symbol) && GetTokenInfo(input.Symbol) != null, "Invalid input symbol.");
 
         State.ChainPrimaryTokenSymbol.Value = input.Symbol;
         Context.Fire(new ChainPrimaryTokenSymbolSet { TokenSymbol = input.Symbol });
@@ -155,7 +157,7 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
         tokenInfo.Supply = tokenInfo.Supply.Add(input.Amount);
 
         Assert(tokenInfo.Issued <= tokenInfo.TotalSupply, "Total supply exceeded");
-        State.TokenInfos[input.Symbol] = tokenInfo;
+        SetTokenInfo(tokenInfo);
         ModifyBalance(input.To, input.Symbol, input.Amount);
 
         Context.Fire(new Issued
@@ -404,7 +406,7 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
     public override Empty ValidateTokenInfoExists(ValidateTokenInfoExistsInput input)
     {
         Assert(!string.IsNullOrWhiteSpace(input.Symbol), "Invalid input symbol.");
-        var tokenInfo = State.TokenInfos[input.Symbol];
+        var tokenInfo = GetTokenInfo(input.Symbol);
         if (tokenInfo == null) throw new AssertionException("Token validation failed.");
 
         var validationResult = tokenInfo.TokenName == input.TokenName &&
@@ -467,6 +469,9 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
             ExternalInfo = new ExternalInfo { Value = { validateTokenInfoExistsInput.ExternalInfo } },
             Owner = validateTokenInfoExistsInput.Owner ?? validateTokenInfoExistsInput.Issuer
         };
+
+        SyncSymbolAliasFromTokenInfo(tokenInfo);
+
         RegisterTokenInfo(tokenInfo);
 
         Context.Fire(new TokenCreated
@@ -570,7 +575,7 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
         State.VerifiedCrossChainTransferTransaction[transferTransactionId] = true;
         tokenInfo.Supply = tokenInfo.Supply.Add(amount);
         Assert(tokenInfo.Supply <= tokenInfo.TotalSupply, "Total supply exceeded");
-        State.TokenInfos[symbol] = tokenInfo;
+        SetTokenInfo(tokenInfo);
         ModifyBalance(receivingAddress, symbol, amount);
 
         Context.Fire(new CrossChainReceived
@@ -597,7 +602,7 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
         Assert(input.Issuer != null && !input.Issuer.Value.IsNullOrEmpty(), "Invalid input issuer.");
         Assert(input.Owner != null && !input.Owner.Value.IsNullOrEmpty(), "Invalid input owner.");
 
-        var tokenInfo = State.TokenInfos[input.Symbol];
+        var tokenInfo = GetTokenInfo(input.Symbol);
 
         Assert(tokenInfo != null, "Token is not found.");
         Assert(tokenInfo.Issuer == Context.Sender, "Only token issuer can set token issuer and owner.");
@@ -625,5 +630,91 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
         {
             Value = !State.TokenIssuerAndOwnerModificationDisabled.Value
         };
+    }
+
+    /// <summary>
+    /// For example:
+    ///     Symbol: SGR-1, Alias: SGR
+    ///     Symbol: ABC-233, Alias: ABC
+    /// </summary>
+    /// <param name="input"></param>
+    /// <returns></returns>
+    public override Empty SetSymbolAlias(SetSymbolAliasInput input)
+    {
+        // Alias setting can only work for NFT Item for now.
+
+        // Can only happen on Main Chain.
+        Assert(Context.ChainId == ChainHelper.ConvertBase58ToChainId("AELF"),
+            "Symbol alias setting only works on MainChain.");
+
+        var collectionSymbol = GetNftCollectionSymbol(input.Symbol);
+
+        // Current Rule: Alias must be the collection symbol.
+        Assert(input.Alias == collectionSymbol);
+
+        var collectionTokenInfo = GetTokenInfo(collectionSymbol);
+        if (collectionTokenInfo == null)
+        {
+            throw new AssertionException($"NFT Collection {collectionSymbol} not found.");
+        }
+
+        Assert(collectionTokenInfo.Owner == Context.Sender, "No permission.");
+
+        collectionTokenInfo.ExternalInfo.Value[TokenContractConstants.TokenAliasExternalInfoKey]
+            = JsonSerializer.Serialize(new Dictionary<string, string>
+            {
+                { input.Symbol, input.Alias }
+            });
+
+        SetTokenInfo(collectionTokenInfo);
+
+        State.SymbolAliasMap[input.Alias] = input.Symbol;
+
+        Context.LogDebug(() => $"Token alias added: {input.Symbol} -> {input.Alias}");
+
+        Context.Fire(new SymbolAliasAdded
+        {
+            Symbol = input.Symbol,
+            Alias = input.Alias
+        });
+
+        return new Empty();
+    }
+
+    private void SyncSymbolAliasFromTokenInfo(TokenInfo newTokenInfo)
+    {
+        var maybePreviousTokenInfo = State.TokenInfos[newTokenInfo.Symbol].Clone();
+
+        if (maybePreviousTokenInfo != null && IsAliasSettingExists(maybePreviousTokenInfo))
+        {
+            var (previousSymbol, _) = ExtractAliasSetting(maybePreviousTokenInfo);
+            State.SymbolAliasMap.Remove(previousSymbol);
+        }
+
+        if (IsAliasSettingExists(newTokenInfo))
+        {
+            var (newSymbol, newAlias) = ExtractAliasSetting(newTokenInfo);
+            State.SymbolAliasMap[newSymbol] = newAlias;
+
+            Context.Fire(new SymbolAliasAdded
+            {
+                Symbol = newSymbol,
+                Alias = newAlias
+            });
+        }
+    }
+
+    private bool IsAliasSettingExists(TokenInfo tokenInfo)
+    {
+        return tokenInfo.ExternalInfo != null &&
+               tokenInfo.ExternalInfo.Value.Count > 0 &&
+               tokenInfo.ExternalInfo.Value.ContainsKey(TokenContractConstants.TokenAliasExternalInfoKey);
+    }
+
+    private KeyValuePair<string, string> ExtractAliasSetting(TokenInfo tokenInfo)
+    {
+        var tokenAliasSetting = tokenInfo.ExternalInfo.Value[TokenContractConstants.TokenAliasExternalInfoKey];
+        var aliasSetting = JsonSerializer.Deserialize<Dictionary<string, string>>(tokenAliasSetting);
+        return aliasSetting.First();
     }
 }

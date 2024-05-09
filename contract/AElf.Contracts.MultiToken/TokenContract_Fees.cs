@@ -620,7 +620,6 @@ public partial class TokenContract
         var isPrimaryTokenExist = false;
         var symbolList = new List<string>();
         var primaryTokenSymbol = GetPrimaryTokenSymbol(new Empty());
-        var primaryTokenInfo = State.TokenInfos[primaryTokenSymbol.Value];
         Assert(!string.IsNullOrEmpty(primaryTokenSymbol.Value), "primary token does not exist");
         foreach (var tokenWeightInfo in input.SymbolsToPayTxSizeFee)
         {
@@ -1153,7 +1152,7 @@ public partial class TokenContract
 
         if (totalAmount <= 0) return;
 
-        var tokenInfo = State.TokenInfos[symbol];
+        var tokenInfo = GetTokenInfo(symbol);
         if (!tokenInfo.IsBurnable)
         {
             return;
@@ -1268,7 +1267,7 @@ public partial class TokenContract
     private void ValidateToken(string symbol)
     {
         Assert(!string.IsNullOrWhiteSpace(symbol), "Invalid input symbol");
-        Assert(State.TokenInfos[symbol] != null, $"Symbol {symbol} not exist");
+        Assert(GetTokenInfo(symbol) != null, $"Symbol {symbol} not exist");
     }
 
     public override Empty RemoveTransactionFeeFreeAllowancesConfig(RemoveTransactionFeeFreeAllowancesConfigInput input)
@@ -1411,7 +1410,7 @@ public partial class TokenContract
 
     private void AssertSymbolToPayTxFeeIsValid(string tokenSymbol, out long totalSupply)
     {
-        var tokenInfo = State.TokenInfos[tokenSymbol];
+        var tokenInfo = GetTokenInfo(tokenSymbol);
         if (tokenInfo == null)
         {
             throw new AssertionException($"Token is not found. {tokenSymbol}");

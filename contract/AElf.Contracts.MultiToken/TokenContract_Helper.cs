@@ -33,7 +33,7 @@ public partial class TokenContract
     private TokenInfo AssertValidToken(string symbol, long amount)
     {
         AssertValidSymbolAndAmount(symbol, amount);
-        var tokenInfo = State.TokenInfos[symbol];
+        var tokenInfo = GetTokenInfo(symbol);
         Assert(tokenInfo != null && !string.IsNullOrEmpty(tokenInfo.Symbol), $"Token is not found. {symbol}");
         return tokenInfo;
     }
@@ -183,7 +183,6 @@ public partial class TokenContract
 
     private void RegisterTokenInfo(TokenInfo tokenInfo)
     {
-        CheckTokenExists(tokenInfo.Symbol);
         Assert(!string.IsNullOrEmpty(tokenInfo.Symbol) && tokenInfo.Symbol.All(IsValidSymbolChar),
             "Invalid symbol.");
         Assert(!string.IsNullOrEmpty(tokenInfo.TokenName), "Token name can neither be null nor empty.");
@@ -225,7 +224,7 @@ public partial class TokenContract
 
     private int GetIssueChainId(string symbol)
     {
-        var tokenInfo = State.TokenInfos[symbol];
+        var tokenInfo = GetTokenInfo(symbol);
         return tokenInfo.IssueChainId;
     }
 
@@ -255,7 +254,7 @@ public partial class TokenContract
     private void CheckTokenExists(string symbol)
     {
         var empty = new TokenInfo();
-        var existing = State.TokenInfos[symbol];
+        var existing = GetTokenInfo(symbol);
         Assert(existing == null || existing.Equals(empty), "Token already exists.");
     }
 
@@ -278,7 +277,7 @@ public partial class TokenContract
 
     private void DealWithExternalInfoDuringLocking(TransferFromInput input)
     {
-        var tokenInfo = State.TokenInfos[input.Symbol];
+        var tokenInfo = GetTokenInfo(input.Symbol);
         if (tokenInfo.ExternalInfo == null) return;
         if (tokenInfo.ExternalInfo.Value.ContainsKey(TokenContractConstants.LockCallbackExternalInfoKey))
         {
@@ -293,7 +292,7 @@ public partial class TokenContract
 
     private void DealWithExternalInfoDuringTransfer(TransferFromInput input)
     {
-        var tokenInfo = State.TokenInfos[input.Symbol];
+        var tokenInfo = GetTokenInfo(input.Symbol);
         if (tokenInfo.ExternalInfo == null) return;
         if (tokenInfo.ExternalInfo.Value.ContainsKey(TokenContractConstants.TransferCallbackExternalInfoKey))
         {
@@ -308,7 +307,7 @@ public partial class TokenContract
 
     private void DealWithExternalInfoDuringUnlock(TransferFromInput input)
     {
-        var tokenInfo = State.TokenInfos[input.Symbol];
+        var tokenInfo = GetTokenInfo(input.Symbol);
         if (tokenInfo.ExternalInfo == null) return;
         if (tokenInfo.ExternalInfo.Value.ContainsKey(TokenContractConstants.UnlockCallbackExternalInfoKey))
         {
@@ -357,5 +356,24 @@ public partial class TokenContract
         }
         
         return State.VoteContractAddress.Value;
+    }
+
+    private TokenInfo GetTokenInfo(string symbolOrAlias)
+    {
+        var tokenInfo = State.TokenInfos[symbolOrAlias];
+        if (tokenInfo != null) return tokenInfo;
+        var actualTokenSymbol = State.SymbolAliasMap[symbolOrAlias];
+        if (!string.IsNullOrEmpty(actualTokenSymbol))
+        {
+            tokenInfo = State.TokenInfos[actualTokenSymbol];
+        }
+
+        return tokenInfo;
+    }
+
+    private void SetTokenInfo(TokenInfo tokenInfo)
+    {
+        var symbol = tokenInfo.Symbol;
+        State.TokenInfos[symbol] = tokenInfo;
     }
 }
