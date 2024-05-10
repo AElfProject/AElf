@@ -716,7 +716,8 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
             throw new AssertionException($"NFT Collection {collectionSymbol} not found.");
         }
 
-        Assert(collectionTokenInfo.Owner == Context.Sender, "No permission.");
+        Assert(collectionTokenInfo.Owner == Context.Sender || collectionTokenInfo.Issuer == Context.Sender,
+            "No permission.");
 
         collectionTokenInfo.ExternalInfo.Value[TokenContractConstants.TokenAliasExternalInfoKey]
             = $"{{\"{input.Symbol}\":\"{input.Alias}\"}}";
