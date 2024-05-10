@@ -502,6 +502,7 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
             Owner = validateTokenInfoExistsInput.Owner ?? validateTokenInfoExistsInput.Issuer
         };
 
+        var isSymbolAliasSet = SyncSymbolAliasFromTokenInfo(tokenInfo);
         if (State.TokenInfos[tokenInfo.Symbol] == null)
         {
             RegisterTokenInfo(tokenInfo);
@@ -520,7 +521,7 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
         }
         else
         {
-            if (SyncSymbolAliasFromTokenInfo(tokenInfo) &&
+            if (isSymbolAliasSet &&
                 validateTokenInfoExistsInput.ExternalInfo.TryGetValue(TokenContractConstants.TokenAliasExternalInfoKey,
                     out var tokenAliasSetting))
             {
