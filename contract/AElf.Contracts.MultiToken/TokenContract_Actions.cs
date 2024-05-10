@@ -750,18 +750,6 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
 
     private bool SyncSymbolAliasFromTokenInfo(TokenInfo newTokenInfo)
     {
-        var maybePreviousTokenInfo = State.TokenInfos[newTokenInfo.Symbol]?.Clone();
-
-        if (maybePreviousTokenInfo != null && IsAliasSettingExists(maybePreviousTokenInfo))
-        {
-            var (previousSymbol, previousAlias) = ExtractAliasSetting(maybePreviousTokenInfo);
-
-            if (!string.IsNullOrEmpty(previousSymbol))
-            {
-                return false;
-            }
-        }
-
         if (IsAliasSettingExists(newTokenInfo))
         {
             SetTokenAlias(newTokenInfo);
