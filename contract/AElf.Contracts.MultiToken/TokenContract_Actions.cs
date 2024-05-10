@@ -438,7 +438,7 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
     public override Empty ValidateTokenInfoExists(ValidateTokenInfoExistsInput input)
     {
         Assert(!string.IsNullOrWhiteSpace(input.Symbol), "Invalid input symbol.");
-        var tokenInfo = GetTokenInfo(input.Symbol);
+        var tokenInfo = State.TokenInfos[input.Symbol];
         if (tokenInfo == null) throw new AssertionException("Token validation failed.");
 
         var validationResult = tokenInfo.TokenName == input.TokenName &&
