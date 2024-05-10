@@ -505,6 +505,18 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
         if (State.TokenInfos[tokenInfo.Symbol] == null)
         {
             RegisterTokenInfo(tokenInfo);
+            Context.Fire(new TokenCreated
+            {
+                Symbol = validateTokenInfoExistsInput.Symbol,
+                TokenName = validateTokenInfoExistsInput.TokenName,
+                TotalSupply = validateTokenInfoExistsInput.TotalSupply,
+                Decimals = validateTokenInfoExistsInput.Decimals,
+                Issuer = validateTokenInfoExistsInput.Issuer,
+                IsBurnable = validateTokenInfoExistsInput.IsBurnable,
+                IssueChainId = validateTokenInfoExistsInput.IssueChainId,
+                ExternalInfo = new ExternalInfo { Value = { validateTokenInfoExistsInput.ExternalInfo } },
+                Owner = tokenInfo.Owner,
+            });
         }
         else
         {
@@ -516,19 +528,6 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
                     .Add(TokenContractConstants.TokenAliasExternalInfoKey, tokenAliasSetting);
             }
         }
-
-        Context.Fire(new TokenCreated
-        {
-            Symbol = validateTokenInfoExistsInput.Symbol,
-            TokenName = validateTokenInfoExistsInput.TokenName,
-            TotalSupply = validateTokenInfoExistsInput.TotalSupply,
-            Decimals = validateTokenInfoExistsInput.Decimals,
-            Issuer = validateTokenInfoExistsInput.Issuer,
-            IsBurnable = validateTokenInfoExistsInput.IsBurnable,
-            IssueChainId = validateTokenInfoExistsInput.IssueChainId,
-            ExternalInfo = new ExternalInfo { Value = { validateTokenInfoExistsInput.ExternalInfo } },
-            Owner = tokenInfo.Owner,
-        });
 
         return new Empty();
     }
