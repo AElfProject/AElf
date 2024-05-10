@@ -502,9 +502,20 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
             Owner = validateTokenInfoExistsInput.Owner ?? validateTokenInfoExistsInput.Issuer
         };
 
-        SyncSymbolAliasFromTokenInfo(tokenInfo);
-
-        RegisterTokenInfo(tokenInfo);
+        if (State.TokenInfos[tokenInfo.Symbol] == null)
+        {
+            RegisterTokenInfo(tokenInfo);
+        }
+        else
+        {
+            if (SyncSymbolAliasFromTokenInfo(tokenInfo) &&
+                validateTokenInfoExistsInput.ExternalInfo.TryGetValue(TokenContractConstants.TokenAliasExternalInfoKey,
+                    out var tokenAliasSetting))
+            {
+                State.TokenInfos[tokenInfo.Symbol].ExternalInfo.Value
+                    .Add(TokenContractConstants.TokenAliasExternalInfoKey, tokenAliasSetting);
+            }
+        }
 
         Context.Fire(new TokenCreated
         {
@@ -737,7 +748,7 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
         return new Empty();
     }
 
-    private void SyncSymbolAliasFromTokenInfo(TokenInfo newTokenInfo)
+    private bool SyncSymbolAliasFromTokenInfo(TokenInfo newTokenInfo)
     {
         var maybePreviousTokenInfo = State.TokenInfos[newTokenInfo.Symbol]?.Clone();
 
@@ -747,14 +758,17 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
 
             if (!string.IsNullOrEmpty(previousSymbol))
             {
-                return;
+                return false;
             }
         }
 
         if (IsAliasSettingExists(newTokenInfo))
         {
             SetTokenAlias(newTokenInfo);
+            return true;
         }
+
+        return false;
     }
 
     private bool IsAliasSettingExists(TokenInfo tokenInfo)
