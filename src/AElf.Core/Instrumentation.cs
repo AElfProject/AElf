@@ -16,6 +16,7 @@ public class Instrumentation : IDisposable
         ActivitySource = new ActivitySource(ActivitySourceName, version);
         _meter = new Meter(MeterName, version);
         ExecutedTxCounter = _meter.CreateCounter<long>("tx.executed", description: "The count of executed txs");
+        ExecutedTxRt = _meter.CreateHistogram<long>("tx.executed.rt","ms","The rt of executed txs");
         ReceivedTxCounter = _meter.CreateCounter<long>("tx.received", description: "The count of received txs");
         GetChainCounter = _meter.CreateCounter<long>("chain.get", description: "The count of getting chain");
         MiningDurationCounter = _meter.CreateCounter<long>("block.duration", description: "The mining duration");
@@ -25,6 +26,7 @@ public class Instrumentation : IDisposable
     public ActivitySource ActivitySource { get; }
 
     public Counter<long> ExecutedTxCounter { get; }
+    public Histogram<long> ExecutedTxRt { get; }
     public Counter<long> ReceivedTxCounter { get; }
     public Counter<long> GetChainCounter { get; }
     public Counter<long> MiningDurationCounter { get; }

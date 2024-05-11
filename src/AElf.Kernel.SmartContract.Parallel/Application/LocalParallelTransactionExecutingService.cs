@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
@@ -22,6 +23,7 @@ public class LocalParallelTransactionExecutingService : IParallelTransactionExec
     private readonly ActivitySource _activitySource;
     private readonly Counter<long> _receivedTxsCounter;
     private readonly Counter<long> _executedTxsCounter;
+    private readonly Histogram<long> _executedTxsRt;
 
     public LocalParallelTransactionExecutingService(ITransactionGrouper grouper,
         IPlainTransactionExecutingService planTransactionExecutingService,
@@ -35,6 +37,7 @@ public class LocalParallelTransactionExecutingService : IParallelTransactionExec
         _activitySource = instrumentation.ActivitySource;
         _receivedTxsCounter = instrumentation.ReceivedTxCounter;
         _executedTxsCounter = instrumentation.ExecutedTxCounter;
+        _executedTxsRt = instrumentation.ExecutedTxRt;
     }
 
     public ILogger<LocalParallelTransactionExecutingService> Logger { get; set; }
@@ -75,14 +78,17 @@ public class LocalParallelTransactionExecutingService : IParallelTransactionExec
             updatedPartialBlockStateSet, cancellationToken);
         returnSets.AddRange(nonParallelizableReturnSets);
 
+        var startTime = DateTime.UtcNow.Ticks;
         var transactionWithoutContractReturnSets = ProcessTransactionsWithoutContract(
             groupedTransactions.TransactionsWithoutContract);
+        var endTime = DateTime.UtcNow.Ticks;
+        var duration = (endTime - startTime) / TimeSpan.TicksPerMillisecond;
 
         Logger.LogTrace("Merged results from transactions without contract.");
         returnSets.AddRange(transactionWithoutContractReturnSets);
         _executedTxsCounter.Add(
             returnSets.Count(r => r.Status == TransactionResultStatus.Mined));
-
+        _executedTxsRt.Record(duration);
         if (conflictingSets.Count > 0 &&
             returnSets.Count + conflictingSets.Count == transactionExecutingDto.Transactions.Count())
         {

@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using OpenTelemetry.Exporter;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 using Volo.Abp.Modularity;
@@ -64,8 +65,13 @@ public class Startup
                     .AddSource("AElf")
                     .SetSampler(new AlwaysOnSampler())
                     //.AddHttpClientInstrumentation()
-                    .AddAspNetCoreInstrumentation();
-
+                    .AddAspNetCoreInstrumentation()
+                    .AddOtlpExporter(options =>
+                        {
+                            options.Endpoint = new Uri("http://192.168.66.22:9090/");
+                            options.Protocol = OtlpExportProtocol.HttpProtobuf;
+                        }
+                    );
                 // builder.AddConsoleExporter();
             })
             .WithMetrics(builder =>
