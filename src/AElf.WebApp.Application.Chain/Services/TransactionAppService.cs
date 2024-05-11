@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Metrics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -47,11 +48,14 @@ public class TransactionAppService : AElfAppService, ITransactionAppService
     private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
     private readonly ITransactionResultStatusCacheProvider _transactionResultStatusCacheProvider;
     private readonly IPlainTransactionExecutingService _plainTransactionExecutingService;
+    
+    private readonly Counter<long> _executeTransactionAsyncCounter;
+    private readonly Histogram<long> _executeTransactionAsyncRt;
 
     public TransactionAppService(ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService,
         IBlockchainService blockchainService, IObjectMapper<ChainApplicationWebAppAElfModule> objectMapper,
         ITransactionResultStatusCacheProvider transactionResultStatusCacheProvider,
-        IPlainTransactionExecutingService plainTransactionExecutingService)
+        IPlainTransactionExecutingService plainTransactionExecutingService,Instrumentation instrumentation)
     {
         _transactionReadOnlyExecutionService = transactionReadOnlyExecutionService;
         _blockchainService = blockchainService;
@@ -61,6 +65,8 @@ public class TransactionAppService : AElfAppService, ITransactionAppService
 
         LocalEventBus = NullLocalEventBus.Instance;
         Logger = NullLogger<TransactionAppService>.Instance;
+        _executeTransactionAsyncCounter = instrumentation.ExecuteTransactionAsyncCounter;
+        _executeTransactionAsyncRt = instrumentation.ExecuteTransactionAsyncRt;
     }
 
     public ILocalEventBus LocalEventBus { get; set; }
@@ -73,6 +79,7 @@ public class TransactionAppService : AElfAppService, ITransactionAppService
     /// <returns></returns>
     public async Task<string> ExecuteTransactionAsync(ExecuteTransactionDto input)
     {
+        var startTime = DateTime.UtcNow.Ticks;
         Transaction transaction;
 
         try
@@ -94,6 +101,10 @@ public class TransactionAppService : AElfAppService, ITransactionAppService
         try
         {
             var response = await CallReadOnlyAsync(transaction);
+            var endTime = DateTime.UtcNow.Ticks;
+            var duration = (endTime - startTime) / TimeSpan.TicksPerMillisecond;
+            _executeTransactionAsyncCounter.Add(1);
+            _executeTransactionAsyncRt.Record(duration);
             return response?.ToHex();
         }
         catch (Exception e)
