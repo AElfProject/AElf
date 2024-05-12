@@ -20,6 +20,7 @@ public class ConsensusRequestMiningDto
     public Timestamp MiningDueTime { get; set; }
 }
 
+[Ump]
 public class MiningRequestService : IMiningRequestService
 {
     private readonly IMinerService _minerService;
@@ -37,6 +38,7 @@ public class MiningRequestService : IMiningRequestService
 
     public ILogger<MiningRequestService> Logger { get; set; }
 
+    [Ump]
     public async Task<Block> RequestMiningAsync(ConsensusRequestMiningDto requestMiningDto)
     {
         if (!ValidateBlockMiningTime(requestMiningDto.BlockTime, requestMiningDto.MiningDueTime,

@@ -14,6 +14,7 @@ public interface ITransactionBlockIndexService
     Task UpdateTransactionBlockIndicesByLibHeightAsync(long blockHeight);
 }
 
+[Ump]
 public class TransactionBlockIndexService : ITransactionBlockIndexService, ITransientDependency
 {
     private readonly IBlockchainService _blockchainService;

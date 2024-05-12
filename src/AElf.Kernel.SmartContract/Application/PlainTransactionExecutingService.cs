@@ -15,6 +15,7 @@ using Volo.Abp.EventBus.Local;
 
 namespace AElf.Kernel.SmartContract.Application;
 
+[Ump]
 public class PlainTransactionExecutingService : IPlainTransactionExecutingService, ISingletonDependency
 {
     private readonly List<IPostExecutionPlugin> _postPlugins;

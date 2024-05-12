@@ -7,6 +7,7 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Kernel.SmartContract.Application;
 
+[Ump]
 public class TransactionReadOnlyExecutionService : ITransactionReadOnlyExecutionService
 {
     private readonly ISmartContractExecutiveService _smartContractExecutiveService;

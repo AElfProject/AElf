@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Node.Application;
 using AElf.OS.Network.Infrastructure;
@@ -25,6 +26,7 @@ public enum SyncState
     Finished
 }
 
+[Ump]
 public class SyncStateService : ISyncStateService, ISingletonDependency
 {
     private readonly IBlockchainNodeContextService _blockchainNodeContextService;

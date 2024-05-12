@@ -58,6 +58,14 @@ public class Startup
             });
         });
 
+        services.OnRegistred(options =>
+        {
+            if (options.ImplementationType.IsDefined(typeof(UmpAttribute), true))
+            {
+                options.Interceptors.TryAdd<UmpInterceptor>();
+            }
+        });
+        
         services.AddOpenTelemetry()
             .WithTracing(builder =>
             {

@@ -20,6 +20,7 @@ public interface INetAppService
     Task<GetNetworkInfoOutput> GetNetworkInfoAsync();
 }
 
+[Ump]
 public class NetAppService : AElfAppService, INetAppService
 {
     private static readonly string Version =

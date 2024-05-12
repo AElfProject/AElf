@@ -26,6 +26,7 @@ public interface IBlockChainAppService
     Task<BlockStateDto> GetBlockStateAsync(string blockHash);
 }
 
+[Ump]
 public class BlockChainAppService : AElfAppService, IBlockChainAppService
 {
     private readonly IBlockchainService _blockchainService;

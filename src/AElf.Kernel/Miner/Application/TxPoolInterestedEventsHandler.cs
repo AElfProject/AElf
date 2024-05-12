@@ -3,7 +3,7 @@ using AElf.Kernel.TransactionPool;
 using AElf.Kernel.TransactionPool.Application;
 
 namespace AElf.Kernel.Miner.Application;
-
+[Ump]
 public class TxPoolInterestedEventsHandler : ILocalEventHandler<TransactionsReceivedEvent>,
     ILocalEventHandler<BlockAcceptedEvent>,
     ILocalEventHandler<BestChainFoundEventData>,

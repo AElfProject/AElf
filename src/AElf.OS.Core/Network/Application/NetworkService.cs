@@ -17,6 +17,7 @@ namespace AElf.OS.Network.Application;
 /// <summary>
 ///     Exposes networking functionality to the application handlers.
 /// </summary>
+[Ump]
 public class NetworkService : INetworkService, ISingletonDependency
 {
     private readonly IBlackListedPeerProvider _blackListedPeerProvider;

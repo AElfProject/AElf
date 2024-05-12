@@ -16,6 +16,7 @@ public interface ITransactionPoolService
     Task<TransactionPoolStatus> GetTransactionPoolStatusAsync();
 }
 
+[Ump]
 public class TransactionPoolService : ITransactionPoolService
 {
     private readonly ITxHub _txHub;

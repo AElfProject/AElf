@@ -1,3 +1,4 @@
+using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.TransactionPool.Application;
 
@@ -9,6 +10,7 @@ public interface ITransactionResultProxyService
     ITransactionResultQueryService TransactionResultQueryService { get; }
 }
 
+[Ump]
 public class TransactionResultProxyService : ITransactionResultProxyService
 {
     public TransactionResultProxyService(ITransactionPoolService transactionPoolService,

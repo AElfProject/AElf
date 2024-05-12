@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using AElf.Kernel;
 using AElf.WebApp.Application.Chain.Dto;
 using Volo.Abp.ObjectMapping;
 
@@ -8,7 +9,7 @@ public interface ITaskQueueStatusAppService
 {
     List<TaskQueueInfoDto> GetTaskQueueStatusAsync();
 }
-
+[Ump]
 public class TaskQueueStatusAppService : AElfAppService, ITaskQueueStatusAppService
 {
     private readonly IObjectMapper<ChainApplicationWebAppAElfModule> _objectMapper;

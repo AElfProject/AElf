@@ -12,6 +12,7 @@ using Volo.Abp.EventBus.Local;
 
 namespace AElf.Kernel.Miner.Application;
 
+[Ump]
 public class MiningService : IMiningService
 {
     private readonly IAccountService _accountService;

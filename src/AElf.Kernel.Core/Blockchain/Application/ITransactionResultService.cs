@@ -15,6 +15,7 @@ public interface ITransactionResultService : ITransactionResultQueryService
     Task ProcessTransactionResultAfterExecutionAsync(BlockHeader blockHeader, List<Hash> transactionIds);
 }
 
+[Ump]
 public class TransactionResultService : ITransactionResultService, ITransientDependency
 {
     private readonly ITransactionBlockIndexService _transactionBlockIndexService;

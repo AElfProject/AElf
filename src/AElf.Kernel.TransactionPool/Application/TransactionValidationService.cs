@@ -10,6 +10,7 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.TransactionPool.Application;
 
+[Ump]
 public class TransactionValidationService : ITransactionValidationService, ITransientDependency
 {
     private readonly IBlockchainService _blockchainService;

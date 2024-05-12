@@ -29,7 +29,7 @@ public interface ITransactionResultAppService
 
     Task<MerklePathDto> GetMerklePathByTransactionIdAsync(string transactionId);
 }
-
+[Ump]
 public class TransactionResultAppService : AElfAppService, ITransactionResultAppService
 {
     private readonly IBlockchainService _blockchainService;

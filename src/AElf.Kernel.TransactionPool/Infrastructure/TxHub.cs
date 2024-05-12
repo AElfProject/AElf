@@ -18,6 +18,7 @@ using Volo.Abp.EventBus.Local;
 
 namespace AElf.Kernel.TransactionPool.Infrastructure;
 
+[Ump]
 public class TxHub : ITxHub, ISingletonDependency
 {
     private readonly ConcurrentDictionary<Hash, QueuedTransaction> _allTransactions = new();
@@ -86,6 +87,7 @@ public class TxHub : ITxHub, ISingletonDependency
         return output;
     }
 
+    [Ump]
     public async Task AddTransactionsAsync(IEnumerable<Transaction> transactions)
     {
         if (_bestChainHash == Hash.Empty)
@@ -112,6 +114,7 @@ public class TxHub : ITxHub, ISingletonDependency
         }
     }
 
+    
     public async Task UpdateTransactionPoolByBestChainAsync(Hash bestChainHash, long bestChainHeight)
     {
         var minimumHeight = _allTransactions.Count == 0

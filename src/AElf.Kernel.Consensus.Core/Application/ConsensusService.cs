@@ -58,6 +58,7 @@ internal class ConsensusService : IConsensusService, ISingletonDependency
     /// </summary>
     /// <param name="chainContext"></param>
     /// <returns></returns>
+    [Ump]
     public async Task TriggerConsensusAsync(ChainContext chainContext)
     {
         using var activity = _activitySource.StartActivity();
@@ -111,6 +112,7 @@ internal class ConsensusService : IConsensusService, ISingletonDependency
     /// <param name="chainContext"></param>
     /// <param name="consensusExtraData"></param>
     /// <returns></returns>
+    [Ump]
     public async Task<bool> ValidateConsensusBeforeExecutionAsync(ChainContext chainContext,
         byte[] consensusExtraData)
     {
@@ -151,6 +153,7 @@ internal class ConsensusService : IConsensusService, ISingletonDependency
     /// <param name="chainContext"></param>
     /// <param name="consensusExtraData"></param>
     /// <returns></returns>
+    [Ump]
     public async Task<bool> ValidateConsensusAfterExecutionAsync(ChainContext chainContext,
         byte[] consensusExtraData)
     {
@@ -191,6 +194,7 @@ internal class ConsensusService : IConsensusService, ISingletonDependency
     /// </summary>
     /// <param name="chainContext"></param>
     /// <returns></returns>
+    [Ump]
     public async Task<byte[]> GetConsensusExtraDataAsync(ChainContext chainContext)
     {
         using var activity = _activitySource.StartActivity();
@@ -214,6 +218,7 @@ internal class ConsensusService : IConsensusService, ISingletonDependency
     /// </summary>
     /// <param name="chainContext"></param>
     /// <returns></returns>
+    [Ump]
     public async Task<List<Transaction>> GenerateConsensusTransactionsAsync(ChainContext chainContext)
     {
         using var activity = _activitySource.StartActivity();

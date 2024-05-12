@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.WebApp.Application.Chain.Dto;
@@ -10,7 +11,7 @@ public interface IChainStatusAppService
 {
     Task<ChainStatusDto> GetChainStatusAsync();
 }
-
+[Ump]
 public class ChainStatusAppService : AElfAppService, IChainStatusAppService
 {
     private readonly IBlockchainService _blockchainService;

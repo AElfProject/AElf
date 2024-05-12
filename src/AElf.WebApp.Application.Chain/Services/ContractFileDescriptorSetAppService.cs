@@ -14,7 +14,7 @@ public interface IContractFileDescriptorSetAppService
 {
     Task<byte[]> GetContractFileDescriptorSetAsync(string address);
 }
-
+[Ump]
 public class ContractFileDescriptorSetAppService : ApplicationService, IContractFileDescriptorSetAppService
 {
     private static IBlockchainService _blockchainService;

@@ -41,6 +41,7 @@ public interface ITransactionAppService
     Task<CalculateTransactionFeeOutput> CalculateTransactionFeeAsync(CalculateTransactionFeeInput input);
 }
 
+[Ump] 
 public class TransactionAppService : AElfAppService, ITransactionAppService
 {
     private readonly IBlockchainService _blockchainService;

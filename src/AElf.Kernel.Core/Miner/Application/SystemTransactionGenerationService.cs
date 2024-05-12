@@ -1,5 +1,6 @@
 namespace AElf.Kernel.Miner.Application;
 
+[Ump]
 public class SystemTransactionGenerationService : ISystemTransactionGenerationService
 {
     private readonly IEnumerable<ISystemTransactionGenerator> _systemTransactionGenerators;

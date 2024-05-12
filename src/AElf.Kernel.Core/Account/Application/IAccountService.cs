@@ -25,6 +25,7 @@ public static class AccountServiceExtensions
 /// <summary>
 ///     Really need this service to provide key pairs during dpos consensus testing.
 /// </summary>
+[Ump]
 public class AccountService : IAccountService, ISingletonDependency
 {
     private readonly IAElfAsymmetricCipherKeyPairProvider _ecKeyPairProvider;
