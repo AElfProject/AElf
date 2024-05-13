@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.Metrics;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.CSharp.Core.Extension;
@@ -30,6 +31,12 @@ internal class ConsensusService : IConsensusService, ISingletonDependency
     private Timestamp _nextMiningTime;
 
     private readonly ActivitySource _activitySource;
+    private readonly Meter _meter;
+    private readonly Histogram<long> _TriggerConsensusAsync;
+    private readonly Histogram<long> _ValidateConsensusAfterExecutionAsync;
+    private readonly Histogram<long> _GetConsensusExtraDataAsync;
+    private readonly Histogram<long> _GenerateConsensusTransactionsAsync;
+    private readonly Histogram<long> _ValidateConsensusBeforeExecutionAsync;
 
     public ConsensusService(IConsensusScheduler consensusScheduler,
         IContractReaderFactory<ConsensusContractContainer.ConsensusContractStub> contractReaderFactory,
@@ -47,6 +54,13 @@ internal class ConsensusService : IConsensusService, ISingletonDependency
         LocalEventBus = NullLocalEventBus.Instance;
 
         _activitySource = instrumentation.ActivitySource;
+        _meter = _meter = new Meter("AElf", "1.0.0");
+        
+        _TriggerConsensusAsync = _meter.CreateHistogram<long>("TriggerConsensusAsync.rt","ms","The rt of executed txs");
+        _ValidateConsensusAfterExecutionAsync = _meter.CreateHistogram<long>("ValidateConsensusAfterExecutionAsync.rt","ms","The rt of executed txs");
+        _GetConsensusExtraDataAsync = _meter.CreateHistogram<long>("GetConsensusExtraDataAsync.rt","ms","The rt of executed txs");
+        _GenerateConsensusTransactionsAsync = _meter.CreateHistogram<long>("GenerateConsensusTransactionsAsync.rt","ms","The rt of executed txs");
+        _ValidateConsensusBeforeExecutionAsync = _meter.CreateHistogram<long>("ValidateConsensusBeforeExecutionAsync.rt","ms","The rt of executed txs");
     }
 
     public ILocalEventBus LocalEventBus { get; set; }
@@ -61,6 +75,8 @@ internal class ConsensusService : IConsensusService, ISingletonDependency
     [Ump]
     public async Task TriggerConsensusAsync(ChainContext chainContext)
     {
+        Stopwatch stopwatch = Stopwatch.StartNew();
+        stopwatch.Start();
         using var activity = _activitySource.StartActivity();
         var now = TimestampHelper.GetUtcNow();
         _blockTimeProvider.SetBlockTime(now, chainContext.BlockHash);
@@ -102,6 +118,9 @@ internal class ConsensusService : IConsensusService, ISingletonDependency
             _consensusCommand.MiningDueTime);
         _consensusScheduler.CancelCurrentEvent();
         _consensusScheduler.NewEvent(leftMilliseconds.Milliseconds(), blockMiningEventData);
+        
+        stopwatch.Stop();
+        _TriggerConsensusAsync.Record(stopwatch.ElapsedMilliseconds);
 
         Logger.LogDebug($"Set next mining time to: {_nextMiningTime.ToDateTime():hh:mm:ss.ffffff}");
     }
@@ -116,6 +135,8 @@ internal class ConsensusService : IConsensusService, ISingletonDependency
     public async Task<bool> ValidateConsensusBeforeExecutionAsync(ChainContext chainContext,
         byte[] consensusExtraData)
     {
+        Stopwatch stopwatch = Stopwatch.StartNew();
+        stopwatch.Start();
         using var activity = _activitySource.StartActivity();
 
         var now = TimestampHelper.GetUtcNow();
@@ -143,6 +164,9 @@ internal class ConsensusService : IConsensusService, ISingletonDependency
                 IsReTrigger = validationResult.IsReTrigger
             });
         }
+        
+        stopwatch.Stop();
+        _ValidateConsensusBeforeExecutionAsync.Record(stopwatch.ElapsedMilliseconds);
 
         return validationResult.Success;
     }
@@ -157,6 +181,8 @@ internal class ConsensusService : IConsensusService, ISingletonDependency
     public async Task<bool> ValidateConsensusAfterExecutionAsync(ChainContext chainContext,
         byte[] consensusExtraData)
     {
+        Stopwatch stopwatch = Stopwatch.StartNew();
+        stopwatch.Start();
         using var activity = _activitySource.StartActivity();
 
         var now = TimestampHelper.GetUtcNow();
@@ -184,6 +210,9 @@ internal class ConsensusService : IConsensusService, ISingletonDependency
                 IsReTrigger = validationResult.IsReTrigger
             });
         }
+        
+        stopwatch.Stop();
+        _ValidateConsensusAfterExecutionAsync.Record(stopwatch.ElapsedMilliseconds);
 
         return validationResult.Success;
     }
@@ -197,6 +226,8 @@ internal class ConsensusService : IConsensusService, ISingletonDependency
     [Ump]
     public async Task<byte[]> GetConsensusExtraDataAsync(ChainContext chainContext)
     {
+        Stopwatch stopwatch = Stopwatch.StartNew();
+        stopwatch.Start();
         using var activity = _activitySource.StartActivity();
 
         _blockTimeProvider.SetBlockTime(_nextMiningTime, chainContext.BlockHash);
@@ -210,6 +241,10 @@ internal class ConsensusService : IConsensusService, ISingletonDependency
             _consensusCommand.ToBytesValue());
         var consensusContractStub = _contractReaderFactory.Create(contractReaderContext);
         var output = await consensusContractStub.GetConsensusExtraData.CallAsync(input);
+        
+        stopwatch.Stop();
+        _GetConsensusExtraDataAsync.Record(stopwatch.ElapsedMilliseconds);
+        
         return output.Value.ToByteArray();
     }
 
@@ -221,6 +256,8 @@ internal class ConsensusService : IConsensusService, ISingletonDependency
     [Ump]
     public async Task<List<Transaction>> GenerateConsensusTransactionsAsync(ChainContext chainContext)
     {
+        Stopwatch stopwatch = Stopwatch.StartNew();
+        stopwatch.Start();
         using var activity = _activitySource.StartActivity();
 
         _blockTimeProvider.SetBlockTime(_nextMiningTime, chainContext.BlockHash);
@@ -248,6 +285,8 @@ internal class ConsensusService : IConsensusService, ISingletonDependency
             Logger.LogDebug($"Consensus transaction generated: \n{generatedTransaction.GetHash()}");
         }
 
+        stopwatch.Stop();
+        _GenerateConsensusTransactionsAsync.Record(stopwatch.ElapsedMilliseconds);
         return generatedTransactions;
     }
 }

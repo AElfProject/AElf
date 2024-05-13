@@ -12,7 +12,7 @@ public interface IExecutionObserverThresholdProvider
     Task SetExecutionObserverThresholdAsync(IBlockIndex blockIndex,
         IExecutionObserverThreshold executionObserverThreshold);
 }
-
+[Ump]
 public class ExecutionObserverThresholdProvider : BlockExecutedDataBaseProvider<Int32Value>,
     IExecutionObserverThresholdProvider, ITransientDependency
 {

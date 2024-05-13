@@ -11,6 +11,7 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.Application;
 
+[Ump]
 public class SmartContractExecutiveService : ISmartContractExecutiveService, ISingletonDependency
 {
     private const int ExecutiveExpirationTime = 3600; // 1 Hour

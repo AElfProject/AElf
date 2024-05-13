@@ -19,6 +19,7 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Runtime.CSharp;
 
+[Ump]
 public class Executive : IExecutive
 {
     private readonly ReadOnlyDictionary<string, IServerCallHandler> _callHandlers;
