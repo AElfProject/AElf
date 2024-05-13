@@ -22,11 +22,11 @@ public class UmpInterceptor : AbpInterceptor
         var className = invocation.TargetObject.GetType().Name;
 
         Histogram<long> executionTimeHistogram = _meter.CreateHistogram<long>(
-            name: className + "." + methodName,
+            name: className + "_" + methodName + "_rt",
             description: "Histogram for method execution time",
             unit: "ms"
         );
-        
+
         stopwatch.Start();
 
         await invocation.ProceedAsync();
@@ -34,9 +34,9 @@ public class UmpInterceptor : AbpInterceptor
         stopwatch.Stop();
 
         executionTimeHistogram.Record(stopwatch.ElapsedMilliseconds);
-        
+
         Counter<long> couter = _meter.CreateCounter<long>(
-            name: className + "." + methodName,
+            name: className + "_" + methodName + "_count",
             description: "Counter for method execution times"
         );
         couter.Add(1);
