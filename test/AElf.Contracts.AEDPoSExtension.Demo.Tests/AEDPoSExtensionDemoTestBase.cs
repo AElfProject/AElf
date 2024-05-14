@@ -17,6 +17,8 @@ using AElf.GovernmentSystem;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Proposal;
+using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.Token;
 using AElf.Standards.ACS0;
 using AElf.Standards.ACS3;
@@ -30,6 +32,14 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests;
 public class AEDPoSExtensionDemoTestBase : AEDPoSExtensionTestBase
 {
     internal readonly List<ParliamentContractImplContainer.ParliamentContractImplStub> ParliamentStubs = new();
+    internal readonly IStateStore<VersionedState> VersionedStates;
+    internal readonly IBlockchainStateService BlockchainStateService;
+
+    public AEDPoSExtensionDemoTestBase()
+    {
+        VersionedStates = GetRequiredService<IStateStore<VersionedState>>();
+        BlockchainStateService = GetRequiredService<IBlockchainStateService>();
+    }
 
     internal BasicContractZeroImplContainer.BasicContractZeroImplStub BasicContractZeroStub =>
         GetTester<BasicContractZeroImplContainer.BasicContractZeroImplStub>(

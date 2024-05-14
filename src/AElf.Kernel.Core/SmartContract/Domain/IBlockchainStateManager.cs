@@ -103,6 +103,18 @@ public abstract class BlockchainStateBaseManager
 
     protected async Task<StateReturn> GetAsync(string key, long blockHeight, Hash blockHash)
     {
+        var hashKey = HashHelper.ComputeFrom(key).ToHex();
+        var state = await PerformGetAsync(hashKey, blockHeight, blockHash);
+        if (state.Value.IsNullOrEmpty())
+        {
+            state = await PerformGetAsync(key, blockHeight, blockHash);
+        }
+
+        return state;
+    }
+
+    private async Task<StateReturn> PerformGetAsync(string key, long blockHeight, Hash blockHash)
+    {
         ByteString value;
         var isInStore = false;
         //first DB read
@@ -236,7 +248,7 @@ public class BlockStateSetManger : IBlockStateSetManger, ITransientDependency
                 BlockHash = blockState.BlockHash,
                 BlockHeight = blockState.BlockHeight
                 //OriginBlockHash = origin.BlockHash
-            }).ToDictionary(p => p.Key, p => p);
+            }).ToDictionary(p => HashHelper.ComputeFrom(p.Key).ToHex(), p => p);
 
             await VersionedStates.SetAllAsync(dic);
 

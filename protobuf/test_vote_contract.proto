@@ -13,6 +13,10 @@ service VoteContract {
 
     rpc AddOption (AddOptionInput) returns (google.protobuf.Empty) {
     }
+
+    rpc GetState (AddOptionInput) returns (google.protobuf.StringValue) {
+        option (aelf.is_view) = true;
+    }
 }
 
 message AddOptionInput {

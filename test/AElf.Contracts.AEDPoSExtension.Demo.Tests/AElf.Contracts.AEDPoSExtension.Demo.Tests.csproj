@@ -33,6 +33,11 @@
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </ProjectReference>
+        <ProjectReference Include="..\AElf.Contracts.TestContract.Vote\AElf.Contracts.TestContract.Vote.csproj">
+            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+            <OutputItemType>Contract</OutputItemType>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </ProjectReference>
     </ItemGroup>
     <Import Project="..\AllContracts.props"/>
 
@@ -108,6 +113,9 @@
         </ContractStub>
         <ContractStub Include="..\..\protobuf\random_number_provider_contract.proto">
             <Link>Protobuf\Proto\random_number_provider_contract.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\test_vote_contract.proto">
+            <Link>Protobuf\Proto\test_vote_contract.proto</Link>
         </ContractStub>
     </ItemGroup>
 

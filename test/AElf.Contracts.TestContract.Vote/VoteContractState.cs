@@ -6,5 +6,5 @@ namespace AElf.Contracts.TestContract.Vote;
 
 public class VoteContractState : ContractState
 {
-    public MappedState<Address, StringValue> State { get; set; }
+    public MappedState<string, string, string> State { get; set; }
 }
