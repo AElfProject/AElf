@@ -74,12 +74,13 @@ public class Startup
                     .SetSampler(new AlwaysOnSampler())
                     //.AddHttpClientInstrumentation()
                     .AddAspNetCoreInstrumentation()
-                    .AddOtlpExporter(options =>
-                        {
-                            options.Endpoint = new Uri("http://192.168.66.22:9090/");
-                            options.Protocol = OtlpExportProtocol.HttpProtobuf;
-                        }
-                    );
+                    // .AddOtlpExporter(options =>
+                    //     {
+                    //         options.Endpoint = new Uri("http://192.168.66.22:9090/");
+                    //         options.Protocol = OtlpExportProtocol.HttpProtobuf;
+                    //     }
+                    // )
+                    ;
                 // builder.AddConsoleExporter();
             })
             .WithMetrics(builder =>

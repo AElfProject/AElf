@@ -32,11 +32,11 @@ internal class ConsensusService : IConsensusService, ISingletonDependency
 
     private readonly ActivitySource _activitySource;
     private readonly Meter _meter;
-    private readonly Histogram<long> _TriggerConsensusAsync;
-    private readonly Histogram<long> _ValidateConsensusAfterExecutionAsync;
-    private readonly Histogram<long> _GetConsensusExtraDataAsync;
-    private readonly Histogram<long> _GenerateConsensusTransactionsAsync;
-    private readonly Histogram<long> _ValidateConsensusBeforeExecutionAsync;
+    private readonly Histogram<long> _triggerConsensusAsync;
+    private readonly Histogram<long> _validateConsensusAfterExecutionAsync;
+    private readonly Histogram<long> _getConsensusExtraDataAsync;
+    private readonly Histogram<long> _generateConsensusTransactionsAsync;
+    private readonly Histogram<long> _validateConsensusBeforeExecutionAsync;
 
     public ConsensusService(IConsensusScheduler consensusScheduler,
         IContractReaderFactory<ConsensusContractContainer.ConsensusContractStub> contractReaderFactory,
@@ -56,11 +56,11 @@ internal class ConsensusService : IConsensusService, ISingletonDependency
         _activitySource = instrumentation.ActivitySource;
         _meter = _meter = new Meter("AElf", "1.0.0");
         
-        _TriggerConsensusAsync = _meter.CreateHistogram<long>("TriggerConsensusAsync.rt","ms","The rt of executed txs");
-        _ValidateConsensusAfterExecutionAsync = _meter.CreateHistogram<long>("ValidateConsensusAfterExecutionAsync.rt","ms","The rt of executed txs");
-        _GetConsensusExtraDataAsync = _meter.CreateHistogram<long>("GetConsensusExtraDataAsync.rt","ms","The rt of executed txs");
-        _GenerateConsensusTransactionsAsync = _meter.CreateHistogram<long>("GenerateConsensusTransactionsAsync.rt","ms","The rt of executed txs");
-        _ValidateConsensusBeforeExecutionAsync = _meter.CreateHistogram<long>("ValidateConsensusBeforeExecutionAsync.rt","ms","The rt of executed txs");
+        _triggerConsensusAsync = _meter.CreateHistogram<long>("TriggerConsensusAsync.rt","ms","The rt of executed txs");
+        _validateConsensusAfterExecutionAsync = _meter.CreateHistogram<long>("ValidateConsensusAfterExecutionAsync.rt","ms","The rt of executed txs");
+        _getConsensusExtraDataAsync = _meter.CreateHistogram<long>("GetConsensusExtraDataAsync.rt","ms","The rt of executed txs");
+        _generateConsensusTransactionsAsync = _meter.CreateHistogram<long>("GenerateConsensusTransactionsAsync.rt","ms","The rt of executed txs");
+        _validateConsensusBeforeExecutionAsync = _meter.CreateHistogram<long>("ValidateConsensusBeforeExecutionAsync.rt","ms","The rt of executed txs");
     }
 
     public ILocalEventBus LocalEventBus { get; set; }
@@ -120,7 +120,7 @@ internal class ConsensusService : IConsensusService, ISingletonDependency
         _consensusScheduler.NewEvent(leftMilliseconds.Milliseconds(), blockMiningEventData);
         
         stopwatch.Stop();
-        _TriggerConsensusAsync.Record(stopwatch.ElapsedMilliseconds);
+        _triggerConsensusAsync.Record(stopwatch.ElapsedMilliseconds);
 
         Logger.LogDebug($"Set next mining time to: {_nextMiningTime.ToDateTime():hh:mm:ss.ffffff}");
     }
@@ -166,7 +166,7 @@ internal class ConsensusService : IConsensusService, ISingletonDependency
         }
         
         stopwatch.Stop();
-        _ValidateConsensusBeforeExecutionAsync.Record(stopwatch.ElapsedMilliseconds);
+        _validateConsensusBeforeExecutionAsync.Record(stopwatch.ElapsedMilliseconds);
 
         return validationResult.Success;
     }
@@ -212,7 +212,7 @@ internal class ConsensusService : IConsensusService, ISingletonDependency
         }
         
         stopwatch.Stop();
-        _ValidateConsensusAfterExecutionAsync.Record(stopwatch.ElapsedMilliseconds);
+        _validateConsensusAfterExecutionAsync.Record(stopwatch.ElapsedMilliseconds);
 
         return validationResult.Success;
     }
@@ -243,7 +243,7 @@ internal class ConsensusService : IConsensusService, ISingletonDependency
         var output = await consensusContractStub.GetConsensusExtraData.CallAsync(input);
         
         stopwatch.Stop();
-        _GetConsensusExtraDataAsync.Record(stopwatch.ElapsedMilliseconds);
+        _getConsensusExtraDataAsync.Record(stopwatch.ElapsedMilliseconds);
         
         return output.Value.ToByteArray();
     }
@@ -286,7 +286,7 @@ internal class ConsensusService : IConsensusService, ISingletonDependency
         }
 
         stopwatch.Stop();
-        _GenerateConsensusTransactionsAsync.Record(stopwatch.ElapsedMilliseconds);
+        _generateConsensusTransactionsAsync.Record(stopwatch.ElapsedMilliseconds);
         return generatedTransactions;
     }
 }
