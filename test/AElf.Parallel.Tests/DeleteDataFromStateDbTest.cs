@@ -3059,7 +3059,7 @@ public sealed class DeleteDataFromStateDbTest : AElfIntegratedTest<ParallelTestW
             {
                 Parts = { "BoolValueMap", key }
             }
-        }.ToStateKey());
+        }.ToHashedStateKey());
         state.ShouldBeNull();
 
         state = await _versionedStates.GetAsync(new ScopedStatePath
@@ -3069,7 +3069,7 @@ public sealed class DeleteDataFromStateDbTest : AElfIntegratedTest<ParallelTestW
             {
                 Parts = { "LongValueMap", key }
             }
-        }.ToStateKey());
+        }.ToHashedStateKey());
         state.ShouldBeNull();
 
         state = await _versionedStates.GetAsync(new ScopedStatePath
@@ -3079,7 +3079,7 @@ public sealed class DeleteDataFromStateDbTest : AElfIntegratedTest<ParallelTestW
             {
                 Parts = { "StringValueMap", key }
             }
-        }.ToStateKey());
+        }.ToHashedStateKey());
         state.ShouldBeNull();
 
         state = await _versionedStates.GetAsync(new ScopedStatePath
@@ -3089,7 +3089,7 @@ public sealed class DeleteDataFromStateDbTest : AElfIntegratedTest<ParallelTestW
             {
                 Parts = { "MessageValueMap", key }
             }
-        }.ToStateKey());
+        }.ToHashedStateKey());
         state.ShouldBeNull();
     }
 
@@ -3103,7 +3103,7 @@ public sealed class DeleteDataFromStateDbTest : AElfIntegratedTest<ParallelTestW
             {
                 Parts = { "LongValueMap", key }
             }
-        }.ToStateKey());
+        }.ToHashedStateKey());
         SerializationHelper.Deserialize<long>(state.Value.ToByteArray())
             .ShouldBe(longValue);
 
@@ -3114,7 +3114,7 @@ public sealed class DeleteDataFromStateDbTest : AElfIntegratedTest<ParallelTestW
             {
                 Parts = { "StringValueMap", key }
             }
-        }.ToStateKey());
+        }.ToHashedStateKey());
         SerializationHelper.Deserialize<string>(state.Value.ToByteArray())
             .ShouldBe(stringValue);
 
@@ -3125,7 +3125,7 @@ public sealed class DeleteDataFromStateDbTest : AElfIntegratedTest<ParallelTestW
             {
                 Parts = { "MessageValueMap", key }
             }
-        }.ToStateKey());
+        }.ToHashedStateKey());
         SerializationHelper.Deserialize<MessageValue>(state.Value.ToByteArray())
             .ShouldBe(messageValue);
     }

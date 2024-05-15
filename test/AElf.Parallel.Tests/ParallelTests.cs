@@ -408,7 +408,7 @@ public sealed class ParallelTests : AElfIntegratedTest<ParallelTestAElfModule>
         nonparallelContractCode.CodeHash.ShouldBe(
             HashHelper.ComputeFrom(_parallelTestHelper.BasicFunctionWithParallelContractCode));
 
-        versionedState = await _versionedStates.GetAsync(blockExecutedData.Key);
+        versionedState = await _versionedStates.GetAsync(blockExecutedData.Key.ToHashedStateKey());
         versionedState.Key.ShouldBe(blockExecutedData.Key);
         versionedState.Value.ShouldBe(blockExecutedData.Value);
 

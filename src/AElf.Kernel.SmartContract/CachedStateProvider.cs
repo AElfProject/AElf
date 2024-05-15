@@ -24,7 +24,10 @@ public class CachedStateProvider : IScopedStateProvider
             Path = path
         };
 
-        if (Cache.TryGetValue(scoped, out var value)) return value;
+        if (Cache.TryGetValue(scoped, out var value))
+        {
+            return value;
+        }
 
         var bytes = _inner.Get(path);
 

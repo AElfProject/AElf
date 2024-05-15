@@ -103,22 +103,11 @@ public abstract class BlockchainStateBaseManager
 
     protected async Task<StateReturn> GetAsync(string key, long blockHeight, Hash blockHash)
     {
-        var hashKey = HashHelper.ComputeFrom(key).ToHex();
-        var state = await PerformGetAsync(hashKey, blockHeight, blockHash);
-        if (state.Value.IsNullOrEmpty())
-        {
-            state = await PerformGetAsync(key, blockHeight, blockHash);
-        }
-
-        return state;
-    }
-
-    private async Task<StateReturn> PerformGetAsync(string key, long blockHeight, Hash blockHash)
-    {
+        var hashedKey = key.ToHashedStateKey();
         ByteString value;
         var isInStore = false;
         //first DB read
-        var bestChainState = await VersionedStates.GetAsync(key);
+        var bestChainState = await VersionedStates.GetAsync(hashedKey);
 
         if (bestChainState != null)
         {
@@ -132,7 +121,8 @@ public abstract class BlockchainStateBaseManager
                 if (bestChainState.BlockHeight >= blockHeight)
                     //because we may clear history state
                     throw new InvalidOperationException(
-                        $"cannot read history state, best chain state hash: {bestChainState.BlockHash.ToHex()}, key: {key}, block height: {blockHeight}, block hash{blockHash.ToHex()}");
+                        $"cannot read history state, best chain state hash: {bestChainState.BlockHash.ToHex()}, " +
+                        $"key: {key}, block height: {blockHeight}, block hash{blockHash.ToHex()}");
 
                 //find value in block state set
                 var blockStateSet = await FindBlockStateSetWithKeyAsync(key, bestChainState.BlockHeight, blockHash);
@@ -145,7 +135,7 @@ public abstract class BlockchainStateBaseManager
                     //not found value in block state sets. for example, best chain is 100, blockHeight is 105,
                     //it will find 105 ~ 101 block state set. so the value could only be the best chain state value.
                     // retry versioned state in case conflict of get state during merging  
-                    bestChainState = await VersionedStates.GetAsync(key);
+                    bestChainState = await VersionedStates.GetAsync(hashedKey);
                     value = bestChainState.Value;
                     isInStore = true;
                 }
@@ -161,11 +151,11 @@ public abstract class BlockchainStateBaseManager
             if (value == null && blockStateSet == null)
             {
                 // retry versioned state in case conflict of get state during merging  
+                // also for old keys.
                 bestChainState = await VersionedStates.GetAsync(key);
                 value = bestChainState?.Value;
             }
         }
-
 
         return new StateReturn
         {
@@ -182,8 +172,7 @@ public abstract class BlockchainStateBaseManager
 
         while (blockStateSet != null && blockStateSet.BlockHeight > bestChainHeight)
         {
-            if (
-                TryGetFromBlockStateSet(blockStateSet, key, out _)) break;
+            if (TryGetFromBlockStateSet(blockStateSet, key, out _)) break;
 
             blockStateKey = blockStateSet.PreviousHash?.ToStorageKey();
 
@@ -248,11 +237,11 @@ public class BlockStateSetManger : IBlockStateSetManger, ITransientDependency
                 BlockHash = blockState.BlockHash,
                 BlockHeight = blockState.BlockHeight
                 //OriginBlockHash = origin.BlockHash
-            }).ToDictionary(p => HashHelper.ComputeFrom(p.Key).ToHex(), p => p);
+            }).ToDictionary(p => p.Key.ToHashedStateKey(), p => p);
 
             await VersionedStates.SetAllAsync(dic);
 
-            await VersionedStates.RemoveAllAsync(blockState.Deletes.Select(d => HashHelper.ComputeFrom(d).ToHex())
+            await VersionedStates.RemoveAllAsync(blockState.Deletes.Select(d => d.ToHashedStateKey())
                 .ToList());
 
             chainStateInfo.Status = ChainStateMergingStatus.Merged;

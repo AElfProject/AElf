@@ -7,9 +7,9 @@ public static class BlockStateSetExtension
         value = null;
         if (blockStateSet.Deletes.Contains(key)) return true;
 
-        if (blockStateSet.Changes.ContainsKey(key))
+        if (blockStateSet.Changes.TryGetValue(key, out var change))
         {
-            value = blockStateSet.Changes[key];
+            value = change;
             return true;
         }
 
