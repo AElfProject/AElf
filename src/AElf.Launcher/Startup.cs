@@ -72,16 +72,15 @@ public class Startup
                 builder
                     .AddSource("AElf")
                     .SetSampler(new AlwaysOnSampler())
-                    //.AddHttpClientInstrumentation()
                     .AddAspNetCoreInstrumentation()
                     // .AddOtlpExporter(options =>
                     //     {
-                    //         options.Endpoint = new Uri("http://192.168.66.22:9090/");
+                    //         options.Endpoint = new Uri("http://localhost:4318/v1/write");
                     //         options.Protocol = OtlpExportProtocol.HttpProtobuf;
                     //     }
                     // )
+                    // .AddConsoleExporter();
                     ;
-                // builder.AddConsoleExporter();
             })
             .WithMetrics(builder =>
             {
