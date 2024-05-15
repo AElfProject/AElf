@@ -15,13 +15,21 @@ public class VoteContract : VoteContractContainer.VoteContractBase
         return new Empty();
     }
 
+    public override Empty RemoveOption(RemoveOptionInput input)
+    {
+        var longItem = RepeatStringMultipleTimes(input.VotingItemId.ToHex(), 5);
+        var longOption = RepeatStringMultipleTimes(input.Option.ToHex(), 5);
+        State.State[longItem].Remove(longOption);
+        return new Empty();
+    }
+
     public override StringValue GetState(AddOptionInput input)
     {
         var longItem = RepeatStringMultipleTimes(input.VotingItemId.ToHex(), 5);
         var longOption = RepeatStringMultipleTimes(input.Option.ToHex(), 5);
         return new StringValue
         {
-            Value = State.State[longItem][longOption]
+            Value = State.State[longItem][longOption] ?? string.Empty
         };
     }
 

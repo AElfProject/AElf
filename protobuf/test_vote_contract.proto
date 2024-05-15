@@ -13,6 +13,9 @@ service VoteContract {
 
     rpc AddOption (AddOptionInput) returns (google.protobuf.Empty) {
     }
+    
+    rpc RemoveOption (RemoveOptionInput) returns (google.protobuf.Empty) {
+    }
 
     rpc GetState (AddOptionInput) returns (google.protobuf.StringValue) {
         option (aelf.is_view) = true;
@@ -20,6 +23,11 @@ service VoteContract {
 }
 
 message AddOptionInput {
+    aelf.Hash voting_item_id = 1;
+    aelf.Hash option = 2;
+}
+
+message RemoveOptionInput {
     aelf.Hash voting_item_id = 1;
     aelf.Hash option = 2;
 }

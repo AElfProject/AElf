@@ -252,7 +252,8 @@ public class BlockStateSetManger : IBlockStateSetManger, ITransientDependency
 
             await VersionedStates.SetAllAsync(dic);
 
-            await VersionedStates.RemoveAllAsync(blockState.Deletes.ToList());
+            await VersionedStates.RemoveAllAsync(blockState.Deletes.Select(d => HashHelper.ComputeFrom(d).ToHex())
+                .ToList());
 
             chainStateInfo.Status = ChainStateMergingStatus.Merged;
             chainStateInfo.BlockHash = blockState.BlockHash;

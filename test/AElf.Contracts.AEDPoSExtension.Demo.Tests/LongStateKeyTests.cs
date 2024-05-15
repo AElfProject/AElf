@@ -31,24 +31,44 @@ public class LongStateKeyTests : AEDPoSExtensionDemoTestBase
         trace.StateSet.Writes.Count.ShouldBe(1);
         trace.StateSet.Writes.First().Key.Length.ShouldBeGreaterThan(SsdbMaxKeyLength);
 
-        var chain = await BlockchainService.GetChainAsync();
-        await BlockchainStateService.MergeBlockStateAsync(chain.BestChainHeight, chain.BestChainHash);
-        //var task = BlockchainService.SetIrreversibleBlockAsync(chain, chain.BestChainHeight, chain.BestChainHash);
+        await SetLibAsync();
 
         // Also readable.
-        var state = await testContractStub.GetState.CallAsync(input);
-        state.Value.Length.ShouldBeGreaterThan(SsdbMaxKeyLength);
+        {
+            var state = await testContractStub.GetState.CallAsync(input);
+            state.Value.Length.ShouldBeGreaterThan(SsdbMaxKeyLength);
+        }
 
         var stateKey = GetStateKey(input);
         // Won't get value via state key directly.
         (await VersionedStates.GetAsync(stateKey)).ShouldBeNull();
 
         // Will get value via hashed state key.
-        var key = HashHelper.ComputeFrom(stateKey).ToHex();
-        var versionedState = await VersionedStates.GetAsync(key);
+        var hashedKey = HashHelper.ComputeFrom(stateKey).ToHex();
+        var versionedState = await VersionedStates.GetAsync(hashedKey);
         var expectedValue = RepeatStringMultipleTimes(input.Option.ToHex(), 5);
         versionedState.Key.ShouldBe(stateKey);
         versionedState.Value.ToStringUtf8().ShouldBe(expectedValue);
+
+        // Delete state.
+        await testContractStub.RemoveOption.SendAsync(new RemoveOptionInput
+        {
+            VotingItemId = input.VotingItemId,
+            Option = input.Option
+        });
+
+        await SetLibAsync();
+
+        {
+            var state = await testContractStub.GetState.CallAsync(input);
+            state.Value.ShouldBeEmpty();
+        }
+    }
+
+    private async Task SetLibAsync()
+    {
+        var chain = await BlockchainService.GetChainAsync();
+        await BlockchainStateService.MergeBlockStateAsync(chain.BestChainHeight, chain.BestChainHash);
     }
 
     private string GetStateKey(AddOptionInput input)
