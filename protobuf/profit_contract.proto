@@ -63,6 +63,9 @@ service ProfitContract {
     // Reset the manager of a scheme.
     rpc ResetManager (ResetManagerInput) returns (google.protobuf.Empty) {
     }
+    
+    rpc SetMaximumProfitReceivingPeriodCount(google.protobuf.Int32Value) returns (google.protobuf.Empty) {
+    }
 
     // Get all schemes managed by the specified manager.
     rpc GetManagingSchemeIds (GetManagingSchemeIdsInput) returns (CreatedSchemeIds) {
@@ -93,9 +96,23 @@ service ProfitContract {
     rpc GetProfitAmount (GetProfitAmountInput) returns (google.protobuf.Int64Value) {
         option (aelf.is_view) = true;
     }
+    
+    // Query the amount of profit according to token symbol.
+    rpc GetAllProfitAmount (GetAllProfitAmountInput) returns (GetAllProfitAmountOutput) {
+        option (aelf.is_view) = true;
+    }
 
     // Query all profit (up to 10 periods).
     rpc GetProfitsMap (ClaimProfitsInput) returns (ReceivedProfitsMap) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Query all profit.
+    rpc GetAllProfitsMap (GetAllProfitsMapInput) returns (GetAllProfitsMapOutput) {
+        option (aelf.is_view) = true;
+    }
+    
+    rpc GetMaximumProfitReceivingPeriodCount(google.protobuf.Empty) returns (google.protobuf.Int32Value) {
         option (aelf.is_view) = true;
     }
 }
@@ -308,9 +325,37 @@ message GetProfitAmountInput {
     aelf.Address beneficiary = 3;
 }
 
+message GetAllProfitAmountInput {
+    // The scheme id.
+    aelf.Hash scheme_id = 1;
+    // The token symbol.
+    string symbol = 2;
+    // The beneficiary's address.
+    aelf.Address beneficiary = 3;
+}
+
+message GetAllProfitAmountOutput{
+    int64 all_profit_amount = 1;
+    int64 one_time_claimable_profit_amount = 2;
+}
+
 message ReceivedProfitsMap {
     // The collection of profits received, token symbol -> amount.
     map<string, int64> value = 1;
+}
+
+message GetAllProfitsMapInput {
+    // The scheme id.
+    aelf.Hash scheme_id = 1;
+    // The address of beneficiary.
+    aelf.Address beneficiary = 2;
+}
+
+message GetAllProfitsMapOutput {
+    // The collection of all profits received, token symbol -> amount.
+    map<string, int64> all_profits_map = 1;
+    // The collection of claimable profits received, token symbol -> amount.
+    map<string, int64> one_time_claimable_profits_map = 2;
 }
 
 message SchemeCreated {

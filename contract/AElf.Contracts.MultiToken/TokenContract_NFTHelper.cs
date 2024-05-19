@@ -13,8 +13,4 @@ public partial class TokenContract
         return words[1] == TokenContractConstants.CollectionSymbolSuffix ? SymbolType.NftCollection : SymbolType.Nft;
     }
 
-    private void AssertNFTCreateInput(CreateInput input)
-    {
-        Assert(input.Decimals == 0, "NFT's decimals must be 0");
-    }
 }

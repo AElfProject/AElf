@@ -9,23 +9,34 @@ public partial class TokenContract
 {
     private Empty CreateNFTCollection(CreateInput input)
     {
-        AssertNFTCreateInput(input);
         return CreateToken(input, SymbolType.NftCollection);
     }
 
     private Empty CreateNFTInfo(CreateInput input)
     {
-        AssertNFTCreateInput(input);
         var nftCollectionInfo = AssertNftCollectionExist(input.Symbol);
         input.IssueChainId = input.IssueChainId == 0 ? nftCollectionInfo.IssueChainId : input.IssueChainId;
-        Assert(input.IssueChainId == nftCollectionInfo.IssueChainId,
-            "NFT create ChainId must be collection's issue chainId");
-
+        Assert(
+            input.IssueChainId == nftCollectionInfo.IssueChainId,
+            "NFT issue ChainId must be collection's issue chainId");
+        if (nftCollectionInfo.ExternalInfo != null && nftCollectionInfo.ExternalInfo.Value.TryGetValue(
+                TokenContractConstants.NftCreateChainIdExternalInfoKey,
+                out var nftCreateChainId) && long.TryParse(nftCreateChainId, out var nftCreateChainIdLong))
+        {
+            Assert(nftCreateChainIdLong == Context.ChainId,
+                "NFT create ChainId must be collection's NFT create chainId");
+        }
+        else
+        {
+            Assert(State.SideChainCreator.Value == null,
+                "Failed to create token if side chain creator already set.");
+        }
+        
         var owner = nftCollectionInfo.Owner ?? nftCollectionInfo.Issuer;
         Assert(Context.Sender == owner && owner == input.Owner, "NFT owner must be collection's owner");
-
         if (nftCollectionInfo.Symbol == TokenContractConstants.SeedCollectionSymbol)
         {
+            Assert(input.Decimals == 0 && input.TotalSupply == 1, "SEED must be unique.");
             Assert(input.ExternalInfo.Value.TryGetValue(TokenContractConstants.SeedOwnedSymbolExternalInfoKey,
                     out var ownedSymbol), "OwnedSymbol does not exist.");
             Assert(input.ExternalInfo.Value.TryGetValue(TokenContractConstants.SeedExpireTimeExternalInfoKey,
