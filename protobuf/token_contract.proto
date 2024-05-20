@@ -40,7 +40,10 @@ service TokenContract {
     // enabling the Spender to call TransferFrom.
     rpc Approve (ApproveInput) returns (google.protobuf.Empty) {
     }
-
+    
+    rpc BatchApprove (BatchApproveInput) returns (google.protobuf.Empty) {
+    }
+    
     // This is the reverse operation for Approve, it will decrease the allowance.
     rpc UnApprove (UnApproveInput) returns (google.protobuf.Empty) {
     }
@@ -353,6 +356,9 @@ message ApproveInput {
     string symbol = 2;
     // The amount of token to approve.
     int64 amount = 3;
+}
+message BatchApproveInput {
+    repeated ApproveInput value = 1;
 }
 
 message UnApproveInput {
