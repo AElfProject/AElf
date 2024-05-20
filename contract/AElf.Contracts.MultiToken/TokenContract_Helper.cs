@@ -17,7 +17,7 @@ public partial class TokenContract
 {
     private static bool IsValidSymbol(string symbol)
     {
-        return Regex.IsMatch(symbol, "^[a-zA-Z0-9]+-?[0-9]*$");
+        return Regex.IsMatch(symbol, "^[a-zA-Z0-9]+(-[0-9]+)?$");
     }
 
     private bool IsValidItemId(string symbolItemId)
