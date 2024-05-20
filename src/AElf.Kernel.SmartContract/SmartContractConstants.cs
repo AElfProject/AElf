@@ -7,4 +7,6 @@ public class SmartContractConstants
     public const int ExecutionBranchThreshold = 15000;
 
     public const int StateSizeLimit = 128 * 1024;
+
+    public const int StateKeyMaximumLength = 255;
 }
