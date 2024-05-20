@@ -8,5 +8,6 @@ public class SmartContractConstants
 
     public const int StateSizeLimit = 128 * 1024;
 
-    public const int StateKeyMaximumLength = 255;
+    // The prefix `vs` occupies 2 lengths.
+    public const int StateKeyMaximumLength = 255 - 2;
 }
