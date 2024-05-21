@@ -15,8 +15,7 @@ internal class CodeCheckValidationProvider : IBlockValidationProvider
 
     public CodeCheckValidationProvider(ISmartContractAddressService smartContractAddressService,
         IContractReaderFactory<ACS0Container.ACS0Stub> contractReaderFactory,
-        ICheckedCodeHashProvider checkedCodeHashProvider,
-        IOptionsSnapshot<CodeCheckOptions> codeCheckOptions)
+        ICheckedCodeHashProvider checkedCodeHashProvider)
     {
         _smartContractAddressService = smartContractAddressService;
         _contractReaderFactory = contractReaderFactory;
