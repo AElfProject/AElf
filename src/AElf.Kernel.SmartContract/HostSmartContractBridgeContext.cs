@@ -111,6 +111,11 @@ public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, I
 
     public async Task<ByteString> GetStateAsync(string key)
     {
+        if (key.Length > SmartContractConstants.StateKeyMaximumLength)
+        {
+            throw new StateKeyOverSizeException(
+                $"Length of state key {key} exceeds limit of {SmartContractConstants.StateKeyMaximumLength}.");
+        }
         return await _smartContractBridgeService.GetStateAsync(
             Self, key, CurrentHeight - 1, PreviousBlockHash);
     }
