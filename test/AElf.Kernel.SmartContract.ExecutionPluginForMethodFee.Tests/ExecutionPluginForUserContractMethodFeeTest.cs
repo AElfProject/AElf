@@ -295,7 +295,8 @@ public class ExecutionPluginForUserContractContractMethodFeeTest : ExecutionPlug
         };
         var createProposalInput = new SetConfigurationInput
         {
-            Key = $"{ConfigurationKey}_{_testContractAddress}_{nameof(TestContractContainer.TestContractStub.TestMethod)}",
+            Key =
+                $"{ConfigurationKey}_{_testContractAddress.ToBase58()}_{nameof(TestContractContainer.TestContractStub.TestMethod)}",
             Value = transactionFee.ToByteString()
         };
         await ConfigurationStub.SetConfiguration.SendAsync(createProposalInput);

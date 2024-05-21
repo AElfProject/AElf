@@ -144,6 +144,9 @@ service TokenContract {
     rpc RemoveTransactionFeeDelegatee (RemoveTransactionFeeDelegateeInput) returns (google.protobuf.Empty){
     }
 
+    rpc SetSymbolAlias (SetSymbolAliasInput) returns (google.protobuf.Empty){
+    }
+
     // Get all delegatees' address of delegator from input
     rpc GetTransactionFeeDelegatees (GetTransactionFeeDelegateesInput) returns (GetTransactionFeeDelegateesOutput) {
         option (aelf.is_view) = true;
@@ -171,6 +174,11 @@ service TokenContract {
 
     // Query the account's allowance for other addresses
     rpc GetAllowance (GetAllowanceInput) returns (GetAllowanceOutput) {
+        option (aelf.is_view) = true;
+    }
+
+    // Query the account's available allowance for other addresses
+    rpc GetAvailableAllowance (GetAllowanceInput) returns (GetAllowanceOutput) {
         option (aelf.is_view) = true;
     }
 
@@ -227,6 +235,14 @@ service TokenContract {
     }
 
     rpc GetTransactionFeeDelegationsOfADelegatee(GetTransactionFeeDelegationsOfADelegateeInput) returns(TransactionFeeDelegations){
+        option (aelf.is_view) = true;
+    }
+
+    rpc GetTokenAlias (google.protobuf.StringValue) returns (google.protobuf.StringValue) {
+        option (aelf.is_view) = true;
+    }
+
+    rpc GetSymbolByAlias (google.protobuf.StringValue) returns (google.protobuf.StringValue) {
         option (aelf.is_view) = true;
     }
 }
@@ -689,6 +705,11 @@ message GetTransactionFeeDelegateesOutput {
     repeated aelf.Address delegatee_addresses = 1;
 }
 
+message SetSymbolAliasInput {
+    string symbol = 1;
+    string alias = 2;
+}
+
 // Events
 
 message Transferred {
@@ -858,4 +879,16 @@ message TransactionFeeDelegationCancelled {
     aelf.Address delegator = 1 [(aelf.is_indexed) = true];
     aelf.Address delegatee = 2 [(aelf.is_indexed) = true];
     aelf.Address caller = 3 [(aelf.is_indexed) = true];
+}
+
+message SymbolAliasAdded {
+    option (aelf.is_event) = true;
+    string symbol = 1 [(aelf.is_indexed) = true];
+    string alias = 2 [(aelf.is_indexed) = true];
+}
+
+message SymbolAliasDeleted {
+    option (aelf.is_event) = true;
+    string symbol = 1 [(aelf.is_indexed) = true];
+    string alias = 2 [(aelf.is_indexed) = true];
 }
