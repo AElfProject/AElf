@@ -87,7 +87,7 @@ public partial class TokenConverterContractTests
     [Theory]
     [InlineData("WRITE", "0.5", "0.5", "resource token symbol has existed")]
     [InlineData("", "0.5", "0.5", "resource token symbol should not be empty")]
-    [InlineData("N89", "0.2", "0.5", "Invalid symbol.")]
+    [InlineData("N89()", "0.2", "0.5", "Invalid symbol.")]
     [InlineData("MKA", "0", "0.5", "Connector Shares has to be a decimal between 0 and 1.")]
     [InlineData("JUN", "0.9", "1", "Connector Shares has to be a decimal between 0 and 1.")]
     public async Task AddPairConnector_With_Invalid_Input_Test(string tokenSymbol, string resourceWeight,

@@ -84,6 +84,12 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         return new Int32Value { Value = expirationTimePeriod };
     }
 
+    public override Int32Value GetCodeCheckProposalExpirationTimePeriod(Empty input)
+    {
+        var expirationTimePeriod = GetCodeCheckProposalExpirationTimePeriod();
+        return new Int32Value { Value = expirationTimePeriod };
+    }
+
     public override Address GetSigner(Address input)
     {
         return State.SignerMap[input];
@@ -245,7 +251,7 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
                 ContractMethodName = input.CodeCheckReleaseMethod,
                 Params = input.ContractInput,
                 OrganizationAddress = codeCheckController.OwnerAddress,
-                ExpiredTime = Context.CurrentBlockTime.AddSeconds(CodeCheckProposalExpirationTimePeriod)
+                ExpiredTime = Context.CurrentBlockTime.AddSeconds(GetCodeCheckProposalExpirationTimePeriod())
             },
             OriginProposer = proposedInfo.Proposer
         };
@@ -389,6 +395,14 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
     {
         AssertSenderAddressWith(State.ContractDeploymentController.Value.OwnerAddress);
         State.ContractProposalExpirationTimePeriod.Value = input.ExpirationTimePeriod;
+        return new Empty();
+    }
+
+    public override Empty SetCodeCheckProposalExpirationTimePeriod(Int32Value input)
+    {
+        AssertSenderAddressWith(State.ContractDeploymentController.Value.OwnerAddress);
+        Assert(input.Value > 0, "Invalid expiration time period.");
+        State.CodeCheckProposalExpirationTimePeriod.Value = input.Value;
         return new Empty();
     }
 
