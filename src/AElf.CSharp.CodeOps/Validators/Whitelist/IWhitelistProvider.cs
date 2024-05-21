@@ -4,6 +4,7 @@ using AElf.Sdk.CSharp;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.RegularExpressions;
 using AElf.Cryptography.SecretSharing;
 using AElf.CSharp.Core;
 using AElf.Kernel.SmartContract;
@@ -37,6 +38,7 @@ public class WhitelistProvider : IWhitelistProvider
             .Assembly(System.Reflection.Assembly.Load("System.Runtime.Extensions"), Trust.Partial)
             .Assembly(System.Reflection.Assembly.Load("System.Private.CoreLib"), Trust.Partial)
             .Assembly(System.Reflection.Assembly.Load("System.ObjectModel"), Trust.Partial)
+            .Assembly(System.Reflection.Assembly.Load("System.Text.RegularExpressions"), Trust.Partial)
             .Assembly(System.Reflection.Assembly.Load("System.Linq"), Trust.Full)
             .Assembly(System.Reflection.Assembly.Load("System.Linq.Expressions"), Trust.Full)
             .Assembly(System.Reflection.Assembly.Load("System.Collections"), Trust.Full)
@@ -142,6 +144,17 @@ public class WhitelistProvider : IWhitelistProvider
                     .Member(nameof(Encoding.UTF8), Permission.Allowed)
                     .Member(nameof(Encoding.UTF8.GetByteCount), Permission.Allowed)))
             .Namespace("System.Numerics", Permission.Allowed)
+            .Namespace("System.Text.RegularExpressions", Permission.Denied, type => type
+                .Type(nameof(Regex), Permission.Denied, member => member
+                    .Member(nameof(Regex.IsMatch), Permission.Allowed)
+                    .Member(nameof(Regex.Match), Permission.Allowed)
+                    .Member(nameof(Regex.Matches), Permission.Allowed)
+                    .Member(nameof(Regex.Replace), Permission.Allowed)
+                    .Member(nameof(Regex.Split), Permission.Allowed)
+                )
+                .Type(nameof(MatchCollection), Permission.Allowed)
+                .Type(nameof(Match), Permission.Allowed)
+            )
             ;
     }
 

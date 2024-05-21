@@ -11,4 +11,12 @@ public class CodeCheckJob
     public Hash CodeCheckProposalId { get; set; }
     public Hash ProposedContractInputHash { get; set; }
     public long BucketIndex { get; set; }
+
+    public override string ToString()
+    {
+        return $"BlockHash: {BlockHash}, BlockHeight: {BlockHeight}, ContractCategory: {ContractCategory}, " +
+               $"IsSystemContract: {IsSystemContract}, IsUserContract: {IsUserContract}, " +
+               $"CodeCheckProposalId: {CodeCheckProposalId}, ProposedContractInputHash: {ProposedContractInputHash}, " +
+               $"BucketIndex: {BucketIndex}";
+    }
 }

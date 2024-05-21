@@ -6,6 +6,7 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.FeeCalculation;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee;
+using AElf.Kernel.TransactionPool;
 using AElf.Modularity;
 using AElf.OS;
 using AElf.OS.Network.Application;
@@ -87,6 +88,10 @@ public class WebAppTestAElfModule : AElfModule
         {
             options.UserName = BasicAuth.DefaultUserName;
             options.Password = BasicAuth.DefaultPassword;
+        });
+        Configure<TransactionOptions>(o => { 
+            o.PoolLimit = 20;
+            o.StoreInvalidTransactionResultEnabled = true;
         });
     }
 }
