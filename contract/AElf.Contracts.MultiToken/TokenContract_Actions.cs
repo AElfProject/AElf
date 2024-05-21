@@ -56,7 +56,7 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
             if (!IsAddressInCreateWhiteList(Context.Sender) &&
                 input.Symbol != TokenContractConstants.SeedCollectionSymbol)
             {
-                var symbolSeed = State.SymbolSeedMap[input.Symbol];
+                var symbolSeed = State.SymbolSeedMap[input.Symbol.ToUpper()];
                 CheckSeedNFT(symbolSeed, input.Symbol);
                 // seed nft for one-time use only
                 long balance = State.Balances[Context.Sender][symbolSeed];

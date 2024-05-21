@@ -48,7 +48,7 @@ public partial class TokenContract
             CheckSymbolLength(ownedSymbol, ownedSymbolType);
             CheckTokenAndCollectionExists(ownedSymbol);
             CheckSymbolSeed(ownedSymbol);
-            State.SymbolSeedMap[ownedSymbol] = input.Symbol;
+            State.SymbolSeedMap[ownedSymbol.ToUpper()] = input.Symbol;
         }
 
         return CreateToken(input, SymbolType.Nft);
@@ -56,7 +56,7 @@ public partial class TokenContract
 
     private void CheckSymbolSeed(string ownedSymbol)
     {
-        var oldSymbolSeed = State.SymbolSeedMap[ownedSymbol];
+        var oldSymbolSeed = State.SymbolSeedMap[ownedSymbol.ToUpper()];
 
         Assert(oldSymbolSeed == null || !GetTokenInfo(oldSymbolSeed).ExternalInfo.Value
                    .TryGetValue(TokenContractConstants.SeedExpireTimeExternalInfoKey,
@@ -156,7 +156,7 @@ public partial class TokenContract
         var words = symbol.Split(TokenContractConstants.NFTSymbolSeparator);
         const int tokenSymbolLength = 1;
         if (words.Length == tokenSymbolLength) return null;
-        Assert(words.Length == 2 && words[1].All(IsValidItemIdChar), "Invalid NFT Symbol Input");
+        Assert(words.Length == 2 && IsValidItemId(words[1]), "Invalid NFT Symbol Input");
         return symbol == $"{words[0]}-0" ? (isAllowCollection ? $"{words[0]}-0" : null) : $"{words[0]}-0";
     }
 

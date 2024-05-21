@@ -140,7 +140,7 @@ public partial class TokenContract
         //configuration_key:UserContractMethod_contractAddress_methodName
         var spec = State.ConfigurationContract.GetConfiguration.Call(new StringValue
         {
-            Value = $"{TokenContractConstants.UserContractMethodFeeKey}_{contractAddress}_{methodName}"
+            Value = $"{TokenContractConstants.UserContractMethodFeeKey}_{contractAddress.ToBase58()}_{methodName}"
         });
         var fee = new UserContractMethodFees();
         if (!spec.Value.IsNullOrEmpty())
@@ -320,14 +320,14 @@ public partial class TokenContract
 
     private Dictionary<string, long> GetBaseFeeDictionary(MethodFees methodFees)
     {
-        return methodFees.Fees
+        return methodFees.Fees.Where(f => !string.IsNullOrEmpty(f.Symbol))
             .GroupBy(f => f.Symbol, f => f.BasicFee)
             .ToDictionary(g => g.Key, g => g.Sum());
     }
 
     private Dictionary<string, long> GetUserContractFeeDictionary(UserContractMethodFees fees)
     {
-        return fees.Fees
+        return fees.Fees.Where(f => !string.IsNullOrEmpty(f.Symbol)) 
             .GroupBy(f => f.Symbol, f => f.BasicFee)
             .ToDictionary(g => g.Key, g => g.Sum());
     }

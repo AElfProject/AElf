@@ -14,6 +14,7 @@ public partial class TokenContractState : ContractState
     /// due to token symbol alias feature.
     /// </summary>
     public MappedState<string, TokenInfo> TokenInfos { get; set; }
+    public MappedState<string, bool> InsensitiveTokenExisting { get; set; }
     public MappedState<string, string> SymbolSeedMap { get; set; }
     public MappedState<Address, string, long> Balances { get; set; }
     public MappedState<Address, Address, string, long> Allowances { get; set; }

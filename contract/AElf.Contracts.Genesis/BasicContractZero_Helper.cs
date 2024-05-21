@@ -286,6 +286,13 @@ public partial class BasicContractZero
             : State.ContractProposalExpirationTimePeriod.Value;
     }
 
+    private int GetCodeCheckProposalExpirationTimePeriod()
+    {
+        return State.CodeCheckProposalExpirationTimePeriod.Value == 0
+            ? DefaultCodeCheckProposalExpirationTimePeriod
+            : State.CodeCheckProposalExpirationTimePeriod.Value;
+    }
+
     private void AssertCurrentMiner()
     {
         RequireConsensusContractStateSet();
@@ -310,7 +317,7 @@ public partial class BasicContractZero
         {
             Proposer = Context.Self,
             Status = ContractProposingInputStatus.CodeCheckProposed,
-            ExpiredTime = Context.CurrentBlockTime.AddSeconds(CodeCheckProposalExpirationTimePeriod),
+            ExpiredTime = Context.CurrentBlockTime.AddSeconds(GetCodeCheckProposalExpirationTimePeriod()),
             Author = Context.Sender
         };
         State.ContractProposingInputMap[proposingInputHash] = proposedInfo;
