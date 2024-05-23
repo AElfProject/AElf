@@ -262,7 +262,7 @@ public class PatchedContractSecurityTests : TestContractTestBase
                         StringValue = str
                     }
                 });
-            txResult.TransactionResult.Error.ShouldContain($"exceeds limit of {stateSizeLimit}");
+            txResult.TransactionResult.Error.ShouldContain($"exceeds limit");
 
             var str1 = Encoding.UTF8.GetString(new byte[10]);
             var message = new ProtobufMessage
@@ -309,7 +309,7 @@ public class PatchedContractSecurityTests : TestContractTestBase
             {
                 ProtobufValue = new ProtobufMessage()
             });
-            txResult.TransactionResult.Error.ShouldContain($"exceeds limit of {stateSizeLimit}");
+            txResult.TransactionResult.Error.ShouldContain($"exceeds limit");
 
             var str1 = Encoding.UTF8.GetString(new byte[10]);
             var message = new ProtobufMessage

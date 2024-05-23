@@ -258,8 +258,8 @@ public partial class ExecutionPluginForResourceFeeTest : ExecutionPluginForResou
         write.ShouldBeGreaterThan(write1);
         traffic.ShouldBe(traffic1);
 
-        var consumedTokens1 = txResult1.GetConsumedResourceTokens();
-        var consumedTokens2 = txResult2.GetConsumedResourceTokens();
+        var consumedTokens1 = txResult1.GetConsumedResourceTokens()[TestContractAddress];
+        var consumedTokens2 = txResult2.GetConsumedResourceTokens()[TestContractAddress];
         consumedTokens1["READ"].ShouldBeGreaterThan(consumedTokens2["READ"]);
         consumedTokens1["WRITE"].ShouldBeGreaterThan(consumedTokens2["WRITE"]);
         consumedTokens1["TRAFFIC"].ShouldBe(consumedTokens2["TRAFFIC"]);

@@ -84,7 +84,7 @@ public partial class TokenConverterContractTests : TokenConverterTestBase
         //Base token symbol is invalid.
         {
             var input = GetLegalInitializeInput();
-            input.BaseTokenSymbol = "elf1";
+            input.BaseTokenSymbol = "elf1<>";
             var result = (await DefaultStub.Initialize.SendWithExceptionAsync(input)).TransactionResult;
             result.Status.ShouldBe(TransactionResultStatus.Failed);
             result.Error.Contains("Base token symbol is invalid.").ShouldBeTrue();
@@ -111,7 +111,7 @@ public partial class TokenConverterContractTests : TokenConverterTestBase
         //Invalid connector symbol
         {
             var input = GetLegalInitializeInput();
-            input.Connectors[0].Symbol = "write";
+            input.Connectors[0].Symbol = "write-0";
             var result = (await DefaultStub.Initialize.SendWithExceptionAsync(input)).TransactionResult;
             result.Status.ShouldBe(TransactionResultStatus.Failed);
             result.Error.Contains("Invalid symbol.").ShouldBeTrue();
@@ -158,7 +158,7 @@ public partial class TokenConverterContractTests : TokenConverterTestBase
     [Fact]
     public async Task Buy_Success_Test()
     {
-        await CreateRamToken();
+        await CreateWriteToken();
         await InitializeTreasuryContractAsync();
         await InitializeTokenConverterContract();
         await PrepareToBuyAndSell();
@@ -216,7 +216,7 @@ public partial class TokenConverterContractTests : TokenConverterTestBase
     [Fact]
     public async Task Buy_With_Invalid_Input_Test()
     {
-        await CreateRamToken();
+        await CreateWriteToken();
         await InitializeTokenConverterContract();
         await PrepareToBuyAndSell();
 
@@ -244,7 +244,7 @@ public partial class TokenConverterContractTests : TokenConverterTestBase
     [Fact]
     public async Task Sell_Success_Test()
     {
-        await CreateRamToken();
+        await CreateWriteToken();
         await InitializeTreasuryContractAsync();
         await InitializeTokenConverterContract();
         await PrepareToBuyAndSell();
@@ -311,7 +311,7 @@ public partial class TokenConverterContractTests : TokenConverterTestBase
     [Fact]
     public async Task Sell_With_Invalid_Input_Test()
     {
-        await CreateRamToken();
+        await CreateWriteToken();
         await InitializeTreasuryContractAsync();
         await InitializeTokenConverterContract();
         await PrepareToBuyAndSell();
@@ -361,7 +361,7 @@ public partial class TokenConverterContractTests : TokenConverterTestBase
         };
     }
 
-    private async Task CreateRamToken()
+    private async Task CreateWriteToken()
     {
         await ExecuteProposalForParliamentTransaction(TokenContractAddress, nameof(TokenContractStub.Create),
             new CreateInput

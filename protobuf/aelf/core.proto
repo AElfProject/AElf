@@ -72,6 +72,15 @@ message TransactionResult {
     string error = 10;
 }
 
+message InvalidTransactionResult{
+    // The transaction id.
+    Hash transaction_id = 1;
+    // The transaction result status.
+    TransactionResultStatus status = 2;
+    // Failed execution error message.
+    string error = 3;
+}
+
 message LogEvent {
     // The contract address.
     Address address = 1;

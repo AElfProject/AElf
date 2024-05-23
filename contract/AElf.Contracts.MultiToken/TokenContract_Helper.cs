@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using AElf.Contracts.Parliament;
 using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
@@ -14,33 +15,72 @@ namespace AElf.Contracts.MultiToken;
 
 public partial class TokenContract
 {
-    private static bool IsValidSymbolChar(char character)
+    private static bool IsValidSymbol(string symbol)
     {
-        return (character >= 'A' && character <= 'Z') || (character >= '0' && character <= '9') ||
-               character == TokenContractConstants.NFTSymbolSeparator;
+        return Regex.IsMatch(symbol, "^[a-zA-Z0-9]+(-[0-9]+)?$");
     }
 
-    private bool IsValidItemIdChar(char character)
+    private bool IsValidItemId(string symbolItemId)
     {
-        return character >= '0' && character <= '9';
+        return Regex.IsMatch(symbolItemId, "^[0-9]+$");
     }
 
-    private bool IsValidCreateSymbolChar(char character)
+    private bool IsValidCreateSymbol(string symbol)
     {
-        return character >= 'A' && character <= 'Z';
+        return Regex.IsMatch(symbol, "^[a-zA-Z0-9]+$");
     }
 
     private TokenInfo AssertValidToken(string symbol, long amount)
     {
         AssertValidSymbolAndAmount(symbol, amount);
-        var tokenInfo = State.TokenInfos[symbol];
+        var tokenInfo = GetTokenInfo(symbol);
         Assert(tokenInfo != null && !string.IsNullOrEmpty(tokenInfo.Symbol), $"Token is not found. {symbol}");
         return tokenInfo;
     }
 
+    private void AssertValidApproveTokenAndAmount(string symbol, long amount)
+    {
+        Assert(amount > 0, "Invalid amount.");
+        AssertApproveToken(symbol);
+    }
+
+    private void ValidTokenExists(string symbol)
+    {
+        var tokenInfo = State.TokenInfos[symbol];
+        Assert(tokenInfo != null && !string.IsNullOrEmpty(tokenInfo.Symbol),
+            $"Token is not found. {symbol}");
+    }
+    
+    private void AssertApproveToken(string symbol)
+    {
+        Assert(!string.IsNullOrEmpty(symbol), "Symbol can not be null.");
+        var words = symbol.Split(TokenContractConstants.NFTSymbolSeparator);
+        var symbolPrefix = words[0];
+        var allSymbolIdentifier = GetAllSymbolIdentifier();
+        Assert(symbolPrefix.Length > 0 && (IsValidCreateSymbol(symbolPrefix) || symbolPrefix.Equals(allSymbolIdentifier)), "Invalid symbol.");
+        if (words.Length == 1)
+        {
+            if (!symbolPrefix.Equals(allSymbolIdentifier))
+            {
+                ValidTokenExists(symbolPrefix);
+            }
+            return;
+        }
+        Assert(words.Length == 2, "Invalid symbol length.");
+        var itemId = words[1];
+        Assert(itemId.Length > 0 && (IsValidItemId(itemId) || itemId.Equals(allSymbolIdentifier)), "Invalid NFT Symbol.");
+        var nftSymbol = itemId.Equals(allSymbolIdentifier) ? GetCollectionSymbol(symbolPrefix) : symbol;
+        ValidTokenExists(nftSymbol);
+    }
+    
+    private string GetCollectionSymbol(string symbolPrefix)
+    {
+        return $"{symbolPrefix}-{TokenContractConstants.CollectionSymbolSuffix}";
+    }
+
     private void AssertValidSymbolAndAmount(string symbol, long amount)
     {
-        Assert(!string.IsNullOrEmpty(symbol) && symbol.All(IsValidSymbolChar),
+        Assert(!string.IsNullOrEmpty(symbol) && IsValidSymbol(symbol),
             "Invalid symbol.");
         Assert(amount > 0, "Invalid amount.");
     }
@@ -122,13 +162,12 @@ public partial class TokenContract
                                                                             fromAddress][t]).Seconds).ToList();
     }
 
-
     private long GetBalance(Address address, string symbol)
     {
         AssertValidInputAddress(address);
-        Assert(!string.IsNullOrWhiteSpace(symbol), "Invalid symbol.");
-        
-        return State.Balances[address][symbol];
+        var actualSymbol = GetActualTokenSymbol(symbol);
+        Assert(!string.IsNullOrWhiteSpace(actualSymbol), "Invalid symbol.");
+        return State.Balances[address][actualSymbol];
     }
 
     // private MethodFeeFreeAllowance GetFreeFeeAllowance(MethodFeeFreeAllowances freeAllowances, string symbol)
@@ -183,14 +222,14 @@ public partial class TokenContract
 
     private void RegisterTokenInfo(TokenInfo tokenInfo)
     {
-        CheckTokenExists(tokenInfo.Symbol);
-        Assert(!string.IsNullOrEmpty(tokenInfo.Symbol) && tokenInfo.Symbol.All(IsValidSymbolChar),
+        Assert(!string.IsNullOrEmpty(tokenInfo.Symbol) && IsValidSymbol(tokenInfo.Symbol),
             "Invalid symbol.");
         Assert(!string.IsNullOrEmpty(tokenInfo.TokenName), "Token name can neither be null nor empty.");
         Assert(tokenInfo.TotalSupply > 0, "Invalid total supply.");
         Assert(tokenInfo.Issuer != null, "Invalid issuer address.");
         Assert(tokenInfo.Owner != null, "Invalid owner address.");
         State.TokenInfos[tokenInfo.Symbol] = tokenInfo;
+        State.InsensitiveTokenExisting[tokenInfo.Symbol.ToUpper()] = true;
     }
 
     private void CrossChainVerify(Hash transactionId, long parentChainHeight, int chainId, MerklePath merklePath)
@@ -225,7 +264,7 @@ public partial class TokenContract
 
     private int GetIssueChainId(string symbol)
     {
-        var tokenInfo = State.TokenInfos[symbol];
+        var tokenInfo = GetTokenInfo(symbol);
         return tokenInfo.IssueChainId;
     }
 
@@ -255,8 +294,11 @@ public partial class TokenContract
     private void CheckTokenExists(string symbol)
     {
         var empty = new TokenInfo();
-        var existing = State.TokenInfos[symbol];
+        // check old token
+        var existing = GetTokenInfo(symbol);
         Assert(existing == null || existing.Equals(empty), "Token already exists.");
+        // check new token
+        Assert(!State.InsensitiveTokenExisting[symbol.ToUpper()], "Token already exists.");
     }
 
     private void CheckSymbolLength(string symbol, SymbolType symbolType)
@@ -278,7 +320,7 @@ public partial class TokenContract
 
     private void DealWithExternalInfoDuringLocking(TransferFromInput input)
     {
-        var tokenInfo = State.TokenInfos[input.Symbol];
+        var tokenInfo = GetTokenInfo(input.Symbol);
         if (tokenInfo.ExternalInfo == null) return;
         if (tokenInfo.ExternalInfo.Value.ContainsKey(TokenContractConstants.LockCallbackExternalInfoKey))
         {
@@ -293,7 +335,7 @@ public partial class TokenContract
 
     private void DealWithExternalInfoDuringTransfer(TransferFromInput input)
     {
-        var tokenInfo = State.TokenInfos[input.Symbol];
+        var tokenInfo = GetTokenInfo(input.Symbol);
         if (tokenInfo.ExternalInfo == null) return;
         if (tokenInfo.ExternalInfo.Value.ContainsKey(TokenContractConstants.TransferCallbackExternalInfoKey))
         {
@@ -308,7 +350,7 @@ public partial class TokenContract
 
     private void DealWithExternalInfoDuringUnlock(TransferFromInput input)
     {
-        var tokenInfo = State.TokenInfos[input.Symbol];
+        var tokenInfo = GetTokenInfo(input.Symbol);
         if (tokenInfo.ExternalInfo == null) return;
         if (tokenInfo.ExternalInfo.Value.ContainsKey(TokenContractConstants.UnlockCallbackExternalInfoKey))
         {
@@ -357,5 +399,24 @@ public partial class TokenContract
         }
         
         return State.VoteContractAddress.Value;
+    }
+
+    private TokenInfo GetTokenInfo(string symbolOrAlias)
+    {
+        var tokenInfo = State.TokenInfos[symbolOrAlias];
+        if (tokenInfo != null) return tokenInfo;
+        var actualTokenSymbol = State.SymbolAliasMap[symbolOrAlias];
+        if (!string.IsNullOrEmpty(actualTokenSymbol))
+        {
+            tokenInfo = State.TokenInfos[actualTokenSymbol];
+        }
+
+        return tokenInfo;
+    }
+
+    private void SetTokenInfo(TokenInfo tokenInfo)
+    {
+        var symbol = tokenInfo.Symbol;
+        State.TokenInfos[symbol] = tokenInfo;
     }
 }

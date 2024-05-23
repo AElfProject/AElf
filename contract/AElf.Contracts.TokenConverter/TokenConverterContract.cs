@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Globalization;
 using System.Linq;
+using System.Text.RegularExpressions;
 using AElf.Contracts.MultiToken;
 using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
@@ -12,6 +13,9 @@ namespace AElf.Contracts.TokenConverter;
 public partial class TokenConverterContract : TokenConverterContractImplContainer.TokenConverterContractImplBase
 {
     private const string NtTokenPrefix = "nt";
+    private const string NewNtTokenPrefix = "(NT)";
+    public const string PayTxFeeSymbolListName = "SymbolListToPayTxFee";
+    public const string PayRentalSymbolListName = "SymbolListToPayRental";
 
     #region Actions
 
@@ -77,7 +81,7 @@ public partial class TokenConverterContract : TokenConverterContractImplContaine
         AssertPerformedByConnectorController();
         Assert(!string.IsNullOrEmpty(input.ResourceConnectorSymbol),
             "resource token symbol should not be empty");
-        var nativeConnectorSymbol = NtTokenPrefix.Append(input.ResourceConnectorSymbol);
+        var nativeConnectorSymbol = NewNtTokenPrefix.Append(input.ResourceConnectorSymbol);
         Assert(State.Connectors[input.ResourceConnectorSymbol] == null,
             "resource token symbol has existed");
         var resourceConnector = new Connector
@@ -304,6 +308,39 @@ public partial class TokenConverterContract : TokenConverterContractImplContaine
         return new Empty();
     }
 
+    public override Empty MigrateConnectorTokens(Empty input)
+    {
+        foreach (var resourceTokenSymbol in Context.Variables.GetStringArray(PayTxFeeSymbolListName)
+                     .Union(Context.Variables.GetStringArray(PayRentalSymbolListName)))
+        {
+            var newConnectorTokenSymbol = NewNtTokenPrefix.Append(resourceTokenSymbol);
+
+            if (State.Connectors[resourceTokenSymbol] == null)
+            {
+                continue;
+            }
+
+            var oldConnectorTokenSymbol = State.Connectors[resourceTokenSymbol].RelatedSymbol;
+
+            Assert(!oldConnectorTokenSymbol.StartsWith(NewNtTokenPrefix), "Already migrated.");
+
+            // Migrate
+
+            State.Connectors[resourceTokenSymbol].RelatedSymbol = newConnectorTokenSymbol;
+
+            if (State.Connectors[oldConnectorTokenSymbol] != null)
+            {
+                var connector = State.Connectors[oldConnectorTokenSymbol];
+                connector.Symbol = newConnectorTokenSymbol;
+                State.Connectors[newConnectorTokenSymbol] = connector;
+            }
+
+            State.DepositBalance[newConnectorTokenSymbol] = State.DepositBalance[oldConnectorTokenSymbol];
+        }
+
+        return new Empty();
+    }
+
     #endregion Actions
 
     #region Helpers
@@ -321,8 +358,7 @@ public partial class TokenConverterContract : TokenConverterContractImplContaine
 
     private static bool IsValidSymbol(string symbol)
     {
-        return symbol.Length > 0 &&
-               symbol.All(c => c >= 'A' && c <= 'Z');
+        return Regex.IsMatch(symbol, "^[a-zA-Z0-9]+$");
     }
 
     private static bool IsValidBaseSymbol(string symbol)
