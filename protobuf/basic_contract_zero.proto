@@ -37,6 +37,9 @@ service BasicContractZero {
     
     rpc SetContractProposalExpirationTimePeriod(SetContractProposalExpirationTimePeriodInput) returns(google.protobuf.Empty){
     }
+
+    rpc SetCodeCheckProposalExpirationTimePeriod(google.protobuf.Int32Value) returns(google.protobuf.Empty){
+    }
     
     // Query the ContractDeploymentController authority info.
     rpc GetContractDeploymentController (google.protobuf.Empty) returns (AuthorityInfo) {
@@ -49,6 +52,10 @@ service BasicContractZero {
     }
     
     rpc GetContractProposalExpirationTimePeriod(google.protobuf.Empty) returns (google.protobuf.Int32Value){
+        option (aelf.is_view) = true;
+    }
+
+    rpc GetCodeCheckProposalExpirationTimePeriod(google.protobuf.Empty) returns (google.protobuf.Int32Value){
         option (aelf.is_view) = true;
     }
 }

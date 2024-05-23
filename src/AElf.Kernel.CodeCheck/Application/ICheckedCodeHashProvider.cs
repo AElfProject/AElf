@@ -13,10 +13,14 @@ public interface ICheckedCodeHashProvider
 internal class CheckedCodeHashProvider : BlockExecutedDataBaseProvider<ContractCodeHashMap>,
     ICheckedCodeHashProvider, ISingletonDependency
 {
+    private readonly CodeCheckOptions _codeCheckOptions;
+
     public CheckedCodeHashProvider(
-        ICachedBlockchainExecutedDataService<ContractCodeHashMap> cachedBlockchainExecutedDataService) :
+        ICachedBlockchainExecutedDataService<ContractCodeHashMap> cachedBlockchainExecutedDataService,
+        IOptionsMonitor<CodeCheckOptions> codeCheckOptions) :
         base(cachedBlockchainExecutedDataService)
     {
+        _codeCheckOptions = codeCheckOptions.CurrentValue;
         Logger = NullLogger<CheckedCodeHashProvider>.Instance;
     }
 
@@ -32,6 +36,11 @@ internal class CheckedCodeHashProvider : BlockExecutedDataBaseProvider<ContractC
 
     public bool IsCodeHashExists(BlockIndex blockIndex, Hash codeHash)
     {
+        if (!_codeCheckOptions.CodeCheckEnabled)
+        {
+            return true;
+        }
+
         var codeHashMap = GetBlockExecutedData(blockIndex);
         if (codeHashMap == null) return false;
 
