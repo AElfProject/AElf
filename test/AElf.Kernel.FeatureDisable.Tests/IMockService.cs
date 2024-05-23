@@ -1,14 +1,14 @@
-using AElf.Kernel.FeatureManager;
+using AElf.Kernel.FeatureDisable.Core;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.FeatureDisable.Tests;
 
 public interface IMockService
 {
-    bool IsFeatureADisabled();
-    bool IsFeatureBDisabled();
-    bool IsFeatureCDisabled();
-    bool IsFeatureDDisabled();
+    Task<bool> IsFeatureADisabledAsync();
+    Task<bool> IsFeatureBDisabledAsync();
+    Task<bool> IsFeatureCDisabledAsync();
+    Task<bool> IsFeatureDDisabledAsync();
 }
 
 public class MockService : IMockService, ITransientDependency
@@ -19,24 +19,26 @@ public class MockService : IMockService, ITransientDependency
     {
         _featureDisableService = featureDisableService;
     }
-    
-    public bool IsFeatureADisabled()
+
+    public Task<bool> IsFeatureADisabledAsync()
     {
-        return _featureDisableService.IsFeatureDisabled("FeatureA");
+        return _featureDisableService.IsFeatureDisabledAsync("FeatureA");
     }
 
-    public bool IsFeatureBDisabled()
+    public Task<bool> IsFeatureBDisabledAsync()
     {
-        return _featureDisableService.IsFeatureDisabled("FeatureB", "FeatureBAndC");
+        return _featureDisableService.IsFeatureDisabledAsync("FeatureB", "FeatureBAndC");
+
     }
 
-    public bool IsFeatureCDisabled()
+    public Task<bool> IsFeatureCDisabledAsync()
     {
-        return _featureDisableService.IsFeatureDisabled("FeatureC", "FeatureBAndC");
+        return _featureDisableService.IsFeatureDisabledAsync("FeatureC", "FeatureBAndC");
+
     }
 
-    public bool IsFeatureDDisabled()
+    public Task<bool> IsFeatureDDisabledAsync()
     {
-        return _featureDisableService.IsFeatureDisabled("FeatureD");
+        return _featureDisableService.IsFeatureDisabledAsync("FeatureD");
     }
 }

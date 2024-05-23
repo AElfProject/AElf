@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using AElf.Kernel.FeatureManager;
+using AElf.Kernel.FeatureDisable.Core;
 using AElf.Kernel.SmartContract.Domain;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Types;
@@ -253,7 +253,7 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
         TieredStateCache internalStateCache,
         CancellationToken cancellationToken)
     {
-        if (_featureDisableService.IsFeatureDisabled("TxPlugin", "PrePlugin"))
+        if (await _featureDisableService.IsFeatureDisabledAsync("TxPlugin", "PrePlugin"))
         {
             return true;
         }
@@ -304,7 +304,7 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
         TieredStateCache internalStateCache,
         CancellationToken cancellationToken)
     {
-        if (_featureDisableService.IsFeatureDisabled("TxPlugin", "PostPlugin"))
+        if (await _featureDisableService.IsFeatureDisabledAsync("TxPlugin", "PostPlugin"))
         {
             return true;
         }
