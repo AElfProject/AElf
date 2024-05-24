@@ -203,3 +203,23 @@ public class StateOverSizeException : SmartContractBridgeException
     {
     }
 }
+
+[Serializable]
+public class StateKeyOverSizeException : SmartContractBridgeException
+{
+    public StateKeyOverSizeException()
+    {
+    }
+
+    public StateKeyOverSizeException(string message) : base(message)
+    {
+    }
+
+    public StateKeyOverSizeException(string message, Exception inner) : base(message, inner)
+    {
+    }
+
+    protected StateKeyOverSizeException(SerializationInfo info, StreamingContext context) : base(info, context)
+    {
+    }
+}

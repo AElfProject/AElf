@@ -39,7 +39,7 @@ public class CoreKernelAElfModule : AElfModule
         services.AddStoreKeyPrefixProvide<TransactionBlockIndex>("ti");
         services.AddStoreKeyPrefixProvide<TransactionResult>("tr");
         services.AddStoreKeyPrefixProvide<VersionedState>("vs");
-
+        services.AddStoreKeyPrefixProvide<InvalidTransactionResult>("ir");
 
         services.AddTransient(typeof(IStateStore<>), typeof(StateStore<>));
         services.AddSingleton(typeof(INotModifiedCachedStateStore<>), typeof(NotModifiedCachedStateStore<>));

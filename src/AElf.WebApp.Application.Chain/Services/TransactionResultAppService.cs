@@ -7,6 +7,7 @@ using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.TransactionPool;
 using AElf.Types;
 using AElf.WebApp.Application.Chain.Dto;
 using AElf.WebApp.Application.Chain.Infrastructure;
@@ -39,6 +40,7 @@ public class TransactionResultAppService : AElfAppService, ITransactionResultApp
     private readonly ITransactionResultProxyService _transactionResultProxyService;
     private readonly ITransactionResultStatusCacheProvider _transactionResultStatusCacheProvider;
     private readonly WebAppOptions _webAppOptions;
+    private readonly TransactionOptions _transactionOptions;
 
     public TransactionResultAppService(ITransactionResultProxyService transactionResultProxyService,
         ITransactionManager transactionManager,
@@ -46,7 +48,7 @@ public class TransactionResultAppService : AElfAppService, ITransactionResultApp
         ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService,
         IObjectMapper<ChainApplicationWebAppAElfModule> objectMapper,
         ITransactionResultStatusCacheProvider transactionResultStatusCacheProvider,
-        IOptionsMonitor<WebAppOptions> optionsSnapshot)
+        IOptionsMonitor<WebAppOptions> optionsSnapshot, IOptionsMonitor<TransactionOptions> transactionOptions)
     {
         _transactionResultProxyService = transactionResultProxyService;
         _transactionManager = transactionManager;
@@ -54,6 +56,7 @@ public class TransactionResultAppService : AElfAppService, ITransactionResultApp
         _transactionReadOnlyExecutionService = transactionReadOnlyExecutionService;
         _objectMapper = objectMapper;
         _transactionResultStatusCacheProvider = transactionResultStatusCacheProvider;
+        _transactionOptions = transactionOptions.CurrentValue;
         _webAppOptions = optionsSnapshot.CurrentValue;
 
         Logger = NullLogger<TransactionResultAppService>.Instance;
@@ -88,23 +91,36 @@ public class TransactionResultAppService : AElfAppService, ITransactionResultApp
         output.Transaction = _objectMapper.Map<Transaction, TransactionDto>(transaction);
         output.TransactionSize = transaction?.CalculateSize() ?? 0;
 
-        if (transactionResult.Status == TransactionResultStatus.NotExisted)
+        if (transactionResult.Status != TransactionResultStatus.NotExisted)
         {
-            var validationStatus =
-                _transactionResultStatusCacheProvider.GetTransactionResultStatus(transactionIdHash);
-            if (validationStatus != null)
-            {
-                output.Status = validationStatus.TransactionResultStatus.ToString().ToUpper();
-                output.Error =
-                    TransactionErrorResolver.TakeErrorMessage(validationStatus.Error, _webAppOptions.IsDebugMode);
-            }
-
+            await FormatTransactionParamsAsync(output.Transaction, transaction.Params);
             return output;
         }
-        
-        await FormatTransactionParamsAsync(output.Transaction, transaction.Params);
-        
+
+        var validationStatus = _transactionResultStatusCacheProvider.GetTransactionResultStatus(transactionIdHash);
+        if (validationStatus != null)
+        {
+            output.Status = validationStatus.TransactionResultStatus.ToString().ToUpper();
+            output.Error =
+                TransactionErrorResolver.TakeErrorMessage(validationStatus.Error, _webAppOptions.IsDebugMode);
+            return output;
+        }
+
+        if (_transactionOptions.StoreInvalidTransactionResultEnabled)
+        {
+            var failedTransactionResult =
+                await _transactionResultProxyService.InvalidTransactionResultService.GetInvalidTransactionResultAsync(
+                    transactionIdHash);
+            if (failedTransactionResult != null)
+            {
+                output.Status = failedTransactionResult.Status.ToString().ToUpper();
+                output.Error = failedTransactionResult.Error;
+                return output;
+            }
+        }
+
         return output;
+        
     }
 
     /// <summary>
