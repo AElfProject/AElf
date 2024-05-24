@@ -40,7 +40,10 @@ service TokenContract {
     // enabling the Spender to call TransferFrom.
     rpc Approve (ApproveInput) returns (google.protobuf.Empty) {
     }
-
+    
+    rpc BatchApprove (BatchApproveInput) returns (google.protobuf.Empty) {
+    }
+    
     // This is the reverse operation for Approve, it will decrease the allowance.
     rpc UnApprove (UnApproveInput) returns (google.protobuf.Empty) {
     }
@@ -141,6 +144,9 @@ service TokenContract {
     rpc RemoveTransactionFeeDelegatee (RemoveTransactionFeeDelegateeInput) returns (google.protobuf.Empty){
     }
 
+    rpc SetSymbolAlias (SetSymbolAliasInput) returns (google.protobuf.Empty){
+    }
+
     // Get all delegatees' address of delegator from input
     rpc GetTransactionFeeDelegatees (GetTransactionFeeDelegateesInput) returns (GetTransactionFeeDelegateesOutput) {
         option (aelf.is_view) = true;
@@ -168,6 +174,11 @@ service TokenContract {
 
     // Query the account's allowance for other addresses
     rpc GetAllowance (GetAllowanceInput) returns (GetAllowanceOutput) {
+        option (aelf.is_view) = true;
+    }
+
+    // Query the account's available allowance for other addresses
+    rpc GetAvailableAllowance (GetAllowanceInput) returns (GetAllowanceOutput) {
         option (aelf.is_view) = true;
     }
 
@@ -224,6 +235,14 @@ service TokenContract {
     }
 
     rpc GetTransactionFeeDelegationsOfADelegatee(GetTransactionFeeDelegationsOfADelegateeInput) returns(TransactionFeeDelegations){
+        option (aelf.is_view) = true;
+    }
+
+    rpc GetTokenAlias (google.protobuf.StringValue) returns (google.protobuf.StringValue) {
+        option (aelf.is_view) = true;
+    }
+
+    rpc GetSymbolByAlias (google.protobuf.StringValue) returns (google.protobuf.StringValue) {
         option (aelf.is_view) = true;
     }
 }
@@ -353,6 +372,9 @@ message ApproveInput {
     string symbol = 2;
     // The amount of token to approve.
     int64 amount = 3;
+}
+message BatchApproveInput {
+    repeated ApproveInput value = 1;
 }
 
 message UnApproveInput {
@@ -632,19 +654,6 @@ message TotalResourceTokensMap
     map<string, int64> value = 1;
 }
 
-message ChangeTokenIssuerInput
-{
-    // The token symbol.
-    string symbol = 1;
-    // The new token issuer for change.
-    aelf.Address new_token_Issuer = 2;
-}
-
-message ResetExternalInfoInput {
-    string symbol = 1;
-    ExternalInfo external_info = 2;
-}
-
 message StringList {
     repeated string value = 1;
 }
@@ -694,6 +703,11 @@ message GetTransactionFeeDelegateesInput {
 
 message GetTransactionFeeDelegateesOutput {
     repeated aelf.Address delegatee_addresses = 1;
+}
+
+message SetSymbolAliasInput {
+    string symbol = 1;
+    string alias = 2;
 }
 
 // Events
@@ -853,12 +867,6 @@ message CrossChainReceived {
     aelf.Hash transfer_transaction_id =9;
 }
 
-message ExternalInfoChanged {
-    option (aelf.is_event) = true;
-    string symbol = 1;
-    ExternalInfo external_info = 2;
-}
-
 message TransactionFeeDelegationAdded {
     option (aelf.is_event) = true;
     aelf.Address delegator = 1 [(aelf.is_indexed) = true];
@@ -871,4 +879,16 @@ message TransactionFeeDelegationCancelled {
     aelf.Address delegator = 1 [(aelf.is_indexed) = true];
     aelf.Address delegatee = 2 [(aelf.is_indexed) = true];
     aelf.Address caller = 3 [(aelf.is_indexed) = true];
+}
+
+message SymbolAliasAdded {
+    option (aelf.is_event) = true;
+    string symbol = 1 [(aelf.is_indexed) = true];
+    string alias = 2 [(aelf.is_indexed) = true];
+}
+
+message SymbolAliasDeleted {
+    option (aelf.is_event) = true;
+    string symbol = 1 [(aelf.is_indexed) = true];
+    string alias = 2 [(aelf.is_indexed) = true];
 }

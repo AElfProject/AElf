@@ -51,7 +51,10 @@ service TokenConverterContract {
     // Set the governance authority information for TokenConvert contract. 
     rpc ChangeConnectorController (AuthorityInfo) returns (google.protobuf.Empty) {
     }
-    
+
+    rpc MigrateConnectorTokens (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    }
+
     // Query the pair connector according to token symbol.
     rpc GetPairConnector (TokenSymbol) returns (PairConnector) {
         option (aelf.is_view) = true;

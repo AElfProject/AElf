@@ -48,6 +48,24 @@ public partial class MultiTokenContractTests
         result.NonParallelizable.ShouldBeFalse();
         result.WritePaths.Count.ShouldBeGreaterThan(0);
     }
+    
+    [Fact]
+    public async Task ACS2_GetResourceInfo_TransferFrom_NFT_Test()
+    {
+        var transaction = GenerateTokenTransaction(Accounts[0].Address, nameof(TokenContractStub.TransferFrom),
+            new TransferFromInput
+            {
+                Amount = 100,
+                Symbol = "ABC-1",
+                From = Accounts[1].Address,
+                To = Accounts[2].Address,
+                Memo = "Test get resource"
+            });
+
+        var result = await Acs2BaseStub.GetResourceInfo.CallAsync(transaction);
+        result.NonParallelizable.ShouldBeFalse();
+        result.WritePaths.Count.ShouldBeGreaterThan(0);
+    }
 
     private async Task<Address> GetDefaultParliamentAddressAsync()
     {
@@ -179,7 +197,7 @@ public partial class MultiTokenContractTests
 
         var result = await Acs2BaseStub.GetResourceInfo.CallAsync(transaction);
         result.NonParallelizable.ShouldBeFalse();
-        result.WritePaths.Count.ShouldBe(9);
+        result.WritePaths.Count.ShouldBe(10);
 
     }
     [Fact]
