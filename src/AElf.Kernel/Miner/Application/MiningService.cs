@@ -11,7 +11,7 @@ using Volo.Abp.EventBus.Local;
 
 namespace AElf.Kernel.Miner.Application;
 
-public class MiningService : IMiningService
+public class MiningService : IMiningService,ISingletonDependency
 {
     private readonly IAccountService _accountService;
     private readonly IBlockchainService _blockchainService;

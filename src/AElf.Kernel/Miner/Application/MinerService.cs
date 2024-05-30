@@ -6,7 +6,7 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Kernel.Miner.Application;
 
-public class MinerService : IMinerService
+public class MinerService : IMinerService,ISingletonDependency
 {
     private readonly IBlockTransactionLimitProvider _blockTransactionLimitProvider;
     private readonly IMiningService _miningService;
