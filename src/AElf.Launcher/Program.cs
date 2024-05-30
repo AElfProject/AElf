@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Reflection;
+using System.Threading;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -45,6 +46,8 @@ internal class Program
         ILogger<Program> logger = NullLogger<Program>.Instance;
         try
         {
+            ThreadPool.SetMinThreads(3000, 3000);
+            ThreadPool.SetMaxThreads(3000, 3000);
             CreateHostBuilder(args).Build().Run();
         }
         catch (Exception e)
