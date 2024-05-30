@@ -13,14 +13,23 @@ public class BlockExtraDataService : IBlockExtraDataService
 
     public async Task FillBlockExtraDataAsync(BlockHeader blockHeader)
     {
-        foreach (var blockExtraDataProvider in _blockExtraDataProviders)
+        // foreach (var blockExtraDataProvider in _blockExtraDataProviders)
+        // foreach (var blockExtraDataProvider in _blockExtraDataProviders)
+        // {
+        //     var extraData = await blockExtraDataProvider.GetBlockHeaderExtraDataAsync(blockHeader);
+        //     if (extraData != null)
+        //         // Actually extraData cannot be NULL if it is mining processing, as the index in BlockExtraData is fixed.
+        //         // So it can be ByteString.Empty but not NULL.
+        //         blockHeader.ExtraData.Add(blockExtraDataProvider.BlockHeaderExtraDataKey, extraData);
+        // }
+        var extraDataTasks = _blockExtraDataProviders.Select(async blockExtraDataProvider =>
         {
             var extraData = await blockExtraDataProvider.GetBlockHeaderExtraDataAsync(blockHeader);
             if (extraData != null)
-                // Actually extraData cannot be NULL if it is mining processing, as the index in BlockExtraData is fixed.
-                // So it can be ByteString.Empty but not NULL.
                 blockHeader.ExtraData.Add(blockExtraDataProvider.BlockHeaderExtraDataKey, extraData);
-        }
+        });
+        await Task.WhenAll(extraDataTasks);
+
     }
 
     public ByteString GetExtraDataFromBlockHeader(string blockHeaderExtraDataKey, BlockHeader blockHeader)

@@ -49,16 +49,26 @@ public class ResourceExtractionService : IResourceExtractionService, ISingletonD
         IEnumerable<Transaction> transactions, CancellationToken ct)
     {
         // Parallel processing below (adding AsParallel) causes ReflectionTypeLoadException
-        var transactionResourceList = new List<TransactionWithResourceInfo>();
+        // var transactionResourceList = new List<TransactionWithResourceInfo>();
+        // var contractResourceInfoCache = new Dictionary<Address, ContractResourceInfo>();
+        // foreach (var t in transactions)
+        // {
+        //     var transactionResourcePair =
+        //         await GetResourcesForOneWithCacheAsync(chainContext, t, ct, contractResourceInfoCache);
+        //     transactionResourceList.Add(transactionResourcePair);
+        // }
+        //
+        // return transactionResourceList;
+        
         var contractResourceInfoCache = new Dictionary<Address, ContractResourceInfo>();
-        foreach (var t in transactions)
+        var tasks = transactions.Select(async t =>
         {
-            var transactionResourcePair =
-                await GetResourcesForOneWithCacheAsync(chainContext, t, ct, contractResourceInfoCache);
-            transactionResourceList.Add(transactionResourcePair);
-        }
-
-        return transactionResourceList;
+            // 获取资源信息
+            var transactionResourcePair = await GetResourcesForOneWithCacheAsync(chainContext, t, ct, contractResourceInfoCache);
+            return transactionResourcePair;
+        }).ToList();
+        
+        return  await Task.WhenAll(tasks);
     }
 
     // TODO: Fix

@@ -1,3 +1,5 @@
+using System.Linq;
+
 namespace AElf.Kernel.Miner.Application;
 
 public class SystemTransactionGenerationService : ISystemTransactionGenerationService
@@ -15,11 +17,26 @@ public class SystemTransactionGenerationService : ISystemTransactionGenerationSe
     public async Task<List<Transaction>> GenerateSystemTransactionsAsync(Address from, long preBlockHeight,
         Hash preBlockHash)
     {
+        // var generatedTransactions = new List<Transaction>();
+        // foreach (var generator in _systemTransactionGenerators)
+        //     generatedTransactions.AddRange(
+        //         await generator.GenerateTransactionsAsync(from, preBlockHeight, preBlockHash));
+        //
+        // return generatedTransactions;
+        
+        
         var generatedTransactions = new List<Transaction>();
-        foreach (var generator in _systemTransactionGenerators)
-            generatedTransactions.AddRange(
-                await generator.GenerateTransactionsAsync(from, preBlockHeight, preBlockHash));
-
+        var transactionGenerationTasks = _systemTransactionGenerators
+            .Select(generator => generator.GenerateTransactionsAsync(from, preBlockHeight, preBlockHash))
+            .ToList();
+        
+        var generatedTransactionsList = await Task.WhenAll(transactionGenerationTasks);
+        
+        foreach (var transactions in generatedTransactionsList)
+        {
+            generatedTransactions.AddRange(transactions);
+        }
+        
         return generatedTransactions;
     }
 }

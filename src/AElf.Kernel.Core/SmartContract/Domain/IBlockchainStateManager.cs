@@ -185,13 +185,15 @@ public abstract class BlockchainStateBaseManager
     }
 }
 
-public class BlockStateSetManger : IBlockStateSetManger, ITransientDependency
+public class BlockStateSetManger : IBlockStateSetManger, ISingletonDependency
 {
     private readonly int _chainId;
 
     private readonly IStateStore<ChainStateInfo> _chainStateInfoCollection;
     protected readonly INotModifiedCachedStateStore<BlockStateSet> BlockStateSets;
     protected readonly IStateStore<VersionedState> VersionedStates;
+    
+    private readonly Dictionary<int, ChainStateInfo> _chainStatusCache = new Dictionary<int, ChainStateInfo>(1);
 
     public BlockStateSetManger(IStateStore<VersionedState> versionedStates,
         INotModifiedCachedStateStore<BlockStateSet> blockStateSets,
@@ -279,8 +281,24 @@ public class BlockStateSetManger : IBlockStateSetManger, ITransientDependency
 
     public async Task<ChainStateInfo> GetChainStateInfoAsync()
     {
+
+        if (_chainStatusCache.TryGetValue(_chainId, out var cachedValue))
+        {
+            return cachedValue;
+        }
+        
         var chainStateInfo = await _chainStateInfoCollection.GetAsync(_chainId.ToStorageKey());
-        return chainStateInfo ?? new ChainStateInfo { ChainId = _chainId };
+        
+        if (chainStateInfo == null) return new ChainStateInfo { ChainId = _chainId };
+        
+        _chainStatusCache.Add(_chainId,chainStateInfo);
+        
+        return chainStateInfo;
+
+
+
+        // var chainStateInfo = await _chainStateInfoCollection.GetAsync(_chainId.ToStorageKey());
+        // return chainStateInfo ?? new ChainStateInfo { ChainId = _chainId };
     }
 
     protected string GetKey(BlockStateSet blockStateSet)
