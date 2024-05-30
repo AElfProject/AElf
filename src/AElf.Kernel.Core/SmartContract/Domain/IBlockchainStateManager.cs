@@ -15,7 +15,8 @@ public interface IBlockchainStateManager
 public class BlockchainStateManager : BlockchainStateBaseManager, IBlockchainStateManager
 {
     public BlockchainStateManager(IStateStore<VersionedState> versionedStates,
-        INotModifiedCachedStateStore<BlockStateSet> blockStateSets) : base(versionedStates, blockStateSets)
+        INotModifiedCachedStateStore<BlockStateSet> blockStateSets, Instrumentation instrumentation) : base(
+        versionedStates, blockStateSets, instrumentation)
     {
     }
 
@@ -53,8 +54,8 @@ public class BlockchainExecutedDataManager : BlockchainStateBaseManager, IBlockc
     private readonly IBlockStateSetManger _blockStateSetManger;
 
     public BlockchainExecutedDataManager(IStateStore<VersionedState> versionedStates,
-        INotModifiedCachedStateStore<BlockStateSet> blockStateSets, IBlockStateSetManger blockStateSetManger) :
-        base(versionedStates, blockStateSets)
+        INotModifiedCachedStateStore<BlockStateSet> blockStateSets, IBlockStateSetManger blockStateSetManger, Instrumentation instrumentation) :
+        base(versionedStates, blockStateSets, instrumentation)
     {
         _blockStateSetManger = blockStateSetManger;
     }
@@ -89,13 +90,16 @@ public class StateReturn
 public abstract class BlockchainStateBaseManager
 {
     protected readonly INotModifiedCachedStateStore<BlockStateSet> BlockStateSets;
+    private readonly Instrumentation _instrumentation;
     protected readonly IStateStore<VersionedState> VersionedStates;
 
     public BlockchainStateBaseManager(IStateStore<VersionedState> versionedStates,
-        INotModifiedCachedStateStore<BlockStateSet> blockStateSets)
+        INotModifiedCachedStateStore<BlockStateSet> blockStateSets,
+        Instrumentation instrumentation)
     {
         VersionedStates = versionedStates;
         BlockStateSets = blockStateSets;
+        _instrumentation = instrumentation;
     }
 
     protected abstract bool
@@ -103,6 +107,7 @@ public abstract class BlockchainStateBaseManager
 
     protected async Task<StateReturn> GetAsync(string key, long blockHeight, Hash blockHash)
     {
+        _instrumentation.StateKeyAccessCounter.Add(1, new KeyValuePair<string, object>("key", GetKeySegments(key)));
         ByteString value;
         var isInStore = false;
         //first DB read
@@ -160,6 +165,17 @@ public abstract class BlockchainStateBaseManager
             Value = value,
             IsInStore = isInStore
         };
+    }
+
+    public string GetKeySegments(string key)
+    {
+        var segments = key.Split('/');
+        if (segments.Length >= 2)
+        {
+            return $"{segments[0]}/{segments[1]}";
+        }
+
+        return segments[0];
     }
 
     private async Task<BlockStateSet> FindBlockStateSetWithKeyAsync(string key, long bestChainHeight,

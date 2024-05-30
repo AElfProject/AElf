@@ -21,6 +21,7 @@ public class Instrumentation : IDisposable
         GetChainCounter = _meter.CreateCounter<long>("chain.get", description: "The count of getting chain");
         MiningDurationCounter = _meter.CreateCounter<long>("block.duration", description: "The mining duration");
         TimeslotDurationCounter = _meter.CreateCounter<long>("timeslot.duration", description: "The timeslots duration");
+        StateKeyAccessCounter = _meter.CreateCounter<long>("key.access.count", description: "State key access count");
         
         ExecuteTransactionAsyncCounter = _meter.CreateCounter<long>("tx.ExecuteTransactionAsync.executed", description: "The count of executed txs");
         ExecuteTransactionAsyncRt = _meter.CreateHistogram<long>("tx.ExecuteTransactionAsync.rt","ms","The rt of executed txs");
@@ -34,6 +35,7 @@ public class Instrumentation : IDisposable
     public Counter<long> GetChainCounter { get; }
     public Counter<long> MiningDurationCounter { get; }
     public Counter<long> TimeslotDurationCounter { get; }
+    public Counter<long> StateKeyAccessCounter { get; }
     
     public Counter<long> ExecuteTransactionAsyncCounter { get; }
     public Histogram<long> ExecuteTransactionAsyncRt { get; }
