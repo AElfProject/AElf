@@ -37,6 +37,7 @@ public class MinerService : IMinerService
         Timestamp blockTime,
         Duration blockExecutionTime)
     {
+        Logger.LogError("zhis is new code");
         var txList = new List<Transaction>();
 
         var chainContext = new ChainContext
