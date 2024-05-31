@@ -1,5 +1,3 @@
-using System.Diagnostics;
-using System.Diagnostics.Metrics;
 using System.Linq;
 using AElf.Database;
 
@@ -51,8 +49,6 @@ public abstract class KeyValueStoreBase<TKeyValueDbContext, T> : IKeyValueStore<
         _collection = keyValueDbContext.Collection(prefixProvider.GetStoreKeyPrefix());
 
         _messageParser = new MessageParser<T>(() => new T());
-        
-        _meter = _meter = new Meter("AElf", "1.0.0");
     }
 
     public async Task SetAsync(string key, T value)
@@ -66,39 +62,11 @@ public abstract class KeyValueStoreBase<TKeyValueDbContext, T> : IKeyValueStore<
             pipelineSet.ToDictionary(k => k.Key, v => Serialize(v.Value)));
     }
 
-    private readonly Dictionary<string, Histogram<long>> _histogramMapCache = new Dictionary<string, Histogram<long>>();
     public virtual async Task<T> GetAsync(string key)
     {
-        var histogram = GetHistogram(key);
-        var s = Stopwatch.StartNew();
-        s.Start();
         var result = await _collection.GetAsync(key);
-        s.Stop();
-        histogram.Record(s.ElapsedMilliseconds);
 
         return result == null ? default : Deserialize(result);
-    }
-    
-    private readonly Meter _meter;
-    private Histogram<long> GetHistogram(string key)
-    {
-
-        var rtKey = key + "_";
-
-        if (_histogramMapCache.TryGetValue(rtKey, out var rtKeyCache))
-        {
-            return rtKeyCache;
-        }
-        else
-        {
-            var histogram = _meter.CreateHistogram<long>(
-                name: rtKey,
-                description: "Histogram for method execution time",
-                unit: "ms"
-            );
-            _histogramMapCache.Add(rtKey, histogram);
-            return histogram;
-        }
     }
 
     public virtual async Task RemoveAsync(string key)
