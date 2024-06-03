@@ -303,11 +303,21 @@ public partial class ElectionContract
 
     private void RemoveBeneficiaryOfVoter(Address voterAddress = null)
     {
+        EnsureProfitContractAddressSet();
         State.ProfitContract.RemoveBeneficiary.Send(new RemoveBeneficiaryInput
         {
             SchemeId = State.WelfareHash.Value,
             Beneficiary = voterAddress ?? Context.Sender
         });
+    }
+
+    private void EnsureProfitContractAddressSet()
+    {
+        if (State.ProfitContract.Value == null)
+        {
+            State.ProfitContract.Value =
+                Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName);
+        }
     }
 
     private void AssertValidCandidateInformation(CandidateInformation candidateInformation)
@@ -798,6 +808,7 @@ public partial class ElectionContract
     {
         var beneficiaryAddress = GetBeneficiaryAddress(candidatePubkey, profitsReceiver);
         var previousSubsidyId = GenerateSubsidyId(candidatePubkey, beneficiaryAddress);
+        EnsureProfitContractAddressSet();
         State.ProfitContract.RemoveBeneficiary.Send(new RemoveBeneficiaryInput
         {
             SchemeId = State.SubsidyHash.Value,
