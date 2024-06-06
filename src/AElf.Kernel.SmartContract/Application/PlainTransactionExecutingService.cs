@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.SmartContract.Domain;
 using AElf.Kernel.SmartContract.Infrastructure;
+using AElf.Kernel.SmartContractExecution.Events;
 using AElf.Types;
 using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
@@ -193,6 +194,12 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
                 }
 
             #endregion
+
+            await LocalEventBus.PublishAsync(new TransactionExecutedEventData
+            {
+                TransactionContext = txContext,
+                Descriptors = executive.Descriptors
+            });
         }
         catch (Exception ex)
         {

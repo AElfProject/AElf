@@ -17,7 +17,7 @@ public class TransactionExecutedEventHandler : ILocalEventHandler<TransactionExe
 
     public Task HandleEventAsync(TransactionExecutedEventData eventData)
     {
-        _traceProvider.AddTransactionTrace(eventData.TransactionTrace);
+        _traceProvider.AddTransactionTrace(eventData.TransactionContext.Trace);
         return Task.CompletedTask;
     }
 }
