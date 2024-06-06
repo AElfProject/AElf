@@ -33,7 +33,7 @@ internal class ClaimDelayedFeeTransactionGenerator : ISystemTransactionGenerator
         if (preBlockHeight < AElfConstants.GenesisBlockHeight)
             return generatedTransactions;
 
-        if (preBlockHeight % 200 != 0)
+        if ((preBlockHeight + 1) % DelayedMethodFeeConstants.IntervalBlocksCount != 0)
         {
             return generatedTransactions;
         }
