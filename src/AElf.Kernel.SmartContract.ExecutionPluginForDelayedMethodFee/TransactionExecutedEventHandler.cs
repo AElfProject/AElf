@@ -32,6 +32,7 @@ internal class TransactionExecutedEventHandler: ILocalEventHandler<TransactionEx
         {
             return;
         }
+
         var isApplicableToTransaction = eventData.Descriptors.Any(service =>
             service.File.GetIdentity() == "acs12" || service.File.GetIdentity() == "acs1");
         if (!isApplicableToTransaction)
@@ -55,7 +56,12 @@ internal class TransactionExecutedEventHandler: ILocalEventHandler<TransactionEx
             Amount = txSizeFee
         };
 
-        var map = await _totalDelayedTransactionFeesMapProvider.GetTotalDelayedTransactionFeesMapAsync(chainContext);
+        var map = await _totalDelayedTransactionFeesMapProvider.GetTotalDelayedTransactionFeesMapAsync(chainContext) ??
+                  new TotalDelayedTransactionFeesMap
+                  {
+                      BlockHash = chainContext.BlockHash,
+                      BlockHeight = chainContext.BlockHeight
+                  };
         map.Fees.Add(delayedTxFee);
         await _totalDelayedTransactionFeesMapProvider.SetTotalDelayedTransactionFeesMapAsync(new BlockIndex
         {
