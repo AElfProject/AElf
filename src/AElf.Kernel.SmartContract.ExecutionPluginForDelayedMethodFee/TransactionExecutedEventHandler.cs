@@ -28,6 +28,10 @@ internal class TransactionExecutedEventHandler: ILocalEventHandler<TransactionEx
 
     public async Task HandleEventAsync(TransactionExecutedEventData eventData)
     {
+        if (eventData.TransactionContext.BlockHeight < 200)
+        {
+            return;
+        }
         var isApplicableToTransaction = eventData.Descriptors.Any(service =>
             service.File.GetIdentity() == "acs12" || service.File.GetIdentity() == "acs1");
         if (!isApplicableToTransaction)
