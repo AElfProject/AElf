@@ -1429,23 +1429,20 @@ public partial class TokenContract
 
     public override Empty ClaimDelayedTransactionFees(TotalDelayedTransactionFeesMap input)
     {
+        var claimedFee = 0L;
         foreach (var fee in input.Fees)
         {
             ModifyBalance(Context.Self, fee.Symbol, fee.Amount);
             ModifyBalance(fee.Address, fee.Symbol, -fee.Amount);
-            Context.Fire(new TransactionFeeClaimed
-            {
-                Symbol = fee.Symbol,
-                Amount = fee.Amount,
-                Receiver = Context.Self
-            });
-            Context.Fire(new TransactionFeeCharged
-            {
-                Symbol = fee.Symbol,
-                Amount = fee.Amount,
-                ChargingAddress = fee.Address
-            });
+            claimedFee = claimedFee.Add(fee.Amount);
         }
+
+        Context.Fire(new TransactionFeeClaimed
+        {
+            Symbol = "ELF",
+            Amount = claimedFee,
+            Receiver = Context.Self
+        });
 
         return new Empty();
     }
