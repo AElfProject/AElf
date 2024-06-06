@@ -62,7 +62,16 @@ internal class TransactionExecutedEventHandler: ILocalEventHandler<TransactionEx
                       BlockHash = chainContext.BlockHash,
                       BlockHeight = chainContext.BlockHeight
                   };
-        map.Fees.Add(delayedTxFee);
+        var existingFee = map.Fees.FirstOrDefault(fee => fee.Address == delayedTxFee.Address);
+        if (existingFee != null)
+        {
+            existingFee.Amount += delayedTxFee.Amount;
+        }
+        else
+        {
+            map.Fees.Add(delayedTxFee);
+        }
+
         await _totalDelayedTransactionFeesMapProvider.SetTotalDelayedTransactionFeesMapAsync(new BlockIndex
         {
             BlockHash = chainContext.BlockHash,
