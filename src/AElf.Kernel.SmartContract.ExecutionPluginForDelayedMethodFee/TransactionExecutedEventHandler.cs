@@ -28,7 +28,7 @@ internal class TransactionExecutedEventHandler: ILocalEventHandler<TransactionEx
 
     public async Task HandleEventAsync(TransactionExecutedEventData eventData)
     {
-        if (eventData.TransactionContext.BlockHeight < 200)
+        if (eventData.TransactionContext.BlockHeight < DelayedMethodFeeConstants.IntervalBlocksCount)
         {
             return;
         }
