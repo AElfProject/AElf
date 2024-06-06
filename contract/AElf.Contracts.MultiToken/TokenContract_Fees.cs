@@ -1426,4 +1426,27 @@ public partial class TokenContract
         Assert(Context.TransactionId != Context.OriginTransactionId,
             "This method can only be executed in plugin tx.");
     }
+
+    public override Empty ClaimDelayedTransactionFees(TotalDelayedTransactionFeesMap input)
+    {
+        foreach (var fee in input.Fees)
+        {
+            ModifyBalance(Context.Self, fee.Symbol, fee.Amount);
+            ModifyBalance(fee.Address, fee.Symbol, -fee.Amount);
+            Context.Fire(new TransactionFeeClaimed
+            {
+                Symbol = fee.Symbol,
+                Amount = fee.Amount,
+                Receiver = Context.Self
+            });
+            Context.Fire(new TransactionFeeCharged
+            {
+                Symbol = fee.Symbol,
+                Amount = fee.Amount,
+                ChargingAddress = fee.Address
+            });
+        }
+
+        return new Empty();
+    }
 }

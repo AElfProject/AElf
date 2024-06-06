@@ -81,6 +81,9 @@ service TokenContract {
     rpc ClaimTransactionFees (TotalTransactionFeesMap) returns (google.protobuf.Empty) {
     }
 
+    rpc ClaimDelayedTransactionFees (TotalDelayedTransactionFeesMap) returns (google.protobuf.Empty) {
+    }
+
     // Used to collect transaction fees.
     rpc ChargeTransactionFees (ChargeTransactionFeesInput) returns (ChargeTransactionFeesOutput) {
     }
@@ -608,6 +611,23 @@ message TotalTransactionFeesMap
     aelf.Hash block_hash = 2;
     // The height of the block processing the transaction.
     int64 block_height = 3;
+}
+
+message TotalDelayedTransactionFeesMap
+{
+    // Token dictionary that charge transaction fee, Symbol->Amount.
+    repeated DelayedTransactionFees fees = 1;
+    // The hash of the block processing the transaction.
+    aelf.Hash block_hash = 2;
+    // The height of the block processing the transaction.
+    int64 block_height = 3;
+}
+
+message DelayedTransactionFees
+{
+    aelf.Address address = 1;
+    string symbol = 2;
+    int64 amount = 3;
 }
 
 message TotalResourceTokensMaps {

@@ -30,7 +30,10 @@ public class UnitTestPlainTransactionExecutingService : PlainTransactionExecutin
         {
             await LocalEventBus.PublishAsync(new TransactionExecutedEventData
             {
-                TransactionTrace = trace
+                TransactionContext = new TransactionContext
+                {
+                    Trace = trace
+                }
             });
         }
 

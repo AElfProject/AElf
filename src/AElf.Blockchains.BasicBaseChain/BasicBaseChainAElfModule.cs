@@ -10,6 +10,7 @@ using AElf.Kernel;
 using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold;
+using AElf.Kernel.SmartContract.ExecutionPluginForDelayedMethodFee;
 using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee;
 using AElf.Kernel.SmartContract.ExecutionPluginForResourceFee;
 using AElf.Kernel.SmartContract.Parallel;
@@ -54,7 +55,7 @@ namespace AElf.Blockchains.BasicBaseChain;
     typeof(ParallelExecutionModule),
 
     //plugin
-    typeof(ExecutionPluginForMethodFeeModule),
+    typeof(ExecutionPluginForDelayedMethodFeeModule),
     typeof(ExecutionPluginForResourceFeeModule),
     typeof(ExecutionPluginForCallThresholdModule)
 )]
