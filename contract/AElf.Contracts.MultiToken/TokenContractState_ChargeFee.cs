@@ -58,4 +58,6 @@ public partial class TokenContractState
     /// Address -> Symbol -> LastRefreshTime
     /// </summary>
     public MappedState<Address, string, Timestamp> TransactionFeeFreeAllowancesLastRefreshTimes { get; set; }
+
+    public MappedState<Address, long> OwnedMethodFeeMap { get; set; }
 }

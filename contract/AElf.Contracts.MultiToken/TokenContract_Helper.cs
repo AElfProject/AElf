@@ -112,12 +112,20 @@ public partial class TokenContract
         });
     }
 
-    private void ModifyBalance(Address address, string symbol, long addAmount)
+    private void ModifyBalance(Address address, string symbol, long addAmount, bool isClaimingFee = false)
     {
         var before = GetBalance(address, symbol);
         if (addAmount < 0 && before < -addAmount)
+        {
+            if (isClaimingFee)
+            {
+                State.OwnedMethodFeeMap[address] += -addAmount;
+                return;
+            }
+
             Assert(false,
                 $"{address}. Insufficient balance of {symbol}. Need balance: {-addAmount}; Current balance: {before}");
+        }
 
         var target = before.Add(addAmount);
         State.Balances[address][symbol] = target;
