@@ -1,8 +1,8 @@
-<Project Sdk="Microsoft.NET.Sdk">
-    <Import Project="..\..\common.props"/>
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="..\..\common.props" />
 
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
         <PackageId>AElf.Sdk.CSharp</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <LangVersion>latest</LangVersion>
@@ -10,9 +10,9 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\AElf.Cryptography\AElf.Cryptography.csproj"/>
-        <ProjectReference Include="..\AElf.CSharp.Core\AElf.CSharp.Core.csproj"/>
-        <ProjectReference Include="..\AElf.Kernel.SmartContract.Shared\AElf.Kernel.SmartContract.Shared.csproj"/>
+        <ProjectReference Include="..\AElf.Cryptography\AElf.Cryptography.csproj" />
+        <ProjectReference Include="..\AElf.CSharp.Core\AElf.CSharp.Core.csproj" />
+        <ProjectReference Include="..\AElf.Kernel.SmartContract.Shared\AElf.Kernel.SmartContract.Shared.csproj" />
     </ItemGroup>
 
 </Project>

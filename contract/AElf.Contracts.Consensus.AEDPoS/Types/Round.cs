@@ -130,7 +130,7 @@ public partial class Round
     {
         return new MinerList
         {
-            Pubkeys = { RealTimeMinersInformation.Keys.Select(ByteStringHelper.FromHexString) }
+            Pubkeys = { RealTimeMinersInformation.Keys.Select(k => ByteStringHelper.FromHexString(k)) }
         };
     }
 

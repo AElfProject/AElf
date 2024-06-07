@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -32,39 +33,53 @@ public class CSharpContractAuditor : IContractAuditor
 
     public void Audit(byte[] code, RequiredAcs requiredAcs, bool isSystemContract)
     {
-        var findings = new List<ValidationResult>();
+        var findings = new ConcurrentBag<ValidationResult>();
         var asm = Assembly.Load(code);
         var modDef = ModuleDefinition.ReadModule(new MemoryStream(code));
         var cts = new CancellationTokenSource(CodeOpsOptionsMonitor?.CurrentValue.AuditTimeoutDuration ??
                                               Constants.DefaultAuditTimeoutDuration);
         // Run module validators
-        findings.AddRange(Validate(modDef, cts.Token, isSystemContract));
+        foreach (var finding in Validate(modDef, cts.Token, isSystemContract).AsParallel())
+        {
+            findings.Add(finding);
+        }
 
         // Run assembly validators (run after module validators since we invoke BindService method below)
-        findings.AddRange(Validate(asm, cts.Token, isSystemContract));
+        foreach (var finding in Validate(asm, cts.Token, isSystemContract).AsParallel())
+        {
+            findings.Add(finding);
+        }
 
         // Run method validators
-        foreach (var type in modDef.Types)
+        foreach (var type in modDef.Types.AsParallel())
         {
-            findings.AddRange(ValidateMethodsInType(type, cts.Token, isSystemContract));
+            foreach (var finding in ValidateMethodsInType(type, cts.Token, isSystemContract).AsParallel())
+            {
+                findings.Add(finding);
+            }
         }
 
         // Perform ACS validation
         if (requiredAcs != null)
-            findings.AddRange(_acsValidator.Validate(asm, requiredAcs));
+        {
+            foreach (var finding in _acsValidator.Validate(asm, requiredAcs).AsParallel())
+            {
+                findings.Add(finding);
+            }
+        }
 
         if (findings.Count > 0)
         {
             throw new CSharpCodeCheckException(
                 $"Contract code did not pass audit. Audit failed for contract: {modDef.Assembly.MainModule.Name}\n" +
-                string.Join("\n", findings), findings);
+                string.Join("\n", findings), findings.ToList());
         }
     }
 
     private IEnumerable<ValidationResult> Validate<T>(T t, CancellationToken ct, bool isSystemContract)
     {
-        var validators = _policy.GetValidators<T>().Where(v => !v.SystemContactIgnored || !isSystemContract);
-        return validators.SelectMany(v => v.Validate(t, ct));
+        var validators = _policy.GetValidators<T>().AsParallel().Where(v => !v.SystemContactIgnored || !isSystemContract);
+        return validators.AsParallel().SelectMany(v => v.Validate(t, ct));
     }
         
     private IEnumerable<ValidationResult> ValidateMethodsInType(TypeDefinition type,

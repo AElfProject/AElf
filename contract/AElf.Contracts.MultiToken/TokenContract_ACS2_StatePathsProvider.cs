@@ -118,7 +118,7 @@ public partial class TokenContract
         if (delegateeList.Count <= 0) return;
         var secondDelegateeList = new List<string>();
         //get and add second-level delegatee list
-        foreach (var delegateeAddress in delegateeList.Select(Address.FromBase58))
+        foreach (var delegateeAddress in delegateeList.Select(a => Address.FromBase58(a)))
         {
             //delegatee of the first-level delegate is delegator of the second-level delegate
             secondDelegateeList.AddRange(GetDelegateeList(delegateeAddress, to, methodName));

@@ -61,6 +61,22 @@ public class ResourceExtractionService : IResourceExtractionService, ISingletonD
         return transactionResourceList;
     }
 
+    // TODO: Fix
+    // public async Task<IEnumerable<TransactionWithResourceInfo>> GetResourcesAsync(
+    //     IChainContext chainContext,
+    //     IEnumerable<Transaction> transactions, CancellationToken ct)
+    // {
+    //     var contractResourceInfoCache = new ConcurrentDictionary<Address, ContractResourceInfo>();
+    //     var transactionResourceList = await transactions.AsParallel().WithCancellation(ct).Select(async transaction =>
+    //     {
+    //         var transactionResourcePair =
+    //             await GetResourcesForOneWithCacheAsync(chainContext, transaction, ct, contractResourceInfoCache);
+    //         return transactionResourcePair;
+    //     }).WhenAll();
+    //
+    //     return transactionResourceList;
+    // }
+
     public void ClearConflictingTransactionsResourceCache(IEnumerable<Hash> transactionIds)
     {
         ClearResourceCache(transactionIds);
@@ -215,6 +231,7 @@ public class ResourceExtractionService : IResourceExtractionService, ISingletonD
         try
         {
             ClearResourceCache(_resourceCache
+                //.AsParallel()
                 .Where(c => c.Value.ResourceUsedBlockHeight <= eventData.BlockHeight)
                 .Select(c => c.Key).Distinct().ToList());
         }

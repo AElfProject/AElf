@@ -1,15 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
         <Description>Main module for a sidechain node.</Description>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
         <NoWarn>1701;1702</NoWarn>
     </PropertyGroup>
     <ItemGroup>
-        <ProjectReference Include="..\AElf.Blockchains.BasicBaseChain\AElf.Blockchains.BasicBaseChain.csproj"/>
-        <ProjectReference Include="..\AElf.ContractDeployer\AElf.ContractDeployer.csproj"/>
+        <ProjectReference Include="..\AElf.Blockchains.BasicBaseChain\AElf.Blockchains.BasicBaseChain.csproj" />
+        <ProjectReference Include="..\AElf.ContractDeployer\AElf.ContractDeployer.csproj" />
     </ItemGroup>
     <ItemGroup>
         <CommonMessage Include="..\..\protobuf\authority_info.proto">
@@ -105,6 +105,6 @@
         </ProjectReference>
     </ItemGroup>
     <ItemGroup>
-        <Folder Include="Protobuf\Generated"/>
+        <Folder Include="Protobuf\Generated" />
     </ItemGroup>
 </Project>

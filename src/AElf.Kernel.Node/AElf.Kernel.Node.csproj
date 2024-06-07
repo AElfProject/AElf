@@ -1,17 +1,17 @@
-<Project Sdk="Microsoft.NET.Sdk">
-    <Import Project="..\..\common.props"/>
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="..\..\common.props" />
 
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
         <PackageId>AElf.Kernel.Node</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Description>Base Module for building a node.</Description>
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\AElf.Kernel.ChainController\AElf.Kernel.ChainController.csproj"/>
-        <ProjectReference Include="..\AElf.Kernel.Consensus.Core\AElf.Kernel.Consensus.Core.csproj"/>
-        <ProjectReference Include="..\AElf.Kernel.TransactionPool\AElf.Kernel.TransactionPool.csproj"/>
+        <ProjectReference Include="..\AElf.Kernel.ChainController\AElf.Kernel.ChainController.csproj" />
+        <ProjectReference Include="..\AElf.Kernel.Consensus.Core\AElf.Kernel.Consensus.Core.csproj" />
+        <ProjectReference Include="..\AElf.Kernel.TransactionPool\AElf.Kernel.TransactionPool.csproj" />
     </ItemGroup>
 
 </Project>

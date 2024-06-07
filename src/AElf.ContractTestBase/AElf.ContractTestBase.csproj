@@ -1,23 +1,23 @@
-<Project Sdk="Microsoft.NET.Sdk">
-    <Import Project="..\..\common.props"/>
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="..\..\common.props" />
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
         <PackageId>AElf.ContractTestBase</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Description>Contract test base.</Description>
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\AElf.CrossChain\AElf.CrossChain.csproj"/>
-        <ProjectReference Include="..\AElf.EconomicSystem\AElf.EconomicSystem.csproj"/>
-        <ProjectReference Include="..\AElf.GovernmentSystem\AElf.GovernmentSystem.csproj"/>
-        <ProjectReference Include="..\..\contract\AElf.Contracts.Genesis\AElf.Contracts.Genesis.csproj"/>
-        <ProjectReference Include="..\..\src\AElf.Kernel\AElf.Kernel.csproj"/>
-        <ProjectReference Include="..\..\src\AElf.Runtime.CSharp\AElf.Runtime.CSharp.csproj"/>
-        <ProjectReference Include="..\AElf.ContractDeployer\AElf.ContractDeployer.csproj"/>
-        <ProjectReference Include="..\AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold\AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold.csproj"/>
-        <ProjectReference Include="..\AElf.Kernel.SmartContract.ExecutionPluginForMethodFee\AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.csproj"/>
-        <ProjectReference Include="..\AElf.Kernel.SmartContract.ExecutionPluginForResourceFee\AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.csproj"/>
+        <ProjectReference Include="..\AElf.CrossChain\AElf.CrossChain.csproj" />
+        <ProjectReference Include="..\AElf.EconomicSystem\AElf.EconomicSystem.csproj" />
+        <ProjectReference Include="..\AElf.GovernmentSystem\AElf.GovernmentSystem.csproj" />
+        <ProjectReference Include="..\..\contract\AElf.Contracts.Genesis\AElf.Contracts.Genesis.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Kernel\AElf.Kernel.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Runtime.CSharp\AElf.Runtime.CSharp.csproj" />
+        <ProjectReference Include="..\AElf.ContractDeployer\AElf.ContractDeployer.csproj" />
+        <ProjectReference Include="..\AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold\AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold.csproj" />
+        <ProjectReference Include="..\AElf.Kernel.SmartContract.ExecutionPluginForMethodFee\AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.csproj" />
+        <ProjectReference Include="..\AElf.Kernel.SmartContract.ExecutionPluginForResourceFee\AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.csproj" />
         <ProjectReference Include="..\..\contract\AElf.Contracts.Parliament\AElf.Contracts.Parliament.csproj">
             <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
             <OutputItemType>Contract</OutputItemType>
@@ -56,10 +56,10 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="MartinCostello.Logging.XUnit" Version="0.1.0"/>
-        <PackageReference Include="Moq" Version="4.14.5"/>
-        <PackageReference Include="Volo.Abp.Autofac" Version="5.2.2"/>
-        <PackageReference Include="Volo.Abp.TestBase" Version="5.2.2"/>
-        <PackageReference Include="xunit.assert" Version="2.4.1"/>
+        <PackageReference Include="MartinCostello.Logging.XUnit" Version="0.1.0" />
+        <PackageReference Include="Moq" Version="4.14.5" />
+        <PackageReference Include="Volo.Abp.Autofac" Version="8.0.5" />
+        <PackageReference Include="Volo.Abp.TestBase" Version="8.0.5" />
+        <PackageReference Include="xunit.assert" Version="2.4.1" />
     </ItemGroup>
 </Project>
