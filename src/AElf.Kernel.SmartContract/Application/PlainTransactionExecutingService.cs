@@ -178,6 +178,12 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
 
             await executive.ApplyAsync(txContext);
 
+            await LocalEventBus.PublishAsync(new TransactionExecutedEventData
+            {
+                TransactionContext = txContext,
+                Descriptors = executive.Descriptors
+            });
+
             if (txContext.Trace.IsSuccessful())
                 await ExecuteInlineTransactions(singleTxExecutingDto.Depth, singleTxExecutingDto.CurrentBlockTime,
                     txContext, internalStateCache,
@@ -197,12 +203,6 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
                 }
 
             #endregion
-
-            await LocalEventBus.PublishAsync(new TransactionExecutedEventData
-            {
-                TransactionContext = txContext,
-                Descriptors = executive.Descriptors
-            });
         }
         catch (Exception ex)
         {

@@ -1433,7 +1433,7 @@ public partial class TokenContract
         foreach (var fee in input.Fees)
         {
             ModifyBalance(Context.Self, fee.Symbol, fee.Amount);
-            ModifyBalance(fee.Address, fee.Symbol, -fee.Amount);
+            ModifyBalance(fee.Address, fee.Symbol, -fee.Amount, true);
             claimedFee = claimedFee.Add(fee.Amount);
         }
 
