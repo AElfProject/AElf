@@ -8,6 +8,7 @@ using AElf.Kernel.Token;
 using AElf.Types;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForDelayedMethodFee;
 
@@ -15,12 +16,15 @@ internal class ClaimDelayedFeeTransactionGenerator : ISystemTransactionGenerator
 {
     private readonly ISmartContractAddressService _smartContractAddressService;
     private readonly ITotalDelayedTransactionFeesMapProvider _totalDelayedTransactionFeesMapProvider;
+    private readonly DelayedMethodFeeOptions _delayedMethodFeeOptions;
 
     public ClaimDelayedFeeTransactionGenerator(ISmartContractAddressService smartContractAddressService,
-        ITotalDelayedTransactionFeesMapProvider totalDelayedTransactionFeesMapProvider)
+        ITotalDelayedTransactionFeesMapProvider totalDelayedTransactionFeesMapProvider,
+        IOptionsSnapshot<DelayedMethodFeeOptions> delayedMethodFeeOptions)
     {
         _smartContractAddressService = smartContractAddressService;
         _totalDelayedTransactionFeesMapProvider = totalDelayedTransactionFeesMapProvider;
+        _delayedMethodFeeOptions = delayedMethodFeeOptions.Value;
     }
 
     public ILogger<ClaimDelayedFeeTransactionGenerator> Logger { get; set; }
@@ -33,7 +37,10 @@ internal class ClaimDelayedFeeTransactionGenerator : ISystemTransactionGenerator
         if (preBlockHeight < AElfConstants.GenesisBlockHeight)
             return generatedTransactions;
 
-        if ((preBlockHeight + 1) % DelayedMethodFeeConstants.IntervalBlocksCount != 0)
+        var interval = _delayedMethodFeeOptions.ChargeInterval == 0
+            ? DelayedMethodFeeConstants.IntervalBlocksCount
+            : _delayedMethodFeeOptions.ChargeInterval;
+        if ((preBlockHeight + 1) % interval != 0)
         {
             return generatedTransactions;
         }
