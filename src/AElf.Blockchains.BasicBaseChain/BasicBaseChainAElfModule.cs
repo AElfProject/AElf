@@ -105,6 +105,7 @@ public class BasicBaseChainAElfModule : AElfModule
             options.GenesisContractDir = Path.Combine(contentRootPath, "genesis");
         });
         Configure<WebAppOptions>(newConfig.GetSection("WebApp"));
+        Configure<DelayedMethodFeeOptions>(newConfig.GetSection("DelayedMethodFee"));
     }
 
     public override void OnApplicationInitialization(ApplicationInitializationContext context)
