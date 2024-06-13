@@ -20,7 +20,7 @@ public class AEDPoSContractInitializationProvider : IContractInitializationProvi
     }
 
     public Hash SystemSmartContractName => ConsensusSmartContractAddressNameProvider.Name;
-    public string ContractCodeName => "AElf.Contracts.Consensus.AEDPoS";
+    public string ContractCodeName => "AElf.Contracts.Consensus.DPoS";
 
     public List<ContractInitializationMethodCall> GetInitializeMethodList(byte[] contractCode)
     {

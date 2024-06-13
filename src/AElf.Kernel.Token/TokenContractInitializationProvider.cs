@@ -19,7 +19,7 @@ public class TokenContractInitializationProvider : IContractInitializationProvid
     }
 
     public Hash SystemSmartContractName { get; } = TokenSmartContractAddressNameProvider.Name;
-    public string ContractCodeName { get; } = "AElf.Contracts.MultiToken";
+    public string ContractCodeName { get; } = "AElf.Contracts.Token";
 
     public virtual List<ContractInitializationMethodCall> GetInitializeMethodList(byte[] contractCode)
     {
