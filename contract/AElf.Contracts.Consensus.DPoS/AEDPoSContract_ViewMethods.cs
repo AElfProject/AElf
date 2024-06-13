@@ -361,4 +361,9 @@ public partial class AEDPoSContract
             Pubkeys = {lastRound.RealTimeMinersInformation.Keys}
         };
     }
+
+    public override Hash GetRandomHash(Int64Value input)
+    {
+        return State.RandomHashes[input.Value];
+    }
 }
