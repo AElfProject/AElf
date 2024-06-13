@@ -317,6 +317,8 @@ message AElfConsensusTriggerInformation {
     map<string, bytes> decrypted_pieces = 6;
     // The revealed InValues.
     map<string, aelf.Hash> revealed_in_values = 7;
+    // The random number.
+    bytes random_number = 8;
 }
 
 message TermInfo {
