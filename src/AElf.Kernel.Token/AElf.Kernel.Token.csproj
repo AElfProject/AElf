@@ -21,8 +21,8 @@
         </CommonMessage>
     </ItemGroup>
     <ItemGroup>
-        <ContractStub Include="..\..\protobuf\token_contract.proto">
-            <Link>Protobuf\Proto\token_contract.proto</Link>
+        <ContractStub Include="..\..\protobuf\naive_token_contract.proto">
+            <Link>Protobuf\Proto\naive_token_contract.proto</Link>
         </ContractStub>
     </ItemGroup>
 

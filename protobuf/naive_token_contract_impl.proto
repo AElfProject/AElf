@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package tokenimpl;
+
+import "aelf/core.proto";
+import "aelf/options.proto";
+import "acs2.proto";
+import "naive_token_contract.proto";
+
+option csharp_namespace = "AElf.Contracts.Token";
+
+service TokenContractImpl {
+    option (aelf.csharp_state) = "AElf.Contracts.Token.TokenContractState";
+    option (aelf.base) = "acs2.proto";
+    option (aelf.base) = "naive_token_contract.proto";
+}

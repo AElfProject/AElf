@@ -1,0 +1,268 @@
+/**
+ * Naive Token Contract.
+ */
+syntax = "proto3";
+
+package token;
+
+import "aelf/core.proto";
+import "aelf/options.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+
+option csharp_namespace = "AElf.Contracts.Token";
+
+service TokenContract {
+    rpc Create (CreateInput) returns (google.protobuf.Empty) {
+    }
+    rpc Issue (IssueInput) returns (google.protobuf.Empty) {
+    }
+    rpc Transfer (TransferInput) returns (google.protobuf.Empty) {
+    }
+    rpc TransferFrom (TransferFromInput) returns (google.protobuf.Empty) {
+    }
+    rpc Approve (ApproveInput) returns (google.protobuf.Empty) {
+    }
+    rpc UnApprove (UnApproveInput) returns (google.protobuf.Empty) {
+    }
+
+    rpc GetTokenInfo (GetTokenInfoInput) returns (TokenInfo) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetBalance (GetBalanceInput) returns (GetBalanceOutput) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetAllowance (GetAllowanceInput) returns (GetAllowanceOutput) {
+        option (aelf.is_view) = true;
+    }
+}
+
+message TokenInfo {
+    // The symbol of the token.f
+    string symbol = 1;
+    // The full name of the token.
+    string token_name = 2;
+    // The current supply of the token.
+    int64 supply = 3;
+    // The total supply of the token.
+    int64 total_supply = 4;
+    // The precision of the token.
+    int32 decimals = 5;
+    // The address that created the token.
+    aelf.Address issuer = 6;
+    // A flag indicating if this token is burnable.
+    bool is_burnable = 7;
+    // The chain id of the token.
+    int32 issue_chain_id = 8;
+    // The amount of issued tokens.
+    int64 issued = 9;
+}
+
+message CreateInput {
+    // The symbol of the token.
+    string symbol = 1;
+    // The full name of the token.
+    string token_name = 2;
+    // The total supply of the token.
+    int64 total_supply = 3;
+    // The precision of the token
+    int32 decimals = 4;
+    // The address that created the token.
+    aelf.Address issuer = 5;
+    // A flag indicating if this token is burnable.
+    bool is_burnable = 6;
+    // A whitelist address list used to lock tokens.
+    repeated aelf.Address lock_white_list = 7;
+    // The chain id of the token.
+    int32 issue_chain_id = 8;
+}
+
+message IssueInput {
+    // The token symbol to issue.
+    string symbol = 1;
+    // The token amount to issue.
+    int64 amount = 2;
+    // The memo.
+    string memo = 3;
+    // The target address to issue.
+    aelf.Address to = 4;
+}
+
+message TransferInput {
+    // The receiver of the token.
+    aelf.Address to = 1;
+    // The token symbol to transfer.
+    string symbol = 2;
+    // The amount to to transfer.
+    int64 amount = 3;
+    // The memo.
+    string memo = 4;
+}
+
+message LockInput {
+    // The one want to lock his token.
+    aelf.Address address = 1;
+    // Id of the lock.
+    aelf.Hash lock_id = 2;
+    // The symbol of the token to lock.
+    string symbol = 3;
+    // a memo.
+    string usage = 4;
+    // The amount of tokens to lock.
+    int64 amount = 5;
+}
+
+message UnlockInput {
+    // The one want to un-lock his token.
+    aelf.Address address = 1;
+    // Id of the lock.
+    aelf.Hash lock_id = 2;
+    // The symbol of the token to un-lock.
+    string symbol = 3;
+    // a memo.
+    string usage = 4;
+    // The amount of tokens to un-lock.
+    int64 amount = 5;
+}
+
+message TransferFromInput {
+    // The source address of the token.
+    aelf.Address from = 1;
+    // The destination address of the token.
+    aelf.Address to = 2;
+    // The symbol of the token to transfer.
+    string symbol = 3;
+    // The amount to transfer.
+    int64 amount = 4;
+    // The memo.
+    string memo = 5;
+}
+
+message ApproveInput {
+    // The address that allowance will be increased. 
+    aelf.Address spender = 1;
+    // The symbol of token to approve.
+    string symbol = 2;
+    // The amount of token to approve.
+    int64 amount = 3;
+}
+
+message UnApproveInput {
+    // The address that allowance will be decreased. 
+    aelf.Address spender = 1;
+    // The symbol of token to un-approve.
+    string symbol = 2;
+    // The amount of token to un-approve.
+    int64 amount = 3;
+}
+
+message GetTokenInfoInput {
+    // The symbol of token.
+    string symbol = 1;
+}
+
+message GetBalanceInput {
+    // The symbol of token.
+    string symbol = 1;
+    // The target address of the query.
+    aelf.Address owner = 2;
+}
+
+message GetBalanceOutput {
+    // The symbol of token.
+    string symbol = 1;
+    // The target address of the query.
+    aelf.Address owner = 2;
+    // The balance of the owner.
+    int64 balance = 3;
+}
+
+message GetAllowanceInput {
+    // The symbol of token.
+    string symbol = 1;
+    // The address of the token owner.
+    aelf.Address owner = 2;
+    // The address of the spender.
+    aelf.Address spender = 3;
+}
+
+message GetAllowanceOutput {
+    // The symbol of token.
+    string symbol = 1;
+    // The address of the token owner.
+    aelf.Address owner = 2;
+    // The address of the spender.
+    aelf.Address spender = 3;
+    // The amount of allowance.
+    int64 allowance = 4;
+}
+
+// Events
+
+message Transferred {
+    option (aelf.is_event) = true;
+    // The source address of the transferred token.
+    aelf.Address from = 1 [(aelf.is_indexed) = true];
+    // The destination address of the transferred token.
+    aelf.Address to = 2 [(aelf.is_indexed) = true];
+    // The symbol of the transferred token.
+    string symbol = 3 [(aelf.is_indexed) = true];
+    // The amount of the transferred token.
+    int64 amount = 4;
+    // The memo.
+    string memo = 5;
+}
+
+message Approved {
+    option (aelf.is_event) = true;
+    // The address of the token owner.
+    aelf.Address owner = 1 [(aelf.is_indexed) = true];
+    // The address that allowance be increased. 
+    aelf.Address spender = 2 [(aelf.is_indexed) = true];
+    // The symbol of approved token.
+    string symbol = 3 [(aelf.is_indexed) = true];
+    // The amount of approved token.
+    int64 amount = 4;
+}
+
+message UnApproved {
+    option (aelf.is_event) = true;
+    // The address of the token owner.
+    aelf.Address owner = 1 [(aelf.is_indexed) = true];
+    // The address that allowance be decreased. 
+    aelf.Address spender = 2 [(aelf.is_indexed) = true];
+    // The symbol of un-approved token.
+    string symbol = 3 [(aelf.is_indexed) = true];
+    // The amount of un-approved token.
+    int64 amount = 4;
+}
+
+message TokenCreated {
+    option (aelf.is_event) = true;
+    // The symbol of the token.
+    string symbol = 1;
+    // The full name of the token.
+    string token_name = 2;
+    // The total supply of the token.
+    int64 total_supply = 3;
+    // The precision of the token.
+    int32 decimals = 4;
+    // The address that created the token.
+    aelf.Address issuer = 5;
+    // A flag indicating if this token is burnable.
+    bool is_burnable = 6;
+    // The chain id of the token.
+    int32 issue_chain_id = 7;
+}
+
+message Issued {
+    option (aelf.is_event) = true;
+    // The symbol of issued token.
+    string symbol = 1;
+    // The amount of issued token.
+    int64 amount = 2;
+    // The memo.
+    string memo = 3;
+    // The issued target address.
+    aelf.Address to = 4;
+}
