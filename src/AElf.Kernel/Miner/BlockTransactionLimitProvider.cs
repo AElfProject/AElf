@@ -2,7 +2,9 @@ using System.Collections.Generic;
 using System.Linq;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.TransactionPool;
 using Google.Protobuf.WellKnownTypes;
+using Microsoft.Extensions.Options;
 
 namespace AElf.Kernel.Miner;
 
@@ -16,14 +18,17 @@ internal class BlockTransactionLimitProvider : BlockExecutedDataBaseProvider<Int
     IBlockTransactionLimitProvider,
     ISingletonDependency
 {
+    private readonly IOptionsMonitor<TransactionOptions> _txOptions;
     private const string BlockExecutedDataName = "BlockTransactionLimit";
     private readonly int _systemTransactionCount;
 
     public BlockTransactionLimitProvider(
         ICachedBlockchainExecutedDataService<Int32Value> cachedBlockchainExecutedDataService,
-        IEnumerable<ISystemTransactionGenerator> systemTransactionGenerators) : base(
+        IEnumerable<ISystemTransactionGenerator> systemTransactionGenerators,
+        IOptionsMonitor<TransactionOptions> txOptions) : base(
         cachedBlockchainExecutedDataService)
     {
+        _txOptions = txOptions;
         _systemTransactionCount = systemTransactionGenerators.Count();
     }
 
@@ -31,8 +36,9 @@ internal class BlockTransactionLimitProvider : BlockExecutedDataBaseProvider<Int
 
     public Task<int> GetLimitAsync(IBlockIndex blockIndex)
     {
-        var limit = GetBlockExecutedData(blockIndex);
-        return Task.FromResult(limit?.Value ?? int.MaxValue);
+        var limit = _txOptions.CurrentValue.BlockTransactionLimit;
+        Logger.LogInformation($"BlockTransactionLimit is {limit}");
+        return Task.FromResult(limit);
     }
 
     public async Task SetLimitAsync(IBlockIndex blockIndex, int limit)

@@ -25,4 +25,6 @@ public class TransactionOptions
     public bool StoreInvalidTransactionResultEnabled { get; set; }
 
     
+
+    public int BlockTransactionLimit { get; set; } = 100;
 }
