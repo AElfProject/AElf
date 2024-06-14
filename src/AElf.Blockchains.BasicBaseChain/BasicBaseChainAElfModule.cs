@@ -42,6 +42,7 @@ namespace AElf.Blockchains.BasicBaseChain;
     typeof(CSharpRuntimeAElfModule),
     typeof(GrpcNetworkModule),
     typeof(RuntimeSetupAElfModule),
+    typeof(TokenKernelAElfModule),
 
     //web api module
     typeof(WebWebAppAElfModule),
