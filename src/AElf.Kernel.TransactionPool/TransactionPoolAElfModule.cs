@@ -21,6 +21,6 @@ public class TransactionPoolAElfModule : AElfModule
 
         services.AddSingleton<ITransactionReadOnlyExecutionService, TransactionReadOnlyExecutionService>();
         var configuration = context.Services.GetConfiguration();
-        Configure<TransactionOptions>(options => { configuration.GetSection("Transaction").Bind(options); });
+        Configure<TransactionOptions>(configuration.GetSection("Transaction"));
     }
 }
