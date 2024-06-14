@@ -10,7 +10,6 @@ public class TokenContractInitializationProvider : IContractInitializationProvid
     public Hash SystemSmartContractName { get; } = TokenSmartContractAddressNameProvider.Name;
     public string ContractCodeName { get; } = "AElf.Contracts.Token";
 
-
     public TokenContractInitializationProvider(
         ITokenContractInitializationDataProvider tokenContractInitializationDataProvider)
     {
