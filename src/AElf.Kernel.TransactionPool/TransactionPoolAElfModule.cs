@@ -2,6 +2,7 @@ using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Kernel.Txn.Application;
 using AElf.Modularity;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
 
@@ -20,6 +21,6 @@ public class TransactionPoolAElfModule : AElfModule
 
         services.AddSingleton<ITransactionReadOnlyExecutionService, TransactionReadOnlyExecutionService>();
         var configuration = context.Services.GetConfiguration();
-        Configure<TransactionOptions>(configuration.GetSection("Transaction"));
+        Configure<TransactionOptions>(options => { configuration.GetSection("Transaction").Bind(options); });
     }
 }
