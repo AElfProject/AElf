@@ -18,7 +18,7 @@ internal class BlockTransactionLimitProvider : BlockExecutedDataBaseProvider<Int
     IBlockTransactionLimitProvider,
     ISingletonDependency
 {
-    private readonly IOptionsMonitor<TransactionOptions> _txOptions;
+    private TransactionOptions _txOptions;
     private const string BlockExecutedDataName = "BlockTransactionLimit";
     private readonly int _systemTransactionCount;
 
@@ -28,7 +28,11 @@ internal class BlockTransactionLimitProvider : BlockExecutedDataBaseProvider<Int
         IOptionsMonitor<TransactionOptions> txOptions) : base(
         cachedBlockchainExecutedDataService)
     {
-        _txOptions = txOptions;
+        _txOptions = txOptions.CurrentValue;
+        txOptions.OnChange(newOptions =>
+        {
+            _txOptions = newOptions;
+        });
         _systemTransactionCount = systemTransactionGenerators.Count();
     }
 
@@ -36,7 +40,7 @@ internal class BlockTransactionLimitProvider : BlockExecutedDataBaseProvider<Int
 
     public Task<int> GetLimitAsync(IBlockIndex blockIndex)
     {
-        var limit = _txOptions.CurrentValue.BlockTransactionLimit;
+        var limit = _txOptions.BlockTransactionLimit;
         Logger.LogInformation($"BlockTransactionLimit is {limit}");
         return Task.FromResult(limit);
     }
