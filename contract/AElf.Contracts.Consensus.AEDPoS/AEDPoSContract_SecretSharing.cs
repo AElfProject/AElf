@@ -1,6 +1,9 @@
 using System.Linq;
 using AElf.Cryptography.SecretSharing;
 using AElf.CSharp.Core;
+using AElf.Sdk.CSharp;
+using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.AEDPoS;
 
@@ -48,5 +51,22 @@ public partial class AEDPoSContract
 
             currentRound.RealTimeMinersInformation[publicKeyOfAnotherMiner].PreviousInValue = revealedInValue;
         }
+    }
+    
+    private bool IsSecretSharingEnabled()
+    {
+        if (State.ConfigurationContract.Value == null)
+        {
+            State.ConfigurationContract.Value =
+                Context.GetContractAddressByName(SmartContractConstants.ConfigurationContractSystemName);
+        }
+
+        var secretSharingEnabled = new BoolValue();
+        secretSharingEnabled.MergeFrom(State.ConfigurationContract.GetConfiguration.Call(new StringValue
+        {
+            Value = AEDPoSContractConstants.SecretSharingEnabledConfigurationKey
+        }).Value);
+
+        return secretSharingEnabled.Value;
     }
 }
