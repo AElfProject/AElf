@@ -55,24 +55,28 @@ public partial class TokenContract
     {
         Assert(!string.IsNullOrEmpty(symbol), "Symbol can not be null.");
         var words = symbol.Split(TokenContractConstants.NFTSymbolSeparator);
-        var symbolPrefix = words[0];
-        var allSymbolIdentifier = GetAllSymbolIdentifier();
-        Assert(symbolPrefix.Length > 0 && (IsValidCreateSymbol(symbolPrefix) || symbolPrefix.Equals(allSymbolIdentifier)), "Invalid symbol.");
+
         if (words.Length == 1)
         {
-            if (!symbolPrefix.Equals(allSymbolIdentifier))
-            {
-                ValidTokenExists(symbolPrefix);
-            }
+            ValidTokenExists(words[0]);
             return;
         }
+
+        // The length of words should be either 1 or 2.
         Assert(words.Length == 2, "Invalid symbol length.");
+
+        var symbolPrefix = words[0];
         var itemId = words[1];
+
+        var allSymbolIdentifier = GetAllSymbolIdentifier();
+        Assert(symbolPrefix.Length > 0 && IsValidCreateSymbol(symbolPrefix), "Invalid symbol.");
+
+        // Symbol's format can either be ABC-123 or ABC-*.
         Assert(itemId.Length > 0 && (IsValidItemId(itemId) || itemId.Equals(allSymbolIdentifier)), "Invalid NFT Symbol.");
         var nftSymbol = itemId.Equals(allSymbolIdentifier) ? GetCollectionSymbol(symbolPrefix) : symbol;
         ValidTokenExists(nftSymbol);
     }
-    
+
     private string GetCollectionSymbol(string symbolPrefix)
     {
         return $"{symbolPrefix}-{TokenContractConstants.CollectionSymbolSuffix}";
