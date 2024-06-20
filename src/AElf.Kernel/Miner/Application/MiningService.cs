@@ -51,7 +51,7 @@ public class MiningService : IMiningService
             var expirationTime = blockTime + requestMiningDto.BlockExecutionTime;
             if (expirationTime < TimestampHelper.GetUtcNow())
             {
-                await cts.CancelAsync();
+                cts.Cancel();
             }
             else
             {
@@ -61,14 +61,10 @@ public class MiningService : IMiningService
                 cts.CancelAfter(ts);
             }
 
-            var (blockTask, systemTransactionsTask) = (
-                GenerateBlock(requestMiningDto.PreviousBlockHash, requestMiningDto.PreviousBlockHeight, blockTime),
-                GenerateSystemTransactions(requestMiningDto.PreviousBlockHash, requestMiningDto.PreviousBlockHeight)
-            );
-
-            var block = await blockTask;
-            var systemTransactions = await systemTransactionsTask;
-
+            var block = await GenerateBlock(requestMiningDto.PreviousBlockHash,
+                requestMiningDto.PreviousBlockHeight, blockTime);
+            var systemTransactions = await GenerateSystemTransactions(requestMiningDto.PreviousBlockHash,
+                requestMiningDto.PreviousBlockHeight);
             _systemTransactionExtraDataProvider.SetSystemTransactionCount(systemTransactions.Count,
                 block.Header);
             var txTotalCount = transactions.Count + systemTransactions.Count;
