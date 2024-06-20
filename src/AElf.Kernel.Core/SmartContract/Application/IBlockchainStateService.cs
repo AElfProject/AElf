@@ -71,9 +71,9 @@ public class CachedBlockchainExecutedDataService<T> : ICachedBlockchainExecutedD
             && _blockchainExecutedDataCacheProvider.TryGetBlockExecutedData(key, out var value))
             return value;
 
-        var ret = AsyncHelper.RunSync(() => _blockchainExecutedDataManager.GetExecutedCacheAsync(key,
+        var ret = AsyncHelper.RunSync(async () => await _blockchainExecutedDataManager.GetExecutedCacheAsync(key,
             chainContext.BlockHeight,
-            chainContext.BlockHash));
+            chainContext.BlockHash).ConfigureAwait(false));
 
         var blockExecutedData = Deserialize(ret.Value);
 

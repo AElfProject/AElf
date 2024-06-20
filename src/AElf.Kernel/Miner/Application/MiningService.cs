@@ -11,7 +11,7 @@ using Volo.Abp.EventBus.Local;
 
 namespace AElf.Kernel.Miner.Application;
 
-public class MiningService : IMiningService
+public class MiningService : IMiningService,ISingletonDependency
 {
     private readonly IAccountService _accountService;
     private readonly IBlockchainService _blockchainService;
@@ -51,7 +51,7 @@ public class MiningService : IMiningService
             var expirationTime = blockTime + requestMiningDto.BlockExecutionTime;
             if (expirationTime < TimestampHelper.GetUtcNow())
             {
-                cts.Cancel();
+                await cts.CancelAsync();
             }
             else
             {
@@ -61,17 +61,19 @@ public class MiningService : IMiningService
                 cts.CancelAfter(ts);
             }
 
-            var block = await GenerateBlock(requestMiningDto.PreviousBlockHash,
-                requestMiningDto.PreviousBlockHeight, blockTime);
-            var systemTransactions = await GenerateSystemTransactions(requestMiningDto.PreviousBlockHash,
-                requestMiningDto.PreviousBlockHeight);
-            _systemTransactionExtraDataProvider.SetSystemTransactionCount(systemTransactions.Count,
-                block.Header);
+            var (blockTask, systemTransactionsTask) = (
+                GenerateBlock(requestMiningDto.PreviousBlockHash, requestMiningDto.PreviousBlockHeight, blockTime),
+                GenerateSystemTransactions(requestMiningDto.PreviousBlockHash, requestMiningDto.PreviousBlockHeight)
+            );
+
+            var block = await blockTask;
+            var systemTransactions = await systemTransactionsTask;
+
             var txTotalCount = transactions.Count + systemTransactions.Count;
 
             var pending = txTotalCount > requestMiningDto.TransactionCountLimit
                 ? transactions
-                    .Take(requestMiningDto.TransactionCountLimit - systemTransactions.Count)
+                    .Take(requestMiningDto.TransactionCountLimit - 1)
                     .ToList()
                 : transactions;
             var blockExecutedSet = await _blockExecutingService.ExecuteBlockAsync(block.Header,

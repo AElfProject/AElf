@@ -1,9 +1,15 @@
 using System;
+using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContractExecution.Application;
+using AElf.Types;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+using Volo.Abp.DependencyInjection;
+using Volo.Abp.EventBus;
 using Volo.Abp.EventBus.Local;
 
 namespace AElf.Kernel;
@@ -12,10 +18,14 @@ public class ConsensusRequestMiningEventHandler : ILocalEventHandler<ConsensusRe
     ITransientDependency
 {
     private readonly IBlockAttachService _blockAttachService;
+    private readonly ITaskQueueManager _taskQueueManager;
     private readonly IBlockchainService _blockchainService;
     private readonly IConsensusService _consensusService;
     private readonly IMiningRequestService _miningRequestService;
-    private readonly ITaskQueueManager _taskQueueManager;
+
+    public ILogger<ConsensusRequestMiningEventHandler> Logger { get; set; }
+
+    public ILocalEventBus LocalEventBus { get; set; }
 
     public ConsensusRequestMiningEventHandler(
         IBlockAttachService blockAttachService,
@@ -33,24 +43,21 @@ public class ConsensusRequestMiningEventHandler : ILocalEventHandler<ConsensusRe
         LocalEventBus = NullLocalEventBus.Instance;
     }
 
-    public ILogger<ConsensusRequestMiningEventHandler> Logger { get; set; }
-
-    public ILocalEventBus LocalEventBus { get; set; }
-
     public Task HandleEventAsync(ConsensusRequestMiningEventData eventData)
     {
         _taskQueueManager.Enqueue(async () =>
         {
+            Logger.LogTrace("Begin ConsensusRequestMiningEventHandler.HandleEventAsync");
             var chain = await _blockchainService.GetChainAsync();
             if (eventData.PreviousBlockHash != chain.BestChainHash)
             {
-                Logger.LogDebug("Mining canceled because best chain already updated");
+                Logger.LogDebug("Mining canceled because best chain already updated.");
                 return;
             }
 
             try
             {
-                var block = await _miningRequestService.RequestMiningAsync(new ConsensusRequestMiningDto
+                var blockExecutedSet = await _miningRequestService.RequestMiningAsync(new ConsensusRequestMiningDto
                 {
                     BlockTime = eventData.BlockTime,
                     BlockExecutionTime = eventData.BlockExecutionTime,
@@ -58,32 +65,32 @@ public class ConsensusRequestMiningEventHandler : ILocalEventHandler<ConsensusRe
                     PreviousBlockHash = eventData.PreviousBlockHash,
                     PreviousBlockHeight = eventData.PreviousBlockHeight
                 });
-
-                if (block != null)
+                    
+                if (blockExecutedSet != null)
                 {
-                    await _blockchainService.AddBlockAsync(block);
+                    await _blockchainService.AddBlockAsync(blockExecutedSet.Block);
 
-                    Logger.LogTrace("Before enqueue attach job");
-                    _taskQueueManager.Enqueue(async () => await _blockAttachService.AttachBlockAsync(block),
+                    _taskQueueManager.Enqueue(async () => await _blockAttachService.AttachBlockAsync(blockExecutedSet.Block),
                         KernelConstants.UpdateChainQueueName);
 
-                    Logger.LogTrace("Before publish block");
-
+                    Logger.LogTrace("Begin publish block mined event.");
                     await LocalEventBus.PublishAsync(new BlockMinedEventData
                     {
-                        BlockHeader = block.Header
+                        BlockHeader = blockExecutedSet.Block.Header,
+                        Transactions = blockExecutedSet.Transactions
                     });
+                    Logger.LogTrace("End publish block mined event.");
+
                 }
                 else
-                {
                     await TriggerConsensusEventAsync(chain.BestChainHash, chain.BestChainHeight);
-                }
             }
             catch (Exception)
             {
                 await TriggerConsensusEventAsync(chain.BestChainHash, chain.BestChainHeight);
                 throw;
             }
+            Logger.LogTrace("End ConsensusRequestMiningEventHandler.HandleEventAsync");
         }, KernelConstants.ConsensusRequestMiningQueueName);
 
         return Task.CompletedTask;

@@ -13,6 +13,8 @@ public interface ITransactionResultService : ITransactionResultQueryService
     Task AddTransactionResultsAsync(IList<TransactionResult> transactionResult, BlockHeader blockHeader);
 
     Task ProcessTransactionResultAfterExecutionAsync(BlockHeader blockHeader, List<Hash> transactionIds);
+    
+    Task<List<TransactionResult>> GetTransactionResultsAsync(IList<Hash> transactionIds, Hash blockHash);
 }
 
 public class TransactionResultService : ITransactionResultService, ITransientDependency
@@ -66,5 +68,10 @@ public class TransactionResultService : ITransactionResultService, ITransientDep
             return;
 
         await _transactionBlockIndexService.AddBlockIndexAsync(transactionIds, blockIndex);
+    }
+
+    public async Task<List<TransactionResult>> GetTransactionResultsAsync(IList<Hash> transactionIds, Hash blockHash)
+    {
+        return await _transactionResultManager.GetTransactionResultsAsync(transactionIds, blockHash);
     }
 }

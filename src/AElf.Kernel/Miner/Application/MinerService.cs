@@ -8,10 +8,11 @@ namespace AElf.Kernel.Miner.Application;
 
 public class MinerService : IMinerService
 {
-    private readonly IBlockTransactionLimitProvider _blockTransactionLimitProvider;
-    private readonly IMiningService _miningService;
-    private readonly ITransactionPackingOptionProvider _transactionPackingOptionProvider;
+    public ILogger<MinerService> Logger { get; set; }
     private readonly ITransactionPoolService _transactionPoolService;
+    private readonly IMiningService _miningService;
+    private readonly IBlockTransactionLimitProvider _blockTransactionLimitProvider;
+    private readonly ITransactionPackingOptionProvider _transactionPackingOptionProvider;
 
     public MinerService(IMiningService miningService,
         IBlockTransactionLimitProvider blockTransactionLimitProvider,
@@ -26,19 +27,18 @@ public class MinerService : IMinerService
         Logger = NullLogger<MinerService>.Instance;
     }
 
-    public ILogger<MinerService> Logger { get; set; }
-
     /// <inheritdoc />
     /// <summary>
-    ///     Mine process.
+    /// Mine process.
     /// </summary>
     /// <returns></returns>
     public async Task<BlockExecutedSet> MineAsync(Hash previousBlockHash, long previousBlockHeight,
         Timestamp blockTime,
         Duration blockExecutionTime)
     {
+        Logger.LogTrace("Begin MinerService.MineAsync");
         var txList = new List<Transaction>();
-
+            
         var chainContext = new ChainContext
         {
             BlockHash = previousBlockHash,
@@ -46,6 +46,7 @@ public class MinerService : IMinerService
         };
 
         var limit = await _blockTransactionLimitProvider.GetLimitAsync(chainContext);
+            
         if (_transactionPackingOptionProvider.IsTransactionPackable(chainContext))
         {
             var executableTransactionSet = await _transactionPoolService.GetExecutableTransactionSetAsync(
@@ -53,11 +54,13 @@ public class MinerService : IMinerService
 
             txList.AddRange(executableTransactionSet.Transactions);
         }
+            
 
         Logger.LogInformation(
-            "Start mining with previous hash: {PreviousBlockHash}, previous height: {PreviousBlockHeight}",
-            previousBlockHash.ToHex(), previousBlockHeight);
-        return await _miningService.MineAsync(
+            $"Start mining with previous hash: {previousBlockHash}, previous height: {previousBlockHeight}.");
+            
+        Logger.LogTrace("Begin mine block.");
+        var blockExecuteSet = await _miningService.MineAsync(
             new RequestMiningDto
             {
                 PreviousBlockHash = previousBlockHash,
@@ -65,5 +68,8 @@ public class MinerService : IMinerService
                 BlockExecutionTime = blockExecutionTime,
                 TransactionCountLimit = limit
             }, txList, blockTime);
+        Logger.LogTrace("End MinerService.MineAsync");
+
+        return blockExecuteSet;
     }
 }

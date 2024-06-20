@@ -4,13 +4,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.Standards.ACS2;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContract.Parallel.Domain;
+using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool;
-using AElf.Standards.ACS2;
 using AElf.Types;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
@@ -22,12 +23,16 @@ namespace AElf.Kernel.SmartContract.Parallel;
 public class ResourceExtractionService : IResourceExtractionService, ISingletonDependency
 {
     private readonly IBlockchainService _blockchainService;
-    private readonly INonparallelContractCodeProvider _nonparallelContractCodeProvider;
-
-    private readonly ConcurrentDictionary<Hash, TransactionResourceCache> _resourceCache = new();
-
     private readonly ISmartContractExecutiveService _smartContractExecutiveService;
+    private readonly INonparallelContractCodeProvider _nonparallelContractCodeProvider;
     private readonly ITransactionContextFactory _transactionContextFactory;
+    public ILogger<ResourceExtractionService> Logger { get; set; }
+
+    private readonly ConcurrentDictionary<Hash, TransactionResourceCache> _resourceCache =
+        new ConcurrentDictionary<Hash, TransactionResourceCache>();
+        
+    private readonly ConcurrentDictionary<Address, ResourceInfo> _contractResourceCache =
+        new ConcurrentDictionary<Address, ResourceInfo>();
 
     public ResourceExtractionService(IBlockchainService blockchainService,
         ISmartContractExecutiveService smartContractExecutiveService,
@@ -42,12 +47,11 @@ public class ResourceExtractionService : IResourceExtractionService, ISingletonD
         Logger = NullLogger<ResourceExtractionService>.Instance;
     }
 
-    public ILogger<ResourceExtractionService> Logger { get; set; }
-
     public async Task<IEnumerable<TransactionWithResourceInfo>> GetResourcesAsync(
         IChainContext chainContext,
         IEnumerable<Transaction> transactions, CancellationToken ct)
     {
+        Logger.LogTrace("Begin ResourceExtractionService.GetResourcesAsync");
         // Parallel processing below (adding AsParallel) causes ReflectionTypeLoadException
         var transactionResourceList = new List<TransactionWithResourceInfo>();
         var contractResourceInfoCache = new Dictionary<Address, ContractResourceInfo>();
@@ -57,13 +61,8 @@ public class ResourceExtractionService : IResourceExtractionService, ISingletonD
                 await GetResourcesForOneWithCacheAsync(chainContext, t, ct, contractResourceInfoCache);
             transactionResourceList.Add(transactionResourcePair);
         }
-
+        Logger.LogTrace("End ResourceExtractionService.GetResourcesAsync");
         return transactionResourceList;
-    }
-
-    public void ClearConflictingTransactionsResourceCache(IEnumerable<Hash> transactionIds)
-    {
-        ClearResourceCache(transactionIds);
     }
 
     private async Task<TransactionWithResourceInfo> GetResourcesForOneWithCacheAsync(
@@ -75,7 +74,7 @@ public class ResourceExtractionService : IResourceExtractionService, ISingletonD
             return new TransactionWithResourceInfo
             {
                 Transaction = transaction,
-                TransactionResourceInfo = new TransactionResourceInfo
+                TransactionResourceInfo = new TransactionResourceInfo()
                 {
                     TransactionId = transaction.GetHash(),
                     ParallelType = ParallelType.NonParallelizable
@@ -83,23 +82,28 @@ public class ResourceExtractionService : IResourceExtractionService, ISingletonD
             };
 
         if (_resourceCache.TryGetValue(transaction.GetHash(), out var resourceCache))
+        {
             if (contractResourceInfoCache.TryGetValue(transaction.To, out var contractResourceInfo))
-                if (resourceCache.ResourceInfo.ContractHash == contractResourceInfo.CodeHash &&
-                    resourceCache.ResourceInfo.IsNonparallelContractCode ==
-                    contractResourceInfo.IsNonparallelContractCode)
+            {
+                if (resourceCache.ResourceInfo.ContractHash == contractResourceInfo.CodeHash)
+                {
                     return new TransactionWithResourceInfo
                     {
                         Transaction = transaction,
                         TransactionResourceInfo = resourceCache.ResourceInfo
                     };
+                }
+            }
+        }
 
         var resourceInfo = await GetResourcesForOneAsync(chainContext, transaction, ct);
         if (!contractResourceInfoCache.TryGetValue(transaction.To, out _))
+        {
             contractResourceInfoCache[transaction.To] = new ContractResourceInfo
             {
-                CodeHash = resourceInfo.ContractHash,
-                IsNonparallelContractCode = resourceInfo.IsNonparallelContractCode
+                CodeHash = resourceInfo.ContractHash
             };
+        }
 
         return new TransactionWithResourceInfo
         {
@@ -117,34 +121,54 @@ public class ResourceExtractionService : IResourceExtractionService, ISingletonD
         try
         {
             executive = await _smartContractExecutiveService.GetExecutiveAsync(chainContext, address);
+                
             if (!executive.IsParallelizable())
+            {
                 return new TransactionResourceInfo
                 {
                     TransactionId = transaction.GetHash(),
                     ParallelType = ParallelType.NonParallelizable,
                     ContractHash = executive.ContractHash
                 };
+            }
 
-            var nonparallelContractCode =
-                await _nonparallelContractCodeProvider.GetNonparallelContractCodeAsync(chainContext, address);
-            if (nonparallelContractCode != null && nonparallelContractCode.CodeHash == executive.ContractHash)
+            if (_resourceCache.TryGetValue(transaction.GetHash(), out var resourceCache) &&
+                executive.ContractHash == resourceCache.ResourceInfo.ContractHash)
+            {
+                return resourceCache.ResourceInfo;
+            }
+
+            // var txContext = GetTransactionContext(chainContext, transaction.To, transaction.ToByteString());
+            var resourceInfo = ExtractResourceInfo(transaction);
+            if (resourceInfo != null)
+            {
+                _contractResourceCache.TryAdd(address, resourceInfo);
+                return new TransactionResourceInfo
+                {
+                    TransactionId = transaction.GetHash(),
+                    WritePaths =
+                    {
+                        resourceInfo.WritePaths
+                    },
+                    ReadPaths = {resourceInfo.ReadPaths},
+                    ParallelType = resourceInfo.NonParallelizable
+                        ? ParallelType.NonParallelizable
+                        : ParallelType.Parallelizable,
+                    ContractHash = executive.ContractHash
+                };
+            }
+            else
+            {
                 return new TransactionResourceInfo
                 {
                     TransactionId = transaction.GetHash(),
                     ParallelType = ParallelType.NonParallelizable,
-                    ContractHash = executive.ContractHash,
-                    IsNonparallelContractCode = true
+                    ContractHash = executive.ContractHash
                 };
-
-            if (_resourceCache.TryGetValue(transaction.GetHash(), out var resourceCache) &&
-                executive.ContractHash == resourceCache.ResourceInfo.ContractHash &&
-                resourceCache.ResourceInfo.IsNonparallelContractCode == false)
-                return resourceCache.ResourceInfo;
-
-            var txContext = GetTransactionContext(chainContext, transaction.To, transaction.ToByteString());
-            var resourceInfo = await executive.GetTransactionResourceInfoAsync(txContext, transaction.GetHash());
+            }
+                
             // Try storing in cache here
-            return resourceInfo;
+            // return resourceInfo;
         }
         catch (SmartContractFindRegistrationException)
         {
@@ -157,44 +181,56 @@ public class ResourceExtractionService : IResourceExtractionService, ISingletonD
         finally
         {
             if (executive != null)
+            {
                 await _smartContractExecutiveService.PutExecutiveAsync(chainContext, address, executive);
+            }
         }
     }
 
-    private async Task<ChainContext> GetChainContextAsync()
+    private ResourceInfo ExtractResourceInfo(Transaction transaction)
     {
-        var chain = await _blockchainService.GetChainAsync();
-        if (chain == null) return null;
-
-        var chainContext = new ChainContext
+        switch (transaction.MethodName)
         {
-            BlockHash = chain.BestChainHash,
-            BlockHeight = chain.BestChainHeight
+            case ("Transfer"):
+            {
+                var resourceInfo = new ResourceInfo
+                {
+                    WritePaths =
+                    {
+                        GetPath(transaction.To, "Balances", transaction.From.ToString(), "args.Symbol"),
+                    },
+                    ReadPaths =
+                    {
+                        GetPath(transaction.To, "TokenInfos", "args.Symbol"),
+                    }
+                };
+
+                return resourceInfo;
+            }
+
+            default:
+                return new ResourceInfo {NonParallelizable = true};
+        }
+    }
+        
+    private ScopedStatePath GetPath(Address to, params string[] parts)
+    {
+        return new ScopedStatePath
+        {
+            Address = to,
+            Path = new StatePath
+            {
+                Parts =
+                {
+                    parts
+                }
+            }
         };
-        return chainContext;
     }
 
-    private ITransactionContext GetTransactionContext(IChainContext chainContext, Address contractAddress,
-        ByteString param)
+    public void ClearConflictingTransactionsResourceCache(IEnumerable<Hash> transactionIds)
     {
-        var generatedTxn = new Transaction
-        {
-            From = contractAddress,
-            To = contractAddress,
-            MethodName = nameof(ACS2BaseContainer.ACS2BaseStub.GetResourceInfo),
-            Params = param,
-            Signature = ByteString.CopyFromUtf8(KernelConstants.SignaturePlaceholder)
-        };
-
-        var txContext = _transactionContextFactory.Create(generatedTxn, chainContext);
-        return txContext;
-    }
-
-    private class ContractResourceInfo
-    {
-        public Hash CodeHash { get; set; }
-
-        public bool IsNonparallelContractCode { get; set; }
+        //ClearResourceCache(transactionIds);
     }
 
     #region Event Handler Methods
@@ -229,24 +265,68 @@ public class ResourceExtractionService : IResourceExtractionService, ISingletonD
     public async Task HandleBlockAcceptedAsync(BlockAcceptedEvent eventData)
     {
         ClearResourceCache(eventData.Block.TransactionIds);
+            
+        Logger.LogInformation($"Performance test: ResourceCache count {_resourceCache.Count}");
 
         await Task.CompletedTask;
     }
 
     private void ClearResourceCache(IEnumerable<Hash> transactions)
     {
-        foreach (var transactionId in transactions) _resourceCache.TryRemove(transactionId, out _);
+        foreach (var transactionId in transactions)
+        {
+            _resourceCache.TryRemove(transactionId, out _);
+        }
 
         Logger.LogDebug($"Resource cache size after cleanup: {_resourceCache.Count}");
     }
 
     #endregion
+
+    private async Task<ChainContext> GetChainContextAsync()
+    {
+        var chain = await _blockchainService.GetChainAsync();
+        if (chain == null)
+        {
+            return null;
+        }
+
+        var chainContext = new ChainContext()
+        {
+            BlockHash = chain.BestChainHash,
+            BlockHeight = chain.BestChainHeight
+        };
+        return chainContext;
+    }
+
+    private ITransactionContext GetTransactionContext(IChainContext chainContext, Address contractAddress, ByteString param)
+    {
+        var generatedTxn = new Transaction
+        {
+            From = contractAddress,
+            To = contractAddress,
+            MethodName = nameof(ACS2BaseContainer.ACS2BaseStub.GetResourceInfo),
+            Params = param,
+            Signature = ByteString.CopyFromUtf8(KernelConstants.SignaturePlaceholder)
+        };
+
+        var txContext = _transactionContextFactory.Create(generatedTxn, chainContext);
+        return txContext;
+    }
+        
+    private class ContractResourceInfo
+    {
+        public Hash CodeHash { get; set; }
+
+        public bool IsNonparallelContractCode { get; set; }
+    }
 }
 
 internal class TransactionResourceCache
 {
-    public readonly Address Address;
+    public long ResourceUsedBlockHeight { get; set; }
     public readonly TransactionResourceInfo ResourceInfo;
+    public readonly Address Address;
 
     public TransactionResourceCache(TransactionResourceInfo resourceInfo, Address address,
         long resourceUsedBlockHeight)
@@ -255,6 +335,4 @@ internal class TransactionResourceCache
         ResourceInfo = resourceInfo;
         Address = address;
     }
-
-    public long ResourceUsedBlockHeight { get; set; }
 }

@@ -26,8 +26,7 @@ public class LogEventProcessingService<T> : ILogEventProcessingService<T>
         {
             var block = executedSet.Block;
             // Should make sure tx results' order are same as tx ids in block body.
-            var txResults = executedSet.TransactionResultMap.Values
-                .OrderBy(d => block.Body.TransactionIds.IndexOf(d.TransactionId)).ToList();
+            var txResults = executedSet.TransactionResults;
 
             if (!txResults.Any()) continue;
 

@@ -33,7 +33,8 @@ internal class ScopedStateProvider : IScopedStateProvider
             Path = path
         };
         var byteString =
-            AsyncHelper.RunSync(() => HostSmartContractBridgeContext.GetStateAsync(scoped.ToStateKey()));
+            AsyncHelper.RunSync(async () =>
+                await HostSmartContractBridgeContext.GetStateAsync(scoped.ToStateKey()).ConfigureAwait(false));
         return byteString?.ToByteArray();
     }
 }

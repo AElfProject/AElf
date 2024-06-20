@@ -1,12 +1,13 @@
 using System;
 using AElf.CSharp.Core.Extension;
+using AElf.Kernel.Blockchain;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Kernel.Miner.Application;
 
 public interface IMiningRequestService
 {
-    Task<Block> RequestMiningAsync(ConsensusRequestMiningDto requestMiningDto);
+    Task<BlockExecutedSet> RequestMiningAsync(ConsensusRequestMiningDto requestMiningDto);
 }
 
 public class ConsensusRequestMiningDto
@@ -21,45 +22,50 @@ public class ConsensusRequestMiningDto
 public class MiningRequestService : IMiningRequestService
 {
     private readonly IMinerService _minerService;
+    public ILogger<MiningRequestService> Logger { get; set; }
 
     public MiningRequestService(IMinerService minerService)
     {
         _minerService = minerService;
     }
 
-    public ILogger<MiningRequestService> Logger { get; set; }
-
-    public async Task<Block> RequestMiningAsync(ConsensusRequestMiningDto requestMiningDto)
+    public async Task<BlockExecutedSet> RequestMiningAsync(ConsensusRequestMiningDto requestMiningDto)
     {
+        Logger.LogTrace("Begin MiningRequestService.RequestMiningAsync");
+        var dur = requestMiningDto.BlockExecutionTime;
         if (!ValidateBlockMiningTime(requestMiningDto.BlockTime, requestMiningDto.MiningDueTime,
-                requestMiningDto.BlockExecutionTime))
+                ref dur))
             return null;
-
+            
         var blockExecutionDuration =
-            CalculateBlockMiningDuration(requestMiningDto.BlockTime, requestMiningDto.BlockExecutionTime);
+            CalculateBlockMiningDuration(requestMiningDto.BlockTime, dur);
 
-        var block = (await _minerService.MineAsync(requestMiningDto.PreviousBlockHash,
-            requestMiningDto.PreviousBlockHeight, requestMiningDto.BlockTime, blockExecutionDuration)).Block;
+        var blockExecutedSet = await _minerService.MineAsync(requestMiningDto.PreviousBlockHash,
+            requestMiningDto.PreviousBlockHeight, requestMiningDto.BlockTime, blockExecutionDuration);
 
-        return block;
+        Logger.LogTrace("End MiningRequestService.RequestMiningAsync");
+        return blockExecutedSet;
     }
 
     private bool ValidateBlockMiningTime(Timestamp blockTime, Timestamp miningDueTime,
-        Duration blockExecutionDuration)
+        ref Duration blockExecutionDuration)
     {
         if (miningDueTime - Duration.FromTimeSpan(TimeSpan.FromMilliseconds(250)) <
             blockTime + blockExecutionDuration)
         {
             Logger.LogDebug(
-                "Mining canceled because mining time slot expired. MiningDueTime: {MiningDueTime}, BlockTime: {BlockTime}, Duration: {BlockExecutionDuration}",
-                miningDueTime, blockTime, blockExecutionDuration);
-            return false;
+                $"Mining time not enough. MiningDueTime: {miningDueTime}, BlockTime: {blockTime}, Duration: {blockExecutionDuration}");
+
+            if (miningDueTime < blockTime + Duration.FromTimeSpan(TimeSpan.FromMilliseconds(250)))
+                return false;
+                
+            blockExecutionDuration = miningDueTime - Duration.FromTimeSpan(TimeSpan.FromMilliseconds(250)) - blockTime;
+            return true;
         }
 
         if (blockTime + blockExecutionDuration >= TimestampHelper.GetUtcNow()) return true;
-        Logger.LogDebug(
-            "Will cancel mining due to timeout: Actual mining time: {BlockTime}, execution limit: {BlockExecutionDuration} ms",
-            blockTime, blockExecutionDuration.Milliseconds());
+        Logger.LogDebug($"Will cancel mining due to timeout: Actual mining time: {blockTime}, " +
+                        $"execution limit: {blockExecutionDuration.Milliseconds()} ms.");
         return false;
     }
 
