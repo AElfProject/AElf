@@ -24,7 +24,6 @@ public class CoreKernelAElfModule : AElfModule
         var services = context.Services;
 
         services.AddTransient<ITransactionResultQueryService, TransactionResultService>();
-        services.AddTransient<IBlockValidationProvider, SystemTransactionValidationProvider>();
 
         services.AddTransient(typeof(IStoreKeyPrefixProvider<>), typeof(StoreKeyPrefixProvider<>));
 
@@ -51,13 +50,6 @@ public class CoreKernelAElfModule : AElfModule
 
         services.AddKeyValueDbContext<BlockchainKeyValueDbContext>(p => p.UseRedisDatabase());
         services.AddKeyValueDbContext<StateKeyValueDbContext>(p => p.UseRedisDatabase());
-    }
-
-    public override void OnPostApplicationInitialization(ApplicationInitializationContext context)
-    {
-        var transactionBlockIndexService =
-            context.ServiceProvider.GetRequiredService<ITransactionBlockIndexService>();
-        AsyncHelper.RunSync(transactionBlockIndexService.LoadTransactionBlockIndexAsync);
     }
 }
 

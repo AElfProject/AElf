@@ -10,6 +10,7 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Domain;
+using AElf.Kernel.SmartContractExecution.Infrastructure;
 using AElf.Types;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
@@ -20,31 +21,32 @@ namespace AElf.Kernel.SmartContractExecution.Application;
 
 public class BlockExecutingService : IBlockExecutingService, ITransientDependency
 {
-    private readonly IBlockchainStateService _blockchainStateService;
-    private readonly ISystemTransactionExtraDataProvider _systemTransactionExtraDataProvider;
     private readonly ITransactionExecutingService _transactionExecutingService;
+    private readonly IBlockchainStateService _blockchainStateService;
     private readonly ITransactionResultService _transactionResultService;
+    private readonly ISystemTransactionExtraDataProvider _systemTransactionExtraDataProvider;
+    private readonly IExecutedTransactionResultCacheProvider _executedTransactionResultCacheProvider;
+    public ILocalEventBus EventBus { get; set; }
+    public ILogger<BlockExecutingService> Logger { get; set; }
 
     public BlockExecutingService(ITransactionExecutingService transactionExecutingService,
         IBlockchainStateService blockchainStateService,
         ITransactionResultService transactionResultService,
-        ISystemTransactionExtraDataProvider systemTransactionExtraDataProvider)
+        ISystemTransactionExtraDataProvider systemTransactionExtraDataProvider,
+        IExecutedTransactionResultCacheProvider executedTransactionResultCacheProvider)
     {
         _transactionExecutingService = transactionExecutingService;
         _blockchainStateService = blockchainStateService;
         _transactionResultService = transactionResultService;
         _systemTransactionExtraDataProvider = systemTransactionExtraDataProvider;
+        _executedTransactionResultCacheProvider = executedTransactionResultCacheProvider;
         EventBus = NullLocalEventBus.Instance;
     }
-
-    public ILocalEventBus EventBus { get; set; }
-    public ILogger<BlockExecutingService> Logger { get; set; }
 
     public async Task<BlockExecutedSet> ExecuteBlockAsync(BlockHeader blockHeader,
         List<Transaction> nonCancellableTransactions)
     {
-        _systemTransactionExtraDataProvider.TryGetSystemTransactionCount(blockHeader,
-            out var systemTransactionCount);
+        var systemTransactionCount = 1;
         return await ExecuteBlockAsync(blockHeader, nonCancellableTransactions.Take(systemTransactionCount),
             nonCancellableTransactions.Skip(systemTransactionCount),
             CancellationToken.None);
@@ -54,17 +56,16 @@ public class BlockExecutingService : IBlockExecutingService, ITransientDependenc
         IEnumerable<Transaction> nonCancellableTransactions, IEnumerable<Transaction> cancellableTransactions,
         CancellationToken cancellationToken)
     {
-        Logger.LogTrace("Entered ExecuteBlockAsync");
+        Logger.LogTrace("Begin BlockExecutingService.ExecuteBlockAsync");
         var nonCancellable = nonCancellableTransactions.ToList();
         var cancellable = cancellableTransactions.ToList();
         var nonCancellableReturnSets =
             await _transactionExecutingService.ExecuteAsync(
-                new TransactionExecutingDto { BlockHeader = blockHeader, Transactions = nonCancellable },
+                new TransactionExecutingDto {BlockHeader = blockHeader, Transactions = nonCancellable},
                 CancellationToken.None);
-        Logger.LogTrace($"Executed non-cancellable txs: {nonCancellableReturnSets.Count}");
 
         var returnSetCollection = new ExecutionReturnSetCollection(nonCancellableReturnSets);
-        var cancellableReturnSets = new List<ExecutionReturnSet>();
+        List<ExecutionReturnSet> cancellableReturnSets = new List<ExecutionReturnSet>();
 
         if (!cancellationToken.IsCancellationRequested && cancellable.Count > 0)
         {
@@ -77,17 +78,15 @@ public class BlockExecutingService : IBlockExecutingService, ITransientDependenc
                 },
                 cancellationToken);
             returnSetCollection.AddRange(cancellableReturnSets);
-            Logger.LogTrace($"Executed cancellable txs: {cancellableReturnSets.Count}");
-        }
-        else
-        {
-            Logger.LogTrace("Cancellable transactions are not executed.");
         }
 
+        Logger.LogTrace("Create ExecutedCancellableTransactions HashSet");
         var executedCancellableTransactions = new HashSet<Hash>(cancellableReturnSets.Select(x => x.TransactionId));
+        Logger.LogTrace("Concat AllExecutedTransactions");
         var allExecutedTransactions =
             nonCancellable.Concat(cancellable.Where(x => executedCancellableTransactions.Contains(x.GetHash())))
                 .ToList();
+        Logger.LogTrace("Create block state set.");
         var blockStateSet =
             CreateBlockStateSet(blockHeader.PreviousBlockHash, blockHeader.Height, returnSetCollection);
         var block = await FillBlockAfterExecutionAsync(blockHeader, allExecutedTransactions, returnSetCollection,
@@ -98,17 +97,15 @@ public class BlockExecutingService : IBlockExecutingService, ITransientDependenc
 
         // set blocks state
         blockStateSet.BlockHash = block.GetHash();
-        Logger.LogTrace("Set block state set.");
         await _blockchainStateService.SetBlockStateSetAsync(blockStateSet);
+        Logger.LogTrace("Set block state set.");
 
-        // handle execution cases 
-        await CleanUpReturnSetCollectionAsync(block.Header, returnSetCollection);
-
+        Logger.LogTrace("End BlockExecutingService.ExecuteBlockAsync");
         return new BlockExecutedSet
         {
             Block = block,
-            TransactionMap = allExecutedTransactions.ToDictionary(p => p.GetHash(), p => p),
-            TransactionResultMap = transactionResults.ToDictionary(p => p.TransactionId, p => p)
+            Transactions = allExecutedTransactions,
+            TransactionResults = transactionResults
         };
     }
 
@@ -116,14 +113,28 @@ public class BlockExecutingService : IBlockExecutingService, ITransientDependenc
         IEnumerable<Transaction> transactions, ExecutionReturnSetCollection executionReturnSetCollection,
         BlockStateSet blockStateSet)
     {
-        Logger.LogTrace("Start block field filling after execution.");
+        Logger.LogTrace("Begin BlockExecutingService.FillBlockAfterExecutionAsync");
         var bloom = new Bloom();
         foreach (var returnSet in executionReturnSetCollection.Executed)
-            bloom.Combine(new[] { new Bloom(returnSet.Bloom.ToByteArray()) });
+        {
+            bloom.Combine(new[] {new Bloom(returnSet.Bloom.ToByteArray())});
+        }
+
+        Logger.LogTrace("Handle transaction ids");
 
         var allExecutedTransactionIds = transactions.Select(x => x.GetHash()).ToList();
+        var txIndex = new Dictionary<Hash, int>();
+        for (int i = 0; i < allExecutedTransactionIds.Count; i++)
+        {
+            txIndex[allExecutedTransactionIds[i]] = i;
+        }
+
+        Logger.LogTrace("Sort orderedReturnSets.");
+
         var orderedReturnSets = executionReturnSetCollection.GetExecutionReturnSetList()
-            .OrderBy(d => allExecutedTransactionIds.IndexOf(d.TransactionId)).ToList();
+            .OrderBy(d => txIndex[d.TransactionId]).ToList();
+            
+        Logger.LogTrace("End sort orderedReturnSets.");
 
         var block = new Block
         {
@@ -136,11 +147,11 @@ public class BlockExecutingService : IBlockExecutingService, ITransientDependenc
             },
             Body = new BlockBody
             {
-                TransactionIds = { allExecutedTransactionIds }
+                TransactionIds = {allExecutedTransactionIds}
             }
         };
 
-        Logger.LogTrace("Finish block field filling after execution.");
+        Logger.LogTrace("End BlockExecutingService.FillBlockAfterExecutionAsync");
         return Task.FromResult(block);
     }
 
@@ -152,40 +163,51 @@ public class BlockExecutingService : IBlockExecutingService, ITransientDependenc
 
     private Hash CalculateWorldStateMerkleTreeRoot(BlockStateSet blockStateSet)
     {
-        Logger.LogTrace("Start world state calculation.");
+        Logger.LogTrace("Begin BlockExecutingService.CalculateWorldStateMerkleTreeRoot");
+        Hash merkleTreeRootOfWorldState;
         var byteArrays = GetDeterministicByteArrays(blockStateSet);
-        using var hashAlgorithm = SHA256.Create();
-        foreach (var bytes in byteArrays)
+        using (var hashAlgorithm = SHA256.Create())
         {
-            hashAlgorithm.TransformBlock(bytes, 0, bytes.Length, null, 0);
+            foreach (var bytes in byteArrays)
+            {
+                hashAlgorithm.TransformBlock(bytes, 0, bytes.Length, null, 0);
+            }
+
+            hashAlgorithm.TransformFinalBlock(new byte[0], 0, 0);
+            merkleTreeRootOfWorldState = Hash.LoadFromByteArray(hashAlgorithm.Hash);
         }
-        
-        hashAlgorithm.TransformFinalBlock(new byte[0], 0, 0);
-        var merkleTreeRootOfWorldState = Hash.LoadFromByteArray(hashAlgorithm.Hash);
+        Logger.LogTrace("End BlockExecutingService.CalculateWorldStateMerkleTreeRoot");
+
         return merkleTreeRootOfWorldState;
     }
 
     private IEnumerable<byte[]> GetDeterministicByteArrays(BlockStateSet blockStateSet)
     {
-        var sortedKeys = new SortedSet<string>(blockStateSet.Changes.Keys.Concat(blockStateSet.Deletes));
-        foreach (var k in sortedKeys)
+        var keys = blockStateSet.Changes.Keys;
+        foreach (var k in new SortedSet<string>(keys))
         {
             yield return Encoding.UTF8.GetBytes(k);
-            yield return blockStateSet.Changes.TryGetValue(k, out var value)
-                ? value.ToByteArray()
-                : ByteString.Empty.ToByteArray();
+            yield return blockStateSet.Changes[k].ToByteArray();
+        }
+
+        keys = blockStateSet.Deletes;
+        foreach (var k in new SortedSet<string>(keys))
+        {
+            yield return Encoding.UTF8.GetBytes(k);
+            yield return ByteString.Empty.ToByteArray();
         }
     }
 
     private Hash CalculateTransactionStatusMerkleTreeRoot(List<ExecutionReturnSet> blockExecutionReturnSet)
     {
-        Logger.LogTrace("Start transaction status merkle tree root calculation.");
-        var executionReturnSet = blockExecutionReturnSet.Select(executionReturn =>
-            (executionReturn.TransactionId, executionReturn.Status));
+        Logger.LogTrace("Begin BlockExecutingService.CalculateTransactionStatusMerkleTreeRoot");
         var nodes = new List<Hash>();
-        foreach (var (transactionId, status) in executionReturnSet)
-            nodes.Add(GetHashCombiningTransactionAndStatus(transactionId, status));
+        foreach (var set in blockExecutionReturnSet)
+        {
+            nodes.Add(GetHashCombiningTransactionAndStatus(set.TransactionId, set.Status));
+        }
 
+        Logger.LogTrace("End BlockExecutingService.CalculateTransactionStatusMerkleTreeRoot");
         return BinaryMerkleTree.FromLeafNodes(nodes).Root;
     }
 
@@ -207,6 +229,7 @@ public class BlockExecutingService : IBlockExecutingService, ITransientDependenc
     private BlockStateSet CreateBlockStateSet(Hash previousBlockHash, long blockHeight,
         ExecutionReturnSetCollection executionReturnSetCollection)
     {
+        Logger.LogTrace("Begin BlockExecutingService.CreateBlockStateSet");
         var blockStateSet = new BlockStateSet
         {
             BlockHeight = blockHeight,
@@ -227,6 +250,7 @@ public class BlockExecutingService : IBlockExecutingService, ITransientDependenc
             }
         }
 
+        Logger.LogTrace("End BlockExecutingService.CreateBlockStateSet");
         return blockStateSet;
     }
 
@@ -234,6 +258,7 @@ public class BlockExecutingService : IBlockExecutingService, ITransientDependenc
         ExecutionReturnSetCollection executionReturnSetCollection, BlockHeader blockHeader)
     {
         //save all transaction results
+        Logger.LogTrace("Begin BlockExecutingService.SetTransactionResultsAsync");
         var results = executionReturnSetCollection.GetExecutionReturnSetList()
             .Select(p =>
             {
@@ -242,7 +267,12 @@ public class BlockExecutingService : IBlockExecutingService, ITransientDependenc
                 return p.TransactionResult;
             }).ToList();
 
-        await _transactionResultService.AddTransactionResultsAsync(results, blockHeader);
+        _executedTransactionResultCacheProvider.AddTransactionResults(blockHeader.GetHash(), results);
+        Task.Run(async () =>
+        {
+            await _transactionResultService.AddTransactionResultsAsync(results, blockHeader).ConfigureAwait(false);
+        });
+        Logger.LogTrace("End BlockExecutingService.SetTransactionResultsAsync");
         return results;
     }
 }

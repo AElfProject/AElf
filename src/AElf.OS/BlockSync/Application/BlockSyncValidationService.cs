@@ -69,10 +69,6 @@ public class BlockSyncValidationService : IBlockSyncValidationService
 
     public async Task<bool> ValidateBlockBeforeAttachAsync(BlockWithTransactions blockWithTransactions)
     {
-        if (!await _blockValidationService.ValidateBlockBeforeAttachAsync(blockWithTransactions)) return false;
-
-        if (!await ValidateTransactionAsync(blockWithTransactions)) return false;
-
         return true;
     }
 

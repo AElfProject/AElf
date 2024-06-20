@@ -29,7 +29,8 @@ internal class AEDPoSTriggerInformationProvider : ITriggerInformationProvider
         Logger = NullLogger<AEDPoSTriggerInformationProvider>.Instance;
     }
 
-    private ByteString Pubkey => ByteString.CopyFrom(AsyncHelper.RunSync(_accountService.GetPublicKeyAsync));
+    private ByteString Pubkey => ByteString.CopyFrom(AsyncHelper.RunSync(async () =>
+        await _accountService.GetPublicKeyAsync().ConfigureAwait(false)));
 
     public ILogger<AEDPoSTriggerInformationProvider> Logger { get; set; }
 

@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using AElf.Kernel.FeatureDisable.Core;
-using AElf.Kernel.SmartContract.Domain;
+using AElf.Kernel.Infrastructure;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Types;
+using AElf.Kernel.SmartContract.Domain;
 using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
@@ -18,28 +18,25 @@ namespace AElf.Kernel.SmartContract.Application;
 
 public class PlainTransactionExecutingService : IPlainTransactionExecutingService, ISingletonDependency
 {
-    private readonly List<IPostExecutionPlugin> _postPlugins;
-    private readonly List<IPreExecutionPlugin> _prePlugins;
     private readonly ISmartContractExecutiveService _smartContractExecutiveService;
     private readonly ITransactionContextFactory _transactionContextFactory;
-    private readonly IFeatureDisableService _featureDisableService;
+    private readonly List<IPreExecutionPlugin> _prePlugins;
+    private readonly List<IPostExecutionPlugin> _postPlugins;
+    public ILogger<PlainTransactionExecutingService> Logger { get; set; }
+
+    public ILocalEventBus LocalEventBus { get; set; }
 
     public PlainTransactionExecutingService(ISmartContractExecutiveService smartContractExecutiveService,
-        IEnumerable<IPostExecutionPlugin> postPlugins, IEnumerable<IPreExecutionPlugin> prePlugins,
-        ITransactionContextFactory transactionContextFactory, IFeatureDisableService featureDisableService)
+        IEnumerable<IPostExecutionPlugin> postPlugins, IEnumerable<IPreExecutionPlugin> prePlugins, 
+        ITransactionContextFactory transactionContextFactory)
     {
         _smartContractExecutiveService = smartContractExecutiveService;
         _transactionContextFactory = transactionContextFactory;
-        _featureDisableService = featureDisableService;
         _prePlugins = GetUniquePlugins(prePlugins);
         _postPlugins = GetUniquePlugins(postPlugins);
         Logger = NullLogger<PlainTransactionExecutingService>.Instance;
         LocalEventBus = NullLocalEventBus.Instance;
     }
-
-    public ILogger<PlainTransactionExecutingService> Logger { get; set; }
-
-    public ILocalEventBus LocalEventBus { get; set; }
 
     public async Task<List<ExecutionReturnSet>> ExecuteAsync(TransactionExecutingDto transactionExecutingDto,
         CancellationToken cancellationToken)
@@ -68,14 +65,15 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
                 };
                 try
                 {
-                    var transactionExecutionTask = Task.Run(() => ExecuteOneAsync(singleTxExecutingDto,
-                        cancellationToken), cancellationToken);
-
-                    trace = await transactionExecutionTask.WithCancellation(cancellationToken);
+                    // var transactionExecutionTask = ExecuteOneAsync(singleTxExecutingDto,
+                    //     cancellationToken);
+                    //
+                    // trace = await transactionExecutionTask.WithCancellation(cancellationToken);
+                    trace = await ExecuteOneAsync(singleTxExecutingDto, cancellationToken);
                 }
                 catch (OperationCanceledException)
                 {
-                    Logger.LogTrace("Transaction canceled");
+                    // Logger.LogTrace("Transaction canceled.");
                     if (cancellationToken.IsCancellationRequested)
                         break;
                     continue;
@@ -85,7 +83,10 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
                 if (!TryUpdateStateCache(trace, groupStateCache))
                     break;
 #if DEBUG
-                if (!string.IsNullOrEmpty(trace.Error)) Logger.LogInformation("{Error}", trace.Error);
+                if (!string.IsNullOrEmpty(trace.Error))
+                {
+                    Logger.LogInformation(trace.Error);
+                }
 #endif
                 var result = GetTransactionResult(trace, transactionExecutingDto.BlockHeader.Height);
 
@@ -97,7 +98,7 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
         }
         catch (Exception e)
         {
-            Logger.LogError(e, "Failed while executing txs in block");
+            Logger.LogError(e, "Failed while executing txs in block.");
             throw;
         }
     }
@@ -162,19 +163,6 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
 
         try
         {
-            #region PreTransaction
-
-            if (singleTxExecutingDto.Depth == 0)
-                if (!await ExecutePluginOnPreTransactionStageAsync(executive, txContext,
-                        singleTxExecutingDto.CurrentBlockTime,
-                        internalChainContext, internalStateCache, cancellationToken))
-                {
-                    trace.ExecutionStatus = ExecutionStatus.Prefailed;
-                    return trace;
-                }
-
-            #endregion
-
             await executive.ApplyAsync(txContext);
 
             if (txContext.Trace.IsSuccessful())
@@ -183,23 +171,10 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
                     internalChainContext,
                     singleTxExecutingDto.OriginTransactionId,
                     cancellationToken);
-
-            #region PostTransaction
-
-            if (singleTxExecutingDto.Depth == 0)
-                if (!await ExecutePluginOnPostTransactionStageAsync(executive, txContext,
-                        singleTxExecutingDto.CurrentBlockTime,
-                        internalChainContext, internalStateCache, cancellationToken))
-                {
-                    trace.ExecutionStatus = ExecutionStatus.Postfailed;
-                    return trace;
-                }
-
-            #endregion
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "Transaction execution failed");
+            Logger.LogError(ex, "Transaction execution failed.");
             txContext.Trace.ExecutionStatus = ExecutionStatus.ContractError;
             txContext.Trace.Error += ex + "\n";
             throw;
@@ -239,8 +214,10 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
                 break;
             trace.InlineTraces.Add(inlineTrace);
             if (!inlineTrace.IsSuccessful())
+            {
                 // Already failed, no need to execute remaining inline transactions
                 break;
+            }
 
             internalStateCache.Update(inlineTrace.GetStateSets());
         }
@@ -253,11 +230,6 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
         TieredStateCache internalStateCache,
         CancellationToken cancellationToken)
     {
-        if (await _featureDisableService.IsFeatureDisabledAsync("TxPlugin", "PrePlugin"))
-        {
-            return true;
-        }
-
         var trace = txContext.Trace;
         foreach (var plugin in _prePlugins)
         {
@@ -278,7 +250,10 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
                 trace.PreTransactions.Add(preTx);
                 trace.PreTraces.Add(preTrace);
 
-                if (!preTrace.IsSuccessful()) return false;
+                if (!preTrace.IsSuccessful())
+                {
+                    return false;
+                }
 
                 var stateSets = preTrace.GetStateSets().ToList();
                 internalStateCache.Update(stateSets);
@@ -286,7 +261,7 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
                 parentStateCache?.Update(stateSets);
 
                 if (!plugin.IsStopExecuting(preTrace.ReturnValue, out var error)) continue;
-
+                    
                 // If pre-tx fails, still commit the changes, but return false to notice outside to stop the execution.
                 preTrace.Error = error;
                 preTrace.ExecutionStatus = ExecutionStatus.Executed;
@@ -304,11 +279,6 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
         TieredStateCache internalStateCache,
         CancellationToken cancellationToken)
     {
-        if (await _featureDisableService.IsFeatureDisabledAsync("TxPlugin", "PostPlugin"))
-        {
-            return true;
-        }
-
         var trace = txContext.Trace;
 
         if (!trace.IsSuccessful())
@@ -344,7 +314,10 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
                 trace.PostTransactions.Add(postTx);
                 trace.PostTraces.Add(postTrace);
 
-                if (!postTrace.IsSuccessful()) return false;
+                if (!postTrace.IsSuccessful())
+                {
+                    return false;
+                }
 
                 internalStateCache.Update(postTrace.GetStateSets());
             }
@@ -358,9 +331,10 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
         var txResult = new TransactionResult
         {
             TransactionId = trace.TransactionId,
-            BlockNumber = blockHeight
+            BlockNumber = blockHeight,
+            StorageKey = trace.TransactionId.ToStorageKey()
         };
-
+            
         if (!trace.IsSuccessful())
         {
             // Is failed.
@@ -386,7 +360,7 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
             txResult.Status = TransactionResultStatus.Mined;
             txResult.ReturnValue = trace.ReturnValue;
             txResult.Logs.AddRange(trace.FlattenedLogs);
-
+                
             txResult.UpdateBloom();
         }
 
@@ -413,18 +387,24 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
         {
             var transactionExecutingStateSets = new List<TransactionExecutingStateSet>();
             foreach (var preTrace in trace.PreTraces)
+            {
                 if (preTrace.IsSuccessful())
                     transactionExecutingStateSets.AddRange(preTrace.GetStateSets());
+            }
 
             foreach (var postTrace in trace.PostTraces)
-                if (postTrace.IsSuccessful())
-                    transactionExecutingStateSets.AddRange(postTrace.GetStateSets());
+            {
+                if (postTrace.IsSuccessful()) transactionExecutingStateSets.AddRange(postTrace.GetStateSets());
+            }
 
             returnSet = GetReturnSet(returnSet, transactionExecutingStateSets);
         }
 
         var reads = trace.GetFlattenedReads();
-        foreach (var read in reads) returnSet.StateAccesses[read.Key] = read.Value;
+        foreach (var read in reads)
+        {
+            returnSet.StateAccesses[read.Key] = read.Value;
+        }
 
         return returnSet;
     }
@@ -465,13 +445,15 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
     protected ITransactionContext CreateTransactionContext(SingleTransactionExecutingDto singleTxExecutingDto)
     {
         if (singleTxExecutingDto.Transaction.To == null || singleTxExecutingDto.Transaction.From == null)
+        {
             throw new Exception($"error tx: {singleTxExecutingDto.Transaction}");
+        }
 
 
         var origin = singleTxExecutingDto.Origin != null
             ? singleTxExecutingDto.Origin
             : singleTxExecutingDto.Transaction.From;
-
+            
         var txContext = _transactionContextFactory.Create(singleTxExecutingDto.Transaction,
             singleTxExecutingDto.ChainContext, singleTxExecutingDto.OriginTransactionId, origin,
             singleTxExecutingDto.Depth, singleTxExecutingDto.CurrentBlockTime);

@@ -5,6 +5,7 @@ using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Domain;
 using AElf.Kernel.SmartContractExecution.Application;
+using AElf.Kernel.SmartContractExecution.Infrastructure;
 
 namespace AElf.Kernel.SmartContract.Parallel.Application;
 
@@ -12,9 +13,10 @@ public class BlockParallelExecutingService : BlockExecutingService
 {
     public BlockParallelExecutingService(ITransactionExecutingService transactionExecutingService,
         IBlockchainStateService blockchainStateService, ITransactionResultService transactionResultService,
-        ISystemTransactionExtraDataProvider systemTransactionExtraDataProvider) : base(
+        ISystemTransactionExtraDataProvider systemTransactionExtraDataProvider,
+        IExecutedTransactionResultCacheProvider executedTransactionResultCacheProvider) : base(
         transactionExecutingService, blockchainStateService, transactionResultService,
-        systemTransactionExtraDataProvider)
+        systemTransactionExtraDataProvider, executedTransactionResultCacheProvider)
     {
     }
 
@@ -22,10 +24,5 @@ public class BlockParallelExecutingService : BlockExecutingService
         ExecutionReturnSetCollection executionReturnSetCollection)
     {
         await base.CleanUpReturnSetCollectionAsync(blockHeader, executionReturnSetCollection);
-        if (executionReturnSetCollection.Conflict.Count > 0)
-            await EventBus.PublishAsync(new ConflictingTransactionsFoundInParallelGroupsEvent(
-                blockHeader, executionReturnSetCollection.Executed.ToList(),
-                executionReturnSetCollection.Conflict
-            ));
     }
 }

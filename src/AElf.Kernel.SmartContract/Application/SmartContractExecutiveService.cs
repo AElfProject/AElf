@@ -68,8 +68,7 @@ public class SmartContractExecutiveService : ISmartContractExecutiveService, ISi
         {
             var smartContractRegistration =
                 await _smartContractRegistrationProvider.GetSmartContractRegistrationAsync(chainContext, address);
-            if ((smartContractRegistration != null && smartContractRegistration.CodeHash == executive.ContractHash &&
-                 pool.Count < ExecutiveClearLimit) ||
+            if (smartContractRegistration != null && smartContractRegistration.CodeHash == executive.ContractHash ||
                 chainContext.BlockHeight <= AElfConstants.GenesisBlockHeight)
             {
                 executive.LastUsedTime = TimestampHelper.GetUtcNow();
@@ -100,7 +99,7 @@ public class SmartContractExecutiveService : ISmartContractExecutiveService, ISi
         foreach (var executivePool in pools)
         {
             var executiveBag = executivePool.Value;
-            if (executiveBag.Count == 0)
+            if (executiveBag.IsEmpty)
                 continue;
 
             if (executiveBag.Count > ExecutiveClearLimit || executiveBag.Min(o => o.LastUsedTime) <

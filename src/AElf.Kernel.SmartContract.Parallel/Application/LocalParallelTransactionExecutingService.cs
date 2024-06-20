@@ -1,7 +1,9 @@
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.Kernel.Infrastructure;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Domain;
@@ -10,6 +12,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus.Local;
+using Volo.Abp.Threading;
 
 namespace AElf.Kernel.SmartContract.Parallel.Application;
 
@@ -17,9 +20,11 @@ public class LocalParallelTransactionExecutingService : IParallelTransactionExec
 {
     private readonly ITransactionGrouper _grouper;
     private readonly IPlainTransactionExecutingService _planTransactionExecutingService;
+    public ILogger<LocalParallelTransactionExecutingService> Logger { get; set; }
+    public ILocalEventBus EventBus { get; set; }
 
     public LocalParallelTransactionExecutingService(ITransactionGrouper grouper,
-        IPlainTransactionExecutingService planTransactionExecutingService,
+        IPlainTransactionExecutingService planTransactionExecutingService, 
         ISystemTransactionExtraDataProvider systemTransactionExtraDataProvider)
     {
         _grouper = grouper;
@@ -28,13 +33,10 @@ public class LocalParallelTransactionExecutingService : IParallelTransactionExec
         Logger = NullLogger<LocalParallelTransactionExecutingService>.Instance;
     }
 
-    public ILogger<LocalParallelTransactionExecutingService> Logger { get; set; }
-    public ILocalEventBus EventBus { get; set; }
-
     public async Task<List<ExecutionReturnSet>> ExecuteAsync(TransactionExecutingDto transactionExecutingDto,
         CancellationToken cancellationToken)
     {
-        Logger.LogTrace("Entered parallel ExecuteAsync.");
+        Logger.LogTrace("Begin LocalParallelTransactionExecutingService.ExecuteAsync");
         var transactions = transactionExecutingDto.Transactions.ToList();
         var blockHeader = transactionExecutingDto.BlockHeader;
 
@@ -50,29 +52,19 @@ public class LocalParallelTransactionExecutingService : IParallelTransactionExec
         var mergeResult = await ExecuteParallelizableTransactionsAsync(groupedTransactions.Parallelizables,
             blockHeader, transactionExecutingDto.PartialBlockStateSet, cancellationToken);
         returnSets.AddRange(mergeResult.ExecutionReturnSets);
-        var conflictingSets = mergeResult.ConflictingReturnSets;
-
+            
         var returnSetCollection = new ExecutionReturnSetCollection(returnSets);
         var updatedPartialBlockStateSet = GetUpdatedBlockStateSet(returnSetCollection, transactionExecutingDto);
-
-        var nonParallelizableReturnSets = await ExecuteNonParallelizableTransactionsAsync(
-            groupedTransactions.NonParallelizables, blockHeader,
+            
+        var nonParallelizableReturnSets = await ExecuteNonParallelizableTransactionsAsync(groupedTransactions.NonParallelizables, blockHeader,
             updatedPartialBlockStateSet, cancellationToken);
         returnSets.AddRange(nonParallelizableReturnSets);
-
+        
         var transactionWithoutContractReturnSets = ProcessTransactionsWithoutContract(
             groupedTransactions.TransactionsWithoutContract);
 
-        Logger.LogTrace("Merged results from transactions without contract.");
         returnSets.AddRange(transactionWithoutContractReturnSets);
-
-        if (conflictingSets.Count > 0 &&
-            returnSets.Count + conflictingSets.Count == transactionExecutingDto.Transactions.Count())
-        {
-            ProcessConflictingSets(conflictingSets);
-            returnSets.AddRange(conflictingSets);
-        }
-
+        Logger.LogTrace("End LocalParallelTransactionExecutingService.ExecuteAsync");
         return returnSets;
     }
 
@@ -80,44 +72,63 @@ public class LocalParallelTransactionExecutingService : IParallelTransactionExec
         List<List<Transaction>> groupedTransactions, BlockHeader blockHeader, BlockStateSet blockStateSet,
         CancellationToken cancellationToken)
     {
-        var tasks = groupedTransactions.Select(
-            txns => ExecuteAndPreprocessResult(new TransactionExecutingDto
+        Logger.LogTrace("Begin LocalParallelTransactionExecutingService.ExecuteParallelizableTransactionsAsync");
+        // var tasks = groupedTransactions.Select(
+        //     txns => ExecuteAndPreprocessResult(new TransactionExecutingDto
+        //     {
+        //         BlockHeader = blockHeader,
+        //         Transactions = txns,
+        //         PartialBlockStateSet = blockStateSet
+        //     }, cancellationToken));
+        // var results = await Task.WhenAll(tasks);
+            
+        var resultCollection = new ConcurrentBag<GroupedExecutionReturnSets>();
+            
+        System.Threading.Tasks.Parallel.ForEach(groupedTransactions, groupedTransaction =>
+        {
+            AsyncHelper.RunSync(async () =>
             {
-                BlockHeader = blockHeader,
-                Transactions = txns,
-                PartialBlockStateSet = blockStateSet
-            }, cancellationToken));
-        var results = await Task.WhenAll(tasks);
-        Logger.LogTrace("Executed parallelizables.");
+                var processResult = await ExecuteAndPreprocessResult(new TransactionExecutingDto
+                {
+                    BlockHeader = blockHeader,
+                    Transactions = groupedTransaction,
+                    PartialBlockStateSet = blockStateSet
+                }, cancellationToken).ConfigureAwait(false);
+            
+                resultCollection.Add(processResult);
+            });
+        });
+            
+        var executionReturnSets = MergeResults(resultCollection.ToList());
+            
+        Logger.LogTrace("End LocalParallelTransactionExecutingService.ExecuteParallelizableTransactionsAsync");
 
-        var executionReturnSets = MergeResults(results, out var conflictingSets);
-        Logger.LogTrace("Merged results from parallelizables.");
         return new ExecutionReturnSetMergeResult
         {
-            ExecutionReturnSets = executionReturnSets,
-            ConflictingReturnSets = conflictingSets
+            ExecutionReturnSets = executionReturnSets
         };
     }
 
-    private async Task<List<ExecutionReturnSet>> ExecuteNonParallelizableTransactionsAsync(
-        List<Transaction> transactions,
+    private async Task<List<ExecutionReturnSet>> ExecuteNonParallelizableTransactionsAsync(List<Transaction> transactions,
         BlockHeader blockHeader, BlockStateSet blockStateSet, CancellationToken cancellationToken)
     {
+        Logger.LogTrace("Begin LocalParallelTransactionExecutingService.ExecuteNonParallelizableTransactionsAsync");
         var nonParallelizableReturnSets = await _planTransactionExecutingService.ExecuteAsync(
             new TransactionExecutingDto
             {
                 Transactions = transactions,
                 BlockHeader = blockHeader,
                 PartialBlockStateSet = blockStateSet
-            },
+            }, 
             cancellationToken);
-
-        Logger.LogTrace("Merged results from non-parallelizables.");
+        
+        Logger.LogTrace("End LocalParallelTransactionExecutingService.ExecuteNonParallelizableTransactionsAsync");
         return nonParallelizableReturnSets;
     }
 
     private List<ExecutionReturnSet> ProcessTransactionsWithoutContract(List<Transaction> transactions)
     {
+        Logger.LogTrace("Begin LocalParallelTransactionExecutingService.ProcessTransactionsWithoutContract");
         var returnSets = new List<ExecutionReturnSet>();
         foreach (var transaction in transactions)
         {
@@ -125,7 +136,8 @@ public class LocalParallelTransactionExecutingService : IParallelTransactionExec
             {
                 TransactionId = transaction.GetHash(),
                 Status = TransactionResultStatus.Failed,
-                Error = "Invalid contract address."
+                Error = "Invalid contract address.",
+                StorageKey = transaction.GetHash().ToStorageKey()
             };
             Logger.LogDebug(result.Error);
 
@@ -138,7 +150,7 @@ public class LocalParallelTransactionExecutingService : IParallelTransactionExec
             };
             returnSets.Add(returnSet);
         }
-
+        Logger.LogTrace("End LocalParallelTransactionExecutingService.ProcessTransactionsWithoutContract");
         return returnSets;
     }
 
@@ -150,11 +162,13 @@ public class LocalParallelTransactionExecutingService : IParallelTransactionExec
             {
                 TransactionId = conflictingSet.TransactionId,
                 Status = TransactionResultStatus.Conflict,
-                Error = "Parallel conflict"
+                Error = "Parallel conflict",
+                StorageKey = conflictingSet.TransactionId.ToStorageKey()
             };
             conflictingSet.Status = result.Status;
             conflictingSet.TransactionResult = result;
         }
+
     }
 
     private async Task<GroupedExecutionReturnSets> ExecuteAndPreprocessResult(
@@ -162,83 +176,34 @@ public class LocalParallelTransactionExecutingService : IParallelTransactionExec
     {
         var executionReturnSets =
             await _planTransactionExecutingService.ExecuteAsync(transactionExecutingDto, cancellationToken);
-        var changeKeys =
-            executionReturnSets.SelectMany(s => s.StateChanges.Keys.Concat(s.StateDeletes.Keys));
-        var allKeys = new HashSet<string>(
-            executionReturnSets.SelectMany(s => s.StateAccesses.Keys));
-        var readKeys = allKeys.Where(k => !changeKeys.Contains(k));
+        // var changeKeys =
+        //         executionReturnSets.SelectMany(s => s.StateChanges.Keys.Concat(s.StateDeletes.Keys));
+        // var allKeys = new HashSet<string>(
+        //     executionReturnSets.SelectMany(s =>s.StateAccesses.Keys));
+        // var readKeys = allKeys.Where(k => !changeKeys.Contains(k));
 
+        // var allKeys = new HashSet<string>();
+        // var changeKeys = new List<string>();
+        //
+        // foreach (var executionReturnSet in executionReturnSets)
+        // {
+        //     foreach (var stateAccess in executionReturnSet.StateAccesses)
+        //     {
+        //         allKeys.Add(stateAccess.Key);
+        //     }
+        //     
+        //     changeKeys.AddRange(executionReturnSet.StateChanges.Keys);
+        //     changeKeys.AddRange(executionReturnSet.StateDeletes.Keys);
+        // }
+        // var readKeys = allKeys.Where(k => !changeKeys.Contains(k));
+            
         return new GroupedExecutionReturnSets
         {
             ReturnSets = executionReturnSets,
-            AllKeys = allKeys,
-            ChangeKeys = changeKeys,
-            ReadKeys = readKeys
+            // AllKeys = allKeys,
+            // ChangeKeys = changeKeys,
+            // ReadKeys = readKeys
         };
-    }
-
-    private HashSet<string> GetReadOnlyKeys(GroupedExecutionReturnSets[] groupedExecutionReturnSetsArray)
-    {
-        var readKeys = new HashSet<string>(groupedExecutionReturnSetsArray.SelectMany(s => s.ReadKeys));
-        ;
-        var changeKeys = new HashSet<string>(groupedExecutionReturnSetsArray.SelectMany(s => s.ChangeKeys));
-        readKeys.ExceptWith(changeKeys);
-        return readKeys;
-    }
-
-    private List<ExecutionReturnSet> MergeResults(
-        GroupedExecutionReturnSets[] groupedExecutionReturnSetsArray,
-        out List<ExecutionReturnSet> conflictingSets)
-    {
-        var returnSets = new List<ExecutionReturnSet>();
-        conflictingSets = new List<ExecutionReturnSet>();
-        var existingKeys = new HashSet<string>();
-        var readOnlyKeys = GetReadOnlyKeys(groupedExecutionReturnSetsArray);
-        foreach (var groupedExecutionReturnSets in groupedExecutionReturnSetsArray)
-        {
-            groupedExecutionReturnSets.AllKeys.ExceptWith(readOnlyKeys);
-            if (!existingKeys.Overlaps(groupedExecutionReturnSets.AllKeys))
-            {
-                returnSets.AddRange(groupedExecutionReturnSets.ReturnSets);
-                foreach (var key in groupedExecutionReturnSets.AllKeys) existingKeys.Add(key);
-            }
-            else
-            {
-                conflictingSets.AddRange(groupedExecutionReturnSets.ReturnSets);
-            }
-        }
-
-        if (readOnlyKeys.Count == 0) return returnSets;
-
-        foreach (var returnSet in returnSets.Concat(conflictingSets))
-            returnSet.StateAccesses.RemoveAll(k => readOnlyKeys.Contains(k.Key));
-
-        return returnSets;
-    }
-
-    private BlockStateSet GetUpdatedBlockStateSet(ExecutionReturnSetCollection executionReturnSetCollection,
-        TransactionExecutingDto transactionExecutingDto)
-    {
-        var updatedPartialBlockStateSet = executionReturnSetCollection.ToBlockStateSet();
-        if (transactionExecutingDto.PartialBlockStateSet != null)
-        {
-            var partialBlockStateSet = transactionExecutingDto.PartialBlockStateSet.Clone();
-            foreach (var change in partialBlockStateSet.Changes)
-            {
-                if (updatedPartialBlockStateSet.Changes.TryGetValue(change.Key, out _)) continue;
-                if (updatedPartialBlockStateSet.Deletes.Contains(change.Key)) continue;
-                updatedPartialBlockStateSet.Changes[change.Key] = change.Value;
-            }
-
-            foreach (var delete in partialBlockStateSet.Deletes)
-            {
-                if (updatedPartialBlockStateSet.Deletes.Contains(delete)) continue;
-                if (updatedPartialBlockStateSet.Changes.TryGetValue(delete, out _)) continue;
-                updatedPartialBlockStateSet.Deletes.Add(delete);
-            }
-        }
-
-        return updatedPartialBlockStateSet;
     }
 
     private class GroupedExecutionReturnSets
@@ -246,16 +211,64 @@ public class LocalParallelTransactionExecutingService : IParallelTransactionExec
         public List<ExecutionReturnSet> ReturnSets { get; set; }
 
         public HashSet<string> AllKeys { get; set; }
-
+            
         public IEnumerable<string> ChangeKeys { get; set; }
-
+            
         public IEnumerable<string> ReadKeys { get; set; }
+    }
+
+    private HashSet<string> GetReadOnlyKeys(GroupedExecutionReturnSets[] groupedExecutionReturnSetsArray)
+    {
+        var readKeys = new HashSet<string>(groupedExecutionReturnSetsArray.SelectMany(s => s.ReadKeys));;
+        var changeKeys = new HashSet<string>(groupedExecutionReturnSetsArray.SelectMany(s => s.ChangeKeys));
+        readKeys.ExceptWith(changeKeys);
+        return readKeys;
     }
 
     private class ExecutionReturnSetMergeResult
     {
         public List<ExecutionReturnSet> ExecutionReturnSets { get; set; }
-
+            
         public List<ExecutionReturnSet> ConflictingReturnSets { get; set; }
+    }
+
+    private List<ExecutionReturnSet> MergeResults(
+        List<GroupedExecutionReturnSets> groupedExecutionReturnSetsArray)
+    {
+        Logger.LogTrace("Begin LocalParallelTransactionExecutingService.MergeResults");
+        var returnSets = new List<ExecutionReturnSet>();
+        foreach (var groupedExecutionReturnSets in groupedExecutionReturnSetsArray)
+        {
+            returnSets.AddRange(groupedExecutionReturnSets.ReturnSets);
+        }
+        Logger.LogTrace("End LocalParallelTransactionExecutingService.MergeResults");
+        return returnSets;
+    }
+
+    private BlockStateSet GetUpdatedBlockStateSet(ExecutionReturnSetCollection executionReturnSetCollection,
+        TransactionExecutingDto transactionExecutingDto)
+    {
+        Logger.LogTrace("Begin LocalParallelTransactionExecutingService.GetUpdatedBlockStateSet");
+        var updatedPartialBlockStateSet = executionReturnSetCollection.ToBlockStateSet();
+        if (transactionExecutingDto.PartialBlockStateSet != null)
+        {
+            var partialBlockStateSet = transactionExecutingDto.PartialBlockStateSet.Clone();
+            Logger.LogTrace("Handle PartialBlockStateSet Changes");
+            foreach (var change in partialBlockStateSet.Changes)
+            {
+                if (updatedPartialBlockStateSet.Changes.TryGetValue(change.Key, out _)) continue;
+                if (updatedPartialBlockStateSet.Deletes.Contains(change.Key)) continue;
+                updatedPartialBlockStateSet.Changes[change.Key] = change.Value;
+            }
+            Logger.LogTrace("Handle PartialBlockStateSet Deletes");
+            foreach (var delete in partialBlockStateSet.Deletes)
+            {
+                if (updatedPartialBlockStateSet.Deletes.Contains(delete)) continue;
+                if (updatedPartialBlockStateSet.Changes.TryGetValue(delete, out _)) continue;
+                updatedPartialBlockStateSet.Deletes.Add(delete);
+            }
+        }
+        Logger.LogTrace("End LocalParallelTransactionExecutingService.GetUpdatedBlockStateSet");
+        return updatedPartialBlockStateSet;
     }
 }

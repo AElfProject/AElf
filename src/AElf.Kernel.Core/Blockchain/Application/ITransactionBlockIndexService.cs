@@ -19,6 +19,7 @@ public class TransactionBlockIndexService : ITransactionBlockIndexService, ITran
     private readonly IBlockchainService _blockchainService;
     private readonly ITransactionBlockIndexManager _transactionBlockIndexManager;
     private readonly ITransactionBlockIndexProvider _transactionBlockIndexProvider;
+    public ILogger<TransactionBlockIndexService> Logger { get; set; }
 
     public TransactionBlockIndexService(IBlockchainService blockchainService,
         ITransactionBlockIndexManager transactionBlockIndexManager,
@@ -45,44 +46,61 @@ public class TransactionBlockIndexService : ITransactionBlockIndexService, ITran
 
     public async Task AddBlockIndexAsync(IList<Hash> txIds, BlockIndex blockIndex)
     {
+        var transactionBlockIndexes = txIds.ToDictionary(txId => txId,
+            _ => new TransactionBlockIndex
+                {BlockHash = blockIndex.BlockHash, BlockHeight = blockIndex.BlockHeight});
+
+        await _transactionBlockIndexManager.SetTransactionBlockIndicesAsync(transactionBlockIndexes);
+    }
+
+    private async Task UpdateBlockIndex(BlockIndex blockIndex, IList<Hash> txIds)
+    {
+        var notInProvider = txIds.ToList();
         var transactionBlockIndexes = new Dictionary<Hash, TransactionBlockIndex>();
-        foreach (var txId in txIds)
+        var notInProviderTbi = await _transactionBlockIndexManager.GetTransactionBlockIndexesAsync(notInProvider);
+
+        for (int i = 0; i < notInProvider.Count; i++)
         {
-            var transactionBlockIndex = new TransactionBlockIndex
-            {
-                BlockHash = blockIndex.BlockHash,
-                BlockHeight = blockIndex.BlockHeight
-            };
-
-            var preTransactionBlockIndex =
-                await GetTransactionBlockIndexByTxIdAsync(txId);
-
-            if (preTransactionBlockIndex != null)
-            {
-                if (preTransactionBlockIndex.BlockHash == blockIndex.BlockHash ||
-                    preTransactionBlockIndex.PreviousExecutionBlockIndexList.Any(l =>
-                        l.BlockHash == blockIndex.BlockHash))
-                    return;
-
-                var needToReplace = preTransactionBlockIndex.BlockHeight > blockIndex.BlockHeight;
-                if (needToReplace)
-                {
-                    transactionBlockIndex.BlockHash = preTransactionBlockIndex.BlockHash;
-                    transactionBlockIndex.BlockHeight = preTransactionBlockIndex.BlockHeight;
-                }
-
-                transactionBlockIndex.PreviousExecutionBlockIndexList.Add(preTransactionBlockIndex
-                    .PreviousExecutionBlockIndexList);
-                transactionBlockIndex.PreviousExecutionBlockIndexList.Add(needToReplace
-                    ? blockIndex
-                    : new BlockIndex(preTransactionBlockIndex.BlockHash, preTransactionBlockIndex.BlockHeight));
-            }
-
-            transactionBlockIndexes.Add(txId, transactionBlockIndex);
+            transactionBlockIndexes.Add(notInProvider[i], UpdateBlockIndex(blockIndex, notInProviderTbi[i]));
         }
 
         await AddTransactionBlockIndicesAsync(transactionBlockIndexes);
     }
+
+    private TransactionBlockIndex UpdateBlockIndex(BlockIndex blockIndex, TransactionBlockIndex preTransactionBlockIndex)
+    {
+        var transactionBlockIndex = new TransactionBlockIndex
+        {
+            BlockHash = blockIndex.BlockHash,
+            BlockHeight = blockIndex.BlockHeight
+        };
+
+        if (preTransactionBlockIndex != null)
+        {
+            if (preTransactionBlockIndex.BlockHash == blockIndex.BlockHash ||
+                preTransactionBlockIndex.PreviousExecutionBlockIndexList.Any(l =>
+                    l.BlockHash == blockIndex.BlockHash))
+            {
+                return preTransactionBlockIndex;
+            }
+
+            var needToReplace = preTransactionBlockIndex.BlockHeight > blockIndex.BlockHeight;
+            if (needToReplace)
+            {
+                transactionBlockIndex.BlockHash = preTransactionBlockIndex.BlockHash;
+                transactionBlockIndex.BlockHeight = preTransactionBlockIndex.BlockHeight;
+            }
+
+            transactionBlockIndex.PreviousExecutionBlockIndexList.Add(preTransactionBlockIndex
+                .PreviousExecutionBlockIndexList);
+            transactionBlockIndex.PreviousExecutionBlockIndexList.Add(needToReplace
+                ? blockIndex
+                : new BlockIndex(preTransactionBlockIndex.BlockHash, preTransactionBlockIndex.BlockHeight));
+        }
+
+        return transactionBlockIndex;
+    }
+
 
     public async Task<bool> ValidateTransactionBlockIndexExistsInBranchAsync(Hash txId, Hash chainBranchBlockHash)
     {
@@ -135,8 +153,10 @@ public class TransactionBlockIndexService : ITransactionBlockIndexService, ITran
     private async Task AddTransactionBlockIndicesAsync(
         IDictionary<Hash, TransactionBlockIndex> transactionBlockIndices)
     {
-        foreach (var index in transactionBlockIndices)
-            _transactionBlockIndexProvider.AddTransactionBlockIndex(index.Key, index.Value);
+        // foreach (var index in transactionBlockIndices)
+        // {
+        //     _transactionBlockIndexProvider.AddTransactionBlockIndex(index.Key, index.Value);
+        // }
 
         await _transactionBlockIndexManager.SetTransactionBlockIndicesAsync(transactionBlockIndices);
     }
@@ -160,7 +180,7 @@ public class TransactionBlockIndexService : ITransactionBlockIndexService, ITran
         var previousBlockIndexList =
             transactionBlockIndex.PreviousExecutionBlockIndexList ?? new RepeatedField<BlockIndex>();
         var lastBlockIndex = new BlockIndex(transactionBlockIndex.BlockHash, transactionBlockIndex.BlockHeight);
-        var reversedBlockIndexList = previousBlockIndexList.Concat(new[] { lastBlockIndex }).Reverse().ToList();
+        var reversedBlockIndexList = previousBlockIndexList.Concat(new[] {lastBlockIndex}).Reverse().ToList();
 
         foreach (var blockIndex in reversedBlockIndexList)
         {
@@ -181,7 +201,9 @@ public class TransactionBlockIndexService : ITransactionBlockIndexService, ITran
     {
         if (blockIndex.BlockHeight > chain.LastIrreversibleBlockHeight
             || transactionBlockIndex.PreviousExecutionBlockIndexList.Count == 0)
+        {
             return;
+        }
 
         transactionBlockIndex.BlockHash = blockIndex.BlockHash;
         transactionBlockIndex.BlockHeight = blockIndex.BlockHeight;

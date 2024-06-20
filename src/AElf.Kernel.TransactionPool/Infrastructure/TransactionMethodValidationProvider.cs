@@ -22,15 +22,6 @@ public class TransactionMethodValidationProvider : ITransactionValidationProvide
 
     public async Task<bool> ValidateTransactionAsync(Transaction transaction, IChainContext chainContext = null)
     {
-        var isView = await _transactionReadOnlyExecutionService.IsViewTransactionAsync(chainContext, transaction);
-        if (isView)
-            await LocalEventBus.PublishAsync(new TransactionValidationStatusChangedEvent
-            {
-                TransactionId = transaction.GetHash(),
-                TransactionResultStatus = TransactionResultStatus.NodeValidationFailed,
-                Error = "View transaction is not allowed."
-            });
-
-        return !isView;
+        return true;
     }
 }

@@ -1,10 +1,10 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.SmartContract.Domain;
+using AElf.Kernel.SmartContractExecution.Infrastructure;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Volo.Abp.DependencyInjection;
@@ -15,30 +15,32 @@ namespace AElf.Kernel.SmartContractExecution.Application;
 public class FullBlockchainExecutingService : IBlockchainExecutingService, ITransientDependency
 {
     private readonly IBlockchainService _blockchainService;
+    private readonly IBlockValidationService _blockValidationService;
     private readonly IBlockExecutingService _blockExecutingService;
     private readonly IBlockStateSetManger _blockStateSetManger;
-    private readonly IBlockValidationService _blockValidationService;
     private readonly ITransactionResultService _transactionResultService;
+    private readonly IExecutedTransactionResultCacheProvider _executedTransactionResultCacheProvider;
+    public ILocalEventBus LocalEventBus { get; set; }
+    public ILogger<FullBlockchainExecutingService> Logger { get; set; }
 
     public FullBlockchainExecutingService(IBlockchainService blockchainService,
         IBlockValidationService blockValidationService,
         IBlockExecutingService blockExecutingService,
-        ITransactionResultService transactionResultService, IBlockStateSetManger blockStateSetManger)
+        ITransactionResultService transactionResultService, IBlockStateSetManger blockStateSetManger, IExecutedTransactionResultCacheProvider executedTransactionResultCacheProvider)
     {
         _blockchainService = blockchainService;
         _blockValidationService = blockValidationService;
         _blockExecutingService = blockExecutingService;
         _transactionResultService = transactionResultService;
         _blockStateSetManger = blockStateSetManger;
+        _executedTransactionResultCacheProvider = executedTransactionResultCacheProvider;
 
         LocalEventBus = NullLocalEventBus.Instance;
     }
 
-    public ILocalEventBus LocalEventBus { get; set; }
-    public ILogger<FullBlockchainExecutingService> Logger { get; set; }
-
     public async Task<BlockExecutionResult> ExecuteBlocksAsync(IEnumerable<Block> blocks)
     {
+        Logger.LogTrace("Begin FullBlockchainExecutingService.ExecuteBlocksAsync");
         var executionResult = new BlockExecutionResult();
         try
         {
@@ -52,26 +54,30 @@ public class FullBlockchainExecutingService : IBlockchainExecutingService, ITran
                 }
 
                 executionResult.SuccessBlockExecutedSets.Add(blockExecutedSet);
-                // Logger.LogInformation(
-                    // $"Executed block {block.GetHash()} at height {block.Height}, with {block.Body.TransactionsCount} txns.");
+                Logger.LogInformation(
+                    $"Executed block {block.GetHash()} at height {block.Height}, with {block.Body.TransactionsCount} txns.");
 
-                await LocalEventBus.PublishAsync(new BlockAcceptedEvent { BlockExecutedSet = blockExecutedSet });
+                await LocalEventBus.PublishAsync(new BlockAcceptedEvent {BlockExecutedSet = blockExecutedSet});
             }
         }
         catch (BlockValidationException ex)
         {
-            if (!(ex.InnerException is ValidateNextTimeBlockValidationException)) throw;
+            if (!(ex.InnerException is ValidateNextTimeBlockValidationException))
+            {
+                throw;
+            }
 
             Logger.LogDebug(
                 $"Block validation failed: {ex.Message}. Inner exception {ex.InnerException.Message}");
         }
-
+        Logger.LogTrace("End FullBlockchainExecutingService.ExecuteBlocksAsync");
         return executionResult;
     }
 
 
     private async Task<BlockExecutedSet> ExecuteBlockAsync(Block block)
     {
+        Logger.LogTrace("Begin FullBlockchainExecutingService.ExecuteBlockAsync");
         var blockHash = block.GetHash();
 
         var blockState = await _blockStateSetManger.GetBlockStateSetAsync(blockHash);
@@ -86,6 +92,9 @@ public class FullBlockchainExecutingService : IBlockchainExecutingService, ITran
         var executedBlock = blockExecutedSet.Block;
 
         var blockHashWithoutCache = executedBlock.GetHashWithoutCache();
+            
+        Logger.LogTrace("End FullBlockchainExecutingService.ExecuteBlockAsync");
+            
         if (blockHashWithoutCache == blockHash)
             return blockExecutedSet;
         Logger.LogDebug(
@@ -95,45 +104,45 @@ public class FullBlockchainExecutingService : IBlockchainExecutingService, ITran
 
     private async Task<BlockExecutedSet> GetExecuteBlockSetAsync(Block block, Hash blockHash)
     {
-        var set = new BlockExecutedSet
+        var set = new BlockExecutedSet()
         {
             Block = block,
-            TransactionMap = new Dictionary<Hash, Transaction>(),
-
-            TransactionResultMap = new Dictionary<Hash, TransactionResult>()
+            TransactionResults = new List<TransactionResult>()
         };
-        if (block.TransactionIds.Any())
-            set.TransactionMap = (await _blockchainService.GetTransactionsAsync(block.TransactionIds))
-                .ToDictionary(p => p.GetHash(), p => p);
 
-        foreach (var transactionId in block.TransactionIds)
-            if ((set.TransactionResultMap[transactionId] =
-                    await _transactionResultService.GetTransactionResultAsync(transactionId, blockHash))
-                == null)
-            {
-                Logger.LogWarning(
-                    "Fail to load transaction result. block hash : {blockHash}, tx id: {transactionId}", blockHash.ToHex(), transactionId.ToHex());
+        Logger.LogDebug("GetExecuteBlockSetAsync - 1");
 
-                return null;
-            }
+        var transactionResult = _executedTransactionResultCacheProvider.GetTransactionResults(block.GetHash());
+        if (transactionResult != null)
+        {
+            set.TransactionResults = transactionResult;
+        }
+        else
+        {
+            set.TransactionResults = await _transactionResultService.GetTransactionResultsAsync(block.Body.TransactionIds, blockHash);
+        }
+
+        Logger.LogDebug("GetExecuteBlockSetAsync - 3");
+
 
         return set;
     }
 
     /// <summary>
-    ///     Processing pipeline for a block contains ValidateBlockBeforeExecute, ExecuteBlock and ValidateBlockAfterExecute.
+    /// Processing pipeline for a block contains ValidateBlockBeforeExecute, ExecuteBlock and ValidateBlockAfterExecute.
     /// </summary>
     /// <param name="block"></param>
     /// <returns>Block processing result is true if succeed, otherwise false.</returns>
     private async Task<BlockExecutedSet> ProcessBlockAsync(Block block)
     {
+        Logger.LogTrace("Begin FullBlockchainExecutingService.ProcessBlockAsync");
         var blockHash = block.GetHash();
         // Set the other blocks as bad block if found the first bad block
-        if (!await _blockValidationService.ValidateBlockBeforeExecuteAsync(block))
-        {
-            Logger.LogDebug($"Block validate fails before execution. block hash : {blockHash}");
-            return null;
-        }
+        // if (!await _blockValidationService.ValidateBlockBeforeExecuteAsync(block))
+        // {
+        //     Logger.LogDebug($"Block validate fails before execution. block hash : {blockHash}");
+        //     return null;
+        // }
 
         var blockExecutedSet = await ExecuteBlockAsync(block);
 
@@ -143,15 +152,18 @@ public class FullBlockchainExecutingService : IBlockchainExecutingService, ITran
             return null;
         }
 
-        if (!await _blockValidationService.ValidateBlockAfterExecuteAsync(block))
-        {
-            Logger.LogDebug($"Block validate fails after execution. block hash : {blockHash}");
-            return null;
-        }
+        // if (!await _blockValidationService.ValidateBlockAfterExecuteAsync(block))
+        // {
+        //     Logger.LogDebug($"Block validate fails after execution. block hash : {blockHash}");
+        //     return null;
+        // }
 
-        await _transactionResultService.ProcessTransactionResultAfterExecutionAsync(block.Header,
-            block.Body.TransactionIds.ToList());
+        Logger.LogDebug($"ProcessBlockAsync - 1");
 
+        // await _transactionResultService.ProcessTransactionResultAfterExecutionAsync(block.Header,
+        //      block.Body.TransactionIds.ToList());
+        //
+        Logger.LogTrace("End FullBlockchainExecutingService.ProcessBlockAsync");
         return blockExecutedSet;
     }
 }

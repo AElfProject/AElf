@@ -13,14 +13,15 @@ namespace AElf.Kernel.SmartContract.Parallel;
 
 public class GrouperOptions
 {
-    public int GroupingTimeOut { get; set; } = 500; // ms
+    public int GroupingTimeOut { get; set; } = 2000; // ms
     public int MaxTransactions { get; set; } = int.MaxValue; // Maximum transactions to group
 }
 
 public class TransactionGrouper : ITransactionGrouper, ISingletonDependency
 {
-    private readonly GrouperOptions _options;
     private readonly IResourceExtractionService _resourceExtractionService;
+    private readonly GrouperOptions _options;
+    public ILogger<TransactionGrouper> Logger { get; set; }
 
     public TransactionGrouper(IResourceExtractionService resourceExtractionService,
         IOptionsSnapshot<GrouperOptions> options)
@@ -30,11 +31,9 @@ public class TransactionGrouper : ITransactionGrouper, ISingletonDependency
         Logger = NullLogger<TransactionGrouper>.Instance;
     }
 
-    public ILogger<TransactionGrouper> Logger { get; set; }
-
     public async Task<GroupedTransactions> GroupAsync(IChainContext chainContext, List<Transaction> transactions)
     {
-        Logger.LogTrace("Entered GroupAsync");
+        Logger.LogTrace("Begin TransactionGrouper.GroupAsync");
 
         var toBeGrouped = GetTransactionsToBeGrouped(transactions, out var groupedTransactions);
 
@@ -42,11 +41,10 @@ public class TransactionGrouper : ITransactionGrouper, ISingletonDependency
         {
             var parallelizables = new List<TransactionWithResourceInfo>();
 
-            Logger.LogTrace("Extracting resources for transactions.");
             var txsWithResources =
                 await _resourceExtractionService.GetResourcesAsync(chainContext, toBeGrouped, cts.Token);
-            Logger.LogTrace("Completed resource extraction.");
 
+            Logger.LogTrace("Begin group transactions");
             foreach (var twr in txsWithResources)
             {
                 if (twr.TransactionResourceInfo.ParallelType == ParallelType.InvalidContractAddress)
@@ -56,11 +54,11 @@ public class TransactionGrouper : ITransactionGrouper, ISingletonDependency
                 }
 
                 // If timed out at this point, return all transactions as non-parallelizable
-                if (cts.IsCancellationRequested)
-                {
-                    groupedTransactions.NonParallelizables.Add(twr.Transaction);
-                    continue;
-                }
+                // if (cts.IsCancellationRequested)
+                // {
+                //     groupedTransactions.NonParallelizables.Add(twr.Transaction);
+                //     continue;
+                // }
 
                 if (twr.TransactionResourceInfo.ParallelType == ParallelType.NonParallelizable)
                 {
@@ -68,8 +66,7 @@ public class TransactionGrouper : ITransactionGrouper, ISingletonDependency
                     continue;
                 }
 
-                if (twr.TransactionResourceInfo.WritePaths.Count == 0 &&
-                    twr.TransactionResourceInfo.ReadPaths.Count == 0)
+                if (twr.TransactionResourceInfo.WritePaths.Count == 0 && twr.TransactionResourceInfo.ReadPaths.Count == 0)
                 {
                     // groups.Add(new List<Transaction>() {twr.Item1}); // Run in their dedicated group
                     groupedTransactions.NonParallelizables.Add(twr.Transaction);
@@ -78,17 +75,21 @@ public class TransactionGrouper : ITransactionGrouper, ISingletonDependency
 
                 parallelizables.Add(twr);
             }
+            Logger.LogTrace("End group transactions");
 
             groupedTransactions.Parallelizables.AddRange(GroupParallelizables(parallelizables));
 
-            Logger.LogTrace("Completed transaction grouping.");
+            Logger.LogTrace("End TransactionGrouper.GroupAsync");
         }
 
-        Logger.LogDebug(
-            $"From {transactions.Count} transactions, grouped {groupedTransactions.Parallelizables.Sum(p => p.Count)} txs into " +
-            $"{groupedTransactions.Parallelizables.Count} groups, left " +
-            $"{groupedTransactions.NonParallelizables.Count} as non-parallelizable transactions.");
+        Logger.LogDebug($"From {transactions.Count} transactions, grouped {groupedTransactions.Parallelizables.Sum(p=>p.Count)} txs into " +
+                        $"{groupedTransactions.Parallelizables.Count} groups, left " +
+                        $"{groupedTransactions.NonParallelizables.Count} as non-parallelizable transactions.");
 
+        var groupCount = string.Join(",", groupedTransactions.Parallelizables.Select(p => p.Count));
+        Logger.LogDebug($"GroupCount: {groupCount}");
+            
+        Logger.LogTrace("End TransactionGrouper.GroupAsync");
         return groupedTransactions;
     }
 
@@ -114,10 +115,13 @@ public class TransactionGrouper : ITransactionGrouper, ISingletonDependency
 
     private List<List<Transaction>> GroupParallelizables(List<TransactionWithResourceInfo> txsWithResources)
     {
+        Logger.LogTrace("Begin TransactionGrouper.GroupParallelizables");
         var resourceUnionSet = new Dictionary<int, UnionFindNode>();
         var transactionResourceHandle = new Dictionary<Transaction, int>();
         var groups = new List<List<Transaction>>();
         var readOnlyPaths = txsWithResources.GetReadOnlyPaths();
+            
+        Logger.LogTrace("Begin handle txsWithResources");
         foreach (var txWithResource in txsWithResources)
         {
             UnionFindNode first = null;
@@ -146,6 +150,7 @@ public class TransactionGrouper : ITransactionGrouper, ISingletonDependency
                 }
             }
         }
+        Logger.LogTrace("End handle txsWithResources - 1");
 
         var grouped = new Dictionary<int, List<Transaction>>();
 
@@ -167,9 +172,11 @@ public class TransactionGrouper : ITransactionGrouper, ISingletonDependency
             // Add transaction to its group
             gTransactions.Add(transaction);
         }
+        Logger.LogTrace("End handle txsWithResources - 2");
 
         groups.AddRange(grouped.Values);
 
+        Logger.LogTrace("End TransactionGrouper.GroupParallelizables");
         return groups;
     }
 }
