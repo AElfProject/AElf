@@ -14,7 +14,7 @@ public partial class AEDPoSContract
         /// <summary>
         ///     In AElf Main Chain, miner will produce 8 blocks (as fast as possible) during every time slot by default.
         /// </summary>
-        private const int TinyBlocksCount = 8;
+        private const int TinyBlocksCount = 1;
 
         /// <summary>
         ///     The minimum interval between two blocks of same time slot.
@@ -46,7 +46,7 @@ public partial class AEDPoSContract
         /// <summary>
         ///     Give 3/5 of producing time for mining by default.
         /// </summary>
-        protected int DefaultBlockMiningLimit => TinyBlockSlotInterval.Mul(3).Div(5);
+        protected int DefaultBlockMiningLimit => TinyBlockSlotInterval.Mul(9).Div(10);
 
         /// <summary>
         ///     If this tiny block is the last one of current time slot, give half of producing time for mining.
