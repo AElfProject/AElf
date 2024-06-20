@@ -14,7 +14,7 @@ namespace AElf.Kernel.SmartContract.Application;
 public class SmartContractExecutiveService : ISmartContractExecutiveService, ISingletonDependency
 {
     private const int ExecutiveExpirationTime = 3600; // 1 Hour
-    private const int ExecutiveClearLimit = 500;
+    private const int ExecutiveClearLimit = 120;
 
     private readonly IDefaultContractZeroCodeProvider _defaultContractZeroCodeProvider;
     private readonly IHostSmartContractBridgeContextService _hostSmartContractBridgeContextService;

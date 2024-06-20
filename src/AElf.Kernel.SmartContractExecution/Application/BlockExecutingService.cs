@@ -61,7 +61,7 @@ public class BlockExecutingService : IBlockExecutingService, ITransientDependenc
             await _transactionExecutingService.ExecuteAsync(
                 new TransactionExecutingDto { BlockHeader = blockHeader, Transactions = nonCancellable },
                 CancellationToken.None);
-        Logger.LogTrace("Executed non-cancellable txs");
+        Logger.LogTrace($"Executed non-cancellable txs: {nonCancellableReturnSets.Count}");
 
         var returnSetCollection = new ExecutionReturnSetCollection(nonCancellableReturnSets);
         var cancellableReturnSets = new List<ExecutionReturnSet>();
@@ -77,7 +77,11 @@ public class BlockExecutingService : IBlockExecutingService, ITransientDependenc
                 },
                 cancellationToken);
             returnSetCollection.AddRange(cancellableReturnSets);
-            Logger.LogTrace("Executed cancellable txs");
+            Logger.LogTrace($"Executed cancellable txs: {cancellableReturnSets.Count}");
+        }
+        else
+        {
+            Logger.LogTrace("Cancellable transactions are not executed.");
         }
 
         var executedCancellableTransactions = new HashSet<Hash>(cancellableReturnSets.Select(x => x.TransactionId));

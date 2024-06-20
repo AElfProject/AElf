@@ -51,7 +51,7 @@ public class MiningService : IMiningService,ISingletonDependency
             var expirationTime = blockTime + requestMiningDto.BlockExecutionTime;
             if (expirationTime < TimestampHelper.GetUtcNow())
             {
-                cts.Cancel();
+                await cts.CancelAsync();
             }
             else
             {
@@ -61,11 +61,6 @@ public class MiningService : IMiningService,ISingletonDependency
                 cts.CancelAfter(ts);
             }
 
-            // var block = await GenerateBlock(requestMiningDto.PreviousBlockHash,
-            //     requestMiningDto.PreviousBlockHeight, blockTime);
-            // var systemTransactions = await GenerateSystemTransactions(requestMiningDto.PreviousBlockHash,
-            //     requestMiningDto.PreviousBlockHeight);
-            
             var (blockTask, systemTransactionsTask) = (
                 GenerateBlock(requestMiningDto.PreviousBlockHash, requestMiningDto.PreviousBlockHeight, blockTime),
                 GenerateSystemTransactions(requestMiningDto.PreviousBlockHash, requestMiningDto.PreviousBlockHeight)
@@ -73,18 +68,7 @@ public class MiningService : IMiningService,ISingletonDependency
 
             var block = await blockTask;
             var systemTransactions = await systemTransactionsTask;
-            
-            // var generateBlockTask = GenerateBlock(requestMiningDto.PreviousBlockHash,
-            //     requestMiningDto.PreviousBlockHeight, blockTime);
-            // var generateSystemTransactionsTask = GenerateSystemTransactions(requestMiningDto.PreviousBlockHash,
-            //     requestMiningDto.PreviousBlockHeight);
-            //
-            // await Task.WhenAll(generateBlockTask, generateSystemTransactionsTask);
-            //
-            // var block = await generateBlockTask;
-            // var systemTransactions = await generateSystemTransactionsTask;
-            
-            
+
             _systemTransactionExtraDataProvider.SetSystemTransactionCount(systemTransactions.Count,
                 block.Header);
             var txTotalCount = transactions.Count + systemTransactions.Count;
@@ -99,15 +83,12 @@ public class MiningService : IMiningService,ISingletonDependency
 
             block = blockExecutedSet.Block;
             await SignBlockAsync(block);
-            if (block.Body.TransactionsCount > 2)
-            {
-                Logger.LogInformation("Generated block: {Block}, " +
-                                      "previous: {PreviousBlockHash}, " +
-                                      "executed transactions: {TransactionsCount}, " +
-                                      "not executed transactions {NotExecutedTransactionsCount}",
-                    block.ToDiagnosticString(), block.Header.PreviousBlockHash.ToHex(), block.Body.TransactionsCount,
-                    pending.Count + systemTransactions.Count - block.Body.TransactionsCount);
-            }
+            Logger.LogInformation("Generated block: {Block}, " +
+                                  "previous: {PreviousBlockHash}, " +
+                                  "executed transactions: {TransactionsCount}, " +
+                                  "not executed transactions {NotExecutedTransactionsCount}",
+                block.ToDiagnosticString(), block.Header.PreviousBlockHash.ToHex(), block.Body.TransactionsCount,
+                pending.Count + systemTransactions.Count - block.Body.TransactionsCount);
             return blockExecutedSet;
         }
         catch (Exception e)
