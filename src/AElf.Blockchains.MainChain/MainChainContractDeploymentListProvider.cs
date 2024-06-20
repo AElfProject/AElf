@@ -11,11 +11,11 @@ public class MainChainContractDeploymentListProvider : IContractDeploymentListPr
 {
     public List<Hash> GetDeployContractNameList()
     {
-        return
-        [
+        return new List<Hash>
+        {
             TokenSmartContractAddressNameProvider.Name,
             ConfigurationSmartContractAddressNameProvider.Name,
             ConsensusSmartContractAddressNameProvider.Name
-        ];
+        };
     }
 }

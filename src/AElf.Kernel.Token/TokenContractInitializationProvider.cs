@@ -17,6 +17,6 @@ public class TokenContractInitializationProvider : IContractInitializationProvid
 
     public virtual List<ContractInitializationMethodCall> GetInitializeMethodList(byte[] contractCode)
     {
-        return [];
+        return new List<ContractInitializationMethodCall>();
     }
 }
