@@ -18,6 +18,9 @@ public class TransactionBlockIndexProvider : ITransactionBlockIndexProvider,
 
     public void AddTransactionBlockIndex(Hash transactionId, TransactionBlockIndex transactionBlockIndex)
     {
+        if (transactionBlockIndex == null)
+            return;
+        _transactionBlockIndices[transactionId] = transactionBlockIndex;
     }
 
     public bool TryGetTransactionBlockIndex(Hash transactionId, out TransactionBlockIndex transactionBlockIndex)

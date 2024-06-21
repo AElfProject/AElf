@@ -57,12 +57,6 @@ public class Executive : IExecutive
         try
         {
             _hostSmartContractBridgeContext.TransactionContext = transactionContext;
-            if (CurrentTransactionContext.CallDepth > CurrentTransactionContext.MaxCallDepth)
-            {
-                CurrentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ExceededMaxCallDepth;
-                CurrentTransactionContext.Trace.Error = "\n" + "ExceededMaxCallDepth";
-                return Task.CompletedTask;
-            }
 
             Execute();
         }
@@ -124,9 +118,6 @@ public class Executive : IExecutive
     {
         var s = CurrentTransactionContext.Trace.StartTime = TimestampHelper.GetUtcNow().ToDateTime();
         var methodName = CurrentTransactionContext.Transaction.MethodName;
-        var observer =
-            new ExecutionObserver(CurrentTransactionContext.ExecutionObserverThreshold.ExecutionCallThreshold,
-                CurrentTransactionContext.ExecutionObserverThreshold.ExecutionBranchThreshold);
 
         try
         {
@@ -135,8 +126,6 @@ public class Executive : IExecutive
                     $"Failed to find handler for {methodName}. We have {_callHandlers.Count} handlers: " +
                     string.Join(", ", _callHandlers.Keys.OrderBy(k => k))
                 );
-
-            _smartContractProxy.SetExecutionObserver(observer);
 
             ExecuteTransaction(handler);
 

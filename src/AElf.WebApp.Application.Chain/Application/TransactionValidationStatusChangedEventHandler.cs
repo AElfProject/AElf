@@ -20,12 +20,6 @@ public class TransactionValidationStatusChangedEventHandler :
 
     public Task HandleEventAsync(TransactionValidationStatusChangedEvent eventData)
     {
-        _transactionResultStatusCacheProvider.ChangeTransactionResultStatus(eventData.TransactionId,
-            new TransactionValidateStatus
-            {
-                TransactionResultStatus = eventData.TransactionResultStatus,
-                Error = eventData.Error
-            });
         return Task.CompletedTask;
     }
 }

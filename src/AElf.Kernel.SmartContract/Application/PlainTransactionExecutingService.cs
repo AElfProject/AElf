@@ -334,7 +334,7 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
             BlockNumber = blockHeight,
             StorageKey = trace.TransactionId.ToStorageKey()
         };
-            
+
         if (!trace.IsSuccessful())
         {
             // Is failed.

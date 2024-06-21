@@ -345,9 +345,6 @@ public class TransactionAppService : AElfAppService, ITransactionAppService
             txIds[i] = transaction.GetHash().ToHex();
         }
 
-        foreach (var transaction in transactions)
-            _transactionResultStatusCacheProvider.AddTransactionResultStatus(transaction.GetHash());
-
         await LocalEventBus.PublishAsync(new TransactionsReceivedEvent
         {
             Transactions = transactions
