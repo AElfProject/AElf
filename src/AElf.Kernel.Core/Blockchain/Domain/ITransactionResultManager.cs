@@ -26,8 +26,7 @@ public class TransactionResultManager : ITransactionResultManager
     public async Task AddTransactionResultAsync(TransactionResult transactionResult, Hash disambiguationHash)
     {
         await _transactionResultStore.SetAsync(
-            transactionResult.StorageKey,
-            transactionResult);
+            transactionResult.StorageKey, transactionResult);
     }
 
     public async Task AddTransactionResultsAsync(IList<TransactionResult> transactionResults,
