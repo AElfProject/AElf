@@ -27,9 +27,6 @@ public class ResourceExtractionServiceTest : AbpIntegratedTest<ParallelMockTestM
     private ISmartContractExecutiveService SmartContractExecutiveService =>
         Application.ServiceProvider.GetRequiredService<ISmartContractExecutiveService>();
 
-    private ParallelExecutionInterestedEventsHandler ParallelExecutionInterestedEventsHandler =>
-        Application.ServiceProvider.GetRequiredService<ParallelExecutionInterestedEventsHandler>();
-
     [Fact]
     public async Task GetResourcesAsync_NonAcs2_Test()
     {

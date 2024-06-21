@@ -51,7 +51,7 @@ public class MiningService : IMiningService,ISingletonDependency
             var expirationTime = blockTime + requestMiningDto.BlockExecutionTime;
             if (expirationTime < TimestampHelper.GetUtcNow())
             {
-                await cts.CancelAsync();
+                cts.Cancel();
             }
             else
             {

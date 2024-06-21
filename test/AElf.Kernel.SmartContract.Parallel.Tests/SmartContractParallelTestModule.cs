@@ -27,7 +27,6 @@ public class ParallelMockTestModule : AElfModule
     {
         var services = context.Services;
         services.AddSingleton<IResourceExtractionService, ResourceExtractionService>();
-        services.AddTransient<ParallelExecutionInterestedEventsHandler>();
         var executiveService = GetSmartContractExecutiveService(
             (InternalConstants.NonAcs2, GetNonAcs2Executive()),
             (InternalConstants.Acs2, GetAcs2Executive()), (InternalConstants.NonParallel, GetNonParallelExecutive())
