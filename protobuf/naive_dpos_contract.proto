@@ -167,6 +167,7 @@ message InitialAElfConsensusContractInput {
     int64 period_seconds = 3;
     // The interval second that increases the number of miners.
     int64 miner_increase_interval = 4;
+    int32 single_node_mining_interval = 5;
 }
 
 message UpdateValueInput {

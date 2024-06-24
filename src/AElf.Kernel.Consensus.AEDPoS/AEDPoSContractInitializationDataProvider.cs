@@ -21,7 +21,8 @@ public class AEDPoSContractInitializationDataProvider : IAEDPoSContractInitializ
             PeriodSeconds = _consensusOptions.PeriodSeconds,
             StartTimestamp = _consensusOptions.StartTimestamp,
             InitialMinerList = _consensusOptions.InitialMinerList,
-            MinerIncreaseInterval = _consensusOptions.MinerIncreaseInterval
+            MinerIncreaseInterval = _consensusOptions.MinerIncreaseInterval,
+            SingleNodeMiningInterval = _consensusOptions.SingleNodeMiningInterval
         };
     }
 }

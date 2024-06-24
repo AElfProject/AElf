@@ -34,7 +34,8 @@ public class AEDPoSContractInitializationProvider : IContractInitializationProvi
                 {
                     PeriodSeconds = initializationData.PeriodSeconds,
                     MinerIncreaseInterval = initializationData.MinerIncreaseInterval,
-                    IsSideChain = initializationData.IsSideChain
+                    IsSideChain = initializationData.IsSideChain,
+                    SingleNodeMiningInterval = initializationData.SingleNodeMiningInterval
                 }.ToByteString()
             },
             new()

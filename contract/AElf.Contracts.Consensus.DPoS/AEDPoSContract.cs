@@ -39,6 +39,8 @@ public partial class AEDPoSContract : AEDPoSContractImplContainer.AEDPoSContract
 
         State.MaximumMinersCount.Value = int.MaxValue;
 
+        State.SingleNodeMiningInterval.Value = input.SingleNodeMiningInterval;
+
         return new Empty();
     }
 
@@ -63,6 +65,11 @@ public partial class AEDPoSContract : AEDPoSContractImplContainer.AEDPoSContract
         State.CurrentRoundNumber.Value = 1;
         State.FirstRoundNumberOfEachTerm[1] = 1;
         State.MiningInterval.Value = input.GetMiningInterval();
+        if (input.RealTimeMinersInformation.Count == 1 && State.SingleNodeMiningInterval.Value != 0)
+        {
+            State.MiningInterval.Value = State.SingleNodeMiningInterval.Value;
+        }
+
         SetMinerList(input.GetMinerList(), 1);
 
         AddRoundInformation(input);

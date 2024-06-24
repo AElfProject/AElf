@@ -22,6 +22,7 @@ public class AEDPoSContractState : ContractState
     public MappedState<long, Round> Rounds { get; set; }
 
     public ReadonlyState<int> MiningInterval { get; set; }
+    public ReadonlyState<int> SingleNodeMiningInterval { get; set; }
 
     public MappedState<long, long> FirstRoundNumberOfEachTerm { get; set; }
 

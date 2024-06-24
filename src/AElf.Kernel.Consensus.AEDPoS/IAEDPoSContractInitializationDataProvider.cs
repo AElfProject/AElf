@@ -20,4 +20,5 @@ public class AEDPoSContractInitializationData
     public int MiningInterval { get; set; }
     public Timestamp StartTimestamp { get; set; }
     public bool IsSideChain { get; set; }
+    public int SingleNodeMiningInterval { get; set; }
 }

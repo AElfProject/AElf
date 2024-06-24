@@ -11,4 +11,5 @@ public class ConsensusOptions
     public Timestamp StartTimestamp { get; set; } = new() { Seconds = 0 };
     public long PeriodSeconds { get; set; } = 604800;
     public long MinerIncreaseInterval { get; set; } = 31536000;
+    public int SingleNodeMiningInterval { get; set; } = 8000;
 }

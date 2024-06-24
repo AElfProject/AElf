@@ -82,7 +82,7 @@ public partial class Round
         if (RealTimeMinersInformation.Count == 1)
         {
             // Just appoint the mining interval for single miner.
-            return 4000;
+            return AEDPoSContractConstants.SingleNodeMiningInterval;
         }
 
         var firstTwoMiners = RealTimeMinersInformation.Values.Where(m => m.Order == 1 || m.Order == 2)
