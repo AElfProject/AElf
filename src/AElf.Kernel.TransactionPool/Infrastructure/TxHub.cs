@@ -55,7 +55,8 @@ public class TxHub : ITxHub, ISingletonDependency
 
     public ILocalEventBus LocalEventBus { get; set; }
 
-    public async Task<ExecutableTransactionSet> GetExecutableTransactionSetAsync(Hash blockHash, int transactionCount)
+    public async Task<ExecutableTransactionSet> GetExecutableTransactionSetAsync(List<Transaction> txList,
+        Hash blockHash, int transactionCount)
     {
         var output = new ExecutableTransactionSet
         {
@@ -72,7 +73,7 @@ public class TxHub : ITxHub, ISingletonDependency
             return output;
         }
 
-        output.Transactions.AddRange(_validatedTransactions.Values.OrderBy(x => x.EnqueueTime)
+        txList.AddRange(_validatedTransactions.Values.OrderBy(x => x.EnqueueTime)
             .Take(transactionCount)
             .Select(x => x.Transaction));
 

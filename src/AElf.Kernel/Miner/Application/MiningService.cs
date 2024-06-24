@@ -61,12 +61,14 @@ public class MiningService : IMiningService
                 cts.CancelAfter(ts);
             }
 
-            var block = await GenerateBlock(requestMiningDto.PreviousBlockHash,
-                requestMiningDto.PreviousBlockHeight, blockTime);
-            var systemTransactions = await GenerateSystemTransactions(requestMiningDto.PreviousBlockHash,
-                requestMiningDto.PreviousBlockHeight);
-            _systemTransactionExtraDataProvider.SetSystemTransactionCount(systemTransactions.Count,
-                block.Header);
+            var (blockTask, systemTransactionsTask) = (
+                GenerateBlock(requestMiningDto.PreviousBlockHash, requestMiningDto.PreviousBlockHeight, blockTime),
+                GenerateSystemTransactions(requestMiningDto.PreviousBlockHash, requestMiningDto.PreviousBlockHeight)
+            );
+
+            var block = await blockTask;
+            var systemTransactions = await systemTransactionsTask;
+
             var txTotalCount = transactions.Count + systemTransactions.Count;
 
             var pending = txTotalCount > requestMiningDto.TransactionCountLimit
@@ -100,6 +102,7 @@ public class MiningService : IMiningService
     private async Task<List<Transaction>> GenerateSystemTransactions(Hash previousBlockHash,
         long previousBlockHeight)
     {
+        await Task.Delay(1);
         var address = Address.FromPublicKey(await _accountService.GetPublicKeyAsync());
         var systemTransactions = await _systemTransactionGenerationService.GenerateSystemTransactionsAsync(address,
             previousBlockHeight, previousBlockHash);
@@ -123,6 +126,7 @@ public class MiningService : IMiningService
     /// <returns></returns>
     private async Task<Block> GenerateBlock(Hash preBlockHash, long preBlockHeight, Timestamp expectedMiningTime)
     {
+        await Task.Delay(1);
         var block = await _blockGenerationService.GenerateBlockBeforeExecutionAsync(new GenerateBlockDto
         {
             PreviousBlockHash = preBlockHash,
