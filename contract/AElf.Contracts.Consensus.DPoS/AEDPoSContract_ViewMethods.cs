@@ -143,7 +143,7 @@ public partial class AEDPoSContract
             return true;
         }
 
-        var miningInterval = currentRound.GetMiningInterval();
+        var miningInterval = currentRound.GetMiningInterval(State.SingleNodeMiningInterval.Value);
         var minerInRound = currentRound.RealTimeMinersInformation[pubkey];
         var timeSlotStartTime = minerInRound.ExpectedMiningTime;
 
@@ -159,7 +159,7 @@ public partial class AEDPoSContract
             currentRound.RealTimeMinersInformation.Single(m => m.Value.IsExtraBlockProducer).Key;
 
         // Check extra block time slot.
-        if (Context.CurrentBlockTime >= currentRound.GetExtraBlockMiningTime() &&
+        if (Context.CurrentBlockTime >= currentRound.GetExtraBlockMiningTime(State.SingleNodeMiningInterval.Value) &&
             supposedExtraBlockProducer == pubkey)
         {
             Context.LogDebug(() => "[CURRENT MINER]EXTRA");
@@ -168,8 +168,9 @@ public partial class AEDPoSContract
 
         // Check saving extra block time slot.
         var nextArrangeMiningTime =
-            currentRound.ArrangeAbnormalMiningTime(pubkey, Context.CurrentBlockTime, true);
-        var actualArrangedMiningTime = nextArrangeMiningTime.AddMilliseconds(-currentRound.TotalMilliseconds());
+            currentRound.ArrangeAbnormalMiningTime(pubkey, Context.CurrentBlockTime,
+                State.SingleNodeMiningInterval.Value, true);
+        var actualArrangedMiningTime = nextArrangeMiningTime.AddMilliseconds(-currentRound.TotalMilliseconds(State.SingleNodeMiningInterval.Value));
         if (actualArrangedMiningTime <= Context.CurrentBlockTime &&
             Context.CurrentBlockTime <= actualArrangedMiningTime.AddMilliseconds(miningInterval))
         {
@@ -217,7 +218,7 @@ public partial class AEDPoSContract
         var miners = new MinerList();
         miners.Pubkeys.AddRange(
             currentRound.RealTimeMinersInformation.Keys.Select(k => ByteStringHelper.FromHexString(k)));
-        var newRound = miners.GenerateFirstRoundOfNewTerm(currentRound.GetMiningInterval(),
+        var newRound = miners.GenerateFirstRoundOfNewTerm(currentRound.GetMiningInterval(State.SingleNodeMiningInterval.Value),
             Context.CurrentBlockTime, currentRound);
 
         newRound.ConfirmedIrreversibleBlockHeight = currentRound.ConfirmedIrreversibleBlockHeight;
@@ -252,14 +253,16 @@ public partial class AEDPoSContract
         if (!IsMainChain && IsMainChainMinerListChanged(currentRound))
         {
             nextRound = State.MainChainCurrentMinerList.Value.GenerateFirstRoundOfNewTerm(
-                currentRound.GetMiningInterval(), currentBlockTime, currentRound.RoundNumber);
+                currentRound.GetMiningInterval(State.SingleNodeMiningInterval.Value), currentBlockTime,
+                currentRound.RoundNumber);
             nextRound.ConfirmedIrreversibleBlockHeight = currentRound.ConfirmedIrreversibleBlockHeight;
             nextRound.ConfirmedIrreversibleBlockRoundNumber = currentRound.ConfirmedIrreversibleBlockRoundNumber;
             return;
         }
 
         var blockchainStartTimestamp = GetBlockchainStartTimestamp();
-        currentRound.GenerateNextRoundInformation(currentBlockTime, blockchainStartTimestamp, out nextRound);
+        currentRound.GenerateNextRoundInformation(currentBlockTime, blockchainStartTimestamp,
+            State.SingleNodeMiningInterval.Value, out nextRound);
     }
 
     private bool IsMainChainMinerListChanged(Round currentRound)

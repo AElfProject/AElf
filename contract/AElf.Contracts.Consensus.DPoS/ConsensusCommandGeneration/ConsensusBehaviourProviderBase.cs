@@ -15,6 +15,7 @@ public partial class AEDPoSContract
     private abstract class ConsensusBehaviourProviderBase
     {
         private readonly Timestamp _currentBlockTime;
+        private readonly int _singleNodeMiningInterval;
 
         private readonly bool _isTimeSlotPassed;
         private readonly int _maximumBlocksCount;
@@ -24,15 +25,16 @@ public partial class AEDPoSContract
         protected readonly Round CurrentRound;
 
         protected ConsensusBehaviourProviderBase(Round currentRound, string pubkey, int maximumBlocksCount,
-            Timestamp currentBlockTime)
+            Timestamp currentBlockTime, int singleNodeMiningInterval)
         {
             CurrentRound = currentRound;
 
             _pubkey = pubkey;
             _maximumBlocksCount = maximumBlocksCount;
             _currentBlockTime = currentBlockTime;
+            _singleNodeMiningInterval = singleNodeMiningInterval;
 
-            _isTimeSlotPassed = CurrentRound.IsTimeSlotPassed(_pubkey, _currentBlockTime);
+            _isTimeSlotPassed = CurrentRound.IsTimeSlotPassed(_pubkey, _currentBlockTime, _singleNodeMiningInterval);
             _minerInRound = CurrentRound.RealTimeMinersInformation[_pubkey];
         }
 

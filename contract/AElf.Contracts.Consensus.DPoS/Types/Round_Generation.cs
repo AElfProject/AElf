@@ -8,7 +8,7 @@ namespace AElf.Contracts.Consensus.AEDPoS;
 
 public partial class Round
 {
-    public void GenerateNextRoundInformation(Timestamp currentBlockTimestamp, Timestamp blockchainStartTimestamp,
+    public void GenerateNextRoundInformation(Timestamp currentBlockTimestamp, Timestamp blockchainStartTimestamp, int singleNodeMiningInterval,
         out Round nextRound, bool isMinerListChanged = false)
     {
         nextRound = new Round { IsMinerListJustChanged = isMinerListChanged };
@@ -17,7 +17,7 @@ public partial class Round
         var minersNotMinedCurrentRound = GetNotMinedMiners();
         var minersCount = RealTimeMinersInformation.Count;
 
-        var miningInterval = GetMiningInterval();
+        var miningInterval = GetMiningInterval(singleNodeMiningInterval);
         nextRound.RoundNumber = RoundNumber + 1;
         nextRound.TermNumber = TermNumber;
         nextRound.BlockchainAge = RoundNumber == 1 ? 1 : (currentBlockTimestamp - blockchainStartTimestamp).Seconds;

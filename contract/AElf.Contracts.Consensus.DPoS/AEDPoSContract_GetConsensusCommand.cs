@@ -27,27 +27,27 @@ public partial class AEDPoSContract
 
         if (currentRound.RoundNumber == 1 && behaviour == AElfConsensusBehaviour.UpdateValue)
             return new ConsensusCommandProvider(new FirstRoundCommandStrategy(currentRound, pubkey,
-                currentBlockTime, behaviour)).GetConsensusCommand();
+                currentBlockTime, behaviour, State.SingleNodeMiningInterval.Value)).GetConsensusCommand();
 
         switch (behaviour)
         {
             case AElfConsensusBehaviour.UpdateValue:
                 TryToGetPreviousRoundInformation(out var previousRound);
                 return new ConsensusCommandProvider(new NormalBlockCommandStrategy(currentRound, pubkey,
-                    currentBlockTime, previousRound.RoundId)).GetConsensusCommand();
+                    currentBlockTime, previousRound.RoundId, State.SingleNodeMiningInterval.Value)).GetConsensusCommand();
 
             case AElfConsensusBehaviour.NextRound:
             case AElfConsensusBehaviour.NextTerm:
                 return new ConsensusCommandProvider(
                         new TerminateRoundCommandStrategy(currentRound, pubkey, currentBlockTime,
-                            behaviour == AElfConsensusBehaviour.NextTerm))
+                            behaviour == AElfConsensusBehaviour.NextTerm, State.SingleNodeMiningInterval.Value))
                     .GetConsensusCommand();
 
             case AElfConsensusBehaviour.TinyBlock:
             {
                 var consensusCommand =
                     new ConsensusCommandProvider(new TinyBlockCommandStrategy(currentRound, pubkey,
-                        currentBlockTime, GetMaximumBlocksCount())).GetConsensusCommand();
+                        currentBlockTime, GetMaximumBlocksCount(), State.SingleNodeMiningInterval.Value)).GetConsensusCommand();
                 return consensusCommand;
             }
 

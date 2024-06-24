@@ -14,8 +14,8 @@ public partial class AEDPoSContract
         private readonly long _previousRoundId;
 
         public NormalBlockCommandStrategy(Round currentRound, string pubkey, Timestamp currentBlockTime,
-            long previousRoundId) : base(
-            currentRound, pubkey, currentBlockTime)
+            long previousRoundId, int singleNodeMiningInterval) : base(
+            currentRound, pubkey, currentBlockTime, singleNodeMiningInterval)
         {
             _previousRoundId = previousRoundId;
         }

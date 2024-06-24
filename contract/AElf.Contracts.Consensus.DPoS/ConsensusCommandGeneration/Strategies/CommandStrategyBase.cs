@@ -22,19 +22,21 @@ public partial class AEDPoSContract
         protected const int TinyBlockMinimumInterval = 50;
 
         protected readonly Timestamp CurrentBlockTime;
+        protected readonly int SingleNodeMiningInterval;
         protected readonly Round CurrentRound;
         protected readonly string Pubkey;
 
-        protected CommandStrategyBase(Round currentRound, string pubkey, Timestamp currentBlockTime)
+        protected CommandStrategyBase(Round currentRound, string pubkey, Timestamp currentBlockTime, int singleNodeMiningInterval)
         {
             CurrentRound = currentRound;
             Pubkey = pubkey;
             CurrentBlockTime = currentBlockTime;
+            SingleNodeMiningInterval = singleNodeMiningInterval;
         }
 
         protected MinerInRound MinerInRound => CurrentRound.RealTimeMinersInformation[Pubkey];
         protected int Order => CurrentRound.GetMiningOrder(Pubkey);
-        protected int MiningInterval => CurrentRound.GetMiningInterval();
+        protected int MiningInterval => CurrentRound.GetMiningInterval(SingleNodeMiningInterval);
 
         /// <summary>
         ///     Producing time of every (tiny) block at most.

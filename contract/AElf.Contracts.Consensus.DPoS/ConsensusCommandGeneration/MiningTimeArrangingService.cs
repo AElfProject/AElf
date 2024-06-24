@@ -19,9 +19,9 @@ public partial class AEDPoSContract
             return TimestampExtensions.Max(round.GetExpectedMiningTime(pubkey), currentBlockTime);
         }
 
-        public static Timestamp ArrangeExtraBlockMiningTime(Round round, string pubkey, Timestamp currentBlockTime)
+        public static Timestamp ArrangeExtraBlockMiningTime(Round round, string pubkey, Timestamp currentBlockTime, int singleNodeMiningInterval)
         {
-            return round.ArrangeAbnormalMiningTime(pubkey, currentBlockTime);
+            return round.ArrangeAbnormalMiningTime(pubkey, currentBlockTime, singleNodeMiningInterval);
         }
     }
 }

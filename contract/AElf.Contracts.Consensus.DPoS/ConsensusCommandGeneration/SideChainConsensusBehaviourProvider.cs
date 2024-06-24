@@ -9,7 +9,7 @@ public partial class AEDPoSContract
     private class SideChainConsensusBehaviourProvider : ConsensusBehaviourProviderBase
     {
         public SideChainConsensusBehaviourProvider(Round currentRound, string pubkey, int maximumBlocksCount,
-            Timestamp currentBlockTime) : base(currentRound, pubkey, maximumBlocksCount, currentBlockTime)
+            Timestamp currentBlockTime, int singleNodeMiningInterval) : base(currentRound, pubkey, maximumBlocksCount, currentBlockTime, singleNodeMiningInterval)
         {
         }
 

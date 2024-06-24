@@ -38,11 +38,11 @@ public partial class AEDPoSContract
         var behaviour = IsMainChain
             ? new MainChainConsensusBehaviourProvider(currentRound, _processingBlockMinerPubkey,
                     GetMaximumBlocksCount(),
-                    Context.CurrentBlockTime, blockchainStartTimestamp, State.PeriodSeconds.Value)
+                    Context.CurrentBlockTime, blockchainStartTimestamp, State.PeriodSeconds.Value, State.SingleNodeMiningInterval.Value)
                 .GetConsensusBehaviour()
             : new SideChainConsensusBehaviourProvider(currentRound, _processingBlockMinerPubkey,
                 GetMaximumBlocksCount(),
-                Context.CurrentBlockTime).GetConsensusBehaviour();
+                Context.CurrentBlockTime, State.SingleNodeMiningInterval.Value).GetConsensusBehaviour();
 
         Context.LogDebug(() =>
             $"{currentRound.ToString(_processingBlockMinerPubkey)}\nArranged behaviour: {behaviour.ToString()}");

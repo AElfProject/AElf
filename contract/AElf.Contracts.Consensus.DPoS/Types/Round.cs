@@ -77,12 +77,12 @@ public partial class Round
     /// For single miner, return 4000 ms.
     /// </summary>
     /// <returns></returns>
-    public int GetMiningInterval()
+    public int GetMiningInterval(int singleNodeMiningInterval)
     {
-        if (RealTimeMinersInformation.Count == 1)
+        if (RealTimeMinersInformation.Count == 1 && singleNodeMiningInterval != 0)
         {
             // Just appoint the mining interval for single miner.
-            return AEDPoSContractConstants.SingleNodeMiningInterval;
+            return singleNodeMiningInterval;
         }
 
         var firstTwoMiners = RealTimeMinersInformation.Values.Where(m => m.Order == 1 || m.Order == 2)
@@ -92,9 +92,9 @@ public partial class Round
             .Milliseconds());
     }
 
-    public bool IsTimeSlotPassed(string publicKey, Timestamp currentBlockTime)
+    public bool IsTimeSlotPassed(string publicKey, Timestamp currentBlockTime, int singleNodeMiningInterval)
     {
-        var miningInterval = GetMiningInterval();
+        var miningInterval = GetMiningInterval(singleNodeMiningInterval);
         if (!RealTimeMinersInformation.ContainsKey(publicKey)) return false;
         var minerInRound = RealTimeMinersInformation[publicKey];
         if (RoundNumber != 1)
@@ -131,11 +131,11 @@ public partial class Round
                 (current, minerInRound) => HashHelper.XorAndCompute(current, minerInRound.Signature)));
     }
 
-    public Timestamp GetExtraBlockMiningTime()
+    public Timestamp GetExtraBlockMiningTime(int singleNodeMiningInterval)
     {
         return RealTimeMinersInformation.OrderBy(m => m.Value.Order).Last().Value
             .ExpectedMiningTime
-            .AddMilliseconds(GetMiningInterval());
+            .AddMilliseconds(GetMiningInterval(singleNodeMiningInterval));
     }
 
     public long GetMinedBlocks()

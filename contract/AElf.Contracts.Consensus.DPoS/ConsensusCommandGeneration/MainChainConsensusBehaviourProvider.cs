@@ -12,8 +12,8 @@ public partial class AEDPoSContract
         private readonly long _periodSeconds;
 
         public MainChainConsensusBehaviourProvider(Round currentRound, string pubkey, int maximumBlocksCount,
-            Timestamp currentBlockTime, Timestamp blockchainStartTimestamp, long periodSeconds) : base(currentRound,
-            pubkey, maximumBlocksCount, currentBlockTime)
+            Timestamp currentBlockTime, Timestamp blockchainStartTimestamp, long periodSeconds, int singleNodeMiningInterval) : base(currentRound,
+            pubkey, maximumBlocksCount, currentBlockTime, singleNodeMiningInterval)
         {
             _blockchainStartTimestamp = blockchainStartTimestamp;
             _periodSeconds = periodSeconds;

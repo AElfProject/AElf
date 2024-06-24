@@ -81,7 +81,7 @@ public partial class AEDPoSContract
             new MiningPermissionValidationProvider(),
 
             // Is this block produced in proper time?
-            new TimeSlotValidationProvider(),
+            new TimeSlotValidationProvider(State.SingleNodeMiningInterval.Value),
 
             // Is sender produced too many blocks at one time?
             new ContinuousBlocksValidationProvider()

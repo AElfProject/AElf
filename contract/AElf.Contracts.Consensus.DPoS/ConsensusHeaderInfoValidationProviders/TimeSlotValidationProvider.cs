@@ -7,6 +7,13 @@ namespace AElf.Contracts.Consensus.AEDPoS;
 
 public class TimeSlotValidationProvider : IHeaderInformationValidationProvider
 {
+    private readonly int _singleNodeMiningInterval;
+
+    public TimeSlotValidationProvider(int singleNodeMiningInterval)
+    {
+        _singleNodeMiningInterval = singleNodeMiningInterval;
+    }
+
     public ValidationResult ValidateHeaderInformation(ConsensusValidationContext validationContext)
     {
         var validationResult = new ValidationResult();
@@ -42,7 +49,7 @@ public class TimeSlotValidationProvider : IHeaderInformationValidationProvider
         if (latestActualMiningTime == null) return true;
         var expectedMiningTime = minerInRound.ExpectedMiningTime;
         var endOfExpectedTimeSlot =
-            expectedMiningTime.AddMilliseconds(validationContext.BaseRound.GetMiningInterval());
+            expectedMiningTime.AddMilliseconds(validationContext.BaseRound.GetMiningInterval(_singleNodeMiningInterval));
         if (latestActualMiningTime < expectedMiningTime)
             // Which means this miner is producing tiny blocks for previous extra block slot.
             return latestActualMiningTime < validationContext.BaseRound.GetRoundStartTime();

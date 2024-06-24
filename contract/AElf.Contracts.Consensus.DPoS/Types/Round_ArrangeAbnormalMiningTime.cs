@@ -16,24 +16,24 @@ public partial class Round
     /// if this node executed blocks from other nodes.
     /// </summary>
     /// <returns></returns>
-    public Timestamp ArrangeAbnormalMiningTime(string pubkey, Timestamp currentBlockTime, bool mustExceededCurrentRound = false)
+    public Timestamp ArrangeAbnormalMiningTime(string pubkey, Timestamp currentBlockTime, int singleNodeMiningInterval, bool mustExceededCurrentRound = false)
     {
-        var miningInterval = GetMiningInterval();
+        var miningInterval = GetMiningInterval(singleNodeMiningInterval);
 
         var minerInRound = RealTimeMinersInformation[pubkey];
 
         if (GetExtraBlockProducerInformation().Pubkey == pubkey && !mustExceededCurrentRound)
         {
-            var distance = (GetExtraBlockMiningTime().AddMilliseconds(miningInterval) - currentBlockTime).Milliseconds();
+            var distance = (GetExtraBlockMiningTime(singleNodeMiningInterval).AddMilliseconds(miningInterval) - currentBlockTime).Milliseconds();
             if (distance > 0)
             {
-                return GetExtraBlockMiningTime();
+                return GetExtraBlockMiningTime(singleNodeMiningInterval);
             }
         }
 
         var distanceToRoundStartTime = (currentBlockTime - GetRoundStartTime()).Milliseconds();
-        var missedRoundsCount = distanceToRoundStartTime.Div(TotalMilliseconds(miningInterval));
-        var futureRoundStartTime = CalculateFutureRoundStartTime(missedRoundsCount, miningInterval);
+        var missedRoundsCount = distanceToRoundStartTime.Div(TotalMilliseconds(singleNodeMiningInterval, miningInterval));
+        var futureRoundStartTime = CalculateFutureRoundStartTime(missedRoundsCount, miningInterval, singleNodeMiningInterval);
         return futureRoundStartTime.AddMilliseconds(minerInRound.Order.Mul(miningInterval));
     }
 
@@ -48,13 +48,14 @@ public partial class Round
     /// </summary>
     /// <param name="miningInterval"></param>
     /// <param name="missedRoundsCount"></param>
+    /// <param name="singleNodeMiningInterval"></param>
     /// <returns></returns>
-    private Timestamp CalculateFutureRoundStartTime(long missedRoundsCount = 0, int miningInterval = 0)
+    private Timestamp CalculateFutureRoundStartTime(long missedRoundsCount = 0, int miningInterval = 0, int singleNodeMiningInterval = 0)
     {
         if (miningInterval == 0)
-            miningInterval = GetMiningInterval();
+            miningInterval = GetMiningInterval(singleNodeMiningInterval);
 
-        var totalMilliseconds = TotalMilliseconds(miningInterval);
+        var totalMilliseconds = TotalMilliseconds(singleNodeMiningInterval, miningInterval);
         return GetRoundStartTime().AddMilliseconds(missedRoundsCount.Add(1).Mul(totalMilliseconds));
     }
 
@@ -66,11 +67,11 @@ public partial class Round
     /// </summary>
     /// <param name="miningInterval"></param>
     /// <returns></returns>
-    public int TotalMilliseconds(int miningInterval = 0)
+    public int TotalMilliseconds(int singleNodeMiningInterval, int miningInterval = 0)
     {
         if (miningInterval == 0)
         {
-            miningInterval = GetMiningInterval();
+            miningInterval = GetMiningInterval(singleNodeMiningInterval);
         }
 
         return RealTimeMinersInformation.Count * miningInterval + miningInterval;

@@ -14,8 +14,8 @@ public partial class AEDPoSContract
         private readonly bool _isNewTerm;
 
         public TerminateRoundCommandStrategy(Round currentRound, string pubkey, Timestamp currentBlockTime,
-            bool isNewTerm) : base(
-            currentRound, pubkey, currentBlockTime)
+            bool isNewTerm, int singleNodeMiningInterval) : base(
+            currentRound, pubkey, currentBlockTime, singleNodeMiningInterval)
         {
             _isNewTerm = isNewTerm;
         }
@@ -23,7 +23,7 @@ public partial class AEDPoSContract
         public override ConsensusCommand GetAEDPoSConsensusCommand()
         {
             var arrangedMiningTime =
-                MiningTimeArrangingService.ArrangeExtraBlockMiningTime(CurrentRound, Pubkey, CurrentBlockTime);
+                MiningTimeArrangingService.ArrangeExtraBlockMiningTime(CurrentRound, Pubkey, CurrentBlockTime, SingleNodeMiningInterval);
             return new ConsensusCommand
             {
                 Hint = new AElfConsensusHint

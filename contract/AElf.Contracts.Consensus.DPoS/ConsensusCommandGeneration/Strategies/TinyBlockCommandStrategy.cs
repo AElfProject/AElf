@@ -14,12 +14,14 @@ public partial class AEDPoSContract
     private class TinyBlockCommandStrategy : CommandStrategyBase
     {
         private readonly int _maximumBlocksCount;
+        private readonly int _singleNodeMiningInterval;
 
         public TinyBlockCommandStrategy(Round currentRound, string pubkey, Timestamp currentBlockTime,
-            int maximumBlocksCount) : base(
-            currentRound, pubkey, currentBlockTime)
+            int maximumBlocksCount, int singleNodeMiningInterval) : base(
+            currentRound, pubkey, currentBlockTime, singleNodeMiningInterval)
         {
             _maximumBlocksCount = maximumBlocksCount;
+            _singleNodeMiningInterval = singleNodeMiningInterval;
         }
 
         public override ConsensusCommand GetAEDPoSConsensusCommand()
@@ -38,7 +40,7 @@ public partial class AEDPoSContract
             var currentTimeSlotEndTime = currentTimeSlotStartTime.AddMilliseconds(MiningInterval);
 
             return arrangedMiningTime > currentTimeSlotEndTime
-                ? new TerminateRoundCommandStrategy(CurrentRound, Pubkey, CurrentBlockTime, false)
+                ? new TerminateRoundCommandStrategy(CurrentRound, Pubkey, CurrentBlockTime, false, _singleNodeMiningInterval)
                     .GetAEDPoSConsensusCommand() // The arranged mining time already beyond the time slot.
                 : new ConsensusCommand
                 {

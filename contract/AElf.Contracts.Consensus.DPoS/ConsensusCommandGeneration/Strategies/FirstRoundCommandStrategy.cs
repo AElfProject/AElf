@@ -23,7 +23,7 @@ public partial class AEDPoSContract
         private readonly AElfConsensusBehaviour _consensusBehaviour;
 
         public FirstRoundCommandStrategy(Round currentRound, string pubkey, Timestamp currentBlockTime,
-            AElfConsensusBehaviour consensusBehaviour) : base(currentRound, pubkey, currentBlockTime)
+            AElfConsensusBehaviour consensusBehaviour, int singleNodeMiningInterval) : base(currentRound, pubkey, currentBlockTime, singleNodeMiningInterval)
         {
             _consensusBehaviour = consensusBehaviour;
         }
