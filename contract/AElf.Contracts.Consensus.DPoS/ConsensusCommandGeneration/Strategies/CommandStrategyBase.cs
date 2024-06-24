@@ -46,12 +46,12 @@ public partial class AEDPoSContract
         /// <summary>
         ///     Give 3/5 of producing time for mining by default.
         /// </summary>
-        protected int DefaultBlockMiningLimit => TinyBlockSlotInterval.Mul(9).Div(10);
+        protected int DefaultBlockMiningLimit => TinyBlockSlotInterval.Mul(95).Div(100);
 
         /// <summary>
         ///     If this tiny block is the last one of current time slot, give half of producing time for mining.
         /// </summary>
-        protected int LastTinyBlockMiningLimit => TinyBlockSlotInterval.Div(2);
+        protected int LastTinyBlockMiningLimit => TinyBlockSlotInterval.Mul(95).Div(100);
 
         /// <summary>
         ///     If this block is of consensus behaviour NEXT_TERM, the producing time is MiningInterval,
