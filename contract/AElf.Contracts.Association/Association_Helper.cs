@@ -154,7 +154,9 @@ public partial class AssociationContract
             OrganizationAddress = input.OrganizationAddress,
             ProposalId = proposalId,
             Proposer = Context.Sender,
-            ProposalDescriptionUrl = input.ProposalDescriptionUrl
+            ProposalDescriptionUrl = input.ProposalDescriptionUrl,
+            Title = input.Title,
+            Description = input.Description
         };
         Assert(Validate(proposal), "Invalid proposal.");
         Assert(State.Proposals[proposalId] == null, "Proposal already exists.");
@@ -162,7 +164,9 @@ public partial class AssociationContract
         Context.Fire(new ProposalCreated
         {
             ProposalId = proposalId,
-            OrganizationAddress = input.OrganizationAddress
+            OrganizationAddress = input.OrganizationAddress,
+            Title = input.Title,
+            Description = input.Description
         });
         return proposalId;
     }

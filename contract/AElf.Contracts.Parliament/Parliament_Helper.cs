@@ -234,13 +234,20 @@ public partial class ParliamentContract
             OrganizationAddress = input.OrganizationAddress,
             ProposalId = proposalId,
             Proposer = Context.Sender,
-            ProposalDescriptionUrl = input.ProposalDescriptionUrl
+            ProposalDescriptionUrl = input.ProposalDescriptionUrl,
+            Title = input.Title,
+            Description = input.Description
         };
         Assert(Validate(proposal), "Invalid proposal.");
         Assert(State.Proposals[proposalId] == null, "Proposal already exists.");
         State.Proposals[proposalId] = proposal;
         Context.Fire(new ProposalCreated
-            { ProposalId = proposalId, OrganizationAddress = input.OrganizationAddress });
+        {
+            ProposalId = proposalId, 
+            OrganizationAddress = input.OrganizationAddress,
+            Title = input.Title,
+            Description = input.Description
+        });
         return proposalId;
     }
 
