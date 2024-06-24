@@ -99,6 +99,7 @@ public class MiningService : IMiningService,ISingletonDependency
     private async Task<List<Transaction>> GenerateSystemTransactions(Hash previousBlockHash,
         long previousBlockHeight)
     {
+        await Task.Delay(1);
         var address = Address.FromPublicKey(await _accountService.GetPublicKeyAsync());
         var systemTransactions = await _systemTransactionGenerationService.GenerateSystemTransactionsAsync(address,
             previousBlockHeight, previousBlockHash);
@@ -122,6 +123,7 @@ public class MiningService : IMiningService,ISingletonDependency
     /// <returns></returns>
     private async Task<Block> GenerateBlock(Hash preBlockHash, long preBlockHeight, Timestamp expectedMiningTime)
     {
+        await Task.Delay(1);
         var block = await _blockGenerationService.GenerateBlockBeforeExecutionAsync(new GenerateBlockDto
         {
             PreviousBlockHash = preBlockHash,

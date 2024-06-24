@@ -49,7 +49,8 @@ public class TxHub : ITxHub, ISingletonDependency
         _actionBlock = CreateQueuedTransactionBufferBlock();
     }
 
-    public async Task<ExecutableTransactionSet> GetExecutableTransactionSetAsync(Hash blockHash,
+    public async Task<ExecutableTransactionSet> GetExecutableTransactionSetAsync(List<Transaction> txList,
+        Hash blockHash,
         int transactionCount)
     {
         Logger.LogTrace("Begin TxHub.GetExecutableTransactionSetAsync");
@@ -71,13 +72,13 @@ public class TxHub : ITxHub, ISingletonDependency
             return output;
         }
 
-        List<Transaction> list = GetTransactions(transactionCount);
-        output.Transactions.AddRange(list);
+        List<Transaction> list = GetTransactions(txList,transactionCount);
+        // output.Transactions.AddRange(list);
         Logger.LogTrace("End TxHub.GetExecutableTransactionSetAsync");
         return output;
     }
 
-    private List<Transaction> GetTransactions(int transactionCount)
+    private List<Transaction> GetTransactions(List<Transaction> txList, int transactionCount)
     {
         var res = new List<Transaction>();
 
@@ -89,7 +90,7 @@ public class TxHub : ITxHub, ISingletonDependency
         {
             var countPerGroup = dict.Value.Count;
             var take = countPerGroup < count ? countPerGroup : count;
-            res.AddRange(dict.Value.Take(take)
+            txList.AddRange(dict.Value.Take(take)
                 .Select(x => x.Value.Transaction));
         }
 

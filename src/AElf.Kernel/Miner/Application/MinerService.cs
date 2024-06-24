@@ -37,7 +37,7 @@ public class MinerService : IMinerService
         Duration blockExecutionTime)
     {
         Logger.LogTrace("Begin MinerService.MineAsync");
-        var txList = new List<Transaction>();
+        var txList = new List<Transaction>(150000);
             
         var chainContext = new ChainContext
         {
@@ -49,10 +49,10 @@ public class MinerService : IMinerService
             
         if (_transactionPackingOptionProvider.IsTransactionPackable(chainContext))
         {
-            var executableTransactionSet = await _transactionPoolService.GetExecutableTransactionSetAsync(
+            var executableTransactionSet = await _transactionPoolService.GetExecutableTransactionSetAsync(txList,
                 previousBlockHash, limit);
 
-            txList.AddRange(executableTransactionSet.Transactions);
+            // txList.AddRange(executableTransactionSet.Transactions);
         }
             
 
