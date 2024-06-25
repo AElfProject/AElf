@@ -158,6 +158,7 @@ public partial class ReferendumContract
 
     private Hash CreateNewProposal(CreateProposalInput input)
     {
+        CheckCreateProposalInput(input);
         var proposalId = GenerateProposalId(input);
         Assert(State.Proposals[proposalId] == null, "Proposal already exists.");
         var proposal = new ProposalInfo
@@ -183,6 +184,14 @@ public partial class ReferendumContract
         });
 
         return proposalId;
+    }
+    
+    private void CheckCreateProposalInput(CreateProposalInput input)
+    {
+        // Check the length of title
+        Assert(input.Title.Length <= ReferendumConstants.MaxLengthForTitle, "Title is too long.");
+        // Check the length of description
+        Assert(input.Title.Length <= ReferendumConstants.MaxLengthForDescription, "Description is too long.");
     }
 
     private void AssertIsAuthorizedProposer(Address organizationAddress, Address proposer)

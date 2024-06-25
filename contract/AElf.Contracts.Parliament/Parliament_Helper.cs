@@ -224,6 +224,7 @@ public partial class ParliamentContract
 
     private Hash CreateNewProposal(CreateProposalInput input)
     {
+        CheckCreateProposalInput(input);
         var proposalId = GenerateProposalId(input);
         var proposal = new ProposalInfo
         {
@@ -249,6 +250,14 @@ public partial class ParliamentContract
             Description = input.Description
         });
         return proposalId;
+    }
+    
+    private void CheckCreateProposalInput(CreateProposalInput input)
+    {
+        // Check the length of title
+        Assert(input.Title.Length <= ParliamentConstants.MaxLengthForTitle, "Title is too long.");
+        // Check the length of description
+        Assert(input.Title.Length <= ParliamentConstants.MaxLengthForDescription, "Description is too long.");
     }
 
     private Address CreateNewOrganization(CreateOrganizationInput input)
