@@ -37,7 +37,7 @@ public class MinerService : IMinerService
         Timestamp blockTime,
         Duration blockExecutionTime)
     {
-        var txList = new List<Transaction>(1000);
+        var txList = new List<Transaction>(500);
 
         var chainContext = new ChainContext
         {
