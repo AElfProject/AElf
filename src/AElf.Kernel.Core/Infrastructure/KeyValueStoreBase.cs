@@ -1,3 +1,4 @@
+using System.IO;
 using System.Linq;
 using AElf.Database;
 
@@ -95,7 +96,28 @@ public abstract class KeyValueStoreBase<TKeyValueDbContext, T> : IKeyValueStore<
 
     private static byte[] Serialize(T value)
     {
-        return value?.ToByteArray();
+        return ToByteArrayEfficiently(value);
+    }
+    
+    public static byte[] ToByteArrayEfficiently( IMessage message)
+    {
+        ProtoPreconditions.CheckNotNull<IMessage>(message, nameof(message));
+
+        // 使用MemoryStream来动态分配内存
+        using (var memoryStream = new MemoryStream())
+        {
+            // 创建一个CodedOutputStream来写入MemoryStream
+            using (var codedOutput = new CodedOutputStream(memoryStream))
+            {
+                // 写入消息
+                message.WriteTo(codedOutput);
+                // 刷新CodedOutputStream以确保所有数据都已写入MemoryStream
+                codedOutput.Flush();
+            }
+
+            // 将MemoryStream的内容转换为字节数组
+            return memoryStream.ToArray();
+        }
     }
 
     private T Deserialize(byte[] result)
