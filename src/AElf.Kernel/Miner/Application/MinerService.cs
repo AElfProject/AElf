@@ -46,7 +46,7 @@ public class MinerService : IMinerService
         };
 
         var limit = await _blockTransactionLimitProvider.GetLimitAsync(chainContext);
-        limit = 300;
+        limit = 250;
         if (_transactionPackingOptionProvider.IsTransactionPackable(chainContext))
         {
             var executableTransactionSet = await _transactionPoolService.GetExecutableTransactionSetAsync(txList,
