@@ -9,4 +9,3 @@ services:
       - 8001:8000
     volumes:
       - /opt:/opt
-
