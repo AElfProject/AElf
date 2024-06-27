@@ -38,5 +38,5 @@ jobs:
       - name: Begin SonarQube analysis
         run: |
           ./.sonar/scanner/dotnet-sonarscanner begin /k:"AElf" /d:sonar.host.url="${{ secrets.SONAR_HOST_URL }}" /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
-          dotnet build
+          dotnet build AElf.All.sln
           ./.sonar/scanner/dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
