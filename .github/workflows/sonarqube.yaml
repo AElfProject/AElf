@@ -38,7 +38,7 @@ jobs:
       - name: Install Protobuf 3.19.4
         run: |
           sudo apt-get update
-          sudo apt-get install -y protobuf-compiler=3.19.4
+          sudo apt-get install -y protobuf-compiler=3.19.4-1
       - name: Begin SonarQube analysis
         run: |
           ./.sonar/scanner/dotnet-sonarscanner begin /k:"AElf" /d:sonar.host.url="${{ secrets.SONAR_HOST_URL }}" /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
