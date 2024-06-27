@@ -35,10 +35,11 @@ jobs:
         run: dotnet tool update dotnet-sonarscanner --tool-path ./.sonar/scanner
       - name: Add .NET global tools to PATH
         run: echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
-      - name: Install Protobuf 3.19.4
+      - name: Install Protobuf for C#
         run: |
-          sudo apt-get update
-          sudo apt-get install -y protobuf-compiler=3.19.4-1
+          dotnet tool install --global Grpc.Tools --version 2.51.0
+          dotnet tool install --global Google.Protobuf.Tools --version 3.19.4
+          echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
       - name: Begin SonarQube analysis
         run: |
           ./.sonar/scanner/dotnet-sonarscanner begin /k:"AElf" /d:sonar.host.url="${{ secrets.SONAR_HOST_URL }}" /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
