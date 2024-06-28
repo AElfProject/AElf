@@ -258,6 +258,9 @@ public partial class ParliamentContract
         Assert(input.Title.Length <= ParliamentConstants.MaxLengthForTitle, "Title is too long.");
         // Check the length of description
         Assert(input.Title.Length <= ParliamentConstants.MaxLengthForDescription, "Description is too long.");
+        // Check the length of description url
+        Assert(input.ProposalDescriptionUrl.Length <= ParliamentConstants.MaxLengthForProposalDescriptionUrl,
+            "Description url is too long.");
     }
 
     private Address CreateNewOrganization(CreateOrganizationInput input)

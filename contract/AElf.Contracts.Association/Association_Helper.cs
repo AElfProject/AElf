@@ -178,5 +178,8 @@ public partial class AssociationContract
         Assert(input.Title.Length <= AssociationConstants.MaxLengthForTitle, "Title is too long.");
         // Check the length of description
         Assert(input.Title.Length <= AssociationConstants.MaxLengthForDescription, "Description is too long.");
+        // Check the length of description url
+        Assert(input.ProposalDescriptionUrl.Length <= AssociationConstants.MaxLengthForProposalDescriptionUrl,
+            "Description url is too long.");
     }
 }

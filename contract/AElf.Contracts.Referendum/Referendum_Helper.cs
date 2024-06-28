@@ -192,6 +192,9 @@ public partial class ReferendumContract
         Assert(input.Title.Length <= ReferendumConstants.MaxLengthForTitle, "Title is too long.");
         // Check the length of description
         Assert(input.Title.Length <= ReferendumConstants.MaxLengthForDescription, "Description is too long.");
+        // Check the length of description url
+        Assert(input.ProposalDescriptionUrl.Length <= ReferendumConstants.MaxLengthForProposalDescriptionUrl,
+            "Description url is too long.");
     }
 
     private void AssertIsAuthorizedProposer(Address organizationAddress, Address proposer)
