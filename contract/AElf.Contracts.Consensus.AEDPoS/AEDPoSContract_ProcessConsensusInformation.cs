@@ -249,7 +249,10 @@ public partial class AEDPoSContract
         minerInRound.ProducedBlocks = minerInRound.ProducedBlocks.Add(1);
         minerInRound.ProducedTinyBlocks = minerInRound.ProducedTinyBlocks.Add(1);
 
-        PerformSecretSharing(updateValueInput, minerInRound, currentRound, _processingBlockMinerPubkey);
+        if (IsSecretSharingEnabled())
+        {
+            PerformSecretSharing(updateValueInput, minerInRound, currentRound, _processingBlockMinerPubkey);
+        }
 
         foreach (var tuneOrder in updateValueInput.TuneOrderInformation)
             currentRound.RealTimeMinersInformation[tuneOrder.Key].FinalOrderOfNextRound = tuneOrder.Value;

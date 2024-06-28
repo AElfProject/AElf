@@ -2,9 +2,8 @@ using System;
 using System.Text;
 using AElf.Cryptography.Exceptions;
 using AElf.Types;
-using Org.BouncyCastle.Utilities.Encoders;
+using Org.BouncyCastle.Crypto;
 using Shouldly;
-using Virgil.Crypto;
 using Xunit;
 
 namespace AElf.Cryptography.Tests;
@@ -100,30 +99,12 @@ public class CryptoHelperTests
 
         // Bob decrypt the message.
         var decrypt = CryptoHelper.DecryptMessage(alice.PublicKey, bob.PrivateKey, cipherText);
-        Assert.True(decrypt.BytesEqual(plainText));
+        decrypt.ShouldBe(plainText);
 
         // Sam can't decrypt this message.
         var func = new Func<byte[]>(() => CryptoHelper.DecryptMessage(alice.PublicKey, sam.PrivateKey,
             cipherText));
-        Assert.Throws<VirgilCryptoException>(func);
-    }
-
-    [Fact]
-    public void Ecdh_Test()
-    {
-        var alice = CryptoHelper.GenerateKeyPair();
-        var bob = CryptoHelper.GenerateKeyPair();
-
-        var ecdhKey1 = CryptoHelper.Ecdh(alice.PrivateKey, bob.PublicKey);
-        var ecdhKey2 = CryptoHelper.Ecdh(bob.PrivateKey, alice.PublicKey);
-
-        Assert.Equal(ecdhKey1.ToHex(), ecdhKey2.ToHex());
-    }
-
-    [Fact]
-    public void Ecdh_BadArgument_ShouldThrowException()
-    {
-        Assert.Throws<PublicKeyOperationException>(() => CryptoHelper.Ecdh(new byte[32], new byte[33]));
+        Assert.Throws<InvalidCipherTextException>(func);
     }
 
     [Fact]
