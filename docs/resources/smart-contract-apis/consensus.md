@@ -115,7 +115,7 @@ message MinerInRound {
 - **term number**: the current term number.
 - **confirmed irreversible block height**: irreversible block height.
 - **confirmed irreversible block round number**: irreversible block round number.
-- **is miner list just changed**: is miner list different from the the miner list in the previous round.
+- **is miner list just changed**: is miner list different from the miner list in the previous round.
 - **round id for validation**: round id, calculated by summing block producers' expecting time (second).
 
 **MinerInRound**:
@@ -170,7 +170,7 @@ Gets the current round's information.
 - **term number**: the current term number.
 - **confirmed irreversible block height**: irreversible block height.
 - **confirmed irreversible block round number**: irreversible block round number.
-- **is miner list just changed**: is miner list different from the the miner list in the previous round.
+- **is miner list just changed**: is miner list different from the miner list in the previous round.
 - **round id for validation**: round id, calculated by summing block producers' expecting time(second).
 
 **MinerInRound**:
@@ -209,7 +209,7 @@ rpc GetPreviousRoundInformation (google.protobuf.Empty) returns (Round) {}
 - **term number**: the current term number.
 - **confirmed irreversible block height**: irreversible block height.
 - **confirmed irreversible block round number**: irreversible block round number.
-- **is miner list just changed**: is miner list different from the the miner list in the previous round.
+- **is miner list just changed**: is miner list different from the miner list in the previous round.
 - **round id for validation**: round id, calculated by summing block producers' expecting time(second).
 
 **MinerInRound**:
