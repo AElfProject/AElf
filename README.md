@@ -26,7 +26,7 @@ For more information you can follow these links:
     * [Testnet](https://docs.aelf.io/en/latest/tutorials/testnet.html)
 * [White Paper](https://aelf.com/gridcn/aelf_whitepaper_v1.7_en.pdf) 
 
-This repository contains the code that runs an AElf node, you'll find bellow other important repositories in the AElf 
+This repository contains the code that runs an AElf node, you'll find below other important repositories in the AElf 
 ecosystem:
 
 TOOL/LIBRARY | description
@@ -39,7 +39,7 @@ TOOL/LIBRARY | description
 
 ### This repository
 
-This repo is where you will find the code that can use to run an AElf node. It also contains a **tests** folder that centralizes all the unit tests.
+This repo is where you will find the code that can be used to run an AElf node. It also contains a **tests** folder that centralizes all the unit tests.
 
 ### Documentation
 
@@ -67,7 +67,7 @@ If you think you have found a bug in our system feel free to open a GitHub issue
 #### Missing feature
 
 We also use the GitHub issue tracker for features. If you think that some piece of functionality is missing in AElf, you can open an issue with the following in mind:
-- check for similare feature requests already open.
+- check for similar feature requests already open.
 - provide as much detail and context as possible.
 - be as convincing as possible as to why we need this feature and how everybody can benefit from it.
 
