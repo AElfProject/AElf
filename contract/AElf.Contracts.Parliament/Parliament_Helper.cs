@@ -257,7 +257,7 @@ public partial class ParliamentContract
         // Check the length of title
         Assert(input.Title.Length <= ParliamentConstants.MaxLengthForTitle, "Title is too long.");
         // Check the length of description
-        Assert(input.Title.Length <= ParliamentConstants.MaxLengthForDescription, "Description is too long.");
+        Assert(input.Description.Length <= ParliamentConstants.MaxLengthForDescription, "Description is too long.");
         // Check the length of description url
         Assert(input.ProposalDescriptionUrl.Length <= ParliamentConstants.MaxLengthForProposalDescriptionUrl,
             "Description url is too long.");
