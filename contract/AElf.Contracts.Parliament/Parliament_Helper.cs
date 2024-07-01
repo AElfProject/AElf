@@ -224,6 +224,7 @@ public partial class ParliamentContract
 
     private Hash CreateNewProposal(CreateProposalInput input)
     {
+        CheckCreateProposalInput(input);
         var proposalId = GenerateProposalId(input);
         var proposal = new ProposalInfo
         {
@@ -234,14 +235,32 @@ public partial class ParliamentContract
             OrganizationAddress = input.OrganizationAddress,
             ProposalId = proposalId,
             Proposer = Context.Sender,
-            ProposalDescriptionUrl = input.ProposalDescriptionUrl
+            ProposalDescriptionUrl = input.ProposalDescriptionUrl,
+            Title = input.Title,
+            Description = input.Description
         };
         Assert(Validate(proposal), "Invalid proposal.");
         Assert(State.Proposals[proposalId] == null, "Proposal already exists.");
         State.Proposals[proposalId] = proposal;
         Context.Fire(new ProposalCreated
-            { ProposalId = proposalId, OrganizationAddress = input.OrganizationAddress });
+        {
+            ProposalId = proposalId, 
+            OrganizationAddress = input.OrganizationAddress,
+            Title = input.Title,
+            Description = input.Description
+        });
         return proposalId;
+    }
+    
+    private void CheckCreateProposalInput(CreateProposalInput input)
+    {
+        // Check the length of title
+        Assert(input.Title.Length <= ParliamentConstants.MaxLengthForTitle, "Title is too long.");
+        // Check the length of description
+        Assert(input.Description.Length <= ParliamentConstants.MaxLengthForDescription, "Description is too long.");
+        // Check the length of description url
+        Assert(input.ProposalDescriptionUrl.Length <= ParliamentConstants.MaxLengthForProposalDescriptionUrl,
+            "Description url is too long.");
     }
 
     private Address CreateNewOrganization(CreateOrganizationInput input)

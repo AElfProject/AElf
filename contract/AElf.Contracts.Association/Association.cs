@@ -35,7 +35,9 @@ public partial class AssociationContract : AssociationContractImplContainer.Asso
             ToBeReleased = readyToRelease,
             ApprovalCount = proposal.Approvals.Count,
             RejectionCount = proposal.Rejections.Count,
-            AbstentionCount = proposal.Abstentions.Count
+            AbstentionCount = proposal.Abstentions.Count,
+            Title = proposal.Title,
+            Description = proposal.Description
         };
     }
 

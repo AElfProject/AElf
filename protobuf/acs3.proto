@@ -90,6 +90,10 @@ message CreateProposalInput {
     string proposal_description_url = 6;
     // The token is for proposal id generation and with this token, proposal id can be calculated before proposing.
     aelf.Hash token = 7;
+    // Title of this proposal.
+    string title = 8;
+    // Description of this proposal.
+    string description = 9;
 }
 
 message ProposalOutput {
@@ -115,6 +119,10 @@ message ProposalOutput {
     int64 rejection_count = 10;
     // Abstention count for this proposal.
     int64 abstention_count = 11;
+    // Title of this proposal.
+    string title = 12;
+    // Description of this proposal.
+    string description = 13;
 }
 
 message ProposalReleaseThreshold {
@@ -159,7 +167,11 @@ message ProposalCreated{
     // The id of the created proposal.
     aelf.Hash proposal_id = 1;
     // The organization address of the created proposal.
-    aelf.Address organization_address=2 [(aelf.is_indexed) = true];
+    aelf.Address organization_address = 2 [(aelf.is_indexed) = true];
+    // Title of this proposal.
+    string title = 3;
+    // Description of this proposal.
+    string description = 4;
 }
 
 message ProposalReleased{
@@ -168,6 +180,10 @@ message ProposalReleased{
     aelf.Hash proposal_id = 1;
     // The organization address of the released proposal.
     aelf.Address organization_address=2 [(aelf.is_indexed) = true];
+    // Title of this proposal.
+    string title = 3;
+    // Description of this proposal.
+    string description = 4;
 }
 
 message OrganizationCreated{
