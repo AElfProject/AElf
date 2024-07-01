@@ -16,14 +16,14 @@ public interface ICodeCheckJobProcessor
 
 public class CodeCheckJobProcessor : ICodeCheckJobProcessor, ISingletonDependency
 {
-    private readonly TransformBlock<CodeCheckJob, CodeCheckJob> _codeCheckTransformBlock;
+    private TransformBlock<CodeCheckJob, CodeCheckJob> _codeCheckTransformBlock;
     private List<ActionBlock<CodeCheckJob>> _codeCheckProcessesJobTransformBlock;
     private readonly CodeCheckOptions _codeCheckOptions;
     private readonly ICheckedCodeHashProvider _checkedCodeHashProvider;
     private readonly ICodeCheckService _codeCheckService;
     private readonly IProposalService _proposalService;
     private readonly ICodeCheckProposalService _codeCheckProposalService;
-    
+
     public ILogger<CodeCheckJobProcessor> Logger { get; set; }
 
     public CodeCheckJobProcessor(IOptionsSnapshot<CodeCheckOptions> codeCheckOptions,
@@ -42,7 +42,18 @@ public class CodeCheckJobProcessor : ICodeCheckJobProcessor, ISingletonDependenc
 
     public async Task<bool> SendAsync(CodeCheckJob job)
     {
-        return await _codeCheckTransformBlock.SendAsync(job);
+        var codeCheckJobSendResult = await _codeCheckTransformBlock.SendAsync(job);
+        if (!codeCheckJobSendResult)
+        {
+            Logger.LogError(
+                $"Failed to send code check job. " +
+                $"Input count: {_codeCheckTransformBlock.InputCount}, " +
+                $"output count: {_codeCheckTransformBlock.OutputCount}");
+            //Logger.LogError("Trying to recovery.");
+            //_codeCheckTransformBlock = CreateCodeCheckBufferBlock();
+        }
+
+        return codeCheckJobSendResult;
     }
 
     public async Task CompleteAsync()
@@ -61,7 +72,7 @@ public class CodeCheckJobProcessor : ICodeCheckJobProcessor, ISingletonDependenc
                 BoundedCapacity = Math.Max(_codeCheckOptions.MaxBoundedCapacity, 1),
                 MaxDegreeOfParallelism = _codeCheckOptions.MaxDegreeOfParallelism
             });
-        
+
         _codeCheckProcessesJobTransformBlock = new List<ActionBlock<CodeCheckJob>>();
         for (var i = 0; i < _codeCheckOptions.MaxDegreeOfParallelism; i++)
         {
@@ -83,41 +94,45 @@ public class CodeCheckJobProcessor : ICodeCheckJobProcessor, ISingletonDependenc
 
     private async Task ProcessCodeCheckJobAsync(CodeCheckJob job)
     {
-        var codeCheckResult = await _codeCheckService.PerformCodeCheckAsync(job.ContractCode, job.BlockHash,
-            job.BlockHeight, job.ContractCategory, job.IsSystemContract, job.IsUserContract);
-        
-        var codeHash = HashHelper.ComputeFrom(job.ContractCode);
-        Logger.LogInformation("Code check result: {codeCheckResult}, code hash: {codeHash}", codeCheckResult,
-            codeHash.ToHex());
-        
-        if (!codeCheckResult)
-            return;
-
-        if (job.IsUserContract)
+        try
         {
-            _codeCheckProposalService.AddReleasableProposal(job.CodeCheckProposalId, job.ProposedContractInputHash,
-                job.BlockHeight);
+            var codeCheckResult = await _codeCheckService.PerformCodeCheckAsync(job.ContractCode, job.BlockHash,
+                job.BlockHeight, job.ContractCategory, job.IsSystemContract, job.IsUserContract);
+
+            var codeHash = HashHelper.ComputeFrom(job.ContractCode);
+
+            if (!codeCheckResult)
+            {
+                Logger.LogError("Code check failed for code hash: {codeHash}", codeHash.ToHex());
+                return;
+            }
+
+            if (job.IsUserContract)
+            {
+                _codeCheckProposalService.AddReleasableProposal(job.CodeCheckProposalId, job.ProposedContractInputHash,
+                    job.BlockHeight);
+            }
+
+            _proposalService.AddNotApprovedProposal(job.CodeCheckProposalId, job.BlockHeight);
+
+            await _checkedCodeHashProvider.AddCodeHashAsync(new BlockIndex
+            {
+                BlockHash = job.BlockHash,
+                BlockHeight = job.BlockHeight
+            }, codeHash);
         }
-
-        // Cache proposal id to generate system approval transaction later
-        _proposalService.AddNotApprovedProposal(job.CodeCheckProposalId, job.BlockHeight);
-
-        await _checkedCodeHashProvider.AddCodeHashAsync(new BlockIndex
+        catch (Exception e)
         {
-            BlockHash = job.BlockHash,
-            BlockHeight = job.BlockHeight
-        }, codeHash);
+            Logger.LogError("Error while processing code check job: {e}", e);
+            throw;
+        }
     }
-    
+
     private CodeCheckJob UpdateBucketIndex(CodeCheckJob job)
     {
-        var assemblyLoadContext = new AssemblyLoadContext(null, true);
-        var assembly = assemblyLoadContext.LoadFromStream(new MemoryStream(job.ContractCode));
-        
         job.BucketIndex =
-            Math.Abs(HashHelper.ComputeFrom(assembly.GetName().Name).ToInt64() % _codeCheckOptions.MaxDegreeOfParallelism);
-        assemblyLoadContext.Unload();
-        
+            Math.Abs(HashHelper.ComputeFrom(job.ContractCode).ToInt64() % _codeCheckOptions.MaxDegreeOfParallelism);
+
         return job;
     }
 }

@@ -21,7 +21,7 @@ public partial class BasicContractZero
         var serialNumber = State.ContractSerialNumber.Value;
         State.ContractSerialNumber.Value = serialNumber + 1;
 
-        var contractAddress = AddressHelper.BuildContractAddress(Context.ChainId, serialNumber);
+        var contractAddress = AddressHelper.ComputeContractAddress(Context.ChainId, serialNumber);
 
         var info = new ContractInfo
         {
@@ -85,7 +85,7 @@ public partial class BasicContractZero
         var serialNumber = State.ContractSerialNumber.Value;
         State.ContractSerialNumber.Value = serialNumber + 1;
 
-        var contractAddress = AddressHelper.BuildContractAddress(Context.ChainId, serialNumber);
+        var contractAddress = AddressHelper.ComputeContractAddress(Context.ChainId, serialNumber);
 
         var info = new ContractInfo
         {

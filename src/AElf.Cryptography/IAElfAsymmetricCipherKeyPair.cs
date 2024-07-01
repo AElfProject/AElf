@@ -1,7 +1,9 @@
-namespace AElf.Cryptography;
-
-public interface IAElfAsymmetricCipherKeyPair
+namespace AElf.Cryptography
 {
-    byte[] PrivateKey { get; }
-    byte[] PublicKey { get; }
+
+    public interface IAElfAsymmetricCipherKeyPair
+    {
+        byte[] PrivateKey { get; }
+        byte[] PublicKey { get; }
+    }
 }

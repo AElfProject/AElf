@@ -1,5 +1,10 @@
+.. first doc documentation master file, created by
+   sphinx-quickstart on Mon Apr 27 14:47:32 2020.
+   You can adapt this file completely to your liking, but it should at least
+   contain the root `toctree` directive.
+
 Welcome to AElf's official documentation!
-=========================================
+=========================================   
 
 .. toctree::
 
@@ -55,7 +60,6 @@ Welcome to AElf's official documentation!
    Smart Contract API <reference/smart-contract-api/index>
    Acs Introduction <reference/acs/index>
    Command-line Interface <reference/cli/index>
-   Smart Contract <reference/smart-contract/index>
 
 
 .. toctree::
@@ -75,4 +79,4 @@ Welcome to AElf's official documentation!
 
    tutorials/cross-chain/running-side-chain
    tutorials/__run-node
-   getting_started/smart_contracts/index
+   getting-started/smart-contract-development/developing-smart-contracts/index

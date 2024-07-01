@@ -1,24 +1,26 @@
 using System;
 using Google.Protobuf;
 
-namespace AElf;
-
-public static class ByteStringHelper
+namespace AElf
 {
-    public static int Compare(ByteString xValue, ByteString yValue)
-    {
-        for (var i = 0; i < Math.Min(xValue.Length, yValue.Length); i++)
-        {
-            if (xValue[i] > yValue[i]) return 1;
 
-            if (xValue[i] < yValue[i]) return -1;
+    public static class ByteStringHelper
+    {
+        public static int Compare(ByteString xValue, ByteString yValue)
+        {
+            for (var i = 0; i < Math.Min(xValue.Length, yValue.Length); i++)
+            {
+                if (xValue[i] > yValue[i]) return 1;
+
+                if (xValue[i] < yValue[i]) return -1;
+            }
+
+            return 0;
         }
 
-        return 0;
-    }
-
-    public static ByteString FromHexString(string hexString)
-    {
-        return ByteString.CopyFrom(ByteArrayHelper.HexStringToByteArray(hexString));
+        public static ByteString FromHexString(string hexString)
+        {
+            return ByteString.CopyFrom(ByteArrayHelper.HexStringToByteArray(hexString));
+        }
     }
 }

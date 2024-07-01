@@ -268,14 +268,14 @@ public sealed class ExecutionPluginForMethodFeeTest : ExecutionPluginForMethodFe
         chargingAddress.ShouldContain(dummy.Transaction.From);
 
         var transactionFeeDic = dummy.TransactionResult.GetChargedTransactionFees();
-        await CheckTransactionFeesMapAsync(transactionFeeDic);
+        await CheckTransactionFeesMapAsync(DefaultSender,transactionFeeDic);
 
         var after = await tokenContractStub.GetBalance.CallAsync(new GetBalanceInput
         {
             Owner = DefaultSender,
             Symbol = "ELF"
         });
-        after.Balance.ShouldBe(before.Balance - transactionFeeDic[before.Symbol]);
+        after.Balance.ShouldBe(before.Balance - transactionFeeDic[DefaultAddress][before.Symbol]);
     }
     
     private static List<Address> GetChargingAddress(TransactionResult transactionResult)
@@ -284,7 +284,7 @@ public sealed class ExecutionPluginForMethodFeeTest : ExecutionPluginForMethodFe
         return relatedLogs.Select(l => TransactionFeeCharged.Parser.ParseFrom(l.Indexed[0]).ChargingAddress).ToList();
     }
 
-    private async Task CheckTransactionFeesMapAsync(Dictionary<string, long> transactionFeeDic)
+    private async Task CheckTransactionFeesMapAsync(Address chargingAddress, Dictionary<Address,Dictionary<string, long>> transactionFeeDic)
     {
         var chain = await _blockchainService.GetChainAsync();
         var transactionFeesMap = await _totalTransactionFeesMapProvider.GetTotalTransactionFeesMapAsync(new ChainContext
@@ -293,7 +293,13 @@ public sealed class ExecutionPluginForMethodFeeTest : ExecutionPluginForMethodFe
             BlockHeight = chain.BestChainHeight
         });
         foreach (var transactionFee in transactionFeeDic)
-            transactionFeesMap.Value[transactionFee.Key].ShouldBe(transactionFee.Value);
+        {
+            transactionFee.Key.ShouldBe(chargingAddress);
+            foreach (var value in transactionFee.Value)
+            {
+                transactionFeesMap.Value[value.Key].ShouldBe(value.Value);
+            }
+        }
     }
 
     [Fact]
@@ -324,7 +330,7 @@ public sealed class ExecutionPluginForMethodFeeTest : ExecutionPluginForMethodFe
         dummy.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
         dummy.TransactionResult.Error.ShouldBe("Pre-Error: Transaction fee not enough.");
         var transactionFeeDic = dummy.TransactionResult.GetChargedTransactionFees();
-        await CheckTransactionFeesMapAsync(transactionFeeDic);
+        await CheckTransactionFeesMapAsync(Accounts[1].Address,transactionFeeDic);
 
         var afterFee = (await tokenContractStub.GetBalance.CallAsync(new GetBalanceInput
         {
@@ -332,7 +338,7 @@ public sealed class ExecutionPluginForMethodFeeTest : ExecutionPluginForMethodFe
             Symbol = "ELF"
         })).Balance;
         afterFee.ShouldBe(0);
-        transactionFeeDic["ELF"].ShouldBe(issueAmount);
+        transactionFeeDic[Accounts[1].Address]["ELF"].ShouldBe(issueAmount);
     }
 
     [Theory]
@@ -378,7 +384,7 @@ public sealed class ExecutionPluginForMethodFeeTest : ExecutionPluginForMethodFe
             Symbol = chargedSymbol ?? "ELF"
         })).Balance;
 
-        Dictionary<string, long> transactionFeeDic;
+        Dictionary<Address,Dictionary<string, long>> transactionFeeDic;
         var userTestContractStub =
             GetTester<ContractContainer.ContractStub>(_testContractAddress, Accounts[1].KeyPair);
         if (isChargingSuccessful)
@@ -387,8 +393,9 @@ public sealed class ExecutionPluginForMethodFeeTest : ExecutionPluginForMethodFe
             dummyResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             if (chargedSymbol != null)
             {
-                dummyResult.TransactionResult.GetChargedTransactionFees().Keys.ShouldContain(chargedSymbol);
-                dummyResult.TransactionResult.GetChargedTransactionFees().Values.ShouldContain(chargedAmount);
+                dummyResult.TransactionResult.GetChargedTransactionFees().Keys.ShouldContain(Accounts[1].Address);
+                dummyResult.TransactionResult.GetChargedTransactionFees()[Accounts[1].Address].Keys.ShouldContain(chargedSymbol);
+                dummyResult.TransactionResult.GetChargedTransactionFees()[Accounts[1].Address].Values.ShouldContain(chargedAmount);
             }
 
             transactionFeeDic = dummyResult.TransactionResult.GetChargedTransactionFees();
@@ -399,13 +406,13 @@ public sealed class ExecutionPluginForMethodFeeTest : ExecutionPluginForMethodFe
             dummyResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             dummyResult.TransactionResult.Error.ShouldBe("Pre-Error: Transaction fee not enough.");
             if (chargedSymbol != null)
-                dummyResult.TransactionResult.GetChargedTransactionFees().Keys.ShouldContain(chargedSymbol);
+                dummyResult.TransactionResult.GetChargedTransactionFees()[Accounts[1].Address].Keys.ShouldContain(chargedSymbol);
             transactionFeeDic = dummyResult.TransactionResult.GetChargedTransactionFees();
         }
 
-        await CheckTransactionFeesMapAsync(transactionFeeDic);
+        await CheckTransactionFeesMapAsync(Accounts[1].Address,transactionFeeDic);
         if (chargedSymbol != null)
-            transactionFeeDic[chargedSymbol].ShouldBe(chargedAmount);
+            transactionFeeDic[Accounts[1].Address][chargedSymbol].ShouldBe(chargedAmount);
 
         var finalBalance = (await tokenContractStub.GetBalance.CallAsync(new GetBalanceInput
         {
