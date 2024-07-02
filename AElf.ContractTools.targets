@@ -32,7 +32,8 @@
             </PropertyGroup>
         </Otherwise>
     </Choose>
-    
+
+    <!-- Generate protobuf code before building and getting the target path -->
     <Target Name="GenerateProtobufCode" BeforeTargets="BeforeBuild;GetTargetPath">
         <PropertyGroup>
             <LocalProtobufDir>$(ProjectDir)/Protobuf</LocalProtobufDir>

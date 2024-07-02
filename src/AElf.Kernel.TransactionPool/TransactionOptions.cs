@@ -17,4 +17,12 @@ public class TransactionOptions
     ///     But common node needs to enable it to prevent transaction flood attack
     /// </summary>
     public bool EnableTransactionExecutionValidation { get; set; } = true;
+    
+    
+    /// <summary>
+    ///     Configuration whether to save failed transaction results
+    /// </summary>
+    public bool StoreInvalidTransactionResultEnabled { get; set; }
+
+    
 }

@@ -1,3 +1,4 @@
+  # Azure DevOps pipeline configuration for publishing NuGet packages to MyGet
   pool:
     vmImage: ubuntu-latest
   pr: none 
