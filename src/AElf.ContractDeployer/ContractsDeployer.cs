@@ -8,9 +8,14 @@ namespace AElf.ContractDeployer;
 public static class ContractsDeployer
 {
     public static IReadOnlyDictionary<string, byte[]> GetContractCodes<T>(string contractDir = null,
-        bool isPatched = false)
+        bool isPatched = false, List<string> pluginContractNames = null)
     {
         var contractNames = GetContractNames(typeof(T).Assembly).ToList();
+        if (pluginContractNames is { Count: > 0 })
+        {
+            contractNames.AddRange(pluginContractNames);
+        }
+
         if (contractNames.Count == 0) throw new NoContractDllFoundInManifestException();
 
         return contractNames.Select(n => (n, GetCode(n, contractDir, isPatched)))

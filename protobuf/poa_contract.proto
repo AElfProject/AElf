@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+package PoA;
+
+import "aelf/options.proto";
+import "aelf/core.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/wrappers.proto";
+
+option csharp_namespace = "AElf.Contracts.Consensus.PoA";
+
+service PoAContract {
+    
+    option (aelf.csharp_state) = "AElf.Contracts.Consensus.PoA.PoAContractState";
+    
+    // Initialize the consensus contract. 
+    rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {
+    }
+    
+    rpc Mine (MineInput) returns (google.protobuf.Empty) {
+    }
+
+    rpc GetMiner (google.protobuf.Empty) returns (aelf.Address) {
+        option (aelf.is_view) = true;
+    }
+}
+
+message InitializeInput {
+    int64 mining_interval = 1;
+}
+
+message MineInput {
+}

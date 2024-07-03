@@ -30,18 +30,18 @@ public class ElectionContractInitializationProvider : IContractInitializationPro
     {
         return new List<ContractInitializationMethodCall>
         {
-            new()
-            {
-                MethodName = nameof(ElectionContractContainer.ElectionContractStub.InitialElectionContract),
-                Params = new InitialElectionContractInput
-                {
-                    MaximumLockTime = _economicOptions.MaximumLockTime,
-                    MinimumLockTime = _economicOptions.MinimumLockTime,
-                    TimeEachTerm = _consensusOptions.PeriodSeconds,
-                    MinerList = { _consensusOptions.InitialMinerList },
-                    MinerIncreaseInterval = _consensusOptions.MinerIncreaseInterval
-                }.ToByteString()
-            }
+            // new()
+            // {
+            //     MethodName = nameof(ElectionContractContainer.ElectionContractStub.InitialElectionContract),
+            //     Params = new InitialElectionContractInput
+            //     {
+            //         MaximumLockTime = _economicOptions.MaximumLockTime,
+            //         MinimumLockTime = _economicOptions.MinimumLockTime,
+            //         TimeEachTerm = _consensusOptions.PeriodSeconds,
+            //         MinerList = { _consensusOptions.InitialMinerList },
+            //         MinerIncreaseInterval = _consensusOptions.MinerIncreaseInterval
+            //     }.ToByteString()
+            // }
         };
     }
 }
