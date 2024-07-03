@@ -1,0 +1,48 @@
+name: benchmark_action
+on:
+  push:
+    tags:
+      - '**'
+    branches:
+      - '**'
+
+
+
+env:
+  DOTNET_INSTALL_DIR: "./.dotnet"
+  Solution_Name: AElf.All.sln
+  Service_Name: AELF
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '6.0'
+
+      - name: 'Download AElf build tools'
+        run: bash scripts/download_binary.sh
+
+      - name: 'Install protobuf'
+        run: bash scripts/install_protobuf.sh
+
+      - name: Install dependencies
+        run: dotnet restore bench/AElf.Benchmark/AElf.Benchmark.csproj --verbosity quiet
+
+      - name: BenchMark
+        run: |
+          cd bench/AElf.Benchmark
+          dotnet run --filter '*MinerTests*'
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.Service_Name }}
+          path: bench/AElf.Benchmark/BenchmarkDotNet.Artifacts/results
+          retention-days: 30
