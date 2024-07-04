@@ -45,7 +45,7 @@ public class Startup
             case ChainType.SideChain:
                 services.AddApplication<SideChainAElfModule>(optionsAction);
                 break;
-            default:
+            case ChainType.MainChain:
                 services.AddApplication<MainChainAElfModule>(optionsAction);
                 break;
         }
