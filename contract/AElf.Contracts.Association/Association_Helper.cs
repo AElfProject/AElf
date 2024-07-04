@@ -144,6 +144,7 @@ public partial class AssociationContract
 
     private Hash CreateNewProposal(CreateProposalInput input)
     {
+        CheckCreateProposalInput(input);
         var proposalId = GenerateProposalId(input);
         var proposal = new ProposalInfo
         {
@@ -154,7 +155,9 @@ public partial class AssociationContract
             OrganizationAddress = input.OrganizationAddress,
             ProposalId = proposalId,
             Proposer = Context.Sender,
-            ProposalDescriptionUrl = input.ProposalDescriptionUrl
+            ProposalDescriptionUrl = input.ProposalDescriptionUrl,
+            Title = input.Title,
+            Description = input.Description
         };
         Assert(Validate(proposal), "Invalid proposal.");
         Assert(State.Proposals[proposalId] == null, "Proposal already exists.");
@@ -162,8 +165,21 @@ public partial class AssociationContract
         Context.Fire(new ProposalCreated
         {
             ProposalId = proposalId,
-            OrganizationAddress = input.OrganizationAddress
+            OrganizationAddress = input.OrganizationAddress,
+            Title = input.Title,
+            Description = input.Description
         });
         return proposalId;
+    }
+
+    private void CheckCreateProposalInput(CreateProposalInput input)
+    {
+        // Check the length of title
+        Assert(input.Title.Length <= AssociationConstants.MaxLengthForTitle, "Title is too long.");
+        // Check the length of description
+        Assert(input.Description.Length <= AssociationConstants.MaxLengthForDescription, "Description is too long.");
+        // Check the length of description url
+        Assert(input.ProposalDescriptionUrl.Length <= AssociationConstants.MaxLengthForProposalDescriptionUrl,
+            "Description url is too long.");
     }
 }

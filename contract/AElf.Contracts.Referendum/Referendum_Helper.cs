@@ -158,6 +158,7 @@ public partial class ReferendumContract
 
     private Hash CreateNewProposal(CreateProposalInput input)
     {
+        CheckCreateProposalInput(input);
         var proposalId = GenerateProposalId(input);
         Assert(State.Proposals[proposalId] == null, "Proposal already exists.");
         var proposal = new ProposalInfo
@@ -168,13 +169,32 @@ public partial class ReferendumContract
             Params = input.Params,
             OrganizationAddress = input.OrganizationAddress,
             Proposer = Context.Sender,
-            ProposalDescriptionUrl = input.ProposalDescriptionUrl
+            ProposalDescriptionUrl = input.ProposalDescriptionUrl,
+            Title = input.Title,
+            Description = input.Description
         };
         Assert(Validate(proposal), "Invalid proposal.");
         State.Proposals[proposalId] = proposal;
-        Context.Fire(new ProposalCreated { ProposalId = proposalId, OrganizationAddress = input.OrganizationAddress });
+        Context.Fire(new ProposalCreated
+        {
+            ProposalId = proposalId, 
+            OrganizationAddress = input.OrganizationAddress,
+            Title = input.Title,
+            Description = input.Description
+        });
 
         return proposalId;
+    }
+    
+    private void CheckCreateProposalInput(CreateProposalInput input)
+    {
+        // Check the length of title
+        Assert(input.Title.Length <= ReferendumConstants.MaxLengthForTitle, "Title is too long.");
+        // Check the length of description
+        Assert(input.Description.Length <= ReferendumConstants.MaxLengthForDescription, "Description is too long.");
+        // Check the length of description url
+        Assert(input.ProposalDescriptionUrl.Length <= ReferendumConstants.MaxLengthForProposalDescriptionUrl,
+            "Description url is too long.");
     }
 
     private void AssertIsAuthorizedProposer(Address organizationAddress, Address proposer)
