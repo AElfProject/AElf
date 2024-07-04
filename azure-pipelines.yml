@@ -1,4 +1,4 @@
-# File: azure-pipelines.yml
+# Azure Pipelines configuration file
 jobs:
   - template: templates/build-template-window.yml
     parameters:
