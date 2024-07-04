@@ -32,32 +32,32 @@ public class EconomicContractInitializationProvider : IContractInitializationPro
     {
         return new List<ContractInitializationMethodCall>
         {
-            // new()
-            // {
-            //     MethodName = nameof(EconomicContractContainer.EconomicContractStub.InitialEconomicSystem),
-            //     Params = new InitialEconomicSystemInput
-            //     {
-            //         NativeTokenDecimals = _economicOptions.Decimals,
-            //         IsNativeTokenBurnable = _economicOptions.IsBurnable,
-            //         NativeTokenSymbol = _economicOptions.Symbol,
-            //         NativeTokenName = _economicOptions.TokenName,
-            //         NativeTokenTotalSupply = _economicOptions.TotalSupply,
-            //         MiningRewardTotalAmount =
-            //             Convert.ToInt64(_economicOptions.TotalSupply * _economicOptions.DividendPoolRatio),
-            //         TransactionSizeFeeUnitPrice = _economicOptions.TransactionSizeFeeUnitPrice
-            //     }.ToByteString()
-            // },
-            // new()
-            // {
-            //     MethodName = nameof(EconomicContractContainer.EconomicContractStub.IssueNativeToken),
-            //     Params = new IssueNativeTokenInput
-            //     {
-            //         Amount = Convert.ToInt64(_economicOptions.TotalSupply * (1 - _economicOptions.DividendPoolRatio)),
-            //         To = Address.FromPublicKey(
-            //             ByteArrayHelper.HexStringToByteArray(_consensusOptions.InitialMinerList.First())),
-            //         Memo = "Issue native token"
-            //     }.ToByteString()
-            // }
+            new()
+            {
+                MethodName = nameof(EconomicContractContainer.EconomicContractStub.InitialEconomicSystem),
+                Params = new InitialEconomicSystemInput
+                {
+                    NativeTokenDecimals = _economicOptions.Decimals,
+                    IsNativeTokenBurnable = _economicOptions.IsBurnable,
+                    NativeTokenSymbol = _economicOptions.Symbol,
+                    NativeTokenName = _economicOptions.TokenName,
+                    NativeTokenTotalSupply = _economicOptions.TotalSupply,
+                    MiningRewardTotalAmount =
+                        Convert.ToInt64(_economicOptions.TotalSupply * _economicOptions.DividendPoolRatio),
+                    TransactionSizeFeeUnitPrice = _economicOptions.TransactionSizeFeeUnitPrice
+                }.ToByteString()
+            },
+            new()
+            {
+                MethodName = nameof(EconomicContractContainer.EconomicContractStub.IssueNativeToken),
+                Params = new IssueNativeTokenInput
+                {
+                    Amount = Convert.ToInt64(_economicOptions.TotalSupply * (1 - _economicOptions.DividendPoolRatio)),
+                    To = Address.FromPublicKey(
+                        ByteArrayHelper.HexStringToByteArray(_consensusOptions.InitialMinerList.First())),
+                    Memo = "Issue native token"
+                }.ToByteString()
+            }
         };
     }
 }
