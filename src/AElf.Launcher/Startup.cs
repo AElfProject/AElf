@@ -35,7 +35,10 @@ public class Startup
             "aelf", "plugins"));
         Action<AbpApplicationCreationOptions> optionsAction = options =>
         {
-            options.PlugInSources.AddFolder(pluginSourcesFolder);
+            if (Directory.Exists(pluginSourcesFolder))
+            {
+                options.PlugInSources.AddFolder(pluginSourcesFolder);
+            }
         };
         switch (chainType)
         {
