@@ -19,13 +19,18 @@ public partial class PoAContract
     /// <returns></returns>
     public override Empty Mine(MineInput input)
     {
-        State.InitialMiner.Value = Context.Sender;
+        State.Miner.Value = Context.Sender;
         State.LastMiningTime.Value = Context.CurrentBlockTime;
         return new Empty();
     }
 
     public override Address GetMiner(Empty input)
     {
-        return State.InitialMiner.Value;
+        return State.Miner.Value;
+    }
+
+    public override BoolValue IsCurrentMiner(Address input)
+    {
+        return new BoolValue { Value = true };
     }
 }

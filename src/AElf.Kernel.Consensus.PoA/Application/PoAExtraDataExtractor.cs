@@ -7,6 +7,6 @@ public class PoAExtraDataExtractor : IConsensusExtraDataExtractor
 {
     public ByteString ExtractConsensusExtraData(BlockHeader header)
     {
-        return ByteString.Empty;
+        return ByteString.CopyFromUtf8("Pretending be a PoA consensus extra data.");
     }
 }

@@ -21,6 +21,10 @@ service PoAContract {
     rpc Mine (MineInput) returns (google.protobuf.Empty) {
     }
 
+    rpc IsCurrentMiner (aelf.Address) returns (google.protobuf.BoolValue) {
+        option (aelf.is_view) = true;
+    }
+
     rpc GetMiner (google.protobuf.Empty) returns (aelf.Address) {
         option (aelf.is_view) = true;
     }

@@ -1,4 +1,5 @@
-﻿using AElf.CSharp.Core.Extension;
+﻿using AElf.CSharp.Core;
+using AElf.CSharp.Core.Extension;
 using AElf.Standards.ACS4;
 using AElf.Types;
 using Google.Protobuf;
@@ -14,11 +15,20 @@ public partial class PoAContract : PoAContractImplContainer.PoAContractImplBase
 
         var arrangedMiningTime = Context.CurrentBlockTime.AddMilliseconds(State.MiningInterval.Value);
         var dueTime = arrangedMiningTime.AddMilliseconds(State.MiningInterval.Value);
+        var limit = ((int)State.MiningInterval.Value).Sub(250);
         return new ConsensusCommand
         {
             ArrangedMiningTime = arrangedMiningTime,
             MiningDueTime = dueTime,
-            LimitMillisecondsOfMiningBlock = (int)State.MiningInterval.Value,
+            LimitMillisecondsOfMiningBlock = limit
+        };
+    }
+
+    public override BytesValue GetConsensusExtraData(BytesValue input)
+    {
+        return new BytesValue
+        {
+            Value = Context.Sender.Value
         };
     }
 

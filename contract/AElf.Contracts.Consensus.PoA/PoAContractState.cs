@@ -6,7 +6,7 @@ namespace AElf.Contracts.Consensus.PoA;
 
 public class PoAContractState : ContractState
 {
-    public SingletonState<Address> InitialMiner { get; set; }
+    public SingletonState<Address> Miner { get; set; }
     public Int64State MiningInterval { get; set; }
     public SingletonState<Timestamp> LastMiningTime { get; set; }
 }
