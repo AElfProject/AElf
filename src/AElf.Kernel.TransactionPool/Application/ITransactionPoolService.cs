@@ -11,7 +11,7 @@ public interface ITransactionPoolService
     Task UpdateTransactionPoolByBestChainAsync(Hash bestChainHash, long bestChainHeight);
     Task UpdateTransactionPoolByLibAsync(long libHeight);
     Task CleanByTransactionIdsAsync(IEnumerable<Hash> transactionIds);
-    Task<ExecutableTransactionSet> GetExecutableTransactionSetAsync(List<Transaction> txList, Hash blockHash,
+    Task<ExecutableTransactionSet> GetExecutableTransactionSetAsync(Hash blockHash,
         int transactionCount = 0);
     Task<QueuedTransaction> GetQueuedTransactionAsync(Hash transactionId);
     Task<TransactionPoolStatus> GetTransactionPoolStatusAsync();
@@ -46,11 +46,11 @@ public class TransactionPoolService : ITransactionPoolService
         await _txHub.CleanByTransactionIdsAsync(transactionIds);
     }
 
-    public async Task<ExecutableTransactionSet> GetExecutableTransactionSetAsync(List<Transaction> txList,
+    public async Task<ExecutableTransactionSet> GetExecutableTransactionSetAsync(
         Hash blockHash,
         int transactionCount = 0)
     {
-        return await _txHub.GetExecutableTransactionSetAsync(txList,blockHash, transactionCount);
+        return await _txHub.GetExecutableTransactionSetAsync(blockHash, transactionCount);
     }
 
     public async Task<QueuedTransaction> GetQueuedTransactionAsync(Hash transactionId)

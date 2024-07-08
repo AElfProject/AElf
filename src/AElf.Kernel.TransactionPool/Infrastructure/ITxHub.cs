@@ -11,7 +11,7 @@ public interface ITxHub
     Task UpdateTransactionPoolByBestChainAsync(Hash bestChainHash, long bestChainHeight);
     Task CleanByTransactionIdsAsync(IEnumerable<Hash> transactionIds);
     Task CleanByHeightAsync(long height);
-    Task<ExecutableTransactionSet> GetExecutableTransactionSetAsync(List<Transaction> txList, Hash blockHash,
+    Task<ExecutableTransactionSet> GetExecutableTransactionSetAsync(Hash blockHash,
         int transactionCount);
     Task<QueuedTransaction> GetQueuedTransactionAsync(Hash transactionId);
     Task<TransactionPoolStatus> GetTransactionPoolStatusAsync();
