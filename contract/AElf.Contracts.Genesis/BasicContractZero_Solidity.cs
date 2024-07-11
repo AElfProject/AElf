@@ -129,7 +129,7 @@ public partial class BasicContractZero
         var wasmCode = new WasmContractCode();
         wasmCode.MergeFrom(input.Code);
         var codeHash = wasmCode.CodeHash;
-        AssertContractExists(codeHash);
+        AssertContractNotExists(codeHash);
         var reg = new SmartContractRegistration
         {
             Category = input.Category,
