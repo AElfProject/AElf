@@ -61,10 +61,10 @@ public class MiningService : IMiningService
                 cts.CancelAfter(ts);
             }
 
-            var (blockTask, systemTransactionsTask) = (
-                GenerateBlock(requestMiningDto.PreviousBlockHash, requestMiningDto.PreviousBlockHeight, blockTime),
-                GenerateSystemTransactions(requestMiningDto.PreviousBlockHash, requestMiningDto.PreviousBlockHeight)
-            );
+            var blockTask = Task.Run(() => GenerateBlock(requestMiningDto.PreviousBlockHash, requestMiningDto.PreviousBlockHeight, blockTime));
+            var systemTransactionsTask = Task.Run(() => GenerateSystemTransactions(requestMiningDto.PreviousBlockHash, requestMiningDto.PreviousBlockHeight));
+            
+            await Task.WhenAll(blockTask, systemTransactionsTask);
 
             var block = await blockTask;
             var systemTransactions = await systemTransactionsTask;
@@ -102,7 +102,6 @@ public class MiningService : IMiningService
     private async Task<List<Transaction>> GenerateSystemTransactions(Hash previousBlockHash,
         long previousBlockHeight)
     {
-        await Task.Delay(1);
         var address = Address.FromPublicKey(await _accountService.GetPublicKeyAsync());
         var systemTransactions = await _systemTransactionGenerationService.GenerateSystemTransactionsAsync(address,
             previousBlockHeight, previousBlockHash);
@@ -126,7 +125,6 @@ public class MiningService : IMiningService
     /// <returns></returns>
     private async Task<Block> GenerateBlock(Hash preBlockHash, long preBlockHeight, Timestamp expectedMiningTime)
     {
-        await Task.Delay(1);
         var block = await _blockGenerationService.GenerateBlockBeforeExecutionAsync(new GenerateBlockDto
         {
             PreviousBlockHash = preBlockHash,
