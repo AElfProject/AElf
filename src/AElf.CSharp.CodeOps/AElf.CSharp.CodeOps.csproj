@@ -11,6 +11,7 @@
         <PackageReference Include="Basic.Reference.Assemblies.Net60" Version="1.4.1" />
         <PackageReference Include="Mono.Cecil" Version="0.11.4" />
         <PackageReference Include="Groth16.Net" Version="1.0.3" />
+        <PackageReference Include="Poseidon.Net" Version="0.1.0" />
     </ItemGroup>
 
     <ItemGroup>
