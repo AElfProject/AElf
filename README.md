@@ -7,10 +7,10 @@
 [![Twitter Follow](https://img.shields.io/twitter/follow/aelfblockchain.svg?label=%40aelfblockchain&style=social)](https://twitter.com/aelfblockchain)
 [![Telegram](https://badgen.net/badge/telegram/join/blue?icon=telegram)](https://t.me/aelfdeveloper)
 
- BRANCH | AZURE PIPELINES                                              | TESTS                                                        | CODE COVERAGE                                                
- ------ | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ 
- MASTER | [![Build Status](https://dev.azure.com/AElfProject/AElf/_apis/build/status/AElfProject.AElf?branchName=master)](https://dev.azure.com/AElfProject/AElf/_build/latest?definitionId=1&branchName=master) | [![Test Status](https://img.shields.io/azure-devops/tests/AElfProject/AElf/1/master)](https://dev.azure.com/AElfProject/AElf/_build/latest?definitionId=1&branchName=master) | [![codecov](https://codecov.io/gh/AElfProject/AElf/branch/master/graph/badge.svg)](https://codecov.io/gh/AElfProject/AElf) 
- DEV    | [![Build Status](https://dev.azure.com/AElfProject/AElf/_apis/build/status/AElfProject.AElf?branchName=dev)](https://dev.azure.com/AElfProject/AElf/_build/latest?definitionId=1&branchName=dev) | [![Test Status](https://img.shields.io/azure-devops/tests/AElfProject/AElf/1/dev)](https://dev.azure.com/AElfProject/AElf/_build/latest?definitionId=1&branchName=dev) | [![codecov](https://codecov.io/gh/AElfProject/AElf/branch/dev/graph/badge.svg)](https://codecov.io/gh/AElfProject/AElf) 
+ BRANCH | GITHUB ACTIONS BUILD AND TEST                                                                                                                                                                      | CODE COVERAGE                                                
+ ------ |----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------| ------------------------------------------------------------ 
+ MASTER | ![Tests Summary](https://img.shields.io/badge/dynamic/json?label=tests&url=https%3A%2F%2Feanzhao.github.io%2FAElf%2FTestSummary.json&query=%24.passed%20%2F%20%24.failed&color=blue&branch=master) | [![codecov](https://codecov.io/gh/AElfProject/AElf/branch/master/graph/badge.svg)](https://codecov.io/gh/AElfProject/AElf) 
+ DEV    | ![Tests Summary](https://img.shields.io/badge/dynamic/json?label=tests&url=https%3A%2F%2Feanzhao.github.io%2FAElf%2FTestSummary.json&query=%24.passed%20%2F%20%24.failed&color=blue&branch=dev)    | [![codecov](https://codecov.io/gh/AElfProject/AElf/branch/dev/graph/badge.svg)](https://codecov.io/gh/AElfProject/AElf) 
 
 Welcome to AElf's official GitHub repo ! 
 

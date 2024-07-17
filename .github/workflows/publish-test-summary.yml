@@ -1,0 +1,29 @@
+name: Publish Test Summary
+on:
+  workflow_run:
+    workflows: ["build-and-test"]
+    types:
+      - completed
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion != 'skipped' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Download Test Summary
+        uses: actions/download-artifact@v2
+        with:
+          name: test-summary
+
+      - name: Publish Test Summary
+        uses: actions/gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: .
+          publish_branch: gh-pages
+          user_name: 'GitHub Action'
+          user_email: 'yiqi.zhao@aelf.io'
+          commit_message: 'Update test summary'
