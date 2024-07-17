@@ -33,14 +33,14 @@ public class SingletonState<TEntity> : SingletonState
         }
     }
 
-    internal override void Clear()
+    public override void Clear()
     {
         Loaded = false;
         _originalValue = default;
         _value = _originalValue;
     }
 
-    internal override TransactionExecutingStateSet GetChanges()
+    public override TransactionExecutingStateSet GetChanges()
     {
         var stateSet = new TransactionExecutingStateSet();
         var key = Path.ToStateKey(Context.Self);

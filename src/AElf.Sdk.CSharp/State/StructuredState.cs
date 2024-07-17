@@ -73,7 +73,7 @@ public class StructuredState : StateBase
         base.OnContextSet();
     }
 
-    internal override void Clear()
+    public override void Clear()
     {
         foreach (var kv in _propertyInfos)
         {
@@ -82,7 +82,7 @@ public class StructuredState : StateBase
         }
     }
 
-    internal override TransactionExecutingStateSet GetChanges()
+    public override TransactionExecutingStateSet GetChanges()
     {
         var stateSet = new TransactionExecutingStateSet();
         foreach (var kv in _propertyInfos)

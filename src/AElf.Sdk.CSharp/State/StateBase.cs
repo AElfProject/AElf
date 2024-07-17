@@ -9,7 +9,7 @@ public class StateBase
     private StatePath _path;
     internal IStateProvider Provider => _context.StateProvider;
 
-    internal StatePath Path
+    public StatePath Path
     {
         get => _path;
         set
@@ -19,7 +19,7 @@ public class StateBase
         }
     }
 
-    internal ISmartContractBridgeContext Context
+    public ISmartContractBridgeContext Context
     {
         get => _context;
         set
@@ -37,11 +37,11 @@ public class StateBase
     {
     }
 
-    internal virtual void Clear()
+    public virtual void Clear()
     {
     }
 
-    internal virtual TransactionExecutingStateSet GetChanges()
+    public virtual TransactionExecutingStateSet GetChanges()
     {
         return new TransactionExecutingStateSet();
     }

@@ -31,13 +31,13 @@ public class ReadonlyState<TEntity> : ReadonlyState
         }
     }
 
-    internal override void Clear()
+    public override void Clear()
     {
         Loaded = false;
         _value = default;
     }
 
-    internal override TransactionExecutingStateSet GetChanges()
+    public override TransactionExecutingStateSet GetChanges()
     {
         var stateSet = new TransactionExecutingStateSet();
         var key = Path.ToStateKey(Context.Self);

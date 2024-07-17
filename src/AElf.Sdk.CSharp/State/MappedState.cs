@@ -70,12 +70,12 @@ public class MappedState<TKey, TEntity> : MappedState
         valuePair.Value = value;
     }
 
-    internal override void Clear()
+    public override void Clear()
     {
         Cache = new Dictionary<TKey, ValuePair>();
     }
 
-    internal override TransactionExecutingStateSet GetChanges()
+    public override TransactionExecutingStateSet GetChanges()
     {
         var stateSet = new TransactionExecutingStateSet();
         foreach (var kv in Cache)
@@ -142,12 +142,12 @@ public class MappedState<TKey1, TKey2, TEntity> : MappedState
         foreach (var v in Cache.Values) v.Context = Context;
     }
 
-    internal override void Clear()
+    public override void Clear()
     {
         Cache = new Dictionary<TKey1, MappedState<TKey2, TEntity>>();
     }
 
-    internal override TransactionExecutingStateSet GetChanges()
+    public override TransactionExecutingStateSet GetChanges()
     {
         var stateSet = new TransactionExecutingStateSet();
         foreach (var kv in Cache)
@@ -191,12 +191,12 @@ public class MappedState<TKey1, TKey2, TKey3, TEntity> : MappedState
         foreach (var v in Cache.Values) v.Context = Context;
     }
 
-    internal override void Clear()
+    public override void Clear()
     {
         Cache = new Dictionary<TKey1, MappedState<TKey2, TKey3, TEntity>>();
     }
 
-    internal override TransactionExecutingStateSet GetChanges()
+    public override TransactionExecutingStateSet GetChanges()
     {
         var stateSet = new TransactionExecutingStateSet();
         foreach (var kv in Cache)
@@ -240,12 +240,12 @@ public class MappedState<TKey1, TKey2, TKey3, TKey4, TEntity> : MappedState
         foreach (var v in Cache.Values) v.Context = Context;
     }
 
-    internal override void Clear()
+    public override void Clear()
     {
         Cache = new Dictionary<TKey1, MappedState<TKey2, TKey3, TKey4, TEntity>>();
     }
 
-    internal override TransactionExecutingStateSet GetChanges()
+    public override TransactionExecutingStateSet GetChanges()
     {
         var stateSet = new TransactionExecutingStateSet();
         foreach (var kv in Cache)
