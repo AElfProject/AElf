@@ -1,0 +1,55 @@
+name: build-and-test
+on:
+  push:
+    branches:
+      - dev
+      - master
+
+env:
+  DOTNET_INSTALL_DIR: "./.dotnet"
+  Solution_Name: AElf.All.sln
+  Service_Name: AELF
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '6.0'
+
+      - name: Download AElf build tools
+        run: bash scripts/download_binary.sh
+
+      - name: Install Protobuf
+        run: bash scripts/install_protobuf.sh
+
+      - name: Build Solution
+        run: bash scripts/build.sh
+
+      - name: Run Tests
+        run: dotnet test --logger "trx;LogFileName=TestResults.trx" ${{ env.Solution_Name }}
+
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v2
+        with:
+          name: test-results
+          path: TestResults.trx
+          
+      - name: Parse Test Results
+        run: |
+          dotnet tool install --global trx2junit
+          trx2junit TestResults.trx
+          python3 -c "import xml.etree.ElementTree as ET; import json; root = ET.parse('TestResults.xml').getroot(); summary = root.find('.//Counters'); passed = summary.get('passed'); failed = summary.get('failed'); with open('TestSummary.json', 'w') as f: json.dump({'passed': passed, 'failed': failed}, f)"
+
+      - name: Upload Test Summary
+        uses: actions/upload-artifact@v2
+        with:
+          name: test-summary
+          path: TestSummary.json
