@@ -25,7 +25,7 @@ public abstract class GenesisSmartContractDtoProviderBase : IGenesisSmartContrac
     {
         var contractCodes = GetContractCodes();
         var deploymentList = ContractDeploymentListProvider.GetDeployContractNameList();
-        return ContractInitializationProviders
+        return ContractInitializationProviders 
             .GroupBy(p => p.SystemSmartContractName)
             .Where(g => deploymentList.Contains(g.Key))
             .OrderBy(g => deploymentList.IndexOf(g.Key))
