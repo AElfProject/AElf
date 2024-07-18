@@ -2,6 +2,10 @@
 using System.IO;
 using System.Reflection;
 using BenchmarkDotNet.Configs;
+using BenchmarkDotNet.Exporters;
+using BenchmarkDotNet.Exporters.Csv;
+using BenchmarkDotNet.Exporters.Xml;
+using BenchmarkDotNet.Reports;
 using BenchmarkDotNet.Running;
 using Volo.Abp;
 
@@ -18,8 +22,13 @@ internal class Program
                }))
         {
             application.Initialize();
-            BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(args, new DebugInProcessConfig());
-        }
+            var config = new DebugInProcessConfig()
+                .WithSummaryStyle(SummaryStyle.Default.WithMaxParameterColumnWidth(50))
+                .AddExporter(XmlExporter.Default)
+                .AddExporter(HtmlExporter.Default)
+                .AddExporter(new HtmlSummaryExporter())
+                .AddExporter(CsvExporter.Default); 
+            BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(args, config);        }
     }
 
     private static void RegisterAssemblyResolveEvent()
