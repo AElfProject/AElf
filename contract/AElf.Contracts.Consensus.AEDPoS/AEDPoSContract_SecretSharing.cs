@@ -57,8 +57,15 @@ public partial class AEDPoSContract
     {
         if (State.ConfigurationContract.Value == null)
         {
-            State.ConfigurationContract.Value =
+            var configurationContractAddress =
                 Context.GetContractAddressByName(SmartContractConstants.ConfigurationContractSystemName);
+            if (configurationContractAddress == null)
+            {
+                // Which means Configuration Contract hasn't been deployed yet.
+                return false;
+            }
+
+            State.ConfigurationContract.Value = configurationContractAddress;
         }
 
         var secretSharingEnabled = new BoolValue();
