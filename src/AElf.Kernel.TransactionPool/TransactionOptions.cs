@@ -19,4 +19,10 @@ public class TransactionOptions
     public bool EnableTransactionExecutionValidation { get; set; } = true;
     
     public static int BlockTransactionLimit { get; set; } = 512;
+    
+    /// <summary>
+    ///     Configuration whether to save failed transaction results
+    /// </summary>
+    public bool StoreInvalidTransactionResultEnabled { get; set; }
+    
 }

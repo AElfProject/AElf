@@ -1,4 +1,6 @@
+# Depth of components to analyze (2 levels deep)
 component_depth: 2
 
+# Programming languages to analyze
 languages:
 - csharp

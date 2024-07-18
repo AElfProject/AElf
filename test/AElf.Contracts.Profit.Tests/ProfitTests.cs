@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.CSharp.Core;
 using AElf.Types;
+using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
 
@@ -1604,13 +1605,32 @@ public partial class ProfitContractTests
                 Symbol = tokenSymbol,
                 SchemeId = schemeId
             });
+            
             profitAmount.Value.ShouldBe(amount);
+            
+            var allProfitAmount = await ProfitContractStub.GetAllProfitAmount.CallAsync(new GetAllProfitAmountInput
+            {
+                Beneficiary = receiver,
+                Symbol = tokenSymbol,
+                SchemeId = schemeId
+            });
+            allProfitAmount.AllProfitAmount.ShouldBe(amount);
+            allProfitAmount.OneTimeClaimableProfitAmount.ShouldBe(amount);
             var profitMap = await ProfitContractStub.GetProfitsMap.CallAsync(new ClaimProfitsInput
             {
                 SchemeId = schemeId,
                 Beneficiary = receiver
             });
+            
             profitMap.Value[tokenSymbol].ShouldBe(amount);
+            
+            var allProfitMap = await ProfitContractStub.GetAllProfitsMap.CallAsync(new GetAllProfitsMapInput
+            {
+                SchemeId = schemeId,
+                Beneficiary = receiver
+            });
+            allProfitMap.AllProfitsMap[tokenSymbol].ShouldBe(amount);
+            allProfitMap.OneTimeClaimableProfitsMap[tokenSymbol].ShouldBe(amount);
         }
 
         // after claim
@@ -1633,12 +1653,30 @@ public partial class ProfitContractTests
                 SchemeId = schemeId
             });
             profitAmount.Value.ShouldBe(0);
+            
+            var allProfitAmount = await ProfitContractStub.GetAllProfitAmount.CallAsync(new GetAllProfitAmountInput
+            {
+                Beneficiary = receiver,
+                Symbol = tokenSymbol,
+                SchemeId = schemeId
+            });
+            allProfitAmount.AllProfitAmount.ShouldBe(0);
+            allProfitAmount.OneTimeClaimableProfitAmount.ShouldBe(0);
+            
             var profitMap = await ProfitContractStub.GetProfitsMap.CallAsync(new ClaimProfitsInput
             {
                 SchemeId = schemeId,
                 Beneficiary = receiver
             });
             profitMap.Value.ShouldNotContainKey(tokenSymbol);
+            
+            var allProfitMap = await ProfitContractStub.GetAllProfitsMap.CallAsync(new GetAllProfitsMapInput
+            {
+                SchemeId = schemeId,
+                Beneficiary = receiver
+            });
+            allProfitMap.AllProfitsMap.ShouldNotContainKey(tokenSymbol);
+            allProfitMap.OneTimeClaimableProfitsMap.ShouldNotContainKey(tokenSymbol);
         }
 
         //second time
@@ -1659,12 +1697,28 @@ public partial class ProfitContractTests
                 SchemeId = schemeId
             });
             profitAmount.Value.ShouldBe(amount);
+            var allProfitAmount = await ProfitContractStub.GetAllProfitAmount.CallAsync(new GetAllProfitAmountInput
+            {
+                Beneficiary = receiver,
+                Symbol = tokenSymbol,
+                SchemeId = schemeId
+            });
+            allProfitAmount.AllProfitAmount.ShouldBe(amount);
+            allProfitAmount.OneTimeClaimableProfitAmount.ShouldBe(amount);
             var profitMap = await ProfitContractStub.GetProfitsMap.CallAsync(new ClaimProfitsInput
             {
                 SchemeId = schemeId,
                 Beneficiary = receiver
             });
             profitMap.Value[tokenSymbol].ShouldBe(amount);
+            
+            var allProfitMap = await ProfitContractStub.GetAllProfitsMap.CallAsync(new GetAllProfitsMapInput
+            {
+                SchemeId = schemeId,
+                Beneficiary = receiver
+            });
+            allProfitMap.AllProfitsMap[tokenSymbol].ShouldBe(amount);
+            allProfitMap.OneTimeClaimableProfitsMap[tokenSymbol].ShouldBe(amount);
 
             await ProfitContractStub.ClaimProfits.SendAsync(new ClaimProfitsInput
             {
@@ -1678,6 +1732,47 @@ public partial class ProfitContractTests
             var scheme = await ProfitContractStub.GetScheme.CallAsync(schemeId);
             details.Details.First().LastProfitPeriod.ShouldBe(scheme.CurrentPeriod);
         }
+    }
+
+
+    [Fact]
+    public async Task MaximumProfitReceivingPeriodCount_Test()
+    {
+        var maximumProfitReceivingPeriodCount =
+            await ProfitContractStub.GetMaximumProfitReceivingPeriodCount.CallAsync(new Empty());
+        maximumProfitReceivingPeriodCount.Value.ShouldBe(ProfitContractTestConstants
+            .DefaultMaximumProfitReceivingPeriodCountOfOneTime);
+        var maxPeriodCount = 10;
+        var result = await ProfitContractStub.SetMaximumProfitReceivingPeriodCount.SendWithExceptionAsync(new Int32Value
+        {
+            Value = maxPeriodCount
+        });
+        result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+        result.TransactionResult.Error.ShouldContain("No permission");
+
+        var defaultOrganizationAddress =
+            await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+        var proposalId = await CreateProposalAsync(ProfitContractAddress,
+            defaultOrganizationAddress, nameof(ProfitContractStub.SetMaximumProfitReceivingPeriodCount), new Int32Value
+            {
+                Value = 0
+            });
+        await ApproveWithMinersAsync(proposalId);
+        result = await ParliamentContractStub.Release.SendWithExceptionAsync(proposalId);
+        result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+        result.TransactionResult.Error.ShouldContain("Invalid maximum profit receiving period count");
+
+        proposalId = await CreateProposalAsync(ProfitContractAddress,
+            defaultOrganizationAddress, nameof(ProfitContractStub.SetMaximumProfitReceivingPeriodCount), new Int32Value
+            {
+                Value = maxPeriodCount
+            });
+        await ApproveWithMinersAsync(proposalId);
+        await ParliamentContractStub.Release.SendAsync(proposalId);
+
+        maximumProfitReceivingPeriodCount =
+            await ProfitContractStub.GetMaximumProfitReceivingPeriodCount.CallAsync(new Empty());
+        maximumProfitReceivingPeriodCount.Value.ShouldBe(maxPeriodCount);
     }
 
     private async Task ContributeProfits(Hash schemeId, long amount = 100)

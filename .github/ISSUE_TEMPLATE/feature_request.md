@@ -1,20 +1,27 @@
 ---
-name: Feature request
-about: Suggest an idea for this project
+name: 💡 Feature Request
+about: Create a new ticket for a new feature request
 title: ''
-labels: ''
+labels: 'enhancement'
 assignees: ''
 
 ---
 
-**Is your feature request related to a problem? Please describe.**
-A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
+### Expected Behavior
+Describe the expected behavior here.
 
-**Describe the solution you'd like**
-A clear and concise description of what you want to happen.
+### Specifications
+As a `user`, I would like to `action` so that `reason`.
 
-**Describe alternatives you've considered**
-A clear and concise description of any alternative solutions or features you've considered.
+**Features:**
+- describe feature details here.
 
-**Additional context**
-Add any other context or screenshots about the feature request here.
+**Development Tasks:**
+- [ ] Task 1
+- [ ] Task 2
+
+### Dependencies
+List any dependencies that are required for this feature by providing links to the issues or repositories.
+
+### References
+List any references that are related to this feature request.

@@ -15,6 +15,7 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Domain;
 using AElf.Kernel.Token;
+using AElf.Kernel.TransactionPool.Handler;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS;
 using AElf.Runtime.CSharp;
@@ -44,6 +45,8 @@ public sealed class BlockChainAppServiceTest : WebAppTestBase
     private readonly ISmartContractAddressService _smartContractAddressService;
     private readonly ITransactionResultStatusCacheProvider _transactionResultStatusCacheProvider;
     private readonly TransactionValidationStatusChangedEventHandler _transactionValidationStatusChangedEventHandler;
+    private readonly TransactionValidationStatusFailedEventHandler _transactionExecutionValidationFailedEventHandler;
+    private readonly ITransactionResultProxyService _transactionResultProxyService;
     private readonly ITxHub _txHub;
     private IReadOnlyDictionary<string, byte[]> _codes;
 
@@ -58,6 +61,9 @@ public sealed class BlockChainAppServiceTest : WebAppTestBase
         _osTestHelper = GetRequiredService<OSTestHelper>();
         _accountService = GetRequiredService<IAccountService>();
         _blockStateSetManger = GetRequiredService<IBlockStateSetManger>();
+        _transactionResultProxyService = GetRequiredService<ITransactionResultProxyService>();
+        _transactionExecutionValidationFailedEventHandler = 
+            GetRequiredService<TransactionValidationStatusFailedEventHandler>();
         _transactionValidationStatusChangedEventHandler =
             GetRequiredService<TransactionValidationStatusChangedEventHandler>();
     }
@@ -1682,6 +1688,12 @@ public sealed class BlockChainAppServiceTest : WebAppTestBase
         };
         var response = await PostResponseAsObjectAsync<CalculateTransactionFeeOutput>("/api/blockChain/CalculateTransactionFee", parameters);
         response.Success.ShouldBe(true);
+        response.TransactionFees.ChargingAddress.ShouldBe(transaction.From.ToBase58());
+        response.TransactionFees.Fee.First().Key.ShouldBe("ELF");
+        response.TransactionFees.Fee.First().Value.ShouldBeGreaterThan(10000000L);
+        response.TransactionFee.First().Key.ShouldBe("ELF");
+        response.TransactionFee.First().Value.ShouldBeGreaterThan(10000000L);
+
     }
 
     [Fact]
@@ -1822,4 +1834,31 @@ public sealed class BlockChainAppServiceTest : WebAppTestBase
         response.Transaction.Params.ShouldNotBe(
             AddOptionInput.Parser.ParseFrom(transaction.Params).ToString());
     }
+
+    [Fact]
+    public async Task InvalidTransactionResultTest()
+    {
+        
+        var txId = HashHelper.ComputeFrom("InvalidTransactionResultTest");
+        await _transactionExecutionValidationFailedEventHandler.HandleEventAsync(new TransactionValidationStatusChangedEvent
+        {
+            TransactionId = txId,
+            TransactionResultStatus = TransactionResultStatus.NodeValidationFailed,
+            Error = "tx error"
+        });
+        
+        var invalidResult = await _transactionResultProxyService.InvalidTransactionResultService
+            .GetInvalidTransactionResultAsync(txId);
+        invalidResult.ShouldNotBeNull();
+        invalidResult.Status.ShouldBe(TransactionResultStatus.NodeValidationFailed);
+        invalidResult.Error.ShouldBe("tx error");
+        
+        var response = await GetResponseAsObjectAsync<TransactionResultDto>(
+            $"/api/blockChain/transactionResult?transactionId={txId.ToHex()}");
+        response.ShouldNotBeNull();
+        response.Status.ShouldBe(TransactionResultStatus.NodeValidationFailed.ToString().ToUpper());
+        response.Error.ShouldBe("tx error");
+
+    }
+
 }

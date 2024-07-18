@@ -6,5 +6,5 @@ public class ProfitContractConstants
     public const int DefaultProfitReceivingDuePeriodCount = 10;
     public const int MaximumProfitReceivingDuePeriodCount = 1024;
     public const int TokenAmountLimit = 5;
-    public const int MaximumProfitReceivingPeriodCountOfOneTime = 100;
+    public const int DefaultMaximumProfitReceivingPeriodCountOfOneTime = 100;
 }

@@ -96,6 +96,10 @@ message ProposalInfo {
     repeated aelf.Address abstentions = 10;
     // Url is used for proposal describing.
     string proposal_description_url = 11;
+    // Title of this proposal.
+    string title = 12;
+    // Description of this proposal.
+    string description = 13;
 }
 
 message OrganizationMemberList {
