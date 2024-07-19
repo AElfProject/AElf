@@ -1,37 +1,77 @@
-name: Test
 on:
   push:
     branches:
       - dev
       - master
 
-env:
-  DOTNET_INSTALL_DIR: "./.dotnet"
-  Solution_Name: AElf.All.sln
-  Service_Name: AELF
+permissions:
+  contents: read
+  actions: read
+  checks: write
 
 jobs:
-  test:
+  build-test:
+    name: Build & Test
     runs-on: ubuntu-latest
-    permissions:
-      pull-requests: write
-      contents: write
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+
       - name: Setup dotnet
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '6.0'
 
-      - name: Download AElf build tools
-        run: bash scripts/download_binary.sh
+      - run: dotnet restore
+      - run: dotnet build --no-restore
+      - run: dotnet test --no-build --no-restore --verbosity normal -l:"trx;LogFileName=TestResults.xml"
 
-      - name: Install Protobuf
-        run: bash scripts/install_protobuf.sh
+      - name: Install xmlstarlet
+        run: sudo apt-get install -y xmlstarlet
 
-      - name: Build Solution
-        run: bash scripts/build.sh
+      - name: Extract Test Counts
+        id: test_counts
+        run: |
+          passed=0
+          failed=0
+          skipped=0
+          for file in $(find . -name 'TestResults.xml')
+          do
+            passed=$((passed + $(xmlstarlet sel -t -v "/TestRun/ResultSummary/Counters/@passed" "$file")))
+            failed=$((failed + $(xmlstarlet sel -t -v "/TestRun/ResultSummary/Counters/@failed" "$file")))
+            total=$(xmlstarlet sel -t -v "/TestRun/ResultSummary/Counters/@total" "$file")
+            executed=$(xmlstarlet sel -t -v "/TestRun/ResultSummary/Counters/@executed" "$file")
+            skipped=$((total - executed))
+          done
+          echo "::set-output name=passed::$passed"
+          echo "::set-output name=failed::$failed"
+          echo "::set-output name=skipped::$skipped"
 
-      - name: Run Tests
-        run: dotnet test ${{ env.Solution_Name }}
+      - name: Update Gist
+        uses: actions/github-script@v5
+        with:
+          github-token: ${{secrets.GIST_TOKEN}}
+          script: |
+            const fs = require('fs');
+            const passed = "${{ steps.test_counts.outputs.passed }}";
+            const failed = "${{ steps.test_counts.outputs.failed }}";
+            const skipped = "${{ steps.test_counts.outputs.skipped }}";
+            const gistId = "59e13bd3823d754542ac98d24b3329b4";
+            const filename = "test-results.json";
+            const color = failed > 0 ? "red" : "brightgreen";
+            const content = `{"schemaVersion":1,"label":"tests","message":"${passed} passed, ${failed} failed, ${skipped} skipped","color":"${color}"}`;
+
+            let gist;
+            try {
+              gist = await github.rest.gists.get({ gist_id: gistId });
+            } catch (error) {
+              if (error.status !== 404) {
+                throw error;
+              }
+            }
+
+            await github.rest.gists.update({
+              gist_id: gistId,
+              files: {
+                [filename]: { content }
+              }
+            });
