@@ -22,7 +22,7 @@ jobs:
     displayName: 'Install .NET Core SDK'
     inputs:
       version: 8.0.303
-  - script: choco install protoc --version=3.27.2 -y
+  - script: choco install protoc --version=3.19.4 -y
     displayName: 'Install protobuf'
   - script: choco install unzip
     displayName: 'Install unzip'
