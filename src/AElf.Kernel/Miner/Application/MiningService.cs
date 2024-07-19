@@ -68,7 +68,9 @@ public class MiningService : IMiningService
 
             var block = await blockTask;
             var systemTransactions = await systemTransactionsTask;
-
+            _systemTransactionExtraDataProvider.SetSystemTransactionCount(systemTransactions.Count,
+                block.Header);
+            
             var txTotalCount = transactions.Count + systemTransactions.Count;
 
             var pending = txTotalCount > requestMiningDto.TransactionCountLimit
