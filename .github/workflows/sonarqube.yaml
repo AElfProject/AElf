@@ -1,0 +1,49 @@
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+name: PR Static Code Analysis
+jobs:
+  static-code-analysis:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Code Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '7.0'
+      - name: Create temporary global.json
+        run: echo '{"sdk":{"version":"7.0.410"}}' > ./global.json
+      - name: Set up JDK 17
+        uses: actions/setup-java@v1
+        with:
+          java-version: 17
+      - name: Cache SonarQube packages
+        uses: actions/cache@v1
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+      - name: Cache SonarQube scanner
+        id: cache-sonar-scanner
+        uses: actions/cache@v1
+        with:
+          path: ./.sonar/scanner
+          key: ${{ runner.os }}-sonar-scanner
+          restore-keys: ${{ runner.os }}-sonar-scanner
+      - name: Install SonarScanner for .NET
+        run: dotnet tool update dotnet-sonarscanner --tool-path ./.sonar/scanner
+      - name: Add .NET global tools to PATH
+        run: echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
+      - name: Install protobuf
+        run: sudo apt-get update && sudo apt-get install -y protobuf-compiler
+      - name: Begin SonarQube analysis
+        run: |
+          ./.sonar/scanner/dotnet-sonarscanner begin /k:"AElf" /d:sonar.host.url="${{ secrets.SONAR_HOST_URL }}" /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+          dotnet build AElf.All.sln
+          ./.sonar/scanner/dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+
+
+          
