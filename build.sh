@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Define varibles
+# Define variables
 SCRIPT_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 source $SCRIPT_DIR/build.config
 TOOLS_DIR=$SCRIPT_DIR/tools

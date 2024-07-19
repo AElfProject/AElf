@@ -112,7 +112,6 @@ Task("Test-with-Codecov")
         actions.Add(action);
     }
 
-
     var options = new ParallelOptions {
         MaxDegreeOfParallelism = 1,
         //CancellationToken = cancellationToken
