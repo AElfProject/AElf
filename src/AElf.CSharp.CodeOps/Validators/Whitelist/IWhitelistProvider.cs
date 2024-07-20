@@ -11,6 +11,7 @@ using AElf.Kernel.SmartContract;
 using AElf.Types;
 using Volo.Abp.DependencyInjection;
 
+
 namespace AElf.CSharp.CodeOps.Validators.Whitelist;
 
 public interface IWhitelistProvider
@@ -50,8 +51,6 @@ public class WhitelistProvider : IWhitelistProvider
             .Assembly(typeof(ISmartContractBridgeContext).Assembly, Trust.Full) // AElf.Kernel.SmartContract.Shared
             .Assembly(typeof(Groth16.Net.Verifier).Assembly, Trust.Full) // AElf.Cryptography.ECDSA
             .Assembly(typeof(Poseidon.Net.Poseidon).Assembly, Trust.Full) 
-            .Assembly(typeof(ServerServiceDefinition).Assembly, Trust.Full) 
-            .Assembly(typeof(ServerServiceDefinition.Builder).Assembly, Trust.Full) 
             ;
     }
 
@@ -193,11 +192,6 @@ public class SystemContractWhitelistProvider : WhitelistProvider, ISystemContrac
             // Selectively allowed types and members
             .Namespace("AElf.Cryptography.SecretSharing", Permission.Denied, type => type
                 .Type(typeof(SecretSharingHelper), Permission.Denied, member => member
-                    .Member(nameof(SecretSharingHelper.DecodeSecret), Permission.Allowed)))
-            // Selectively allowed types and members
-            .Namespace("AElf.CSharp.Core", Permission.Denied, type => type
-                .Type(typeof(ServerServiceDefinition), Permission.Denied, member => member
-                    .Member(nameof(ServerServiceDefinition.BindService), Permission.Allowed)))
-            ;
+                    .Member(nameof(SecretSharingHelper.DecodeSecret), Permission.Allowed)));
     }
 }

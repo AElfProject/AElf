@@ -52,12 +52,15 @@ namespace AElf.CSharp.CodeOps
             }
 
             // Run method validators
-            var methodFindings = modDef.Types.AsParallel()
-                .SelectMany(type => ValidateMethodsInType(type, cts.Token, isSystemContract));
-            foreach (var finding in methodFindings)
+            foreach (var type in modDef.Types)
             {
-                findings.Add(finding);
+                var methodFindings = ValidateMethodsInType(type, cts.Token, isSystemContract);
+                foreach (var finding in methodFindings)
+                {
+                    findings.Add(finding);
+                }
             }
+
 
             // Perform ACS validation
             if (requiredAcs != null)
