@@ -50,6 +50,8 @@ public class WhitelistProvider : IWhitelistProvider
             .Assembly(typeof(ISmartContractBridgeContext).Assembly, Trust.Full) // AElf.Kernel.SmartContract.Shared
             .Assembly(typeof(Groth16.Net.Verifier).Assembly, Trust.Full) // AElf.Cryptography.ECDSA
             .Assembly(typeof(Poseidon.Net.Poseidon).Assembly, Trust.Full) 
+            .Assembly(typeof(ServerServiceDefinition).Assembly, Trust.Full) 
+            .Assembly(typeof(ServerServiceDefinition.Builder).Assembly, Trust.Full) 
             ;
     }
 
