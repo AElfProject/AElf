@@ -86,13 +86,13 @@ namespace AElf.CSharp.CodeOps
                 .Where(v => !v.SystemContactIgnored || !isSystemContract);
 
             var results = new ConcurrentBag<ValidationResult>();
-            Parallel.ForEach(validators, v =>
+            foreach (var v in validators)
             {
                 foreach (var result in v.Validate(t, ct))
                 {
                     results.Add(result);
                 }
-            });
+            }
 
             return results;
         }
