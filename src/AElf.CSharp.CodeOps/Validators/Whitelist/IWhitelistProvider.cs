@@ -191,6 +191,11 @@ public class SystemContractWhitelistProvider : WhitelistProvider, ISystemContrac
             // Selectively allowed types and members
             .Namespace("AElf.Cryptography.SecretSharing", Permission.Denied, type => type
                 .Type(typeof(SecretSharingHelper), Permission.Denied, member => member
-                    .Member(nameof(SecretSharingHelper.DecodeSecret), Permission.Allowed)));
+                    .Member(nameof(SecretSharingHelper.DecodeSecret), Permission.Allowed)))
+            // Selectively allowed types and members
+            .Namespace("AElf.CSharp.Core", Permission.Denied, type => type
+                .Type(typeof(ServerServiceDefinition), Permission.Denied, member => member
+                    .Member(nameof(ServerServiceDefinition.BindService), Permission.Allowed)))
+            ;
     }
 }
