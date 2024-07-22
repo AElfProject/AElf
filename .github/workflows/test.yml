@@ -80,9 +80,10 @@ jobs:
             const failed = "${{ env.FAILED }}";
             const skipped = "${{ env.SKIPPED }}";
             const gistId = "${{ env.GIST_ID }}";
-            const branchName = "${{ env.BRANCH_NAME }}";
+            let branchName = "${{ env.BRANCH_NAME }}";
+            branchName = branchName.replace(/\//g, '-');
             const filename = `${branchName}-test-results.json`;
-            const color = failed > 0 ? "red" : "brightgreen";
+            const color = failed > 0 ? "red" : (skipped > 0 ? "green" : "brightgreen");
             const content = `{"schemaVersion":1,"label":"tests","message":"${passed} passed, ${failed} failed, ${skipped} skipped","color":"${color}"}`;
 
             let gist;
