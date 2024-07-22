@@ -2,7 +2,7 @@
     <Import Project="..\..\common.props"/>
 
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
         <PackageId>AElf.Contracts.NFT</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Description>NFT Contract is a contract that implements Non-Fungible-Token functionality like creation, issuance and

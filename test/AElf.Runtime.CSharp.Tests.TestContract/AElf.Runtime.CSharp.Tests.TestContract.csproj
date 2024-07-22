@@ -1,12 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
         <AssemblyName>AElf.Runtime.CSharp.Tests.TestContract</AssemblyName>
         <RootNamespace>AElf.Runtime.CSharp.Tests.TestContract</RootNamespace>
         <IsPackable>false</IsPackable>
     </PropertyGroup>
     <ItemGroup>
-        <ProjectReference Include="..\..\src\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj"/>
+        <ProjectReference Include="..\..\src\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj" />
     </ItemGroup>
     <ItemGroup>
         <ContractCode Include="..\..\protobuf\test_contract.proto">

@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <Import Project="..\..\common.props"/>
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
         <PackageId>AElf.Contracts.TokenConverter</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Description>TokenConverter is a contract that enables buying and selling tokens based on connector

@@ -1,7 +1,7 @@
-<Project Sdk="Microsoft.NET.Sdk">
-    <Import Project="..\..\common.props"/>
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="..\..\common.props" />
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
         <RootNamespace>AElf.Kernel</RootNamespace>
         <PackageId>AElf.Kernel.Types</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
@@ -9,7 +9,7 @@
         </Description>
     </PropertyGroup>
     <ItemGroup>
-        <ProjectReference Include="..\AElf.Types\AElf.Types.csproj"/>
+        <ProjectReference Include="..\AElf.Types\AElf.Types.csproj" />
     </ItemGroup>
     <ItemGroup>
         <CommonMessage Include="..\..\protobuf\kernel.proto">

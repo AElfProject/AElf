@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
         <AssemblyName>AElf.Contracts.CrossChain.Tests</AssemblyName>
         <RootNamespace>AElf.Contracts.CrossChain.Tests</RootNamespace>
         <IsPackable>false</IsPackable>
@@ -12,7 +12,7 @@
             <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
         </PackageReference>
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.4.1" />
-        <PackageReference Include="Shouldly" Version="4.0.3"/>
+        <PackageReference Include="Shouldly" Version="4.0.3" />
         <PackageReference Include="xunit" Version="2.4.2" />
         <PackageReference Include="xunit.runner.console" Version="2.4.2">
   <PrivateAssets>all</PrivateAssets>
@@ -23,7 +23,7 @@
   <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
 </PackageReference>
     </ItemGroup>
-    <Import Project="..\AllContracts.props"/>
+    <Import Project="..\AllContracts.props" />
     <ItemGroup>
         <CommonMessage Include="..\..\protobuf\authority_info.proto">
             <Link>Protobuf\Proto\authority_info.proto</Link>
@@ -93,6 +93,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\src\AElf.ContractTestBase\AElf.ContractTestBase.csproj"/>
+        <ProjectReference Include="..\..\src\AElf.ContractTestBase\AElf.ContractTestBase.csproj" />
     </ItemGroup>
 </Project>

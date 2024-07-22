@@ -24,8 +24,7 @@ namespace AElf.Cryptography
     {
         private static readonly Secp256k1 Secp256K1 = new Secp256k1();
 
-        // ReaderWriterLock for thread-safe with Secp256k1 APIs
-        private static readonly ReaderWriterLock Lock = new ReaderWriterLock();
+        private static readonly ReaderWriterLockSlim Lock = new ReaderWriterLockSlim();  
 
         private static readonly Vrf<Secp256k1Curve, Sha256HasherFactory> Vrf =
             new Vrf<Secp256k1Curve, Sha256HasherFactory>(new VrfConfig(0xfe, ECParameters.Curve));
@@ -43,7 +42,7 @@ namespace AElf.Cryptography
 
             try
             {
-                Lock.AcquireWriterLock(Timeout.Infinite);
+                Lock.EnterWriteLock();
                 var secp256K1PubKey = new byte[64];
 
                 if (!Secp256K1.PublicKeyCreate(secp256K1PubKey, privateKey))
@@ -55,7 +54,7 @@ namespace AElf.Cryptography
             }
             finally
             {
-                Lock.ReleaseWriterLock();
+                Lock.ExitWriteLock();
             }
         }
 
@@ -63,7 +62,7 @@ namespace AElf.Cryptography
         {
             try
             {
-                Lock.AcquireWriterLock(Timeout.Infinite);
+                Lock.EnterWriteLock();
                 var privateKey = new byte[32];
                 var secp256K1PubKey = new byte[64];
 
@@ -83,7 +82,7 @@ namespace AElf.Cryptography
             }
             finally
             {
-                Lock.ReleaseWriterLock();
+                Lock.ExitWriteLock();
             }
         }
 
@@ -91,7 +90,7 @@ namespace AElf.Cryptography
         {
             try
             {
-                Lock.AcquireWriterLock(Timeout.Infinite);
+                Lock.EnterWriteLock();
                 var recSig = new byte[65];
                 var compactSig = new byte[65];
                 if (!Secp256K1.SignRecoverable(recSig, hash, privateKey))
@@ -103,7 +102,7 @@ namespace AElf.Cryptography
             }
             finally
             {
-                Lock.ReleaseWriterLock();
+                Lock.ExitWriteLock();
             }
         }
 
@@ -118,7 +117,7 @@ namespace AElf.Cryptography
             pubkey = null;
             try
             {
-                Lock.AcquireWriterLock(Timeout.Infinite);
+                Lock.EnterWriteLock();
                 // Recover id should be greater than or equal to 0 and less than 4
                 if (signature.Length != Secp256k1.SERIALIZED_UNCOMPRESSED_PUBKEY_LENGTH || signature.Last() >= 4)
                     return false;
@@ -136,7 +135,7 @@ namespace AElf.Cryptography
             }
             finally
             {
-                Lock.ReleaseWriterLock();
+                Lock.ExitWriteLock();
             }
         }
 
@@ -196,12 +195,12 @@ namespace AElf.Cryptography
         {
             try
             {
-                Lock.AcquireWriterLock(Timeout.Infinite);
+                Lock.EnterWriteLock();
                 return Vrf.Prove(keyPair, alpha);
             }
             finally
             {
-                Lock.ReleaseWriterLock();
+                Lock.ExitWriteLock();
             }
         }
 
@@ -209,12 +208,12 @@ namespace AElf.Cryptography
         {
             try
             {
-                Lock.AcquireWriterLock(Timeout.Infinite);
+                Lock.EnterWriteLock();
                 return Vrf.Verify(publicKey, alpha, pi);
             }
             finally
             {
-                Lock.ReleaseWriterLock();
+                Lock.ExitWriteLock();
             }
         }
     }

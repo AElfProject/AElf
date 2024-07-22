@@ -33,7 +33,8 @@ public partial class ElectionContract : ElectionContractImplContainer.ElectionCo
         State.MinersCount.Value = input.MinerList.Count;
         State.InitialMiners.Value = new PubkeyList
         {
-            Value = { input.MinerList.Select(ByteStringHelper.FromHexString) }
+            // ReSharper disable once ConvertClosureToMethodGroup
+            Value = { input.MinerList.Select(m => ByteStringHelper.FromHexString(m)) }
         };
         foreach (var pubkey in input.MinerList)
             State.CandidateInformationMap[pubkey] = new CandidateInformation

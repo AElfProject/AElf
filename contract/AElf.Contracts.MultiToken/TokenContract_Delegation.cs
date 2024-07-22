@@ -191,7 +191,7 @@ public partial class TokenContract
 
         return new GetTransactionFeeDelegateesOutput
         {
-            DelegateeAddresses = { allDelegatees.Delegatees.Keys.Select(Address.FromBase58) }
+            DelegateeAddresses = { allDelegatees.Delegatees.Keys.Select(k => Address.FromBase58(k)) }
         };
     }
 
@@ -413,7 +413,7 @@ public partial class TokenContract
 
         return new GetTransactionFeeDelegateeListOutput
         {
-            DelegateeAddresses = { allDelegatees.Delegatees.Keys.Select(Address.FromBase58) }
+            DelegateeAddresses = { allDelegatees.Delegatees.Keys.Select(k => Address.FromBase58(k)) }
         };
     }
 

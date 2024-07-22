@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using AElf.Kernel.Blockchain;
+using AElf.Kernel.TransactionPool;
 using AElf.Kernel.TransactionPool.Application;
 using AElf.Kernel.Txn.Application;
 using Google.Protobuf.WellKnownTypes;
@@ -37,8 +38,7 @@ public class MinerService : IMinerService
         Timestamp blockTime,
         Duration blockExecutionTime)
     {
-        var txList = new List<Transaction>();
-
+        var txList = new List<Transaction>(TransactionOptions.BlockTransactionLimit);
         var chainContext = new ChainContext
         {
             BlockHash = previousBlockHash,
@@ -46,6 +46,7 @@ public class MinerService : IMinerService
         };
 
         var limit = await _blockTransactionLimitProvider.GetLimitAsync(chainContext);
+        
         if (_transactionPackingOptionProvider.IsTransactionPackable(chainContext))
         {
             var executableTransactionSet = await _transactionPoolService.GetExecutableTransactionSetAsync(
@@ -54,9 +55,9 @@ public class MinerService : IMinerService
             txList.AddRange(executableTransactionSet.Transactions);
         }
 
-        Logger.LogInformation(
-            "Start mining with previous hash: {PreviousBlockHash}, previous height: {PreviousBlockHeight}",
-            previousBlockHash.ToHex(), previousBlockHeight);
+        // Logger.LogInformation(
+            // "Start mining with previous hash: {PreviousBlockHash}, previous height: {PreviousBlockHeight}",
+            // previousBlockHash.ToHex(), previousBlockHeight);
         return await _miningService.MineAsync(
             new RequestMiningDto
             {

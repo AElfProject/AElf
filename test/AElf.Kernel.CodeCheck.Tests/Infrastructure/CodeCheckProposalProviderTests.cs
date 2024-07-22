@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.CodeCheck.Tests;
 using Shouldly;
@@ -20,7 +21,7 @@ public class CodeCheckProposalProviderTests : CodeCheckTestBase
         var proposalId = HashHelper.ComputeFrom("ProposalId");
         var proposedContractInputHash = HashHelper.ComputeFrom("ProposedContractInputHash");
         var blockHeight = 10;
-        var proposalList = _codeCheckProposalProvider.GetAllProposals();
+        var proposalList = _codeCheckProposalProvider.GetAllProposals().ToList();
         proposalList.ShouldBeEmpty();
 
         var getHeightResult = _codeCheckProposalProvider.TryGetProposalCreatedHeight(proposalId, out var createdHeight);
@@ -28,7 +29,7 @@ public class CodeCheckProposalProviderTests : CodeCheckTestBase
         createdHeight.ShouldBe(0);
 
         _codeCheckProposalProvider.AddProposal(proposalId, proposedContractInputHash, blockHeight);
-        proposalList = _codeCheckProposalProvider.GetAllProposals();
+        proposalList = _codeCheckProposalProvider.GetAllProposals().ToList();
         proposalList.Count.ShouldBe(1);
         proposalList[0].BlockHeight.ShouldBe(blockHeight);
         proposalList[0].ProposalId.ShouldBe(proposalId);
@@ -40,7 +41,7 @@ public class CodeCheckProposalProviderTests : CodeCheckTestBase
 
         var lowerHeight = blockHeight - 1;
         _codeCheckProposalProvider.AddProposal(proposalId, proposedContractInputHash, lowerHeight);
-        proposalList = _codeCheckProposalProvider.GetAllProposals();
+        proposalList = _codeCheckProposalProvider.GetAllProposals().ToList();
         proposalList.Count.ShouldBe(1);
         proposalList[0].BlockHeight.ShouldBe(blockHeight);
         proposalList[0].ProposalId.ShouldBe(proposalId);
@@ -52,7 +53,7 @@ public class CodeCheckProposalProviderTests : CodeCheckTestBase
         
         var higherHeight = blockHeight + 1;
         _codeCheckProposalProvider.AddProposal(proposalId, proposedContractInputHash, higherHeight);
-        proposalList = _codeCheckProposalProvider.GetAllProposals();
+        proposalList = _codeCheckProposalProvider.GetAllProposals().ToList();
         proposalList.Count.ShouldBe(1);
         proposalList[0].BlockHeight.ShouldBe(higherHeight);
         proposalList[0].ProposalId.ShouldBe(proposalId);
@@ -66,12 +67,12 @@ public class CodeCheckProposalProviderTests : CodeCheckTestBase
         var newBlockHeight = 100;
         
         _codeCheckProposalProvider.AddProposal(newProposalId, proposedContractInputHash, newBlockHeight);
-        proposalList = _codeCheckProposalProvider.GetAllProposals();
+        proposalList = _codeCheckProposalProvider.GetAllProposals().ToList();
         proposalList.Count.ShouldBe(2);
         
         _codeCheckProposalProvider.RemoveProposalById(newProposalId);
         
-        proposalList = _codeCheckProposalProvider.GetAllProposals();
+        proposalList = _codeCheckProposalProvider.GetAllProposals().ToList();
         proposalList.Count.ShouldBe(1);
         proposalList[0].BlockHeight.ShouldBe(higherHeight);
         proposalList[0].ProposalId.ShouldBe(proposalId);

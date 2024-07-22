@@ -5,7 +5,7 @@
 
 ```xml
 <PropertyGroup>
-  <TargetFramework>net6.0</TargetFramework>
+  <TargetFramework>net8.0</TargetFramework>
   <RootNamespace>AElf.Contracts.MyContract</RootNamespace>
   <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 </PropertyGroup>
