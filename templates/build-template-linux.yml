@@ -21,7 +21,7 @@ jobs:
     - task: UseDotNet@2
       displayName: 'Install .NET Core SDK'
       inputs:
-        version: 6.0.x
+        version: 8.0.303
     - script: bash scripts/install_protobuf.sh
     - script: bash scripts/download_binary.sh
     - script: bash build.sh --target=Test-with-Codecov-N --parts=${{ parameters.parts }} --number=${{ parameters.n }} --codecoverage=${{ parameters.codecoverage }}

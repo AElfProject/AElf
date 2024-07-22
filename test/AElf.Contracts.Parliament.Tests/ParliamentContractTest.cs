@@ -108,6 +108,8 @@ public class ParliamentContractTest : ParliamentContractTestBase
         getProposal.Output.ProposalId.ShouldBe(proposalId);
         getProposal.Output.OrganizationAddress.ShouldBe(organizationAddress);
         getProposal.Output.ToAddress.ShouldBe(TokenContractAddress);
+        getProposal.Output.Title.ShouldNotBeNullOrEmpty();
+        getProposal.Output.Description.ShouldNotBeNullOrEmpty();
 
         var transferParam = TransferInput.Parser.ParseFrom(getProposal.Output.Params);
         transferParam.Symbol.ShouldBe(transferInput.Symbol);
@@ -1541,7 +1543,9 @@ public class ParliamentContractTest : ParliamentContractTestBase
             ToAddress = TokenContractAddress,
             Params = transferInput.ToByteString(),
             ExpiredTime = BlockTimeProvider.GetBlockTime().AddDays(2),
-            OrganizationAddress = organizationAddress
+            OrganizationAddress = organizationAddress,
+            Title = "Token Transfer",
+            Description = "Transfer 100 ELF to Tester's address",
         };
         var parliamentContractStub = GetParliamentContractTester(proposalKeyPair);
         var proposal = await parliamentContractStub.CreateProposal.SendAsync(createProposalInput);

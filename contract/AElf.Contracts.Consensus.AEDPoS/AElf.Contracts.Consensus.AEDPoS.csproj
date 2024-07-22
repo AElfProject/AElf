@@ -2,7 +2,7 @@
     <Import Project="..\..\common.props" />
 
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
         <PackageId>AElf.Contracts.Consensus.AEDPoS</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Description>Consensus is a contract that implements AElf’s DPoS consensus protocol.</Description>
@@ -46,6 +46,9 @@
         </ContractReference>
         <ContractReference Include="..\..\protobuf\profit_contract.proto">
             <Link>Protobuf\Proto\reference\profit_contract.proto</Link>
+        </ContractReference>
+        <ContractReference Include="..\..\protobuf\configuration_contract.proto">
+            <Link>Protobuf\Proto\reference\configuration_contract.proto</Link>
         </ContractReference>
     </ItemGroup>
 

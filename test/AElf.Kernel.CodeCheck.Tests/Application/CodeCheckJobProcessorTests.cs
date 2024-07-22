@@ -65,7 +65,7 @@ public class CodeCheckJobProcessorTests: CodeCheckParallelTestBase
 
         if (isUserContract)
         {
-            var codeCheckProposals = _codeCheckProposalProvider.GetAllProposals();
+            var codeCheckProposals = _codeCheckProposalProvider.GetAllProposals().ToList();
             codeCheckProposals.Count.ShouldBe(1);
             codeCheckProposals[0].ProposalId.ShouldBe(job.CodeCheckProposalId);
             codeCheckProposals[0].ProposedContractInputHash.ShouldBe(job.ProposedContractInputHash);
@@ -103,7 +103,7 @@ public class CodeCheckJobProcessorTests: CodeCheckParallelTestBase
         var notApprovedProposalIdList = _proposalProvider.GetAllProposals();
         notApprovedProposalIdList.Count.ShouldBe(0);
 
-        var codeCheckProposals = _codeCheckProposalProvider.GetAllProposals();
+        var codeCheckProposals = _codeCheckProposalProvider.GetAllProposals().ToList();
         codeCheckProposals.Count.ShouldBe(0);
 
         var codeHashExists = _checkedCodeHashProvider.IsCodeHashExists(new BlockIndex
@@ -143,7 +143,7 @@ public class CodeCheckJobProcessorTests: CodeCheckParallelTestBase
         var notApprovedProposalIdList = _proposalProvider.GetAllProposals();
         notApprovedProposalIdList.Count.ShouldBe(jobs.Count);
 
-        var codeCheckProposals = _codeCheckProposalProvider.GetAllProposals();
+        var codeCheckProposals = _codeCheckProposalProvider.GetAllProposals().ToList();
         codeCheckProposals.Count.ShouldBe(jobs.Count);
 
         foreach (var codeHashExists in jobs.Select(job => _checkedCodeHashProvider.IsCodeHashExists(new BlockIndex

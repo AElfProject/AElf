@@ -35,7 +35,7 @@ public partial class AEDPoSContract
             {
                 Pubkeys =
                 {
-                    round.RealTimeMinersInformation.Keys.Select(ByteStringHelper.FromHexString)
+                    round.RealTimeMinersInformation.Keys.Select(k => ByteStringHelper.FromHexString(k))
                 }
             }
             : new MinerList();
@@ -236,7 +236,7 @@ public partial class AEDPoSContract
             // Miners of new round are same with current round.
             var miners = new MinerList();
             miners.Pubkeys.AddRange(
-                currentRound.RealTimeMinersInformation.Keys.Select(ByteStringHelper.FromHexString));
+                currentRound.RealTimeMinersInformation.Keys.Select(k => ByteStringHelper.FromHexString(k)));
             newRound = miners.GenerateFirstRoundOfNewTerm(currentRound.GetMiningInterval(),
                 Context.CurrentBlockTime, currentRound);
         }

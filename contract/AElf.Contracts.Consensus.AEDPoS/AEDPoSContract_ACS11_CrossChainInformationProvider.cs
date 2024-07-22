@@ -57,7 +57,7 @@ public partial class AEDPoSContract
         var minersKeys = consensusInformation.Round.RealTimeMinersInformation.Keys;
         State.MainChainCurrentMinerList.Value = new MinerList
         {
-            Pubkeys = { minersKeys.Select(ByteStringHelper.FromHexString) }
+            Pubkeys = { minersKeys.Select(k => ByteStringHelper.FromHexString(k)) }
         };
 
         return new Empty();

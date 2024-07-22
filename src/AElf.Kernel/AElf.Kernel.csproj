@@ -1,8 +1,8 @@
-<Project Sdk="Microsoft.NET.Sdk">
-    <Import Project="..\..\common.props"/>
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="..\..\common.props" />
 
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
         <PackageId>AElf.Kernel</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Description>Main kernel module for building the kernel.</Description>
@@ -13,6 +13,7 @@
         <ProjectReference Include="..\AElf.Kernel.Configuration\AElf.Kernel.Configuration.csproj"/>
         <ProjectReference Include="..\AElf.Kernel.ChainController\AElf.Kernel.ChainController.csproj"/>
         <ProjectReference Include="..\AElf.Kernel.Consensus.Core\AElf.Kernel.Consensus.Core.csproj"/>
+        <ProjectReference Include="..\AElf.Kernel.FeatureDisable\AElf.Kernel.FeatureDisable.csproj" />
         <ProjectReference Include="..\AElf.Kernel.Node\AElf.Kernel.Node.csproj"/>
         <ProjectReference Include="..\AElf.Kernel.Proposal\AElf.Kernel.Proposal.csproj"/>
         <ProjectReference Include="..\AElf.Kernel.SmartContractExecution\AElf.Kernel.SmartContractExecution.csproj"/>

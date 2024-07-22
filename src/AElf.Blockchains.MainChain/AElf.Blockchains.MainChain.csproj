@@ -1,15 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
         <!--Conflict with genesis contract-->
         <NoWarn>0436</NoWarn>
         <Description>Main module for a mainchain node.</Description>
     </PropertyGroup>
     <ItemGroup>
-        <ProjectReference Include="..\AElf.Blockchains.BasicBaseChain\AElf.Blockchains.BasicBaseChain.csproj"/>
-        <ProjectReference Include="..\AElf.ContractDeployer\AElf.ContractDeployer.csproj"/>
-        <ProjectReference Include="..\AElf.Kernel.Token\AElf.Kernel.Token.csproj"/>
+        <ProjectReference Include="..\AElf.Blockchains.BasicBaseChain\AElf.Blockchains.BasicBaseChain.csproj" />
+        <ProjectReference Include="..\AElf.ContractDeployer\AElf.ContractDeployer.csproj" />
+        <ProjectReference Include="..\AElf.Kernel.Token\AElf.Kernel.Token.csproj" />
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\..\contract\AElf.Contracts.Configuration\AElf.Contracts.Configuration.csproj">

@@ -1,15 +1,15 @@
-<Project Sdk="Microsoft.NET.Sdk">
-    <Import Project="..\..\common.props"/>
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="..\..\common.props" />
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
         <PackageId>AElf.Database</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Description>Types and definitions of the data access layer.</Description>
     </PropertyGroup>
     <ItemGroup>
-        <ProjectReference Include="..\AElf.Core\AElf.Core.csproj"/>
+        <ProjectReference Include="..\AElf.Core\AElf.Core.csproj" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="Volo.Abp.Data" Version="5.2.2"/>
+        <PackageReference Include="Volo.Abp.Data" Version="8.0.5" />
     </ItemGroup>
 </Project>

@@ -61,12 +61,16 @@ public class MiningService : IMiningService
                 cts.CancelAfter(ts);
             }
 
-            var block = await GenerateBlock(requestMiningDto.PreviousBlockHash,
-                requestMiningDto.PreviousBlockHeight, blockTime);
-            var systemTransactions = await GenerateSystemTransactions(requestMiningDto.PreviousBlockHash,
-                requestMiningDto.PreviousBlockHeight);
+            var blockTask = Task.Run(() => GenerateBlock(requestMiningDto.PreviousBlockHash, requestMiningDto.PreviousBlockHeight, blockTime));
+            var systemTransactionsTask = Task.Run(() => GenerateSystemTransactions(requestMiningDto.PreviousBlockHash, requestMiningDto.PreviousBlockHeight));
+            
+            await Task.WhenAll(blockTask, systemTransactionsTask);
+
+            var block = await blockTask;
+            var systemTransactions = await systemTransactionsTask;
             _systemTransactionExtraDataProvider.SetSystemTransactionCount(systemTransactions.Count,
                 block.Header);
+            
             var txTotalCount = transactions.Count + systemTransactions.Count;
 
             var pending = txTotalCount > requestMiningDto.TransactionCountLimit
@@ -79,12 +83,15 @@ public class MiningService : IMiningService
 
             block = blockExecutedSet.Block;
             await SignBlockAsync(block);
-            Logger.LogInformation("Generated block: {Block}, " +
-                                  "previous: {PreviousBlockHash}, " +
-                                  "executed transactions: {TransactionsCount}, " +
-                                  "not executed transactions {NotExecutedTransactionsCount}",
-                block.ToDiagnosticString(), block.Header.PreviousBlockHash.ToHex(), block.Body.TransactionsCount,
-                pending.Count + systemTransactions.Count - block.Body.TransactionsCount);
+            if (block.Body.TransactionsCount > 2)
+            {
+                Logger.LogInformation("Generated block: {Block}, " +
+                                      "previous: {PreviousBlockHash}, " +
+                                      "executed transactions: {TransactionsCount}, " +
+                                      "not executed transactions {NotExecutedTransactionsCount}",
+                    block.ToDiagnosticString(), block.Header.PreviousBlockHash.ToHex(), block.Body.TransactionsCount,
+                    pending.Count + systemTransactions.Count - block.Body.TransactionsCount);
+            }
             return blockExecutedSet;
         }
         catch (Exception e)

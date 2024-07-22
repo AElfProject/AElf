@@ -2,7 +2,7 @@
     <Import Project="..\..\common.props"/>
 
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
         <PackageId>AElf.Contracts.Referendum</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Description>Referendum is a contract that enables the creation of organizations and approvals. The created

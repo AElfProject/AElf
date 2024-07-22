@@ -25,11 +25,13 @@ public abstract class GenesisSmartContractDtoProviderBase : IGenesisSmartContrac
     {
         var contractCodes = GetContractCodes();
         var deploymentList = ContractDeploymentListProvider.GetDeployContractNameList();
-        return ContractInitializationProviders
-            .Where(p => deploymentList.Contains(p.SystemSmartContractName))
-            .OrderBy(p => deploymentList.IndexOf(p.SystemSmartContractName))
-            .Select(p =>
+        return ContractInitializationProviders 
+            .GroupBy(p => p.SystemSmartContractName)
+            .Where(g => deploymentList.Contains(g.Key))
+            .OrderBy(g => deploymentList.IndexOf(g.Key))
+            .Select(g =>
             {
+                var p = g.Last();
                 var code = contractCodes[p.ContractCodeName];
                 var methodList = p.GetInitializeMethodList(code);
                 var genesisSmartContractDto = new GenesisSmartContractDto

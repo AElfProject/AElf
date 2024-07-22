@@ -2,7 +2,7 @@
     <Import Project="..\..\common.props" />
 
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
         <PackageId>AElf.Contracts.Profit</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Description>Profit is a contract that enables the creation of schemes for profit distribution.</Description>

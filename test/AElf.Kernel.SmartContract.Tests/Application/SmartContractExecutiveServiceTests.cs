@@ -190,7 +190,7 @@ public sealed class SmartContractExecutiveServiceTests : SmartContractTestBase
         };
 
         var executives = new List<IExecutive>();
-        for (var i = 0; i < 11; i++)
+        for (var i = 0; i < 51; i++)
         {
             var executive = await _smartContractExecutiveService.GetExecutiveAsync(chainContext, address);
             executives.Add(executive);
@@ -199,23 +199,23 @@ public sealed class SmartContractExecutiveServiceTests : SmartContractTestBase
         foreach (var executive in executives)
             await _smartContractExecutiveService.PutExecutiveAsync(chainContext, address, executive);
         _smartContractExecutiveProvider.TryGetValue(address, out pool);
-        pool.Count.ShouldBe(11);
+        pool.Count.ShouldBe(51);
         _smartContractExecutiveService.CleanIdleExecutive();
-        pool.Count.ShouldBe(10);
+        pool.Count.ShouldBe(50);
         _smartContractExecutiveProvider.TryGetValue(address, out pool);
-        pool.Count.ShouldBe(10);
+        pool.Count.ShouldBe(50);
 
         pool.TryPeek(out var item);
         item.LastUsedTime = item.LastUsedTime.AddHours(-2);
         _smartContractExecutiveService.CleanIdleExecutive();
         _smartContractExecutiveProvider.TryGetValue(address, out pool);
-        pool.Count.ShouldBe(9);
+        pool.Count.ShouldBe(49);
 
         pool.TryPeek(out item);
         item.LastUsedTime = item.LastUsedTime.AddHours(-2);
         _smartContractExecutiveService.CleanIdleExecutive();
         _smartContractExecutiveProvider.TryGetValue(address, out pool);
-        pool.Count.ShouldBe(8);
+        pool.Count.ShouldBe(48);
     }
 
     [Fact]

@@ -241,7 +241,9 @@ public partial class ParliamentContract : ParliamentContractImplContainer.Parlia
             ToBeReleased = Validate(proposal) && IsReleaseThresholdReached(proposal, organization),
             ApprovalCount = proposal.Approvals.Count,
             RejectionCount = proposal.Rejections.Count,
-            AbstentionCount = proposal.Abstentions.Count
+            AbstentionCount = proposal.Abstentions.Count,
+            Title = proposal.Title,
+            Description = proposal.Description
         };
     }
 
