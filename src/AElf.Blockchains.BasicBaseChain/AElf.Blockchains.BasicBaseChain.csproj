@@ -2,7 +2,7 @@
     <Import Project="..\..\common.props"/>
 
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
         <PackageId>AElf.Blockchains.BasicBaseChain</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Description>Base AElf Module for different chain types.</Description>
