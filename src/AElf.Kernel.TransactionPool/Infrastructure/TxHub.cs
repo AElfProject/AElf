@@ -55,7 +55,8 @@ public class TxHub : ITxHub, ISingletonDependency
 
     public ILocalEventBus LocalEventBus { get; set; }
 
-    public async Task<ExecutableTransactionSet> GetExecutableTransactionSetAsync(Hash blockHash, int transactionCount)
+    public async Task<ExecutableTransactionSet> GetExecutableTransactionSetAsync(
+        Hash blockHash, int transactionCount)
     {
         var output = new ExecutableTransactionSet
         {

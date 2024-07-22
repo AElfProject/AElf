@@ -1,3 +1,4 @@
+using AElf.Contracts.Configuration;
 using AElf.Contracts.Election;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Parliament;
@@ -15,4 +16,5 @@ public partial class AEDPoSContractState
     internal TokenContractContainer.TokenContractReferenceState TokenContract { get; set; }
     internal TokenHolderContractContainer.TokenHolderContractReferenceState TokenHolderContract { get; set; }
     internal ParliamentContractContainer.ParliamentContractReferenceState ParliamentContract { get; set; }
+    internal ConfigurationContainer.ConfigurationReferenceState ConfigurationContract { get; set; }
 }

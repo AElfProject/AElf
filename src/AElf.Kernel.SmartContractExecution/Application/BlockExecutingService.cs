@@ -149,33 +149,27 @@ public class BlockExecutingService : IBlockExecutingService, ITransientDependenc
     private Hash CalculateWorldStateMerkleTreeRoot(BlockStateSet blockStateSet)
     {
         Logger.LogTrace("Start world state calculation.");
-        Hash merkleTreeRootOfWorldState;
         var byteArrays = GetDeterministicByteArrays(blockStateSet);
-        using (var hashAlgorithm = SHA256.Create())
+        using var hashAlgorithm = SHA256.Create();
+        foreach (var bytes in byteArrays)
         {
-            foreach (var bytes in byteArrays) hashAlgorithm.TransformBlock(bytes, 0, bytes.Length, null, 0);
-
-            hashAlgorithm.TransformFinalBlock(new byte[0], 0, 0);
-            merkleTreeRootOfWorldState = Hash.LoadFromByteArray(hashAlgorithm.Hash);
+            hashAlgorithm.TransformBlock(bytes, 0, bytes.Length, null, 0);
         }
-
+        
+        hashAlgorithm.TransformFinalBlock(new byte[0], 0, 0);
+        var merkleTreeRootOfWorldState = Hash.LoadFromByteArray(hashAlgorithm.Hash);
         return merkleTreeRootOfWorldState;
     }
 
     private IEnumerable<byte[]> GetDeterministicByteArrays(BlockStateSet blockStateSet)
     {
-        var keys = blockStateSet.Changes.Keys;
-        foreach (var k in new SortedSet<string>(keys))
+        var sortedKeys = new SortedSet<string>(blockStateSet.Changes.Keys.Concat(blockStateSet.Deletes));
+        foreach (var k in sortedKeys)
         {
             yield return Encoding.UTF8.GetBytes(k);
-            yield return blockStateSet.Changes[k].ToByteArray();
-        }
-
-        keys = blockStateSet.Deletes;
-        foreach (var k in new SortedSet<string>(keys))
-        {
-            yield return Encoding.UTF8.GetBytes(k);
-            yield return ByteString.Empty.ToByteArray();
+            yield return blockStateSet.Changes.TryGetValue(k, out var value)
+                ? value.ToByteArray()
+                : ByteString.Empty.ToByteArray();
         }
     }
 

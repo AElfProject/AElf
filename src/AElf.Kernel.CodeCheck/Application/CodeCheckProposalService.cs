@@ -37,7 +37,7 @@ internal class CodeCheckProposalService : ICodeCheckProposalService, ITransientD
     public async Task<List<CodeCheckProposal>> GetReleasableProposalListAsync(Address from, Hash blockHash,
         long blockHeight)
     {
-        var allOpenProposals = _codeCheckProposalProvider.GetAllProposals();
+        var allOpenProposals = _codeCheckProposalProvider.GetAllProposals().ToList();
         if (allOpenProposals.Count == 0) return null;
         
         var releaseThresholdReachedProposals = await _contractReaderFactory.Create(new ContractReaderContext

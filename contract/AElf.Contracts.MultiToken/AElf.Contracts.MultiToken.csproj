@@ -2,7 +2,7 @@
     <Import Project="..\..\common.props" />
 
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
         <PackageId>AElf.Contracts.MultiToken</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Description>MultiToken is a contract that implements token functionality like creation, issuance and

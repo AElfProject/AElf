@@ -6,11 +6,9 @@ internal partial class ContractCodeHashMap
 {
     public void TryAdd(long blockHeight, Hash codeHash)
     {
-        if (Value.ContainsKey(blockHeight))
+        if (Value.TryGetValue(blockHeight, out var hashList))
         {
-            var hashList = Value[blockHeight];
             hashList.Value.Add(codeHash);
-            Value[blockHeight] = hashList;
         }
         else
         {

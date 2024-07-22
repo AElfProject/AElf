@@ -26,7 +26,8 @@ public class MockTxHub : ITxHub
         _blockchainService = blockchainService;
     }
 
-    public Task<ExecutableTransactionSet> GetExecutableTransactionSetAsync(Hash blockHash, int transactionCount = 0)
+    public Task<ExecutableTransactionSet> GetExecutableTransactionSetAsync(Hash blockHash,
+        int transactionCount)
     {
         return Task.FromResult(new ExecutableTransactionSet
         {

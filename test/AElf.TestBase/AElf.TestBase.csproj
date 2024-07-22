@@ -1,20 +1,20 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
         <IsPackable>false</IsPackable>
     </PropertyGroup>
     <ItemGroup>
-        <ProjectReference Include="..\..\src\AElf.Core\AElf.Core.csproj"/>
+        <ProjectReference Include="..\..\src\AElf.Core\AElf.Core.csproj" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="MartinCostello.Logging.XUnit" Version="0.1.0"/>
-        <PackageReference Include="Moq" Version="4.14.5"/>
-        <PackageReference Include="Volo.Abp.Autofac" Version="5.2.2"/>
-        <PackageReference Include="Volo.Abp.TestBase" Version="5.2.2"/>
+        <PackageReference Include="MartinCostello.Logging.XUnit" Version="0.1.0" />
+        <PackageReference Include="Moq" Version="4.14.5" />
+        <PackageReference Include="Volo.Abp.Autofac" Version="8.0.5" />
+        <PackageReference Include="Volo.Abp.TestBase" Version="8.0.5" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.4.1" />
-        <PackageReference Include="NSubstitute" Version="4.2.2"/>
-        <PackageReference Include="Shouldly" Version="4.0.3"/>
+        <PackageReference Include="NSubstitute" Version="4.2.2" />
+        <PackageReference Include="Shouldly" Version="4.0.3" />
         <PackageReference Include="xunit" Version="2.4.2" />
-        <PackageReference Include="xunit.extensibility.execution" Version="2.4.2"/>
+        <PackageReference Include="xunit.extensibility.execution" Version="2.4.2" />
     </ItemGroup>
 </Project>

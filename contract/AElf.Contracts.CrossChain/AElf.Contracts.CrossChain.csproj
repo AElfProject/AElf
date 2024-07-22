@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <Import Project="..\..\common.props"/>
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
         <PackageId>AElf.Contracts.CrossChain</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Description>CrossChain is a contract that implements cross-chain related features, especially

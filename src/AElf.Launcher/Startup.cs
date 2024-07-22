@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using AElf.Blockchains.MainChain;
 using AElf.Blockchains.SideChain;
@@ -9,7 +10,8 @@ using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Volo.Abp.Modularity;
+using Volo.Abp;
+using Volo.Abp.Modularity.PlugIns;
 
 namespace AElf.Launcher;
 
@@ -28,13 +30,23 @@ public class Startup
     public void ConfigureServices(IServiceCollection services)
     {
         var chainType = _configuration.GetValue("ChainType", ChainType.MainChain);
+        var pluginSourcesFolder = _configuration.GetValue("PluginSourcesFolder", Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "aelf", "plugins"));
+        Action<AbpApplicationCreationOptions> optionsAction = options =>
+        {
+            if (Directory.Exists(pluginSourcesFolder))
+            {
+                options.PlugInSources.AddFolder(pluginSourcesFolder);
+            }
+        };
         switch (chainType)
         {
             case ChainType.SideChain:
-                AddApplication<SideChainAElfModule>(services);
+                services.AddApplication<SideChainAElfModule>(optionsAction);
                 break;
-            default:
-                AddApplication<MainChainAElfModule>(services);
+            case ChainType.MainChain:
+                services.AddApplication<MainChainAElfModule>(optionsAction);
                 break;
         }
 
@@ -54,11 +66,6 @@ public class Startup
                 if (_configuration["CorsOrigins"] != "*") builder.AllowCredentials();
             });
         });
-    }
-
-    private static void AddApplication<T>(IServiceCollection services) where T : IAbpModule
-    {
-        services.AddApplication<T>();
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -2,7 +2,7 @@
     <Import Project="..\..\common.props"/>
 
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
         <PackageId>AElf.Contracts.Configuration</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Description>Configuration is a contract used for changing configurable aspects of the chain, like for example

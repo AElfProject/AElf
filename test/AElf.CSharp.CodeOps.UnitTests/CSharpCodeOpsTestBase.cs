@@ -104,7 +104,7 @@ public class CSharpCodeOpsTestBase
 
     static CSharpCodeOpsTestBase()
     {
-        AddNet6References();
+        AddNet8References();
         AddSmartContractReferences();
     }
 
@@ -145,9 +145,9 @@ public class CSharpCodeOpsTestBase
     }
 
 
-    public static void AddNet6References()
+    public static void AddNet8References()
     {
-        foreach (var portableExecutableReference in Basic.Reference.Assemblies.Net60.References.All)
+        foreach (var portableExecutableReference in Basic.Reference.Assemblies.Net80.References.All)
         {
             References.Add(portableExecutableReference);
         }
