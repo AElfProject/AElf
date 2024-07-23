@@ -6,9 +6,9 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Volo.Abp.EventBus.RabbitMQ" Version="5.2.2" />
-        <PackageReference Include="Volo.Abp.Caching.StackExchangeRedis" Version="5.2.2" />
-        <PackageReference Include="Microsoft.AspNetCore.DataProtection.StackExchangeRedis" Version="6.0.*" />
+        <PackageReference Include="Volo.Abp.EventBus.RabbitMQ" Version="8.0.5" />
+        <PackageReference Include="Volo.Abp.Caching.StackExchangeRedis" Version="8.0.5" />
+        <PackageReference Include="Microsoft.AspNetCore.DataProtection.StackExchangeRedis" Version="8.0.5" />
     </ItemGroup>
 
     <ItemGroup>
