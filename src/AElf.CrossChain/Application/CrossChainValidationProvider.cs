@@ -57,9 +57,9 @@ public class CrossChainValidationProvider : IBlockValidationProvider
             Logger.LogDebug($"Try discovery indexed side chain block data: {isSideChainBlockDataIndexed}");
             var extraData = ExtractCrossChainExtraData(block.Header);
             var validationResult = true;
-            Logger.LogDebug($"extraData===: {extraData},block===:{block}");
             if (!isSideChainBlockDataIndexed && !extraData.IsNullOrEmpty())
             {
+                Logger.LogDebug($"extraData===: {extraData},block===:{block}");
                 // cross chain extra data in block header should be null if no side chain block data indexed in contract 
                 validationResult = false;
             }
