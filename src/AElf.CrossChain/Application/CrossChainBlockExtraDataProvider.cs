@@ -1,4 +1,3 @@
-using System;
 using System.Threading.Tasks;
 using AElf.CrossChain.Indexing.Application;
 using AElf.Kernel;
@@ -24,11 +23,9 @@ internal class CrossChainBlockExtraDataProvider : IBlockExtraDataProvider
 
     public async Task<ByteString> GetBlockHeaderExtraDataAsync(BlockHeader blockHeader)
     {
-        Console.WriteLine("blockHeader.Height == AElfConstants.GenesisBlockHeight"+(blockHeader.Height == AElfConstants.GenesisBlockHeight));
         if (blockHeader.Height == AElfConstants.GenesisBlockHeight)
             return ByteString.Empty;
-        Console.WriteLine("true or false:"+!_transactionPackingOptionProvider.IsTransactionPackable(new ChainContext
-            { BlockHash = blockHeader.PreviousBlockHash, BlockHeight = blockHeader.Height - 1 }));
+
         if (!_transactionPackingOptionProvider.IsTransactionPackable(new ChainContext
                 { BlockHash = blockHeader.PreviousBlockHash, BlockHeight = blockHeader.Height - 1 }))
             return ByteString.Empty;

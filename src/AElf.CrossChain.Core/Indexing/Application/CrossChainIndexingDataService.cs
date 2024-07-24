@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -88,7 +87,7 @@ internal class CrossChainIndexingDataService : ICrossChainIndexingDataService
         var indexingProposalStatusList = await GetIndexingProposalStatusAsync(blockHash, blockHeight, utcNow);
 
         var toBeReleasedChainIdList = FindToBeReleasedChainIdList(indexingProposalStatusList, utcNow);
-        Console.WriteLine("toBeReleasedChainIdList.Count"+toBeReleasedChainIdList.Count);
+
         if (toBeReleasedChainIdList.Count > 0)
         {
             // release pending proposal and unable to propose anything if it is ready
@@ -113,7 +112,6 @@ internal class CrossChainIndexingDataService : ICrossChainIndexingDataService
         var crossChainBlockData =
             await GetCrossChainBlockDataForNextMining(blockHash, blockHeight, new HashSet<int>(pendingChainIdList));
 
-        Console.WriteLine("!crossChainBlockData.IsNullOrEmpty()"+!crossChainBlockData.IsNullOrEmpty());
         if (!crossChainBlockData.IsNullOrEmpty())
             _transactionInputForBlockMiningDataProvider.AddTransactionInputForBlockMining(blockHash,
                 new CrossChainTransactionInput
