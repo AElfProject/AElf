@@ -97,3 +97,4 @@ jobs:
           git checkout feature/use-github-actions
           git diff --quiet && git diff --staged --quiet || git commit -m "Update test results"
           git push
+
