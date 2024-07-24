@@ -74,7 +74,7 @@ jobs:
       - name: Prepare Content
         uses: actions/github-script@v5
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.COMMIT_TOKEN }}
           script: |
             const fs = require('fs');
             const passed = "${{ env.PASSED }}";
