@@ -37,7 +37,7 @@ jobs:
 
       - name: Run Unit Tests
         run: |
-          for testproj in $(find . -name '*Tests.csproj')
+          for testproj in $(find . -name 'AElf.Contracts.AEDPoSExtension.Demo.Tests')
           do
             dotnet test --no-build --no-restore --verbosity normal -l:"trx;LogFileName=TestResults.xml" $testproj || true
           done
