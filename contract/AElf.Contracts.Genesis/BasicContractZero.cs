@@ -449,7 +449,6 @@ public partial class BasicContractZero : BasicContractZeroImplContainer.BasicCon
         var info = State.ContractInfos[input.Address];
         Assert(info != null, "Contract not found.");
         Assert(Context.Sender == info.Author, "No permission.");
-        Assert(info.Deployer == null || info.Deployer == Context.Sender, "No permission to update.");
         var codeHash = HashHelper.ComputeFrom(input.Code.ToByteArray());
         Assert(info.CodeHash != codeHash, "Code is not changed.");
         AssertContractNotExists(codeHash);
