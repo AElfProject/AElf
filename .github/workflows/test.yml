@@ -1,32 +1,51 @@
+name: Test
 on:
   push:
     branches:
       - dev
       - master
+      - feature/use-github-actions
 
-permissions:
-  contents: read
-  actions: read
-  checks: write
+env:
+  DOTNET_INSTALL_DIR: "./.dotnet"
+  SOLUTION_NAME: "AElf.All.sln"
+  GIST_ID: "59e13bd3823d754542ac98d24b3329b4"
 
 jobs:
-  build-test:
-    name: Build & Test
+  build-and-test:
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: write
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Setup dotnet
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '6.0'
+          dotnet-version: '8.0'
 
-      - run: dotnet restore
-      - run: dotnet build --no-restore
-      - run: dotnet test --no-build --no-restore --verbosity normal -l:"trx;LogFileName=TestResults.xml"
+      - name: Download AElf build tools
+        run: bash scripts/download_binary.sh
+
+      - name: Install Protobuf
+        run: sudo apt-get update && sudo apt-get install -y protobuf-compiler
+
+      - run: dotnet restore ${{ env.SOLUTION_NAME }}
+      - run: dotnet build --no-restore ${{ env.SOLUTION_NAME }}
+
+      - name: Run Unit Tests
+        run: |
+          for testproj in $(find . -name '*Tests.csproj')
+          do
+            dotnet test --no-build --no-restore --verbosity normal -l:"trx;LogFileName=TestResults.xml" $testproj || true
+          done
 
       - name: Install xmlstarlet
-        run: sudo apt-get install -y xmlstarlet
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xmlstarlet
 
       - name: Extract Test Counts
         id: test_counts
@@ -36,42 +55,46 @@ jobs:
           skipped=0
           for file in $(find . -name 'TestResults.xml')
           do
-            passed=$((passed + $(xmlstarlet sel -t -v "/TestRun/ResultSummary/Counters/@passed" "$file")))
-            failed=$((failed + $(xmlstarlet sel -t -v "/TestRun/ResultSummary/Counters/@failed" "$file")))
-            total=$(xmlstarlet sel -t -v "/TestRun/ResultSummary/Counters/@total" "$file")
-            executed=$(xmlstarlet sel -t -v "/TestRun/ResultSummary/Counters/@executed" "$file")
-            skipped=$((total - executed))
+            passed_value=$(xmlstarlet sel -N x="http://microsoft.com/schemas/VisualStudio/TeamTest/2010" -t -v "/x:TestRun/x:ResultSummary/x:Counters/@passed" "$file")
+            passed=$((passed + passed_value))
+            failed_value=$(xmlstarlet sel -N x="http://microsoft.com/schemas/VisualStudio/TeamTest/2010" -t -v "/x:TestRun/x:ResultSummary/x:Counters/@failed" "$file")
+            failed=$((failed + failed_value))
+            total_value=$(xmlstarlet sel -N x="http://microsoft.com/schemas/VisualStudio/TeamTest/2010" -t -v "/x:TestRun/x:ResultSummary/x:Counters/@total" "$file")
+            executed_value=$(xmlstarlet sel -N x="http://microsoft.com/schemas/VisualStudio/TeamTest/2010" -t -v "/x:TestRun/x:ResultSummary/x:Counters/@executed" "$file")
+            skipped_value=$((total_value - executed_value))
+            skipped=$((skipped + skipped_value))
           done
-          echo "::set-output name=passed::$passed"
-          echo "::set-output name=failed::$failed"
-          echo "::set-output name=skipped::$skipped"
+          echo "PASSED=$passed" >> $GITHUB_ENV
+          echo "FAILED=$failed" >> $GITHUB_ENV
+          echo "SKIPPED=$skipped" >> $GITHUB_ENV
 
-      - name: Update Gist
+      - name: Get branch name
+        run: echo "BRANCH_NAME=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
+
+      - name: Prepare Content
         uses: actions/github-script@v5
         with:
-          github-token: ${{secrets.GIST_TOKEN}}
+          github-token: ${{ secrets.COMMIT_TOKEN }}
           script: |
             const fs = require('fs');
-            const passed = "${{ steps.test_counts.outputs.passed }}";
-            const failed = "${{ steps.test_counts.outputs.failed }}";
-            const skipped = "${{ steps.test_counts.outputs.skipped }}";
-            const gistId = "59e13bd3823d754542ac98d24b3329b4";
-            const filename = "test-results.json";
-            const color = failed > 0 ? "red" : "brightgreen";
+            const passed = "${{ env.PASSED }}";
+            const failed = "${{ env.FAILED }}";
+            const skipped = "${{ env.SKIPPED }}";
+            const gistId = "${{ env.GIST_ID }}";
+            let branchName = "${{ env.BRANCH_NAME }}";
+            branchName = branchName.replace(/\//g, '-');
+            const filename = `${branchName}-test-results.json`;
+            const color = failed > 0 ? "red" : (skipped > 0 ? "green" : "brightgreen");
             const content = `{"schemaVersion":1,"label":"tests","message":"${passed} passed, ${failed} failed, ${skipped} skipped","color":"${color}"}`;
 
-            let gist;
-            try {
-              gist = await github.rest.gists.get({ gist_id: gistId });
-            } catch (error) {
-              if (error.status !== 404) {
-                throw error;
-              }
-            }
+            fs.writeFileSync(filename, content);
 
-            await github.rest.gists.update({
-              gist_id: gistId,
-              files: {
-                [filename]: { content }
-              }
-            });
+      - name: Commit and Push
+        run: |
+          git config --global user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add -A
+          git checkout feature/use-github-actions
+          git diff --quiet && git diff --staged --quiet || git commit -m "Update test results"
+          git push
+

@@ -4,14 +4,14 @@ on:
     branches:
       - dev
       - master
+      - feature/use-github-actions
 
 env:
   DOTNET_INSTALL_DIR: "./.dotnet"
-  Solution_Name: AElf.All.sln
-  Service_Name: AELF
 
 jobs:
-  test:
+  build:
+
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
@@ -22,7 +22,7 @@ jobs:
       - name: Setup dotnet
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '6.0'
+          dotnet-version: '8.0'
 
       - name: Download AElf build tools
         run: bash scripts/download_binary.sh
@@ -32,3 +32,4 @@ jobs:
 
       - name: Build Solution
         run: bash scripts/build.sh
+
