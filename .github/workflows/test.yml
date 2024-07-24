@@ -88,12 +88,12 @@ jobs:
             const content = `{"schemaVersion":1,"label":"tests","message":"${passed} passed, ${failed} failed, ${skipped} skipped","color":"${color}"}`;
 
             fs.writeFileSync(filename, content);
+
       - name: Commit and Push
         run: |
           git config --global user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git checkout feature/use-github-actions
-          git pull
           git add -A
+          git checkout feature/use-github-actions
           git diff --quiet && git diff --staged --quiet || git commit -m "Update test results"
           git push
