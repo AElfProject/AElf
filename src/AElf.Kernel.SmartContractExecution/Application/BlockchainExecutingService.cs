@@ -52,8 +52,8 @@ public class FullBlockchainExecutingService : IBlockchainExecutingService, ITran
                 }
 
                 executionResult.SuccessBlockExecutedSets.Add(blockExecutedSet);
-                // Logger.LogInformation(
-                    // $"Executed block {block.GetHash()} at height {block.Height}, with {block.Body.TransactionsCount} txns.");
+                Logger.LogInformation(
+                    $"Executed block {block.GetHash()} at height {block.Height}, with {block.Body.TransactionsCount} txns.");
 
                 await LocalEventBus.PublishAsync(new BlockAcceptedEvent { BlockExecutedSet = blockExecutedSet });
             }
