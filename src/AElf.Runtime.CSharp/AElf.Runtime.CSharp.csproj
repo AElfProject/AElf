@@ -1,8 +1,8 @@
-<Project Sdk="Microsoft.NET.Sdk">
-    <Import Project="..\..\common.props"/>
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="..\..\common.props" />
 
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
         <RootNamespace>AElf.Runtime.CSharp</RootNamespace>
         <PackageId>AElf.Runtime.CSharp</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
@@ -14,14 +14,14 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\AElf.CSharp.CodeOps\AElf.CSharp.CodeOps.csproj"/>
-        <ProjectReference Include="..\AElf.Kernel.SmartContract\AElf.Kernel.SmartContract.csproj"/>
-        <ProjectReference Include="..\AElf.Runtime.CSharp.Core\AElf.Runtime.CSharp.Core.csproj"/>
-        <ProjectReference Include="..\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj"/>
+        <ProjectReference Include="..\AElf.CSharp.CodeOps\AElf.CSharp.CodeOps.csproj" />
+        <ProjectReference Include="..\AElf.Kernel.SmartContract\AElf.Kernel.SmartContract.csproj" />
+        <ProjectReference Include="..\AElf.Runtime.CSharp.Core\AElf.Runtime.CSharp.Core.csproj" />
+        <ProjectReference Include="..\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Mono.Cecil" Version="0.11.4"/>
+        <PackageReference Include="Mono.Cecil" Version="0.11.4" />
     </ItemGroup>
 
     <ItemGroup>

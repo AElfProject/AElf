@@ -1,14 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
         <RootNamespace>AElf.WebApp.Application</RootNamespace>
         <IsPackable>false</IsPackable>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="Microsoft.AspNetCore.Cors" Version="2.2.0"/>
-        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.3.1"/>
-        <PackageReference Include="Volo.Abp.AspNetCore.TestBase" Version="5.2.2"/>
-        <PackageReference Include="Volo.Abp.Autofac" Version="5.2.2"/>
+        <PackageReference Include="Microsoft.AspNetCore.Cors" Version="2.2.0" />
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
+        <PackageReference Include="Volo.Abp.AspNetCore.TestBase" Version="8.0.5" />
+        <PackageReference Include="Volo.Abp.Autofac" Version="8.0.5" />
         <PackageReference Include="coverlet.collector" Version="3.2.0">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
@@ -16,8 +16,8 @@
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.4.1" />
     </ItemGroup>
     <ItemGroup>
-        <ProjectReference Include="..\AElf.OS.Core.Tests\AElf.OS.Core.Tests.csproj"/>
-        <ProjectReference Include="..\..\src\AElf.WebApp.Web\AElf.WebApp.Web.csproj"/>
+        <ProjectReference Include="..\AElf.OS.Core.Tests\AElf.OS.Core.Tests.csproj" />
+        <ProjectReference Include="..\..\src\AElf.WebApp.Web\AElf.WebApp.Web.csproj" />
     </ItemGroup>
     <ItemGroup>
         <ContractMessage Include="..\..\protobuf\acs1.proto">

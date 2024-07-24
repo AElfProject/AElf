@@ -2,7 +2,7 @@
     <Import Project="..\..\common.props"/>
 
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
         <PackageId>AElf.Contracts.Vote</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Description>Vote is a contract used for voting.</Description>

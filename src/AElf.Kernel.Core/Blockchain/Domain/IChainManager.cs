@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Kernel.Infrastructure;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace AElf.Kernel.Blockchain.Domain;
 
@@ -49,6 +50,7 @@ public class ChainManager : IChainManager, ISingletonDependency
     private readonly IChainBlockLinkCacheProvider _chainBlockLinkCacheProvider;
     private readonly IBlockchainStore<ChainBlockLink> _chainBlockLinks;
     private readonly IBlockchainStore<Chain> _chains;
+    private readonly Dictionary<int, Chain> _chainCache;
 
     private readonly IStaticChainInformationProvider _staticChainInformationProvider;
 
@@ -63,6 +65,7 @@ public class ChainManager : IChainManager, ISingletonDependency
         _chainBlockIndexes = chainBlockIndexes;
         _staticChainInformationProvider = staticChainInformationProvider;
         _chainBlockLinkCacheProvider = chainBlockLinkCacheProvider;
+        _chainCache = new Dictionary<int, Chain>();
     }
 
     private int ChainId => _staticChainInformationProvider.ChainId;
@@ -104,12 +107,19 @@ public class ChainManager : IChainManager, ISingletonDependency
 
         await _chains.SetAsync(ChainId.ToStorageKey(), chain);
 
+        // Update the cache.
+        _chainCache[ChainId] = chain;
         return chain;
     }
 
     public async Task<Chain> GetAsync()
     {
-        var chain = await _chains.GetAsync(ChainId.ToStorageKey());
+        if (_chainCache.TryGetValue(ChainId, out var chain))
+        {
+            return chain?.Clone();
+        }
+        chain = await _chains.GetAsync(ChainId.ToStorageKey());
+        _chainCache[ChainId] = chain;
         return chain;
     }
 
@@ -220,6 +230,9 @@ public class ChainManager : IChainManager, ISingletonDependency
         Logger.LogInformation($"Attach {chainBlockLink.BlockHash} to longest chain, status: {status}, " +
                               $"longest chain height: {chain.LongestChainHeight}, longest chain hash: {chain.LongestChainHash}");
 
+        // Update the cache.
+        _chainCache[ChainId] = chain;
+
         return status;
     }
 
@@ -249,6 +262,9 @@ public class ChainManager : IChainManager, ISingletonDependency
             chain.LastIrreversibleBlockHash = links.First().BlockHash;
             chain.LastIrreversibleBlockHeight = links.First().Height;
             await _chains.SetAsync(chain.Id.ToStorageKey(), chain);
+
+            // Update the cache.
+            _chainCache[ChainId] = chain;
 
             Logger.LogDebug(
                 $"Setting chain lib height: {chain.LastIrreversibleBlockHeight}, chain lib hash: {chain.LastIrreversibleBlockHash}");
@@ -322,6 +338,9 @@ public class ChainManager : IChainManager, ISingletonDependency
         chain.BestChainHash = bestChainHash;
 
         await _chains.SetAsync(chain.Id.ToStorageKey(), chain);
+
+        // Update the cache.
+        _chainCache[ChainId] = chain;
     }
 
     public int GetChainId()
@@ -417,6 +436,9 @@ public class ChainManager : IChainManager, ISingletonDependency
             $"Clean chain branch, Branches: [{discardedBranch.BranchKeys.JoinAsString(",")}], NotLinkedBlocks: [{discardedBranch.NotLinkedKeys.JoinAsString(",")}]");
 
         await _chains.SetAsync(chain.Id.ToStorageKey(), chain);
+
+        // Update the cache.
+        _chainCache[ChainId] = chain;
     }
 
     public async Task RemoveLongestBranchAsync(Chain chain)
@@ -430,6 +452,9 @@ public class ChainManager : IChainManager, ISingletonDependency
             $"Switch Longest chain to height: {chain.LongestChainHeight}, hash: {chain.LongestChainHash}.");
 
         await _chains.SetAsync(chain.Id.ToStorageKey(), chain);
+
+        // Update the cache.
+        _chainCache[ChainId] = chain;
     }
 
     public async Task<Chain> ResetChainToLibAsync(Chain chain)
@@ -464,6 +489,9 @@ public class ChainManager : IChainManager, ISingletonDependency
 
         Logger.LogInformation($"Rollback to height {chain.BestChainHeight}, hash {chain.BestChainHash}.");
         await _chains.SetAsync(chain.Id.ToStorageKey(), chain);
+
+        // Update the cache.
+        _chainCache[ChainId] = chain;
 
         return chain;
     }

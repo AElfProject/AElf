@@ -11,6 +11,7 @@ using AElf.Kernel.SmartContract;
 using AElf.Types;
 using Volo.Abp.DependencyInjection;
 
+
 namespace AElf.CSharp.CodeOps.Validators.Whitelist;
 
 public interface IWhitelistProvider
@@ -48,6 +49,8 @@ public class WhitelistProvider : IWhitelistProvider
             .Assembly(typeof(IMethod).Assembly, Trust.Full) // AElf.CSharp.Core
             .Assembly(typeof(SecretSharingHelper).Assembly, Trust.Partial) // AElf.Cryptography
             .Assembly(typeof(ISmartContractBridgeContext).Assembly, Trust.Full) // AElf.Kernel.SmartContract.Shared
+            .Assembly(typeof(Groth16.Net.Verifier).Assembly, Trust.Full) // AElf.Cryptography.ECDSA
+            .Assembly(typeof(Poseidon.Net.Poseidon).Assembly, Trust.Full) 
             ;
     }
 

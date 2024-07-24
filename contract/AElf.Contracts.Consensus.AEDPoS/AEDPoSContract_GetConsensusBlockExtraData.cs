@@ -118,7 +118,11 @@ public partial class AEDPoSContract
         updatedRound.RealTimeMinersInformation[pubkey].ImpliedIrreversibleBlockHeight = Context.CurrentHeight;
 
         // Update secret pieces of latest in value.
-        UpdateLatestSecretPieces(updatedRound, pubkey, triggerInformation);
+        
+        if (IsSecretSharingEnabled())
+        {
+            UpdateLatestSecretPieces(updatedRound, pubkey, triggerInformation);
+        }
 
         // To publish Out Value.
         return new AElfConsensusHeaderInformation

@@ -43,7 +43,7 @@ internal class Program
             saveAsPath = o.ContractDllPath + ".patched";
             Console.WriteLine($"[CONTRACT-PATCHER] Saving as {saveAsPath}");
         }
-
+        
         using var application = AbpApplicationFactory.Create<ContractDeployerModule>();
         application.Initialize();
         var contractPatcher = application.ServiceProvider.GetRequiredService<IContractPatcher>();
@@ -60,6 +60,10 @@ internal class Program
                 foreach (var finding in ex.Findings)
                     // Print error in parsable format so that it can be shown in IDE
                     Console.WriteLine($"error: {finding}");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Audit exception: ",e);
             }
 
         File.WriteAllBytes(saveAsPath, patchedCode);

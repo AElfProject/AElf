@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using AElf.EconomicSystem;
 using AElf.GovernmentSystem;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.Configuration;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Proposal;
 using AElf.Kernel.Token;
@@ -30,7 +31,8 @@ public class AEDPoSExtensionTestBase : ContractTestBase<ContractTestAEDPoSExtens
         { SmartContractConstants.CrossChainContractSystemHashName, "CrossChain" },
         { ReferendumSmartContractAddressNameProvider.Name, "Referendum" },
         { AssociationSmartContractAddressNameProvider.Name, "Association" },
-        { TokenHolderSmartContractAddressNameProvider.Name, "TokenHolder" }
+        { TokenHolderSmartContractAddressNameProvider.Name, "TokenHolder" },
+        { ConfigurationSmartContractAddressNameProvider.Name, "Configuration" }
     };
 
     public Dictionary<Hash, Address> ContractAddresses;
