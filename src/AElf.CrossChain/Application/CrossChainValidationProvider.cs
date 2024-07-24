@@ -57,6 +57,7 @@ public class CrossChainValidationProvider : IBlockValidationProvider
             Logger.LogDebug($"Try discovery indexed side chain block data: {isSideChainBlockDataIndexed}");
             var extraData = ExtractCrossChainExtraData(block.Header);
             var validationResult = true;
+            Logger.LogDebug($"extraData===: {extraData},block===:{block}");
             if (!isSideChainBlockDataIndexed && !extraData.IsNullOrEmpty())
             {
                 // cross chain extra data in block header should be null if no side chain block data indexed in contract 
@@ -67,6 +68,7 @@ public class CrossChainValidationProvider : IBlockValidationProvider
                 var indexedCrossChainBlockData =
                     await _crossChainIndexingDataService.GetIndexedSideChainBlockDataAsync(block.Header.GetHash(),
                         block.Header.Height);
+                Logger.LogDebug($"indexedCrossChainBlockData===: {indexedCrossChainBlockData}");
                 if (indexedCrossChainBlockData.IsNullOrEmpty() ^ extraData.IsNullOrEmpty())
                     validationResult = false;
                 else if (!indexedCrossChainBlockData.IsNullOrEmpty())
