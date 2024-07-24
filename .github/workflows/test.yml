@@ -20,6 +20,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
       - name: Setup dotnet
         uses: actions/setup-dotnet@v4
         with:
@@ -70,10 +71,10 @@ jobs:
       - name: Get branch name
         run: echo "BRANCH_NAME=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
 
-      - name: Update Gist
+      - name: Prepare Content
         uses: actions/github-script@v5
         with:
-          github-token: ${{ secrets.GIST_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const fs = require('fs');
             const passed = "${{ env.PASSED }}";
@@ -86,18 +87,13 @@ jobs:
             const color = failed > 0 ? "red" : (skipped > 0 ? "green" : "brightgreen");
             const content = `{"schemaVersion":1,"label":"tests","message":"${passed} passed, ${failed} failed, ${skipped} skipped","color":"${color}"}`;
 
-            let gist;
-            try {
-              gist = await github.rest.gists.get({ gist_id: gistId });
-            } catch (error) {
-              if (error.status !== 404) {
-                throw error;
-              }
-            }
-
-            await github.rest.gists.update({
-              gist_id: gistId,
-              files: {
-                [filename]: { content }
-              }
-            });
+            fs.writeFileSync(filename, content);
+      - name: Commit and Push
+        run: |
+          git config --global user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git checkout feature/use-github-actions
+          git pull
+          git add -A
+          git diff --quiet && git diff --staged --quiet || git commit -m "Update test results"
+          git push
