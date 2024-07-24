@@ -88,23 +88,21 @@ jobs:
             const content = `{"schemaVersion":1,"label":"tests","message":"${passed} passed, ${failed} failed, ${skipped} skipped","color":"${color}"}`;
 
             fs.writeFileSync(filename, content);
-            echo "FILENAME=$filename" >> $GITHUB_ENV
 
       - name: Commit and push
-        uses: actions/github-script@v3
+        uses: actions/github-script@v5
         with:
           github-token: ${{ secrets.COMMIT_TOKEN }}
           script: |
             const fs = require('fs');
             const path = require('path');
-            const filename = process.env.FILENAME;
+            let branchName = "${{ env.BRANCH_NAME }}";
+            branchName = branchName.replace(/\//g, '-');
+            const filename = `${branchName}-test-results.json`;
             const filePath = path.join(process.env.GITHUB_WORKSPACE, filename);
             const fileContent = fs.readFileSync(filePath, 'utf8');
 
-            const github = require('@actions/github');
-            const octokit = github.getOctokit(process.env.GITHUB_TOKEN);
-
-            await octokit.repos.createOrUpdateFileContents({
+            await github.rest.repos.createOrUpdateFileContents({
               owner: context.repo.owner,
               repo: context.repo.repo,
               path: filename,
