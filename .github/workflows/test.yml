@@ -88,12 +88,27 @@ jobs:
             const content = `{"schemaVersion":1,"label":"tests","message":"${passed} passed, ${failed} failed, ${skipped} skipped","color":"${color}"}`;
 
             fs.writeFileSync(filename, content);
+            echo "FILENAME=$filename" >> $GITHUB_ENV
 
-      - name: Commit and Push
-        run: |
-          git config --global user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add -A
-          git checkout feature/use-github-actions
-          git diff --quiet && git diff --staged --quiet || git commit -m "Update test results"
-          git push
+      - name: Commit and push
+        uses: actions/github-script@v3
+        with:
+          github-token: ${{ secrets.COMMIT_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            const filename = process.env.FILENAME;
+            const filePath = path.join(process.env.GITHUB_WORKSPACE, filename);
+            const fileContent = fs.readFileSync(filePath, 'utf8');
+
+            const github = require('@actions/github');
+            const octokit = github.getOctokit(process.env.GITHUB_TOKEN);
+
+            await octokit.repos.createOrUpdateFileContents({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              path: filename,
+              message: `Update ${filename}`,
+              content: Buffer.from(fileContent).toString('base64'),
+              branch: 'feature/use-github-actions'
+            });
