@@ -61,13 +61,9 @@ public class MiningService : IMiningService
                 cts.CancelAfter(ts);
             }
 
-            var blockTask = Task.Run(() => GenerateBlock(requestMiningDto.PreviousBlockHash, requestMiningDto.PreviousBlockHeight, blockTime));
-            var systemTransactionsTask = Task.Run(() => GenerateSystemTransactions(requestMiningDto.PreviousBlockHash, requestMiningDto.PreviousBlockHeight));
+            var block = await GenerateBlock(requestMiningDto.PreviousBlockHash, requestMiningDto.PreviousBlockHeight, blockTime);
+            var systemTransactions = await GenerateSystemTransactions(requestMiningDto.PreviousBlockHash, requestMiningDto.PreviousBlockHeight);
             
-            await Task.WhenAll(blockTask, systemTransactionsTask);
-
-            var block = await blockTask;
-            var systemTransactions = await systemTransactionsTask;
             _systemTransactionExtraDataProvider.SetSystemTransactionCount(systemTransactions.Count,
                 block.Header);
             
