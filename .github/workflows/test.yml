@@ -42,8 +42,23 @@ jobs:
         run: |
           for testproj in $(find . -name 'AElf.Contracts.AEDPoSExtension.Demo.Tests')
           do
-            dotnet test --no-build --no-restore --verbosity normal -l:"trx;LogFileName=TestResults.xml" $testproj || true
+            dotnet test --no-build --no-restore --verbosity normal -l:"trx;LogFileName=TestResults.xml" --collect:"XPlat Code Coverage" $testproj || true
           done
+
+      - name: Install ReportGenerator tool
+        run: dotnet tool install --global dotnet-reportgenerator-globaltool
+
+      - name: Create Code Coverage Report
+        run: |
+          reportgenerator "-reports:**/coverage.cobertura.xml" "-targetdir:./coverage/reports" -reporttypes:"Cobertura"
+          echo "COVERAGE_FILE=./coverage/reports/Cobertura.xml" >> $GITHUB_ENV
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v2
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          file: ${{ env.COVERAGE_FILE }}
+          fail_ci_if_error: true
 
       - name: Install xmlstarlet
         run: |
