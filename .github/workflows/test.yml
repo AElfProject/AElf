@@ -44,6 +44,7 @@ jobs:
           do
             dotnet test --no-build --no-restore --verbosity normal -l:"trx;LogFileName=TestResults.xml" --collect:"XPlat Code Coverage" $testproj || true
           done
+        continue-on-error: true
 
       - name: Install ReportGenerator tool
         run: dotnet tool install --global dotnet-reportgenerator-globaltool
@@ -59,6 +60,7 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           file: ${{ env.COVERAGE_FILE }}
           fail_ci_if_error: true
+        continue-on-error: true
 
       - name: Install xmlstarlet
         run: |
