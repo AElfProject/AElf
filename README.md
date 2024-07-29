@@ -12,6 +12,7 @@ BRANCH | GITHUB ACTIONS BUILD                                                   
 MASTER | ![GitHub Workflow Build Status](https://github.com/eanzhao/AElf/actions/workflows/build.yml/badge.svg?branch=master) | ![GitHub Workflow Test Status](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/eanzhao/AElf/feature/badge/main-test-results.json) | [![codecov](https://codecov.io/gh/eanzhao/AElf/branch/master/graph/badge.svg)](https://codecov.io/gh/eanzhao/AElf) 
 DEV    | ![GitHub Workflow Build Status](https://github.com/eanzhao/AElf/actions/workflows/build.yml/badge.svg?branch=dev)    | ![GitHub Workflow Test Status](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/eanzhao/AElf/feature/badge/dev-test-results.json)  | [![codecov](https://codecov.io/gh/eanzhao/AElf/branch/dev/graph/badge.svg)](https://codecov.io/gh/eanzhao/AElf) 
 
+
 Welcome to AElf's official GitHub repo ! 
 
 AElf is a blockchain system aiming to achieve scalability and extensibility through the use of side-chains and a flexible design. To support multiple use cases AElf makes it as easy as possible to extend/customize the system by providing easy to use tools and frameworks in order to customize the chains and write smart contracts. AElf will eventually support various languages that will let developers choose the one they are the most comfortable with.
