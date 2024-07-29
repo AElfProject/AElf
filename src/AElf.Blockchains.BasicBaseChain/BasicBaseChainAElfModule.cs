@@ -15,6 +15,7 @@ using AElf.Kernel.SmartContract.ExecutionPluginForResourceFee;
 using AElf.Kernel.SmartContract.Parallel;
 using AElf.Kernel.Token;
 using AElf.Modularity;
+using AElf.OpenTelemetry;
 using AElf.OS;
 using AElf.OS.Network.Grpc;
 using AElf.OS.Node.Application;
@@ -52,6 +53,7 @@ namespace AElf.Blockchains.BasicBaseChain;
     //web api module
     typeof(WebWebAppAElfModule),
     typeof(ParallelExecutionModule),
+    typeof(OpenTelemetryModule),
 
     //plugin
     typeof(ExecutionPluginForMethodFeeModule),
