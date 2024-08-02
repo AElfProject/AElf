@@ -1,8 +1,8 @@
-<Project Sdk="Microsoft.NET.Sdk">
-    <Import Project="..\..\common.props"/>
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="..\..\common.props" />
 
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
         <RootNamespace>AElf.Kernel.SmartContract</RootNamespace>
         <PackageId>AElf.Kernel.SmartContract.Shared</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
@@ -10,7 +10,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\AElf.Types\AElf.Types.csproj"/>
+        <ProjectReference Include="..\AElf.Types\AElf.Types.csproj" />
     </ItemGroup>
 
 </Project>

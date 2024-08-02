@@ -1,7 +1,7 @@
-<Project Sdk="Microsoft.NET.Sdk">
-    <Import Project="..\..\common.props"/>
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="..\..\common.props" />
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
         <PackageId>AElf.CrossChain.Core</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <RootNamespace>AElf.CrossChain</RootNamespace>
@@ -13,8 +13,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\AElf.Kernel.Node\AElf.Kernel.Node.csproj"/>
-        <ProjectReference Include="..\AElf.Kernel.Proposal\AElf.Kernel.Proposal.csproj"/>
+        <ProjectReference Include="..\AElf.Kernel.Node\AElf.Kernel.Node.csproj" />
+        <ProjectReference Include="..\AElf.Kernel.Proposal\AElf.Kernel.Proposal.csproj" />
     </ItemGroup>
 
     <ItemGroup>

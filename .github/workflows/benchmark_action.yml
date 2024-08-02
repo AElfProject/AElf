@@ -25,7 +25,7 @@ jobs:
       - name: Setup dotnet
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '6.0'
+          dotnet-version: '8.0'
 
       - name: 'Download AElf build tools'
         run: bash scripts/download_binary.sh

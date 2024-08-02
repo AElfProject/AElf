@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
         <AssemblyName>AElf.Runtime.CSharp.Tests.BadContract</AssemblyName>
         <RootNamespace>AElf.Runtime.CSharp.Tests.BadContract</RootNamespace>
         <IsPackable>false</IsPackable>
@@ -8,8 +8,8 @@
         <PatchOverwrite>true</PatchOverwrite>
     </PropertyGroup>
     <ItemGroup>
-        <ProjectReference Include="..\..\src\AElf.Kernel.Core\AElf.Kernel.Core.csproj"/>
-        <ProjectReference Include="..\..\src\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj"/>
+        <ProjectReference Include="..\..\src\AElf.Kernel.Core\AElf.Kernel.Core.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj" />
     </ItemGroup>
     <ItemGroup>
         <ContractCode Include="..\..\protobuf\bad_contract.proto">

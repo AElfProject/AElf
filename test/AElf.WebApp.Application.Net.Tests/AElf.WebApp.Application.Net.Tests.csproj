@@ -1,11 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
         <IsPackable>false</IsPackable>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="Microsoft.AspNetCore.Cors" Version="2.2.0"/>
-        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.3.1"/>
+        <PackageReference Include="Microsoft.AspNetCore.Cors" Version="2.2.0" />
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
         <PackageReference Include="coverlet.collector" Version="3.2.0">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
@@ -21,8 +21,8 @@
   <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
 </PackageReference>
     </ItemGroup>
-    <Import Project="..\AllContracts.props"/>
+    <Import Project="..\AllContracts.props" />
     <ItemGroup>
-        <ProjectReference Include="..\AElf.WebApp.Application.TestBase\AElf.WebApp.Application.TestBase.csproj"/>
+        <ProjectReference Include="..\AElf.WebApp.Application.TestBase\AElf.WebApp.Application.TestBase.csproj" />
     </ItemGroup>
 </Project>

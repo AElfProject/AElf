@@ -1,8 +1,8 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
     <Import Project="..\..\common.props" />
 
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
         <PackageId>AElf.OS</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Description>Main module for the OS layer.</Description>
@@ -15,7 +15,7 @@
 
     <ItemGroup>
         <PackageReference Include="Nethereum.KeyStore" Version="4.5.0" />
-        <PackageReference Include="Volo.Abp.BackgroundWorkers" Version="5.2.2" />
+        <PackageReference Include="Volo.Abp.BackgroundWorkers" Version="8.0.5" />
     </ItemGroup>
 
 </Project>

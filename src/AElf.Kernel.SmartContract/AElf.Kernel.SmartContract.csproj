@@ -1,18 +1,19 @@
-<Project Sdk="Microsoft.NET.Sdk">
-    <Import Project="..\..\common.props"/>
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="..\..\common.props" />
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
         <PackageId>AElf.Kernel.SmartContract</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Description>High level smart contract definitions and core functionality implementation.</Description>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="Sandwych.QuickGraph.Core" Version="1.0.0"/>
+        <PackageReference Include="Sandwych.QuickGraph.Core" Version="1.0.0" />
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\AElf.CSharp.Core\AElf.CSharp.Core.csproj"/>
         <ProjectReference Include="..\AElf.Kernel.Core\AElf.Kernel.Core.csproj"/>
         <ProjectReference Include="..\AElf.Kernel.SmartContract.Shared\AElf.Kernel.SmartContract.Shared.csproj"/>
+        <ProjectReference Include="..\AElf.Kernel.FeatureDisable.Core\AElf.Kernel.FeatureDisable.Core.csproj" />
     </ItemGroup>
     <ItemGroup>
         <ContractStub Include="..\..\protobuf\acs0.proto">

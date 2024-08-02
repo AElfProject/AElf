@@ -1,16 +1,16 @@
-<Project Sdk="Microsoft.NET.Sdk">
-    <Import Project="..\..\common.props"/>
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="..\..\common.props" />
 
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
         <PackageId>AElf.Kernel.SmartContract.ExecutionPluginForResourceFee</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Description>ACS 8 execution plugin.</Description>
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\AElf.Kernel.FeeCalculation\AElf.Kernel.FeeCalculation.csproj"/>
-        <ProjectReference Include="..\AElf.Kernel.SmartContract\AElf.Kernel.SmartContract.csproj"/>
+        <ProjectReference Include="..\AElf.Kernel.FeeCalculation\AElf.Kernel.FeeCalculation.csproj" />
+        <ProjectReference Include="..\AElf.Kernel.SmartContract\AElf.Kernel.SmartContract.csproj" />
     </ItemGroup>
 
     <ItemGroup>
@@ -35,6 +35,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Folder Include="Protobuf\Generated"/>
+        <Folder Include="Protobuf\Generated" />
     </ItemGroup>
 </Project>

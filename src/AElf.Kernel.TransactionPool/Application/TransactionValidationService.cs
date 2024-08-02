@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Txn.Application;
@@ -32,31 +33,32 @@ public class TransactionValidationService : ITransactionValidationService, ITran
     /// <param name="chainContext"></param>
     /// <param name="transaction"></param>
     /// <returns></returns>
-    public async Task<bool> ValidateTransactionWhileCollectingAsync(IChainContext chainContext,
-        Transaction transaction)
+    public async Task<bool> ValidateTransactionWhileCollectingAsync(IChainContext chainContext, Transaction transaction)
     {
-        foreach (var provider in _transactionValidationProviders)
+        var validationTasks = _transactionValidationProviders.AsParallel().Select(async provider =>
         {
-            if (await provider.ValidateTransactionAsync(transaction, chainContext)) continue;
+            if (await provider.ValidateTransactionAsync(transaction, chainContext)) return true;
             Logger.LogDebug(
                 $"[ValidateTransactionWhileCollectingAsync]Transaction {transaction.GetHash()} validation failed in {provider.GetType()}");
             return false;
-        }
+        });
 
-        return true;
+        var results = await Task.WhenAll(validationTasks);
+        return results.All(result => result);
     }
 
     public async Task<bool> ValidateTransactionWhileSyncingAsync(Transaction transaction)
     {
-        foreach (var provider in _transactionValidationProviders)
-        {
-            if (!provider.ValidateWhileSyncing ||
-                await provider.ValidateTransactionAsync(transaction)) continue;
-            Logger.LogDebug(
-                $"[ValidateTransactionWhileSyncingAsync]Transaction {transaction.GetHash()} validation failed in {provider.GetType()}");
-            return false;
-        }
+        var validationTasks = _transactionValidationProviders.AsParallel()
+            .Where(provider => provider.ValidateWhileSyncing).Select(async provider =>
+            {
+                if (await provider.ValidateTransactionAsync(transaction)) return true;
+                Logger.LogDebug(
+                    $"[ValidateTransactionWhileSyncingAsync]Transaction {transaction.GetHash()} validation failed in {provider.GetType()}");
+                return false;
+            });
 
-        return true;
+        var results = await Task.WhenAll(validationTasks);
+        return results.All(result => result);
     }
 }

@@ -12,4 +12,5 @@ public static class AEDPoSContractConstants
     public const string SideChainShareProfitsTokenSymbol = "SHARE";
     public const string PayTxFeeSymbolListName = "SymbolListToPayTxFee";
     public const string PayRentalSymbolListName = "SymbolListToPayRental";
+    public const string SecretSharingEnabledConfigurationKey = "SecretSharingEnabled";
 }

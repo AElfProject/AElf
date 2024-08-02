@@ -6,8 +6,15 @@ using AElf.Cryptography.Core;
 using AElf.Cryptography.ECDSA;
 using AElf.Cryptography.ECVRF;
 using AElf.Cryptography.Exceptions;
+using Org.BouncyCastle.Crypto.Digests;
+using Org.BouncyCastle.Crypto.Engines;
+using Org.BouncyCastle.Crypto.Generators;
+using Org.BouncyCastle.Crypto.Modes;
+using Org.BouncyCastle.Crypto.Paddings;
+using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Math;
+using Org.BouncyCastle.Security;
 using Secp256k1Net;
-using Virgil.Crypto;
 using ECParameters = AElf.Cryptography.ECDSA.ECParameters;
 
 namespace AElf.Cryptography
@@ -17,8 +24,7 @@ namespace AElf.Cryptography
     {
         private static readonly Secp256k1 Secp256K1 = new Secp256k1();
 
-        // ReaderWriterLock for thread-safe with Secp256k1 APIs
-        private static readonly ReaderWriterLock Lock = new ReaderWriterLock();
+        private static readonly ReaderWriterLockSlim Lock = new ReaderWriterLockSlim();  
 
         private static readonly Vrf<Secp256k1Curve, Sha256HasherFactory> Vrf =
             new Vrf<Secp256k1Curve, Sha256HasherFactory>(new VrfConfig(0xfe, ECParameters.Curve));
@@ -36,7 +42,7 @@ namespace AElf.Cryptography
 
             try
             {
-                Lock.AcquireWriterLock(Timeout.Infinite);
+                Lock.EnterWriteLock();
                 var secp256K1PubKey = new byte[64];
 
                 if (!Secp256K1.PublicKeyCreate(secp256K1PubKey, privateKey))
@@ -48,7 +54,7 @@ namespace AElf.Cryptography
             }
             finally
             {
-                Lock.ReleaseWriterLock();
+                Lock.ExitWriteLock();
             }
         }
 
@@ -56,7 +62,7 @@ namespace AElf.Cryptography
         {
             try
             {
-                Lock.AcquireWriterLock(Timeout.Infinite);
+                Lock.EnterWriteLock();
                 var privateKey = new byte[32];
                 var secp256K1PubKey = new byte[64];
 
@@ -76,7 +82,7 @@ namespace AElf.Cryptography
             }
             finally
             {
-                Lock.ReleaseWriterLock();
+                Lock.ExitWriteLock();
             }
         }
 
@@ -84,7 +90,7 @@ namespace AElf.Cryptography
         {
             try
             {
-                Lock.AcquireWriterLock(Timeout.Infinite);
+                Lock.EnterWriteLock();
                 var recSig = new byte[65];
                 var compactSig = new byte[65];
                 if (!Secp256K1.SignRecoverable(recSig, hash, privateKey))
@@ -96,7 +102,7 @@ namespace AElf.Cryptography
             }
             finally
             {
-                Lock.ReleaseWriterLock();
+                Lock.ExitWriteLock();
             }
         }
 
@@ -111,7 +117,7 @@ namespace AElf.Cryptography
             pubkey = null;
             try
             {
-                Lock.AcquireWriterLock(Timeout.Infinite);
+                Lock.EnterWriteLock();
                 // Recover id should be greater than or equal to 0 and less than 4
                 if (signature.Length != Secp256k1.SERIALIZED_UNCOMPRESSED_PUBKEY_LENGTH || signature.Last() >= 4)
                     return false;
@@ -129,55 +135,72 @@ namespace AElf.Cryptography
             }
             finally
             {
-                Lock.ReleaseWriterLock();
+                Lock.ExitWriteLock();
             }
         }
 
         public static byte[] EncryptMessage(byte[] senderPrivateKey, byte[] receiverPublicKey, byte[] plainText)
         {
-            var crypto = new VirgilCrypto(KeyPairType.EC_SECP256K1);
-            var ecdhKey = Ecdh(senderPrivateKey, receiverPublicKey);
-            var newKeyPair = crypto.GenerateKeys(KeyPairType.EC_SECP256K1, ecdhKey);
-            return crypto.Encrypt(plainText, newKeyPair.PublicKey);
+            var keyBytes = GetSharedSecret(senderPrivateKey, receiverPublicKey);
+
+            var cipher = new PaddedBufferedBlockCipher(new CbcBlockCipher(new AesEngine()));
+            cipher.Init(true, new ParametersWithIV(new KeyParameter(keyBytes), new byte[16]));
+
+            var cipherText = new byte[cipher.GetOutputSize(plainText.Length)];
+            var len = cipher.ProcessBytes(plainText, 0, plainText.Length, cipherText, 0);
+            cipher.DoFinal(cipherText, len);
+
+            return cipherText;
         }
 
         public static byte[] DecryptMessage(byte[] senderPublicKey, byte[] receiverPrivateKey, byte[] cipherText)
         {
-            var crypto = new VirgilCrypto(KeyPairType.EC_SECP256K1);
-            var ecdhKey = Ecdh(receiverPrivateKey, senderPublicKey);
-            var newKeyPair = crypto.GenerateKeys(KeyPairType.EC_SECP256K1, ecdhKey);
-            return crypto.Decrypt(cipherText, newKeyPair.PrivateKey);
+            var keyBytes = GetSharedSecret(receiverPrivateKey, senderPublicKey);
+
+            var cipher = new PaddedBufferedBlockCipher(new CbcBlockCipher(new AesEngine()));
+            cipher.Init(false, new ParametersWithIV(new KeyParameter(keyBytes), new byte[16]));
+
+            var temp = new byte[cipher.GetOutputSize(cipherText.Length)];
+            var len = cipher.ProcessBytes(cipherText, 0, cipherText.Length, temp, 0);
+            len += cipher.DoFinal(temp, len);
+
+            // Remove padding
+            var plainText = new byte[len];
+            Array.Copy(temp, 0, plainText, 0, len);
+
+            return plainText;
         }
 
-        public static byte[] Ecdh(byte[] privateKey, byte[] publicKey)
+        private static byte[] GetSharedSecret(byte[] privateKey, byte[] publicKey)
         {
-            try
-            {
-                Lock.AcquireWriterLock(Timeout.Infinite);
-                var usablePublicKey = new byte[Secp256k1.SERIALIZED_UNCOMPRESSED_PUBKEY_LENGTH];
-                if (!Secp256K1.PublicKeyParse(usablePublicKey, publicKey))
-                    throw new PublicKeyOperationException("Parse public key failed.");
-                var ecdhKey = new byte[Secp256k1.SERIALIZED_COMPRESSED_PUBKEY_LENGTH];
-                if (!Secp256K1.Ecdh(ecdhKey, usablePublicKey, privateKey))
-                    throw new EcdhOperationException("Compute EC Diffie- secret failed.");
-                return ecdhKey;
-            }
-            finally
-            {
-                Lock.ReleaseWriterLock();
-            }
+            var curve = ECParameters.Curve;
+            var domainParams = ECParameters.DomainParams;
+            var privateKeyParams = new ECPrivateKeyParameters(new BigInteger(1, privateKey), domainParams);
+            var publicKeyParams = new ECPublicKeyParameters(curve.Curve.DecodePoint(publicKey), domainParams);
+
+            var agreement = AgreementUtilities.GetBasicAgreement("ECDH");
+            agreement.Init(privateKeyParams);
+            var secret = agreement.CalculateAgreement(publicKeyParams);
+
+            var kdf = new Kdf2BytesGenerator(new Sha256Digest());
+            kdf.Init(new KdfParameters(secret.ToByteArray(), null));
+
+            var keyBytes = new byte[32];
+            kdf.GenerateBytes(keyBytes, 0, keyBytes.Length);
+
+            return keyBytes;
         }
 
         public static byte[] ECVrfProve(ECKeyPair keyPair, byte[] alpha)
         {
             try
             {
-                Lock.AcquireWriterLock(Timeout.Infinite);
+                Lock.EnterWriteLock();
                 return Vrf.Prove(keyPair, alpha);
             }
             finally
             {
-                Lock.ReleaseWriterLock();
+                Lock.ExitWriteLock();
             }
         }
 
@@ -185,12 +208,12 @@ namespace AElf.Cryptography
         {
             try
             {
-                Lock.AcquireWriterLock(Timeout.Infinite);
+                Lock.EnterWriteLock();
                 return Vrf.Verify(publicKey, alpha, pi);
             }
             finally
             {
-                Lock.ReleaseWriterLock();
+                Lock.ExitWriteLock();
             }
         }
     }

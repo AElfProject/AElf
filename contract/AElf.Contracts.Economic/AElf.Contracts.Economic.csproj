@@ -2,7 +2,7 @@
     <Import Project="..\..\common.props"/>
 
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
         <PackageId>AElf.Contracts.Economic</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Description>Economic is a contract that implements the basic functionality used to manage the economic

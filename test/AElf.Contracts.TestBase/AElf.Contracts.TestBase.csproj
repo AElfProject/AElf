@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <!--TODO: rename this project to test/AElf.ContractTestBase-->
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
         <IsPackable>false</IsPackable>
     </PropertyGroup>
     <ItemGroup>
@@ -15,7 +15,7 @@
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </ProjectReference>
-        <ProjectReference Include="..\..\contract\AElf.Contracts.Genesis\AElf.Contracts.Genesis.csproj"/>
+        <ProjectReference Include="..\..\contract\AElf.Contracts.Genesis\AElf.Contracts.Genesis.csproj" />
         <ProjectReference Include="..\..\contract\AElf.Contracts.MultiToken\AElf.Contracts.MultiToken.csproj">
             <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
             <OutputItemType>Contract</OutputItemType>
@@ -28,17 +28,17 @@
         </ProjectReference>
     </ItemGroup>
     <ItemGroup>
-        <ProjectReference Include="..\..\src\AElf.ContractDeployer\AElf.ContractDeployer.csproj"/>
-        <ProjectReference Include="..\..\src\AElf.CrossChain.Core\AElf.CrossChain.Core.csproj"/>
-        <ProjectReference Include="..\..\src\AElf.Database\AElf.Database.csproj"/>
-        <ProjectReference Include="..\..\src\AElf.GovernmentSystem\AElf.GovernmentSystem.csproj"/>
-        <ProjectReference Include="..\..\src\AElf.Kernel.Consensus.AEDPoS\AElf.Kernel.Consensus.AEDPoS.csproj"/>
-        <ProjectReference Include="..\..\src\AElf.Kernel.SmartContract.ExecutionPluginForMethodFee\AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.csproj"/>
-        <ProjectReference Include="..\AElf.Kernel.Tests\AElf.Kernel.Tests.csproj"/>
-        <ProjectReference Include="..\..\src\AElf.Kernel\AElf.Kernel.csproj"/>
-        <ProjectReference Include="..\..\src\AElf.OS.Core\AElf.OS.Core.csproj"/>
-        <ProjectReference Include="..\..\src\AElf.Runtime.CSharp.ExecutiveTokenPlugin\AElf.Runtime.CSharp.ExecutiveTokenPlugin.csproj"/>
-        <ProjectReference Include="..\..\src\AElf.Runtime.CSharp\AElf.Runtime.CSharp.csproj"/>
+        <ProjectReference Include="..\..\src\AElf.ContractDeployer\AElf.ContractDeployer.csproj" />
+        <ProjectReference Include="..\..\src\AElf.CrossChain.Core\AElf.CrossChain.Core.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Database\AElf.Database.csproj" />
+        <ProjectReference Include="..\..\src\AElf.GovernmentSystem\AElf.GovernmentSystem.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Kernel.Consensus.AEDPoS\AElf.Kernel.Consensus.AEDPoS.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Kernel.SmartContract.ExecutionPluginForMethodFee\AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.csproj" />
+        <ProjectReference Include="..\AElf.Kernel.Tests\AElf.Kernel.Tests.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Kernel\AElf.Kernel.csproj" />
+        <ProjectReference Include="..\..\src\AElf.OS.Core\AElf.OS.Core.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Runtime.CSharp.ExecutiveTokenPlugin\AElf.Runtime.CSharp.ExecutiveTokenPlugin.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Runtime.CSharp\AElf.Runtime.CSharp.csproj" />
         <ProjectReference Include="..\..\contract\AElf.Contracts.Configuration\AElf.Contracts.Configuration.csproj">
             <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
             <OutputItemType>Contract</OutputItemType>

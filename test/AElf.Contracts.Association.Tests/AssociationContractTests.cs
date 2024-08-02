@@ -169,6 +169,8 @@ public class AssociationContractTests : AssociationContractTestBase<AssociationC
             getProposal.Output.OrganizationAddress.ShouldBe(organizationAddress);
             getProposal.Output.ToAddress.ShouldBe(TokenContractAddress);
             getProposal.Output.Params.ShouldBe(transferInput.ToByteString());
+            getProposal.Output.Title.ShouldNotBeNullOrEmpty();
+            getProposal.Output.Description.ShouldNotBeNullOrEmpty();
         }
     }
 
@@ -1231,7 +1233,9 @@ public class AssociationContractTests : AssociationContractTestBase<AssociationC
             ToAddress = TokenContractAddress,
             Params = transferInput.ToByteString(),
             ExpiredTime = BlockTimeProvider.GetBlockTime().AddDays(2),
-            OrganizationAddress = organizationAddress
+            OrganizationAddress = organizationAddress,
+            Title = "Token Transfer",
+            Description = "Transfer 100 ELF to Reviewer1's address",
         };
         var proposal = await associationContractStub.CreateProposal.SendAsync(createProposalInput);
         var proposalCreated = ProposalCreated.Parser.ParseFrom(proposal.TransactionResult.Logs

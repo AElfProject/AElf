@@ -188,7 +188,7 @@ public partial class ResetFieldsMethodInjector
 
     static ResetFieldsMethodInjector()
     {
-        var systemRuntime = Basic.Reference.Assemblies.Net60.Resources.SystemRuntime;
+        var systemRuntime = Basic.Reference.Assemblies.Net80.Resources.SystemRuntime;
 
         using var stream = new MemoryStream(systemRuntime);
 

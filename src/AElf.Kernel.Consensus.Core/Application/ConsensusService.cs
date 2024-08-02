@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.CSharp.Core.Extension;
@@ -18,6 +19,7 @@ internal class ConsensusService : IConsensusService, ISingletonDependency
 {
     private readonly IBlockTimeProvider _blockTimeProvider;
     private readonly IConsensusReaderContextService _consensusReaderContextService;
+    private readonly IMiningTimeProvider _miningTimeProvider;
     private readonly IConsensusScheduler _consensusScheduler;
 
     private readonly IContractReaderFactory<ConsensusContractContainer.ConsensusContractStub>
@@ -31,13 +33,15 @@ internal class ConsensusService : IConsensusService, ISingletonDependency
     public ConsensusService(IConsensusScheduler consensusScheduler,
         IContractReaderFactory<ConsensusContractContainer.ConsensusContractStub> contractReaderFactory,
         ITriggerInformationProvider triggerInformationProvider,
-        IBlockTimeProvider blockTimeProvider, IConsensusReaderContextService consensusReaderContextService)
+        IBlockTimeProvider blockTimeProvider, IConsensusReaderContextService consensusReaderContextService,
+        IMiningTimeProvider miningTimeProvider)
     {
         _contractReaderFactory = contractReaderFactory;
         _triggerInformationProvider = triggerInformationProvider;
         _blockTimeProvider = blockTimeProvider;
         _consensusReaderContextService = consensusReaderContextService;
         _consensusScheduler = consensusScheduler;
+        _miningTimeProvider = miningTimeProvider;
 
         Logger = NullLogger<ConsensusService>.Instance;
         LocalEventBus = NullLocalEventBus.Instance;
@@ -86,11 +90,19 @@ internal class ConsensusService : IConsensusService, ISingletonDependency
             ? new Duration { Seconds = ConsensusConstants.MaximumLeftMillisecondsForNextBlock }
             : leftMilliseconds;
 
+        var configuredMiningTime = await _miningTimeProvider.GetLimitMillisecondsOfMiningBlockAsync(new BlockIndex
+        {
+            BlockHeight = chainContext.BlockHeight,
+            BlockHash = chainContext.BlockHash
+        });
+        var limitMillisecondsOfMiningBlock = configuredMiningTime == 0
+            ? _consensusCommand.LimitMillisecondsOfMiningBlock
+            : configuredMiningTime;
         // Update consensus scheduler.
         var blockMiningEventData = new ConsensusRequestMiningEventData(chainContext.BlockHash,
             chainContext.BlockHeight,
             _nextMiningTime,
-            TimestampHelper.DurationFromMilliseconds(_consensusCommand.LimitMillisecondsOfMiningBlock),
+            TimestampHelper.DurationFromMilliseconds(limitMillisecondsOfMiningBlock),
             _consensusCommand.MiningDueTime);
         _consensusScheduler.CancelCurrentEvent();
         _consensusScheduler.NewEvent(leftMilliseconds.Milliseconds(), blockMiningEventData);
