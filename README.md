@@ -3,14 +3,15 @@
 [![GitHub closed issues](https://img.shields.io/github/issues-closed/aelfproject/aelf.svg)](https://app.gitkraken.com/glo/board/XKsOZJarBgAPseno)
 [![lisence](https://img.shields.io/github/license/AElfProject/AElf.svg)](https://github.com/AElfProject/AElf/blob/dev/LICENSE)
 [![Nuget](https://img.shields.io/nuget/v/AElf.OS.svg)](https://www.nuget.org/packages?q=aelf)
-[![MyGet (with prereleases)](https://img.shields.io/myget/aelf-project-dev/vpre/aelf.os.svg?label=myget)](https://www.myget.org/gallery/aelf-project-dev)
+[![MyGet (with prereleases)](https://img.shields.io/myget/aelf-project/vpre/aelf.os.svg?label=myget)](https://www.myget.org/gallery/aelf-project)
 [![Twitter Follow](https://img.shields.io/twitter/follow/aelfblockchain.svg?label=%40aelfblockchain&style=social)](https://twitter.com/aelfblockchain)
 [![Telegram](https://badgen.net/badge/telegram/join/blue?icon=telegram)](https://t.me/aelfdeveloper)
 
- BRANCH | AZURE PIPELINES                                              | TESTS                                                        | CODE COVERAGE                                                
- ------ | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ 
- MASTER | [![Build Status](https://dev.azure.com/AElfProject/AElf/_apis/build/status/AElfProject.AElf?branchName=master)](https://dev.azure.com/AElfProject/AElf/_build/latest?definitionId=1&branchName=master) | [![Test Status](https://img.shields.io/azure-devops/tests/AElfProject/AElf/1/master)](https://dev.azure.com/AElfProject/AElf/_build/latest?definitionId=1&branchName=master) | [![codecov](https://codecov.io/gh/AElfProject/AElf/branch/master/graph/badge.svg)](https://codecov.io/gh/AElfProject/AElf) 
- DEV    | [![Build Status](https://dev.azure.com/AElfProject/AElf/_apis/build/status/AElfProject.AElf?branchName=dev)](https://dev.azure.com/AElfProject/AElf/_build/latest?definitionId=1&branchName=dev) | [![Test Status](https://img.shields.io/azure-devops/tests/AElfProject/AElf/1/dev)](https://dev.azure.com/AElfProject/AElf/_build/latest?definitionId=1&branchName=dev) | [![codecov](https://codecov.io/gh/AElfProject/AElf/branch/dev/graph/badge.svg)](https://codecov.io/gh/AElfProject/AElf) 
+BRANCH | GITHUB ACTIONS BUILD                                                                                                     | TESTS                                                                                                                                                              | CODE COVERAGE                                                
+------ |--------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------| ------------------------------------------------------------ 
+MASTER | ![GitHub Workflow Build Status](https://github.com/AElfProject/AElf/actions/workflows/build.yml/badge.svg?branch=master) | ![GitHub Workflow Test Status](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/AElfProject/AElf/feature/badge-json/master-test-results.json) | [![codecov](https://codecov.io/gh/AElfProject/AElf/branch/master/graph/badge.svg)](https://codecov.io/gh/AElfProject/AElf) 
+DEV    | ![GitHub Workflow Build Status](https://github.com/AElfProject/AElf/actions/workflows/build.yml/badge.svg?branch=dev)        | ![GitHub Workflow Test Status](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/AElfProject/AElf/feature/badge-json/dev-test-results.json)        | [![codecov](https://codecov.io/gh/AElfProject/AElf/branch/dev/graph/badge.svg)](https://codecov.io/gh/AElfProject/AElf) 
+
 
 Welcome to aelf's official GitHub repo ! 
 
