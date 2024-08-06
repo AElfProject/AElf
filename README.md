@@ -38,10 +38,7 @@ This repo is where you will find the code that can use to run an aelf node. It a
 
 ### Documentation
 
-We strongly recommend you follow official documentation that will guide you through installing dependencies and running the node, 
-these two guides will get you started:  
-* [Environment setup](https://docs.aelf.io/en/latest/getting_started/development-environment/index.html)  
-* [Running a node](https://docs.aelf.io/en/latest/getting_started/development-environment/node.html)  
+We strongly recommend you follow [official documentation](https://docs.aelf.com/) that will guide you through installing dependencies and running the node.
 
 ## Contributing
 
