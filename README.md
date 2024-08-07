@@ -1,4 +1,4 @@
-# aelf - A Decentralized Cloud Computing Blockchain Network 
+# aelf - An AI-enhanced Layer 1 Blockchain Network 
 
 [![GitHub closed issues](https://img.shields.io/github/issues-closed/aelfproject/aelf.svg)](https://app.gitkraken.com/glo/board/XKsOZJarBgAPseno)
 [![lisence](https://img.shields.io/github/license/AElfProject/AElf.svg)](https://github.com/AElfProject/AElf/blob/dev/LICENSE)
@@ -15,7 +15,7 @@ DEV    | ![GitHub Workflow Build Status](https://github.com/AElfProject/AElf/act
 
 Welcome to aelf's official GitHub repo ! 
 
-aelf is a blockchain system aiming to achieve scalability and extensibility through the use of side-chains and a flexible design. To support multiple use cases aelf makes it as easy as possible to extend/customize the system by providing easy to use tools and frameworks in order to customize the chains and write smart contracts. aelf will eventually support various languages that will let developers choose the one they are the most comfortable with.
+aelf is an AI-enhanced blockchain system aiming to achieve scalability and extensibility through the use of side-chains and a flexible design. To support multiple use cases, aelf makes it as easy as possible to extend/customize the system by providing easy to use tools and frameworks in order to customize the chains and write smart contracts. aelf supports various languages that will let developers choose the one they are the most comfortable with.
 
 For more information you can follow these links:
 * [Official website](https://aelf.com/)
@@ -39,7 +39,7 @@ This repo is where you will find the code that can use to run an aelf node. It a
 
 ### Documentation
 
-We strongly recommend you follow [official documentation](https://docs.aelf.com/) that will guide you through installing dependencies and running the node.
+We strongly recommend you to follow [official documentation](https://docs.aelf.com/) that will guide you through installing dependencies and running the node.
 
 ## Contributing
 
@@ -76,7 +76,7 @@ When you are ready for a review by the core team, just remove ```[WIP]``` from y
 
 ## Versioning
 
-We use Semantic Versioning (SemVer) for versioning, if you're intereted in closely following aelf's developement please check out the [SemVer docs](https://semver.org/).
+We use Semantic Versioning (SemVer) for versioning, if you're interested in following aelf's developement, please check out the [SemVer docs](https://semver.org/).
 
 ## License
 
