@@ -8,7 +8,7 @@ on:
 
 jobs:
   build-and-test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest-4-cores
     permissions:
       pull-requests: write
       contents: write
@@ -23,7 +23,7 @@ jobs:
         run: bash scripts/install_protobuf.sh
 
       - name: Run dotnet ci action
-        uses: AElfProject/dotnet-ci-action@v0.0.1
+        uses: AElfProject/dotnet-ci-action@v0.0.2
         with:
           commit-token: ${{ secrets.COMMIT_TOKEN }}
           codecov-token: ${{ secrets.CODECOV_TOKEN }}
