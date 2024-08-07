@@ -104,6 +104,7 @@ public class BasicBaseChainAElfModule : AElfModule
             options.GenesisContractDir = Path.Combine(contentRootPath, "genesis");
         });
         Configure<WebAppOptions>(newConfig.GetSection("WebApp"));
+        Configure<WebAppOptions>(newConfig.GetSection("WebApp"));
     }
 
     public override void OnApplicationInitialization(ApplicationInitializationContext context)
