@@ -1,6 +1,7 @@
+using System.Threading.Tasks;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.Kernel.FeatureDisable.Core;
+namespace AElf.Kernel.FeatureManager;
 
 public interface IFeatureDisableService
 {

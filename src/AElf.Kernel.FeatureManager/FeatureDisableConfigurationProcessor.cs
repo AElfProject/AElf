@@ -1,10 +1,10 @@
+using System.Threading.Tasks;
 using AElf.Kernel.Configuration;
-using AElf.Kernel.FeatureDisable.Core;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.Kernel.FeatureDisable;
+namespace AElf.Kernel.FeatureManager;
 
 public class FeatureDisableConfigurationProcessor : IConfigurationProcessor, ITransientDependency
 {
@@ -15,7 +15,7 @@ public class FeatureDisableConfigurationProcessor : IConfigurationProcessor, ITr
         _disabledFeatureListProvider = disabledFeatureListProvider;
     }
 
-    public string ConfigurationName => FeatureDisableConstants.FeatureDisableConfigurationName;
+    public string ConfigurationName => FeatureManagerConstants.FeatureDisableConfigurationName;
 
     public async Task ProcessConfigurationAsync(ByteString byteString, BlockIndex blockIndex)
     {

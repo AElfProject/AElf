@@ -1,22 +1,21 @@
+using System.Threading.Tasks;
 using AElf.Contracts.Configuration;
 using AElf.CSharp.Core.Extension;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.FeatureDisable.Core;
 using AElf.Standards.ACS3;
-using AElf.TestBase;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
 
-namespace AElf.Kernel.FeatureDisable.Tests;
+namespace AElf.Kernel.FeatureManager.Tests;
 
-public class FeatureDisableTest : KernelFeatureDisableTestBase
+public class FeatureDisableServiceTest : KernelFeatureManagerTestBase
 {
     private readonly IMockService _mockService;
     private readonly IBlockchainService _blockchainService;
 
-    public FeatureDisableTest()
+    public FeatureDisableServiceTest()
     {
         _mockService = GetRequiredService<IMockService>();
         _blockchainService = GetRequiredService<IBlockchainService>();
@@ -43,7 +42,7 @@ public class FeatureDisableTest : KernelFeatureDisableTestBase
             ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
             Params = new SetConfigurationInput
             {
-                Key = FeatureDisableConstants.FeatureDisableConfigurationName,
+                Key = FeatureManagerConstants.FeatureDisableConfigurationName,
                 Value = new StringValue { Value = disableFeatureNames }.ToByteString()
             }.ToByteString(),
             ToAddress = ConfigurationContractAddress,

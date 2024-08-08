@@ -1,4 +1,6 @@
-namespace AElf.Kernel.FeatureDisable;
+using System.Collections.Generic;
+
+namespace AElf.Kernel.FeatureManager;
 
 public class DisableFeatureOptions
 {

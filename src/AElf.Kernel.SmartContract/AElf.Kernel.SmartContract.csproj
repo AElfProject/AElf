@@ -13,7 +13,7 @@
         <ProjectReference Include="..\AElf.CSharp.Core\AElf.CSharp.Core.csproj"/>
         <ProjectReference Include="..\AElf.Kernel.Core\AElf.Kernel.Core.csproj"/>
         <ProjectReference Include="..\AElf.Kernel.SmartContract.Shared\AElf.Kernel.SmartContract.Shared.csproj"/>
-        <ProjectReference Include="..\AElf.Kernel.FeatureDisable.Core\AElf.Kernel.FeatureDisable.Core.csproj" />
+        <ProjectReference Include="..\AElf.Kernel.FeatureManager.Core\AElf.Kernel.FeatureManager.Core.csproj" />
     </ItemGroup>
     <ItemGroup>
         <ContractStub Include="..\..\protobuf\acs0.proto">
