@@ -4,7 +4,7 @@ using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.Kernel.FeatureManager;
+namespace AElf.Kernel.FeatureManagement;
 
 public class FeatureDisableConfigurationProcessor : IConfigurationProcessor, ITransientDependency
 {
@@ -15,7 +15,7 @@ public class FeatureDisableConfigurationProcessor : IConfigurationProcessor, ITr
         _disabledFeatureListProvider = disabledFeatureListProvider;
     }
 
-    public string ConfigurationName => FeatureManagerConstants.FeatureDisableConfigurationName;
+    public string ConfigurationName => FeatureManagementConstants.FeatureDisableConfigurationName;
 
     public async Task ProcessConfigurationAsync(ByteString byteString, BlockIndex blockIndex)
     {

@@ -3,7 +3,6 @@
     <PropertyGroup>
         <TargetFramework>net8.0</TargetFramework>
         <Nullable>enable</Nullable>
-
         <IsPackable>false</IsPackable>
     </PropertyGroup>
 
@@ -42,7 +41,7 @@
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </ProjectReference>
         <ProjectReference Include="..\..\src\AElf.ContractTestKit\AElf.ContractTestKit.csproj" />
-        <ProjectReference Include="..\..\src\AElf.Kernel.FeatureManager\AElf.Kernel.FeatureManager.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Kernel.FeatureManagement\AElf.Kernel.FeatureManagement.csproj" />
     </ItemGroup>
 
     <ItemGroup>

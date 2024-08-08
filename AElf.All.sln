@@ -361,9 +361,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.NFT", "contr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TestContract.BigIntValue", "test\AElf.Contracts.TestContract.BigIntValue\AElf.Contracts.TestContract.BigIntValue.csproj", "{F50AF512-69E2-46B5-87C6-E058CE2C2D8A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.FeatureManager", "src\AElf.Kernel.FeatureManager\AElf.Kernel.FeatureManager.csproj", "{B24BC602-DAFD-4941-A913-8B0725691681}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.FeatureManagement", "src\AElf.Kernel.FeatureManagement\AElf.Kernel.FeatureManagement.csproj", "{B24BC602-DAFD-4941-A913-8B0725691681}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.FeatureManager.Tests", "test\AElf.Kernel.FeatureManager.Tests\AElf.Kernel.FeatureManager.Tests.csproj", "{1B44277E-74EB-49B2-B8FD-05C29EE51985}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.FeatureManagement.Tests", "test\AElf.Kernel.FeatureManagement.Tests\AElf.Kernel.FeatureManagement.Tests.csproj", "{1B44277E-74EB-49B2-B8FD-05C29EE51985}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.CSharp.CodeOps.UnitTests", "test\AElf.CSharp.CodeOps.UnitTests\AElf.CSharp.CodeOps.UnitTests.csproj", "{D1A00CD6-958E-4E9F-8325-354309E3029E}"
 EndProject
@@ -379,7 +379,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TestContract
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.VirtualTransactionEventContract.Tests", "test\AElf.Contracts.VirtualTransactionEventContract.Tests\AElf.Contracts.VirtualTransactionEventContract.Tests.csproj", "{6981684D-450C-412B-9082-0B0A67A679B9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.FeatureManager.Core", "src\AElf.Kernel.FeatureManager.Core\AElf.Kernel.FeatureManager.Core.csproj", "{EB2EE653-B268-481B-9C5A-096E939E07E1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.FeatureManagement.Core", "src\AElf.Kernel.FeatureManagement.Core\AElf.Kernel.FeatureManagement.Core.csproj", "{EB2EE653-B268-481B-9C5A-096E939E07E1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using AElf.Kernel.Blockchain;
 using AElf.Kernel.SmartContract.Application;
 
-namespace AElf.Kernel.FeatureManager.Tests;
+namespace AElf.Kernel.FeatureManagement.Tests;
 
 public class OptionalLogEventProcessingService<T> : ILogEventProcessingService<T> where T : ILogEventProcessor
 {

@@ -12,9 +12,9 @@ using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
 using Google.Protobuf;
 
-namespace AElf.Kernel.FeatureManager.Tests;
+namespace AElf.Kernel.FeatureManagement.Tests;
 
-public class KernelFeatureManagerTestBase : ContractTestBase<FeatureManagerTestModule>
+public class KernelFeatureManagementTestBase : ContractTestBase<FeatureManagementTestModule>
 {
     internal ConfigurationContainer.ConfigurationStub ConfigurationStub;
     internal ParliamentContractImplContainer.ParliamentContractImplStub ParliamentContractStub;

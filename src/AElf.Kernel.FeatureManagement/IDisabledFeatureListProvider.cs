@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.Kernel.FeatureManager;
+namespace AElf.Kernel.FeatureManagement;
 
 public interface IDisabledFeatureListProvider
 {

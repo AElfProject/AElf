@@ -1,6 +1,6 @@
-namespace AElf.Kernel.FeatureManager;
+namespace AElf.Kernel.FeatureManagement;
 
-public class FeatureManagerConstants
+public class FeatureManagementConstants
 {
     public const string FeatureConfigurationNamePrefix = "AElfFeature_";
     public const string FeatureDisableConfigurationName = "DisableFeatureNameList";

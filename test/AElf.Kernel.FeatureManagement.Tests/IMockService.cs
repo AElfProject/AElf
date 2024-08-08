@@ -1,12 +1,13 @@
 using System.Threading.Tasks;
+using AElf.Kernel.FeatureManagement.Core;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.Kernel.FeatureManager.Tests;
+namespace AElf.Kernel.FeatureManagement.Tests;
 
 public interface IMockService
 {
     Task<string> GetCurrentFeatureNameAsync();
-    
+
     Task<bool> IsFeatureADisabledAsync();
     Task<bool> IsFeatureBDisabledAsync();
     Task<bool> IsFeatureCDisabledAsync();
@@ -18,20 +19,18 @@ public class MockService : IMockService, ITransientDependency
     private const string Version1 = nameof(Version1);
     private const string Version2 = nameof(Version2);
     private const string Version3 = nameof(Version3);
-    private readonly IFeatureActiveService _featureActiveService;
-    private readonly IFeatureDisableService _featureDisableService;
+    private readonly IFeatureManagementService _featureManagementService;
 
-    public MockService(IFeatureActiveService featureActiveService, IFeatureDisableService featureDisableService)
+    public MockService(IFeatureManagementService featureManagementService)
     {
-        _featureActiveService = featureActiveService;
-        _featureDisableService = featureDisableService;
+        _featureManagementService = featureManagementService;
     }
 
     public async Task<string> GetCurrentFeatureNameAsync()
     {
-        if (await _featureActiveService.IsFeatureActive(Version3)) return Version3;
+        if (await _featureManagementService.IsFeatureActive(Version3)) return Version3;
 
-        if (await _featureActiveService.IsFeatureActive(Version2)) return Version2;
+        if (await _featureManagementService.IsFeatureActive(Version2)) return Version2;
 
         return Version1;
     }
@@ -39,23 +38,23 @@ public class MockService : IMockService, ITransientDependency
 
     public Task<bool> IsFeatureADisabledAsync()
     {
-        return _featureDisableService.IsFeatureDisabledAsync("FeatureA");
+        return _featureManagementService.IsFeatureDisabledAsync("FeatureA");
     }
 
     public Task<bool> IsFeatureBDisabledAsync()
     {
-        return _featureDisableService.IsFeatureDisabledAsync("FeatureB", "FeatureBAndC");
+        return _featureManagementService.IsFeatureDisabledAsync("FeatureB", "FeatureBAndC");
 
     }
 
     public Task<bool> IsFeatureCDisabledAsync()
     {
-        return _featureDisableService.IsFeatureDisabledAsync("FeatureC", "FeatureBAndC");
+        return _featureManagementService.IsFeatureDisabledAsync("FeatureC", "FeatureBAndC");
 
     }
 
     public Task<bool> IsFeatureDDisabledAsync()
     {
-        return _featureDisableService.IsFeatureDisabledAsync("FeatureD");
+        return _featureManagementService.IsFeatureDisabledAsync("FeatureD");
     }
 }
