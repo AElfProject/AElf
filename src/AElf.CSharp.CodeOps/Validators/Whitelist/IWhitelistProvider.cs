@@ -41,11 +41,13 @@ public class WhitelistProvider : IWhitelistProvider
             .Assembly(System.Reflection.Assembly.Load("System.Linq.Expressions"), Trust.Full)
             .Assembly(System.Reflection.Assembly.Load("System.Collections"), Trust.Full)
             .Assembly(System.Reflection.Assembly.Load("Google.Protobuf"), Trust.Full)
+            .Assembly(System.Reflection.Assembly.Load("System.Memory"), Trust.Partial)
             .Assembly(typeof(CSharpSmartContract).Assembly, Trust.Full) // AElf.Sdk.CSharp
             .Assembly(typeof(Address).Assembly, Trust.Full) // AElf.Types
             .Assembly(typeof(IMethod).Assembly, Trust.Full) // AElf.CSharp.Core
             .Assembly(typeof(SecretSharingHelper).Assembly, Trust.Partial) // AElf.Cryptography
             .Assembly(typeof(ISmartContractBridgeContext).Assembly, Trust.Full) // AElf.Kernel.SmartContract.Shared
+            .Assembly(typeof(Bn254.Net.Bn254).Assembly, Trust.Full) // Bn254.Net
             ;
     }
 
