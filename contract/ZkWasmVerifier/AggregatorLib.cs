@@ -6,6 +6,13 @@ using Nethereum.Util;
 
 namespace ZkWasmVerifier;
 
+public class NotOnCurveException : Exception
+{
+    public NotOnCurveException(string message) : base(message)
+    {
+    }
+}
+
 public class AggregatorLib
 {
     private static readonly UInt256 PMod =
