@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using AElf.Sdk.CSharp;
 using Bn254.Net;
 
 namespace ZkWasmVerifier;
@@ -43,12 +44,12 @@ public static class ZkWasmVerifier
             verifyCircuitPairingBuf[7] = buf[3];
             if (verifyCircuitPairingBuf[0].IsZero() || verifyCircuitPairingBuf[1].IsZero())
             {
-                throw new Exception("invalid w point");
+                throw new AssertionException("invalid w point");
             }
 
             if (verifyCircuitPairingBuf[6].IsZero() || verifyCircuitPairingBuf[7].IsZero())
             {
-                throw new Exception("invalid g point");
+                throw new AssertionException("invalid g point");
             }
         }
         var checked_ = false;
@@ -56,7 +57,7 @@ public static class ZkWasmVerifier
         checked_ = AggregatorLib.Pairing(verifyCircuitPairingBuf);
         if (!checked_)
         {
-            throw new Exception("pairing check failed");
+            throw new AssertionException("pairing check failed");
         }
     }
 }

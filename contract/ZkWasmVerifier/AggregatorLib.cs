@@ -1,12 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using AElf.Sdk.CSharp;
 using Bn254.Net;
 using Nethereum.Util;
 
 namespace ZkWasmVerifier;
 
-public class NotOnCurveException : Exception
+public class NotOnCurveException : AssertionException
 {
     public NotOnCurveException(string message) : base(message)
     {
@@ -198,12 +199,12 @@ public class AggregatorLib
         var r = b * aux % q_mod;
         if (a != r)
         {
-            throw new Exception("div fail");
+            throw new AssertionException("div fail");
         }
 
         if (b.IsZero())
         {
-            throw new Exception("div zero");
+            throw new AssertionException("div zero");
         }
 
         return aux % q_mod;
