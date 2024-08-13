@@ -12,7 +12,7 @@ service ZkWasmVerifier {
 
   // Actions (methods that modify contract state)
   // Stores the value in contract state
-  rpc Update (google.protobuf.StringValue) returns (google.protobuf.Empty) {
+  rpc Verify (VerifyInput) returns (google.protobuf.Empty) {
   }
 
   // Views (methods that don't modify contract state)
@@ -23,7 +23,12 @@ service ZkWasmVerifier {
 }
 
 // An event that will be emitted from contract method call
-message UpdatedMessage {
-  option (aelf.is_event) = true;
-  string value = 1;
+message VerifyInput {
+  repeated string proof = 1;
+  repeated string verifyInstance = 2;
+  repeated string aux = 3;
+  repeated StringArray targetInstance = 4;
+  message StringArray {
+    repeated string value = 1;
+  }
 }

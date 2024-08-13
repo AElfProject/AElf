@@ -16,14 +16,9 @@ public class NotOnCurveException : AssertionException
 
 public class AggregatorLib
 {
-    private static readonly UInt256 PMod =
+    private const string PMod =
         "21888242871839275222246405745257275088696311157297823662689037894645226208583";
-
-    public static readonly UInt256 QMod =
-        "21888242871839275222246405745257275088548364400416034343698204186575808495617";
-
-
-    public static readonly UInt256 q_mod =
+    public const string QMod =
         "21888242871839275222246405745257275088548364400416034343698204186575808495617";
 
     public static UInt256 HashInstances(UInt256[] absorbing)
@@ -40,7 +35,7 @@ public class AggregatorLib
         UInt256 l = y * y % PMod;
         UInt256 r = x * x % PMod;
         r = r * x % PMod;
-        r = r + 3 % PMod;
+        r = (r + 3) % PMod;
         if (l != r)
         {
             throw new NotOnCurveException("Not on curve");
@@ -190,13 +185,13 @@ public class AggregatorLib
 
     public static UInt256 FrPow(UInt256 a, UInt256 power)
     {
-        var result = Bn254.Net.Bn254.ModExp(a.ToBigEndianBytes(), power.ToBigEndianBytes(), QMod.ToBigEndianBytes());
+        var result = Bn254.Net.Bn254.ModExp(a.ToBigEndianBytes(), power.ToBigEndianBytes(), QMod.ToUInt256().ToBigEndianBytes());
         return new UInt256(result);
     }
 
     public static UInt256 FrDiv(UInt256 a, UInt256 b, UInt256 aux)
     {
-        var r = b * aux % q_mod;
+        var r = b * aux % QMod.ToUInt256();
         if (a != r)
         {
             throw new AssertionException("div fail");
@@ -207,14 +202,14 @@ public class AggregatorLib
             throw new AssertionException("div zero");
         }
 
-        return aux % q_mod;
+        return aux % QMod.ToUInt256();
     }
 
     // function fr_div(uint256 a, uint256 b, uint256 aux) internal pure returns (uint256) {
-    //     uint256 r = mulmod(b, aux, q_mod);
+    //     uint256 r = mulmod(b, aux, QMod.ToUInt256());
     //     require(a == r, "div fail");
     //     require(b != 0, "div zero");
-    //     return aux % q_mod;
+    //     return aux % QMod.ToUInt256();
     // }
 
     // function fr_pow(uint256 a, uint256 power) internal view returns (uint256) {
@@ -227,7 +222,7 @@ public class AggregatorLib
     //     input[2] = 32;
     //     input[3] = a;
     //     input[4] = power;
-    //     input[5] = q_mod;
+    //     input[5] = QMod.ToUInt256();
     //
     //     assembly {
     //         ret := staticcall(gas(), 0x05, input, 0xc0, result, 0x20)
