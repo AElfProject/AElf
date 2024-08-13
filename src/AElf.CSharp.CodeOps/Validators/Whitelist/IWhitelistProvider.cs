@@ -8,6 +8,7 @@ using AElf.Cryptography.SecretSharing;
 using AElf.CSharp.Core;
 using AElf.Kernel.SmartContract;
 using AElf.Types;
+using Nethereum.Util;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.CSharp.CodeOps.Validators.Whitelist;
@@ -48,6 +49,7 @@ public class WhitelistProvider : IWhitelistProvider
             .Assembly(typeof(SecretSharingHelper).Assembly, Trust.Partial) // AElf.Cryptography
             .Assembly(typeof(ISmartContractBridgeContext).Assembly, Trust.Full) // AElf.Kernel.SmartContract.Shared
             .Assembly(typeof(Bn254.Net.Bn254).Assembly, Trust.Full) // Bn254.Net
+            .Assembly(typeof(Sha3Keccack).Assembly, Trust.Full) // Nethereum.Web3
             ;
     }
 
