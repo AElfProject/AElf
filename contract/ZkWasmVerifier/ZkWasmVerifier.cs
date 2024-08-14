@@ -18,10 +18,10 @@ namespace AElf.Contracts.ZkWasmVerifier
                 new AggregatorVerifierCoreStep3(),
             };
 
-            var proof = input.Proof.Select(x => x.ToUInt256()).ToArray();
-            var aux = input.Aux.Select(x => x.ToUInt256()).ToArray().ToArray();
-            var verifyInstance = input.VerifyInstance.Select(x => x.ToUInt256()).ToArray();
-            var targetInstance = input.TargetInstance.Select(x => x.Value.Select(y => y.ToUInt256()).ToArray())
+            var proof = input.Proof.Select(x => x.DecToUInt256()).ToArray();
+            var aux = input.Aux.Select(x => x.DecToUInt256()).ToArray().ToArray();
+            var verifyInstance = input.VerifyInstance.Select(x => x.DecToUInt256()).ToArray();
+            var targetInstance = input.TargetInstance.Select(x => x.Value.Select(y => y.DecToUInt256()).ToArray())
                 .ToArray();
             var buf = new UInt256[43];
 

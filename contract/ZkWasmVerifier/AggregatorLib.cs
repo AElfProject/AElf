@@ -185,13 +185,13 @@ public class AggregatorLib
 
     public static UInt256 FrPow(UInt256 a, UInt256 power)
     {
-        var result = Bn254.Net.Bn254.ModExp(a.ToBigEndianBytes(), power.ToBigEndianBytes(), QMod.ToUInt256().ToBigEndianBytes());
+        var result = Bn254.Net.Bn254.ModExp(a.ToBigEndianBytes(), power.ToBigEndianBytes(), QMod.DecToUInt256().ToBigEndianBytes());
         return new UInt256(result);
     }
 
     public static UInt256 FrDiv(UInt256 a, UInt256 b, UInt256 aux)
     {
-        var r = b * aux % QMod.ToUInt256();
+        var r = b * aux % QMod.DecToUInt256();
         if (a != r)
         {
             throw new AssertionException("div fail");
@@ -202,14 +202,14 @@ public class AggregatorLib
             throw new AssertionException("div zero");
         }
 
-        return aux % QMod.ToUInt256();
+        return aux % QMod.DecToUInt256();
     }
 
     // function fr_div(uint256 a, uint256 b, uint256 aux) internal pure returns (uint256) {
-    //     uint256 r = mulmod(b, aux, QMod.ToUInt256());
+    //     uint256 r = mulmod(b, aux, QMod.DecToUInt256());
     //     require(a == r, "div fail");
     //     require(b != 0, "div zero");
-    //     return aux % QMod.ToUInt256();
+    //     return aux % QMod.DecToUInt256();
     // }
 
     // function fr_pow(uint256 a, uint256 power) internal view returns (uint256) {
@@ -222,7 +222,7 @@ public class AggregatorLib
     //     input[2] = 32;
     //     input[3] = a;
     //     input[4] = power;
-    //     input[5] = QMod.ToUInt256();
+    //     input[5] = QMod.DecToUInt256();
     //
     //     assembly {
     //         ret := staticcall(gas(), 0x05, input, 0xc0, result, 0x20)
