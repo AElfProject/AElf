@@ -50,7 +50,7 @@
 
 
     <ItemGroup>
-        <PackageReference Include="Bn254.Net" Version="0.1.0-preview.1" />
+        <PackageReference Include="Bn254.Net" Version="0.1.0-preview.2" />
         <PackageReference Include="Nethereum.Web3" Version="4.21.4" />
     </ItemGroup>
     

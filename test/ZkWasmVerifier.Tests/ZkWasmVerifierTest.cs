@@ -25,7 +25,6 @@ public class ZkWasmVerifierTest : ZkWasmVerifierTestBase
     [Fact]
     public async Task ZkWasmVerifier_Verify_Test()
     {
-        UInt256 x = 1;
         var result = await ZkWasmVerifierStub.Verify.SendAsync(GetInput());
         result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
     }
