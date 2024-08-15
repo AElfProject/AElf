@@ -95,7 +95,7 @@ public class ContractCompileService
             BlockHash = chain.BestChainHash,
             BlockHeight = chain.BestChainHeight
         });
-        return await HttpClient.PostAsync(_compileContractOptions.SolangServerEndpoint, multipartFormDataContent);
+        return await HttpClient.PostAsync(solangEndpointAsync, multipartFormDataContent);
     }
 
     private void SetRequestHeaders()

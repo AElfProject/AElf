@@ -1,3 +1,5 @@
+using System;
+using System.Text;
 using System.Threading.Tasks;
 using AElf.Contracts.Configuration;
 using AElf.Contracts.MultiToken;
@@ -9,6 +11,7 @@ using AElf.Standards.ACS3;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using Newtonsoft.Json.Linq;
 using Shouldly;
 using Xunit;
 using Xunit.Abstractions;
@@ -36,6 +39,36 @@ public class ConfigurationContractTest : ConfigurationContractTestBase
         var limitFromResult = new Int32Value();
         limitFromResult.MergeFrom(ConfigurationSet.Parser.ParseFrom(transactionResult.Logs[1].NonIndexed).Value);
         limitFromResult.Value.ShouldBe(100);
+    }
+
+    [Fact]
+    public async Task  ParamsTest()
+    {
+        var ParliamentHash = HashHelper.ComputeFrom("AElf.ContractNames.Parliament");
+        var configurationHash = HashHelper.ComputeFrom("AElf.ContractNames.Configuration");
+        var byteString = new StringValue { Value = "http://localhost:8000/api/blockChain/compile" }.ToByteString()
+            .ToBase64();
+    }
+    [Fact]
+    public async Task Set_SolangCompile_Authorized()
+    {
+        var createProposalInput = new SetConfigurationInput
+        {
+            Key = "SolangEndpoint",
+            Value = new StringValue { Value = "http://localhost:8000/api/blockChain/compile" }.ToByteString()
+        };
+        var organizationAddress = await GetParliamentDefaultOrganizationAddressAsync();
+        var proposalId =
+            await CreateProposalAsync(organizationAddress, createProposalInput, "SetConfiguration");
+        // var proposalId = await SetBlockTransactionLimitProposalAsync(100);
+        await ApproveWithMinersAsync(proposalId);
+        var transactionResult = await ReleaseProposalAsync(proposalId);
+
+        Assert.True(transactionResult.Status == TransactionResultStatus.Mined);
+
+        var limitFromResult = new StringValue();
+        limitFromResult.MergeFrom(ConfigurationSet.Parser.ParseFrom(transactionResult.Logs[1].NonIndexed).Value);
+        limitFromResult.Value.ShouldBe("http://localhost:8000/api/blockChain/compile");
     }
 
     [Fact]

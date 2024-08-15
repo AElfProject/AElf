@@ -1,6 +1,8 @@
 ﻿using AElf.Kernel;
+using AElf.Kernel.Configuration;
 using AElf.Modularity;
 using AElf.WebApp.Application.Chain.Infrastructure;
+using AElf.WebApp.Application.Chain.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.AutoMapper;
 using Volo.Abp.Modularity;
@@ -22,5 +24,7 @@ public class ChainApplicationWebAppAElfModule : AElfModule
 
         context.Services
             .AddSingleton<ITransactionResultStatusCacheProvider, TransactionResultStatusCacheProvider>();
+        
+        context.Services.AddTransient(typeof(IConfigurationProcessor), typeof(SolangEndpointConfigurationProcessor));
     }
 }

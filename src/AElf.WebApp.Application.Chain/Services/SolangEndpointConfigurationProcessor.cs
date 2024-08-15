@@ -17,7 +17,7 @@ public class SolangEndpointConfigurationProcessor : IConfigurationProcessor, ITr
         _solangEndpointProvider = solangEndpointProvider;
     }
 
-    public string ConfigurationName => ConsensusConstants.MiningTimeConfigurationName;
+    public string ConfigurationName => "SolangEndpoint";
 
     public async Task ProcessConfigurationAsync(ByteString byteString, BlockIndex blockIndex)
     {
