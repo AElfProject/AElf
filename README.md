@@ -1,52 +1,45 @@
-# AElf - A Decentralized Cloud Computing Blockchain Network 
+# aelf - A Decentralized Cloud Computing Blockchain Network 
 
 [![GitHub closed issues](https://img.shields.io/github/issues-closed/aelfproject/aelf.svg)](https://app.gitkraken.com/glo/board/XKsOZJarBgAPseno)
 [![lisence](https://img.shields.io/github/license/AElfProject/AElf.svg)](https://github.com/AElfProject/AElf/blob/dev/LICENSE)
 [![Nuget](https://img.shields.io/nuget/v/AElf.OS.svg)](https://www.nuget.org/packages?q=aelf)
-[![MyGet (with prereleases)](https://img.shields.io/myget/aelf-project-dev/vpre/aelf.os.svg?label=myget)](https://www.myget.org/gallery/aelf-project-dev)
+[![MyGet (with prereleases)](https://img.shields.io/myget/aelf-project/vpre/aelf.os.svg?label=myget)](https://www.myget.org/gallery/aelf-project)
 [![Twitter Follow](https://img.shields.io/twitter/follow/aelfblockchain.svg?label=%40aelfblockchain&style=social)](https://twitter.com/aelfblockchain)
 [![Telegram](https://badgen.net/badge/telegram/join/blue?icon=telegram)](https://t.me/aelfdeveloper)
 
- BRANCH | AZURE PIPELINES                                              | TESTS                                                        | CODE COVERAGE                                                
- ------ | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ 
- MASTER | [![Build Status](https://dev.azure.com/AElfProject/AElf/_apis/build/status/AElfProject.AElf?branchName=master)](https://dev.azure.com/AElfProject/AElf/_build/latest?definitionId=1&branchName=master) | [![Test Status](https://img.shields.io/azure-devops/tests/AElfProject/AElf/1/master)](https://dev.azure.com/AElfProject/AElf/_build/latest?definitionId=1&branchName=master) | [![codecov](https://codecov.io/gh/AElfProject/AElf/branch/master/graph/badge.svg)](https://codecov.io/gh/AElfProject/AElf) 
- DEV    | [![Build Status](https://dev.azure.com/AElfProject/AElf/_apis/build/status/AElfProject.AElf?branchName=dev)](https://dev.azure.com/AElfProject/AElf/_build/latest?definitionId=1&branchName=dev) | [![Test Status](https://img.shields.io/azure-devops/tests/AElfProject/AElf/1/dev)](https://dev.azure.com/AElfProject/AElf/_build/latest?definitionId=1&branchName=dev) | [![codecov](https://codecov.io/gh/AElfProject/AElf/branch/dev/graph/badge.svg)](https://codecov.io/gh/AElfProject/AElf) 
+BRANCH | GITHUB ACTIONS BUILD                                                                                                     | TESTS                                                                                                                                                              | CODE COVERAGE                                                
+------ |--------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------| ------------------------------------------------------------ 
+MASTER | ![GitHub Workflow Build Status](https://github.com/AElfProject/AElf/actions/workflows/build.yml/badge.svg?branch=master) | ![GitHub Workflow Test Status](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/AElfProject/AElf/feature/badge-json/master-test-results.json) | [![codecov](https://codecov.io/gh/AElfProject/AElf/branch/master/graph/badge.svg)](https://codecov.io/gh/AElfProject/AElf) 
+DEV    | ![GitHub Workflow Build Status](https://github.com/AElfProject/AElf/actions/workflows/build.yml/badge.svg?branch=dev)        | ![GitHub Workflow Test Status](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/AElfProject/AElf/feature/badge-json/dev-test-results.json)        | [![codecov](https://codecov.io/gh/AElfProject/AElf/branch/dev/graph/badge.svg)](https://codecov.io/gh/AElfProject/AElf) 
 
-Welcome to AElf's official GitHub repo ! 
 
-AElf is a blockchain system aiming to achieve scalability and extensibility through the use of side-chains and a flexible design. To support multiple use cases AElf makes it as easy as possible to extend/customize the system by providing easy to use tools and frameworks in order to customize the chains and write smart contracts. AElf will eventually support various languages that will let developers choose the one they are the most comfortable with.
+Welcome to aelf's official GitHub repo ! 
+
+aelf is a blockchain system aiming to achieve scalability and extensibility through the use of side-chains and a flexible design. To support multiple use cases aelf makes it as easy as possible to extend/customize the system by providing easy to use tools and frameworks in order to customize the chains and write smart contracts. aelf will eventually support various languages that will let developers choose the one they are the most comfortable with.
 
 For more information you can follow these links:
-* [Official website](https://aelf.io)
-* [Documentation](https://docs.aelf.io/en/latest/)
-    * [Environment setup](https://docs.aelf.io/en/latest/getting_started/development-environment/index.html)
-    * [Running a node](https://docs.aelf.io/en/latest/getting_started/development-environment/node.html)
-    * [Smart contract development](https://docs.aelf.io/en/latest/getting_started/smart_contracts/index.html)
-    * [Web Api](https://docs.aelf.io/en/latest/reference/web-api/web-api.html)
-    * [Testnet](https://docs.aelf.io/en/latest/tutorials/testnet.html)
-* [White Paper](https://aelf.com/gridcn/aelf_whitepaper_v1.7_en.pdf) 
+* [Official website](https://aelf.com/)
+* [Documentation](https://docs.aelf.com/)
+* [White Paper](https://docs.aelf.com/resources/whitepaper-2/)
 
-This repository contains the code that runs an AElf node, you'll find bellow other important repositories in the AElf 
+This repository contains the code that runs an aelf node, you'll find below other important repositories in the aelf 
 ecosystem:
 
 TOOL/LIBRARY | description
 -------------|-------------
-[aelf-sdk.js](https://docs.aelf.io/en/latest/reference/chain-sdk/javascript/js-sdk.html) | Javascript development kit for interacting with an AElf node, useful for dApp developers. 
-[aelf-command](https://docs.aelf.io/en/latest/reference/cli/methods.html) | CLI tool for interacting with an AElf node and wallet.
-[aelf-boilerplate](https://aelf-boilerplate-docs.readthedocs.io/en/latest/) | framework for smart contract and dApp development.
+[aelf-sdk.js](https://docs.aelf.com/tools/chain-sdk/javascript-sdk/) | Javascript development kit for interacting with an aelf node, useful for dApp developers. 
+[aelf-command](https://docs.aelf.com/tools/aelf-cli/introduction/) | CLI tool for interacting with an aelf node and wallet.
+[aelf-contract-templates](https://docs.aelf.com/tools/smart-contract-templates/developing-smart-contracts/) | framework for smart contract and dApp development.
 
 ## Getting Started
 
 ### This repository
 
-This repo is where you will find the code that can use to run an AElf node. It also contains a **tests** folder that centralizes all the unit tests.
+This repo is where you will find the code that can use to run an aelf node. It also contains a **tests** folder that centralizes all the unit tests.
 
 ### Documentation
 
-We strongly recommend you follow official documentation that will guide you through installing dependencies and running the node, 
-these two guides will get you started:  
-* [Environment setup](https://docs.aelf.io/en/latest/getting_started/development-environment/index.html)  
-* [Running a node](https://docs.aelf.io/en/latest/getting_started/development-environment/node.html)  
+We strongly recommend you follow [official documentation](https://docs.aelf.com/) that will guide you through installing dependencies and running the node.
 
 ## Contributing
 
@@ -62,11 +55,11 @@ We currently only use GitHub for tracking issues, feature request and pull reque
 
 If you think you have found a bug in our system feel free to open a GitHub issue, but first:
 - check with GitHub's search engine that the bug doesn't already exist.
-- in the request give as much information as possible such as: the OS, the version of AElf, how to reproduce...
+- in the request give as much information as possible such as: the OS, the version of aelf, how to reproduce...
 
 #### Missing feature
 
-We also use the GitHub issue tracker for features. If you think that some piece of functionality is missing in AElf, you can open an issue with the following in mind:
+We also use the GitHub issue tracker for features. If you think that some piece of functionality is missing in aelf, you can open an issue with the following in mind:
 - check for similare feature requests already open.
 - provide as much detail and context as possible.
 - be as convincing as possible as to why we need this feature and how everybody can benefit from it.
@@ -83,8 +76,8 @@ When you are ready for a review by the core team, just remove ```[WIP]``` from y
 
 ## Versioning
 
-We use Semantic Versioning (SemVer) for versioning, if you're intereted in closely following AElf's developement please check out the [SemVer docs](https://semver.org/).
+We use Semantic Versioning (SemVer) for versioning, if you're intereted in closely following aelf's developement please check out the [SemVer docs](https://semver.org/).
 
 ## License
 
-AElf is licenced under [MIT](https://github.com/AElfProject/AElf/blob/dev/LICENSE)
+aelf is licenced under [MIT](https://github.com/AElfProject/AElf/blob/dev/LICENSE)
