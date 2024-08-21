@@ -202,7 +202,9 @@ public partial class ReferendumContract : ReferendumContractImplContainer.Refere
             ToBeReleased = readyToRelease,
             ApprovalCount = proposal.ApprovalCount,
             RejectionCount = proposal.RejectionCount,
-            AbstentionCount = proposal.AbstentionCount
+            AbstentionCount = proposal.AbstentionCount,
+            Title = proposal.Title,
+            Description = proposal.Description
         };
     }
 

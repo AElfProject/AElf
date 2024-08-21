@@ -1,10 +1,10 @@
-<Project Sdk="Microsoft.NET.Sdk">
-    <Import Project="..\..\common.props"/>
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="..\..\common.props" />
 
     <PropertyGroup>
         <PackageId>AElf.ContractDeployer</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
         <OutputType>Exe</OutputType>
         <Description>Smart contract deployer.</Description>
         <RootNamespace>AElf.ContractDeployer</RootNamespace>
@@ -13,22 +13,22 @@
         <DefineConstants>TRACE;UNIT_TEST</DefineConstants>
     </PropertyGroup>
     <ItemGroup Label="NuGet package assets">
-        <None Pack="true" PackagePath="build\" Include="*.targets;"/>
+        <None Pack="true" PackagePath="build\" Include="*.targets;" />
     </ItemGroup>
     <ItemGroup>
-        <ProjectReference Include="..\AElf.CSharp.CodeOps\AElf.CSharp.CodeOps.csproj"/>
-        <ProjectReference Include="..\AElf.Runtime.CSharp.Core\AElf.Runtime.CSharp.Core.csproj"/>
-        <ProjectReference Include="..\AElf.Types\AElf.Types.csproj"/>
+        <ProjectReference Include="..\AElf.CSharp.CodeOps\AElf.CSharp.CodeOps.csproj" />
+        <ProjectReference Include="..\AElf.Runtime.CSharp.Core\AElf.Runtime.CSharp.Core.csproj" />
+        <ProjectReference Include="..\AElf.Types\AElf.Types.csproj" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="CommandLineParser" Version="2.8.0"/>
+        <PackageReference Include="CommandLineParser" Version="2.8.0" />
     </ItemGroup>
 
     <Target Name="CopyDlls" AfterTargets="AfterBuild">
         <ItemGroup>
-            <PatcherDlls Include="$(TargetDir)\*"/>
+            <PatcherDlls Include="$(TargetDir)\*" />
         </ItemGroup>
-        <MakeDir Directories="$(PatcherDir)" Condition="!Exists('$(PatcherDir)')"/>
-        <Copy SourceFiles="@(PatcherDlls)" DestinationFolder="$(PatcherDir)" SkipUnchangedFiles="true"/>
+        <MakeDir Directories="$(PatcherDir)" Condition="!Exists('$(PatcherDir)')" />
+        <Copy SourceFiles="@(PatcherDlls)" DestinationFolder="$(PatcherDir)" SkipUnchangedFiles="true" />
     </Target>
 </Project>

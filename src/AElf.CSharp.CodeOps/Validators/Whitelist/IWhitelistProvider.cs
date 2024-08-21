@@ -11,6 +11,7 @@ using AElf.Kernel.SmartContract;
 using AElf.Types;
 using Volo.Abp.DependencyInjection;
 
+
 namespace AElf.CSharp.CodeOps.Validators.Whitelist;
 
 public interface IWhitelistProvider

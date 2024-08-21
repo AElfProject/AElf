@@ -1,7 +1,7 @@
-<Project Sdk="Microsoft.NET.Sdk">
-    <Import Project="..\..\common.props"/>
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="..\..\common.props" />
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
         <RootNamespace>AElf.Kernel.Consensus</RootNamespace>
         <PackageId>AElf.Kernel.Consensus.Core</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
@@ -10,7 +10,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\AElf.Kernel.SmartContractExecution\AElf.Kernel.SmartContractExecution.csproj"/>
+        <ProjectReference Include="..\AElf.Kernel.SmartContractExecution\AElf.Kernel.SmartContractExecution.csproj" />
     </ItemGroup>
     <ItemGroup>
         <ContractStub Include="..\..\protobuf\acs4.proto">

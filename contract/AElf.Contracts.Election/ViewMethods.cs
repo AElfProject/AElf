@@ -62,7 +62,7 @@ public partial class ElectionContract
         if (diff > 0)
         {
             victories =
-                new List<ByteString>(validCandidates.Select(ByteStringHelper.FromHexString));
+                new List<ByteString>(validCandidates.Select(v => ByteStringHelper.FromHexString(v)));
             var backups = currentMiners.Where(k => !validCandidates.Contains(k)).ToList();
             if (State.InitialMiners.Value != null)
                 backups.AddRange(
@@ -70,7 +70,8 @@ public partial class ElectionContract
 
             victories.AddRange(backups.OrderBy(p => p)
                 .Take(Math.Min(diff, currentMiners.Count))
-                .Select(ByteStringHelper.FromHexString));
+                // ReSharper disable once ConvertClosureToMethodGroup
+                .Select(v => ByteStringHelper.FromHexString(v)));
             Context.LogDebug(() => string.Join("\n", victories.Select(v => v.ToHex().Substring(0, 10)).ToList()));
             return victories;
         }

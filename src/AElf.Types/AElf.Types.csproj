@@ -1,7 +1,7 @@
-<Project Sdk="Microsoft.NET.Sdk">
-    <Import Project="..\..\common.props"/>
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="..\..\common.props" />
     <PropertyGroup>
-        <TargetFrameworks>netstandard2.1;net6.0</TargetFrameworks>
+        <TargetFrameworks>netstandard2.1;net8.0</TargetFrameworks>
         <RootNamespace>AElf</RootNamespace>
         <PackageId>AElf.Types</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
@@ -11,7 +11,7 @@
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="Google.Protobuf" Version="3.19.4"/>
+        <PackageReference Include="Google.Protobuf" Version="3.27.2" />
     </ItemGroup>
     <ItemGroup>
         <CommonMessage Include="..\..\protobuf\aelf\core.proto">

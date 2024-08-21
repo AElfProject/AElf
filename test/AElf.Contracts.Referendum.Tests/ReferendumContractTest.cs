@@ -110,6 +110,8 @@ public sealed class ReferendumContractTest : ReferendumContractTestBase
         getProposal.Output.OrganizationAddress.ShouldBe(organizationAddress);
         getProposal.Output.ToAddress.ShouldBe(TokenContractAddress);
         getProposal.Output.Params.ShouldBe(createInput.ToByteString());
+        getProposal.Output.Title.ShouldNotBeNullOrEmpty();
+        getProposal.Output.Description.ShouldNotBeNullOrEmpty();
     }
 
     [Fact]
@@ -1320,7 +1322,9 @@ public sealed class ReferendumContractTest : ReferendumContractTestBase
             ToAddress = TokenContractAddress,
             Params = createInput.ToByteString(),
             ExpiredTime = timestamp ?? BlockTimeProvider.GetBlockTime().AddSeconds(1000),
-            OrganizationAddress = organizationAddress
+            OrganizationAddress = organizationAddress,
+            Title = "Create token: NEW",
+            Description = "Create a new token named NEW."
         };
         ReferendumContractStub = GetReferendumContractTester(proposalKeyPair);
         var proposal = await ReferendumContractStub.CreateProposal.SendAsync(createProposalInput);

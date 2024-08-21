@@ -1,15 +1,15 @@
-<Project Sdk="Microsoft.NET.Sdk">
-    <Import Project="..\..\common.props"/>
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="..\..\common.props" />
 
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
         <PackageId>AElf.Runtime.CSharp.ExecutiveTokenPlugin</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Description>Executive plugin for C# smart contracts.</Description>
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\AElf.Kernel.SmartContract\AElf.Kernel.SmartContract.csproj"/>
+        <ProjectReference Include="..\AElf.Kernel.SmartContract\AElf.Kernel.SmartContract.csproj" />
     </ItemGroup>
 
     <ItemGroup>

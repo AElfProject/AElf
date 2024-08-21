@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.Kernel.FeatureDisable.Core;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Domain;
 using AElf.Kernel.SmartContract.Infrastructure;
@@ -20,8 +21,8 @@ public class PlainTransactionExecutingAsPluginService : PlainTransactionExecutin
     public PlainTransactionExecutingAsPluginService
     (ISmartContractExecutiveService smartContractExecutiveService,
         IEnumerable<IPostExecutionPlugin> postPlugins, IEnumerable<IPreExecutionPlugin> prePlugins,
-        ITransactionContextFactory transactionContextFactory) : base(
-        smartContractExecutiveService, postPlugins, prePlugins, transactionContextFactory)
+        ITransactionContextFactory transactionContextFactory, IFeatureDisableService featureDisableService) : base(
+        smartContractExecutiveService, postPlugins, prePlugins, transactionContextFactory, featureDisableService)
     {
         _smartContractExecutiveService = smartContractExecutiveService;
     }

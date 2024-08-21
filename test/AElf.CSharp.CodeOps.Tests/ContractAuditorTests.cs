@@ -111,7 +111,7 @@ public class ContractAuditorTests : CSharpCodeOpsTestBase
         var codeOpsOptions = GetRequiredService<IOptionsMonitor<CSharpCodeOpsOptions>>();
         codeOpsOptions.CurrentValue.AuditTimeoutDuration = 0;
         Should.Throw<ContractAuditTimeoutException>(() =>
-            _auditor.Audit(ReadPatchedContractCode(typeof(TokenContract)), true));
+                    _auditor.Audit(ReadPatchedContractCode(typeof(TokenContract)), true));
     }
 
     [Fact]
