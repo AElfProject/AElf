@@ -6,6 +6,7 @@ using AElf.Types;
 using Google.Protobuf;
 using Nethereum.ABI;
 using Shouldly;
+using Xunit.Abstractions;
 
 namespace AElf.Contracts.SolidityContract;
 
@@ -14,6 +15,8 @@ namespace AElf.Contracts.SolidityContract;
 /// </summary>
 public class ERC20ContractTests : SolidityContractTestBase
 {
+    private readonly ITestOutputHelper _outputHelper;
+
     protected static ECKeyPair AliceKeyPair => SampleAccount.Accounts[0].KeyPair;
     protected static ECKeyPair DaveKeyPair => SampleAccount.Accounts[1].KeyPair;
 
@@ -22,6 +25,11 @@ public class ERC20ContractTests : SolidityContractTestBase
 
     protected readonly Address AliceAddress = SampleAccount.Accounts[0].Address;
     protected readonly Address DaveAddress = SampleAccount.Accounts[1].Address;
+
+    public ERC20ContractTests(ITestOutputHelper outputHelper)
+    {
+        _outputHelper = outputHelper;
+    }
 
     protected const long TotalSupply = (long)1000e10;
     protected const long TestAmount = (long)1e10;
@@ -70,13 +78,19 @@ public class ERC20ContractTests : SolidityContractTestBase
         var contractAddress = await DeployERC20ContractTest();
         var tx = await GetTransactionAsync(AliceKeyPair, contractAddress, "transfer",
             ByteString.CopyFrom(new ABIEncode().GetABIEncoded(Dave, TestAmount.ToWebAssemblyUInt256())));
-        //Dave.ToParameter(TestAmount.ToWebAssemblyUInt256()));
+        _outputHelper.WriteLine(DaveAddress.ToByteArray().ToHex());
+        _outputHelper.WriteLine(TestAmount.ToWebAssemblyUInt256().ToParameter().ToHex());
+        _outputHelper.WriteLine(new ABIEncode().GetABIEncoded(Dave, TestAmount.ToWebAssemblyUInt256()).ToHex());
+        _outputHelper.WriteLine(tx.Params.ToByteArray().ToHex());
         var txResult = await TestTransactionExecutor.ExecuteAsync(tx);
         txResult.Status.ShouldBe(TransactionResultStatus.Mined);
-
         (await QueryField(contractAddress, "balanceOf", Dave.ToParameter()))
             .ToByteArray().ToInt64(false).ShouldBe(TestAmount);
     }
+
+    // 0a40
+    // b488652ba6d7f056a9afd7a414a9047b94dec5ef8170c26922351c36dc2896fa
+    // 00e40b5402000000000000000000000000000000000000000000000000000000
 
     [Fact(DisplayName = "transferFrom")]
     public async Task TransferFromTest()

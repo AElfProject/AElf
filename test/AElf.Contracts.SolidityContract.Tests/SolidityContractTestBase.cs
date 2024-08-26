@@ -25,6 +25,7 @@ using Nethereum.Util.ByteArrayConvertors;
 using Solang;
 using Solang.Extensions;
 using Volo.Abp.Threading;
+using Xunit.Abstractions;
 using Transaction = AElf.Types.Transaction;
 
 namespace AElf.Contracts.SolidityContract;

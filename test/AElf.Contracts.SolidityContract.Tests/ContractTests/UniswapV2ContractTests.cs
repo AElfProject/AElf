@@ -12,11 +12,17 @@ using Nethereum.ABI;
 using Nethereum.Hex.HexConvertors.Extensions;
 using Shouldly;
 using Solang;
+using Xunit.Abstractions;
 
 namespace AElf.Contracts.SolidityContract;
 
 public class UniswapV2ContractTests : ERC20ContractTests
 {
+    public UniswapV2ContractTests(ITestOutputHelper outputHelper) : base(outputHelper)
+    {
+
+    }
+
     [Fact]
     public async Task UploadUniswapV2PairContract()
     {
@@ -122,4 +128,6 @@ public class UniswapV2ContractTests : ERC20ContractTests
         var queriedFeeToSetter = await QueryField(contractAddress, "feeToSetter");
         queriedFeeToSetter.ToByteArray().ShouldBe(DaveAddress.ToByteArray());
     }
+
+
 }

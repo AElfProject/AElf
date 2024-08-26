@@ -5,11 +5,17 @@ using AElf.Types;
 using Google.Protobuf;
 using Nethereum.ABI;
 using Shouldly;
+using Xunit.Abstractions;
 
 namespace AElf.Contracts.SolidityContract;
 
 public class UniswapV2PairTests : UniswapV2ContractTests
 {
+    public UniswapV2PairTests(ITestOutputHelper outputHelper) : base(outputHelper)
+    {
+
+    }
+
     private Address _token0Address;
     private Address _token1Address;
     private Address _pairContractAddress;

@@ -21,8 +21,7 @@ public class RuntimeActionInvoker : IRuntimeActionInvoker
                 throw new WebAssemblyRuntimeException("Failed to invoke action.");
             }
 
-            if (result.Value.Trap.Message.Contains("wasm `unreachable` instruction executed") &&
-                result.Value.Trap.Frames?.Count <= 2)
+            if (result.Value.Trap.Message.Contains("wasm `unreachable` instruction executed"))
             {
                 // Ignore.
             }
