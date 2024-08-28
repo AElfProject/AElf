@@ -1,7 +1,6 @@
 ﻿using AElf.ContractDeployer;
 using AElf.ContractTestBase;
 using AElf.ContractTestBase.ContractTestKit;
-using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus.AEDPoS.Application;
 using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.SmartContract;

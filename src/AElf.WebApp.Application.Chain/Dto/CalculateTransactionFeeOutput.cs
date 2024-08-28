@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using AElf.Types;
 
 namespace AElf.WebApp.Application.Chain.Dto;
 

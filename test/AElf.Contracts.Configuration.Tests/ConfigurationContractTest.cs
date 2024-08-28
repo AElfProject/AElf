@@ -2,7 +2,6 @@ using System.Threading.Tasks;
 using AElf.Contracts.Configuration;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Parliament;
-using AElf.Kernel;
 using AElf.Kernel.CodeCheck;
 using AElf.Standards.ACS1;
 using AElf.Standards.ACS3;

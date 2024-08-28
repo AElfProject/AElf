@@ -1,7 +1,6 @@
 ﻿using System.IO;
 using System.Threading.Tasks;
 using AElf.Cryptography.Exceptions;
-using AElf.Kernel;
 using AElf.OS.Node.Application;
 using AElf.Types;
 using Shouldly;

@@ -9,12 +9,9 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\AElf.Core\AElf.Core.csproj" />
-    </ItemGroup>
-
-    <ItemGroup>
-        <PackageReference Include="Microsoft.Extensions.Logging.Log4Net.AspNetCore" Version="3.1.0" />
-        <PackageReference Include="Volo.Abp.AspNetCore" Version="8.0.5" />
+        <PackageReference Include="AElf.Core" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Log4Net.AspNetCore" />
+        <PackageReference Include="Volo.Abp.AspNetCore" />
     </ItemGroup>
 
     <ItemGroup>

@@ -6,7 +6,6 @@
     </PropertyGroup>
     <ItemGroup>
         <ProjectReference Include="..\AElf.Kernel.ChainController.Tests\AElf.Kernel.ChainController.Tests.csproj" />
-        <ProjectReference Include="..\AElf.Kernel.Core.Tests\AElf.Kernel.Core.Tests.csproj" />
         <ProjectReference Include="..\AElf.Kernel.SmartContract.Tests\AElf.Kernel.SmartContract.Tests.csproj" />
         <ProjectReference Include="..\AElf.Kernel.SmartContractExecution.Tests\AElf.Kernel.SmartContractExecution.Tests.csproj" />
         <ProjectReference Include="..\AElf.Kernel.TransactionPool.Tests\AElf.Kernel.TransactionPool.Tests.csproj" />

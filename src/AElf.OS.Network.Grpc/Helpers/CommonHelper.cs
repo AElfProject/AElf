@@ -1,5 +1,4 @@
 using System;
-using AElf.Kernel;
 
 namespace AElf.OS.Network.Grpc.Helpers;
 

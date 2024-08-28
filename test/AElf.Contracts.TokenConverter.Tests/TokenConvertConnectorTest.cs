@@ -2,7 +2,6 @@ using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Parliament;
 using AElf.CSharp.Core.Extension;
-using AElf.Kernel;
 using AElf.Standards.ACS3;
 using AElf.Types;
 using Google.Protobuf;

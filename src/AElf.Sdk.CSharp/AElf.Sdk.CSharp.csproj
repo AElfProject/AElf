@@ -8,10 +8,11 @@
         <LangVersion>latest</LangVersion>
         <Description>Types for the C# smart contract SDK.</Description>
     </PropertyGroup>
-
     <ItemGroup>
-        <ProjectReference Include="..\AElf.Cryptography\AElf.Cryptography.csproj" />
-        <ProjectReference Include="..\AElf.CSharp.Core\AElf.CSharp.Core.csproj" />
+        <PackageReference Include="AElf.CSharp.Core" />
+        <PackageReference Include="AElf.Cryptography" />
+    </ItemGroup>
+    <ItemGroup>
         <ProjectReference Include="..\AElf.Kernel.SmartContract.Shared\AElf.Kernel.SmartContract.Shared.csproj" />
     </ItemGroup>
 

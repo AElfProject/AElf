@@ -9,8 +9,4 @@
         <Description>High level types for smart contracts.</Description>
     </PropertyGroup>
 
-    <ItemGroup>
-        <ProjectReference Include="..\AElf.Types\AElf.Types.csproj" />
-    </ItemGroup>
-
 </Project>

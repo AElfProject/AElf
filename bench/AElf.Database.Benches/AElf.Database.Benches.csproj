@@ -7,14 +7,10 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\AElf.BenchBase\AElf.BenchBase.csproj"/>
-        <ProjectReference Include="..\..\src\AElf.Database\AElf.Database.csproj"/>
-        <ProjectReference Include="..\..\src\AElf.Types\AElf.Types.csproj"/>
-    </ItemGroup>
-
-    <ItemGroup>
-        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.4.1"/>
-        <PackageReference Include="xunit.runner.visualstudio" Version="2.4.5">
+        <PackageReference Include="AElf.Database" />
+        <PackageReference Include="AElf.Types" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk" />
+        <PackageReference Include="xunit.runner.visualstudio">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
         </PackageReference>
