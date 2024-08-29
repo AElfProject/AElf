@@ -14,13 +14,13 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning.ApiExplorer" Version="5.1.0" />
-        <PackageReference Include="Microsoft.Extensions.Primitives" Version="8.0.0" />
-        <PackageReference Include="Volo.Abp.Autofac" Version="8.0.5" />
-        <PackageReference Include="Volo.Abp.AspNetCore.Mvc" Version="8.0.5" />
-        <PackageReference Include="Volo.Abp.Authorization" Version="8.0.5" />
-        <PackageReference Include="Volo.Abp.Castle.Core" Version="8.0.5" />
-        <PackageReference Include="Volo.Abp.Swashbuckle" Version="8.0.5" />
+        <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning.ApiExplorer" />
+        <PackageReference Include="Microsoft.Extensions.Primitives" />
+        <PackageReference Include="Volo.Abp.Autofac" />
+        <PackageReference Include="Volo.Abp.AspNetCore.Mvc" />
+        <PackageReference Include="Volo.Abp.Authorization" />
+        <PackageReference Include="Volo.Abp.Castle.Core" />
+        <PackageReference Include="Volo.Abp.Swashbuckle" />
     </ItemGroup>
 
 </Project>

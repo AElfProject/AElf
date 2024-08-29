@@ -10,6 +10,14 @@
     <PackageVersion Include="AElf.Kernel.Core" Version="1.10.0" />
     <PackageVersion Include="AElf.Sdk.CSharp" Version="1.10.0" />
     <PackageVersion Include="AElf.Tools" Version="1.0.3" />
+    <PackageVersion Include="Nethereum.KeyStore" Version="4.21.4" />
+    <PackageVersion Include="Poseidon.Net" Version="0.1.1" />
+    <PackageVersion Include="Groth16.Net" Version="1.1.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.Common" Version="4.11.0" />
+    <PackageVersion Include="Basic.Reference.Assemblies.Net80" Version="1.5.0" />
+    <PackageVersion Include="BenchmarkDotNet.Diagnostics.Windows" Version="0.14.0" />
+    <PackageVersion Include="BenchmarkDotNet" Version="0.14.0" />
+    <PackageVersion Include="Pro.NBench.xUnit" Version="2.0.0" />
     <PackageVersion Include="CommandLineParser" Version="2.9.1" />
     <PackageVersion Include="Grpc.Core.Testing" Version="2.46.6" />
     <PackageVersion Include="Sandwych.QuickGraph.Core" Version="1.0.0" />
@@ -25,14 +33,26 @@
     <PackageVersion Include="Grpc.Net.Client" Version="2.65.0" />
     <PackageVersion Include="Contrib.Grpc.Core.M1" Version="2.46.7" />
     <PackageVersion Include="Grpc.Tools" Version="2.66.0" />
+    <PackageVersion Include="Microsoft.AspNetCore.Mvc.Versioning.ApiExplorer" Version="5.1.0" />
+    <PackageVersion Include="Microsoft.Extensions.Primitives" Version="8.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Log4Net.AspNetCore" Version="8.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Caching.Abstractions" Version="8.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="8.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Logging" Version="8.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.1" />
+    <PackageVersion Include="Microsoft.AspNetCore.Hosting" Version="2.2.7" />
+    <PackageVersion Include="Microsoft.AspNetCore.Server.Kestrel" Version="2.2.0" />
+    <PackageVersion Include="Microsoft.AspNetCore.Cors" Version="2.2.0" />
+    <PackageVersion Include="Swashbuckle.AspNetCore" Version="6.7.3" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageVersion Include="System.Threading.Tasks.Dataflow" Version="8.0.1" />
     <PackageVersion Include="Google.Protobuf" Version="3.27.3" />
+    <PackageVersion Include="Volo.Abp.BackgroundWorkers" Version="8.2.2" />
+    <PackageVersion Include="Volo.Abp.Authorization" Version="8.2.2" />
+    <PackageVersion Include="Volo.Abp.Castle.Core" Version="8.2.2" />
+    <PackageVersion Include="Volo.Abp.Swashbuckle" Version="8.2.2" />
+    <PackageVersion Include="Volo.Abp.AspNetCore.TestBase" Version="8.2.2" />
+    <PackageVersion Include="Volo.Abp.AspNetCore.Mvc" Version="8.2.2" />
     <PackageVersion Include="Volo.Abp.TestBase" Version="8.2.2" />
     <PackageVersion Include="Volo.Abp.Autofac" Version="8.2.2" />
     <PackageVersion Include="Volo.Abp.AutoMapper" Version="8.2.2" />
@@ -52,6 +72,7 @@
     <PackageVersion Include="xunit" Version="2.9.0" />
     <PackageVersion Include="xunit.assert" Version="2.9.0" />
     <PackageVersion Include="xunit.runner.console" Version="2.9.0" />
+    <PackageVersion Include="xunit.extensibility.core" Version="2.9.0" />
     <PackageVersion Include="xunit.extensibility.execution" Version="2.9.0" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="2.8.2" />
   </ItemGroup>
