@@ -9,6 +9,8 @@
         <ProjectReference Include="..\..\src\AElf.Runtime.CSharp\AElf.Runtime.CSharp.csproj" />
         <ProjectReference Include="..\..\src\AElf.Kernel.SmartContract\AElf.Kernel.SmartContract.csproj" />
         <ProjectReference Include="..\..\src\AElf.ContractDeployer\AElf.ContractDeployer.csproj" />
+        <ProjectReference Include="..\AElf.TestBase\AElf.TestBase.csproj" />
+        <ProjectReference Include="..\AElf.Kernel.Core.Tests\AElf.Kernel.Core.Tests.csproj" />
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\..\contract\AElf.Contracts.Genesis\AElf.Contracts.Genesis.csproj">

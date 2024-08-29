@@ -58,7 +58,6 @@
         </PackageReference>
     </ItemGroup>
 
-    </ItemGroup>
     <Import Project="..\AllContracts.props" />
 
 </Project>

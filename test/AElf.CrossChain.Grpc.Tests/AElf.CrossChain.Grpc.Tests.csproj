@@ -24,5 +24,6 @@
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\..\src\AElf.CrossChain.Grpc\AElf.CrossChain.Grpc.csproj" />
+        <ProjectReference Include="..\AElf.Kernel.Core.Tests\AElf.Kernel.Core.Tests.csproj" />
     </ItemGroup>
 </Project>

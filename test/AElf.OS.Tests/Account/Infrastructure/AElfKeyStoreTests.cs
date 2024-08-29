@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Threading.Tasks;
+using AElf.ContractTestKit;
 using AElf.Cryptography.Exceptions;
 using AElf.OS.Node.Application;
 using AElf.Types;

@@ -1,3 +1,4 @@
+using AElf.CSharp.Core;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.TestContract.BigIntValue;

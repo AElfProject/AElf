@@ -19,5 +19,7 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
         </PackageReference>
+        <PackageReference Include="AElf.Kernel.Types" />
+        <PackageReference Include="AElf.Cryptography" />
     </ItemGroup>
 </Project>

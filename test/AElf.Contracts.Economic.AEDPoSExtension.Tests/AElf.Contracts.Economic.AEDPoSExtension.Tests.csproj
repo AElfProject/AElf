@@ -25,6 +25,7 @@
     <ItemGroup>
         <ProjectReference Include="..\..\src\AElf.ContractTestKit.AEDPoSExtension\AElf.ContractTestKit.AEDPoSExtension.csproj" />
         <ProjectReference Include="..\..\src\AElf.Kernel.Token\AElf.Kernel.Token.csproj" />
+        <ProjectReference Include="..\AElf.Kernel.Core.Tests\AElf.Kernel.Core.Tests.csproj" />
     </ItemGroup>
     <Import Project="..\AllContracts.props" />
     <ItemGroup>

@@ -9,4 +9,8 @@
         <PackageReference Include="Pro.NBench.xUnit" />
     </ItemGroup>
 
+    <ItemGroup>
+        <ProjectReference Include="..\..\test\AElf.TestBase\AElf.TestBase.csproj"/>
+    </ItemGroup>
+
 </Project>

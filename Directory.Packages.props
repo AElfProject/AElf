@@ -9,6 +9,7 @@
     <PackageVersion Include="AElf.Core" Version="1.10.0" />
     <PackageVersion Include="AElf.Kernel.Core" Version="1.10.0" />
     <PackageVersion Include="AElf.Sdk.CSharp" Version="1.10.0" />
+    <PackageVersion Include="AElf.Types" Version="1.10.0" />
     <PackageVersion Include="AElf.Tools" Version="1.0.3" />
     <PackageVersion Include="Nethereum.KeyStore" Version="4.21.4" />
     <PackageVersion Include="Poseidon.Net" Version="0.1.1" />
@@ -23,7 +24,7 @@
     <PackageVersion Include="Sandwych.QuickGraph.Core" Version="1.0.0" />
     <PackageVersion Include="NSubstitute" Version="5.1.0" />
     <PackageVersion Include="MartinCostello.Logging.XUnit" Version="0.4.0" />
-    <PackageVersion Include="GuerrillaNtp" Version="3.1.0" />
+    <PackageVersion Include="GuerrillaNtp" Version="2.0.1" />
     <PackageVersion Include="ICSharpCode.Decompiler" Version="8.2.0.7535" />
     <PackageVersion Include="Mono.Cecil" Version="0.11.5" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.11.0" />
@@ -69,11 +70,11 @@
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.11.0" />
     <PackageVersion Include="Moq" Version="4.20.70" />
     <PackageVersion Include="Shouldly" Version="4.2.1" />
-    <PackageVersion Include="xunit" Version="2.9.0" />
-    <PackageVersion Include="xunit.assert" Version="2.9.0" />
-    <PackageVersion Include="xunit.runner.console" Version="2.9.0" />
-    <PackageVersion Include="xunit.extensibility.core" Version="2.9.0" />
-    <PackageVersion Include="xunit.extensibility.execution" Version="2.9.0" />
-    <PackageVersion Include="xunit.runner.visualstudio" Version="2.8.2" />
+    <PackageVersion Include="xunit" Version="2.4.2" />
+    <PackageVersion Include="xunit.assert" Version="2.4.2" />
+    <PackageVersion Include="xunit.runner.console" Version="2.4.2" />
+    <PackageVersion Include="xunit.extensibility.core" Version="2.4.2" />
+    <PackageVersion Include="xunit.extensibility.execution" Version="2.4.2" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="2.4.5" />
   </ItemGroup>
 </Project>

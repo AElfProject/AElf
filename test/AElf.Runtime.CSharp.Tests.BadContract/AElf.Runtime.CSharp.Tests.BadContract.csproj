@@ -8,6 +8,9 @@
         <PatchOverwrite>true</PatchOverwrite>
     </PropertyGroup>
     <ItemGroup>
+        <PackageReference Include="AElf.Kernel.Core" />
+    </ItemGroup>
+    <ItemGroup>
         <ProjectReference Include="..\..\src\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj" />
     </ItemGroup>
     <ItemGroup>

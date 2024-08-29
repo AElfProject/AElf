@@ -15,5 +15,9 @@
             <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
         </PackageReference>
     </ItemGroup>
+    
+    <ItemGroup>
+        <ProjectReference Include="..\AElf.BenchBase\AElf.BenchBase.csproj"/>
+    </ItemGroup>
 
 </Project>
