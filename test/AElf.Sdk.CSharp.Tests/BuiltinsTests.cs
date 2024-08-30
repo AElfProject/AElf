@@ -16,7 +16,7 @@ public class BuiltinsTests
     }
 
     [Fact]
-    public void TestMethod()
+    public void Ed25519Verify_Test()
     {
         foreach (var testObject in testData)
         {
