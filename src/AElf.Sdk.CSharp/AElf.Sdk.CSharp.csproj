@@ -15,4 +15,8 @@
         <ProjectReference Include="..\AElf.Kernel.SmartContract.Shared\AElf.Kernel.SmartContract.Shared.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <PackageReference Include="Rebex.Elliptic.Ed25519" Version="1.2.1" />
+    </ItemGroup>
+
 </Project>
