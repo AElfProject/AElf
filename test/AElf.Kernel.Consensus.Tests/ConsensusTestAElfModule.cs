@@ -1,11 +1,9 @@
 using System.Threading.Tasks;
-using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Modularity;
-using AElf.Standards.ACS4;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;

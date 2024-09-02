@@ -3,6 +3,22 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
   <ItemGroup>
+    <PackageVersion Include="AElf.Contracts.Vote" Version="1.10.0" />
+    <PackageVersion Include="AElf.Contracts.Treasury" Version="1.10.0" />
+    <PackageVersion Include="AElf.Contracts.TokenHolder" Version="1.10.0" />
+    <PackageVersion Include="AElf.Contracts.TokenConverter" Version="1.10.0" />
+    <PackageVersion Include="AElf.Contracts.Referendum" Version="1.10.0" />
+    <PackageVersion Include="AElf.Contracts.Profit" Version="1.10.0" />
+    <PackageVersion Include="AElf.Contracts.Parliament" Version="1.10.0" />
+    <PackageVersion Include="AElf.Contracts.NFT" Version="1.10.0" />
+    <PackageVersion Include="AElf.Contracts.MultiToken" Version="1.10.0" />
+    <PackageVersion Include="AElf.Contracts.Genesis" Version="1.10.0" />
+    <PackageVersion Include="AElf.Contracts.Election" Version="1.10.0" />
+    <PackageVersion Include="AElf.Contracts.Economic" Version="1.10.0" />
+    <PackageVersion Include="AElf.Contracts.CrossChain" Version="1.10.0" />
+    <PackageVersion Include="AElf.Contracts.Consensus.AEDPoS" Version="1.10.0" />
+    <PackageVersion Include="AElf.Contracts.Configuration" Version="1.10.0" />
+    <PackageVersion Include="AElf.Contracts.Association" Version="1.10.0" />
     <PackageVersion Include="AElf.CSharp.Core" Version="1.10.0" />
     <PackageVersion Include="AElf.Database" Version="1.10.0" />
     <PackageVersion Include="AElf.Cryptography" Version="1.10.0" />

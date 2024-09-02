@@ -8,7 +8,6 @@
     <ItemGroup>
         <ProjectReference Include="..\..\src\AElf.Kernel.CodeCheck\AElf.Kernel.CodeCheck.csproj" />
         <ProjectReference Include="..\AElf.Kernel.Tests\AElf.Kernel.Tests.csproj" />
-        <ProjectReference Include="..\..\contract\AElf.Contracts.Configuration\AElf.Contracts.Configuration.csproj" />
     </ItemGroup>
 
     <ItemGroup>

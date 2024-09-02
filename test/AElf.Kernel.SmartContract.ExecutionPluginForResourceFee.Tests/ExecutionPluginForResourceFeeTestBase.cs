@@ -3,7 +3,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.MultiToken;
-using AElf.Contracts.Parliament;
 using AElf.Contracts.TestContract.MockParliament;
 using AElf.Contracts.TokenConverter;
 using AElf.Contracts.Treasury;

@@ -6,15 +6,15 @@
     <ItemGroup>
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="AElf.Core" Version="0.1.0" />
-        <PackageReference Include="MartinCostello.Logging.XUnit" Version="0.1.0" />
-        <PackageReference Include="Moq" Version="4.14.5" />
-        <PackageReference Include="Volo.Abp.Autofac" Version="8.0.5" />
-        <PackageReference Include="Volo.Abp.TestBase" Version="8.0.5" />
-        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.4.1" />
-        <PackageReference Include="NSubstitute" Version="4.2.2" />
-        <PackageReference Include="Shouldly" Version="4.0.3" />
-        <PackageReference Include="xunit" Version="2.4.2" />
-        <PackageReference Include="xunit.extensibility.execution" Version="2.4.2" />
+        <PackageReference Include="AElf.Core" />
+        <PackageReference Include="MartinCostello.Logging.XUnit" />
+        <PackageReference Include="Moq" />
+        <PackageReference Include="Volo.Abp.Autofac" />
+        <PackageReference Include="Volo.Abp.TestBase" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk" />
+        <PackageReference Include="NSubstitute" />
+        <PackageReference Include="Shouldly" />
+        <PackageReference Include="xunit" />
+        <PackageReference Include="xunit.extensibility.execution" />
     </ItemGroup>
 </Project>

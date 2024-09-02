@@ -1,10 +1,29 @@
-<?xml version="1.0"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
         <ProtoBaseDir>..\..\protobuf</ProtoBaseDir>
         <PatcherDir>..\..\scripts\patcher</PatcherDir>
         <PatcherProjectName>AElf.ContractDeployer</PatcherProjectName>
+        <LauncherTargetDir>../../src/AElf.Launcher/contracts</LauncherTargetDir>
+        <NuGetPackageVersion>1.10.0</NuGetPackageVersion>
     </PropertyGroup>
+
+    <ItemGroup>
+        <NuGetPackage Include="AElf.Contracts.Association" />
+        <NuGetPackage Include="AElf.Contracts.Configuration" />
+        <NuGetPackage Include="AElf.Contracts.Consensus.AEDPoS" />
+        <NuGetPackage Include="AElf.Contracts.CrossChain" />
+        <NuGetPackage Include="AElf.Contracts.Economic" />
+        <NuGetPackage Include="AElf.Contracts.Election" />
+        <NuGetPackage Include="AElf.Contracts.Genesis" />
+        <NuGetPackage Include="AElf.Contracts.MultiToken" />
+        <NuGetPackage Include="AElf.Contracts.Parliament" />
+        <NuGetPackage Include="AElf.Contracts.Profit" />
+        <NuGetPackage Include="AElf.Contracts.Referendum" />
+        <NuGetPackage Include="AElf.Contracts.TokenConverter" />
+        <NuGetPackage Include="AElf.Contracts.TokenHolder" />
+        <NuGetPackage Include="AElf.Contracts.Treasury" />
+        <NuGetPackage Include="AElf.Contracts.Vote" />
+    </ItemGroup>
 
     <ItemGroup>
         <None Include="$(ProtoBaseDir)\aelf\*">
@@ -77,41 +96,32 @@
         <MSBuild Condition="'$(IsContract)' != '' AND '$(IsContract)'"
                  Projects="$(ProjectDir)/../../src/$(PatcherProjectName)/$(PatcherProjectName).csproj"/>
     </Target>
-    <!-- Patch the contract dll after building the contract -->
-    <Target Name="PatchContractCode" Condition="'$(IsContract)' != '' AND '$(IsContract)'" AfterTargets="AfterBuild">
-        <PropertyGroup>
-            <CmdPatchOverwrite></CmdPatchOverwrite>
-            <CmdPatchOverwrite Condition="'$(PatchOverwrite)' != '' AND '$(PatchOverwrite)'">-w </CmdPatchOverwrite>
-            <CmdSkipAudit></CmdSkipAudit>
-            <CmdSkipAudit Condition="'$(SkipAudit)' != '' AND '$(SkipAudit)'">-s </CmdSkipAudit>
-            <CmdTreatAsSystemContract></CmdTreatAsSystemContract>
-            <CmdTreatAsSystemContract Condition="'$(IsSystemContract)' != '' AND '$(IsSystemContract)'">-t </CmdTreatAsSystemContract>
-        </PropertyGroup>
+
+    <!-- Restore NuGet packages -->
+    <Target Name="RestoreNuGetPackages" BeforeTargets="BeforeBuild">
+        <Exec Command="dotnet restore" />
+    </Target>
+
+    <!-- Compile restored packages using dotnet $(PatcherProjectName).dll -->
+    <Target Name="PatchContractCode" AfterTargets="RestoreNuGetPackages">
+        <ItemGroup>
+            <RestoredPackages Include="$(NuGetPackageRoot)/%(NuGetPackage.Identity)/$(NuGetPackageVersion)/lib/net8.0/*.dll" />
+        </ItemGroup>
         <Exec WorkingDirectory="$(PatcherDir)"
-              Command="dotnet $(PatcherProjectName).dll $(CmdPatchOverwrite)$(CmdSkipAudit)$(CmdTreatAsSystemContract)-p $(TargetDir)$(TargetName).dll"
-              ConsoleToMSBuild="true">
+              Command="dotnet $(PatcherProjectName).dll -t -p %(RestoredPackages.FullPath)"
+              ConsoleToMSBuild="true"
+              Condition="'%(RestoredPackages.FullPath)' != ''">
             <Output TaskParameter="ConsoleOutput" ItemName="PatchContractCodeOutput"/>
         </Exec>
         <Message Text="$(PatchContractCodeOutput)"/>
     </Target>
-    <!-- Move dlls before codecov injection in travis -->
-    <Target Name="CopyNonCodeCovContractDll" Condition="'$(IsContract)' != '' AND '$(IsContract)'" AfterTargets="PatchContractCode">
-        <PropertyGroup>
-            <LauncherTargetDir>../../src/AElf.Launcher/contracts</LauncherTargetDir>
-        </PropertyGroup>
-        <Copy SourceFiles="$(TargetDir)$(TargetName).dll"
-              DestinationFolder="$(LauncherTargetDir)"
-              SkipUnchangedFiles="true"/>
-        <Copy Condition="Exists('$(TargetDir)$(TargetName).dll.patched')"
-              SourceFiles="$(TargetDir)$(TargetName).dll.patched"
-              DestinationFolder="../../test/patched"
-              SkipUnchangedFiles="true"/>
-    </Target>
-    <!-- Copy patched contract dll after publish to include in publish directory -->
-    <Target Name="CopyPatchedContractCodeToPublish" AfterTargets="Publish">
-        <Copy Condition="'$(IsContract)' != '' AND '$(IsContract)' AND Exists('$(TargetDir)$(TargetName).dll.patched')"
-              SourceFiles="$(TargetDir)$(TargetName).dll.patched"
-              DestinationFiles="$(PublishDir)/$(TargetName).dll"
-              SkipUnchangedFiles="true"/>
+
+    <!-- Copy restored and patched DLLs to the target directory -->
+    <Target Name="CopyRestoredDlls" AfterTargets="PatchContractCode">
+        <ItemGroup>
+            <PatchedDlls Include="@(RestoredPackages->'%(FullPath).patched')" />
+        </ItemGroup>
+        <Copy SourceFiles="@(RestoredPackages)" DestinationFolder="$(LauncherTargetDir)" SkipUnchangedFiles="true" />
+        <Copy SourceFiles="@(PatchedDlls)" DestinationFolder="$(LauncherTargetDir)" SkipUnchangedFiles="true" />
     </Target>
 </Project>
