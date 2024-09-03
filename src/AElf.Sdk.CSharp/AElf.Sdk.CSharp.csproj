@@ -13,6 +13,10 @@
         <ProjectReference Include="..\AElf.Cryptography\AElf.Cryptography.csproj" />
         <ProjectReference Include="..\AElf.CSharp.Core\AElf.CSharp.Core.csproj" />
         <ProjectReference Include="..\AElf.Kernel.SmartContract.Shared\AElf.Kernel.SmartContract.Shared.csproj" />
+        <ProjectReference Include="..\AElf.Sdk.CSharp.Internal\AElf.Sdk.CSharp.Internal.csproj"/>
+        <ProjectReference Include="..\AElf.Sdk.CSharp.Spec\AElf.Sdk.CSharp.Spec.csproj">
+            <PrivateAssets>all</PrivateAssets>
+        </ProjectReference>
     </ItemGroup>
 
 </Project>
