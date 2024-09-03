@@ -1,16 +1,22 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <OutputType>Exe</OutputType>
         <TargetFramework>net8.0</TargetFramework>
-        <ImplicitUsings>enable</ImplicitUsings>
-        <Nullable>enable</Nullable>
+        <PackageId>AElf.Sdk.CSharp.Internal</PackageId>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <LangVersion>latest</LangVersion>
+        <Description>Types for the C# smart contract SDK.</Description>
+        <RootNamespace>AElf.Sdk.CSharp.Internal</RootNamespace>
     </PropertyGroup>
-    
+
     <ItemGroup>
-        <ProjectReference Include="..\AElf.Sdk.CSharp.Spec\AElf.Sdk.CSharp.Spec.csproj">
+        <PackageReference Include="Rebex.Elliptic.Ed25519" Version="1.2.1" >
             <PrivateAssets>all</PrivateAssets>
-        </ProjectReference>
+        </PackageReference>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\AElf.Sdk.CSharp.Spec\AElf.Sdk.CSharp.Spec.csproj" />
     </ItemGroup>
 
 </Project>

@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using AElf.Kernel.SmartContract;
+using AElf.Sdk.CSharp.Internal;
+using AElf.Sdk.CSharp.Spec;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -12,11 +14,14 @@ namespace AElf.Sdk.CSharp;
 ///     base class for smart contracts (Context property). It provides access to properties and methods useful for
 ///     implementing the logic in smart contracts.
 /// </summary>
-public class CSharpSmartContractContext : ISmartContractBridgeContext
+public class CSharpSmartContractContext : ISmartContractBridgeContext, IBuiltIns
 {
+    private IBuiltIns BuiltInsImplementation { get; }
+    
     public CSharpSmartContractContext(ISmartContractBridgeContext smartContractBridgeContextImplementation)
     {
         SmartContractBridgeContextImplementation = smartContractBridgeContextImplementation;
+        BuiltInsImplementation = new InternalBuiltIns();
     }
 
     public ISmartContractBridgeContext SmartContractBridgeContextImplementation { get; }
@@ -390,5 +395,10 @@ public class CSharpSmartContractContext : ISmartContractBridgeContext
     public bool ECVrfVerify(byte[] pubKey, byte[] alpha, byte[] pi, out byte[] beta)
     {
         return SmartContractBridgeContextImplementation.ECVrfVerify(pubKey, alpha, pi, out beta);
+    }
+    
+    public bool Ed25519Verify(byte[] signature, byte[] message, byte[] publicKey)
+    {
+        return BuiltInsImplementation.Ed25519Verify(signature, message, publicKey);
     }
 }
