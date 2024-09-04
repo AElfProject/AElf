@@ -10,13 +10,19 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Rebex.Elliptic.Ed25519" Version="1.2.1" >
+        <PackageReference Include="Bn254.Net" Version="0.1.0-preview.3" >
+            <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
+        <PackageReference Include="Rebex.Elliptic.Ed25519" Version="1.2.1">
+            <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
+        <PackageReference Include="Nethereum.Web3" Version="4.21.4">
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\AElf.Sdk.CSharp.Spec\AElf.Sdk.CSharp.Spec.csproj" />
+        <ProjectReference Include="..\AElf.Sdk.CSharp.Spec\AElf.Sdk.CSharp.Spec.csproj"/>
     </ItemGroup>
 
 </Project>
