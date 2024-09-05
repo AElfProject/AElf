@@ -1,3 +1,6 @@
+extern alias MethodFeeExecutionPlugin;
+extern alias MultiTokenContract;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,6 +15,7 @@ using AElf.Types;
 using Google.Protobuf;
 using Shouldly;
 using Xunit;
+using MethodFeeExecutionPlugin::AElf.Kernel.SmartContract.ExecutionPluginForMethodFee;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests;
 
@@ -164,7 +168,7 @@ public sealed class ExecutionPluginForMethodFeeWithForkTest : ExecutionPluginFor
     public async Task CleanBlockExecutedDataChangeHeightEventHandler_Handle_Test()
     {
         var blockchainExecutedDataCacheProvider =
-            GetRequiredService<IBlockchainExecutedDataCacheProvider<TransactionSizeFeeSymbols>>();
+            GetRequiredService<IBlockchainExecutedDataCacheProvider<MethodFeeExecutionPlugin::AElf.Contracts.MultiToken.TransactionSizeFeeSymbols>>();
         blockchainExecutedDataCacheProvider.SetChangeHeight("test1", 1);
         blockchainExecutedDataCacheProvider.SetChangeHeight("test2", 2);
         blockchainExecutedDataCacheProvider.SetChangeHeight("test3", 3);

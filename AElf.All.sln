@@ -224,6 +224,14 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.TestBase", "test\AElf.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Core.Tests", "test\AElf.Kernel.Core.Tests\AElf.Kernel.Core.Tests.csproj", "{EB08C0B6-207E-41E9-A85A-D5D958F18EC8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TestContract.TransactionFees", "test\AElf.Contracts.TestContract.TransactionFees\AElf.Contracts.TestContract.TransactionFees.csproj", "{C540B209-4900-4735-8801-7B492538567E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TestContract.MockParliament", "test\AElf.Contracts.TestContract.MockParliament\AElf.Contracts.TestContract.MockParliament.csproj", "{888F2A97-59F2-4571-A29E-43D1E938EB08}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TestBase", "test\AElf.Contracts.TestBase\AElf.Contracts.TestBase.csproj", "{BE4DADC9-D363-427F-9778-08D15A008F2F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TestContract.BasicFunctionWithParallel", "test\AElf.Contracts.TestContract.BasicFunctionWithParallel\AElf.Contracts.TestContract.BasicFunctionWithParallel.csproj", "{6ADF1865-34F3-43CA-A00C-0D9B12F6ECD5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -638,6 +646,22 @@ Global
 		{EB08C0B6-207E-41E9-A85A-D5D958F18EC8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EB08C0B6-207E-41E9-A85A-D5D958F18EC8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EB08C0B6-207E-41E9-A85A-D5D958F18EC8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C540B209-4900-4735-8801-7B492538567E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C540B209-4900-4735-8801-7B492538567E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C540B209-4900-4735-8801-7B492538567E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C540B209-4900-4735-8801-7B492538567E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{888F2A97-59F2-4571-A29E-43D1E938EB08}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{888F2A97-59F2-4571-A29E-43D1E938EB08}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{888F2A97-59F2-4571-A29E-43D1E938EB08}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{888F2A97-59F2-4571-A29E-43D1E938EB08}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BE4DADC9-D363-427F-9778-08D15A008F2F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BE4DADC9-D363-427F-9778-08D15A008F2F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BE4DADC9-D363-427F-9778-08D15A008F2F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BE4DADC9-D363-427F-9778-08D15A008F2F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6ADF1865-34F3-43CA-A00C-0D9B12F6ECD5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6ADF1865-34F3-43CA-A00C-0D9B12F6ECD5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6ADF1865-34F3-43CA-A00C-0D9B12F6ECD5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6ADF1865-34F3-43CA-A00C-0D9B12F6ECD5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -754,5 +778,9 @@ Global
 		{659A7C7A-44C9-424E-B4F6-D1D3656F7AD4} = {90B310B4-C2DB-419E-B5EE-97FA096B62CC}
 		{0BA09F0B-1DC2-4780-A0B5-C439DA5BBC89} = {4E54480A-D155-43ED-9736-1A5BE7957211}
 		{EB08C0B6-207E-41E9-A85A-D5D958F18EC8} = {4E54480A-D155-43ED-9736-1A5BE7957211}
+		{C540B209-4900-4735-8801-7B492538567E} = {4E54480A-D155-43ED-9736-1A5BE7957211}
+		{888F2A97-59F2-4571-A29E-43D1E938EB08} = {4E54480A-D155-43ED-9736-1A5BE7957211}
+		{BE4DADC9-D363-427F-9778-08D15A008F2F} = {4E54480A-D155-43ED-9736-1A5BE7957211}
+		{6ADF1865-34F3-43CA-A00C-0D9B12F6ECD5} = {4E54480A-D155-43ED-9736-1A5BE7957211}
 	EndGlobalSection
 EndGlobal

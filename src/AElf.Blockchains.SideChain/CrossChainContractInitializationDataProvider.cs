@@ -1,10 +1,11 @@
-using AElf.CrossChain;
 using AElf.CrossChain.Application;
 using Volo.Abp.Threading;
 
 namespace AElf.Blockchains.SideChain;
 
-public class CrossChainContractInitializationDataProvider : ICrossChainContractInitializationDataProvider
+extern alias CrossChainCore;
+
+public class CrossChainContractInitializationDataProvider : CrossChainCore::AElf.CrossChain.ICrossChainContractInitializationDataProvider
 {
     private readonly ISideChainInitializationDataProvider _sideChainInitializationDataProvider;
 
@@ -14,12 +15,12 @@ public class CrossChainContractInitializationDataProvider : ICrossChainContractI
         _sideChainInitializationDataProvider = sideChainInitializationDataProvider;
     }
 
-    public CrossChainContractInitializationData GetContractInitializationData()
+    public CrossChainCore::AElf.CrossChain.CrossChainContractInitializationData GetContractInitializationData()
     {
         var sideChainInitializationData =
             AsyncHelper.RunSync(_sideChainInitializationDataProvider.GetChainInitializationDataAsync);
 
-        return new CrossChainContractInitializationData
+        return new CrossChainCore::AElf.CrossChain.CrossChainContractInitializationData
         {
             ParentChainId = _sideChainInitializationDataProvider.ParentChainId,
             CreationHeightOnParentChain = sideChainInitializationData.CreationHeightOnParentChain,

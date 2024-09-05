@@ -1,3 +1,6 @@
+extern alias MethodFeeExecutionPlugin;
+extern alias MultiTokenContract;
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -17,6 +20,7 @@ using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
 using Xunit;
+using MethodFeeExecutionPlugin::AElf.Kernel.SmartContract.ExecutionPluginForMethodFee;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests;
 

@@ -1,3 +1,6 @@
+extern alias MethodFeeExecutionPlugin;
+extern alias MultiTokenContract;
+
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Contracts.TestBase;
@@ -15,12 +18,13 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Moq;
 using Volo.Abp.Modularity;
+using MethodFeeExecutionPlugin::AElf.Kernel.SmartContract.ExecutionPluginForMethodFee;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests;
 
 [DependsOn(
     typeof(ContractTestModule),
-    typeof(ExecutionPluginForMethodFeeModule),
+    typeof(MethodFeeExecutionPlugin::AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.ExecutionPluginForMethodFeeModule),
     typeof(FeeCalculationModule))]
 public class ExecutionPluginForMethodFeeTestModule : ContractTestModule
 {
@@ -82,7 +86,7 @@ public class ExecutionPluginForMethodFeeWithForkTestModule : ContractTestAElfMod
             return mockService.Object;
         });
         context.Services
-            .AddTransient<CleanBlockExecutedDataChangeHeightEventHandler>();
+            .AddTransient<MethodFeeExecutionPlugin::AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.CleanBlockExecutedDataChangeHeightEventHandler>();
     }
 }
 

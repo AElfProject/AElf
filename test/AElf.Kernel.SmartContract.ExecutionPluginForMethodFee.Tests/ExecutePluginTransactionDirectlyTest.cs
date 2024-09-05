@@ -1,3 +1,6 @@
+extern alias MethodFeeExecutionPlugin;
+extern alias MultiTokenContract;
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -8,6 +11,7 @@ using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
+using MethodFeeExecutionPlugin::AElf.Contracts.MultiToken;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests;
 
@@ -264,7 +268,9 @@ public partial class ExecutePluginTransactionDirectlyTest : ExecutePluginTransac
         };
         var result = await TokenContractStub.ClaimTransactionFees.SendAsync(claimFeeInput);
 
-        var transactionFeeClaimed = TransactionFeeClaimed.Parser.ParseFrom(result.TransactionResult.Logs
+        var transactionFeeClaimed =
+            TransactionFeeClaimed.Parser.ParseFrom(result
+                .TransactionResult.Logs
             .First(l => l.Name.Contains(nameof(TransactionFeeClaimed))).NonIndexed);
         transactionFeeClaimed.Symbol.ShouldBe(tokenSymbol);
         transactionFeeClaimed.Amount.ShouldBe(feeAmount);

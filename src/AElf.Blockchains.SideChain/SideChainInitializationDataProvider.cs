@@ -1,12 +1,15 @@
+extern alias CrossChainCore;
+extern alias CrossChainContract;
+
 using System;
 using System.Threading.Tasks;
 using AElf.CrossChain;
 using AElf.CrossChain.Application;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Standards.ACS7;
 using Microsoft.Extensions.Options;
 using Volo.Abp.DependencyInjection;
+using CrossChainConfigOptions = CrossChainCore::AElf.CrossChain.CrossChainConfigOptions;
 
 namespace AElf.Blockchains.SideChain;
 
@@ -16,7 +19,7 @@ public class SideChainInitializationDataProvider : ISideChainInitializationDataP
     private readonly IChainInitializationDataPlugin _chainInitializationDataPlugin;
     private readonly ChainOptions _chainOptions;
 
-    private ChainInitializationData _chainInitializationData;
+    private CrossChainCore::AElf.Standards.ACS7.ChainInitializationData _chainInitializationData;
 
     public SideChainInitializationDataProvider(IOptionsSnapshot<ChainOptions> chainOptions,
         IOptionsSnapshot<CrossChainConfigOptions> crossChainConfigOptions,
@@ -28,7 +31,7 @@ public class SideChainInitializationDataProvider : ISideChainInitializationDataP
         ParentChainId = ChainHelper.ConvertBase58ToChainId(crossChainConfigOptions.Value.ParentChainId);
     }
 
-    public async Task<ChainInitializationData> GetChainInitializationDataAsync()
+    public async Task<CrossChainCore::AElf.Standards.ACS7.ChainInitializationData> GetChainInitializationDataAsync()
     {
         if (_chainInitializationData != null)
             return _chainInitializationData;

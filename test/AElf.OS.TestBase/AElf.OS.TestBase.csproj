@@ -14,6 +14,7 @@
         <ProjectReference Include="..\..\src\AElf.OS.Core\AElf.OS.Core.csproj" />
     </ItemGroup>
     <ItemGroup>
+        <PackageReference Include="AElf.Contracts.Genesis" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" />
         <PackageReference Include="xunit.runner.visualstudio">
             <PrivateAssets>all</PrivateAssets>
@@ -43,6 +44,9 @@
         </CommonMessage>
     </ItemGroup>
     <ItemGroup>
+        <ContractBase Include="..\..\protobuf\acs1.proto">
+            <Link>Protobuf\Proto\acs1.proto</Link>
+        </ContractBase>
         <ContractMessage Include="..\..\protobuf\transaction_fee.proto">
             <Link>Protobuf\Proto\transaction_fee.proto</Link>
         </ContractMessage>

@@ -11,6 +11,8 @@ using AElf.Types;
 
 namespace AElf.Blockchains.SideChain;
 
+extern alias CrossChainCore;
+
 public class SideChainContractDeploymentListProvider : IContractDeploymentListProvider
 {
     public List<Hash> GetDeployContractNameList()
@@ -24,7 +26,7 @@ public class SideChainContractDeploymentListProvider : IContractDeploymentListPr
             ReferendumSmartContractAddressNameProvider.Name,
             ParliamentSmartContractAddressNameProvider.Name,
             TokenSmartContractAddressNameProvider.Name,
-            CrossChainSmartContractAddressNameProvider.Name,
+            CrossChainCore::AElf.CrossChain.CrossChainSmartContractAddressNameProvider.Name,
             ConfigurationSmartContractAddressNameProvider.Name
         };
     }

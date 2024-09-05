@@ -110,7 +110,7 @@
         <Exec WorkingDirectory="$(PatcherDir)"
               Command="dotnet $(PatcherProjectName).dll -t -p %(RestoredPackages.FullPath)"
               ConsoleToMSBuild="true"
-              Condition="'%(RestoredPackages.FullPath)' != ''">
+              Condition="!Exists('%(RestoredPackages.FullPath).patched')">
             <Output TaskParameter="ConsoleOutput" ItemName="PatchContractCodeOutput"/>
         </Exec>
         <Message Text="$(PatchContractCodeOutput)"/>

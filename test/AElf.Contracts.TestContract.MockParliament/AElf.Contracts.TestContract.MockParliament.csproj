@@ -1,0 +1,30 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <Version>1.2.0</Version>
+        <PackageId>AElf.Contracts.TestContract.MockParliament</PackageId>
+        <RootNamespace>AElf.Contracts.TestContract.MockParliament</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="AElf.Sdk.CSharp" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <CommonMessage Include="..\..\protobuf\authority_info.proto">
+            <Link>Protobuf\Proto\authority_info.proto</Link>
+        </CommonMessage>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ContractCode Include="..\..\protobuf\test_mock_parliament_contract.proto">
+            <Link>Protobuf\Proto\test_mock_parliament_contract.proto</Link>
+        </ContractCode>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Folder Include="Protobuf\Generated" />
+    </ItemGroup>
+
+</Project>

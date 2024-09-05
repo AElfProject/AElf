@@ -1,5 +1,4 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
     <PropertyGroup>
         <TargetFramework>net8.0</TargetFramework>
         <Description>Main module for a sidechain node.</Description>
@@ -8,8 +7,17 @@
         <NoWarn>1701;1702</NoWarn>
     </PropertyGroup>
     <ItemGroup>
+        <ProjectReference Include="..\AElf.CrossChain.Core\AElf.CrossChain.Core.csproj" Aliases="CrossChainCore" />
         <ProjectReference Include="..\AElf.Blockchains.BasicBaseChain\AElf.Blockchains.BasicBaseChain.csproj" />
         <ProjectReference Include="..\AElf.ContractDeployer\AElf.ContractDeployer.csproj" />
+    </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="AElf.Contracts.CrossChain">
+            <Aliases>CrossChainContract</Aliases>
+            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+            <OutputItemType>Contract</OutputItemType>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </PackageReference>
     </ItemGroup>
     <ItemGroup>
         <CommonMessage Include="..\..\protobuf\authority_info.proto">
@@ -20,9 +28,9 @@
         <ContractBase Include="..\..\protobuf\acs1.proto">
             <Link>Protobuf\Proto\acs1.proto</Link>
         </ContractBase>
-        <ContractBase Include="..\..\protobuf\acs4.proto">
+        <ContractStub Include="..\..\protobuf\acs4.proto">
             <Link>Protobuf\Proto\acs4.proto</Link>
-        </ContractBase>
+        </ContractStub>
         <ContractStub Include="..\..\protobuf\acs6.proto">
             <Link>Protobuf\Proto\acs6.proto</Link>
         </ContractStub>
@@ -65,11 +73,6 @@
     </ItemGroup>
     <ItemGroup>
         <PackageReference Include="AElf.Contracts.Consensus.AEDPoS">
-            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-            <OutputItemType>Contract</OutputItemType>
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </PackageReference>
-        <PackageReference Include="AElf.Contracts.CrossChain">
             <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

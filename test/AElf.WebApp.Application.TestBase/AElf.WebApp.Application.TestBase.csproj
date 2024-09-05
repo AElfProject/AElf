@@ -16,6 +16,7 @@
         <PackageReference Include="Microsoft.NET.Test.Sdk" />
     </ItemGroup>
     <ItemGroup>
+        <ProjectReference Include="..\..\src\AElf.Kernel.SmartContract.ExecutionPluginForMethodFee\AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.csproj" />
         <ProjectReference Include="..\AElf.OS.Core.Tests\AElf.OS.Core.Tests.csproj" />
         <ProjectReference Include="..\..\src\AElf.WebApp.Web\AElf.WebApp.Web.csproj" />
     </ItemGroup>

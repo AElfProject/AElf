@@ -3,6 +3,8 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
   <ItemGroup>
+    <PackageVersion Include="AElf.ContractTestBase" Version="1.10.0" />
+    <PackageVersion Include="AElf.ContractTestKit" Version="1.10.0" />
     <PackageVersion Include="AElf.Contracts.Vote" Version="1.10.0" />
     <PackageVersion Include="AElf.Contracts.Treasury" Version="1.10.0" />
     <PackageVersion Include="AElf.Contracts.TokenHolder" Version="1.10.0" />
@@ -19,10 +21,12 @@
     <PackageVersion Include="AElf.Contracts.Consensus.AEDPoS" Version="1.10.0" />
     <PackageVersion Include="AElf.Contracts.Configuration" Version="1.10.0" />
     <PackageVersion Include="AElf.Contracts.Association" Version="1.10.0" />
+    <PackageVersion Include="AElf.ContractDeployer" Version="1.10.0" />
     <PackageVersion Include="AElf.CSharp.Core" Version="1.10.0" />
     <PackageVersion Include="AElf.Database" Version="1.10.0" />
     <PackageVersion Include="AElf.Cryptography" Version="1.10.0" />
     <PackageVersion Include="AElf.Core" Version="1.10.0" />
+    <PackageVersion Include="AElf.Kernel.Types" Version="1.10.0" />
     <PackageVersion Include="AElf.Kernel.Core" Version="1.10.0" />
     <PackageVersion Include="AElf.Sdk.CSharp" Version="1.10.0" />
     <PackageVersion Include="AElf.Types" Version="1.10.0" />

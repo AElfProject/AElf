@@ -44,5 +44,5 @@
             <Link>Protobuf\Proto\cross_chain_contract_impl.proto</Link>
         </ContractStub>
     </ItemGroup>
-    <Import Project="..\AllContracts.props" />
+<!--    <Import Project="..\AllContracts.props" />-->
 </Project>

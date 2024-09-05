@@ -1,3 +1,6 @@
+extern alias MethodFeeExecutionPlugin;
+extern alias MultiTokenContract;
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -17,6 +20,8 @@ using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
 using Xunit;
+using MethodFeeExecutionPlugin::AElf.Kernel.SmartContract.ExecutionPluginForMethodFee;
+
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests;
 
@@ -280,8 +285,8 @@ public sealed class ExecutionPluginForMethodFeeTest : ExecutionPluginForMethodFe
     
     private static List<Address> GetChargingAddress(TransactionResult transactionResult)
     {
-        var relatedLogs = transactionResult.Logs.Where(l => l.Name == nameof(TransactionFeeCharged)).ToList();
-        return relatedLogs.Select(l => TransactionFeeCharged.Parser.ParseFrom(l.Indexed[0]).ChargingAddress).ToList();
+        var relatedLogs = transactionResult.Logs.Where(l => l.Name == nameof(MethodFeeExecutionPlugin::AElf.Contracts.MultiToken.TransactionFeeCharged)).ToList();
+        return relatedLogs.Select(l => MethodFeeExecutionPlugin::AElf.Contracts.MultiToken.TransactionFeeCharged.Parser.ParseFrom(l.Indexed[0]).ChargingAddress).ToList();
     }
 
     private async Task CheckTransactionFeesMapAsync(Address chargingAddress, Dictionary<Address,Dictionary<string, long>> transactionFeeDic)
@@ -431,11 +436,11 @@ public sealed class ExecutionPluginForMethodFeeTest : ExecutionPluginForMethodFe
         var blockStateSet = await _blockStateSetManger.GetBlockStateSetAsync(chain.BestChainHash);
         blockStateSet.BlockExecutedData.Keys.ShouldNotContain(blockExecutedDataKey);
 
-        var transactionSizeFeeSymbols = new TransactionSizeFeeSymbols
+        var transactionSizeFeeSymbols = new MethodFeeExecutionPlugin::AElf.Contracts.MultiToken.TransactionSizeFeeSymbols
         {
             TransactionSizeFeeSymbolList =
             {
-                new TransactionSizeFeeSymbol
+                new MethodFeeExecutionPlugin::AElf.Contracts.MultiToken.TransactionSizeFeeSymbol
                 {
                     TokenSymbol = "ELF",
                     AddedTokenWeight = 1,
