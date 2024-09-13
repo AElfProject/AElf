@@ -1,12 +1,9 @@
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.ContractTestKit;
-using AElf.Runtime.WebAssembly.Extensions;
 using AElf.Runtime.WebAssembly.Types;
 using AElf.Types;
-using Google.Protobuf;
-using Nethereum.ABI;
-using Nethereum.Hex.HexConvertors.Extensions;
 using Shouldly;
 
 namespace AElf.Contracts.SolidityContract;
@@ -55,6 +52,9 @@ public class OwnerContractTests : SolidityContractTestBase
                 newAddress.ToWebAssemblyAddress().ToParameter());
             var txResult = await TestTransactionExecutor.ExecuteAsync(tx);
             txResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            var log = txResult.Logs.First();
+            log.Name.GetBytes().ToHex().ShouldBe("01");
+            log.Name.ShouldNotContain("OwnerSet");
         }
 
         {

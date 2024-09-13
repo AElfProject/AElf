@@ -108,7 +108,7 @@ public class Executive : IExecutive
                 value = solidityTransactionParameter.Value;
                 delegateCallValue = solidityTransactionParameter.DelegateCallValue;
 
-                if (solidityTransactionParameter.GasLimit == null || solidityTransactionParameter.GasLimit.RefTime == 0)
+                if (solidityTransactionParameter.GasLimit is { RefTime: 0, ProofSize: 0 } )
                 {
                     _webAssemblyContract.EstimateGas = true;
                 }
@@ -141,7 +141,7 @@ public class Executive : IExecutive
                         var logEvent = new LogEvent
                         {
                             Address = transaction.To,
-                            Name = Encoding.UTF8.GetString(depositedEvent.Item1.TrimZeroBytes()),
+                            Name = Encoding.UTF8.GetString(depositedEvent.Item1),
                             NonIndexed = ByteString.CopyFrom(depositedEvent.Item2)
                         };
                         transactionContext.Trace.Logs.Add(logEvent);

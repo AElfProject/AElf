@@ -68,7 +68,7 @@ public class GasMeter : IGasMeter
             CopyToContract c => new Weight(232_759_442, 6776).Mul(c.ContractBytesSize),
             _ => throw new ArgumentOutOfRangeException(nameof(runtimeCost), runtimeCost, null)
         };
-        GasLeft = GasLeft.Sub(cost);
+        //GasLeft = GasLeft.Sub(cost);
         return GasLeft;
     }
 

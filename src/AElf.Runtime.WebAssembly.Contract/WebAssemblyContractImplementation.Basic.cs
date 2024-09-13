@@ -94,18 +94,10 @@ public partial class WebAssemblyContractImplementation
             return;
         }
 
-        var topicsBytes = ReadSandboxMemory(topicsPtr, topicsLen);
-        var topicsCount = topicsBytes[0] / 4;
-        var topics = topicsBytes.Take(new Range(1, topicsBytes[0] * 8 + 1)).ToArray();
+        var topics = ReadSandboxMemory(topicsPtr, topicsLen);
+        var data = ReadSandboxMemory(dataPtr, dataLen);
 
-        if (topicsCount > 4)
-        {
-            HandleError(WebAssemblyError.TooManyTopics);
-            return;
-        }
-
-        var eventData = ReadSandboxMemory(dataPtr, dataLen);
-        Events.Add((topics, eventData));
+        Events.Add((topics, data));
     }
 
     private int MaxValueSize()
