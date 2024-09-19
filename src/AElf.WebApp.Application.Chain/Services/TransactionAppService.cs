@@ -275,6 +275,11 @@ public class TransactionAppService : AElfAppService, ITransactionAppService
 
     private bool IsGatewayAddress(Address address)
     {
+        if (string.IsNullOrEmpty(_multiTransactionOptions.GatewayAddress))
+        {
+            return true;
+        }
+
         // TODO: Execute IsGatewayAddress method on MultiTxGateway contract
         return _multiTransactionOptions.GatewayAddress == address.ToBase58();
     }
