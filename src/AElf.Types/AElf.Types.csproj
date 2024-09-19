@@ -9,7 +9,6 @@
         <Deterministic>true</Deterministic>
         <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-        <Version>1.10.1</Version>
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="Google.Protobuf" Version="3.27.2" />

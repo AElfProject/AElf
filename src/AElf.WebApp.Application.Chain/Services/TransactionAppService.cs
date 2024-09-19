@@ -52,21 +52,21 @@ public class TransactionAppService : AElfAppService, ITransactionAppService
     private readonly ITransactionResultStatusCacheProvider _transactionResultStatusCacheProvider;
     private readonly IPlainTransactionExecutingService _plainTransactionExecutingService;
     private readonly WebAppOptions _webAppOptions;
-    private readonly MultiTransactionSignerOptions _multiTransactionSignerOptions;
+    private readonly MultiTransactionOptions _multiTransactionOptions;
 
     public TransactionAppService(ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService,
         IBlockchainService blockchainService, IObjectMapper<ChainApplicationWebAppAElfModule> objectMapper,
         ITransactionResultStatusCacheProvider transactionResultStatusCacheProvider,
         IPlainTransactionExecutingService plainTransactionExecutingService,
         IOptionsMonitor<WebAppOptions> webAppOptions,
-        IOptionsSnapshot<MultiTransactionSignerOptions> multiTransactionSignerOptions)
+        IOptionsSnapshot<MultiTransactionOptions> multiTransactionSignerOptions)
     {
         _transactionReadOnlyExecutionService = transactionReadOnlyExecutionService;
         _blockchainService = blockchainService;
         _objectMapper = objectMapper;
         _transactionResultStatusCacheProvider = transactionResultStatusCacheProvider;
         _plainTransactionExecutingService = plainTransactionExecutingService;
-        _multiTransactionSignerOptions = multiTransactionSignerOptions.Value;
+        _multiTransactionOptions = multiTransactionSignerOptions.Value;
         _webAppOptions = webAppOptions.CurrentValue;
 
         LocalEventBus = NullLocalEventBus.Instance;
@@ -254,7 +254,8 @@ public class TransactionAppService : AElfAppService, ITransactionAppService
         }
 
         CryptoHelper.RecoverPublicKey(xTx.Signature.ToByteArray(), xTx.GetHash().ToByteArray(), out var pubkey);
-        if (Address.FromPublicKey(pubkey).ToBase58() != _multiTransactionSignerOptions.Address)
+        
+        if (!IsGatewayAddress(Address.FromPublicKey(pubkey)))
         {
             throw new UserFriendlyException(Error.Message[Error.InvalidSignature],
                 Error.InvalidSignature.ToString());
@@ -270,6 +271,12 @@ public class TransactionAppService : AElfAppService, ITransactionAppService
         {
             TransactionIds = txIds
         };
+    }
+
+    private bool IsGatewayAddress(Address address)
+    {
+        // TODO: Execute IsGatewayAddress method on MultiTxGateway contract
+        return _multiTransactionOptions.GatewayAddress == address.ToBase58();
     }
 
     /// <summary>

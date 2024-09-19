@@ -16,6 +16,7 @@ public static class Error
     public const int NoMatchMethodInContractAddress = 20011;
     public const int InvalidParams = 20012;
     public const int InvalidSignature = 20013;
+    public const int InvalidGatewaySignature = 20014;
     public const string NeedBasicAuth = "User name and password for basic auth should be set";
 
     public static readonly Dictionary<int, string> Message = new()
@@ -31,6 +32,7 @@ public static class Error
         { InvalidContractAddress, "Invalid contract address" },
         { NoMatchMethodInContractAddress, "No match method in contract address" },
         { InvalidParams, "Invalid params" },
-        { InvalidSignature, "Invalid signature" }
+        { InvalidSignature, "Invalid signature" },
+        { InvalidGatewaySignature, "Invalid gateway signature" }
     };
 }
