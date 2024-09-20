@@ -255,10 +255,10 @@ public class TransactionAppService : AElfAppService, ITransactionAppService
 
         CryptoHelper.RecoverPublicKey(xTx.Signature.ToByteArray(), xTx.GetHash().ToByteArray(), out var pubkey);
         
-        if (!IsGatewayAddress(Address.FromPublicKey(pubkey)))
+        if (!await IsGatewayAddress(Address.FromPublicKey(pubkey)))
         {
-            throw new UserFriendlyException(Error.Message[Error.InvalidSignature],
-                Error.InvalidSignature.ToString());
+            throw new UserFriendlyException(Error.Message[Error.InvalidGatewaySignature],
+                Error.InvalidGatewaySignature.ToString());
         }
 
         var chain = await _blockchainService.GetChainAsync();
@@ -273,14 +273,31 @@ public class TransactionAppService : AElfAppService, ITransactionAppService
         };
     }
 
-    private bool IsGatewayAddress(Address address)
+    private async Task<bool> IsGatewayAddress(Address address)
     {
-        if (string.IsNullOrEmpty(_multiTransactionOptions.GatewayAddress))
+        if (string.IsNullOrEmpty(_multiTransactionOptions.GatewayAddress) &&
+            string.IsNullOrEmpty(_multiTransactionOptions.GatewayContractAddress))
         {
             return true;
         }
 
-        // TODO: Execute IsGatewayAddress method on MultiTxGateway contract
+        if (!string.IsNullOrEmpty(_multiTransactionOptions.GatewayContractAddress))
+        {
+            var chain = await _blockchainService.GetChainAsync();
+            var isGatewayAddressBytes = await CallReadOnlyAsync(new Transaction
+            {
+                From = address,
+                To = Address.FromBase58(_multiTransactionOptions.GatewayContractAddress),
+                MethodName = "IsGatewayAddress",
+                Params = address.ToByteString(),
+                RefBlockNumber = chain.BestChainHeight,
+                RefBlockPrefix = BlockHelper.GetRefBlockPrefix(chain.BestChainHash)
+            });
+            var isGatewayAddress = new BoolValue();
+            isGatewayAddress.MergeFrom(isGatewayAddressBytes);
+            return isGatewayAddress.Value;
+        }
+
         return _multiTransactionOptions.GatewayAddress == address.ToBase58();
     }
 
