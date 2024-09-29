@@ -16,18 +16,32 @@ namespace AElf.Types
             return _transactionId;
         }
         
-        public bool VerifyFields()
+        public ValidationStatus VerifyFields()
         {
             if (Transactions.Count < 2)
-                return false;
+                return ValidationStatus.OnlyOneTransaction;
 
             if (!AllTransactionsHaveSameFrom())
-                return false;
+                return ValidationStatus.MoreThanOneFrom;
 
             if (Transactions.Any(transaction => string.IsNullOrEmpty(transaction.Transaction.MethodName)))
-                return false;
+                return ValidationStatus.MethodNameIsEmpty;
 
-            return true;
+            if (Transactions.Any(transaction => transaction.Transaction.Signature.IsEmpty))
+            {
+                return ValidationStatus.UserSignatureIsEmpty;
+            }
+
+            return ValidationStatus.Success;
+        }
+        
+        public enum ValidationStatus
+        {
+            Success,
+            OnlyOneTransaction,
+            MoreThanOneFrom,
+            MethodNameIsEmpty,
+            UserSignatureIsEmpty
         }
 
         private bool AllTransactionsHaveSameFrom()
@@ -38,15 +52,16 @@ namespace AElf.Types
 
         private byte[] GetSignatureData()
         {
-            if (!VerifyFields())
-                throw new InvalidOperationException($"Invalid x transaction: {this}");
+            var verifyResult = VerifyFields();
+            if (verifyResult != ValidationStatus.Success)
+                throw new InvalidOperationException($"Invalid multi transaction, {verifyResult.ToString()}: {this}");
 
             if (Signature.IsEmpty)
                 return this.ToByteArray();
 
-            var transaction = Clone();
-            transaction.Signature = ByteString.Empty;
-            return transaction.ToByteArray();
+            var multiTransaction = Clone();
+            multiTransaction.Signature = ByteString.Empty;
+            return multiTransaction.ToByteArray();
         }
     }
 }

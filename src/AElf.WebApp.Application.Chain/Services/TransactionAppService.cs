@@ -245,15 +245,15 @@ public class TransactionAppService : AElfAppService, ITransactionAppService
 
     public async Task<SendMultiTransactionOutput> SendMultiTransactionAsync(SendMultiTransactionInput input)
     {
-        var xTxBytes = ByteArrayHelper.HexStringToByteArray(input.RawTransactions);
-        var xTx = MultiTransaction.Parser.ParseFrom(xTxBytes);
-        if (!xTx.VerifyFields())
+        var multiTxBytes = ByteArrayHelper.HexStringToByteArray(input.RawTransactions);
+        var multiTransaction = MultiTransaction.Parser.ParseFrom(multiTxBytes);
+        if (multiTransaction.VerifyFields() != MultiTransaction.ValidationStatus.Success)
         {
             throw new UserFriendlyException(Error.Message[Error.InvalidTransaction],
                 Error.InvalidTransaction.ToString());
         }
 
-        CryptoHelper.RecoverPublicKey(xTx.Signature.ToByteArray(), xTx.GetHash().ToByteArray(), out var pubkey);
+        CryptoHelper.RecoverPublicKey(multiTransaction.Signature.ToByteArray(), multiTransaction.GetHash().ToByteArray(), out var pubkey);
         
         if (!await IsGatewayAddress(Address.FromPublicKey(pubkey)))
         {
@@ -262,7 +262,7 @@ public class TransactionAppService : AElfAppService, ITransactionAppService
         }
 
         var chain = await _blockchainService.GetChainAsync();
-        var txListOfCurrentChain = xTx.Transactions
+        var txListOfCurrentChain = multiTransaction.Transactions
             .Where(t => t.ChainId == chain.Id)
             .Select(t => t.Transaction.ToByteArray().ToHex()).ToArray();
         var txIds = await PublishTransactionsAsync(txListOfCurrentChain);
