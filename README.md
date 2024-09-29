@@ -76,7 +76,7 @@ When you are ready for a review by the core team, just remove ```[WIP]``` from y
 
 ## Versioning
 
-We use Semantic Versioning (SemVer) for versioning, if you're intereted in closely following aelf's developement please check out the [SemVer docs](https://semver.org/).
+We use Semantic Versioning (SemVer) for versioning, if you're interested in closely following aelf's development please check out the [SemVer docs](https://semver.org/).
 
 ## License
 
