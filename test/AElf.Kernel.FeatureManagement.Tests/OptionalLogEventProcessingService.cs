@@ -1,7 +1,9 @@
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using AElf.Kernel.Blockchain;
 using AElf.Kernel.SmartContract.Application;
 
-namespace AElf.Kernel.FeatureDisable.Tests;
+namespace AElf.Kernel.FeatureManagement.Tests;
 
 public class OptionalLogEventProcessingService<T> : ILogEventProcessingService<T> where T : ILogEventProcessor
 {

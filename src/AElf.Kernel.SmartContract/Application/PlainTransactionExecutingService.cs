@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using AElf.Kernel.FeatureDisable.Core;
+using AElf.Kernel.FeatureManagement.Core;
 using AElf.Kernel.SmartContract.Domain;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Types;
@@ -22,15 +22,15 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
     private readonly List<IPreExecutionPlugin> _prePlugins;
     private readonly ISmartContractExecutiveService _smartContractExecutiveService;
     private readonly ITransactionContextFactory _transactionContextFactory;
-    private readonly IFeatureDisableService _featureDisableService;
+    private readonly IFeatureManagementService _featureManagementService;
 
     public PlainTransactionExecutingService(ISmartContractExecutiveService smartContractExecutiveService,
         IEnumerable<IPostExecutionPlugin> postPlugins, IEnumerable<IPreExecutionPlugin> prePlugins,
-        ITransactionContextFactory transactionContextFactory, IFeatureDisableService featureDisableService)
+        ITransactionContextFactory transactionContextFactory, IFeatureManagementService featureManagementService)
     {
         _smartContractExecutiveService = smartContractExecutiveService;
         _transactionContextFactory = transactionContextFactory;
-        _featureDisableService = featureDisableService;
+        _featureManagementService = featureManagementService;
         _prePlugins = GetUniquePlugins(prePlugins);
         _postPlugins = GetUniquePlugins(postPlugins);
         Logger = NullLogger<PlainTransactionExecutingService>.Instance;
@@ -253,7 +253,7 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
         TieredStateCache internalStateCache,
         CancellationToken cancellationToken)
     {
-        if (await _featureDisableService.IsFeatureDisabledAsync("TxPlugin", "PrePlugin"))
+        if (await _featureManagementService.IsFeatureDisabledAsync("TxPlugin", "PrePlugin"))
         {
             return true;
         }
@@ -304,7 +304,7 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
         TieredStateCache internalStateCache,
         CancellationToken cancellationToken)
     {
-        if (await _featureDisableService.IsFeatureDisabledAsync("TxPlugin", "PostPlugin"))
+        if (await _featureManagementService.IsFeatureDisabledAsync("TxPlugin", "PostPlugin"))
         {
             return true;
         }

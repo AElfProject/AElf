@@ -1,6 +1,6 @@
 using AElf.Kernel.ChainController;
 using AElf.Kernel.Configuration;
-using AElf.Kernel.FeatureDisable;
+using AElf.Kernel.FeatureManagement;
 using AElf.Kernel.Miner;
 using AElf.Kernel.Node;
 using AElf.Kernel.Proposal;
@@ -18,7 +18,7 @@ namespace AElf.Kernel;
     typeof(CoreKernelAElfModule),
     typeof(ChainControllerAElfModule),
     typeof(SmartContractAElfModule),
-    typeof(FeatureDisableAElfModule),
+    typeof(FeatureManagementAElfModule),
     typeof(NodeAElfModule),
     typeof(SmartContractExecutionAElfModule),
     typeof(TransactionPoolAElfModule),
