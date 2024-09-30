@@ -6,11 +6,13 @@ using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContractExecution.Application;
+using AElf.OpenTelemetry.ExecutionTime;
 using Google.Protobuf.WellKnownTypes;
 using Volo.Abp.EventBus.Local;
 
 namespace AElf.Kernel.Miner.Application;
 
+[AggregateExecutionTime]
 public class MiningService : IMiningService
 {
     private readonly IAccountService _accountService;

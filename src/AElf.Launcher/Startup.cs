@@ -10,6 +10,8 @@ using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Serilog;
+using Serilog.Sinks.OpenTelemetry;
 using Volo.Abp;
 using Volo.Abp.Modularity.PlugIns;
 
@@ -66,6 +68,16 @@ public class Startup
                 if (_configuration["CorsOrigins"] != "*") builder.AllowCredentials();
             });
         });
+        
+        Log.Logger =  new LoggerConfiguration()
+            .ReadFrom.Configuration(_configuration)
+#if DEBUG
+            .WriteTo.OpenTelemetry(
+                endpoint: "http://localhost:4316/v1/logs",
+                protocol: OtlpProtocol.HttpProtobuf)
+#endif
+            .CreateLogger();
+        
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
