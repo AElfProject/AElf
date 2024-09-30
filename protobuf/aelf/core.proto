@@ -22,6 +22,16 @@ message Transaction {
     bytes signature = 10000;
 }
 
+message TransactionAndChainId {
+    Transaction transaction = 1;
+    int32 chain_id = 2;
+}
+
+message MultiTransaction {
+    repeated TransactionAndChainId transactions = 1;
+    bytes signature = 10000;
+}
+
 message StatePath {
     // The partial path of the state path.
     repeated string parts = 1;

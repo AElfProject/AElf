@@ -1,0 +1,22 @@
+name: Test
+on:
+  push:
+    branches:
+      - dev
+      - master
+      - feature/use-github-actions
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: write
+    steps:
+      - name: Run dotnet ci action
+        uses: AElfProject/dotnet-ci-action@v0.0.1
+        with:
+          commit-token: ${{ secrets.COMMIT_TOKEN }}
+          codecov-token: ${{ secrets.CODECOV_TOKEN }}
+          branch-name: "feature/badge-json"
+          solution-name: "AElf.All.sln"
