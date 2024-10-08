@@ -10,7 +10,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Bn254.Net" Version="0.1.0-preview.3" >
+        <PackageReference Include="Groth16.Net" Version="1.1.2" />
+        <PackageReference Include="Bn254.Net" Version="0.1.0" >
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
         <PackageReference Include="Rebex.Elliptic.Ed25519" Version="1.2.1">

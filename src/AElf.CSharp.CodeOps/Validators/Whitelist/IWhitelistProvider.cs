@@ -62,6 +62,15 @@ public class WhitelistProvider : IWhitelistProvider
                 .Type("Func`1", Permission.Allowed) // Required for protobuf generated code
                 .Type("Func`2", Permission.Allowed) // Required for protobuf generated code
                 .Type("Func`3", Permission.Allowed) // Required for protobuf generated code
+                .Type("Func`4", Permission.Allowed)
+                .Type("ValueTuple`1", Permission.Allowed)
+                .Type("ValueTuple`2", Permission.Allowed)
+                .Type("ValueTuple`3", Permission.Allowed)
+                .Type("ValueTuple`4", Permission.Allowed)
+                .Type("ValueTuple`5", Permission.Allowed)
+                .Type("ValueTuple`6", Permission.Allowed)
+                .Type("ValueTuple`7", Permission.Allowed)
+                .Type("ValueTuple`8", Permission.Allowed)
                 .Type("Nullable`1", Permission.Allowed) // Required for protobuf generated code
                 .Type(typeof(BitConverter), Permission.Denied, member => member
                     .Member(nameof(BitConverter.GetBytes), Permission.Allowed))
