@@ -22,5 +22,8 @@ public class ChainApplicationWebAppAElfModule : AElfModule
 
         context.Services
             .AddSingleton<ITransactionResultStatusCacheProvider, TransactionResultStatusCacheProvider>();
+
+        Configure<MultiTransactionOptions>(context.Services.GetConfiguration()
+            .GetSection("MultiTransaction"));
     }
 }
