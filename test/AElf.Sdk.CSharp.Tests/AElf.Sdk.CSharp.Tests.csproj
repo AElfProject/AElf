@@ -30,4 +30,10 @@
         <ProjectReference Include="..\AElf.Runtime.CSharp.Tests.TestContract\AElf.Runtime.CSharp.Tests.TestContract.csproj" />
         <ProjectReference Include="..\AElf.Sdk.CSharp.Tests.TestContract\AElf.Sdk.CSharp.Tests.TestContract.csproj" />
     </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Rebex.Elliptic.Ed25519" Version="1.2.1" >
+            <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
+    </ItemGroup>
 </Project>

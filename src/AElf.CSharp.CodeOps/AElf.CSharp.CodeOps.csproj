@@ -10,8 +10,6 @@
     <ItemGroup>
         <PackageReference Include="Basic.Reference.Assemblies.Net80" Version="1.5.0" />
         <PackageReference Include="Mono.Cecil" Version="0.11.4" />
-        <PackageReference Include="Groth16.Net" Version="1.1.0" />
-        <PackageReference Include="Poseidon.Net" Version="0.1.1" />
     </ItemGroup>
 
     <ItemGroup>

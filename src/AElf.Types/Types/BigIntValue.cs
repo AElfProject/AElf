@@ -5,9 +5,30 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Types
 {
-
     public partial class BigIntValue : IComparable, IComparable<BigIntValue>
     {
+        #region Frequent Values
+
+        public static BigIntValue Zero => new BigIntValue { Value = "0" };
+        public static BigIntValue One => new BigIntValue { Value = "1" };
+
+        #endregion
+
+        public static BigIntValue FromBigEndianBytes(byte[] bigEndianBytes)
+        {
+            var bigInteger = new BigInteger(bigEndianBytes, true, true);
+            return new BigIntValue
+            {
+                Value = bigInteger.ToString()
+            };
+        }
+
+        public byte[] ToBigEndianBytes()
+        {
+            var bigInteger = ConvertStringToBigInteger(Value);
+            return bigInteger.ToByteArray(true, true);
+        }
+
         public int CompareTo(object obj)
         {
             if (!(obj is BigIntValue bigInt)) throw new InvalidOperationException();
@@ -126,6 +147,43 @@ namespace AElf.Types
             return aBigInt < bBigInt;
         }
 
+        #region Operators
+
+        public static BigIntValue operator %(BigIntValue a, BigIntValue b)
+        {
+            return BigInteger.Remainder(ConvertStringToBigInteger(a.Value), ConvertStringToBigInteger(b.Value))
+                .ToString();
+        }
+
+        public static BigIntValue operator +(BigIntValue a, BigIntValue b)
+        {
+            return BigInteger.Add(ConvertStringToBigInteger(a.Value), ConvertStringToBigInteger(b.Value)).ToString();
+        }
+
+        public static BigIntValue operator -(BigIntValue a, BigIntValue b)
+        {
+            return BigInteger.Subtract(ConvertStringToBigInteger(a.Value), ConvertStringToBigInteger(b.Value))
+                .ToString();
+        }
+
+        public static BigIntValue operator *(BigIntValue a, BigIntValue b)
+        {
+            return BigInteger.Multiply(ConvertStringToBigInteger(a.Value), ConvertStringToBigInteger(b.Value))
+                .ToString();
+        }
+
+        public static bool operator ==(BigIntValue a, BigIntValue b)
+        {
+            return ConvertStringToBigInteger(a?.Value ?? "0") == ConvertStringToBigInteger(b?.Value ?? "0");
+        }
+
+        public static bool operator !=(BigIntValue a, BigIntValue b)
+        {
+            return !(a == b);
+        }
+
+        #endregion
+
         #region < <= > >=
 
         public static bool operator <(in BigIntValue a, in BigIntValue b)
@@ -149,5 +207,6 @@ namespace AElf.Types
         }
 
         #endregion
+
     }
 }
