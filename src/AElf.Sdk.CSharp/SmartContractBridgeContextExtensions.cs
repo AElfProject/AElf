@@ -125,6 +125,12 @@ public static class SmartContractBridgeContextExtensions
     {
         context.SendInline(toAddress, methodName, ConvertToByteString(message));
     }
+    
+    public static void SendInlineWithTransactionId(this CSharpSmartContractContext context, Address toAddress, string methodName,
+        IMessage message)
+    {
+        context.SendInline(toAddress, methodName, ConvertToByteString(message));
+    }
 
     /// <summary>
     ///     Sends a virtual inline transaction to another contract.

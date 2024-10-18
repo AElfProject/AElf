@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 
@@ -16,4 +17,5 @@ public interface ITransactionContext
     Transaction Transaction { get; set; }
     TransactionTrace Trace { get; set; }
     IStateCache StateCache { get; set; }
+    bool IsInlineTransaction { get; set; }
 }

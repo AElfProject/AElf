@@ -235,6 +235,19 @@ public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, I
             Params = args
         });
     }
+    
+    public void SendInlineWithTransactionId(Address toAddress, string methodName, ByteString args)
+    {
+        // TransactionContext.IsInlineTransaction = true;
+        TransactionContext.Trace.InlineTransactions.Add(new Transaction
+        {
+            IsInlineTxWithId = true,
+            From = Self,
+            To = toAddress,
+            MethodName = methodName,
+            Params = args
+        });
+    }
 
     public void SendVirtualInline(Hash fromVirtualAddress, Address toAddress, string methodName,
         ByteString args)
@@ -247,7 +260,19 @@ public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, I
             Params = args
         });
     }
-    
+
+    public void SendVirtualInlineTransactionId(Hash fromVirtualAddress, Address toAddress, string methodName, ByteString args)
+    {
+        TransactionContext.Trace.InlineTransactions.Add(new Transaction
+        {
+            IsInlineTxWithId = true,
+            From = ConvertVirtualAddressToContractAddress(fromVirtualAddress, Self),
+            To = toAddress,
+            MethodName = methodName,
+            Params = args
+        });
+    }
+
     public void SendVirtualInline(Hash fromVirtualAddress, Address toAddress, string methodName,
         ByteString args, bool logTransaction)
     {

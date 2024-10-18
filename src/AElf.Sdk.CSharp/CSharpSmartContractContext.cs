@@ -204,7 +204,7 @@ public class CSharpSmartContractContext : ISmartContractBridgeContext
     public void SendInline(Address toAddress, string methodName, ByteString args)
     {
         SmartContractBridgeContextImplementation.SendInline(toAddress, methodName, args);
-    }
+    } 
 
     /// <summary>
     ///     Sends a virtual inline transaction to another contract.

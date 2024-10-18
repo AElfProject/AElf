@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.FeatureDisable.Core;
 using AElf.Kernel.SmartContract.Domain;
 using AElf.Kernel.SmartContract.Infrastructure;
@@ -23,10 +24,12 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
     private readonly ISmartContractExecutiveService _smartContractExecutiveService;
     private readonly ITransactionContextFactory _transactionContextFactory;
     private readonly IFeatureDisableService _featureDisableService;
+    private readonly ITransactionManager _transactionManager;
 
     public PlainTransactionExecutingService(ISmartContractExecutiveService smartContractExecutiveService,
         IEnumerable<IPostExecutionPlugin> postPlugins, IEnumerable<IPreExecutionPlugin> prePlugins,
-        ITransactionContextFactory transactionContextFactory, IFeatureDisableService featureDisableService)
+        ITransactionContextFactory transactionContextFactory, IFeatureDisableService featureDisableService,
+        ITransactionManager transactionManager)
     {
         _smartContractExecutiveService = smartContractExecutiveService;
         _transactionContextFactory = transactionContextFactory;
@@ -35,6 +38,7 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
         _postPlugins = GetUniquePlugins(postPlugins);
         Logger = NullLogger<PlainTransactionExecutingService>.Instance;
         LocalEventBus = NullLocalEventBus.Instance;
+        _transactionManager = transactionManager;
     }
 
     public ILogger<PlainTransactionExecutingService> Logger { get; set; }
@@ -72,6 +76,8 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
                         cancellationToken), cancellationToken);
 
                     trace = await transactionExecutionTask.WithCancellation(cancellationToken);
+                    // GetAllTrace(transactionTraces, trace);
+
                 }
                 catch (OperationCanceledException)
                 {
@@ -81,16 +87,42 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
                     continue;
                 }
 
+                List<TransactionTrace> traceList = new List<TransactionTrace>();
+                List<Transaction> inlineTxList = new List<Transaction>();
+                WrapTraceList(traceList, trace);
+                // WrapinlineTxList(inlineTxList, trace);
+                // foreach (var inlinetransaction in inlineTxList)
+                // {
+                //     await _transactionManager.AddTransactionAsync(inlinetransaction);
+                // }
 
-                if (!TryUpdateStateCache(trace, groupStateCache))
-                    break;
+//                 if (!TryUpdateStateCache(trace, groupStateCache))
+//                     break;
+// #if DEBUG
+//                 if (!string.IsNullOrEmpty(trace.Error)) Logger.LogInformation("{Error}", trace.Error);
+// #endif
+//                 var result = GetTransactionResult(trace, transactionExecutingDto.BlockHeader.Height);
+//
+//                 var returnSet = GetReturnSet(trace, result);
+//                 returnSets.Add(returnSet);
+
+                int index = 1;
+                foreach (var transactionTrace in traceList)
+                {
+                    Console.WriteLine("index="+ index+++"  "+transactionTrace.TransactionId);
+                    
+                    if (!TryUpdateStateCache(transactionTrace, groupStateCache))
+                        break;
 #if DEBUG
-                if (!string.IsNullOrEmpty(trace.Error)) Logger.LogInformation("{Error}", trace.Error);
+                    if (!string.IsNullOrEmpty(transactionTrace.Error)) Logger.LogInformation("{Error}", transactionTrace.Error);
 #endif
-                var result = GetTransactionResult(trace, transactionExecutingDto.BlockHeader.Height);
+                    var result = GetTransactionResult(transactionTrace, transactionExecutingDto.BlockHeader.Height);
 
-                var returnSet = GetReturnSet(trace, result);
-                returnSets.Add(returnSet);
+                    var returnSet = GetReturnSet(transactionTrace, result);
+                    returnSets.Add(returnSet);
+                    
+                }
+                
             }
 
             return returnSets;
@@ -99,6 +131,85 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
         {
             Logger.LogError(e, "Failed while executing txs in block");
             throw;
+        }
+    }
+
+    private void WrapinlineTxList(List<Transaction> inlineTxList, TransactionTrace trace)
+    {
+        // Create a stack to hold the traces for processing
+        Stack<TransactionTrace> stack = new Stack<TransactionTrace>();
+        stack.Push(trace);
+
+        // Process all traces in the stack
+        while (stack.Count > 0)
+        {
+            // Pop a trace from the stack
+            var currentTrace = stack.Pop();
+
+
+            foreach (var transaction in currentTrace.InlineTransactions.ToList())
+            {
+                if (transaction.IsInlineTxWithId)
+                {
+                    inlineTxList.Add(transaction);    
+                }
+            }
+
+            // If the current trace contains inline traces, add them to the stack
+            if (currentTrace.InlineTraces != null)
+            {
+                foreach (var inlineTrace in currentTrace.InlineTraces)
+                {
+                    stack.Push(inlineTrace);
+                }
+            }
+        }
+    }
+
+    private List<TransactionTrace> WrapTraceList(List<TransactionTrace> traceList, TransactionTrace trace)
+    {
+        // Create a stack to hold the traces for processing
+        Stack<TransactionTrace> stack = new Stack<TransactionTrace>();
+        stack.Push(trace);
+
+        // Process all traces in the stack
+        while (stack.Count > 0)
+        {
+            // Pop a trace from the stack
+            var currentTrace = stack.Pop();
+        
+            // Add the current trace to the list
+            if (currentTrace.IsInlineTransaction)
+            {
+                traceList.Add(currentTrace);    
+            }
+            
+            // If the current trace contains inline traces, add them to the stack
+            if (currentTrace.InlineTraces != null)
+            {
+                foreach (var inlineTrace in currentTrace.InlineTraces)
+                {
+                    stack.Push(inlineTrace);
+                }
+            }
+        }
+
+        return traceList;
+    }
+
+
+    private void GetAllTrace(List<TransactionTrace> transactionTraces, TransactionTrace transactionTrace)
+    {
+        if (transactionTrace == null || transactionTrace.InlineTraces.Count == 0)
+        {
+            return;
+        }
+    
+        transactionTraces.Add(transactionTrace);
+
+        foreach (var inlineTrace in transactionTrace.InlineTraces)
+        {
+            GetAllTrace(transactionTraces, inlineTrace);
         }
     }
 
@@ -221,8 +332,13 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
     {
         var trace = txContext.Trace;
         internalStateCache.Update(txContext.Trace.GetStateSets());
+        int index = 0;
         foreach (var inlineTx in txContext.Trace.InlineTransactions)
         {
+            if (txContext.IsInlineTransaction)
+            {
+                AutoGenerateInlineTxId(inlineTx,originTransactionId,index);
+            }
             var singleTxExecutingDto = new SingleTransactionExecutingDto
             {
                 Depth = depth + 1,
@@ -237,6 +353,11 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
 
             if (inlineTrace == null)
                 break;
+            
+            // if (txContext.IsInlineTransaction)
+            // {
+            //     inlineTrace.IsInlineTransaction = true;
+            // }
             trace.InlineTraces.Add(inlineTrace);
             if (!inlineTrace.IsSuccessful())
                 // Already failed, no need to execute remaining inline transactions
@@ -244,6 +365,11 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
 
             internalStateCache.Update(inlineTrace.GetStateSets());
         }
+    }
+
+    private void AutoGenerateInlineTxId(Transaction inlineTx, Hash originTransactionId, int index)
+    {
+        inlineTx.SetHash(HashHelper.XorAndCompute(originTransactionId, HashHelper.ComputeFrom(index)));
     }
 
     private async Task<bool> ExecutePluginOnPreTransactionStageAsync(IExecutive executive,

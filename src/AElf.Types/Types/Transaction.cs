@@ -3,10 +3,11 @@ using Google.Protobuf;
 
 namespace AElf.Types
 {
-
     public partial class Transaction
     {
         private Hash _transactionId;
+        
+        public bool IsInlineTxWithId;
 
         public Hash GetHash()
         {
@@ -14,6 +15,11 @@ namespace AElf.Types
                 _transactionId = HashHelper.ComputeFrom(GetSignatureData());
 
             return _transactionId;
+        }
+
+        public void SetHash(Hash transactionId)
+        {
+            _transactionId = transactionId;
         }
 
         public bool VerifyFields()
