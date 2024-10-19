@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using AElf.CSharp.CodeOps;
 using AElf.CSharp.Core;
+using AElf.ExceptionHandler;
 using AElf.Kernel;
 using AElf.Kernel.Infrastructure;
 using AElf.Kernel.SmartContract;
@@ -19,7 +20,7 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Runtime.CSharp;
 
-public class Executive : IExecutive
+public partial class Executive : IExecutive
 {
     private readonly ReadOnlyDictionary<string, IServerCallHandler> _callHandlers;
     private readonly object _contractInstance;
@@ -128,35 +129,31 @@ public class Executive : IExecutive
             new ExecutionObserver(CurrentTransactionContext.ExecutionObserverThreshold.ExecutionCallThreshold,
                 CurrentTransactionContext.ExecutionObserverThreshold.ExecutionBranchThreshold);
 
-        try
-        {
-            if (!_callHandlers.TryGetValue(methodName, out var handler))
-                throw new RuntimeException(
-                    $"Failed to find handler for {methodName}. We have {_callHandlers.Count} handlers: " +
-                    string.Join(", ", _callHandlers.Keys.OrderBy(k => k))
-                );
-
-            _smartContractProxy.SetExecutionObserver(observer);
-
-            ExecuteTransaction(handler);
-
-            if (!handler.IsView())
-                CurrentTransactionContext.Trace.StateSet = GetChanges();
-            else
-                CurrentTransactionContext.Trace.StateSet = new TransactionExecutingStateSet();
-        }
-        catch (Exception ex)
-        {
-            CurrentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.SystemError;
-            CurrentTransactionContext.Trace.Error += ex + "\n";
-        }
-        finally
-        {
-            Cleanup();
-        }
+        PerformExecuting(methodName, observer);
 
         var e = CurrentTransactionContext.Trace.EndTime = TimestampHelper.GetUtcNow().ToDateTime();
         CurrentTransactionContext.Trace.Elapsed = (e - s).Ticks;
+    }
+
+    [ExceptionHandler(typeof(Exception), TargetType = typeof(Executive),
+        MethodName = nameof(HandleExceptionWhileExecuting), FinallyTargetType = typeof(Executive),
+        FinallyMethodName = nameof(HandleExceptionAfterExecuting))]
+    private void PerformExecuting(string methodName, ExecutionObserver observer)
+    {
+        if (!_callHandlers.TryGetValue(methodName, out var handler))
+            throw new RuntimeException(
+                $"Failed to find handler for {methodName}. We have {_callHandlers.Count} handlers: " +
+                string.Join(", ", _callHandlers.Keys.OrderBy(k => k))
+            );
+
+        _smartContractProxy.SetExecutionObserver(observer);
+
+        ExecuteTransaction(handler);
+
+        if (!handler.IsView())
+            CurrentTransactionContext.Trace.StateSet = GetChanges();
+        else
+            CurrentTransactionContext.Trace.StateSet = new TransactionExecutingStateSet();
     }
 
     private IEnumerable<FileDescriptor> GetSelfAndDependency(FileDescriptor fileDescriptor,
@@ -172,21 +169,14 @@ public class Executive : IExecutive
         return fileDescriptors;
     }
 
+    [ExceptionHandler(typeof(Exception), TargetType = typeof(Executive),
+        MethodName = nameof(HandleExceptionWhileExecutingTransaction))]
     private void ExecuteTransaction(IServerCallHandler handler)
     {
-        try
-        {
-            var tx = CurrentTransactionContext.Transaction;
-            var retVal = handler.Execute(tx.Params.ToByteArray());
-            if (retVal != null) CurrentTransactionContext.Trace.ReturnValue = ByteString.CopyFrom(retVal);
-
-            CurrentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.Executed;
-        }
-        catch (Exception ex)
-        {
-            CurrentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ContractError;
-            CurrentTransactionContext.Trace.Error += ex + "\n";
-        }
+        var tx = CurrentTransactionContext.Transaction;
+        var retVal = handler.Execute(tx.Params.ToByteArray());
+        if (retVal != null) CurrentTransactionContext.Trace.ReturnValue = ByteString.CopyFrom(retVal);
+        CurrentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.Executed;
     }
 
     private TransactionExecutingStateSet GetChanges()

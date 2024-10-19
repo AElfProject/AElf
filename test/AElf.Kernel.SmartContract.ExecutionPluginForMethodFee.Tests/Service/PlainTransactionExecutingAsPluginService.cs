@@ -2,17 +2,17 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.ExceptionHandler;
 using AElf.Kernel.FeatureDisable.Core;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Domain;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
-using Microsoft.Extensions.Logging;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests.Service;
 
-public class PlainTransactionExecutingAsPluginService : PlainTransactionExecutingService
+public partial class PlainTransactionExecutingAsPluginService : PlainTransactionExecutingService
 {
     // for sending transaction
     private readonly Hash _pluginOriginId = new();
@@ -27,8 +27,7 @@ public class PlainTransactionExecutingAsPluginService : PlainTransactionExecutin
         _smartContractExecutiveService = smartContractExecutiveService;
     }
 
-    protected override async Task<TransactionTrace> ExecuteOneAsync(
-        SingleTransactionExecutingDto singleTxExecutingDto,
+    protected override async Task<TransactionTrace> ExecuteOneAsync(SingleTransactionExecutingDto singleTxExecutingDto,
         CancellationToken cancellationToken)
     {
         if (singleTxExecutingDto.IsCancellable)
@@ -42,45 +41,39 @@ public class PlainTransactionExecutingAsPluginService : PlainTransactionExecutin
         var internalChainContext =
             new ChainContextWithTieredStateCache(singleTxExecutingDto.ChainContext, internalStateCache);
 
-        IExecutive executive;
-        try
-        {
-            executive = await _smartContractExecutiveService.GetExecutiveAsync(
-                internalChainContext,
-                singleTxExecutingDto.Transaction.To);
-        }
-        catch (SmartContractFindRegistrationException)
-        {
-            txContext.Trace.ExecutionStatus = ExecutionStatus.ContractError;
-            txContext.Trace.Error += "Invalid contract address.\n";
+        var executive = await GetExecutiveAsync(internalChainContext, singleTxExecutingDto.Transaction.To, txContext);
+        if (executive == null)
             return trace;
-        }
 
-        try
-        {
-            await executive.ApplyAsync(txContext);
+        await ApplyExecutiveAsync(executive, txContext, singleTxExecutingDto, internalStateCache, internalChainContext,
+            cancellationToken);
 
-            if (txContext.Trace.IsSuccessful())
-                await ExecuteInlineTransactions(singleTxExecutingDto.Depth, singleTxExecutingDto.CurrentBlockTime,
-                    txContext, internalStateCache,
-                    internalChainContext,
-                    singleTxExecutingDto.OriginTransactionId,
-                    cancellationToken);
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Transaction execution failed.");
-            txContext.Trace.ExecutionStatus = ExecutionStatus.ContractError;
-            txContext.Trace.Error += ex + "\n";
-            throw;
-        }
-        finally
-        {
-            await _smartContractExecutiveService.PutExecutiveAsync(singleTxExecutingDto.ChainContext,
-                singleTxExecutingDto.Transaction.To, executive);
-        }
+        await _smartContractExecutiveService.PutExecutiveAsync(singleTxExecutingDto.ChainContext,
+            singleTxExecutingDto.Transaction.To, executive);
 
         return trace;
+    }
+
+    [ExceptionHandler(typeof(SmartContractFindRegistrationException),
+        TargetType = typeof(PlainTransactionExecutingAsPluginService),
+        MethodName = nameof(HandleExceptionWhileGettingExecutive))]
+    private async Task<IExecutive> GetExecutiveAsync(IChainContext internalChainContext, Address contractAddress,
+        ITransactionContext txContext)
+    {
+        return await _smartContractExecutiveService.GetExecutiveAsync(internalChainContext, contractAddress);
+    }
+
+    [ExceptionHandler(typeof(Exception),
+        TargetType = typeof(PlainTransactionExecutingAsPluginService),
+        MethodName = nameof(HandleExceptionWhileApplyingExecutive))]
+    private async Task ApplyExecutiveAsync(IExecutive executive, ITransactionContext txContext, SingleTransactionExecutingDto singleTxExecutingDto,
+        TieredStateCache internalStateCache, IChainContext internalChainContext, CancellationToken cancellationToken)
+    {
+        await executive.ApplyAsync(txContext);
+
+        if (txContext.Trace.IsSuccessful())
+            await ExecuteInlineTransactions(singleTxExecutingDto.Depth, singleTxExecutingDto.CurrentBlockTime,
+                txContext, internalStateCache, internalChainContext, singleTxExecutingDto.OriginTransactionId, cancellationToken);
     }
 
     private async Task ExecuteInlineTransactions(int depth, Timestamp currentBlockTime,

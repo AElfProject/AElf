@@ -207,15 +207,9 @@ public class AuthInterceptorTests : GrpcNetworkWithPeerTestBase
 
     private async Task ShouldBeCancelRpcExceptionAsync(Func<Task> func)
     {
-        try
-        {
-            await func();
-            throw new XunitException("Should throw RpcException, but execute successfully.");
-        }
-        catch (RpcException e)
-        {
-            e.Status.StatusCode.ShouldBe(StatusCode.Cancelled);
-        }
+        var task = func();
+        await Assert.ThrowsAsync<RpcException>(async () => await task);
+        task.Exception?.InnerException.ShouldBeOfType<RpcException>().Status.StatusCode.ShouldBe(StatusCode.Cancelled);
     }
 
     public override void Dispose()

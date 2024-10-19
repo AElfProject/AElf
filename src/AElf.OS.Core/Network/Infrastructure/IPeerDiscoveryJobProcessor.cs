@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
+using AElf.ExceptionHandler;
 using AElf.Kernel.Account.Application;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Domain;
@@ -85,44 +86,39 @@ public class PeerDiscoveryJobProcessor : IPeerDiscoveryJobProcessor, ISingletonD
         return await _networkService.GetNodesAsync(peer);
     }
 
+    [ExceptionHandler(typeof(Exception), LogLevel = LogLevel.Warning, LogOnly = true,
+        Message = "Process node failed.")]
     private async Task ProcessNodeAsync(NodeInfo node)
     {
-        try
+        if (!await ValidateNodeAsync(node))
+            return;
+
+        if (await _nodeManager.AddNodeAsync(node))
         {
-            if (!await ValidateNodeAsync(node))
+            _discoveredNodeCacheProvider.Add(node.Endpoint);
+            Logger.LogDebug($"Discover and add node: {node.Endpoint} successfully.");
+        }
+        else
+        {
+            var endpointLocal = await TakeEndpointFromDiscoveredNodeCacheAsync();
+
+            if (endpointLocal.IsNullOrWhiteSpace())
                 return;
 
-            if (await _nodeManager.AddNodeAsync(node))
+            if (await _networkServer.CheckEndpointAvailableAsync(endpointLocal))
             {
-                _discoveredNodeCacheProvider.Add(node.Endpoint);
-                Logger.LogDebug($"Discover and add node: {node.Endpoint} successfully.");
+                _discoveredNodeCacheProvider.Add(endpointLocal);
+                Logger.LogDebug($"Only refresh node: {endpointLocal}.");
             }
             else
             {
-                var endpointLocal = await TakeEndpointFromDiscoveredNodeCacheAsync();
+                await _nodeManager.RemoveNodeAsync(endpointLocal);
+                if (await _nodeManager.AddNodeAsync(node))
+                    _discoveredNodeCacheProvider.Add(node.Endpoint);
 
-                if (endpointLocal.IsNullOrWhiteSpace())
-                    return;
-
-                if (await _networkServer.CheckEndpointAvailableAsync(endpointLocal))
-                {
-                    _discoveredNodeCacheProvider.Add(endpointLocal);
-                    Logger.LogDebug($"Only refresh node: {endpointLocal}.");
-                }
-                else
-                {
-                    await _nodeManager.RemoveNodeAsync(endpointLocal);
-                    if (await _nodeManager.AddNodeAsync(node))
-                        _discoveredNodeCacheProvider.Add(node.Endpoint);
-
-                    Logger.LogDebug(
-                        $"Remove unavailable node: {endpointLocal}, and add node: {node.Endpoint} successfully.");
-                }
+                Logger.LogDebug(
+                    $"Remove unavailable node: {endpointLocal}, and add node: {node.Endpoint} successfully.");
             }
-        }
-        catch (Exception e)
-        {
-            Logger.LogWarning(e, "Process node failed.");
         }
     }
 

@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.CSharp.Core.Extension;
+using AElf.ExceptionHandler;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
@@ -51,38 +52,32 @@ public class IrreversibleBlockFoundLogEventProcessor : LogEventProcessorBase,
         await ProcessLogEventAsync(block, irreversibleBlockFound);
     }
 
+    [ExceptionHandler(typeof(Exception), LogLevel = LogLevel.Error,
+        Message = "Failed to resolve IrreversibleBlockFound event")]
     private async Task ProcessLogEventAsync(Block block, IrreversibleBlockFound irreversibleBlockFound)
     {
-        try
-        {
-            var chain = await _blockchainService.GetChainAsync();
+        var chain = await _blockchainService.GetChainAsync();
 
-            if (chain.LastIrreversibleBlockHeight > irreversibleBlockFound.IrreversibleBlockHeight)
-                return;
+        if (chain.LastIrreversibleBlockHeight > irreversibleBlockFound.IrreversibleBlockHeight)
+            return;
 
-            var libBlockHash = await _blockchainService.GetBlockHashByHeightAsync(chain,
-                irreversibleBlockFound.IrreversibleBlockHeight, block.GetHash());
-            if (libBlockHash == null) return;
+        var libBlockHash = await _blockchainService.GetBlockHashByHeightAsync(chain,
+            irreversibleBlockFound.IrreversibleBlockHeight, block.GetHash());
+        if (libBlockHash == null) return;
 
-            if (chain.LastIrreversibleBlockHeight == irreversibleBlockFound.IrreversibleBlockHeight) return;
+        if (chain.LastIrreversibleBlockHeight == irreversibleBlockFound.IrreversibleBlockHeight) return;
 
-            var blockIndex = new BlockIndex(libBlockHash, irreversibleBlockFound.IrreversibleBlockHeight);
-            Logger.LogDebug($"About to set new lib height: {blockIndex.BlockHeight} " +
-                            $"Event: {irreversibleBlockFound} " +
-                            $"BlockIndex: {blockIndex.BlockHash} - {blockIndex.BlockHeight}");
-            _taskQueueManager.Enqueue(
-                async () =>
-                {
-                    var currentChain = await _blockchainService.GetChainAsync();
-                    if (currentChain.LastIrreversibleBlockHeight < blockIndex.BlockHeight)
-                        await _blockchainService.SetIrreversibleBlockAsync(currentChain, blockIndex.BlockHeight,
-                            blockIndex.BlockHash);
-                }, KernelConstants.UpdateChainQueueName);
-        }
-        catch (Exception e)
-        {
-            Logger.LogError(e, "Failed to resolve IrreversibleBlockFound event.");
-            throw;
-        }
+        var blockIndex = new BlockIndex(libBlockHash, irreversibleBlockFound.IrreversibleBlockHeight);
+        Logger.LogDebug($"About to set new lib height: {blockIndex.BlockHeight} " +
+                        $"Event: {irreversibleBlockFound} " +
+                        $"BlockIndex: {blockIndex.BlockHash} - {blockIndex.BlockHeight}");
+        _taskQueueManager.Enqueue(
+            async () =>
+            {
+                var currentChain = await _blockchainService.GetChainAsync();
+                if (currentChain.LastIrreversibleBlockHeight < blockIndex.BlockHeight)
+                    await _blockchainService.SetIrreversibleBlockAsync(currentChain, blockIndex.BlockHeight,
+                        blockIndex.BlockHash);
+            }, KernelConstants.UpdateChainQueueName);
     }
 }

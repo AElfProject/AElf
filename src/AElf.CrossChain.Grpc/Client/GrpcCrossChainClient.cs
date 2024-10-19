@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.CrossChain.Communication.Infrastructure;
+using AElf.ExceptionHandler;
 using AElf.Kernel;
 using AElf.Standards.ACS7;
 using Grpc.Core;
@@ -18,7 +19,7 @@ public class GrpcClientInitializationContext
     public int ListeningPort { get; set; }
 }
 
-public abstract class GrpcCrossChainClient<TData, TClient> : ICrossChainClient where TData : ICrossChainBlockEntity
+public abstract partial class GrpcCrossChainClient<TData, TClient> : ICrossChainClient where TData : ICrossChainBlockEntity
     where TClient : ClientBase<TClient>
 {
     private readonly BasicCrossChainRpc.BasicCrossChainRpcClient _basicGrpcClient;
@@ -98,17 +99,11 @@ public abstract class GrpcCrossChainClient<TData, TClient> : ICrossChainClient w
     /// </summary>
     /// <param name="requestFunc"></param>
     /// <returns></returns>
+    [ExceptionHandler(typeof(Exception), TargetType = typeof(GrpcCrossChainClient<,>),
+        MethodName = nameof(HandleExceptionWhileRequesting))]
     private async Task RequestAsync(Func<Task> requestFunc)
     {
-        try
-        {
-            await requestFunc();
-        }
-        catch (RpcException e)
-        {
-            IsConnected = false;
-            throw new GrpcCrossChainRequestException(e.Message, e);
-        }
+        await requestFunc();
     }
 
     /// <summary>
@@ -169,7 +164,7 @@ public class ClientForSideChain : GrpcCrossChainClient<SideChainBlockData, SideC
     }
 }
 
-public class ClientForParentChain : GrpcCrossChainClient<ParentChainBlockData, ParentChainRpc.ParentChainRpcClient>
+public partial class ClientForParentChain : GrpcCrossChainClient<ParentChainBlockData, ParentChainRpc.ParentChainRpcClient>
 {
     public ClientForParentChain(GrpcClientInitializationContext grpcClientInitializationContext)
         : base(grpcClientInitializationContext)
@@ -183,21 +178,16 @@ public class ClientForParentChain : GrpcCrossChainClient<ParentChainBlockData, P
         return GrpcClient.RequestIndexingFromParentChain(crossChainRequest, CreateOption());
     }
 
+    [ExceptionHandler(typeof(Exception), TargetType = typeof(ClientForParentChain),
+        MethodName = nameof(HandleExceptionWhileRequestingChainInitializationData))]
     public override async Task<ChainInitializationData> RequestChainInitializationDataAsync(int chainId)
     {
-        try
-        {
-            var sideChainInitializationResponse =
-                await GrpcClient.RequestChainInitializationDataFromParentChainAsync(
-                    new SideChainInitializationRequest
-                    {
-                        ChainId = chainId
-                    });
-            return sideChainInitializationResponse;
-        }
-        catch (RpcException e)
-        {
-            throw new GrpcCrossChainRequestException("Request initialization data failed.", e);
-        }
+        var sideChainInitializationResponse =
+            await GrpcClient.RequestChainInitializationDataFromParentChainAsync(
+                new SideChainInitializationRequest
+                {
+                    ChainId = chainId
+                });
+        return sideChainInitializationResponse;
     }
 }

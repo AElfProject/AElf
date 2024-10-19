@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 using AElf.CSharp.CodeOps;
+using AElf.ExceptionHandler;
 using AElf.Kernel.CodeCheck.Infrastructure;
 using CommandLine;
 using Microsoft.Extensions.DependencyInjection;
@@ -50,23 +52,42 @@ internal class Program
         var patchedCode = contractPatcher.Patch(File.ReadAllBytes(o.ContractDllPath), o.IsSystemContract);
 
         if (!o.SkipAudit)
-            try
-            {
-                var auditor = application.ServiceProvider.GetRequiredService<IContractAuditor>();
-                auditor.Audit(patchedCode, null, o.IsSystemContract);
-            }
-            catch (CSharpCodeCheckException ex)
-            {
-                foreach (var finding in ex.Findings)
-                    // Print error in parsable format so that it can be shown in IDE
-                    Console.WriteLine($"error: {finding}");
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("Audit exception: ",e);
-            }
+        {
+            PerformAudit(o, application, patchedCode);
+        }
 
         File.WriteAllBytes(saveAsPath, patchedCode);
+    }
+
+    [ExceptionHandler(typeof(Exception), TargetType = typeof(Program),
+        MethodName = nameof(HandleExceptionWhilePerformingAudit))]
+    [ExceptionHandler(typeof(CSharpCodeCheckException), TargetType = typeof(Program),
+        MethodName = nameof(HandleExceptionWhilePerformingAudit))]
+    private static void PerformAudit(Options o, IAbpApplicationWithInternalServiceProvider application,
+        byte[] patchedCode)
+    {
+        var auditor = application.ServiceProvider.GetRequiredService<IContractAuditor>();
+        auditor.Audit(patchedCode, null, o.IsSystemContract);
+    }
+
+    protected async Task<FlowBehavior> HandleExceptionWhilePerformingAudit(CSharpCodeCheckException ex)
+    {
+        foreach (var finding in ex.Findings)
+            // Print error in parsable format so that it can be shown in IDE
+            Console.WriteLine($"error: {finding}");
+        return new FlowBehavior
+        {
+            ExceptionHandlingStrategy = ExceptionHandlingStrategy.Continue,
+        };
+    }
+    
+    protected async Task<FlowBehavior> HandleExceptionWhilePerformingAudit(Exception ex)
+    {
+        Console.WriteLine("Audit exception: ",ex);
+        return new FlowBehavior
+        {
+            ExceptionHandlingStrategy = ExceptionHandlingStrategy.Continue,
+        };
     }
 
     private class Options

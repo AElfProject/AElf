@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using AElf.ExceptionHandler;
 
 namespace AElf.Database.RedisProtocol;
 
 /**
     * Simplified NServiceKit.Redis
     */
-public class PooledRedisLite
+public partial class PooledRedisLite
 {
     private readonly RedisLite[] _readOnlyClients;
     private readonly RedisLite[] _writeClients;
@@ -126,34 +127,28 @@ public class PooledRedisLite
         }
     }
 
+    [ExceptionHandler(typeof(Exception), TargetType = typeof(PooledRedisLite),
+        MethodName = nameof(HandleExceptionWhileGettingNodes))]
     private RedisLite GetRedisClient(bool readOnly = false)
     {
         var lockObject = readOnly ? _readOnlyClients : _writeClients;
-
-        try
+        lock (lockObject)
         {
-            lock (lockObject)
-            {
-                RedisLite inActiveClient;
-                while ((inActiveClient = GetInActiveRedisClient(readOnly)) == null)
-                    if (PoolTimeout.HasValue)
-                    {
-                        // wait for a connection, cry out if made to wait too long
-                        if (!Monitor.Wait(lockObject, PoolTimeout.Value))
-                            throw new TimeoutException("Pool timeout error.");
-                    }
-                    else
-                    {
-                        Monitor.Wait(lockObject, RecheckPoolAfterMs);
-                    }
+            RedisLite inActiveClient;
+            while ((inActiveClient = GetInActiveRedisClient(readOnly)) == null)
+                if (PoolTimeout.HasValue)
+                {
+                    // wait for a connection, cry out if made to wait too long
+                    if (!Monitor.Wait(lockObject, PoolTimeout.Value))
+                        throw new TimeoutException("Pool timeout error.");
+                }
+                else
+                {
+                    Monitor.Wait(lockObject, RecheckPoolAfterMs);
+                }
 
-                inActiveClient.Active = true;
-                return inActiveClient;
-            }
-        }
-        catch (Exception ex)
-        {
-            throw new RedisException("Got exception while get redis client.", ex);
+            inActiveClient.Active = true;
+            return inActiveClient;
         }
     }
 

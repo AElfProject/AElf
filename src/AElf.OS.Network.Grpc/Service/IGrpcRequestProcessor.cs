@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.ExceptionHandler;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.TransactionPool;
 using AElf.OS.Network.Application;
@@ -29,7 +30,7 @@ public interface IGrpcRequestProcessor
     Task<VoidReply> DisconnectAsync(DisconnectReason request, string peerInfo, string peerPubkey, string requestId = null);
 }
 
-public class GrpcRequestProcessor : IGrpcRequestProcessor, ISingletonDependency
+public partial class GrpcRequestProcessor : IGrpcRequestProcessor, ISingletonDependency
 {
     private readonly IBlockchainService _blockchainService;
     private readonly IConnectionService _connectionService;
@@ -124,37 +125,33 @@ public class GrpcRequestProcessor : IGrpcRequestProcessor, ISingletonDependency
     ///     of <see cref="BlockRequest.Hash" /> is not null, the request is by ID, otherwise it will be
     ///     by height.
     /// </summary>
-    public async Task<BlockReply> GetBlockAsync(BlockRequest request, string peerInfo, string peerPubkey, string requestId)
+    [ExceptionHandler(typeof(Exception), TargetType = typeof(GrpcRequestProcessor),
+        MethodName = nameof(HandleExceptionWhileGettingBlock))]
+    public async Task<BlockReply> GetBlockAsync(BlockRequest request, string peerInfo, string peerPubkey,
+        string requestId)
     {
         if (request == null || request.Hash == null || _syncStateService.SyncState != SyncState.Finished)
             return new BlockReply();
 
         Logger.LogDebug($"Peer {peerInfo} requested block {request.Hash}.");
 
-        BlockWithTransactions block;
-        try
-        {
-            block = await _blockchainService.GetBlockWithTransactionsByHashAsync(request.Hash);
+        var block = await _blockchainService.GetBlockWithTransactionsByHashAsync(request.Hash);
 
-            if (block == null)
-            {
-                Logger.LogDebug($"Could not find block {request.Hash} for {peerInfo}.");
-            }
-            else
-            {
-                var peer = _connectionService.GetPeerByPubkey(peerPubkey);
-                peer.TryAddKnownBlock(block.GetHash());
-            }
-        }
-        catch (Exception e)
+        if (block == null)
         {
-            Logger.LogWarning(e, $"Request block error: {peerPubkey}");
-            throw;
+            Logger.LogDebug($"Could not find block {request.Hash} for {peerInfo}.");
+        }
+        else
+        {
+            var peer = _connectionService.GetPeerByPubkey(peerPubkey);
+            peer.TryAddKnownBlock(block.GetHash());
         }
 
         return new BlockReply { Block = block };
     }
 
+    [ExceptionHandler(typeof(Exception), TargetType = typeof(GrpcRequestProcessor),
+        MethodName = nameof(HandleExceptionWhileGettingBlocks))]
     public async Task<BlockList> GetBlocksAsync(BlocksRequest request, string peerInfo, string requestId)
     {
         if (request == null ||
@@ -165,28 +162,24 @@ public class GrpcRequestProcessor : IGrpcRequestProcessor, ISingletonDependency
             return new BlockList();
 
         Logger.LogDebug(
-            "Peer {peerInfo} requested {count} blocks from {preHash}. requestId={requestId}", peerInfo, request.Count, request.PreviousBlockHash.ToHex(), requestId);
+            "Peer {peerInfo} requested {count} blocks from {preHash}. requestId={requestId}", peerInfo, request.Count,
+            request.PreviousBlockHash.ToHex(), requestId);
 
         var blockList = new BlockList();
 
-        try
-        {
-            var blocks =
-                await _blockchainService.GetBlocksWithTransactionsAsync(request.PreviousBlockHash, request.Count);
+        var blocks =
+            await _blockchainService.GetBlocksWithTransactionsAsync(request.PreviousBlockHash, request.Count);
 
-            blockList.Blocks.AddRange(blocks);
-            Logger.LogDebug(
-                "Replied to {peerInfo} with {count}, request was {request}. requestId={requestId}", peerInfo, blockList.Blocks.Count, request, requestId);
-        }
-        catch (Exception e)
-        {
-            Logger.LogWarning(e, "Request blocks error - {peerInfo} - request={request}. requestId={requestId} ", peerInfo, request, requestId);
-            throw;
-        }
+        blockList.Blocks.AddRange(blocks);
+        Logger.LogDebug(
+            "Replied to {peerInfo} with {count}, request was {request}. requestId={requestId}", peerInfo,
+            blockList.Blocks.Count, request, requestId);
 
         return blockList;
     }
 
+    [ExceptionHandler(typeof(Exception), TargetType = typeof(GrpcRequestProcessor),
+        MethodName = nameof(HandleExceptionWhileGettingNodes))]
     public async Task<NodeList> GetNodesAsync(NodesRequest request, string peerInfo)
     {
         if (request == null)
@@ -195,53 +188,30 @@ public class GrpcRequestProcessor : IGrpcRequestProcessor, ISingletonDependency
         var nodesCount = Math.Min(request.MaxCount, GrpcConstants.DefaultDiscoveryMaxNodesToResponse);
         Logger.LogDebug("Peer {peerInfo} requested {nodesCount} nodes.", peerInfo, nodesCount);
 
-        NodeList nodes;
-        try
-        {
-            nodes = await _nodeManager.GetRandomNodesAsync(nodesCount);
-        }
-        catch (Exception e)
-        {
-            Logger.LogWarning(e, "Get nodes error: ");
-            throw;
-        }
+        var nodes = await _nodeManager.GetRandomNodesAsync(nodesCount);
 
         Logger.LogDebug("Sending {Count} to {peerInfo}.", nodes.Nodes.Count, peerInfo);
         return nodes;
     }
 
+    [ExceptionHandler(typeof(Exception), TargetType = typeof(GrpcRequestProcessor),
+        MethodName = nameof(HandleExceptionWhileConfirmingHandshake))]
     public Task<VoidReply> ConfirmHandshakeAsync(string peerInfo, string peerPubkey, string requestId)
     {
-        try
-        {
-            Logger.LogDebug("Peer {peerInfo} has requested a handshake confirmation. requestId={requestId}", peerInfo, requestId);
-            _connectionService.ConfirmHandshake(peerPubkey);
-        }
-        catch (Exception e)
-        {
-            Logger.LogWarning(e, "Confirm handshake error - {peerInfo}: requestId={requestId}", peerInfo, requestId);
-            throw;
-        }
-
+        Logger.LogDebug("Peer {peerInfo} has requested a handshake confirmation. requestId={requestId}", peerInfo,
+            requestId);
+        _connectionService.ConfirmHandshake(peerPubkey);
         return Task.FromResult(new VoidReply());
     }
 
+    [ExceptionHandler(typeof(Exception), TargetType = typeof(GrpcRequestProcessor),
+        MethodName = nameof(HandleExceptionWhileRemovingPeer))]
     public async Task<VoidReply> DisconnectAsync(DisconnectReason request, string peerInfo, string peerPubkey, string requestId)
     {
         Logger.LogDebug("Peer {peerInfo} has sent a disconnect request. reason={reason} requestId={requestId}", peerInfo, request, requestId);
-        try
-        {
-            await _connectionService.RemovePeerAsync(peerPubkey);
-        }
-        catch (Exception e)
-        {
-            Logger.LogError(e, "requestId={requestId}, Disconnect error: ", requestId);
-            throw;
-        }
-
+        await _connectionService.RemovePeerAsync(peerPubkey);
         return new VoidReply();
     }
-
 
     /// <summary>
     ///     Try to get the peer based on peerPubkey.

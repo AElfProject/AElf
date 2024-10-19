@@ -1,13 +1,14 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.ExceptionHandler;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Standards.ACS2;
 using AElf.Types;
 
 namespace AElf.Kernel.SmartContract.Parallel;
 
-internal static class ExecutiveExtensions
+internal static partial class ExecutiveExtensions
 {
     public static async Task<TransactionResourceInfo> GetTransactionResourceInfoAsync(this IExecutive executive,
         ITransactionContext transactionContext, Hash txId)
@@ -15,27 +16,28 @@ internal static class ExecutiveExtensions
         await executive.ApplyAsync(transactionContext);
         if (!transactionContext.Trace.IsSuccessful()) return NotParallelizable(txId, executive.ContractHash);
 
-        try
+        return ConvertResourceInfoToTransactionResourceInfoAsync(executive, transactionContext, txId);
+    }
+
+    [ExceptionHandler(typeof(Exception), TargetType = typeof(ExecutiveExtensions),
+        MethodName = nameof(HandleExceptionWhileParsingResourceInfo))]
+    private static TransactionResourceInfo ConvertResourceInfoToTransactionResourceInfoAsync(IExecutive executive,
+        ITransactionContext transactionContext, Hash txId)
+    {
+        var resourceInfo = ResourceInfo.Parser.ParseFrom(transactionContext.Trace.ReturnValue);
+        return new TransactionResourceInfo
         {
-            var resourceInfo = ResourceInfo.Parser.ParseFrom(transactionContext.Trace.ReturnValue);
-            return new TransactionResourceInfo
+            TransactionId = txId,
+            WritePaths =
             {
-                TransactionId = txId,
-                WritePaths =
-                {
-                    resourceInfo.WritePaths
-                },
-                ReadPaths = { resourceInfo.ReadPaths },
-                ParallelType = resourceInfo.NonParallelizable
-                    ? ParallelType.NonParallelizable
-                    : ParallelType.Parallelizable,
-                ContractHash = executive.ContractHash
-            };
-        }
-        catch (Exception)
-        {
-            return NotParallelizable(txId, executive.ContractHash);
-        }
+                resourceInfo.WritePaths
+            },
+            ReadPaths = { resourceInfo.ReadPaths },
+            ParallelType = resourceInfo.NonParallelizable
+                ? ParallelType.NonParallelizable
+                : ParallelType.Parallelizable,
+            ContractHash = executive.ContractHash
+        };
     }
 
     internal static bool IsParallelizable(this IExecutive executive)

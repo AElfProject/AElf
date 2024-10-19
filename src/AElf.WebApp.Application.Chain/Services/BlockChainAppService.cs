@@ -1,4 +1,6 @@
+using System;
 using System.Threading.Tasks;
+using AElf.ExceptionHandler;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Domain;
@@ -69,22 +71,20 @@ public class BlockChainAppService : AElfAppService, IBlockChainAppService
     /// <returns></returns>
     public async Task<BlockDto> GetBlockAsync(string blockHash, bool includeTransactions = false)
     {
-        Hash realBlockHash;
-        try
-        {
-            realBlockHash = Hash.LoadFromHex(blockHash);
-        }
-        catch
-        {
-            throw new UserFriendlyException(Error.Message[Error.InvalidBlockHash],
-                Error.InvalidBlockHash.ToString());
-        }
+        var realBlockHash = ParseHash(blockHash, Error.InvalidBlockHash);
 
         var block = await GetBlockAsync(realBlockHash);
 
         var blockDto = CreateBlockDto(block, includeTransactions);
 
         return blockDto;
+    }
+    
+    [ExceptionHandler(typeof(Exception), TargetType = typeof(ExceptionHandlerService),
+        MethodName = nameof(ExceptionHandlerService.HandleExceptionWhileParsingHash))]
+    private Hash ParseHash(string hexHash, int errorCode)
+    {
+        return Hash.LoadFromHex(hexHash);
     }
 
     /// <summary>

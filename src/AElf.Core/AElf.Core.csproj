@@ -10,10 +10,14 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="Serilog.AspNetCore" Version="8.0.3" />
+        <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
+        <PackageReference Include="Serilog" Version="4.0.2" />
+        <PackageReference Include="AElf.ExceptionHandler.ABP" Version="1.0.0" />
         <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
         <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.1" />
         <PackageReference Include="System.Threading.Tasks.Dataflow" Version="8.0.0" />
-        <PackageReference Include="Volo.Abp.Core" Version="8.0.5" />
+        <PackageReference Include="Volo.Abp.Core" />
     </ItemGroup>
 
 </Project>

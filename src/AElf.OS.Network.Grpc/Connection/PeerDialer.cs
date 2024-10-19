@@ -5,6 +5,7 @@ using System.Net.Security;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.ExceptionHandler;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.SmartContract;
@@ -29,7 +30,7 @@ namespace AElf.OS.Network.Grpc;
 ///     Provides functionality to setup a connection to a distant node by exchanging some
 ///     low level information.
 /// </summary>
-public class PeerDialer : IPeerDialer
+public partial class PeerDialer : IPeerDialer
 {
     private readonly IAccountService _accountService;
     private readonly IHandshakeProvider _handshakeProvider;
@@ -86,7 +87,7 @@ public class PeerDialer : IPeerDialer
 
         if (UpgradeToStream(handshake, handshakeReply.Handshake))
         {
-            peer = await DailStreamPeerAsync(client, remoteEndpoint, connectionInfo);
+            peer = await DialStreamPeerAsync(client, remoteEndpoint, connectionInfo);
             if (peer == null) return peer;
         }
         else
@@ -161,17 +162,17 @@ public class PeerDialer : IPeerDialer
 
         if (client == null)
             return false;
-        try
-        {
-            await PingNodeAsync(client, remoteEndpoint);
-            await client.Channel.ShutdownAsync();
-            return true;
-        }
-        catch (Exception e)
-        {
-            Logger.LogWarning(e, $"Could not ping peer {remoteEndpoint}.");
-            return false;
-        }
+
+        return await PerformPingNodeAsync(remoteEndpoint, client);
+    }
+
+    [ExceptionHandler(typeof(Exception), TargetType = typeof(PeerDialer),
+        MethodName = nameof(HandleExceptionWhilePerformingPingNode))]
+    private async Task<bool> PerformPingNodeAsync(DnsEndPoint remoteEndpoint, GrpcClient client)
+    {
+        await PingNodeAsync(client, remoteEndpoint);
+        await client.Channel.ShutdownAsync();
+        return true;
     }
 
     public async Task<GrpcPeer> DialBackPeerAsync(DnsEndPoint remoteEndpoint, Handshake handshake)
@@ -202,30 +203,21 @@ public class PeerDialer : IPeerDialer
     ///     Calls the server side DoHandshake RPC method, in order to establish a 2-way connection.
     /// </summary>
     /// <returns>The reply from the server.</returns>
+    [ExceptionHandler(typeof(Exception), TargetType = typeof(PeerDialer),
+        MethodName = nameof(HandleExceptionWhileCallingDoHandshake))]
     private async Task<HandshakeReply> CallDoHandshakeAsync(GrpcClient client, DnsEndPoint remoteEndPoint,
         Handshake handshake)
     {
-        HandshakeReply handshakeReply;
-
-        try
+        var metadata = new Metadata
         {
-            var metadata = new Metadata
-            {
-                { GrpcConstants.RetryCountMetadataKey, "0" },
-                { GrpcConstants.TimeoutMetadataKey, (NetworkOptions.PeerDialTimeout * 2).ToString() }
-            };
+            { GrpcConstants.RetryCountMetadataKey, "0" },
+            { GrpcConstants.TimeoutMetadataKey, (NetworkOptions.PeerDialTimeout * 2).ToString() }
+        };
 
-            handshakeReply =
-                await client.Client.DoHandshakeAsync(new HandshakeRequest { Handshake = handshake }, metadata);
+        var handshakeReply =
+            await client.Client.DoHandshakeAsync(new HandshakeRequest { Handshake = handshake }, metadata);
 
-            Logger.LogDebug($"Handshake to {remoteEndPoint} successful.");
-        }
-        catch (Exception)
-        {
-            await client.Channel.ShutdownAsync();
-            throw;
-        }
-
+        Logger.LogDebug($"Handshake to {remoteEndPoint} successful.");
         return handshakeReply;
     }
 
@@ -235,40 +227,37 @@ public class PeerDialer : IPeerDialer
                handshakeReply.HandshakeData.NodeVersion.GreaterThanSupportStreamMinVersion(NetworkOptions.SupportStreamMinVersion);
     }
 
-    private async Task<GrpcStreamPeer> DailStreamPeerAsync(GrpcClient client, DnsEndPoint remoteEndpoint, PeerConnectionInfo connectionInfo)
+    [ExceptionHandler(typeof(Exception), TargetType = typeof(PeerDialer),
+        MethodName = nameof(HandleExceptionWhileDialingStreamPeer))]
+    private async Task<GrpcStreamPeer> DialStreamPeerAsync(GrpcClient client, DnsEndPoint remoteEndpoint,
+        PeerConnectionInfo connectionInfo)
     {
-        try
-        {
-            var nodePubkey = (await _accountService.GetPublicKeyAsync()).ToHex();
-            var headers = new Metadata { new(GrpcConstants.GrpcRequestCompressKey, GrpcConstants.GrpcGzipConst) };
-            var call = client.Client.RequestByStream(new CallOptions().WithHeaders(headers).WithDeadline(DateTime.MaxValue));
-            var streamPeer = new GrpcStreamPeer(client, remoteEndpoint, connectionInfo, call, null, _streamTaskResourcePool,
-                new Dictionary<string, string>()
-                {
-                    { GrpcConstants.PubkeyMetadataKey, nodePubkey },
-                    { GrpcConstants.PeerInfoMetadataKey, connectionInfo.ToString() }
-                });
-            streamPeer.SetStreamSendCallBack(async (ex, streamMessage, callTimes) =>
+        var nodePubkey = (await _accountService.GetPublicKeyAsync()).ToHex();
+        var headers = new Metadata { new(GrpcConstants.GrpcRequestCompressKey, GrpcConstants.GrpcGzipConst) };
+        var call = client.Client.RequestByStream(new CallOptions().WithHeaders(headers)
+            .WithDeadline(DateTime.MaxValue));
+        var streamPeer = new GrpcStreamPeer(client, remoteEndpoint, connectionInfo, call, null,
+            _streamTaskResourcePool,
+            new Dictionary<string, string>
             {
-                if (ex == null)
-                    Logger.LogDebug("streamRequest write success {times}-{requestId}-{messageType}-{this}-{latency}", callTimes, streamMessage.RequestId, streamMessage.MessageType, streamPeer,
-                        CommonHelper.GetRequestLatency(streamMessage.RequestId));
-                else
-                {
-                    Logger.LogError(ex, "streamRequest write fail, {requestId}-{messageType}-{this}", streamMessage.RequestId, streamMessage.MessageType, streamPeer);
-                    await EventBus.PublishAsync(new StreamPeerExceptionEvent(ex, streamPeer), false);
-                }
+                { GrpcConstants.PubkeyMetadataKey, nodePubkey },
+                { GrpcConstants.PeerInfoMetadataKey, connectionInfo.ToString() }
             });
-            var success = await BuildStreamForPeerAsync(streamPeer, call);
-            return success ? streamPeer : null;
-        }
-        catch (Exception e)
+        streamPeer.SetStreamSendCallBack(async (ex, streamMessage, callTimes) =>
         {
-            Logger.LogError(e, "stream handle shake failed {remoteEndpoint}", remoteEndpoint);
-            if (client.Channel.State == ChannelState.Idle || client.Channel.State == ChannelState.Ready)
-                await client.Channel.ShutdownAsync();
-            throw;
-        }
+            if (ex == null)
+                Logger.LogDebug("streamRequest write success {times}-{requestId}-{messageType}-{this}-{latency}",
+                    callTimes, streamMessage.RequestId, streamMessage.MessageType, streamPeer,
+                    CommonHelper.GetRequestLatency(streamMessage.RequestId));
+            else
+            {
+                Logger.LogError(ex, "streamRequest write fail, {requestId}-{messageType}-{this}",
+                    streamMessage.RequestId, streamMessage.MessageType, streamPeer);
+                await EventBus.PublishAsync(new StreamPeerExceptionEvent(ex, streamPeer), false);
+            }
+        });
+        var success = await BuildStreamForPeerAsync(streamPeer, call);
+        return success ? streamPeer : null;
     }
 
     public async Task<bool> BuildStreamForPeerAsync(GrpcStreamPeer streamPeer, AsyncDuplexStreamingCall<StreamMessage, StreamMessage> call = null)
@@ -278,21 +267,7 @@ public class PeerDialer : IPeerDialer
         var tokenSource = new CancellationTokenSource();
         Task.Run(async () =>
         {
-            try
-            {
-                await call.ResponseStream.ForEachAsync(async req =>
-                {
-                    Logger.LogDebug("listenReceive request={requestId} {streamType}-{messageType} latency={latency}", req.RequestId, req.StreamType, req.MessageType, CommonHelper.GetRequestLatency(req.RequestId));
-                    await EventBus.PublishAsync(new StreamMessageReceivedEvent(req.ToByteString(), streamPeer.Info.Pubkey, req.RequestId), false);
-                });
-                Logger.LogWarning("listen end and complete {remoteEndPoint}", streamPeer.RemoteEndpoint.ToString());
-            }
-            catch (Exception e)
-            {
-                if (e is RpcException exception)
-                    await EventBus.PublishAsync(new StreamPeerExceptionEvent(streamPeer.HandleRpcException(exception, "listen err {remoteEndPoint}"), streamPeer));
-                Logger.LogError(e, "listen err {remoteEndPoint}", streamPeer.RemoteEndpoint.ToString());
-            }
+            await ProcessStreamMessagesAsync(call.ResponseStream, streamPeer);
         }, tokenSource.Token);
         streamPeer.StartServe(tokenSource);
         var handshake = await _handshakeProvider.GetHandshakeAsync();
@@ -309,31 +284,35 @@ public class PeerDialer : IPeerDialer
         return true;
     }
 
+    [ExceptionHandler(typeof(Exception), TargetType = typeof(PeerDialer),
+        MethodName = nameof(HandleExceptionWhileProcessingStreamMessages))]
+    private async Task ProcessStreamMessagesAsync(IAsyncStreamReader<StreamMessage> responseStream, GrpcStreamPeer streamPeer)
+    {
+        await responseStream.ForEachAsync(async req =>
+        {
+            Logger.LogDebug("listenReceive request={requestId} {streamType}-{messageType} latency={latency}", req.RequestId, req.StreamType, req.MessageType, CommonHelper.GetRequestLatency(req.RequestId));
+            await EventBus.PublishAsync(new StreamMessageReceivedEvent(req.ToByteString(), streamPeer.Info.Pubkey, req.RequestId), false);
+        });
+        Logger.LogWarning("listen end and complete {remoteEndPoint}", streamPeer.RemoteEndpoint.ToString());
+    }
 
     /// <summary>
     ///     Checks that the distant node is reachable by pinging it.
     /// </summary>
     /// <returns>The reply from the server.</returns>
+    [ExceptionHandler(typeof(Exception), TargetType = typeof(PeerDialer),
+        MethodName = nameof(HandleExceptionWhilePingingNode))]
     private async Task PingNodeAsync(GrpcClient client, DnsEndPoint peerEndpoint)
     {
-        try
+        var metadata = new Metadata
         {
-            var metadata = new Metadata
-            {
-                { GrpcConstants.RetryCountMetadataKey, "0" },
-                { GrpcConstants.TimeoutMetadataKey, NetworkOptions.PeerDialTimeout.ToString() }
-            };
+            { GrpcConstants.RetryCountMetadataKey, "0" },
+            { GrpcConstants.TimeoutMetadataKey, NetworkOptions.PeerDialTimeout.ToString() }
+        };
 
-            await client.Client.PingAsync(new PingRequest(), metadata);
+        await client.Client.PingAsync(new PingRequest(), metadata);
 
-            Logger.LogDebug($"Pinged {peerEndpoint} successfully.");
-        }
-        catch (Exception ex)
-        {
-            Logger.LogWarning(ex, $"Could not ping {peerEndpoint}.");
-            await client.Channel.ShutdownAsync();
-            throw;
-        }
+        Logger.LogDebug($"Pinged {peerEndpoint} successfully.");
     }
 
     /// <summary>
@@ -375,55 +354,35 @@ public class PeerDialer : IPeerDialer
         return new GrpcClient(channel, client, certificate);
     }
 
-    private async Task<X509Certificate> RetrieveServerCertificateAsync(DnsEndPoint remoteEndpoint)
+    [ExceptionHandler(typeof(OperationCanceledException), TargetType = typeof(PeerDialer),
+        MethodName = nameof(HandleExceptionWhileRetrievingServerCertificate),
+        FinallyTargetType = typeof(PeerDialer), FinallyMethodName = nameof(CloseClient))]
+    [ExceptionHandler(typeof(Exception), TargetType = typeof(PeerDialer),
+        MethodName = nameof(HandleExceptionWhileRetrievingServerCertificate),
+        FinallyTargetType = typeof(PeerDialer), FinallyMethodName = nameof(CloseClient))]
+    private async Task<X509Certificate> RetrieveServerCertificateAsync(DnsEndPoint remoteEndpoint,
+        TcpClient client = null)
     {
         Logger.LogDebug($"Starting certificate retrieval for {remoteEndpoint}.");
+        client = new TcpClient();
+        using var cts = new CancellationTokenSource();
+        cts.CancelAfter(NetworkConstants.DefaultSslCertifFetchTimeout);
+        await client.ConnectAsync(remoteEndpoint.Host, remoteEndpoint.Port, cts.Token);
 
-        TcpClient client = null;
+        await using var sslStream = new SslStream(client.GetStream(), true, (a, b, c, d) => true);
+        sslStream.ReadTimeout = NetworkConstants.DefaultSslCertifFetchTimeout;
+        sslStream.WriteTimeout = NetworkConstants.DefaultSslCertifFetchTimeout;
+        await sslStream.AuthenticateAsClientAsync(remoteEndpoint.Host).WithCancellation(cts.Token);
 
-        try
+        if (sslStream.RemoteCertificate == null)
         {
-            client = new TcpClient();
-            using (var cts = new CancellationTokenSource())
-            {
-                cts.CancelAfter(NetworkConstants.DefaultSslCertifFetchTimeout);
-                await client.ConnectAsync(remoteEndpoint.Host, remoteEndpoint.Port).WithCancellation(cts.Token);
-
-                using (var sslStream = new SslStream(client.GetStream(), true, (a, b, c, d) => true))
-                {
-                    sslStream.ReadTimeout = NetworkConstants.DefaultSslCertifFetchTimeout;
-                    sslStream.WriteTimeout = NetworkConstants.DefaultSslCertifFetchTimeout;
-                    await sslStream.AuthenticateAsClientAsync(remoteEndpoint.Host).WithCancellation(cts.Token);
-
-                    if (sslStream.RemoteCertificate == null)
-                    {
-                        Logger.LogDebug($"Certificate from {remoteEndpoint} is null");
-                        return null;
-                    }
-
-                    Logger.LogDebug($"Retrieved certificate for {remoteEndpoint}.");
-
-                    return FromX509Certificate(sslStream.RemoteCertificate);
-                }
-            }
-        }
-        catch (OperationCanceledException)
-        {
-            Logger.LogDebug($"Certificate retrieval connection timeout for {remoteEndpoint}.");
+            Logger.LogDebug($"Certificate from {remoteEndpoint} is null");
             return null;
         }
-        catch (Exception ex)
-        {
-            // swallow exception because it's currently not a hard requirement to 
-            // upgrade the connection.
-            Logger.LogWarning(ex, $"Could not retrieve certificate from {remoteEndpoint}.");
-        }
-        finally
-        {
-            client?.Close();
-        }
 
-        return null;
+        Logger.LogDebug($"Retrieved certificate for {remoteEndpoint}.");
+
+        return FromX509Certificate(sslStream.RemoteCertificate);
     }
 
     public static X509Certificate FromX509Certificate(

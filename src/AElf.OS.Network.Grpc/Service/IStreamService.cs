@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.ExceptionHandler;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Grpc.Helpers;
 using AElf.OS.Network.Infrastructure;
@@ -20,7 +21,7 @@ public interface IStreamService
     Task ProcessStreamPeerException(NetworkException exception, IPeer peer);
 }
 
-public class StreamService : IStreamService, ISingletonDependency
+public partial class StreamService : IStreamService, ISingletonDependency
 {
     public ILogger<StreamService> Logger { get; set; }
     private readonly IConnectionService _connectionService;
@@ -39,22 +40,18 @@ public class StreamService : IStreamService, ISingletonDependency
         _streamMethods = streamMethods.ToDictionary(x => x.Method, y => y);
     }
 
+    [ExceptionHandler(typeof(Exception), TargetType = typeof(StreamService),
+        MethodName = nameof(HandleExceptionWhileProcessingStreamRequest))]
     public async Task ProcessStreamRequestAsync(StreamMessage message, ServerCallContext context)
     {
         var peer = _connectionService.GetPeerByPubkey(context.GetPublicKey());
         var streamPeer = peer as GrpcStreamPeer;
         Logger.LogDebug("receive {requestId} {streamType} {meta}", message.RequestId, message.StreamType, message.Meta);
-        try
-        {
-            await DoProcessAsync(new StreamMessageMetaStreamContext(message.Meta), message, streamPeer);
-            Logger.LogDebug("handle stream call success, clientPubKey={clientPubKey} request={requestId} {streamType}-{messageType} latency={latency}",
-                context.GetPublicKey(), message.RequestId, message.StreamType, message.MessageType, CommonHelper.GetRequestLatency(message.RequestId));
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "handle stream call failed, clientPubKey={clientPubKey} request={requestId} {streamType}-{messageType} latency={latency}",
-                context.GetPublicKey(), message.RequestId, message.StreamType, message.MessageType, CommonHelper.GetRequestLatency(message.RequestId));
-        }
+        await DoProcessAsync(new StreamMessageMetaStreamContext(message.Meta), message, streamPeer);
+        Logger.LogDebug(
+            "handle stream call success, clientPubKey={clientPubKey} request={requestId} {streamType}-{messageType} latency={latency}",
+            context.GetPublicKey(), message.RequestId, message.StreamType, message.MessageType,
+            CommonHelper.GetRequestLatency(message.RequestId));
     }
 
     public async Task ProcessStreamPeerException(NetworkException exception, IPeer peer)
@@ -62,24 +59,19 @@ public class StreamService : IStreamService, ISingletonDependency
         await HandleNetworkExceptionAsync(peer, exception);
     }
 
+    [ExceptionHandler(typeof(Exception), TargetType = typeof(StreamService),
+        MethodName = nameof(HandleExceptionWhileProcessingStreamReply))]
     public async Task ProcessStreamReplyAsync(ByteString reply, string clientPubKey)
     {
         var message = StreamMessage.Parser.ParseFrom(reply);
         Logger.LogDebug("receive {requestId} {streamType} {meta}", message.RequestId, message.StreamType, message.Meta);
-
         var peer = _connectionService.GetPeerByPubkey(clientPubKey);
         var streamPeer = peer as GrpcStreamPeer;
-        try
-        {
-            await DoProcessAsync(new StreamMessageMetaStreamContext(message.Meta), message, streamPeer);
-            Logger.LogDebug("handle stream call success, clientPubKey={clientPubKey} request={requestId} {streamType}-{messageType} latency={latency}",
-                clientPubKey, message.RequestId, message.StreamType, message.MessageType, CommonHelper.GetRequestLatency(message.RequestId));
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "handle stream call failed, clientPubKey={clientPubKey} request={requestId} {streamType}-{messageType} latency={latency}",
-                clientPubKey, message.RequestId, message.StreamType, message.MessageType, CommonHelper.GetRequestLatency(message.RequestId));
-        }
+        await DoProcessAsync(new StreamMessageMetaStreamContext(message.Meta), message, streamPeer);
+        Logger.LogDebug(
+            "handle stream call success, clientPubKey={clientPubKey} request={requestId} {streamType}-{messageType} latency={latency}",
+            clientPubKey, message.RequestId, message.StreamType, message.MessageType,
+            CommonHelper.GetRequestLatency(message.RequestId));
     }
 
     private async Task DoProcessAsync(IStreamContext streamContext, StreamMessage request, GrpcStreamPeer responsePeer)
@@ -103,32 +95,28 @@ public class StreamService : IStreamService, ISingletonDependency
         }
     }
 
-
-    private async Task ProcessRequestAsync(StreamMessage request, GrpcStreamPeer responsePeer, IStreamContext streamContext)
+    [ExceptionHandler(typeof(Exception), TargetType = typeof(StreamService),
+        MethodName = nameof(HandleExceptionWhileProcessingRequest))]
+    private async Task ProcessRequestAsync(StreamMessage request, GrpcStreamPeer responsePeer,
+        IStreamContext streamContext)
     {
-        try
+        if (!_streamMethods.TryGetValue(request.MessageType, out var method))
+            Logger.LogWarning("unhandled stream request: {requestId} {streamType}-{messageType}", request.RequestId,
+                request.StreamType, request.MessageType);
+        var reply = method == null ? new VoidReply() : await method.InvokeAsync(request, streamContext);
+        var message = new StreamMessage
         {
-            if (!_streamMethods.TryGetValue(request.MessageType, out var method))
-                Logger.LogWarning("unhandled stream request: {requestId} {streamType}-{messageType}", request.RequestId, request.StreamType, request.MessageType);
-            var reply = method == null ? new VoidReply() : await method.InvokeAsync(request, streamContext);
-            var message = new StreamMessage
-            {
-                StreamType = StreamType.Reply, MessageType = request.MessageType,
-                RequestId = request.RequestId, Message = reply == null ? new VoidReply().ToByteString() : reply.ToByteString()
-            };
-            if (IsNeedAuth(request)) message.Meta.Add(GrpcConstants.SessionIdMetadataKey, responsePeer.Info.SessionId.ToHex());
-            await responsePeer.WriteAsync(message, async ex =>
-            {
-                if (ex != null) await HandleNetworkExceptionAsync(responsePeer, ex);
-            });
-        }
-        catch (Exception e)
+            StreamType = StreamType.Reply, MessageType = request.MessageType,
+            RequestId = request.RequestId,
+            Message = reply == null ? new VoidReply().ToByteString() : reply.ToByteString()
+        };
+        if (IsNeedAuth(request))
+            message.Meta.Add(GrpcConstants.SessionIdMetadataKey, responsePeer.Info.SessionId.ToHex());
+        await responsePeer.WriteAsync(message, async ex =>
         {
-            Logger.LogWarning(e, "request failed {requestId} {streamType}-{messageType}", request.RequestId, request.StreamType, request.MessageType);
-            throw;
-        }
+            if (ex != null) await HandleNetworkExceptionAsync(responsePeer, ex);
+        });
     }
-
 
     private async Task HandleNetworkExceptionAsync(IPeer peer, NetworkException exception)
     {

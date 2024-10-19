@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using AElf.ExceptionHandler;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Grpc.Helpers;
 using AElf.OS.Network.Helpers;
@@ -21,7 +22,7 @@ namespace AElf.OS.Network.Grpc;
 /// <summary>
 ///     Implements and manages the lifecycle of the network layer.
 /// </summary>
-public class GrpcNetworkServer : IAElfNetworkServer, ISingletonDependency
+public partial class GrpcNetworkServer : IAElfNetworkServer, ISingletonDependency
 {
     private readonly AuthInterceptor _authInterceptor;
     private readonly IConnectionService _connectionService;
@@ -60,6 +61,8 @@ public class GrpcNetworkServer : IAElfNetworkServer, ISingletonDependency
     /// </summary>
     /// <param name="endpoint">the ip address of the distant node</param>
     /// <returns>True if the connection was successful, false otherwise</returns>
+    [ExceptionHandler(typeof(Exception), TargetType = typeof(GrpcNetworkServer),
+        MethodName = nameof(HandleExceptionWhileConnecting))]
     public async Task<bool> ConnectAsync(DnsEndPoint endpoint)
     {
         return await _connectionService.ConnectAsync(endpoint);
@@ -95,13 +98,12 @@ public class GrpcNetworkServer : IAElfNetworkServer, ISingletonDependency
 
     public async Task StopAsync(bool gracefulDisconnect = true)
     {
-        try
+        if (_server != null)
         {
-            await _server.ShutdownAsync();
-        }
-        catch (InvalidOperationException)
-        {
-            // if server already shutdown, we continue and clear the channels.
+            if (_server.ShutdownTask == null || _server.ShutdownTask.IsCompleted)
+            {
+                await _server.ShutdownAsync();
+            }
         }
 
         await _connectionService.DisconnectPeersAsync(gracefulDisconnect);
@@ -165,22 +167,13 @@ public class GrpcNetworkServer : IAElfNetworkServer, ISingletonDependency
         var taskList = NetworkOptions.BootNodes
             .Select(async node =>
             {
-                var dialed = false;
-
                 if (!AElfPeerEndpointHelper.TryParse(node, out var endpoint))
                 {
                     Logger.LogWarning($"Could not parse endpoint {node}.");
                     return;
                 }
 
-                try
-                {
-                    dialed = await _connectionService.ConnectAsync(endpoint);
-                }
-                catch (Exception e)
-                {
-                    Logger.LogWarning(e, $"Connect peer failed {node}.");
-                }
+                var dialed = await ConnectAsync(endpoint);
 
                 if (!dialed)
                     await _connectionService.SchedulePeerReconnection(endpoint);

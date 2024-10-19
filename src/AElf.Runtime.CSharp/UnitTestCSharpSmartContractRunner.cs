@@ -3,11 +3,13 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Loader;
+using AElf.ExceptionHandler;
 using AElf.Kernel;
+using Microsoft.Extensions.Logging;
 
 namespace AElf.Runtime.CSharp;
 
-public class UnitTestCSharpSmartContractRunner : CSharpSmartContractRunner
+public partial class UnitTestCSharpSmartContractRunner : CSharpSmartContractRunner
 {
     public UnitTestCSharpSmartContractRunner(string sdkDir)
         : base(sdkDir)
@@ -19,18 +21,21 @@ public class UnitTestCSharpSmartContractRunner : CSharpSmartContractRunner
     {
         var assembly = base.LoadAssembly(code, loadContext);
 
-        Assembly assembly2 = null;
-        try
-        {
-            assembly2 = Assembly.Load(assembly.FullName);
-        }
-        catch (Exception)
-        {
-            //may cannot find assembly in local
-        }
+        var assemblyByFullName = LoadAssemblyByFullName(assembly);
 
-        if (assembly2 != null && code.SequenceEqual(File.ReadAllBytes(assembly2.Location))) assembly = assembly2;
+        if (assemblyByFullName != null && code.SequenceEqual(File.ReadAllBytes(assemblyByFullName.Location)))
+        {
+            assembly = assemblyByFullName;
+        }
 
         return assembly;
+    }
+
+    [ExceptionHandler(typeof(Exception), TargetType = typeof(UnitTestCSharpSmartContractRunner),
+        MethodName = nameof(HandleExceptionWhileLoadingAssemblyByFullName))]
+    protected Assembly LoadAssemblyByFullName(Assembly assembly)
+    {
+        var assembly2 = Assembly.Load(assembly.FullName);
+        return assembly2;
     }
 }

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
+using AElf.ExceptionHandler;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.TransactionPool.Application;
@@ -17,7 +18,7 @@ using Volo.Abp.EventBus.Local;
 
 namespace AElf.Kernel.TransactionPool.Infrastructure;
 
-public class TxHub : ITxHub, ISingletonDependency
+public partial class TxHub : ITxHub, ISingletonDependency
 {
     private readonly ConcurrentDictionary<Hash, QueuedTransaction> _allTransactions = new();
 
@@ -362,19 +363,12 @@ public class TxHub : ITxHub, ISingletonDependency
         return queuedTransaction;
     }
 
+    [ExceptionHandler(typeof(Exception), TargetType = typeof(TxHub),
+        MethodName = nameof(HandleExceptionWhileProcessingQueuedTransaction))]
     private async Task<QueuedTransaction> ProcessQueuedTransactionAsync(QueuedTransaction queuedTransaction,
         Func<QueuedTransaction, Task<QueuedTransaction>> func)
     {
-        try
-        {
-            return await func(queuedTransaction);
-        }
-        catch (Exception e)
-        {
-            Logger.LogError(e,
-                $"Unacceptable transaction {queuedTransaction.TransactionId}. Func: {func?.Method.Name}");
-            return null;
-        }
+        return await func(queuedTransaction);
     }
 
     #endregion

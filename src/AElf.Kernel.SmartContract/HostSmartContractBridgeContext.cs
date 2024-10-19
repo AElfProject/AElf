@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using AElf.Cryptography;
 using AElf.CSharp.Core;
 using AElf.CSharp.Core.Extension;
+using AElf.ExceptionHandler;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
@@ -27,7 +28,7 @@ public class HostSmartContractBridgeContextOptions
     public Dictionary<string, string> ContextVariables { get; set; } = new();
 }
 
-public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, ITransientDependency
+public partial class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, ITransientDependency
 {
     private readonly IAccountService _accountService;
 
@@ -116,6 +117,7 @@ public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, I
             throw new StateKeyOverSizeException(
                 $"Length of state key {key} exceeds limit of {SmartContractConstants.StateKeyMaximumLength}.");
         }
+
         return await _smartContractBridgeService.GetStateAsync(
             Self, key, CurrentHeight - 1, PreviousBlockHash);
     }
@@ -247,7 +249,7 @@ public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, I
             Params = args
         });
     }
-    
+
     public void SendVirtualInline(Hash fromVirtualAddress, Address toAddress, string methodName,
         ByteString args, bool logTransaction)
     {
@@ -274,7 +276,7 @@ public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, I
             Params = args
         });
     }
-    
+
     public void SendVirtualInlineBySystemContract(Hash fromVirtualAddress, Address toAddress, string methodName,
         ByteString args, bool logTransaction)
     {
@@ -289,8 +291,8 @@ public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, I
         if (!logTransaction) return;
         FireVirtualTransactionLogEvent(fromVirtualAddress, transaction);
     }
-    
-    
+
+
     private void FireVirtualTransactionLogEvent(Hash fromVirtualAddress, Transaction transaction)
     {
         var log = new VirtualTransactionCreated
@@ -379,7 +381,8 @@ public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, I
             _smartContractBridgeService.DeployContractAsync(registration));
     }
 
-    public ContractInfoDto UpdateSmartContract(Address address, SmartContractRegistration registration, Hash name, string previousContractVersion)
+    public ContractInfoDto UpdateSmartContract(Address address, SmartContractRegistration registration, Hash name,
+        string previousContractVersion)
     {
         if (!Self.Equals(_smartContractBridgeService.GetZeroSmartContractAddress())) throw new NoPermissionException();
 
@@ -387,7 +390,8 @@ public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, I
             _smartContractBridgeService.UpdateContractAsync(previousContractVersion, registration));
     }
 
-    public ContractVersionCheckDto CheckContractVersion(string previousContractVersion, SmartContractRegistration registration)
+    public ContractVersionCheckDto CheckContractVersion(string previousContractVersion,
+        SmartContractRegistration registration)
     {
         if (!Self.Equals(_smartContractBridgeService.GetZeroSmartContractAddress())) throw new NoPermissionException();
 
@@ -401,18 +405,11 @@ public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, I
         return !cabBeRecovered ? null : publicKey;
     }
 
+    [ExceptionHandler(typeof(Exception), TargetType = typeof(HostSmartContractBridgeContext),
+        MethodName = nameof(HandleExceptionWhileVrfVerifingEC))]
     public bool ECVrfVerify(byte[] pubKey, byte[] alpha, byte[] pi, out byte[] beta)
     {
-        try
-        {
-            beta = CryptoHelper.ECVrfVerify(pubKey, alpha, pi);
-        }
-        catch
-        {
-            beta = null;
-            return false;
-        }
-
+        beta = CryptoHelper.ECVrfVerify(pubKey, alpha, pi);
         return true;
     }
 }

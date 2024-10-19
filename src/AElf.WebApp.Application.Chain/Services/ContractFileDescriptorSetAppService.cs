@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using AElf.ExceptionHandler;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
@@ -15,7 +16,7 @@ public interface IContractFileDescriptorSetAppService
     Task<byte[]> GetContractFileDescriptorSetAsync(string address);
 }
 
-public class ContractFileDescriptorSetAppService : ApplicationService, IContractFileDescriptorSetAppService
+public partial class ContractFileDescriptorSetAppService : ApplicationService, IContractFileDescriptorSetAppService
 {
     private static IBlockchainService _blockchainService;
     private static ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
@@ -34,18 +35,11 @@ public class ContractFileDescriptorSetAppService : ApplicationService, IContract
     /// </summary>
     /// <param name="address">contract address</param>
     /// <returns></returns>
+    [ExceptionHandler(typeof(Exception), TargetType = typeof(ContractFileDescriptorSetAppService),
+        MethodName = nameof(HandleExceptionWhileGettingContractFileDescriptorSet))]
     public async Task<byte[]> GetContractFileDescriptorSetAsync(string address)
     {
-        try
-        {
-            var result = await GetFileDescriptorSetAsync(Address.FromBase58(address));
-            return result;
-        }
-        catch (Exception e)
-        {
-            Logger.LogWarning(e, "Error during GetContractFileDescriptorSetAsync");
-            throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
-        }
+        return await GetFileDescriptorSetAsync(Address.FromBase58(address));
     }
 
     private async Task<byte[]> GetFileDescriptorSetAsync(Address address)

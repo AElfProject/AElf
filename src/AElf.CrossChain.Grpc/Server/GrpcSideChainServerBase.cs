@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using AElf.CrossChain.Application;
+using AElf.ExceptionHandler;
 using AElf.Standards.ACS7;
 using Grpc.Core;
 using Microsoft.Extensions.Logging;
@@ -19,6 +20,7 @@ public class GrpcSideChainServerBase : SideChainRpc.SideChainRpcBase, ITransient
 
     public ILogger<GrpcSideChainServerBase> Logger { get; set; }
 
+    [ExceptionHandler(typeof(Exception), LogLevel = LogLevel.Error, Message = "Failed to write into server side stream.")]
     public override async Task RequestIndexingFromSideChain(CrossChainRequest crossChainRequest,
         IServerStreamWriter<SideChainBlockData> responseStream, ServerCallContext context)
     {
@@ -29,16 +31,8 @@ public class GrpcSideChainServerBase : SideChainRpc.SideChainRpcBase, ITransient
             var sideChainBlock = await _crossChainResponseService.ResponseSideChainBlockDataAsync(requestedHeight);
             if (sideChainBlock == null)
                 break;
-            try
-            {
-                await responseStream.WriteAsync(sideChainBlock);
-                requestedHeight++;
-            }
-            catch (InvalidOperationException)
-            {
-                Logger.LogWarning("Failed to write into server side stream.");
-                return;
-            }
+            await responseStream.WriteAsync(sideChainBlock);
+            requestedHeight++;
         }
     }
 }

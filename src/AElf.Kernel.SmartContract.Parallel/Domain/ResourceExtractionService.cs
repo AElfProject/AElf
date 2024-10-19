@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.ExceptionHandler;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.SmartContract.Application;
@@ -127,42 +128,10 @@ public class ResourceExtractionService : IResourceExtractionService, ISingletonD
     private async Task<TransactionResourceInfo> GetResourcesForOneAsync(IChainContext chainContext,
         Transaction transaction, CancellationToken ct)
     {
-        IExecutive executive = null;
         var address = transaction.To;
+        var executive = await _smartContractExecutiveService.GetExecutiveAsync(chainContext, address);
 
-        try
-        {
-            executive = await _smartContractExecutiveService.GetExecutiveAsync(chainContext, address);
-            if (!executive.IsParallelizable())
-                return new TransactionResourceInfo
-                {
-                    TransactionId = transaction.GetHash(),
-                    ParallelType = ParallelType.NonParallelizable,
-                    ContractHash = executive.ContractHash
-                };
-
-            var nonparallelContractCode =
-                await _nonparallelContractCodeProvider.GetNonparallelContractCodeAsync(chainContext, address);
-            if (nonparallelContractCode != null && nonparallelContractCode.CodeHash == executive.ContractHash)
-                return new TransactionResourceInfo
-                {
-                    TransactionId = transaction.GetHash(),
-                    ParallelType = ParallelType.NonParallelizable,
-                    ContractHash = executive.ContractHash,
-                    IsNonparallelContractCode = true
-                };
-
-            if (_resourceCache.TryGetValue(transaction.GetHash(), out var resourceCache) &&
-                executive.ContractHash == resourceCache.ResourceInfo.ContractHash &&
-                resourceCache.ResourceInfo.IsNonparallelContractCode == false)
-                return resourceCache.ResourceInfo;
-
-            var txContext = GetTransactionContext(chainContext, transaction.To, transaction.ToByteString());
-            var resourceInfo = await executive.GetTransactionResourceInfoAsync(txContext, transaction.GetHash());
-            // Try storing in cache here
-            return resourceInfo;
-        }
-        catch (SmartContractFindRegistrationException)
+        if (executive == null)
         {
             return new TransactionResourceInfo
             {
@@ -170,11 +139,44 @@ public class ResourceExtractionService : IResourceExtractionService, ISingletonD
                 ParallelType = ParallelType.InvalidContractAddress
             };
         }
-        finally
+
+        if (!executive.IsParallelizable())
         {
-            if (executive != null)
-                await _smartContractExecutiveService.PutExecutiveAsync(chainContext, address, executive);
+            await _smartContractExecutiveService.PutExecutiveAsync(chainContext, address, executive);
+            return new TransactionResourceInfo
+            {
+                TransactionId = transaction.GetHash(),
+                ParallelType = ParallelType.NonParallelizable,
+                ContractHash = executive.ContractHash
+            };
         }
+
+        var nonparallelContractCode = await _nonparallelContractCodeProvider.GetNonparallelContractCodeAsync(chainContext, address);
+        if (nonparallelContractCode != null && nonparallelContractCode.CodeHash == executive.ContractHash)
+        {
+            await _smartContractExecutiveService.PutExecutiveAsync(chainContext, address, executive);
+            return new TransactionResourceInfo
+            {
+                TransactionId = transaction.GetHash(),
+                ParallelType = ParallelType.NonParallelizable,
+                ContractHash = executive.ContractHash,
+                IsNonparallelContractCode = true
+            };
+        }
+
+        if (_resourceCache.TryGetValue(transaction.GetHash(), out var resourceCache) &&
+            executive.ContractHash == resourceCache.ResourceInfo.ContractHash &&
+            resourceCache.ResourceInfo.IsNonparallelContractCode == false)
+        {
+            await _smartContractExecutiveService.PutExecutiveAsync(chainContext, address, executive);
+            return resourceCache.ResourceInfo;
+        }
+
+        var txContext = GetTransactionContext(chainContext, transaction.To, transaction.ToByteString());
+        var resourceInfo = await executive.GetTransactionResourceInfoAsync(txContext, transaction.GetHash());
+
+        await _smartContractExecutiveService.PutExecutiveAsync(chainContext, address, executive);
+        return resourceInfo;
     }
 
     private async Task<ChainContext> GetChainContextAsync()
@@ -226,19 +228,14 @@ public class ResourceExtractionService : IResourceExtractionService, ISingletonD
                 eventData.Transaction.GetExpiryBlockNumber()));
     }
 
+    [ExceptionHandler(typeof(InvalidOperationException), LogLevel = LogLevel.Error, LogOnly = true,
+        Message = "Unexpected case occured when clear resource info.")]
     public async Task HandleNewIrreversibleBlockFoundAsync(NewIrreversibleBlockFoundEvent eventData)
     {
-        try
-        {
-            ClearResourceCache(_resourceCache
-                //.AsParallel()
-                .Where(c => c.Value.ResourceUsedBlockHeight <= eventData.BlockHeight)
-                .Select(c => c.Key).Distinct().ToList());
-        }
-        catch (InvalidOperationException e)
-        {
-            Logger.LogError(e, "Unexpected case occured when clear resource info.");
-        }
+        ClearResourceCache(_resourceCache
+            //.AsParallel()
+            .Where(c => c.Value.ResourceUsedBlockHeight <= eventData.BlockHeight)
+            .Select(c => c.Key).Distinct().ToList());
 
         await Task.CompletedTask;
     }

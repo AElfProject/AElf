@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using AElf.ExceptionHandler;
 using AElf.Kernel;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Events;
@@ -17,7 +18,7 @@ using Volo.Abp.EventBus.Local;
 
 namespace AElf.OS.Network.Grpc;
 
-public class ConnectionService : IConnectionService
+public partial class ConnectionService : IConnectionService
 {
     private readonly IHandshakeProvider _handshakeProvider;
     private readonly IPeerDialer _peerDialer;
@@ -144,17 +145,7 @@ public class ConnectionService : IConnectionService
             Logger.LogDebug($"Added to pool {dialedPeer.RemoteEndpoint} - {dialedPeer.Info.Pubkey}.");
         }
 
-        try
-        {
-            await currentPeer.ConfirmHandshakeAsync();
-        }
-        catch (Exception e)
-        {
-            Logger.LogDebug(e, $"Confirm handshake error. Peer: {currentPeer.Info.Pubkey}.");
-            _peerPool.RemovePeer(currentPeer.Info.Pubkey);
-            await currentPeer.DisconnectAsync(false);
-            throw;
-        }
+        await ConfirmHandshakeAsync(currentPeer);
 
         currentPeer.IsConnected = true;
         currentPeer.SyncState = SyncState.Syncing;
@@ -168,6 +159,13 @@ public class ConnectionService : IConnectionService
         FireConnectionEvent(currentPeer);
 
         return true;
+    }
+
+    [ExceptionHandler(typeof(Exception), TargetType = typeof(ConnectionService),
+        MethodName = nameof(HandleExceptionWhileConfirmingHandshake))]
+    private static async Task ConfirmHandshakeAsync(GrpcPeer currentPeer)
+    {
+        await currentPeer.ConfirmHandshakeAsync();
     }
 
     private async Task<HandshakeReply> ValidateHandshakeAsync(DnsEndPoint endpoint, Handshake handshake)

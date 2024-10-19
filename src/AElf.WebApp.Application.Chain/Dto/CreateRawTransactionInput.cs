@@ -1,5 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Threading.Tasks;
+using AElf.ExceptionHandler;
 using AElf.Types;
 
 namespace AElf.WebApp.Application.Chain.Dto;
@@ -46,36 +49,48 @@ public class CreateRawTransactionInput : IValidatableObject
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
         var validationResults = new List<ValidationResult>();
-        try
+
+        if (!TryParseAddress(From))
         {
-            Address.FromBase58(From);
-        }
-        catch
-        {
-            validationResults.Add(new ValidationResult(Error.Message[Error.InvalidAddress],
-                new[] { nameof(From) }));
+            validationResults.Add(new ValidationResult(Error.Message[Error.InvalidAddress], new[] { nameof(From) }));
         }
 
-        try
+        if (!TryParseAddress(To))
         {
-            Address.FromBase58(To);
-        }
-        catch
-        {
-            validationResults.Add(
-                new ValidationResult(Error.Message[Error.InvalidAddress], new[] { nameof(To) }));
+            validationResults.Add(new ValidationResult(Error.Message[Error.InvalidAddress], new[] { nameof(To) }));
         }
 
-        try
+        if (!TryParseHash(RefBlockHash))
         {
-            Hash.LoadFromHex(RefBlockHash);
-        }
-        catch
-        {
-            validationResults.Add(
-                new ValidationResult(Error.Message[Error.InvalidBlockHash], new[] { nameof(RefBlockHash) }));
+            validationResults.Add(new ValidationResult(Error.Message[Error.InvalidBlockHash],
+                new[] { nameof(RefBlockHash) }));
         }
 
         return validationResults;
+    }
+
+    [ExceptionHandler(typeof(Exception), TargetType = typeof(CreateRawTransactionInput),
+        MethodName = nameof(HandleExceptionWhileParsing))]
+    private bool TryParseAddress(string base58Address)
+    {
+        Address.FromBase58(base58Address);
+        return true;
+    }
+
+    [ExceptionHandler(typeof(Exception), TargetType = typeof(CreateRawTransactionInput),
+        MethodName = nameof(HandleExceptionWhileParsing))]
+    private bool TryParseHash(string hexHash)
+    {
+        Hash.LoadFromHex(hexHash);
+        return true;
+    }
+
+    protected async Task<FlowBehavior> HandleExceptionWhileParsing(Exception ex)
+    {
+        return new FlowBehavior
+        {
+            ExceptionHandlingStrategy = ExceptionHandlingStrategy.Return,
+            ReturnValue = false
+        };
     }
 }

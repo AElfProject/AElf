@@ -3,15 +3,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using AElf.ExceptionHandler;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Grpc.Helpers;
 using AElf.OS.Network.Protocol.Types;
 using AElf.Types;
 using Grpc.Core;
+using Microsoft.Extensions.Logging;
 
 namespace AElf.OS.Network.Grpc;
 
-public class GrpcStreamBackPeer : GrpcStreamPeer
+public partial class GrpcStreamBackPeer : GrpcStreamPeer
 {
     public GrpcStreamBackPeer(DnsEndPoint remoteEndpoint, PeerConnectionInfo peerConnectionInfo,
         IAsyncStreamWriter<StreamMessage> clientStreamWriter, IStreamTaskResourcePool streamTaskResourcePool,
@@ -56,6 +58,8 @@ public class GrpcStreamBackPeer : GrpcStreamPeer
         return listMessage != null ? BlockList.Parser.ParseFrom(listMessage.Message).Blocks.ToList() : new List<BlockWithTransactions>();
     }
 
+    [ExceptionHandler(typeof(Exception), LogLevel = LogLevel.Information, LogOnly = true,
+        Message = "Swallowed the exception while disconnecting, we don't care because we're disconnecting.")]
     public override async Task DisconnectAsync(bool gracefulDisconnect)
     {
         if (!IsConnected) return;
@@ -64,17 +68,10 @@ public class GrpcStreamBackPeer : GrpcStreamPeer
         _sendStreamJobs.Complete();
         // send disconnect message if the peer is still connected and the connection
         // is stable.
-        try
-        {
-            await RequestAsync(() => StreamRequestAsync(MessageType.Disconnect,
-                    new DisconnectReason { Why = DisconnectReason.Types.Reason.Shutdown },
-                    new Metadata { { GrpcConstants.SessionIdMetadataKey, OutboundSessionId } }),
-                new GrpcRequest { ErrorMessage = "Could not send disconnect." });
-        }
-        catch (Exception)
-        {
-            // swallow the exception, we don't care because we're disconnecting.
-        }
+        await RequestAsync(() => StreamRequestAsync(MessageType.Disconnect,
+                new DisconnectReason { Why = DisconnectReason.Types.Reason.Shutdown },
+                new Metadata { { GrpcConstants.SessionIdMetadataKey, OutboundSessionId } }),
+            new GrpcRequest { ErrorMessage = "Could not send disconnect." });
     }
 
     public override Task<bool> TryRecoverAsync()

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -5,6 +6,7 @@ using System.Threading.Tasks;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Cryptography.Exceptions;
+using AElf.ExceptionHandler;
 using AElf.OS.Node.Application;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
@@ -15,7 +17,7 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.OS.Account.Infrastructure;
 
-public class AElfKeyStore : IKeyStore, ISingletonDependency
+public partial class AElfKeyStore : IKeyStore, ISingletonDependency
 {
     private const string KeyFileExtension = ".json";
     private const string KeyFolderName = "keys";
@@ -35,29 +37,17 @@ public class AElfKeyStore : IKeyStore, ISingletonDependency
 
     public ILogger<AElfKeyStore> Logger { get; set; }
 
+    [ExceptionHandler(typeof(Exception), TargetType = typeof(AElfKeyStore),
+        MethodName = nameof(HandleExceptionWhileUnlockingAccount))]
     public async Task<AccountError> UnlockAccountAsync(string address, string password)
     {
-        try
-        {
-            if (_unlockedAccounts.Any(x => x.AccountName == address))
-                return AccountError.AccountAlreadyUnlocked;
+        if (_unlockedAccounts.Any(x => x.AccountName == address))
+            return AccountError.AccountAlreadyUnlocked;
 
-            var keyPair = await ReadKeyPairAsync(address, password);
-            var unlockedAccount = new Account(address) { KeyPair = keyPair };
+        var keyPair = await ReadKeyPairAsync(address, password);
+        var unlockedAccount = new Account(address) { KeyPair = keyPair };
 
-            _unlockedAccounts.Add(unlockedAccount);
-        }
-        catch (InvalidPasswordException ex)
-        {
-            Logger.LogError(ex, "Invalid password: ");
-            return AccountError.WrongPassword;
-        }
-        catch (KeyStoreNotFoundException ex)
-        {
-            Logger.LogError(ex, "Could not load account:");
-            return AccountError.AccountFileNotFound;
-        }
-
+        _unlockedAccounts.Add(unlockedAccount);
         return AccountError.None;
     }
 
@@ -81,34 +71,19 @@ public class AElfKeyStore : IKeyStore, ISingletonDependency
         return await Task.Run(() => files.Select(f => Path.GetFileNameWithoutExtension(f.Name)).ToList());
     }
 
+    [ExceptionHandler(typeof(Exception), TargetType = typeof(AElfKeyStore),
+        MethodName = nameof(HandleExceptionWhileReadingKeyPair))]
     public async Task<ECKeyPair> ReadKeyPairAsync(string address, string password)
     {
-        try
+        var keyFilePath = GetKeyFileFullPath(address);
+        var privateKey = await Task.Run(() =>
         {
-            var keyFilePath = GetKeyFileFullPath(address);
-            var privateKey = await Task.Run(() =>
-            {
-                using (var textReader = File.OpenText(keyFilePath))
-                {
-                    var json = textReader.ReadToEnd();
-                    return _keyStoreService.DecryptKeyStoreFromJson(password, json);
-                }
-            });
+            using var textReader = File.OpenText(keyFilePath);
+            var json = textReader.ReadToEnd();
+            return _keyStoreService.DecryptKeyStoreFromJson(password, json);
+        });
 
-            return CryptoHelper.FromPrivateKey(privateKey);
-        }
-        catch (FileNotFoundException ex)
-        {
-            throw new KeyStoreNotFoundException("Keystore file not found.", ex);
-        }
-        catch (DirectoryNotFoundException ex)
-        {
-            throw new KeyStoreNotFoundException("Invalid keystore path.", ex);
-        }
-        catch (DecryptionException ex)
-        {
-            throw new InvalidPasswordException("Invalid password.", ex);
-        }
+        return CryptoHelper.FromPrivateKey(privateKey);
     }
 
     private async Task<bool> WriteKeyPairAsync(ECKeyPair keyPair, string password)

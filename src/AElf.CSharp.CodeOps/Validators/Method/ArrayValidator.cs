@@ -74,16 +74,16 @@ public class ArrayValidator : IValidator<MethodDefinition>, ITransientDependency
                     }
                     else
                     {
-                        try
+                        if (arrayDimension > int.MaxValue / limit.ElementSize)
                         {
-                            var totalSize = arrayDimension.Mul(limit.ElementSize);
+                            error = new ArrayValidationResult($"Array size is too large that causes overflow when estimating memory usage.");
+                        }
+                        else
+                        {
+                            var totalSize = arrayDimension * limit.ElementSize;
 
                             if (totalSize > AllowedTotalSize)
                                 error = new ArrayValidationResult($"Array size can not be larger than {AllowedTotalSize} bytes. ({arrayDimension} x {typ})");
-                        }
-                        catch (OverflowException)
-                        {
-                            error = new ArrayValidationResult($"Array size is too large that causes overflow when estimating memory usage.");
                         }
                     }
                 }

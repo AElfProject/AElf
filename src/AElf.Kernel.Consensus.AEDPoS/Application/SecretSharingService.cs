@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Cryptography.SecretSharing;
 using AElf.CSharp.Core;
+using AElf.ExceptionHandler;
 using AElf.Kernel.Account.Application;
 using AElf.Types;
 using Google.Protobuf;
@@ -36,28 +37,23 @@ internal class SecretSharingService : ISecretSharingService, ISingletonDependenc
 
     public ILogger<SecretSharingService> Logger { get; set; }
 
+    [ExceptionHandler(typeof(Exception), LogOnly = true, LogLevel = LogLevel.Error,
+        Message = "Error in AddSharingInformationAsync.")]
     public async Task AddSharingInformationAsync(SecretSharingInformation secretSharingInformation)
     {
-        try
-        {
-            var selfPubkey = (await _accountService.GetPublicKeyAsync()).ToHex();
+        var selfPubkey = (await _accountService.GetPublicKeyAsync()).ToHex();
 
-            if (!secretSharingInformation.PreviousRound.RealTimeMinersInformation.ContainsKey(selfPubkey)) return;
+        if (!secretSharingInformation.PreviousRound.RealTimeMinersInformation.ContainsKey(selfPubkey)) return;
 
-            var newInValue = await GenerateInValueAsync(secretSharingInformation);
-            Logger.LogDebug(
-                $"Add in value {newInValue} for round id {secretSharingInformation.CurrentRoundId}");
-            _inValueCache.AddInValue(secretSharingInformation.CurrentRoundId, newInValue);
+        var newInValue = await GenerateInValueAsync(secretSharingInformation);
+        Logger.LogDebug(
+            $"Add in value {newInValue} for round id {secretSharingInformation.CurrentRoundId}");
+        _inValueCache.AddInValue(secretSharingInformation.CurrentRoundId, newInValue);
 
-            if (secretSharingInformation.PreviousRound.RealTimeMinersInformation.Count == 1) return;
+        if (secretSharingInformation.PreviousRound.RealTimeMinersInformation.Count == 1) return;
 
-            await CollectPiecesWithSecretSharingAsync(secretSharingInformation, newInValue, selfPubkey);
-            RevealPreviousInValues(secretSharingInformation, selfPubkey);
-        }
-        catch (Exception e)
-        {
-            Logger.LogError(e, "Error in AddSharingInformationAsync.");
-        }
+        await CollectPiecesWithSecretSharingAsync(secretSharingInformation, newInValue, selfPubkey);
+        RevealPreviousInValues(secretSharingInformation, selfPubkey);
     }
 
     public Dictionary<string, byte[]> GetEncryptedPieces(long roundId)

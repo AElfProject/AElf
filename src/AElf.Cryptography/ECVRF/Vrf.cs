@@ -4,6 +4,8 @@ using System.Linq;
 using System.Security.Cryptography;
 using AElf.Cryptography.Core;
 using AElf.Cryptography.ECDSA;
+using AElf.ExceptionHandler;
+using Microsoft.Extensions.Logging;
 using Org.BouncyCastle.Math;
 using Secp256k1Net;
 
@@ -95,24 +97,24 @@ namespace AElf.Cryptography.ECVRF
                 var pkSerialized = new byte[Secp256k1.SERIALIZED_COMPRESSED_PUBKEY_LENGTH];
                 pkSerialized[0] = 0x02;
                 Buffer.BlockCopy(hash, 0, pkSerialized, 1, hash.Length);
-                try
-                {
-                    var outputPoint = curve.DeserializePoint(pkSerialized);
-                    if (_config.EcParameters.Curve.Cofactor.CompareTo(BigInteger.One) > 0)
-                    {
-                        return curve.MultiplyScalar(outputPoint,
-                            curve.DeserializeScalar(_config.EcParameters.Curve.Cofactor.ToByteArray()));
-                    }
-
-                    return outputPoint;
-                }
-                catch (InvalidSerializedPublicKeyException ex)
-                {
-                    // Ignore this exception and try the next ctr
-                }
+                return GetPoint(curve, pkSerialized);
             }
 
             throw new FailedToHashToCurveException();
+        }
+
+        [ExceptionHandler(typeof(InvalidSerializedPublicKeyException), LogLevel = LogLevel.Information, LogOnly = true,
+            Message = "Swallowed InvalidSerializedPublicKeyException.")]
+        private IECPoint GetPoint(TCurve curve, byte[] pkSerialized)
+        {
+            var outputPoint = curve.DeserializePoint(pkSerialized);
+            if (_config.EcParameters.Curve.Cofactor.CompareTo(BigInteger.One) > 0)
+            {
+                return curve.MultiplyScalar(outputPoint,
+                    curve.DeserializeScalar(_config.EcParameters.Curve.Cofactor.ToByteArray()));
+            }
+
+            return outputPoint;
         }
 
         private BigInteger HashPoints(params IECPoint[] points)

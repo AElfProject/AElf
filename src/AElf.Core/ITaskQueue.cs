@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
+using AElf.ExceptionHandler;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -20,7 +21,7 @@ public interface ITaskQueue : IDisposable
     void Start(int maxDegreeOfParallelism = 1);
 }
 
-public class TaskQueue : ITaskQueue, ITransientDependency
+public partial class TaskQueue : ITaskQueue, ITransientDependency
 {
     private ActionBlock<Func<Task>> _actionBlock;
 
@@ -41,20 +42,19 @@ public class TaskQueue : ITaskQueue, ITransientDependency
 
         MaxDegreeOfParallelism = maxDegreeOfParallelism;
 
-        _actionBlock = new ActionBlock<Func<Task>>(async func =>
-        {
-            try
+        _actionBlock = new ActionBlock<Func<Task>>(async func => { await ExecuteFunction(func); },
+            new ExecutionDataflowBlockOptions
             {
-                await func();
-            }
-            catch (Exception ex)
-            {
-                Logger.LogException(ex, LogLevel.Warning);
-            }
-        }, new ExecutionDataflowBlockOptions
-        {
-            MaxDegreeOfParallelism = MaxDegreeOfParallelism
-        });
+                MaxDegreeOfParallelism = MaxDegreeOfParallelism
+            });
+    }
+
+    [ExceptionHandler(typeof(Exception), TargetType = typeof(TaskQueue), 
+        MethodName = nameof(HandleExceptionWhileExecutingFunction))]
+    [ExceptionHandler(typeof(Exception), LogOnly = true)]
+    private async Task ExecuteFunction(Func<Task> func)
+    {
+        await func();
     }
 
     public void Dispose()

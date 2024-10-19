@@ -11,12 +11,13 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Volo.Abp.Ddd.Application" Version="8.0.5" />
-        <PackageReference Include="Volo.Abp.AutoMapper" Version="8.0.5" />
+        <PackageReference Include="Volo.Abp.Ddd.Application" />
+        <PackageReference Include="Volo.Abp.AutoMapper" />
     </ItemGroup>
 
     <ItemGroup>
         <ProjectReference Include="..\AElf.Core\AElf.Core.csproj" />
+        <ProjectReference Include="..\AElf.Types\AElf.Types.csproj" />
     </ItemGroup>
 
 </Project>

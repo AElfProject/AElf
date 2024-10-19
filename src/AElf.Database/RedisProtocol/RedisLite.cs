@@ -7,13 +7,15 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
+using AElf.ExceptionHandler;
+using Microsoft.Extensions.Logging;
 
 namespace AElf.Database.RedisProtocol;
 
 /**
      * Simplified NServiceKit.Redis
      */
-public class RedisLite : IDisposable
+public partial class RedisLite : IDisposable
 {
     public const long DefaultDb = 0;
     public const int DefaultPort = 6379;
@@ -167,6 +169,8 @@ public class RedisLite : IDisposable
         return SendExpectLong(cmdWithArgs);
     }
 
+    [ExceptionHandler(typeof(SocketException), TargetType = typeof(RedisLite),
+        MethodName = nameof(HandleExceptionWhileConnecting))]
     private void Connect()
     {
         socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp)
@@ -174,49 +178,36 @@ public class RedisLite : IDisposable
             SendTimeout = SendTimeout,
             ReceiveTimeout = ReceiveTimeout
         };
-        try
+        if (ConnectTimeout == 0)
         {
-            if (ConnectTimeout == 0)
-            {
-                socket.Connect(Host, Port);
-            }
-            else
-            {
-                var connectResult = socket.BeginConnect(Host, Port, null, null);
-                connectResult.AsyncWaitHandle.WaitOne(ConnectTimeout, true);
-            }
-
-            if (!socket.Connected)
-            {
-                socket.Close();
-                socket = null;
-                HadExceptions = true;
-                return;
-            }
-
-            Bstream = new BufferedStream(new NetworkStream(socket), 16 * 1024);
-
-            if (Password != null)
-                SendExpectSuccess(Commands.Auth, Password.ToUtf8Bytes());
-
-            if (Db != 0)
-                SendExpectSuccess(Commands.Select, Db.ToUtf8Bytes());
-
-            clientPort = socket.LocalEndPoint is IPEndPoint ipEndpoint ? ipEndpoint.Port : -1;
-            lastCommand = null;
-            lastSocketException = null;
-            LastConnectedAtTimestamp = Stopwatch.GetTimestamp();
+            socket.Connect(Host, Port);
         }
-        catch (SocketException ex)
+        else
         {
-            socket?.Close();
+            var connectResult = socket.BeginConnect(Host, Port, null, null);
+            connectResult.AsyncWaitHandle.WaitOne(ConnectTimeout, true);
+        }
+
+        if (!socket.Connected)
+        {
+            socket.Close();
             socket = null;
-
             HadExceptions = true;
-            var throwEx = new Exception("could not connect to redis Instance at " + Host + ":" + Port, ex);
-            Log(throwEx.Message, ex);
-            throw throwEx;
+            return;
         }
+
+        Bstream = new BufferedStream(new NetworkStream(socket), 16 * 1024);
+
+        if (Password != null)
+            SendExpectSuccess(Commands.Auth, Password.ToUtf8Bytes());
+
+        if (Db != 0)
+            SendExpectSuccess(Commands.Select, Db.ToUtf8Bytes());
+
+        clientPort = socket.LocalEndPoint is IPEndPoint ipEndpoint ? ipEndpoint.Port : -1;
+        lastCommand = null;
+        lastSocketException = null;
+        LastConnectedAtTimestamp = Stopwatch.GetTimestamp();
     }
 
     ~RedisLite()
@@ -262,17 +253,13 @@ public class RedisLite : IDisposable
         return socket != null;
     }
 
+    [ExceptionHandler(typeof(Exception), LogLevel = LogLevel.Information,LogOnly = true,
+        Message = "Swallowed exception while closing connection.")]
     private void SafeConnectionClose()
     {
-        try
-        {
-            // workaround for a .net http://support.microsoft.com/kb/821625
-            Bstream?.Close();
-            socket?.Close();
-        }
-        catch
-        {
-        }
+        // workaround for a .net http://support.microsoft.com/kb/821625
+        Bstream?.Close();
+        socket?.Close();
 
         Bstream = null;
         socket = null;
@@ -366,25 +353,15 @@ public class RedisLite : IDisposable
     /// </summary>
     /// <param name="cmdWithBinaryArgs"></param>
     /// <returns></returns>
+    [ExceptionHandler(typeof(SocketException), TargetType = typeof(RedisLite),
+        MethodName = nameof(HandleExceptionWhileSendingCommand))]
     protected bool SendCommand(params byte[][] cmdWithBinaryArgs)
     {
         if (!AssertConnectedSocket()) return false;
-
-        try
-        {
-            CmdLog(cmdWithBinaryArgs);
-
-            //Total command lines count
-            WriteAllToSendBuffer(cmdWithBinaryArgs);
-
-            FlushSendBuffer();
-        }
-        catch (SocketException ex)
-        {
-            _cmdBuffer.Clear();
-            return HandleSocketException(ex);
-        }
-
+        CmdLog(cmdWithBinaryArgs);
+        //Total command lines count
+        WriteAllToSendBuffer(cmdWithBinaryArgs);
+        FlushSendBuffer();
         return true;
     }
 

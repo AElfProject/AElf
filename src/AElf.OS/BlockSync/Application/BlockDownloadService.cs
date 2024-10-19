@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.ExceptionHandler;
 using AElf.Kernel;
 using AElf.OS.BlockSync.Dto;
 using AElf.OS.BlockSync.Events;
@@ -17,7 +18,7 @@ using Volo.Abp.EventBus.Local;
 
 namespace AElf.OS.BlockSync.Application;
 
-public class BlockDownloadService : IBlockDownloadService
+public partial class BlockDownloadService : IBlockDownloadService
 {
     /// <summary>
     ///     Make sure we have enough peers to check the block hash
@@ -55,6 +56,8 @@ public class BlockDownloadService : IBlockDownloadService
     /// </summary>
     /// <param name="downloadBlockDto"></param>
     /// <returns></returns>
+    [ExceptionHandler(typeof(BlockDownloadException), TargetType = typeof(BlockDownloadService),
+        MethodName = nameof(HandleExceptionWhileDownloadingBlocks))]
     public async Task<DownloadBlocksResult> DownloadBlocksAsync(DownloadBlockDto downloadBlockDto)
     {
         var downloadResult = new DownloadBlocksResult();
@@ -62,50 +65,38 @@ public class BlockDownloadService : IBlockDownloadService
 
         if (!IsPeerAvailable(peerPubkey)) return downloadResult;
 
-        try
+        if (UseSuggestedPeer(downloadBlockDto))
         {
-            if (UseSuggestedPeer(downloadBlockDto))
-            {
-                downloadResult = await DownloadBlocksAsync(peerPubkey, downloadBlockDto);
-            }
-            else
-            {
-                // If cannot get the blocks, there should be network problems or abnormal peer,
-                // because we have selected peer with lib height greater than or equal to the target height.
-                // 1. network problems, need to retry from other peer.
-                // 2. not network problems, this peer or the last peer is abnormal peer, we need to remove it.
-                var downloadTargetHeight =
-                    downloadBlockDto.PreviousBlockHeight + downloadBlockDto.MaxBlockDownloadCount;
-                var exceptedPeers = new List<string> { _blockSyncStateProvider.LastRequestPeerPubkey };
-                var retryTimes = 2;
-
-                while (true)
-                {
-                    peerPubkey = GetRandomPeerPubkey(downloadBlockDto.SuggestedPeerPubkey, downloadTargetHeight,
-                        exceptedPeers);
-
-                    downloadResult = await DownloadBlocksAsync(peerPubkey, downloadBlockDto);
-
-                    if (downloadResult.Success || retryTimes <= 0)
-                        break;
-
-                    exceptedPeers.Add(peerPubkey);
-                    retryTimes--;
-                }
-
-                if (downloadResult.Success && downloadResult.DownloadBlockCount == 0)
-                    await CheckAbnormalPeerAsync(peerPubkey, downloadBlockDto.PreviousBlockHash,
-                        downloadBlockDto.PreviousBlockHeight);
-            }
+            downloadResult = await DownloadBlocksAsync(peerPubkey, downloadBlockDto);
         }
-        catch (BlockDownloadException e)
+        else
         {
-            await LocalEventBus.PublishAsync(new AbnormalPeerFoundEventData
+            // If cannot get the blocks, there should be network problems or abnormal peer,
+            // because we have selected peer with lib height greater than or equal to the target height.
+            // 1. network problems, need to retry from other peer.
+            // 2. not network problems, this peer or the last peer is abnormal peer, we need to remove it.
+            var downloadTargetHeight =
+                downloadBlockDto.PreviousBlockHeight + downloadBlockDto.MaxBlockDownloadCount;
+            var exceptedPeers = new List<string> { _blockSyncStateProvider.LastRequestPeerPubkey };
+            var retryTimes = 2;
+
+            while (true)
             {
-                BlockHash = e.BlockHash,
-                BlockHeight = e.BlockHeight,
-                PeerPubkey = e.PeerPubkey
-            });
+                peerPubkey = GetRandomPeerPubkey(downloadBlockDto.SuggestedPeerPubkey, downloadTargetHeight,
+                    exceptedPeers);
+
+                downloadResult = await DownloadBlocksAsync(peerPubkey, downloadBlockDto);
+
+                if (downloadResult.Success || retryTimes <= 0)
+                    break;
+
+                exceptedPeers.Add(peerPubkey);
+                retryTimes--;
+            }
+
+            if (downloadResult.Success && downloadResult.DownloadBlockCount == 0)
+                await CheckAbnormalPeerAsync(peerPubkey, downloadBlockDto.PreviousBlockHash,
+                    downloadBlockDto.PreviousBlockHeight);
         }
 
         return downloadResult;

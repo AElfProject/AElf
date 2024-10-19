@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.ExceptionHandler;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
 using Microsoft.Extensions.Logging;
@@ -14,7 +16,7 @@ public interface IBlockAttachService
     Task AttachBlockAsync(Block block);
 }
 
-public class BlockAttachService : IBlockAttachService, ITransientDependency
+public partial class BlockAttachService : IBlockAttachService, ITransientDependency
 {
     private readonly IBlockchainExecutingService _blockchainExecutingService;
     private readonly IBlockchainService _blockchainService;
@@ -52,19 +54,14 @@ public class BlockAttachService : IBlockAttachService, ITransientDependency
         var notExecutedBlocks =
             await _blockchainService.GetBlocksAsync(notExecutedChainBlockLinks.Select(l => l.BlockHash));
 
-        var executionResult = new BlockExecutionResult();
-        try
-        {
-            executionResult = await _blockchainExecutingService.ExecuteBlocksAsync(notExecutedBlocks);
-        }
-        catch (Exception e)
-        {
-            Logger.LogError(e, "Block execute fails.");
-            throw;
-        }
-        finally
-        {
-            await _blockExecutionResultProcessingService.ProcessBlockExecutionResultAsync(chain, executionResult);
-        }
+        var executionResult = await ExecuteBlocksAsync(notExecutedBlocks);
+        await _blockExecutionResultProcessingService.ProcessBlockExecutionResultAsync(chain, executionResult);
+    }
+
+    [ExceptionHandler(typeof(Exception), TargetType = typeof(BlockAttachService),
+        MethodName = nameof(HandleExceptionWhileExecutingBlocks))]
+    private async Task<BlockExecutionResult> ExecuteBlocksAsync(IEnumerable<Block> notExecutedBlocks)
+    {
+        return await _blockchainExecutingService.ExecuteBlocksAsync(notExecutedBlocks);
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AElf.ExceptionHandler;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
@@ -31,7 +32,7 @@ public interface ITransactionResultAppService
     Task<MerklePathDto> GetMerklePathByTransactionIdAsync(string transactionId);
 }
 
-public class TransactionResultAppService : AElfAppService, ITransactionResultAppService
+public partial class TransactionResultAppService : AElfAppService, ITransactionResultAppService
 {
     private readonly IBlockchainService _blockchainService;
     private readonly IObjectMapper<ChainApplicationWebAppAElfModule> _objectMapper;
@@ -71,16 +72,7 @@ public class TransactionResultAppService : AElfAppService, ITransactionResultApp
     /// <returns></returns>
     public async Task<TransactionResultDto> GetTransactionResultAsync(string transactionId)
     {
-        Hash transactionIdHash;
-        try
-        {
-            transactionIdHash = Hash.LoadFromHex(transactionId);
-        }
-        catch
-        {
-            throw new UserFriendlyException(Error.Message[Error.InvalidTransactionId],
-                Error.InvalidTransactionId.ToString());
-        }
+        var transactionIdHash = ParseHash(transactionId, Error.InvalidTransactionId);
 
         var transactionResult = await GetTransactionResultAsync(transactionIdHash);
         var output = _objectMapper.GetMapper()
@@ -120,7 +112,13 @@ public class TransactionResultAppService : AElfAppService, ITransactionResultApp
         }
 
         return output;
-        
+    }
+
+    [ExceptionHandler(typeof(Exception), TargetType = typeof(ExceptionHandlerService),
+        MethodName = nameof(ExceptionHandlerService.HandleExceptionWhileParsingHash))]
+    protected Hash ParseHash(string hexHash, int errorCode)
+    {
+        return Hash.LoadFromHex(hexHash);
     }
 
     /// <summary>
@@ -140,16 +138,7 @@ public class TransactionResultAppService : AElfAppService, ITransactionResultApp
         if (limit <= 0 || limit > 100)
             throw new UserFriendlyException(Error.Message[Error.InvalidLimit], Error.InvalidLimit.ToString());
 
-        Hash realBlockHash;
-        try
-        {
-            realBlockHash = Hash.LoadFromHex(blockHash);
-        }
-        catch
-        {
-            throw new UserFriendlyException(Error.Message[Error.InvalidBlockHash],
-                Error.InvalidBlockHash.ToString());
-        }
+        var realBlockHash = ParseHash(blockHash, Error.InvalidBlockHash);
 
         var block = await _blockchainService.GetBlockAsync(realBlockHash);
         if (block == null) throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
@@ -176,17 +165,7 @@ public class TransactionResultAppService : AElfAppService, ITransactionResultApp
     /// <returns></returns>
     public async Task<MerklePathDto> GetMerklePathByTransactionIdAsync(string transactionId)
     {
-        Hash transactionIdHash;
-        try
-        {
-            transactionIdHash = Hash.LoadFromHex(transactionId);
-        }
-        catch
-        {
-            throw new UserFriendlyException(Error.Message[Error.InvalidTransactionId],
-                Error.InvalidTransactionId.ToString());
-        }
-
+        var transactionIdHash = ParseHash(transactionId, Error.InvalidTransactionId);
         var transactionResult = await GetMinedTransactionResultAsync(transactionIdHash);
         var blockHash = transactionResult.BlockHash;
         var blockInfo = await _blockchainService.GetBlockByHashAsync(blockHash);
@@ -314,6 +293,8 @@ public class TransactionResultAppService : AElfAppService, ITransactionResultApp
             contractAddress, methodName, throwException);
     }
 
+    [ExceptionHandler(typeof(Exception), TargetType = typeof(TransactionResultAppService),
+        MethodName = nameof(HandleExceptionWhileParsingTransactionParameter))]
     private async Task FormatTransactionParamsAsync(TransactionDto transaction, ByteString @params)
     {
         var methodDescriptor =
@@ -322,14 +303,7 @@ public class TransactionResultAppService : AElfAppService, ITransactionResultApp
         if (methodDescriptor == null)
             return;
 
-        try
-        {
-            var parameters = methodDescriptor.InputType.Parser.ParseFrom(@params);
-            transaction.Params = JsonFormatter.ToDiagnosticString(parameters);;
-        }
-        catch (Exception exception)
-        {
-            Logger.LogError(exception, "Failed to parse transaction params: {params}", transaction.Params);
-        }
+        var parameters = methodDescriptor.InputType.Parser.ParseFrom(@params);
+        transaction.Params = JsonFormatter.ToDiagnosticString(parameters);
     }
 }

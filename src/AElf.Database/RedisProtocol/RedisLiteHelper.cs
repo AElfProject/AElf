@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Formats.Tar;
 using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using AElf.ExceptionHandler;
 
 namespace AElf.Database.RedisProtocol;
 
@@ -26,7 +28,7 @@ public static class Commands
     public static readonly byte[] MSet = "MSET".ToUtf8Bytes();
 }
 
-public static class RedisExtensions
+public static partial class RedisExtensions
 {
     public static readonly string[] EmptyStringArray = new string [0];
 
@@ -38,16 +40,11 @@ public static class RedisExtensions
         return byteArgs;
     }
 
+    [ExceptionHandler(typeof(SocketException), TargetType = typeof(RedisExtensions),
+        MethodName = nameof(HandleSocketException))]
     public static bool IsConnected(this Socket socket)
     {
-        try
-        {
-            return !(socket.Poll(1, SelectMode.SelectRead) && socket.Available == 0);
-        }
-        catch (SocketException)
-        {
-            return false;
-        }
+        return !(socket.Poll(1, SelectMode.SelectRead) && socket.Available == 0);
     }
 
     public static string FromUtf8Bytes(this byte[] bytes)

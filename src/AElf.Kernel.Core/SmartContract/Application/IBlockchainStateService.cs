@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using AElf.ExceptionHandler;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Domain;
 using AElf.Kernel.SmartContract.Infrastructure;
@@ -114,7 +115,7 @@ public class CachedBlockchainExecutedDataService<T> : ICachedBlockchainExecutedD
     }
 }
 
-public class BlockchainStateService : IBlockchainStateService
+public partial class BlockchainStateService : IBlockchainStateService
 {
     private readonly IBlockchainService _blockchainService;
     private readonly IBlockStateSetManger _blockStateSetManger;
@@ -161,17 +162,17 @@ public class BlockchainStateService : IBlockchainStateService
             lastIrreversibleBlockHeight, lastIrreversibleBlockHash.ToHex(), blockIndexes.Count);
 
         foreach (var blockIndex in blockIndexes)
-            try
-            {
-                Logger.LogDebug("Merging state {ChainStateInfo} for block {BlockIndex}", chainStateInfo, blockIndex);
-                await _blockStateSetManger.MergeBlockStateAsync(chainStateInfo, blockIndex.BlockHash);
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e,
-                    "Exception while merge state {ChainStateInfo} for block {BlockIndex}", chainStateInfo, blockIndex);
-                throw;
-            }
+        {
+            await MergeBlockStateAsync(chainStateInfo, blockIndex);
+        }
+    }
+
+    [ExceptionHandler(typeof(Exception), TargetType = typeof(BlockchainStateService),
+        MethodName = nameof(HandleExceptionWhileMergingBlockState))]
+    private async Task MergeBlockStateAsync(ChainStateInfo chainStateInfo, IBlockIndex blockIndex)
+    {
+        Logger.LogDebug("Merging state {ChainStateInfo} for block {BlockIndex}", chainStateInfo, blockIndex);
+        await _blockStateSetManger.MergeBlockStateAsync(chainStateInfo, blockIndex.BlockHash);
     }
 
     public async Task SetBlockStateSetAsync(BlockStateSet blockStateSet)

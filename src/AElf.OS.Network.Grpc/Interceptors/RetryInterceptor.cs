@@ -1,13 +1,14 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.ExceptionHandler;
 using AElf.Kernel.SmartContract;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
 
 namespace AElf.OS.Network.Grpc;
 
-public class RetryInterceptor : Interceptor
+public partial class RetryInterceptor : Interceptor
 {
     public override AsyncUnaryCall<TResponse> AsyncUnaryCall<TRequest, TResponse>(TRequest request,
         ClientInterceptorContext<TRequest, TResponse> context,
@@ -59,22 +60,15 @@ public class RetryInterceptor : Interceptor
             responseContinuation.Dispose);
     }
 
+    [ExceptionHandler(typeof(OperationCanceledException), TargetType = typeof(RetryInterceptor),
+        MethodName = nameof(HandleExceptionWhileGettingResponse))]
     private async Task<TResponse> GetResponseAsync<TResponse>(AsyncUnaryCall<TResponse> responseContinuation,
         TimeSpan timeout)
     {
-        try
-        {
-            using (var cts = new CancellationTokenSource())
-            {
-                // Ensure that under normal circumstances, the timeout is no earlier than on the server side.
-                cts.CancelAfter(timeout.Add(TimeSpan.FromSeconds(1)));
-                return await responseContinuation.ResponseAsync.WithCancellation(cts.Token);
-            }
-        }
-        catch (OperationCanceledException)
-        {
-            throw new RpcException(new Status(StatusCode.Cancelled, "The server is not responding."));
-        }
+        using var cts = new CancellationTokenSource();
+        // Ensure that under normal circumstances, the timeout is no earlier than on the server side.
+        cts.CancelAfter(timeout.Add(TimeSpan.FromSeconds(1)));
+        return await responseContinuation.ResponseAsync.WithCancellation(cts.Token);
     }
 
     private ClientInterceptorContext<TRequest, TResponse> BuildNewContext<TRequest, TResponse>(

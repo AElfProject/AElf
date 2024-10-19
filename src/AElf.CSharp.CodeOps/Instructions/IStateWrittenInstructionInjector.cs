@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using AElf.ExceptionHandler;
 using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.State;
 using Mono.Cecil;
@@ -21,7 +22,7 @@ public interface IStateWrittenInstructionInjector
     bool ValidateInstruction(ModuleDefinition moduleDefinition, Instruction instruction);
 }
 
-public class StateWrittenInstructionInjector : IStateWrittenInstructionInjector, ITransientDependency
+public partial class StateWrittenInstructionInjector : IStateWrittenInstructionInjector, ITransientDependency
 {
     private static readonly ReadOnlyDictionary<string, HashSet<string>> MethodCallsIdentifications =
         new ReadOnlyDictionary<string, HashSet<string>>(
@@ -98,21 +99,19 @@ public class StateWrittenInstructionInjector : IStateWrittenInstructionInjector,
         var methodDefinition = moduleDefinition.ImportReference(
             typeof(CSharpSmartContractContext).GetMethod(nameof(CSharpSmartContractContext.ValidateStateSize)));
 
-        MethodReference stateSizeLimitInstruction;
-        try
-        {
-            var previousIsCast = instruction.Previous?.OpCode == OpCodes.Castclass;
-            var expectedToBeValidateStateSize = previousIsCast ? instruction.Previous.Previous : instruction.Previous;
-            stateSizeLimitInstruction = (MethodReference) expectedToBeValidateStateSize?.Operand;
-        }
-        catch (InvalidCastException)
-        {
-            return false;
-        }
-            
+        var stateSizeLimitInstruction = GetStateSizeLimitInstruction(instruction);
         var result = !string.IsNullOrEmpty(stateSizeLimitInstruction?.FullName) &&
                      methodDefinition.FullName == stateSizeLimitInstruction.FullName;
-
         return result;
+    }
+
+    [ExceptionHandler(typeof(InvalidCastException), TargetType = typeof(StateWrittenInstructionInjector),
+        MethodName = nameof(HandleExceptionWhileGettingStateSizeLimitInstruction))]
+    private static MethodReference GetStateSizeLimitInstruction(Instruction instruction)
+    {
+        var previousIsCast = instruction.Previous?.OpCode == OpCodes.Castclass;
+        var expectedToBeValidateStateSize = previousIsCast ? instruction.Previous.Previous : instruction.Previous;
+        var stateSizeLimitInstruction = (MethodReference) expectedToBeValidateStateSize?.Operand;
+        return stateSizeLimitInstruction;
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Reflection;
+using AElf.ExceptionHandler;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -8,7 +9,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Launcher;
 
-internal class Program
+internal partial class Program
 {
     private static void RegisterAssemblyResolveEvent()
     {
@@ -39,20 +40,12 @@ internal class Program
         return assembly;
     }
 
+    [ExceptionHandler(typeof(Exception), TargetType = typeof(Program),
+        MethodName = nameof(HandleExceptionWhileStartingNode))]
     public static void Main(string[] args)
     {
         RegisterAssemblyResolveEvent();
-        ILogger<Program> logger = NullLogger<Program>.Instance;
-        try
-        {
-            CreateHostBuilder(args).Build().Run();
-        }
-        catch (Exception e)
-        {
-            if (logger == NullLogger<Program>.Instance)
-                Console.WriteLine(e);
-            logger.LogCritical(e, "program crashed");
-        }
+        CreateHostBuilder(args).Build().Run();
     }
 
     // create default https://github.com/aspnet/MetaPackages/blob/master/src/Microsoft.AspNetCore/WebHost.cs

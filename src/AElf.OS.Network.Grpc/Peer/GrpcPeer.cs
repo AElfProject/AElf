@@ -8,6 +8,7 @@ using System.Net;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 using AElf.CSharp.Core.Extension;
+using AElf.ExceptionHandler;
 using AElf.Kernel;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Infrastructure;
@@ -16,13 +17,14 @@ using AElf.OS.Network.Protocol.Types;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
+using Microsoft.Extensions.Logging;
 
 namespace AElf.OS.Network.Grpc;
 
 /// <summary>
 ///     Represents a connection to a peer.
 /// </summary>
-public class GrpcPeer : IPeer
+public partial class GrpcPeer : IPeer
 {
     private const int MaxMetricsPerMethod = 100;
     protected const int BlockRequestTimeout = 2000;
@@ -108,7 +110,9 @@ public class GrpcPeer : IPeer
     ///     Property that describes that describes if the peer is ready for send/request operations. It's based
     ///     on the state of the underlying channel and the IsConnected.
     /// </summary>
-    public bool IsReady => _channel != null ? (_channel.State == ChannelState.Idle || _channel.State == ChannelState.Ready) && IsConnected : IsConnected;
+    public bool IsReady => _channel != null
+        ? (_channel.State == ChannelState.Idle || _channel.State == ChannelState.Ready) && IsConnected
+        : IsConnected;
 
     public bool IsInvalid =>
         !IsConnected &&
@@ -268,6 +272,10 @@ public class GrpcPeer : IPeer
         return _knownTransactionCache.TryAdd(transactionHash);
     }
 
+    [ExceptionHandler(typeof(InvalidOperationException), LogLevel = LogLevel.Information, LogOnly = true,
+        Message = "Swallowed the exception while disconnecting, we don't care because we're disconnecting.")]
+    [ExceptionHandler(typeof(NetworkException), LogLevel = LogLevel.Information, LogOnly = true,
+        Message = "Swallowed the exception while disconnecting, we don't care because we're disconnecting.")]
     public virtual async Task DisconnectAsync(bool gracefulDisconnect)
     {
         IsConnected = false;
@@ -287,29 +295,13 @@ public class GrpcPeer : IPeer
         if (gracefulDisconnect && (_channel.State == ChannelState.Idle || _channel.State == ChannelState.Ready))
         {
             var request = new GrpcRequest { ErrorMessage = "Could not send disconnect." };
-
-            try
-            {
-                var metadata = new Metadata { { GrpcConstants.SessionIdMetadataKey, OutboundSessionId } };
-
-                await RequestAsync(
-                    () => _client.DisconnectAsync(new DisconnectReason
-                        { Why = DisconnectReason.Types.Reason.Shutdown }, metadata), request);
-            }
-            catch (NetworkException)
-            {
-                // swallow the exception, we don't care because we're disconnecting.
-            }
+            var metadata = new Metadata { { GrpcConstants.SessionIdMetadataKey, OutboundSessionId } };
+            await RequestAsync(
+                () => _client.DisconnectAsync(new DisconnectReason
+                    { Why = DisconnectReason.Types.Reason.Shutdown }, metadata), request);
         }
 
-        try
-        {
-            await _channel.ShutdownAsync();
-        }
-        catch (InvalidOperationException)
-        {
-            // if channel already shutdown
-        }
+        await _channel.ShutdownAsync();
     }
 
     public void UpdateLastReceivedHandshake(Handshake handshake)
@@ -338,6 +330,10 @@ public class GrpcPeer : IPeer
         await RequestAsync(() => _client.ConfirmHandshakeAsync(new ConfirmHandshakeRequest(), data), request);
     }
 
+    [ExceptionHandler(typeof(AggregateException), TargetType = typeof(GrpcPeer),
+        MethodName = nameof(HandleExceptionWhileWriting))]
+    [ExceptionHandler(typeof(RpcException), TargetType = typeof(GrpcPeer),
+        MethodName = nameof(HandleExceptionWhileWriting))]
     private async Task<TResp> RequestAsync<TResp>(Func<AsyncUnaryCall<TResp>> func, GrpcRequest requestParams)
     {
         var metricsName = requestParams.MetricName;
@@ -349,29 +345,14 @@ public class GrpcPeer : IPeer
         if (timeRequest)
             requestTimer = Stopwatch.StartNew();
 
-        try
+        var response = await func();
+        if (timeRequest)
         {
-            var response = await func();
-            if (timeRequest)
-            {
-                requestTimer.Stop();
-                RecordMetric(requestParams, requestStartTime, requestTimer.ElapsedMilliseconds);
-            }
+            requestTimer.Stop();
+            RecordMetric(requestParams, requestStartTime, requestTimer.ElapsedMilliseconds);
+        }
 
-            return response;
-        }
-        catch (ObjectDisposedException ex)
-        {
-            throw new NetworkException("Peer is closed", ex, NetworkExceptionType.Unrecoverable);
-        }
-        catch (AggregateException ex)
-        {
-            if (!(ex.InnerException is RpcException rpcException))
-                throw new NetworkException($"Unknown exception. {this}: {requestParams.ErrorMessage}",
-                    NetworkExceptionType.Unrecoverable);
-
-            throw HandleRpcException(rpcException, requestParams.ErrorMessage);
-        }
+        return response;
     }
 
     protected virtual void RecordMetric(GrpcRequest grpcRequest, Timestamp requestStartTime, long elapsedMilliseconds)
@@ -492,122 +473,72 @@ public class GrpcPeer : IPeer
         });
     }
 
+    [ExceptionHandler(typeof(Exception), TargetType = typeof(GrpcPeer),
+        MethodName = nameof(HandleExceptionWhileSending))]
     private async Task SendStreamJobAsync(StreamJob job)
     {
         if (!IsReady)
             return;
-
-        try
-        {
-            if (job.Transaction != null)
-                await SendTransactionAsync(job.Transaction);
-            else if (job.BlockAnnouncement != null)
-                await SendAnnouncementAsync(job.BlockAnnouncement);
-            else if (job.BlockWithTransactions != null)
-                await BroadcastBlockAsync(job.BlockWithTransactions);
-            else if (job.LibAnnouncement != null) await SendLibAnnouncementAsync(job.LibAnnouncement);
-        }
-        catch (RpcException ex)
-        {
-            job.SendCallback?.Invoke(HandleRpcException(ex, $"Could not broadcast to {this}: "));
-            await Task.Delay(StreamRecoveryWaitTime);
-            return;
-        }
-        catch (Exception ex)
-        {
-            job.SendCallback?.Invoke(new NetworkException("Unknown exception during broadcast.", ex));
-            throw;
-        }
-
+        if (job.Transaction != null)
+            await SendTransactionAsync(job.Transaction);
+        else if (job.BlockAnnouncement != null)
+            await SendAnnouncementAsync(job.BlockAnnouncement);
+        else if (job.BlockWithTransactions != null)
+            await BroadcastBlockAsync(job.BlockWithTransactions);
+        else if (job.LibAnnouncement != null) await SendLibAnnouncementAsync(job.LibAnnouncement);
         job.SendCallback?.Invoke(null);
     }
 
+    [ExceptionHandler(typeof(RpcException), TargetType = typeof(GrpcPeer),
+        MethodName = nameof(HandleExceptionWhileBroadcastingBlock))]
     protected virtual async Task BroadcastBlockAsync(BlockWithTransactions blockWithTransactions)
     {
         if (_blockStreamCall == null)
             _blockStreamCall = _client.BlockBroadcastStream(new Metadata
                 { { GrpcConstants.SessionIdMetadataKey, OutboundSessionId } });
-
-        try
-        {
-            await _blockStreamCall.RequestStream.WriteAsync(blockWithTransactions);
-        }
-        catch (RpcException)
-        {
-            _blockStreamCall.Dispose();
-            _blockStreamCall = null;
-
-            throw;
-        }
+        await _blockStreamCall.RequestStream.WriteAsync(blockWithTransactions);
     }
 
     /// <summary>
     ///     Send a announcement to the peer using the stream call.
     ///     Note: this method is not thread safe.
     /// </summary>
+    [ExceptionHandler(typeof(RpcException), TargetType = typeof(GrpcPeer),
+        MethodName = nameof(HandleExceptionWhileSendingAnnouncement))]
     protected virtual async Task SendAnnouncementAsync(BlockAnnouncement header)
     {
         if (_announcementStreamCall == null)
             _announcementStreamCall = _client.AnnouncementBroadcastStream(new Metadata
                 { { GrpcConstants.SessionIdMetadataKey, OutboundSessionId } });
-
-        try
-        {
-            await _announcementStreamCall.RequestStream.WriteAsync(header);
-        }
-        catch (RpcException)
-        {
-            _announcementStreamCall.Dispose();
-            _announcementStreamCall = null;
-
-            throw;
-        }
+        await _announcementStreamCall.RequestStream.WriteAsync(header);
     }
 
     /// <summary>
     ///     Send a transaction to the peer using the stream call.
     ///     Note: this method is not thread safe.
     /// </summary>
+    [ExceptionHandler(typeof(RpcException), TargetType = typeof(GrpcPeer),
+        MethodName = nameof(HandleExceptionWhileSendingTransaction))]
     protected virtual async Task SendTransactionAsync(Transaction transaction)
     {
         if (_transactionStreamCall == null)
             _transactionStreamCall = _client.TransactionBroadcastStream(new Metadata
                 { { GrpcConstants.SessionIdMetadataKey, OutboundSessionId } });
-
-        try
-        {
-            await _transactionStreamCall.RequestStream.WriteAsync(transaction);
-        }
-        catch (RpcException)
-        {
-            _transactionStreamCall.Dispose();
-            _transactionStreamCall = null;
-
-            throw;
-        }
+        await _transactionStreamCall.RequestStream.WriteAsync(transaction);
     }
 
     /// <summary>
     ///     Send a lib announcement to the peer using the stream call.
     ///     Note: this method is not thread safe.
     /// </summary>
+    [ExceptionHandler(typeof(RpcException), TargetType = typeof(GrpcPeer),
+        MethodName = nameof(HandleExceptionWhileSendingLibAnnouncement))]
     public virtual async Task SendLibAnnouncementAsync(LibAnnouncement libAnnouncement)
     {
         if (_libAnnouncementStreamCall == null)
             _libAnnouncementStreamCall = _client.LibAnnouncementBroadcastStream(new Metadata
                 { { GrpcConstants.SessionIdMetadataKey, OutboundSessionId } });
-
-        try
-        {
-            await _libAnnouncementStreamCall.RequestStream.WriteAsync(libAnnouncement);
-        }
-        catch (RpcException)
-        {
-            _libAnnouncementStreamCall.Dispose();
-            _libAnnouncementStreamCall = null;
-
-            throw;
-        }
+        await _libAnnouncementStreamCall.RequestStream.WriteAsync(libAnnouncement);
     }
 
     #endregion

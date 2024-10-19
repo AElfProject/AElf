@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.ExceptionHandler;
 using AElf.Kernel.FeatureDisable.Core;
 using AElf.Kernel.SmartContract.Domain;
 using AElf.Kernel.SmartContract.Infrastructure;
@@ -16,7 +17,7 @@ using Volo.Abp.EventBus.Local;
 
 namespace AElf.Kernel.SmartContract.Application;
 
-public class PlainTransactionExecutingService : IPlainTransactionExecutingService, ISingletonDependency
+public partial class PlainTransactionExecutingService : IPlainTransactionExecutingService, ISingletonDependency
 {
     private readonly List<IPostExecutionPlugin> _postPlugins;
     private readonly List<IPreExecutionPlugin> _prePlugins;
@@ -41,65 +42,79 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
 
     public ILocalEventBus LocalEventBus { get; set; }
 
+    [ExceptionHandler(typeof(Exception), LogOnly = true, LogLevel = LogLevel.Error,
+        Message = "Failed while executing txs in block")]
     public async Task<List<ExecutionReturnSet>> ExecuteAsync(TransactionExecutingDto transactionExecutingDto,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var groupStateCache = transactionExecutingDto.PartialBlockStateSet.ToTieredStateCache();
-            var groupChainContext = new ChainContextWithTieredStateCache(
-                transactionExecutingDto.BlockHeader.PreviousBlockHash,
-                transactionExecutingDto.BlockHeader.Height - 1, groupStateCache);
+        var groupStateCache = transactionExecutingDto.PartialBlockStateSet.ToTieredStateCache();
+        var groupChainContext = new ChainContextWithTieredStateCache(
+            transactionExecutingDto.BlockHeader.PreviousBlockHash,
+            transactionExecutingDto.BlockHeader.Height - 1, groupStateCache);
 
-            var returnSets = new List<ExecutionReturnSet>();
-            foreach (var transaction in transactionExecutingDto.Transactions)
+        var returnSets = new List<ExecutionReturnSet>();
+        foreach (var transaction in transactionExecutingDto.Transactions)
+        {
+            if (cancellationToken.IsCancellationRequested)
+                break;
+
+            var singleTxExecutingDto = new SingleTransactionExecutingDto
             {
-                TransactionTrace trace;
-                if (cancellationToken.IsCancellationRequested)
-                    break;
+                Depth = 0,
+                ChainContext = groupChainContext,
+                Transaction = transaction,
+                CurrentBlockTime = transactionExecutingDto.BlockHeader.Time,
+                OriginTransactionId = transaction.GetHash()
+            };
 
-                var singleTxExecutingDto = new SingleTransactionExecutingDto
-                {
-                    Depth = 0,
-                    ChainContext = groupChainContext,
-                    Transaction = transaction,
-                    CurrentBlockTime = transactionExecutingDto.BlockHeader.Time,
-                    OriginTransactionId = transaction.GetHash()
-                };
-                try
-                {
-                    var transactionExecutionTask = Task.Run(() => ExecuteOneAsync(singleTxExecutingDto,
-                        cancellationToken), cancellationToken);
+            var trace = await GetTraceByExecutingTask(cancellationToken, singleTxExecutingDto);
 
-                    trace = await transactionExecutionTask.WithCancellation(cancellationToken);
-                }
-                catch (OperationCanceledException)
-                {
-                    Logger.LogTrace("Transaction canceled");
-                    if (cancellationToken.IsCancellationRequested)
-                        break;
-                    continue;
-                }
+            if (trace == null || !TryUpdateStateCache(trace, groupStateCache))
+                break;
 
-
-                if (!TryUpdateStateCache(trace, groupStateCache))
-                    break;
-#if DEBUG
-                if (!string.IsNullOrEmpty(trace.Error)) Logger.LogInformation("{Error}", trace.Error);
-#endif
-                var result = GetTransactionResult(trace, transactionExecutingDto.BlockHeader.Height);
-
-                var returnSet = GetReturnSet(trace, result);
-                returnSets.Add(returnSet);
-            }
-
-            return returnSets;
+    #if DEBUG
+            if (!string.IsNullOrEmpty(trace.Error)) Logger.LogInformation("{Error}", trace.Error);
+    #endif
+            var result = GetTransactionResult(trace, transactionExecutingDto.BlockHeader.Height);
+            var returnSet = GetReturnSet(trace, result);
+            returnSets.Add(returnSet);
         }
-        catch (Exception e)
-        {
-            Logger.LogError(e, "Failed while executing txs in block");
-            throw;
-        }
+
+        return returnSets;
+    }
+
+    private async Task<TransactionTrace> GetTraceByExecutingTask(CancellationToken cancellationToken,
+        SingleTransactionExecutingDto singleTxExecutingDto)
+    {
+        if (singleTxExecutingDto.IsCancellable)
+            cancellationToken.ThrowIfCancellationRequested();
+
+        var txContext = CreateTransactionContext(singleTxExecutingDto);
+        var trace = txContext.Trace;
+
+        var internalStateCache = new TieredStateCache(singleTxExecutingDto.ChainContext.StateCache);
+        var internalChainContext =
+            new ChainContextWithTieredStateCache(singleTxExecutingDto.ChainContext, internalStateCache);
+
+        IExecutive executive = await GetExecutiveAsync(internalChainContext, singleTxExecutingDto.Transaction.To, txContext);
+        if (executive == null)
+            return trace;
+
+        await ApplyExecutiveAsync(executive, txContext, singleTxExecutingDto, internalStateCache, internalChainContext, cancellationToken);
+
+        await _smartContractExecutiveService.PutExecutiveAsync(singleTxExecutingDto.ChainContext,
+            singleTxExecutingDto.Transaction.To, executive);
+
+        return trace;
+    }
+
+    [ExceptionHandler(typeof(SmartContractFindRegistrationException),
+        TargetType = typeof(PlainTransactionExecutingService),
+        MethodName = nameof(HandleExceptionWhileGettingExecutive))]
+    private async Task<IExecutive> GetExecutiveAsync(IChainContext internalChainContext, Address contractAddress,
+        ITransactionContext txContext)
+    {
+        return await _smartContractExecutiveService.GetExecutiveAsync(internalChainContext, contractAddress);
     }
 
     private static bool TryUpdateStateCache(TransactionTrace trace, TieredStateCache groupStateCache)
@@ -146,71 +161,75 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
         var internalChainContext =
             new ChainContextWithTieredStateCache(singleTxExecutingDto.ChainContext, internalStateCache);
 
-        IExecutive executive;
-        try
-        {
-            executive = await _smartContractExecutiveService.GetExecutiveAsync(
-                internalChainContext,
-                singleTxExecutingDto.Transaction.To);
-        }
-        catch (SmartContractFindRegistrationException)
+        var executive = await GetExecutiveAsync(singleTxExecutingDto, internalChainContext);
+        if (executive == null)
         {
             txContext.Trace.ExecutionStatus = ExecutionStatus.ContractError;
             txContext.Trace.Error += "Invalid contract address.\n";
             return trace;
         }
 
-        try
+        var preTransactionSuccess = await ExecutePluginOnPreTransactionStageAsync(executive, txContext,
+            singleTxExecutingDto.CurrentBlockTime, internalChainContext, internalStateCache, cancellationToken);
+        if (!preTransactionSuccess)
         {
-            #region PreTransaction
-
-            if (singleTxExecutingDto.Depth == 0)
-                if (!await ExecutePluginOnPreTransactionStageAsync(executive, txContext,
-                        singleTxExecutingDto.CurrentBlockTime,
-                        internalChainContext, internalStateCache, cancellationToken))
-                {
-                    trace.ExecutionStatus = ExecutionStatus.Prefailed;
-                    return trace;
-                }
-
-            #endregion
-
-            await executive.ApplyAsync(txContext);
-
-            if (txContext.Trace.IsSuccessful())
-                await ExecuteInlineTransactions(singleTxExecutingDto.Depth, singleTxExecutingDto.CurrentBlockTime,
-                    txContext, internalStateCache,
-                    internalChainContext,
-                    singleTxExecutingDto.OriginTransactionId,
-                    cancellationToken);
-
-            #region PostTransaction
-
-            if (singleTxExecutingDto.Depth == 0)
-                if (!await ExecutePluginOnPostTransactionStageAsync(executive, txContext,
-                        singleTxExecutingDto.CurrentBlockTime,
-                        internalChainContext, internalStateCache, cancellationToken))
-                {
-                    trace.ExecutionStatus = ExecutionStatus.Postfailed;
-                    return trace;
-                }
-
-            #endregion
+            trace.ExecutionStatus = ExecutionStatus.Prefailed;
+            return trace;
         }
-        catch (Exception ex)
+
+        var applyResult = await ApplyExecutiveAsync(executive, txContext, singleTxExecutingDto, internalStateCache,
+            internalChainContext, cancellationToken);
+        if (!applyResult)
         {
-            Logger.LogError(ex, "Transaction execution failed");
             txContext.Trace.ExecutionStatus = ExecutionStatus.ContractError;
-            txContext.Trace.Error += ex + "\n";
-            throw;
+            return trace;
         }
-        finally
+
+        if (txContext.Trace.IsSuccessful())
         {
-            await _smartContractExecutiveService.PutExecutiveAsync(singleTxExecutingDto.ChainContext,
-                singleTxExecutingDto.Transaction.To, executive);
+            await ExecuteInlineTransactions(singleTxExecutingDto.Depth, singleTxExecutingDto.CurrentBlockTime,
+                txContext, internalStateCache, internalChainContext, singleTxExecutingDto.OriginTransactionId,
+                cancellationToken);
         }
+
+        var postTransactionSuccess = await ExecutePluginOnPostTransactionStageAsync(executive, txContext,
+            singleTxExecutingDto.CurrentBlockTime, internalChainContext, internalStateCache, cancellationToken);
+        if (!postTransactionSuccess)
+        {
+            trace.ExecutionStatus = ExecutionStatus.Postfailed;
+            return trace;
+        }
+
+        await _smartContractExecutiveService.PutExecutiveAsync(singleTxExecutingDto.ChainContext,
+            singleTxExecutingDto.Transaction.To, executive);
 
         return trace;
+    }
+
+    [ExceptionHandler(typeof(Exception),
+        TargetType = typeof(PlainTransactionExecutingService),
+        MethodName = nameof(HandleExceptionWhileApplyingExecutive))]
+    private async Task<bool> ApplyExecutiveAsync(IExecutive executive, ITransactionContext txContext,
+        SingleTransactionExecutingDto singleTxExecutingDto,
+        TieredStateCache internalStateCache, IChainContext internalChainContext, CancellationToken cancellationToken)
+    {
+        await executive.ApplyAsync(txContext);
+
+        if (txContext.Trace.IsSuccessful())
+            await ExecuteInlineTransactions(singleTxExecutingDto.Depth, singleTxExecutingDto.CurrentBlockTime,
+                txContext, internalStateCache, internalChainContext, singleTxExecutingDto.OriginTransactionId,
+                cancellationToken);
+
+        return true;
+    }
+
+    private async Task<IExecutive> GetExecutiveAsync(SingleTransactionExecutingDto singleTxExecutingDto,
+        ChainContextWithTieredStateCache internalChainContext)
+    {
+        var executive = await _smartContractExecutiveService.GetExecutiveAsync(
+            internalChainContext,
+            singleTxExecutingDto.Transaction.To);
+        return executive;
     }
 
     private async Task ExecuteInlineTransactions(int depth, Timestamp currentBlockTime,

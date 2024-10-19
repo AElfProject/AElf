@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.ExceptionHandler;
 using AElf.Kernel;
 using AElf.Kernel.Consensus.Application;
 using AElf.OS.Network.Helpers;
@@ -17,7 +18,7 @@ namespace AElf.OS.Network.Application;
 /// <summary>
 ///     Exposes networking functionality to the application handlers.
 /// </summary>
-public class NetworkService : INetworkService, ISingletonDependency
+public partial class NetworkService : INetworkService, ISingletonDependency
 {
     private readonly IBlackListedPeerProvider _blackListedPeerProvider;
     private readonly IBroadcastPrivilegedPubkeyListProvider _broadcastPrivilegedPubkeyListProvider;
@@ -129,59 +130,60 @@ public class NetworkService : INetworkService, ISingletonDependency
         };
 
         foreach (var peer in _peerPool.GetPeers())
-            try
-            {
-                if (peer.KnowsBlock(blockHash))
-                    continue; // block already known to this peer
-
-                peer.EnqueueAnnouncement(blockAnnouncement, async ex =>
-                {
-                    peer.TryAddKnownBlock(blockHash);
-                    if (ex != null)
-                    {
-                        Logger.LogInformation(ex, $"Could not broadcast announcement to {peer} " +
-                                                  $"- status {peer.ConnectionStatus}.");
-
-                        await HandleNetworkExceptionAsync(peer, ex);
-                    }
-                });
-            }
-            catch (NetworkException ex)
-            {
-                Logger.LogWarning(ex, $"Could not enqueue announcement to {peer} " +
-                                      $"- status {peer.ConnectionStatus}.");
-            }
+        {
+            EnqueueAnnouncement(peer, blockHash, blockAnnouncement);
+        }
 
         return Task.CompletedTask;
+    }
+
+    [ExceptionHandler(typeof(NetworkException), TargetType = typeof(NetworkService),
+        MethodName = nameof(HandleExceptionWhileEnqueuingAnnouncement))]
+    private void EnqueueAnnouncement(IPeer peer, Hash blockHash, BlockAnnouncement blockAnnouncement)
+    {
+        if (!peer.KnowsBlock(blockHash))
+        {
+            peer.EnqueueAnnouncement(blockAnnouncement, async ex =>
+            {
+                peer.TryAddKnownBlock(blockHash);
+                if (ex != null)
+                {
+                    Logger.LogInformation(ex,
+                        $"Could not broadcast announcement to {peer} - status {peer.ConnectionStatus}.");
+                    await HandleNetworkExceptionAsync(peer, ex);
+                }
+            });
+        }
     }
 
     public Task BroadcastTransactionAsync(Transaction transaction)
     {
         var txHash = transaction.GetHash();
         foreach (var peer in _peerPool.GetPeers())
-            try
-            {
-                if (peer.KnowsTransaction(txHash))
-                    continue; // transaction already known to this peer
-
-                peer.EnqueueTransaction(transaction, async ex =>
-                {
-                    if (ex != null)
-                    {
-                        Logger.LogWarning(ex, $"Could not broadcast transaction to {peer} " +
-                                              $"- status {peer.ConnectionStatus}.");
-
-                        await HandleNetworkExceptionAsync(peer, ex);
-                    }
-                });
-            }
-            catch (NetworkException ex)
-            {
-                Logger.LogWarning(ex, $"Could not enqueue transaction to {peer} - " +
-                                      $"status {peer.ConnectionStatus}.");
-            }
+        {
+            EnqueueTransaction(transaction, peer, txHash);
+        }
 
         return Task.CompletedTask;
+    }
+
+    [ExceptionHandler(typeof(NetworkException), TargetType = typeof(NetworkService),
+        MethodName = nameof(HandleExceptionWhileEnqueuingTransaction))]
+    private void EnqueueTransaction(Transaction transaction, IPeer peer, Hash txHash)
+    {
+        if (!peer.KnowsTransaction(txHash))
+        {
+            peer.EnqueueTransaction(transaction, async ex =>
+            {
+                if (ex != null)
+                {
+                    Logger.LogWarning(ex, $"Could not broadcast transaction to {peer} " +
+                                          $"- status {peer.ConnectionStatus}.");
+
+                    await HandleNetworkExceptionAsync(peer, ex);
+                }
+            });
+        }
     }
 
     public Task BroadcastLibAnnounceAsync(Hash libHash, long libHeight)
@@ -193,25 +195,26 @@ public class NetworkService : INetworkService, ISingletonDependency
         };
 
         foreach (var peer in _peerPool.GetPeers())
-            try
-            {
-                peer.EnqueueLibAnnouncement(announce, async ex =>
-                {
-                    if (ex != null)
-                    {
-                        Logger.LogWarning(ex, $"Could not broadcast lib announcement to {peer} " +
-                                              $"- status {peer.ConnectionStatus}.");
-                        await HandleNetworkExceptionAsync(peer, ex);
-                    }
-                });
-            }
-            catch (NetworkException ex)
-            {
-                Logger.LogWarning(ex, $"Could not enqueue lib announcement to {peer} " +
-                                      $"- status {peer.ConnectionStatus}.");
-            }
+        {
+            EnqueueLibAnnouncement(peer, announce);
+        }
 
         return Task.CompletedTask;
+    }
+
+    [ExceptionHandler(typeof(NetworkException), TargetType = typeof(NetworkService),
+        MethodName = nameof(HandleExceptionWhileEnqueuingLibAnnouncement))]
+    private void EnqueueLibAnnouncement(IPeer peer, LibAnnouncement announce)
+    {
+        peer.EnqueueLibAnnouncement(announce, async ex =>
+        {
+            if (ex != null)
+            {
+                Logger.LogWarning(ex, $"Could not broadcast lib announcement to {peer} " +
+                                      $"- status {peer.ConnectionStatus}.");
+                await HandleNetworkExceptionAsync(peer, ex);
+            }
+        });
     }
 
     public async Task CheckPeersHealthAsync()
@@ -228,20 +231,15 @@ public class NetworkService : INetworkService, ISingletonDependency
                 continue;
             }
 
-            try
-            {
-                await peer.CheckHealthAsync();
-            }
-            catch (NetworkException ex)
-            {
-                if (ex.ExceptionType == NetworkExceptionType.Unrecoverable
-                    || ex.ExceptionType == NetworkExceptionType.PeerUnstable)
-                {
-                    Logger.LogInformation(ex, $"Removing unhealthy peer {peer}.");
-                    await _networkServer.TrySchedulePeerReconnectionAsync(peer);
-                }
-            }
+            await CheckHealthAsync(peer);
         }
+    }
+
+    [ExceptionHandler(typeof(NetworkException), TargetType = typeof(NetworkService),
+        MethodName = nameof(HandleExceptionWhileCheckingHealth))]
+    private static async Task CheckHealthAsync(IPeer peer)
+    {
+        await peer.CheckHealthAsync();
     }
 
     public void CheckNtpDrift()
@@ -326,30 +324,25 @@ public class NetworkService : INetworkService, ISingletonDependency
         return false;
     }
 
+    [ExceptionHandler(typeof(NetworkException), TargetType = typeof(NetworkService),
+        MethodName = nameof(HandleExceptionWhileEnqueuingBlock))]
     private void EnqueueBlock(IPeer peer, BlockWithTransactions blockWithTransactions)
     {
-        try
+        var blockHash = blockWithTransactions.GetHash();
+
+        if (peer.KnowsBlock(blockHash))
+            return; // block already known to this peer
+
+        peer.EnqueueBlock(blockWithTransactions, async ex =>
         {
-            var blockHash = blockWithTransactions.GetHash();
+            peer.TryAddKnownBlock(blockHash);
 
-            if (peer.KnowsBlock(blockHash))
-                return; // block already known to this peer
-
-            peer.EnqueueBlock(blockWithTransactions, async ex =>
+            if (ex != null)
             {
-                peer.TryAddKnownBlock(blockHash);
-
-                if (ex != null)
-                {
-                    Logger.LogWarning(ex, $"Could not broadcast block to {peer} - status {peer.ConnectionStatus}.");
-                    await HandleNetworkExceptionAsync(peer, ex);
-                }
-            });
-        }
-        catch (NetworkException ex)
-        {
-            Logger.LogWarning(ex, $"Could not enqueue block to {peer} - status {peer.ConnectionStatus}.");
-        }
+                Logger.LogWarning(ex, $"Could not broadcast block to {peer} - status {peer.ConnectionStatus}.");
+                await HandleNetworkExceptionAsync(peer, ex);
+            }
+        });
     }
 
     private async Task<string> GetNextMinerPubkey(BlockHeader blockHeader)
@@ -358,43 +351,24 @@ public class NetworkService : INetworkService, ISingletonDependency
         return broadcastList.IsNullOrEmpty() ? null : broadcastList[0];
     }
 
+    [ExceptionHandler(typeof(NetworkException), TargetType = typeof(NetworkService),
+        MethodName = nameof(HandleExceptionWhileRequesting))]
     private async Task<Response<T>> Request<T>(IPeer peer, Func<IPeer, Task<T>> func) where T : class
     {
-        try
-        {
-            return new Response<T>(await func(peer));
-        }
-        catch (NetworkException ex)
-        {
-            Logger.LogWarning(ex, $"Request failed from {peer.RemoteEndpoint}.");
-
-            if (ex.ExceptionType == NetworkExceptionType.HandlerException)
-                return new Response<T>(default);
-
-            await HandleNetworkExceptionAsync(peer, ex);
-        }
-
-        return new Response<T>();
+        return new Response<T>(await func(peer));
     }
 
+    [ExceptionHandler(typeof(NetworkException), TargetType = typeof(NetworkService),
+        MethodName = nameof(HandleExceptionWhileGettingNodes))]
     public async Task<List<NodeInfo>> GetNodesAsync(IPeer peer)
     {
-        try
-        {
-            var nodeList = await peer.GetNodesAsync();
+        var nodeList = await peer.GetNodesAsync();
 
-            if (nodeList?.Nodes == null)
-                return new List<NodeInfo>();
-
-            Logger.LogDebug("get nodes: {nodeList} from peer: {peer}.", nodeList, peer);
-            return nodeList.Nodes.ToList();
-        }
-        catch (Exception e)
-        {
-            if (e is NetworkException exception) await HandleNetworkExceptionAsync(peer, exception);
-            Logger.LogWarning(e, "get nodes failed. peer={peer}", peer);
+        if (nodeList?.Nodes == null)
             return new List<NodeInfo>();
-        }
+
+        Logger.LogDebug("get nodes: {nodeList} from peer: {peer}.", nodeList, peer);
+        return nodeList.Nodes.ToList();
     }
 
     private async Task HandleNetworkExceptionAsync(IPeer peer, NetworkException exception)

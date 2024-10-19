@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using AElf.ExceptionHandler;
 using AElf.Modularity;
 using AElf.WebApp.Application.Chain;
 using AElf.WebApp.Application.Net;
@@ -121,7 +122,7 @@ public class WebWebAppAElfModule : AElfModule
 
 // Thanks to https://tero.teelahti.fi/using-google-proto3-with-aspnet-mvc/
 // The input formatter reading request body and mapping it to given data object.
-public class ProtobufInputFormatter : InputFormatter
+public partial class ProtobufInputFormatter : InputFormatter
 {
     private static readonly MediaTypeHeaderValue ProtoMediaType =
         MediaTypeHeaderValue.Parse((StringSegment)"application/x-protobuf");
@@ -139,21 +140,24 @@ public class ProtobufInputFormatter : InputFormatter
         return requestContentType != null && requestContentType.IsSubsetOf(ProtoMediaType);
     }
 
+    [ExceptionHandler(typeof(Exception), TargetType = typeof(WebWebAppAElfModule),
+        MethodName = nameof(HandleExceptionWhileReadingRequestBody))]
     public override Task<InputFormatterResult> ReadRequestBodyAsync(InputFormatterContext context)
     {
-        try
-        {
-            var request = context.HttpContext.Request;
-            var obj = (IMessage)Activator.CreateInstance(context.ModelType);
-            obj.MergeFrom(request.Body);
+        var request = context.HttpContext.Request;
+        var obj = (IMessage)Activator.CreateInstance(context.ModelType);
+        obj.MergeFrom(request.Body);
+        return InputFormatterResult.SuccessAsync(obj);
+    }
 
-            return InputFormatterResult.SuccessAsync(obj);
-        }
-        catch (Exception ex)
+    protected async Task<FlowBehavior> HandleExceptionWhileReadingRequestBody(Exception ex)
+    {
+        Console.WriteLine("Exception: " + ex);
+        return new FlowBehavior
         {
-            Console.WriteLine("Exception: " + ex);
-            return InputFormatterResult.FailureAsync();
-        }
+            ExceptionHandlingStrategy = ExceptionHandlingStrategy.Return,
+            ReturnValue = InputFormatterResult.FailureAsync()
+        };
     }
 }
 

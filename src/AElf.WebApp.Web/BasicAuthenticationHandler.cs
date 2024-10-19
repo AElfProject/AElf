@@ -4,6 +4,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
+using AElf.ExceptionHandler;
 using AElf.WebApp.Application.Chain;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
@@ -14,7 +15,7 @@ using Microsoft.Extensions.Options;
 
 namespace AElf.WebApp.Web;
 
-public class BasicAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
+public partial class BasicAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
 {
     private readonly BasicAuthOptions _basicAuthOptions;
 
@@ -41,20 +42,7 @@ public class BasicAuthenticationHandler : AuthenticationHandler<AuthenticationSc
         if (!Request.Headers.ContainsKey("Authorization"))
             return Task.FromResult(AuthenticateResult.Fail("Missing Authorization Header"));
 
-        string userName;
-        string password;
-        try
-        {
-            var authHeader = AuthenticationHeaderValue.Parse(Request.Headers["Authorization"]);
-            var credentialBytes = Convert.FromBase64String(authHeader.Parameter);
-            var credentials = Encoding.UTF8.GetString(credentialBytes).Split(new[] { ':' }, 2);
-            userName = credentials[0];
-            password = credentials[1];
-        }
-        catch
-        {
-            return Task.FromResult(AuthenticateResult.Fail("Invalid Authorization Header"));
-        }
+        var (userName, password) = GetUserNameAndPassword();
 
         if (userName != _basicAuthOptions.UserName || password != _basicAuthOptions.Password)
             return Task.FromResult(AuthenticateResult.Fail("Invalid Username or Password"));
@@ -69,5 +57,17 @@ public class BasicAuthenticationHandler : AuthenticationHandler<AuthenticationSc
         var ticket = new AuthenticationTicket(principal, Scheme.Name);
 
         return Task.FromResult(AuthenticateResult.Success(ticket));
+    }
+
+    [ExceptionHandler(typeof(Exception), TargetType = typeof(BasicAuthenticationHandler),
+        MethodName = nameof(HandleExceptionWhileGettingUserNameAndPassword))]
+    private (string, string) GetUserNameAndPassword()
+    {
+        var authHeader = AuthenticationHeaderValue.Parse(Request.Headers["Authorization"]);
+        var credentialBytes = Convert.FromBase64String(authHeader.Parameter);
+        var credentials = Encoding.UTF8.GetString(credentialBytes).Split(new[] { ':' }, 2);
+        var userName = credentials[0];
+        var password = credentials[1];
+        return (userName, password);
     }
 }

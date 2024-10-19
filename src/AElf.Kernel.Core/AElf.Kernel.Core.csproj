@@ -13,10 +13,11 @@
         <Optimize>true</Optimize>
     </PropertyGroup>
     <ItemGroup>
+        <PackageReference Include="log4net" />
         <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="3.1.0" />
         <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="3.1.0" />
         <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-        <PackageReference Include="Volo.Abp.EventBus" Version="8.0.5" />
+        <PackageReference Include="Volo.Abp.EventBus" />
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\AElf.Cryptography\AElf.Cryptography.csproj" />

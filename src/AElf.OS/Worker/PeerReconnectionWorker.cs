@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using AElf.CSharp.Core.Extension;
+using AElf.ExceptionHandler;
 using AElf.Kernel;
 using AElf.OS.Network;
 using AElf.OS.Network.Application;
@@ -76,18 +77,7 @@ public class PeerReconnectionWorker : AsyncPeriodicBackgroundWorkerBase
 
             Logger.LogDebug($"Starting reconnection to {peerToConnect.Endpoint}.");
 
-            var connected = false;
-
-            try
-            {
-                connected = await _networkService.AddPeerAsync(peerEndpoint);
-            }
-            catch (Exception ex)
-            {
-                // down the stack the AddPeerAsync rethrows any exception,
-                // in order to continue this job, Exception has to be catched for now.
-                Logger.LogDebug(ex, $"Could not re-connect to {peerEndpoint}.");
-            }
+            var connected = await AddPeerAsync(peerEndpoint);
 
             if (connected)
             {
@@ -127,14 +117,23 @@ public class PeerReconnectionWorker : AsyncPeriodicBackgroundWorkerBase
 
         void CheckNtpClockDrift()
         {
-            try
-            {
-                _networkService.CheckNtpDrift();
-            }
-            catch (Exception)
-            {
-                // swallow any exception, we are not interested in anything else than valid checks. 
-            }
+            CheckNtpDrift();
         }
+    }
+
+    [ExceptionHandler(typeof(Exception), LogLevel = LogLevel.Information, LogOnly = true,
+        Message = "Swallow any exception, we are not interested in anything else than valid checks. ")]
+    private void CheckNtpDrift()
+    {
+        _networkService.CheckNtpDrift();
+    }
+
+    // down the stack the AddPeerAsync rethrows any exception,
+    // in order to continue this job, Exception has to be catched for now.
+    [ExceptionHandler(typeof(Exception), LogLevel = LogLevel.Debug, LogOnly = true,
+        Message = "Could not re-connect to peer.", LogTargets = ["peerEndpoint"])]
+    private async Task<bool> AddPeerAsync(string peerEndpoint)
+    {
+        return await _networkService.AddPeerAsync(peerEndpoint);
     }
 }

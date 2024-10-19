@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using AElf.CSharp.Core.Extension;
+using AElf.ExceptionHandler;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.OS.BlockSync.Application;
@@ -15,7 +16,7 @@ using Volo.Abp.Threading;
 
 namespace AElf.OS.BlockSync.Worker;
 
-public class BlockDownloadWorker : AsyncPeriodicBackgroundWorkerBase
+public partial class BlockDownloadWorker : AsyncPeriodicBackgroundWorkerBase
 {
     private readonly IBlockchainService _blockchainService;
     private readonly IBlockDownloadJobStore _blockDownloadJobStore;
@@ -50,48 +51,49 @@ public class BlockDownloadWorker : AsyncPeriodicBackgroundWorkerBase
             var chain = await _blockchainService.GetChainAsync();
             var jobInfo = await GetFirstAvailableWaitingJobAsync(chain);
 
-            try
+            if (!await PerformDownloading(jobInfo, chain))
             {
-                if (!ValidateBeforeDownload(jobInfo)) return;
-
-                if (jobInfo.IsFinished)
-                {
-                    await RemoveJobAndTargetStateAsync(jobInfo);
-                    continue;
-                }
-
-                Logger.LogDebug(
-                    $"Execute download job: CurrentTargetBlockHeight: {jobInfo.CurrentTargetBlockHeight}, TargetBlockHeight:{jobInfo.TargetBlockHeight}, SuggestedPeerPubkey:{jobInfo.SuggestedPeerPubkey}.");
-
-                var downloadResult = await DownloadBlocksAsync(chain, jobInfo);
-
-                if (downloadResult.DownloadBlockCount == 0)
-                {
-                    Logger.LogDebug(
-                        $"Download block job finished: CurrentTargetBlockHeight: {jobInfo.CurrentTargetBlockHeight}, TargetBlockHeight:{jobInfo.TargetBlockHeight}.");
-                    await RemoveJobAndTargetStateAsync(jobInfo);
-                    continue;
-                }
-
-                _blockDownloadService.RemoveDownloadJobTargetState(jobInfo.CurrentTargetBlockHash);
-
-                jobInfo.Deadline = TimestampHelper.GetUtcNow().AddMilliseconds(downloadResult.DownloadBlockCount * 300);
-                jobInfo.CurrentTargetBlockHash = downloadResult.LastDownloadBlockHash;
-                jobInfo.CurrentTargetBlockHeight = downloadResult.LastDownloadBlockHeight;
-                jobInfo.IsFinished = downloadResult.DownloadBlockCount < _blockSyncOptions.MaxBlockDownloadCount;
-                await _blockDownloadJobStore.UpdateAsync(jobInfo);
-
-                Logger.LogDebug(
-                    $"Current download block job finished: CurrentTargetBlockHeight: {jobInfo.CurrentTargetBlockHeight}.");
                 return;
             }
-            catch (Exception e)
-            {
-                await RemoveJobAndTargetStateAsync(jobInfo);
-                Logger.LogError(e, "Handle download job failed.");
-                throw;
-            }
         }
+    }
+
+    [ExceptionHandler(typeof(Exception), TargetType = typeof(BlockDownloadWorker),
+        MethodName = nameof(HandleExceptionWhilePerformingDownloading))]
+    private async Task<bool> PerformDownloading(BlockDownloadJobInfo jobInfo, Chain chain)
+    {
+        if (!ValidateBeforeDownload(jobInfo)) return false;
+
+        if (jobInfo.IsFinished)
+        {
+            await RemoveJobAndTargetStateAsync(jobInfo);
+            return true;
+        }
+
+        Logger.LogDebug(
+            $"Execute download job: CurrentTargetBlockHeight: {jobInfo.CurrentTargetBlockHeight}, TargetBlockHeight:{jobInfo.TargetBlockHeight}, SuggestedPeerPubkey:{jobInfo.SuggestedPeerPubkey}.");
+
+        var downloadResult = await DownloadBlocksAsync(chain, jobInfo);
+
+        if (downloadResult.DownloadBlockCount == 0)
+        {
+            Logger.LogDebug(
+                $"Download block job finished: CurrentTargetBlockHeight: {jobInfo.CurrentTargetBlockHeight}, TargetBlockHeight:{jobInfo.TargetBlockHeight}.");
+            await RemoveJobAndTargetStateAsync(jobInfo);
+            return true;
+        }
+
+        _blockDownloadService.RemoveDownloadJobTargetState(jobInfo.CurrentTargetBlockHash);
+
+        jobInfo.Deadline = TimestampHelper.GetUtcNow().AddMilliseconds(downloadResult.DownloadBlockCount * 300);
+        jobInfo.CurrentTargetBlockHash = downloadResult.LastDownloadBlockHash;
+        jobInfo.CurrentTargetBlockHeight = downloadResult.LastDownloadBlockHeight;
+        jobInfo.IsFinished = downloadResult.DownloadBlockCount < _blockSyncOptions.MaxBlockDownloadCount;
+        await _blockDownloadJobStore.UpdateAsync(jobInfo);
+
+        Logger.LogDebug(
+            $"Current download block job finished: CurrentTargetBlockHeight: {jobInfo.CurrentTargetBlockHeight}.");
+        return false;
     }
 
     private async Task<BlockDownloadJobInfo> GetFirstAvailableWaitingJobAsync(Chain chain)

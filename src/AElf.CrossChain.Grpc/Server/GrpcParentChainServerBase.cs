@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using AElf.CrossChain.Application;
+using AElf.ExceptionHandler;
 using AElf.Standards.ACS7;
 using Grpc.Core;
 using Microsoft.Extensions.Logging;
@@ -19,6 +20,8 @@ public class GrpcParentChainServerBase : ParentChainRpc.ParentChainRpcBase, ITra
 
     public ILogger<GrpcParentChainServerBase> Logger { get; set; }
 
+    [ExceptionHandler(typeof(InvalidOperationException), LogLevel = LogLevel.Warning,
+        LogOnly = true, Message = "Failed to write into server side stream")]
     public override async Task RequestIndexingFromParentChain(CrossChainRequest crossChainRequest,
         IServerStreamWriter<ParentChainBlockData> responseStream, ServerCallContext context)
     {
@@ -40,16 +43,8 @@ public class GrpcParentChainServerBase : ParentChainRpc.ParentChainRpcBase, ITra
                 return;
             }
 
-            try
-            {
-                await responseStream.WriteAsync(parentChainBlockData);
-                requestedHeight++;
-            }
-            catch (InvalidOperationException)
-            {
-                Logger.LogWarning("Failed to write into server side stream.");
-                return;
-            }
+            await responseStream.WriteAsync(parentChainBlockData);
+            requestedHeight++;
         }
     }
 

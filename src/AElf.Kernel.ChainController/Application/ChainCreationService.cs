@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.ExceptionHandler;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Types;
@@ -12,7 +13,7 @@ using Volo.Abp.EventBus.Local;
 
 namespace AElf.Kernel.ChainController.Application;
 
-public class ChainCreationService : IChainCreationService
+public partial class ChainCreationService : IChainCreationService
 {
     private readonly IBlockchainExecutingService _blockchainExecutingService;
     private readonly IBlockchainService _blockchainService;
@@ -41,31 +42,25 @@ public class ChainCreationService : IChainCreationService
     /// <returns>The new chain async.</returns>
     /// <param name="">The new chain id which will be derived from the creator address.</param>
     /// <param name="genesisTransactions">The transactions to be executed in the genesis block.</param>
+    [ExceptionHandler(typeof(Exception), LogOnly = true, LogLevel = LogLevel.Error,
+        Message = "Create new chain failed")]
     public async Task<Chain> CreateNewChainAsync(IEnumerable<Transaction> genesisTransactions)
     {
-        try
+        var blockHeader = new BlockHeader
         {
-            var blockHeader = new BlockHeader
-            {
-                Height = AElfConstants.GenesisBlockHeight,
-                PreviousBlockHash = Hash.Empty,
-                Time = new Timestamp { Seconds = 0 },
-                ChainId = _blockchainService.GetChainId()
-            };
+            Height = AElfConstants.GenesisBlockHeight,
+            PreviousBlockHash = Hash.Empty,
+            Time = new Timestamp { Seconds = 0 },
+            ChainId = _blockchainService.GetChainId()
+        };
 
-            var transactions = genesisTransactions.ToList();
+        var transactions = genesisTransactions.ToList();
 
-            var block = await _blockExecutingService.ExecuteBlockAsync(blockHeader, transactions);
-            var chain = await _blockchainService.CreateChainAsync(block.Block, transactions);
-            var blockExecutionResult = await _blockchainExecutingService.ExecuteBlocksAsync(new[] { block.Block });
-            await _blockExecutionResultProcessingService.ProcessBlockExecutionResultAsync(chain, blockExecutionResult);
+        var block = await _blockExecutingService.ExecuteBlockAsync(blockHeader, transactions);
+        var chain = await _blockchainService.CreateChainAsync(block.Block, transactions);
+        var blockExecutionResult = await _blockchainExecutingService.ExecuteBlocksAsync(new[] { block.Block });
+        await _blockExecutionResultProcessingService.ProcessBlockExecutionResultAsync(chain, blockExecutionResult);
 
-            return await _blockchainService.GetChainAsync();
-        }
-        catch (Exception e)
-        {
-            Logger.LogError(e, "Create new chain failed");
-            throw;
-        }
+        return await _blockchainService.GetChainAsync();
     }
 }

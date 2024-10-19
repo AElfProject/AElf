@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.ExceptionHandler;
 using AElf.Kernel.Blockchain;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Events;
@@ -12,7 +13,7 @@ using Volo.Abp.EventBus.Local;
 
 namespace AElf.Kernel.SmartContractExecution.Application;
 
-public class FullBlockchainExecutingService : IBlockchainExecutingService, ITransientDependency
+public partial class FullBlockchainExecutingService : IBlockchainExecutingService, ITransientDependency
 {
     private readonly IBlockchainService _blockchainService;
     private readonly IBlockExecutingService _blockExecutingService;
@@ -37,38 +38,29 @@ public class FullBlockchainExecutingService : IBlockchainExecutingService, ITran
     public ILocalEventBus LocalEventBus { get; set; }
     public ILogger<FullBlockchainExecutingService> Logger { get; set; }
 
+    [ExceptionHandler(typeof(BlockValidationException), TargetType = typeof(FullBlockchainExecutingService),
+        MethodName = nameof(HandleExceptionWhileExecutingBlocks))]
     public async Task<BlockExecutionResult> ExecuteBlocksAsync(IEnumerable<Block> blocks)
     {
         var executionResult = new BlockExecutionResult();
-        try
+        foreach (var block in blocks)
         {
-            foreach (var block in blocks)
+            var blockExecutedSet = await ProcessBlockAsync(block);
+            if (blockExecutedSet == null)
             {
-                var blockExecutedSet = await ProcessBlockAsync(block);
-                if (blockExecutedSet == null)
-                {
-                    executionResult.ExecutedFailedBlocks.Add(block);
-                    return executionResult;
-                }
-
-                executionResult.SuccessBlockExecutedSets.Add(blockExecutedSet);
-                Logger.LogInformation(
-                    $"Executed block {block.GetHash()} at height {block.Height}, with {block.Body.TransactionsCount} txns.");
-
-                await LocalEventBus.PublishAsync(new BlockAcceptedEvent { BlockExecutedSet = blockExecutedSet });
+                executionResult.ExecutedFailedBlocks.Add(block);
+                return executionResult;
             }
-        }
-        catch (BlockValidationException ex)
-        {
-            if (!(ex.InnerException is ValidateNextTimeBlockValidationException)) throw;
 
-            Logger.LogDebug(
-                $"Block validation failed: {ex.Message}. Inner exception {ex.InnerException.Message}");
+            executionResult.SuccessBlockExecutedSets.Add(blockExecutedSet);
+            Logger.LogInformation(
+                $"Executed block {block.GetHash()} at height {block.Height}, with {block.Body.TransactionsCount} txns.");
+
+            await LocalEventBus.PublishAsync(new BlockAcceptedEvent { BlockExecutedSet = blockExecutedSet });
         }
 
         return executionResult;
     }
-
 
     private async Task<BlockExecutedSet> ExecuteBlockAsync(Block block)
     {

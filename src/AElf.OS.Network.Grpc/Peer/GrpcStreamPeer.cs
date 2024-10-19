@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 using AElf.CSharp.Core.Extension;
+using AElf.ExceptionHandler;
 using AElf.Kernel;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Grpc.Helpers;
@@ -19,7 +20,7 @@ namespace AElf.OS.Network.Grpc;
 
 public delegate void StreamSendCallBack(NetworkException ex, StreamMessage streamMessage, int callTimes = 0);
 
-public class GrpcStreamPeer : GrpcPeer
+public partial class GrpcStreamPeer : GrpcPeer
 {
     private const int StreamWaitTime = 3000;
     private const int TimeOutRetryTimes = 3;
@@ -82,21 +83,15 @@ public class GrpcStreamPeer : GrpcPeer
         IsClosed = true;
     }
 
+    [ExceptionHandler(typeof(Exception), LogLevel = LogLevel.Information, LogOnly = true,
+        Message = "Swallowed the exception while disconnecting, we don't care because we're disconnecting.")]
     public override async Task DisconnectAsync(bool gracefulDisconnect)
     {
-        try
-        {
-            await RequestAsync(() => StreamRequestAsync(MessageType.Disconnect,
-                    new DisconnectReason { Why = DisconnectReason.Types.Reason.Shutdown },
-                    new Metadata { { GrpcConstants.SessionIdMetadataKey, OutboundSessionId } }, null, true),
-                new GrpcRequest { ErrorMessage = "Could not send disconnect." });
-            await DisposeAsync();
-        }
-        catch (Exception)
-        {
-            // swallow the exception, we don't care because we're disconnecting.
-        }
-
+        await RequestAsync(() => StreamRequestAsync(MessageType.Disconnect,
+                new DisconnectReason { Why = DisconnectReason.Types.Reason.Shutdown },
+                new Metadata { { GrpcConstants.SessionIdMetadataKey, OutboundSessionId } }, null, true),
+            new GrpcRequest { ErrorMessage = "Could not send disconnect." });
+        await DisposeAsync();
         await base.DisconnectAsync(gracefulDisconnect);
     }
 
@@ -203,36 +198,18 @@ public class GrpcStreamPeer : GrpcPeer
         await _sendStreamJobs.SendAsync(new StreamJob { StreamMessage = message, SendCallback = sendCallback });
     }
 
+    [ExceptionHandler(typeof(Exception), TargetType = typeof(GrpcStreamPeer),
+        MethodName = nameof(HandleExceptionWhileWriting))]
+    [ExceptionHandler(typeof(RpcException), TargetType = typeof(GrpcStreamPeer),
+        MethodName = nameof(HandleExceptionWhileWriting))]
     private async Task WriteStreamJobAsync(StreamJob job)
     {
         //avoid write stream concurrency
-        try
-        {
-            if (job.StreamMessage == null) return;
-            Logger.LogDebug("write request={requestId} {streamType}-{messageType}", job.StreamMessage.RequestId, job.StreamMessage.StreamType, job.StreamMessage.MessageType);
-            if (!(job.StreamMessage.StreamType == StreamType.Reply && job.StreamMessage.MessageType == MessageType.RequestBlocks))
-                _clientStreamWriter.WriteOptions = new WriteOptions(WriteFlags.NoCompress);
-            await _clientStreamWriter.WriteAsync(job.StreamMessage);
-        }
-        catch (RpcException ex)
-        {
-            job.SendCallback?.Invoke(HandleRpcException(ex, $"Could not write to stream to {this}, queueCount={_sendStreamJobs.InputCount}"));
-            return;
-        }
-        catch (Exception e)
-        {
-            var type = e switch
-            {
-                InvalidOperationException => NetworkExceptionType.Unrecoverable,
-                TimeoutException => NetworkExceptionType.PeerUnstable,
-                _ => NetworkExceptionType.HandlerException
-            };
-            job.SendCallback?.Invoke(
-                new NetworkException($"{job.StreamMessage?.RequestId}{job.StreamMessage?.StreamType}-{job.StreamMessage?.MessageType} size={job.StreamMessage.ToByteArray().Length} queueCount={_sendStreamJobs.InputCount}", e, type));
-            await Task.Delay(StreamRecoveryWaitTime);
-            return;
-        }
-
+        if (job.StreamMessage == null) return;
+        Logger.LogDebug("write request={requestId} {streamType}-{messageType}", job.StreamMessage.RequestId, job.StreamMessage.StreamType, job.StreamMessage.MessageType);
+        if (!(job.StreamMessage.StreamType == StreamType.Reply && job.StreamMessage.MessageType == MessageType.RequestBlocks))
+            _clientStreamWriter.WriteOptions = new WriteOptions(WriteFlags.NoCompress);
+        await _clientStreamWriter.WriteAsync(job.StreamMessage);
         job.SendCallback?.Invoke(null);
     }
 

@@ -40,15 +40,13 @@ public class ChainCreationServiceTests : ChainControllerTestBase
     {
         var chain = await _blockchainService.GetChainAsync();
         chain.ShouldBeNull();
-        var transactions = new List<Transaction>();
-        transactions.Add(new Transaction());
-        try
+        var transactions = new List<Transaction> { new Transaction() };
+
+        var exception = await Assert.ThrowsAsync<Exception>(async () =>
         {
             await _chainCreationService.CreateNewChainAsync(transactions);
-        }
-        catch (Exception e)
-        {
-            e.Message.ShouldBe("Invalid transaction: { }");
-        }
+        });
+
+        exception.Message.ShouldBe("Invalid transaction: { }");
     }
 }

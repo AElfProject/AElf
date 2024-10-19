@@ -47,17 +47,9 @@ public class CalculateFunctionTest
         _calculateFunction.AddFunction(new[] { 10 }, Calculate2);
         _calculateFunction.AddFunction(new[] { 100 }, Calculate3);
         _calculateFunction.CalculateFeeCoefficients.PieceCoefficientsList.RemoveAt(0);
-        string errorMsg = null;
-        try
-        {
-            _calculateFunction.CalculateFee(1000);
-        }
-        catch (ArgumentOutOfRangeException ex)
-        {
-            errorMsg = ex.Message;
-        }
 
-        errorMsg.ShouldContain("Coefficients count not match");
+        var exception = Assert.Throws<ArgumentOutOfRangeException>(() => _calculateFunction.CalculateFee(1000));
+        exception.Message.ShouldContain("Coefficients count not match");
     }
 
     [Fact]

@@ -1,4 +1,5 @@
 ﻿using System;
+using AElf.ExceptionHandler;
 using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Kernel.Infrastructure;
 
@@ -14,7 +15,7 @@ public interface IBlockManager
     Task<bool> HasBlockAsync(Hash blockHash);
 }
 
-public class BlockManager : IBlockManager
+public partial class BlockManager : IBlockManager
 {
     private readonly IBlockchainStore<BlockBody> _blockBodyStore;
     private readonly IBlockchainStore<BlockHeader> _blockHeaderStore;
@@ -38,25 +39,18 @@ public class BlockManager : IBlockManager
         await _blockBodyStore.SetAsync(blockHash.Clone().ToStorageKey(), blockBody);
     }
 
+    [ExceptionHandler(typeof(Exception), TargetType = typeof(BlockManager),
+        MethodName = nameof(HandleExceptionWhileGettingBlock))]
     public async Task<Block> GetBlockAsync(Hash blockHash)
     {
         if (blockHash == null) return null;
+        var header = await GetBlockHeaderAsync(blockHash);
+        var bb = await GetBlockBodyAsync(blockHash);
 
-        try
-        {
-            var header = await GetBlockHeaderAsync(blockHash);
-            var bb = await GetBlockBodyAsync(blockHash);
-
-            if (header == null || bb == null)
-                return null;
-
-            return new Block { Header = header, Body = bb };
-        }
-        catch (Exception e)
-        {
-            Logger.LogError(e, "Error while getting block {BlockHash}", blockHash.ToHex());
+        if (header == null || bb == null)
             return null;
-        }
+
+        return new Block { Header = header, Body = bb };
     }
 
     public async Task<BlockHeader> GetBlockHeaderAsync(Hash blockHash)

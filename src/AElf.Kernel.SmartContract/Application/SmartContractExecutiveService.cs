@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.ExceptionHandler;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Types;
 using Google.Protobuf;
@@ -11,7 +12,7 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.Application;
 
-public class SmartContractExecutiveService : ISmartContractExecutiveService, ISingletonDependency
+public partial class SmartContractExecutiveService : ISmartContractExecutiveService, ISingletonDependency
 {
     private const int ExecutiveExpirationTime = 3600; // 1 Hour
     private const int ExecutiveClearLimit = 50;
@@ -143,36 +144,28 @@ public class SmartContractExecutiveService : ISmartContractExecutiveService, ISi
         return smartContractRegistration;
     }
 
+    [ExceptionHandler(typeof(Exception), FinallyTargetType = typeof(SmartContractExecutiveService),
+        FinallyMethodName = nameof(HandleExceptionWhileGettingSmartContractRegistration))]
     private async Task<SmartContractRegistration> GetSmartContractRegistrationFromZeroAsync(
-        IChainContext chainContext, Address address)
+        IChainContext chainContext, Address address, IExecutive executiveZero = null)
     {
-        IExecutive executiveZero = null;
-        try
+        if (address == _defaultContractZeroCodeProvider.ContractZeroAddress)
         {
-            if (address == _defaultContractZeroCodeProvider.ContractZeroAddress)
-            {
-                var smartContractRegistration = _defaultContractZeroCodeProvider.DefaultContractZeroRegistration;
-                if (chainContext.BlockHeight <= AElfConstants.GenesisBlockHeight) return smartContractRegistration;
-                //if Height > GenesisBlockHeight, maybe there is a new zero contract,
-                //the current smartContractRegistration is from code,
-                //not from zero contract, so we need to load new zero contract from the old smartContractRegistration,
-                //and replace it
-                executiveZero = await GetExecutiveAsync(smartContractRegistration);
-            }
-            else
-            {
-                executiveZero =
-                    await GetExecutiveAsync(chainContext, _defaultContractZeroCodeProvider.ContractZeroAddress);
-            }
+            var smartContractRegistration = _defaultContractZeroCodeProvider.DefaultContractZeroRegistration;
+            if (chainContext.BlockHeight <= AElfConstants.GenesisBlockHeight) return smartContractRegistration;
+            //if Height > GenesisBlockHeight, maybe there is a new zero contract,
+            //the current smartContractRegistration is from code,
+            //not from zero contract, so we need to load new zero contract from the old smartContractRegistration,
+            //and replace it
+            executiveZero = await GetExecutiveAsync(smartContractRegistration);
+        }
+        else
+        {
+            executiveZero =
+                await GetExecutiveAsync(chainContext, _defaultContractZeroCodeProvider.ContractZeroAddress);
+        }
 
-            return await GetSmartContractRegistrationFromZeroAsync(executiveZero, chainContext, address);
-        }
-        finally
-        {
-            if (executiveZero != null)
-                await PutExecutiveAsync(chainContext, _defaultContractZeroCodeProvider.ContractZeroAddress,
-                    executiveZero);
-        }
+        return await GetSmartContractRegistrationFromZeroAsync(executiveZero, chainContext, address);
     }
 
     private async Task<SmartContractRegistration> GetSmartContractRegistrationFromZeroAsync(

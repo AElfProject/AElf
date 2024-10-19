@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Cryptography;
+using AElf.ExceptionHandler;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.FeeCalculation.Extensions;
@@ -44,7 +44,7 @@ public interface ITransactionAppService
     Task<CalculateTransactionFeeOutput> CalculateTransactionFeeAsync(CalculateTransactionFeeInput input);
 }
 
-public class TransactionAppService : AElfAppService, ITransactionAppService
+public partial class TransactionAppService : AElfAppService, ITransactionAppService
 {
     private readonly IBlockchainService _blockchainService;
     private readonly IObjectMapper<ChainApplicationWebAppAElfModule> _objectMapper;
@@ -83,79 +83,59 @@ public class TransactionAppService : AElfAppService, ITransactionAppService
     /// <returns></returns>
     public async Task<string> ExecuteTransactionAsync(ExecuteTransactionDto input)
     {
-        Transaction transaction;
-
-        try
-        {
-            var byteArray = ByteArrayHelper.HexStringToByteArray(input.RawTransaction);
-            transaction = Transaction.Parser.ParseFrom(byteArray);
-        }
-        catch (Exception e)
-        {
-            Logger.LogError(e, "{ErrorMessage}", e.Message); //for debug
-            throw new UserFriendlyException(Error.Message[Error.InvalidParams],
-                Error.InvalidParams.ToString());
-        }
+        var transaction = ParseTransaction(input.RawTransaction);
 
         if (!transaction.VerifySignature())
             throw new UserFriendlyException(Error.Message[Error.InvalidSignature],
                 Error.InvalidSignature.ToString());
 
-        try
-        {
-            var response = await CallReadOnlyAsync(transaction);
-            return response?.ToHex();
-        }
-        catch (Exception e)
-        {
-            using var detail = new StringReader(e.Message);
-            throw new UserFriendlyException(Error.Message[Error.InvalidTransaction],
-                Error.InvalidTransaction.ToString(), await detail.ReadLineAsync());
-        }
+        var response = await ExecuteTransactionAsReadOnlyReturnHexAsync(transaction);
+        return response;
+    }
+
+    [ExceptionHandler(typeof(Exception), TargetType = typeof(TransactionAppService),
+        MethodName = nameof(HandleExceptionWhileExecutingTransactionAsReadOnly))]
+    private async Task<string> ExecuteTransactionAsReadOnlyReturnHexAsync(Transaction transaction)
+    {
+        var response = await CallReadOnlyAsync(transaction);
+        return response?.ToHex();
+    }
+    
+    [ExceptionHandler(typeof(Exception), TargetType = typeof(TransactionAppService),
+        MethodName = nameof(HandleExceptionWhileExecutingTransactionAsReadOnly))]
+    private async Task<byte[]> ExecuteTransactionAsReadOnlyAsync(Transaction transaction)
+    {
+        return await CallReadOnlyAsync(transaction);
+    }
+
+    [ExceptionHandler(typeof(Exception), TargetType = typeof(TransactionAppService),
+        MethodName = nameof(HandleExceptionWhileParsingTransaction))]
+    private static Transaction ParseTransaction(string rawTransaction, int errorCode = Error.InvalidParams)
+    {
+        var byteArray = ByteArrayHelper.HexStringToByteArray(rawTransaction);
+        var transaction = Transaction.Parser.ParseFrom(byteArray);
+        return transaction;
     }
 
     public async Task<string> ExecuteRawTransactionAsync(ExecuteRawTransactionDto input)
     {
-        Transaction transaction;
-
-        try
-        {
-            var byteArray = ByteArrayHelper.HexStringToByteArray(input.RawTransaction);
-            transaction = Transaction.Parser.ParseFrom(byteArray);
-            transaction.Signature = ByteString.CopyFrom(ByteArrayHelper.HexStringToByteArray(input.Signature));
-        }
-        catch (Exception e)
-        {
-            Logger.LogError(e, "{ErrorMessage}", e.Message); //for debug
-            throw new UserFriendlyException(Error.Message[Error.InvalidParams],
-                Error.InvalidParams.ToString());
-        }
+        var transaction = ParseTransaction(input.RawTransaction);
+        transaction.Signature = ByteString.CopyFrom(ByteArrayHelper.HexStringToByteArray(input.Signature));
 
         if (!transaction.VerifySignature())
             throw new UserFriendlyException(Error.Message[Error.InvalidSignature],
                 Error.InvalidSignature.ToString());
 
-        try
-        {
-            var response = await CallReadOnlyAsync(transaction);
-            try
-            {
-                var contractMethodDescriptor =
-                    await GetContractMethodDescriptorAsync(transaction.To, transaction.MethodName);
-                var output = contractMethodDescriptor.OutputType.Parser.ParseFrom(ByteString.CopyFrom(response));
-                return JsonFormatter.ToDiagnosticString(output);
-            }
-            catch
-            {
-                return response?.ToHex();
-            }
-        }
-        catch (Exception e)
-        {
-            using var detail = new StringReader(e.Message);
-            throw new UserFriendlyException(Error.Message[Error.InvalidTransaction],
-                Error.InvalidTransaction.ToString(), await detail.ReadLineAsync());
-        }
+        var response = await ExecuteTransactionAsReadOnlyAsync(transaction);
+        return await ParseExecutionResult(response, transaction);
+    }
+
+    private async Task<string> ParseExecutionResult(byte[] response, Transaction transaction)
+    {
+        var contractMethodDescriptor =
+            await GetContractMethodDescriptorAsync(transaction.To, transaction.MethodName);
+        var output = contractMethodDescriptor.OutputType.Parser.ParseFrom(ByteString.CopyFrom(response));
+        return JsonFormatter.ToDiagnosticString(output);
     }
 
     /// <summary>
@@ -177,22 +157,24 @@ public class TransactionAppService : AElfAppService, ITransactionAppService
         if (methodDescriptor == null)
             throw new UserFriendlyException(Error.Message[Error.NoMatchMethodInContractAddress],
                 Error.NoMatchMethodInContractAddress.ToString());
-        try
-        {
-            var parameters = methodDescriptor.InputType.Parser.ParseJson(input.Params);
-            if (!IsValidMessage(parameters))
-                throw new UserFriendlyException(Error.Message[Error.InvalidParams], Error.InvalidParams.ToString());
-            transaction.Params = parameters.ToByteString();
-        }
-        catch
-        {
-            throw new UserFriendlyException(Error.Message[Error.InvalidParams], Error.InvalidParams.ToString());
-        }
+
+        ParseTransactionParameter(input, methodDescriptor, transaction);
 
         return new CreateRawTransactionOutput
         {
             RawTransaction = transaction.ToByteArray().ToHex()
         };
+    }
+
+    [ExceptionHandler(typeof(Exception), TargetType = typeof(TransactionAppService),
+        MethodName = nameof(HandleExceptionWhileParsingTransactionParameter))]
+    private void ParseTransactionParameter(CreateRawTransactionInput input, MethodDescriptor methodDescriptor,
+        Transaction transaction)
+    {
+        var parameters = methodDescriptor.InputType.Parser.ParseJson(input.Params);
+        if (!IsValidMessage(parameters))
+            throw new UserFriendlyException(Error.Message[Error.InvalidParams], Error.InvalidParams.ToString());
+        transaction.Params = parameters.ToByteString();
     }
 
     /// <summary>
@@ -314,33 +296,12 @@ public class TransactionAppService : AElfAppService, ITransactionAppService
 
     public async Task<CalculateTransactionFeeOutput> CalculateTransactionFeeAsync(CalculateTransactionFeeInput input)
     {
-        Transaction transaction;
-
-        try
-        {
-            var byteArray = ByteArrayHelper.HexStringToByteArray(input.RawTransaction);
-            transaction = Transaction.Parser.ParseFrom(byteArray);
-        }
-        catch (Exception e)
-        {
-            Logger.LogError(e, "{ErrorMessage}", e.Message); //for debug
-            throw new UserFriendlyException(Error.Message[Error.InvalidParams],
-                Error.InvalidParams.ToString());
-        }
-
-        try
-        {
-            var result = await EstimateTransactionFee(transaction);
-            return result;
-        }
-        catch (Exception e)
-        {
-            using var detail = new StringReader(e.Message);
-            throw new UserFriendlyException(Error.Message[Error.InvalidTransaction],
-                Error.InvalidTransaction.ToString(), await detail.ReadLineAsync());
-        }
+        var transaction = ParseTransaction(input.RawTransaction);
+        return await EstimateTransactionFee(transaction);
     }
 
+    [ExceptionHandler(typeof(Exception), TargetType = typeof(TransactionAppService),
+        MethodName = nameof(HandleExceptionWhileEstimatingTransactionFee))]
     private async Task<CalculateTransactionFeeOutput> EstimateTransactionFee(Transaction transaction)
     {
         var chainContext = await GetChainContextAsync();
@@ -400,17 +361,7 @@ public class TransactionAppService : AElfAppService, ITransactionAppService
         var transactions = new List<Transaction>();
         for (var i = 0; i < rawTransactions.Length; i++)
         {
-            Transaction transaction;
-            try
-            {
-                var byteArray = ByteArrayHelper.HexStringToByteArray(rawTransactions[i]);
-                transaction = Transaction.Parser.ParseFrom(byteArray);
-            }
-            catch
-            {
-                throw new UserFriendlyException(Error.Message[Error.InvalidTransaction],
-                    Error.InvalidTransaction.ToString());
-            }
+            var transaction = ParseTransaction(rawTransactions[i], Error.InvalidTransaction);
 
             if (!IsValidMessage(transaction))
                 throw new UserFriendlyException(Error.Message[Error.InvalidTransaction],
@@ -484,17 +435,11 @@ public class TransactionAppService : AElfAppService, ITransactionAppService
         return chainContext;
     }
 
+    [ExceptionHandler(typeof(Exception), TargetType = typeof(TransactionAppService),
+        MethodName = nameof(HandleExceptionWhileValidatingMessage))]
     private bool IsValidMessage(IMessage message)
     {
-        try
-        {
-            JsonFormatter.ToDiagnosticString(message);
-        }
-        catch
-        {
-            return false;
-        }
-
+        JsonFormatter.ToDiagnosticString(message);
         return true;
     }
 }

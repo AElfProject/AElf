@@ -10,6 +10,7 @@ using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.CSharp.Core.Extension;
+using AElf.ExceptionHandler;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus;
@@ -24,7 +25,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace AElf.ContractTestKit.AEDPoSExtension;
 
-public class BlockMiningService : IBlockMiningService
+public partial class BlockMiningService : IBlockMiningService
 {
     private readonly List<AuthorizationContractContainer.AuthorizationContractStub> _acs3Stubs = new();
 
@@ -325,55 +326,50 @@ public class BlockMiningService : IBlockMiningService
         }
     }
 
+    [ExceptionHandler(typeof(Exception), TargetType = typeof(BlockMiningService),
+        MethodName = nameof(HandleExceptionWhileGettingProperContractStub))]
     private (AEDPoSContractImplContainer.AEDPoSContractImplStub, BytesValue) GetProperContractStub(
         Timestamp currentBlockTime, int maximumBlocksCount)
     {
-        try
+        if (_currentRound.RoundNumber == 0) throw new BlockMiningException("Invalid round information.");
+
+        var roundStartTime = _currentRound.RealTimeMinersInformation.Single(i => i.Value.Order == 1).Value
+            .ExpectedMiningTime;
+
+        var roundEndTime = _currentRound.RealTimeMinersInformation
+            .Single(i => i.Value.Order == _currentRound.RealTimeMinersInformation.Count).Value
+            .ExpectedMiningTime.AddMilliseconds(AEDPoSExtensionConstants.MiningInterval);
+        if (currentBlockTime > roundEndTime) throw new BlockMiningException("Failed to find proper contract stub.");
+
+        var ebp = _currentRound.RealTimeMinersInformation.Values.FirstOrDefault(i =>
+            i.Pubkey == _currentRound.ExtraBlockProducerOfPreviousRound);
+        if (ebp != null && _currentRound.RealTimeMinersInformation.Values.All(i => i.OutValue == null) &&
+            currentBlockTime < roundStartTime && ebp.ActualMiningTimes.Count + 1 <= maximumBlocksCount)
         {
-            if (_currentRound.RoundNumber == 0) throw new BlockMiningException("Invalid round information.");
-
-            var roundStartTime = _currentRound.RealTimeMinersInformation.Single(i => i.Value.Order == 1).Value
-                .ExpectedMiningTime;
-
-            var roundEndTime = _currentRound.RealTimeMinersInformation
-                .Single(i => i.Value.Order == _currentRound.RealTimeMinersInformation.Count).Value
-                .ExpectedMiningTime.AddMilliseconds(AEDPoSExtensionConstants.MiningInterval);
-            if (currentBlockTime > roundEndTime) throw new BlockMiningException("Failed to find proper contract stub.");
-
-            var ebp = _currentRound.RealTimeMinersInformation.Values.FirstOrDefault(i =>
-                i.Pubkey == _currentRound.ExtraBlockProducerOfPreviousRound);
-            if (ebp != null && _currentRound.RealTimeMinersInformation.Values.All(i => i.OutValue == null) &&
-                currentBlockTime < roundStartTime && ebp.ActualMiningTimes.Count + 1 <= maximumBlocksCount)
-            {
-                Debug.WriteLine("Tiny block before new round.");
-                return ProperContractStub(ebp);
-            }
-
-            foreach (var minerInRound in _currentRound.RealTimeMinersInformation.Values.OrderBy(m => m.Order)
-                         .ToList())
-            {
-                if (minerInRound.ExpectedMiningTime <= currentBlockTime && currentBlockTime <
-                    minerInRound.ExpectedMiningTime.AddMilliseconds(AEDPoSExtensionConstants.MiningInterval) &&
-                    (minerInRound.ActualMiningTimes.Count + 1 <= maximumBlocksCount ||
-                     (minerInRound.Pubkey == _currentRound.ExtraBlockProducerOfPreviousRound &&
-                      minerInRound.ActualMiningTimes.Count + 2 <= maximumBlocksCount * 2)))
-                {
-                    Debug.WriteLine("Normal block or tiny block.");
-                    return ProperContractStub(minerInRound);
-                }
-
-                var minersCount = _currentRound.RealTimeMinersInformation.Count;
-                if (minerInRound.IsExtraBlockProducer &&
-                    _currentRound.RealTimeMinersInformation.Values.Count(m => m.OutValue != null) == minersCount)
-                {
-                    Debug.WriteLine("End of current round.");
-                    return ProperContractStub(minerInRound);
-                }
-            }
+            Debug.WriteLine("Tiny block before new round.");
+            return ProperContractStub(ebp);
         }
-        catch (Exception e)
+
+        foreach (var minerInRound in _currentRound.RealTimeMinersInformation.Values.OrderBy(m => m.Order)
+                     .ToList())
         {
-            throw new BlockMiningException("Failed to find proper contract stub.", e);
+            if (minerInRound.ExpectedMiningTime <= currentBlockTime && currentBlockTime <
+                minerInRound.ExpectedMiningTime.AddMilliseconds(AEDPoSExtensionConstants.MiningInterval) &&
+                (minerInRound.ActualMiningTimes.Count + 1 <= maximumBlocksCount ||
+                 (minerInRound.Pubkey == _currentRound.ExtraBlockProducerOfPreviousRound &&
+                  minerInRound.ActualMiningTimes.Count + 2 <= maximumBlocksCount * 2)))
+            {
+                Debug.WriteLine("Normal block or tiny block.");
+                return ProperContractStub(minerInRound);
+            }
+
+            var minersCount = _currentRound.RealTimeMinersInformation.Count;
+            if (minerInRound.IsExtraBlockProducer &&
+                _currentRound.RealTimeMinersInformation.Values.Count(m => m.OutValue != null) == minersCount)
+            {
+                Debug.WriteLine("End of current round.");
+                return ProperContractStub(minerInRound);
+            }
         }
 
         _testDataProvider.SetBlockTime(AEDPoSExtensionConstants.ActualMiningInterval);

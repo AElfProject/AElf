@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using AElf.ExceptionHandler;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain;
 using AElf.Kernel.Blockchain.Application;
@@ -11,7 +12,7 @@ using Volo.Abp.EventBus.Local;
 
 namespace AElf.Kernel.Miner.Application;
 
-public class MiningService : IMiningService
+public partial class MiningService : IMiningService
 {
     private readonly IAccountService _accountService;
     private readonly IBlockchainService _blockchainService;
@@ -42,59 +43,56 @@ public class MiningService : IMiningService
 
     public ILocalEventBus EventBus { get; set; }
 
+    [ExceptionHandler(typeof(Exception), LogOnly = true, LogLevel = LogLevel.Error,
+        Message = "Failed while mining block")]
     public async Task<BlockExecutedSet> MineAsync(RequestMiningDto requestMiningDto, List<Transaction> transactions,
         Timestamp blockTime)
     {
-        try
+        using var cts = new CancellationTokenSource();
+        var expirationTime = blockTime + requestMiningDto.BlockExecutionTime;
+        if (expirationTime < TimestampHelper.GetUtcNow())
         {
-            using var cts = new CancellationTokenSource();
-            var expirationTime = blockTime + requestMiningDto.BlockExecutionTime;
-            if (expirationTime < TimestampHelper.GetUtcNow())
-            {
-                cts.Cancel();
-            }
-            else
-            {
-                var ts = (expirationTime - TimestampHelper.GetUtcNow()).ToTimeSpan();
-                if (ts.TotalMilliseconds > int.MaxValue) ts = TimeSpan.FromMilliseconds(int.MaxValue);
-
-                cts.CancelAfter(ts);
-            }
-
-            var block = await GenerateBlock(requestMiningDto.PreviousBlockHash, requestMiningDto.PreviousBlockHeight, blockTime);
-            var systemTransactions = await GenerateSystemTransactions(requestMiningDto.PreviousBlockHash, requestMiningDto.PreviousBlockHeight);
-            
-            _systemTransactionExtraDataProvider.SetSystemTransactionCount(systemTransactions.Count,
-                block.Header);
-            
-            var txTotalCount = transactions.Count + systemTransactions.Count;
-
-            var pending = txTotalCount > requestMiningDto.TransactionCountLimit
-                ? transactions
-                    .Take(requestMiningDto.TransactionCountLimit - systemTransactions.Count)
-                    .ToList()
-                : transactions;
-            var blockExecutedSet = await _blockExecutingService.ExecuteBlockAsync(block.Header,
-                systemTransactions, pending, cts.Token);
-
-            block = blockExecutedSet.Block;
-            await SignBlockAsync(block);
-            if (block.Body.TransactionsCount > 2)
-            {
-                Logger.LogInformation("Generated block: {Block}, " +
-                                      "previous: {PreviousBlockHash}, " +
-                                      "executed transactions: {TransactionsCount}, " +
-                                      "not executed transactions {NotExecutedTransactionsCount}",
-                    block.ToDiagnosticString(), block.Header.PreviousBlockHash.ToHex(), block.Body.TransactionsCount,
-                    pending.Count + systemTransactions.Count - block.Body.TransactionsCount);
-            }
-            return blockExecutedSet;
+            cts.Cancel();
         }
-        catch (Exception e)
+        else
         {
-            Logger.LogError(e, "Failed while mining block");
-            throw;
+            var ts = (expirationTime - TimestampHelper.GetUtcNow()).ToTimeSpan();
+            if (ts.TotalMilliseconds > int.MaxValue) ts = TimeSpan.FromMilliseconds(int.MaxValue);
+
+            cts.CancelAfter(ts);
         }
+
+        var block = await GenerateBlock(requestMiningDto.PreviousBlockHash, requestMiningDto.PreviousBlockHeight,
+            blockTime);
+        var systemTransactions =
+            await GenerateSystemTransactions(requestMiningDto.PreviousBlockHash, requestMiningDto.PreviousBlockHeight);
+
+        _systemTransactionExtraDataProvider.SetSystemTransactionCount(systemTransactions.Count,
+            block.Header);
+
+        var txTotalCount = transactions.Count + systemTransactions.Count;
+
+        var pending = txTotalCount > requestMiningDto.TransactionCountLimit
+            ? transactions
+                .Take(requestMiningDto.TransactionCountLimit - systemTransactions.Count)
+                .ToList()
+            : transactions;
+        var blockExecutedSet = await _blockExecutingService.ExecuteBlockAsync(block.Header,
+            systemTransactions, pending, cts.Token);
+
+        block = blockExecutedSet.Block;
+        await SignBlockAsync(block);
+        if (block.Body.TransactionsCount > 2)
+        {
+            Logger.LogInformation("Generated block: {Block}, " +
+                                  "previous: {PreviousBlockHash}, " +
+                                  "executed transactions: {TransactionsCount}, " +
+                                  "not executed transactions {NotExecutedTransactionsCount}",
+                block.ToDiagnosticString(), block.Header.PreviousBlockHash.ToHex(), block.Body.TransactionsCount,
+                pending.Count + systemTransactions.Count - block.Body.TransactionsCount);
+        }
+
+        return blockExecutedSet;
     }
 
     private async Task<List<Transaction>> GenerateSystemTransactions(Hash previousBlockHash,
