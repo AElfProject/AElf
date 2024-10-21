@@ -192,7 +192,7 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
                 traceList.AddIfNotContains(currentTrace);
                 txIdSet.Add(currentTrace.TransactionId);
                 index++;
-                break;
+                // break;
             }
                 
                 
