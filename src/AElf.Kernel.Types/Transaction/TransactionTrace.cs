@@ -12,7 +12,7 @@ public partial class TransactionTrace
     public DateTime StartTime { get; set; }
     public DateTime EndTime { get; set; }
     
-    public bool IsInlineTransaction { get; set; }
+    public bool IsInlineTxWithId { get; set; }
 
     public IEnumerable<LogEvent> FlattenedLogs
     {

@@ -17,5 +17,5 @@ public interface ITransactionContext
     Transaction Transaction { get; set; }
     TransactionTrace Trace { get; set; }
     IStateCache StateCache { get; set; }
-    bool IsInlineTransaction { get; set; }
+    bool IsInlineTxWithId { get; set; }
 }

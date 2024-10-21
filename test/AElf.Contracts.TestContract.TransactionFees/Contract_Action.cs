@@ -64,6 +64,7 @@ public partial class TransactionFeesContract : TransactionFeesContractContainer.
             Memo = input.Memo
         });
 
+        // Context.SendInlineWithTransactionId(State.TokenContract.Value, "Burn", new BurnInput
         Context.SendInline(State.TokenContract.Value, "Burn", new BurnInput
         {
             Symbol = "ELF",

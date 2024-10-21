@@ -238,7 +238,7 @@ public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, I
     
     public void SendInlineWithTransactionId(Address toAddress, string methodName, ByteString args)
     {
-        // TransactionContext.IsInlineTransaction = true;
+        TransactionContext.IsInlineTxWithId = true;
         TransactionContext.Trace.InlineTransactions.Add(new Transaction
         {
             IsInlineTxWithId = true,
@@ -291,10 +291,12 @@ public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, I
     public void SendVirtualInlineBySystemContract(Hash fromVirtualAddress, Address toAddress, string methodName,
         ByteString args)
     {
+        TransactionContext.IsInlineTxWithId = true;
         TransactionContext.Trace.InlineTransactions.Add(new Transaction
         {
             From = ConvertVirtualAddressToContractAddressWithContractHashName(fromVirtualAddress, Self),
             To = toAddress,
+            IsInlineTxWithId = true,
             MethodName = methodName,
             Params = args
         });

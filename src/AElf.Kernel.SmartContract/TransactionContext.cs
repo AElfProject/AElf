@@ -16,5 +16,5 @@ public class TransactionContext : ITransactionContext
     public Transaction Transaction { get; set; }
     public TransactionTrace Trace { get; set; }
     public IStateCache StateCache { get; set; }
-    public bool IsInlineTransaction { get; set; }
+    public bool IsInlineTxWithId { get; set; }
 }

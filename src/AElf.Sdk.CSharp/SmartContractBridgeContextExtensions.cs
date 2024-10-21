@@ -49,7 +49,7 @@ public static class SmartContractBridgeContextExtensions
     public static void SendInline(this ISmartContractBridgeContext context, Address toAddress, string methodName,
         IMessage message)
     {
-        context.SendInline(toAddress, methodName, ConvertToByteString(message));
+        context.SendInlineWithTransactionId(toAddress, methodName, ConvertToByteString(message));
     }
 
     /// <summary>
@@ -121,12 +121,6 @@ public static class SmartContractBridgeContextExtensions
     /// <param name="methodName">The name of method you want to invoke.</param>
     /// <param name="message">The protobuf message that will be the input to the call.</param>
     public static void SendInline(this CSharpSmartContractContext context, Address toAddress, string methodName,
-        IMessage message)
-    {
-        context.SendInline(toAddress, methodName, ConvertToByteString(message));
-    }
-    
-    public static void SendInlineWithTransactionId(this CSharpSmartContractContext context, Address toAddress, string methodName,
         IMessage message)
     {
         context.SendInline(toAddress, methodName, ConvertToByteString(message));
