@@ -53,6 +53,9 @@ public class MinerService : IMinerService
                 previousBlockHash, limit);
 
             txList.AddRange(executableTransactionSet.Transactions);
+            Logger.LogInformation(
+            "Start mining with the transaction Limit: {limit}, txList size: {txListSize}",
+            limit, txList.Count);
         }
 
         // Logger.LogInformation(
