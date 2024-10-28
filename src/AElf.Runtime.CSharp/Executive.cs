@@ -63,7 +63,14 @@ public class Executive : IExecutive
                 CurrentTransactionContext.Trace.Error = "\n" + "ExceededMaxCallDepth";
                 return Task.CompletedTask;
             }
-
+            if (CurrentTransactionContext.InlineWithTransactionIdCounter != null 
+                && CurrentTransactionContext.InlineWithTransactionIdCounter.GetCount() > CurrentTransactionContext.MaxInlineWithTransactionIdCount)
+            {
+                CurrentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ExceededMaxCallDepth;
+                CurrentTransactionContext.Trace.Error = "\n" + "ExceededMaxInlineWithTransactionIdCount";
+                return Task.CompletedTask;
+            }
+            
             Execute();
         }
         finally

@@ -61,6 +61,7 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
                 var singleTxExecutingDto = new SingleTransactionExecutingDto
                 {
                     Depth = 0,
+                    InlineWithTransactionIdCounter = new InlineWithTransactionIdCounter(),
                     ChainContext = groupChainContext,
                     Transaction = transaction,
                     CurrentBlockTime = transactionExecutingDto.BlockHeader.Time,
@@ -72,8 +73,6 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
                         cancellationToken), cancellationToken);
 
                     trace = await transactionExecutionTask.WithCancellation(cancellationToken);
-                    // GetAllTrace(transactionTraces, trace);
-
                 }
                 catch (OperationCanceledException)
                 {
@@ -83,32 +82,10 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
                     continue;
                 }
 
-                List<TransactionTrace> traceList = new List<TransactionTrace>();
-                // List<Transaction> inlineTxList = new List<Transaction>();
-                WrapTraceList(traceList, trace);
-                // WrapinlineTxList(inlineTxList, trace);
-                // foreach (var inlinetransaction in inlineTxList)
-                // {
-                //     await _transactionManager.AddTransactionAsync(inlinetransaction);
-                // }
+                var traceList = trace.GetTraceListWithInlineTransactionId();
 
-//                 if (!TryUpdateStateCache(trace, groupStateCache))
-//                     break;
-// #if DEBUG
-//                 if (!string.IsNullOrEmpty(trace.Error)) Logger.LogInformation("{Error}", trace.Error);
-// #endif
-//                 var result = GetTransactionResult(trace, transactionExecutingDto.BlockHeader.Height);
-//
-//                 var returnSet = GetReturnSet(trace, result);
-//                 returnSets.Add(returnSet);
-
-                int index = 1;
                 foreach (var transactionTrace in traceList)
                 {
-                    // Console.WriteLine("index="+ index+++"  "+transactionTrace.TransactionId);
-                    
-                    Console.WriteLine("transactionTraceId="+index+++"="+transactionTrace.TransactionId);
-                    
                     if (!TryUpdateStateCache(transactionTrace, groupStateCache))
                         break;
 #if DEBUG
@@ -167,72 +144,6 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
     }
 
 
-    private List<TransactionTrace> WrapTraceList(List<TransactionTrace> traceList, TransactionTrace trace)
-    {
-        HashSet<Hash> txIdSet = new HashSet<Hash>();
-        // Create a stack to hold the traces for processing
-        Stack<TransactionTrace> stack = new Stack<TransactionTrace>();
-        stack.Push(trace);
-
-        int index = 1;
-        // Process all traces in the stack
-        while (stack.Count > 0)
-        {
-            // Pop a trace from the stack
-            var currentTrace = stack.Pop();
-        
-            // Add the current trace to the list
-            // if (currentTrace.IsInlineTransaction)
-            // {
-            
-            // if (currentTrace.IsInlineTransaction && !txIdSet.Contains(currentTrace.TransactionId) || index == 1)
-            if (currentTrace.IsInlineTxWithId || index == 1)
-            {
-                // Console.WriteLine("currentTrace="+currentTrace.TransactionId);
-                traceList.AddIfNotContains(currentTrace);
-                txIdSet.Add(currentTrace.TransactionId);
-                index++;
-                // break;
-            }
-                
-                
-            // }
-            
-            // If the current trace contains inline traces, add them to the stack
-            if (currentTrace.InlineTraces != null)
-            {
-                foreach (var inlineTrace in currentTrace.InlineTraces)
-                {
-                    stack.Push(inlineTrace);
-                }
-            }
-        }
-
-        return traceList;
-    }
-
-    public static void AddIfNotContainsByTransactionId( List<TransactionTrace> traceList, TransactionTrace currentTrace)
-    {
-        if (traceList.All(trace => trace.TransactionId != currentTrace.TransactionId))
-        {
-            traceList.Add(currentTrace);
-        }
-    }
-
-    private void GetAllTrace(List<TransactionTrace> transactionTraces, TransactionTrace transactionTrace)
-    {
-        if (transactionTrace == null || transactionTrace.InlineTraces.Count == 0)
-        {
-            return;
-        }
-    
-        transactionTraces.Add(transactionTrace);
-
-        foreach (var inlineTrace in transactionTrace.InlineTraces)
-        {
-            GetAllTrace(transactionTraces, inlineTrace);
-        }
-    }
 
     private static bool TryUpdateStateCache(TransactionTrace trace, TieredStateCache groupStateCache)
     {
@@ -353,17 +264,18 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
     {
         var trace = txContext.Trace;
         internalStateCache.Update(txContext.Trace.GetStateSets());
-        int index = 0;
+        var index = 0;
         foreach (var inlineTx in txContext.Trace.InlineTransactions)
         {
             if (inlineTx.IsInlineTxWithId)
             {
-                Console.WriteLine("inlineTx="+inlineTx.GetHash());
+                txContext.InlineWithTransactionIdCounter.Increment();
                 AutoGenerateInlineTxId(inlineTx,originTransactionId,index);
             }
             var singleTxExecutingDto = new SingleTransactionExecutingDto
             {
                 Depth = depth + 1,
+                InlineWithTransactionIdCounter = txContext.InlineWithTransactionIdCounter,
                 ChainContext = internalChainContext,
                 Transaction = inlineTx,
                 CurrentBlockTime = currentBlockTime,
@@ -380,16 +292,9 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
             {
                 // To facilitate counting later
                 inlineTrace.IsInlineTxWithId = true;    
-                Console.WriteLine("inlineTx="+inlineTrace);
             }
             
             trace.InlineTraces.Add(inlineTrace);
-            
-            var wrapinlineTxList = WrapinlineTxList([],trace);
-            if (wrapinlineTxList.Count > TransactionConsts.InlineWithTransactionIdLimit)
-            {
-                // throw new ExceedThresholdOfInlineWithTransactionId("The number of inlineWithTransactionId exceeds the threshold.");
-            }
             
             if (!inlineTrace.IsSuccessful())
                 // Already failed, no need to execute remaining inline transactions
@@ -633,6 +538,8 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
         var txContext = _transactionContextFactory.Create(singleTxExecutingDto.Transaction,
             singleTxExecutingDto.ChainContext, singleTxExecutingDto.OriginTransactionId, origin,
             singleTxExecutingDto.Depth, singleTxExecutingDto.CurrentBlockTime);
+
+        txContext.InlineWithTransactionIdCounter = singleTxExecutingDto.InlineWithTransactionIdCounter;
 
         return txContext;
     }

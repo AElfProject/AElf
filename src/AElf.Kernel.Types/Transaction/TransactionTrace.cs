@@ -91,4 +91,34 @@ public partial class TransactionTrace
             foreach (var stateSet in stateSets) yield return stateSet;
         }
     }
+
+    public List<TransactionTrace> GetTraceListWithInlineTransactionId()
+    {
+        var traceList = new List<TransactionTrace>();
+        var stack = new Stack<TransactionTrace>();
+        traceList.Add(this);
+        stack.Push(this);
+
+        while (stack.Count > 0)
+        {
+            var currentTrace = stack.Pop();
+            if (currentTrace.IsInlineTxWithId)
+            {
+                traceList.Add(currentTrace);
+            }
+
+            if (currentTrace.InlineTraces == null) continue;
+            foreach (var inlineTrace in currentTrace.InlineTraces)
+            {
+                stack.Push(inlineTrace);
+            }
+        }
+
+        return traceList;
+    }
+
+    public int GetInlineWithTransactionIdCount()
+    {
+        return GetTraceListWithInlineTransactionId().Count - 1;
+    }
 }
