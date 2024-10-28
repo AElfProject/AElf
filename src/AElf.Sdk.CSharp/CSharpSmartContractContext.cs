@@ -225,6 +225,12 @@ public class CSharpSmartContractContext : ISmartContractBridgeContext
         SmartContractBridgeContextImplementation.SendVirtualInline(fromVirtualAddress, toAddress, methodName,
             args);
     }
+    public void SendVirtualInlineWithTransactionId(Hash fromVirtualAddress, Address toAddress, string methodName, ByteString args)
+    {
+        SmartContractBridgeContextImplementation.SendVirtualInlineWithTransactionId(fromVirtualAddress, toAddress, methodName,
+            args);
+    }
+
     
     public void SendVirtualInline(Hash fromVirtualAddress, Address toAddress, string methodName, ByteString args,bool logTransaction)
     {

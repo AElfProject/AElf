@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.FeatureDisable.Core;
 using AElf.Kernel.SmartContract.Domain;
 using AElf.Kernel.SmartContract.Infrastructure;
@@ -133,7 +132,7 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
         }
     }
 
-    private void WrapinlineTxList(List<Transaction> inlineTxList, TransactionTrace trace)
+    private List<Transaction> WrapinlineTxList(List<Transaction> inlineTxList, TransactionTrace trace)
     {
         // Create a stack to hold the traces for processing
         Stack<TransactionTrace> stack = new Stack<TransactionTrace>();
@@ -163,9 +162,10 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
                 }
             }
         }
+
+        return inlineTxList;
     }
 
-    private readonly Dictionary<string, TransactionTrace> traceDictionary = new Dictionary<string, TransactionTrace>();
 
     private List<TransactionTrace> WrapTraceList(List<TransactionTrace> traceList, TransactionTrace trace)
     {
@@ -356,9 +356,9 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
         int index = 0;
         foreach (var inlineTx in txContext.Trace.InlineTransactions)
         {
-            inlineTx.IsInlineTxWithId = true;
-            if (txContext.IsInlineTxWithId || inlineTx.IsInlineTxWithId)
+            if (inlineTx.IsInlineTxWithId)
             {
+                Console.WriteLine("inlineTx="+inlineTx.GetHash());
                 AutoGenerateInlineTxId(inlineTx,originTransactionId,index);
             }
             var singleTxExecutingDto = new SingleTransactionExecutingDto
@@ -376,16 +376,21 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
             if (inlineTrace == null)
                 break;
             
-            // if (txContext.IsInlineTransaction)
-            // {
-            //     inlineTrace.IsInlineTransaction = true;
-            // }
-            if (txContext.IsInlineTxWithId || inlineTx.IsInlineTxWithId)
+            if (inlineTx.IsInlineTxWithId)
             {
+                // To facilitate counting later
                 inlineTrace.IsInlineTxWithId = true;    
+                Console.WriteLine("inlineTx="+inlineTrace);
             }
             
             trace.InlineTraces.Add(inlineTrace);
+            
+            var wrapinlineTxList = WrapinlineTxList([],trace);
+            if (wrapinlineTxList.Count > TransactionConsts.InlineWithTransactionIdLimit)
+            {
+                // throw new ExceedThresholdOfInlineWithTransactionId("The number of inlineWithTransactionId exceeds the threshold.");
+            }
+            
             if (!inlineTrace.IsSuccessful())
                 // Already failed, no need to execute remaining inline transactions
                 break;
@@ -396,10 +401,7 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
 
     private void AutoGenerateInlineTxId(Transaction inlineTx, Hash originTransactionId, int index)
     {
-        inlineTx.SetHash(HashHelper.XorAndCompute(originTransactionId, HashHelper.ComputeFrom(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() )));
-        // inlineTx.SetHash(HashHelper.XorAndCompute(originTransactionId, HashHelper.ComputeFrom(index )));
-        Console.WriteLine("SetHash="+inlineTx.GetHash());
-        inlineTx.IsInlineTxWithId = true;
+        inlineTx.SetHash(HashHelper.XorAndCompute(originTransactionId, HashHelper.ComputeFrom(index)));
     }
 
     private async Task<bool> ExecutePluginOnPreTransactionStageAsync(IExecutive executive,

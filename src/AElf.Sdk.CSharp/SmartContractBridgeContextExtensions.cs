@@ -49,7 +49,7 @@ public static class SmartContractBridgeContextExtensions
     public static void SendInline(this ISmartContractBridgeContext context, Address toAddress, string methodName,
         IMessage message)
     {
-        context.SendInlineWithTransactionId(toAddress, methodName, ConvertToByteString(message));
+        context.SendInline(toAddress, methodName, ConvertToByteString(message));
     }
 
     /// <summary>

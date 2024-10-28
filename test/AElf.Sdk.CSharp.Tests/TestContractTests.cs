@@ -268,4 +268,12 @@ public class TestContractTests : SdkCSharpTestBase
             StringValue = "test send inline"
         });
     }
+    [Fact]
+    public void SendInlineWithTransactionId_Test()
+    {
+        BridgeContext.SendInlineWithTransactionId(SampleAddress.AddressList[0], "TestMethod", new CustomContract.StringInput
+        {
+            StringValue = "test send inline"
+        }.ToByteString());
+    }
 }

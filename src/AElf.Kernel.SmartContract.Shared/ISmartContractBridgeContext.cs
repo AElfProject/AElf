@@ -64,6 +64,8 @@ public interface ISmartContractBridgeContext
     void SendInlineWithTransactionId(Address toAddress, string methodName, ByteString args);
 
     void SendVirtualInline(Hash fromVirtualAddress, Address toAddress, string methodName, ByteString args);
+    
+    void SendVirtualInlineWithTransactionId(Hash fromVirtualAddress, Address toAddress, string methodName, ByteString args);
 
     void SendVirtualInline(Hash fromVirtualAddress, Address toAddress, string methodName, ByteString args,
         bool logTransaction);
