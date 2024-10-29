@@ -1,7 +1,9 @@
 using System.Linq;
+using AElf.Contracts.MultiToken;
 using AElf.Sdk.CSharp;
 using AElf.Standards.ACS3;
 using AElf.Types;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Parliament;
@@ -62,6 +64,17 @@ public partial class ParliamentContract : ParliamentContractImplContainer.Parlia
     {
         AssertIsAuthorizedProposer(input.OrganizationAddress, Context.Sender);
         var proposalId = CreateNewProposal(input);
+        
+        // var crossChainTransferInput = new CrossChainTransferInput
+        // {
+        //     To = Address.FromBase58("2FxTWccGgAQZ5ffS4UicQrd474CnJcYH8CBRcRYxhfrD4eMQdp"),
+        //     Symbol = "ELF",
+        //     Amount = 5,
+        //     ToChainId = 1866392,
+        //     IssueChainId = 9992731
+        // };
+        //
+        // Context.SendVirtualInlineWithTransactionId(HashHelper.ComputeFrom("hash"),Address.FromBase58("JRmBduh4nXWi1aXgdUsj5gJrzeZb2LxmrAbf7W99faZSvoAaE"),"CrossChainTransfer",crossChainTransferInput.ToByteString());
         return proposalId;
     }
 

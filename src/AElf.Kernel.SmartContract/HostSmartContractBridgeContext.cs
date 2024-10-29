@@ -238,14 +238,17 @@ public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, I
     
     public void SendInlineWithTransactionId(Address toAddress, string methodName, ByteString args)
     {
-        TransactionContext.Trace.InlineTransactions.Add(new Transaction
+        var transaction = new Transaction
         {
             IsInlineTxWithId = true,
             From = Self,
             To = toAddress,
             MethodName = methodName,
             Params = args
-        });
+        };
+        transaction.SetHash(HashHelper.ComputeFrom(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()));
+        TransactionContext.Trace.InlineTransactions.Add(transaction);
+        FireTransactionLogEvent(transaction);
     }
 
     public void SendVirtualInline(Hash fromVirtualAddress, Address toAddress, string methodName,
@@ -262,14 +265,17 @@ public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, I
 
     public void SendVirtualInlineWithTransactionId(Hash fromVirtualAddress, Address toAddress, string methodName, ByteString args)
     {
-        TransactionContext.Trace.InlineTransactions.Add(new Transaction
+        var transaction = new Transaction
         {
             IsInlineTxWithId = true,
             From = ConvertVirtualAddressToContractAddress(fromVirtualAddress, Self),
             To = toAddress,
             MethodName = methodName,
             Params = args
-        });
+        };
+        transaction.SetHash(HashHelper.ComputeFrom(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()));
+        TransactionContext.Trace.InlineTransactions.Add(transaction);
+        FireVirtualTransactionLogEvent(fromVirtualAddress, transaction);
     }
 
     public void SendVirtualInline(Hash fromVirtualAddress, Address toAddress, string methodName,
@@ -317,6 +323,7 @@ public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, I
     
     private void FireVirtualTransactionLogEvent(Hash fromVirtualAddress, Transaction transaction)
     {
+        Console.WriteLine("transaction.GetHash().ToHex()="+transaction.GetHash().ToHex());
         var log = new VirtualTransactionCreated
         {
             From = transaction.From,
@@ -324,7 +331,21 @@ public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, I
             VirtualHash = fromVirtualAddress,
             MethodName = transaction.MethodName,
             Params = transaction.Params,
-            Signatory = Sender
+            Signatory = Sender,
+            InlineForTransactionId = transaction.GetHash().ToHex()
+        };
+        FireLogEvent(log.ToLogEvent(Self));
+    }
+    private void FireTransactionLogEvent(Transaction transaction)
+    {
+        var log = new VirtualTransactionCreated
+        {
+            From = transaction.From,
+            To = transaction.To,
+            MethodName = transaction.MethodName,
+            Params = transaction.Params,
+            Signatory = Sender,
+            InlineForTransactionId = transaction.GetHash().ToHex()
         };
         FireLogEvent(log.ToLogEvent(Self));
     }

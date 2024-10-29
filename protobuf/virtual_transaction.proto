@@ -17,4 +17,5 @@ message VirtualTransactionCreated {
   string method_name = 4 [(aelf.is_indexed) = true];
   bytes params = 5;
   aelf.Address signatory = 6 [(aelf.is_indexed) = true];
+  string inline_for_transaction_id = 7 [(aelf.is_indexed) = true];
 }

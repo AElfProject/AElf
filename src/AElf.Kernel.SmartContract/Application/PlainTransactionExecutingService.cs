@@ -94,6 +94,12 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
                     var result = GetTransactionResult(transactionTrace, transactionExecutingDto.BlockHeader.Height);
 
                     var returnSet = GetReturnSet(transactionTrace, result);
+                    // if (traceList.Count > 1)
+                    // {
+                    //     Console.WriteLine("resultId="+result.TransactionId);
+                    //     Console.WriteLine("result="+result);
+                    //     Console.WriteLine("returnSet="+returnSet);
+                    // }
                     returnSets.Add(returnSet);
                     
                 }
