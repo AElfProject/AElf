@@ -273,11 +273,8 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
         var index = 0;
         foreach (var inlineTx in txContext.Trace.InlineTransactions)
         {
-            if (inlineTx.IsInlineTxWithId)
-            {
-                txContext.InlineWithTransactionIdCounter.Increment();
-                AutoGenerateInlineTxId(inlineTx,originTransactionId,index);
-            }
+            if (inlineTx.IsInlineTxWithId) txContext.InlineWithTransactionIdCounter.Increment();
+            
             var singleTxExecutingDto = new SingleTransactionExecutingDto
             {
                 Depth = depth + 1,
@@ -308,11 +305,6 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
 
             internalStateCache.Update(inlineTrace.GetStateSets());
         }
-    }
-
-    private void AutoGenerateInlineTxId(Transaction inlineTx, Hash originTransactionId, int index)
-    {
-        inlineTx.SetHash(HashHelper.XorAndCompute(originTransactionId, HashHelper.ComputeFrom(index)));
     }
 
     private async Task<bool> ExecutePluginOnPreTransactionStageAsync(IExecutive executive,
