@@ -30,6 +30,8 @@ message DeploySoliditySmartContractInput {
     bytes code = 2;
     // The parameter of contract constructor.
     bytes parameter = 3;
+    // Amount of value to transfer with the transaction.
+    int64 value = 4;
 }
 
 message InstantiateSoliditySmartContractInput {

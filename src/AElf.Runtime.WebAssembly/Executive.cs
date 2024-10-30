@@ -10,6 +10,8 @@ using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.Reflection;
 using Google.Protobuf.WellKnownTypes;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using NBitcoin.DataEncoders;
 using Nethereum.Hex.HexConvertors.Extensions;
 using Solang;
@@ -32,6 +34,8 @@ public class Executive : IExecutive
     private IHostSmartContractBridgeContext _hostSmartContractBridgeContext;
     private ITransactionContext CurrentTransactionContext => _hostSmartContractBridgeContext.TransactionContext;
 
+    public ILogger Logger { get; set; }
+
     public Executive(string solangAbi)
     {
         _solangAbi = JsonSerializer.Deserialize<SolangABI>(solangAbi)!;
@@ -42,6 +46,8 @@ public class Executive : IExecutive
 
         ContractVersion = _solangAbi.Version;
         Descriptors = new List<ServiceDescriptor>();
+        
+        Logger = NullLogger<Executive>.Instance;
     }
 
     public IExecutive SetHostSmartContractBridgeContext(IHostSmartContractBridgeContext smartContractBridgeContext)
@@ -92,6 +98,17 @@ public class Executive : IExecutive
                 return;
             }
 
+            if (methodName == "is_allow_reentry")
+            {
+                transactionContext.Trace.ReturnValue =
+                    new BoolValue
+                    {
+                        Value = _webAssemblyContract.AllowReentry
+                    }.ToByteString();
+                transactionContext.Trace.ExecutionStatus = ExecutionStatus.Executed;
+                return;
+            }
+
             var selector = isCallConstructor ? _solangAbi.GetConstructor() : methodName;
             string parameter;
             var value = 0L;
@@ -126,8 +143,42 @@ public class Executive : IExecutive
 
             if (_webAssemblyContract.DebugMessages.Count > 0)
             {
+                var debugMessages = _smartContractProxy.GetDebugMessages();
+                if (debugMessages != null)
+                {
+                    foreach (var debugMessage in debugMessages)
+                    {
+                        var logEvent = new LogEvent
+                        {
+                            Address = transaction.To,
+                            Name = "DebugMessage",
+                            NonIndexed = ByteString.CopyFrom(Encoding.UTF8.GetBytes(debugMessage))
+                        };
+                        transactionContext.Trace.Logs.Add(logEvent);
+                    }
+                }
                 transactionContext.Trace.ExecutionStatus = ExecutionStatus.ContractError;
                 transactionContext.Trace.Error = _webAssemblyContract.DebugMessages.First();
+            }
+            if (_webAssemblyContract.ErrorMessages.Count > 0)
+            {
+                var errorMessages = _smartContractProxy.GetErrorMessages();
+                if (errorMessages != null)
+                {
+                    foreach (var errorMessage in errorMessages)
+                    {
+                        var logEvent = new LogEvent
+                        {
+                            Address = transaction.To,
+                            Name = "ErrorMessage",
+                            NonIndexed = ByteString.CopyFrom(Encoding.UTF8.GetBytes(errorMessage))
+                        };
+                        transactionContext.Trace.Logs.Add(logEvent);
+                    }
+                }
+
+                transactionContext.Trace.ExecutionStatus = ExecutionStatus.Canceled;
+                transactionContext.Trace.Error = _webAssemblyContract.ErrorMessages.First();
             }
             else
             {
@@ -143,6 +194,36 @@ public class Executive : IExecutive
                             Address = transaction.To,
                             Name = Encoding.UTF8.GetString(depositedEvent.Item1),
                             NonIndexed = ByteString.CopyFrom(depositedEvent.Item2)
+                        };
+                        transactionContext.Trace.Logs.Add(logEvent);
+                    }
+                }
+
+                var prints = _smartContractProxy.GetCustomPrints();
+                if (prints != null)
+                {
+                    foreach (var print in prints)
+                    {
+                        var logEvent = new LogEvent
+                        {
+                            Address = transaction.To,
+                            Name = "Print",
+                            NonIndexed = ByteString.CopyFrom(Encoding.UTF8.GetBytes(print))
+                        };
+                        transactionContext.Trace.Logs.Add(logEvent);
+                    }
+                }
+                
+                var runtimeLogs = _smartContractProxy.GetRuntimeLogs();
+                if (runtimeLogs != null)
+                {
+                    foreach (var runtimeLog in runtimeLogs)
+                    {
+                        var logEvent = new LogEvent
+                        {
+                            Address = transaction.To,
+                            Name = "RuntimeLog",
+                            NonIndexed = ByteString.CopyFrom(Encoding.UTF8.GetBytes(runtimeLog))
                         };
                         transactionContext.Trace.Logs.Add(logEvent);
                     }
@@ -170,20 +251,53 @@ public class Executive : IExecutive
             CurrentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.SystemError;
             CurrentTransactionContext.Trace.Error += ex + "\n";
         }
+        finally
+        {
+            Cleanup();
+        }
 
         var endTime = CurrentTransactionContext.Trace.EndTime = TimestampHelper.GetUtcNow().ToDateTime();
         CurrentTransactionContext.Trace.Elapsed = (endTime - startTime).Ticks;
 
-        ForDebug();
+        // ForDebug();
     }
 
     private void ForDebug()
     {
+        Logger.LogDebug("ForDebug");
         var runtimeLogs = _smartContractProxy.GetRuntimeLogs();
+        foreach (var log in runtimeLogs ?? [])
+        {
+            Logger.LogDebug(log);
+        }
+
         var prints = _smartContractProxy.GetCustomPrints();
+
+        foreach (var print in prints ?? [])
+        {
+            Logger.LogDebug(print);
+        }
+
         var errors = _smartContractProxy.GetErrorMessages();
+
+        foreach (var error in errors ?? [])
+        {
+            Logger.LogDebug(error);
+        }
+
         var debugs = _smartContractProxy.GetDebugMessages();
+
+        foreach (var debug in debugs ?? [])
+        {
+            Logger.LogDebug(debug);
+        }
+
         var events = _smartContractProxy.GetEvents();
+    }
+    
+    private void Cleanup()
+    {
+        _smartContractProxy.Cleanup();
     }
 
     private Func<ActionResult> GetAction(string selector, string parameter, bool isCallConstructor, long value,

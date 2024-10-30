@@ -5,11 +5,6 @@ namespace AElf.Runtime.WebAssembly.Contract;
 
 public static class Extensions
 {
-    public static bool Contains(this CallFlags callFlags, CallFlags other)
-    {
-        return (callFlags & other) == other;
-    }
-
     /// <summary>
     /// TODO: Improve
     /// </summary>

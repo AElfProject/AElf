@@ -23,21 +23,23 @@ public partial class WebAssemblyContractImplementation
     /// <param name="outLenPtr"></param>
     private void InputV0(int outPtr, int outLenPtr)
     {
+        CustomPrints.Add("Start Input.");
         if (State.Terminated.Value)
         {
             // TODO: Maybe not proper.
             HandleError(WebAssemblyError.TerminatedInConstructor);
         }
 
-        var inputData = _store.GetData();
-
-        if (inputData == null)
+        if (InputData == null)
         {
-            HandleError(WebAssemblyError.InputForwarded);
+            CustomPrints.Add("InputData is null.");
+            ErrorMessages.Add(WebAssemblyError.InputForwarded.ToString());
+            return;
         }
 
-        WriteSandboxOutput(outPtr, outLenPtr, (byte[])inputData!, false,
+        WriteSandboxOutput(outPtr, outLenPtr, InputData!, false,
             len => new CopyToContract(len));
+        CustomPrints.Add("End input.");
     }
 
     /// <summary>

@@ -31,17 +31,17 @@ public class UniswapV2PairTests : UniswapV2ContractTests
         await AddLiquidityAsync(token0Amount, token1Amount);
 
         const long expectedLiquidity = (long)2e10;
-        var totalSupply = (await QueryField(_pairContractAddress, "totalSupply")).ToByteArray().ToInt64(false);
+        var totalSupply = (await QueryAsync(_pairContractAddress, "totalSupply")).ToByteArray().ToInt64(false);
         totalSupply.ShouldBe(expectedLiquidity);
-        (await QueryField(_pairContractAddress, "balanceOf", Alice.ToParameter())).ToByteArray().ToInt64(false)
+        (await QueryAsync(_pairContractAddress, "balanceOf", Alice.ToParameter())).ToByteArray().ToInt64(false)
             .ShouldBe(expectedLiquidity - MinimumLiquidity);
-        (await QueryField(_token0Address, "balanceOf", _pairContractAddress.ToWebAssemblyAddress().ToParameter()))
+        (await QueryAsync(_token0Address, "balanceOf", _pairContractAddress.ToWebAssemblyAddress().ToParameter()))
             .ToByteArray()
             .ToInt64(false).ShouldBe(token0Amount);
-        (await QueryField(_token1Address, "balanceOf", _pairContractAddress.ToWebAssemblyAddress().ToParameter()))
+        (await QueryAsync(_token1Address, "balanceOf", _pairContractAddress.ToWebAssemblyAddress().ToParameter()))
             .ToByteArray()
             .ToInt64(false).ShouldBe(token1Amount);
-        var reserves = (await QueryField(_pairContractAddress, "getReserves")).ToByteArray();
+        var reserves = (await QueryAsync(_pairContractAddress, "getReserves")).ToByteArray();
         var reserve0 = reserves[..15].ToInt64(false);
         var reserve1 = reserves[16..31].ToInt64(false);
         reserve0.ShouldBe(token0Amount);
@@ -67,7 +67,7 @@ public class UniswapV2PairTests : UniswapV2ContractTests
         var txResult = await TestTransactionExecutor.ExecuteAsync(tx);
         txResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
-        var reserves = (await QueryField(_pairContractAddress, "getReserves")).ToByteArray();
+        var reserves = (await QueryAsync(_pairContractAddress, "getReserves")).ToByteArray();
         var reserve0 = reserves[..15].ToInt64(false);
         var reserve1 = reserves[16..31].ToInt64(false);
         reserve0.ShouldBe(token0Amount + swapAmount);
@@ -77,8 +77,8 @@ public class UniswapV2PairTests : UniswapV2ContractTests
         (await GetERC20BalanceAsync(_token1Address, _pairContractAddress))
             .ShouldBe(token1Amount - expectedOutputAmount);
 
-        var token0TotalSupply = (await QueryField(_token0Address, "totalSupply")).ToByteArray().ToInt64(false);
-        var token1TotalSupply = (await QueryField(_token1Address, "totalSupply")).ToByteArray().ToInt64(false);
+        var token0TotalSupply = (await QueryAsync(_token0Address, "totalSupply")).ToByteArray().ToInt64(false);
+        var token1TotalSupply = (await QueryAsync(_token1Address, "totalSupply")).ToByteArray().ToInt64(false);
         (await GetERC20BalanceAsync(_token0Address, AliceAddress))
             .ShouldBe(token0TotalSupply - token0Amount - swapAmount);
         (await GetERC20BalanceAsync(_token1Address, AliceAddress))
@@ -104,7 +104,7 @@ public class UniswapV2PairTests : UniswapV2ContractTests
         var txResult = await TestTransactionExecutor.ExecuteAsync(tx);
         txResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
-        var reserves = (await QueryField(_pairContractAddress, "getReserves")).ToByteArray();
+        var reserves = (await QueryAsync(_pairContractAddress, "getReserves")).ToByteArray();
         var reserve0 = reserves[..15].ToInt64(false);
         var reserve1 = reserves[16..31].ToInt64(false);
         reserve0.ShouldBe(token0Amount - expectedOutputAmount);
@@ -114,8 +114,8 @@ public class UniswapV2PairTests : UniswapV2ContractTests
             .ShouldBe(token0Amount - expectedOutputAmount);
         (await GetERC20BalanceAsync(_token1Address, _pairContractAddress)).ShouldBe(token1Amount + swapAmount);
 
-        var token0TotalSupply = (await QueryField(_token0Address, "totalSupply")).ToByteArray().ToInt64(false);
-        var token1TotalSupply = (await QueryField(_token1Address, "totalSupply")).ToByteArray().ToInt64(false);
+        var token0TotalSupply = (await QueryAsync(_token0Address, "totalSupply")).ToByteArray().ToInt64(false);
+        var token1TotalSupply = (await QueryAsync(_token1Address, "totalSupply")).ToByteArray().ToInt64(false);
         (await GetERC20BalanceAsync(_token0Address, AliceAddress))
             .ShouldBe(token0TotalSupply - token0Amount + expectedOutputAmount);
         (await GetERC20BalanceAsync(_token1Address, AliceAddress))
@@ -147,13 +147,13 @@ public class UniswapV2PairTests : UniswapV2ContractTests
         }
 
         (await GetERC20BalanceAsync(_pairContractAddress, AliceAddress)).ShouldBe(0);
-        (await QueryField(_pairContractAddress, "totalSupply")).ToByteArray().ToInt64(false).ShouldBe(MinimumLiquidity);
+        (await QueryAsync(_pairContractAddress, "totalSupply")).ToByteArray().ToInt64(false).ShouldBe(MinimumLiquidity);
 
         (await GetERC20BalanceAsync(_token0Address, _pairContractAddress)).ShouldBe(1000);
         (await GetERC20BalanceAsync(_token1Address, _pairContractAddress)).ShouldBe(1000);
 
-        var token0TotalSupply = (await QueryField(_token0Address, "totalSupply")).ToByteArray().ToInt64(false);
-        var token1TotalSupply = (await QueryField(_token1Address, "totalSupply")).ToByteArray().ToInt64(false);
+        var token0TotalSupply = (await QueryAsync(_token0Address, "totalSupply")).ToByteArray().ToInt64(false);
+        var token1TotalSupply = (await QueryAsync(_token1Address, "totalSupply")).ToByteArray().ToInt64(false);
         (await GetERC20BalanceAsync(_token0Address, AliceAddress))
             .ShouldBe(token0TotalSupply - 1000);
         (await GetERC20BalanceAsync(_token1Address, AliceAddress))
@@ -174,11 +174,11 @@ public class UniswapV2PairTests : UniswapV2ContractTests
             var txResult = await TestTransactionExecutor.ExecuteAsync(tx);
             txResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
-        var pairAddressByteString = await QueryField(factoryContractAddress, "getPair", tokenPair);
+        var pairAddressByteString = await QueryAsync(factoryContractAddress, "getPair", tokenPair);
         _pairContractAddress = Address.FromBytes(pairAddressByteString.ToByteArray());
 
-        var token0 = await QueryField(_pairContractAddress, "token0");
-        var token1 = await QueryField(_pairContractAddress, "token1");
+        var token0 = await QueryAsync(_pairContractAddress, "token0");
+        var token1 = await QueryAsync(_pairContractAddress, "token1");
         _token0Address = Address.FromBytes(token0.ToByteArray());
         _token1Address = Address.FromBytes(token1.ToByteArray());
     }
@@ -215,7 +215,7 @@ public class UniswapV2PairTests : UniswapV2ContractTests
 
     private async Task<long> GetERC20BalanceAsync(Address erc20ContractAddress, Address ownerAddress)
     {
-        return (await QueryField(erc20ContractAddress, "balanceOf", ownerAddress.ToWebAssemblyAddress().ToParameter()))
+        return (await QueryAsync(erc20ContractAddress, "balanceOf", ownerAddress.ToWebAssemblyAddress().ToParameter()))
             .ToByteArray().ToInt64(false);
     }
 }

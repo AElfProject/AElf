@@ -4,9 +4,6 @@ using AElf.Sdk.CSharp;
 using AElf.SolidityContract;
 using AElf.Types;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
-using Nethereum.Util;
-using Secp256k1Net;
 using Wasmtime;
 using Module = Wasmtime.Module;
 
@@ -50,6 +47,7 @@ public partial class WebAssemblyContractImplementation : WebAssemblyContract<Web
         State.TokenContract.Value = Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
         State.RandomNumberContract.Value =
             Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
+        InputData = (byte[])_store.GetData()!;
         return _linker.Instantiate(_store, _module);
     }
 
@@ -162,6 +160,7 @@ public partial class WebAssemblyContractImplementation : WebAssemblyContract<Web
     /// <param name="valueLengthPtr"></param>
     private void ValueTransferred(int valuePtr, int valueLengthPtr)
     {
+
         if (Value <= 0)
         {
             if (DelegateCallValue > 0)
@@ -173,13 +172,22 @@ public partial class WebAssemblyContractImplementation : WebAssemblyContract<Web
         }
 
         WriteSandboxOutput(valuePtr, valueLengthPtr, Value);
+
+        if (AlreadyTransferred)
+        {
+            return;
+        }
+        var transferInput = new TransferInput
+        {
+            To = Context.Self,
+            Symbol = Context.Variables.NativeSymbol,
+            Amount = Value
+        };
         Context.CallMethod(Context.Sender, State.TokenContract.Value, nameof(State.TokenContract.Transfer),
-            new TransferInput
-            {
-                To = Context.Self,
-                Symbol = Context.Variables.NativeSymbol,
-                Amount = Value
-            }.ToByteString());
+            transferInput.ToByteString());
+        RuntimeLogs.Add($"Valued transferred: {transferInput.Amount}");
+
+        AlreadyTransferred = true;
     }
 
     /// <summary>
@@ -197,7 +205,7 @@ public partial class WebAssemblyContractImplementation : WebAssemblyContract<Web
     /// </summary>
     private void CallChainExtension(int id, int inputPtr, int inputLen, int outputPtr, int outputLenPtr)
     {
-        throw new NotImplementedException();
+        ErrorMessages.Add("CallChainExtension not implemented.");
     }
 
     /// <summary>
@@ -232,7 +240,8 @@ public partial class WebAssemblyContractImplementation : WebAssemblyContract<Web
     /// </returns>
     private int CallRuntime(int callPtr, int callLen)
     {
-        throw new NotImplementedException();
+        ErrorMessages.Add("CallRuntime not implemented.");
+        return (int)ReturnCode.Success;
     }
 
     /// <summary>
@@ -283,7 +292,8 @@ public partial class WebAssemblyContractImplementation : WebAssemblyContract<Web
     private void AddDelegateDependency(int codeHashPtr)
     {
         var codeHash = Hash.LoadFromByteArray(ReadSandboxMemory(codeHashPtr, AElfConstants.HashByteArrayLength));
-        throw new NotImplementedException();
+        
+        ErrorMessages.Add("AddDelegateDependency not implemented.");
     }
 
     /// <summary>
@@ -292,8 +302,9 @@ public partial class WebAssemblyContractImplementation : WebAssemblyContract<Web
     /// <param name="codeHashPtr">A pointer to the code hash of the dependency.</param>
     private void RemoveDelegateDependency(int codeHashPtr)
     {
-        var codeHash = Hash.LoadFromByteArray(ReadSandboxMemory(codeHashPtr, AElfConstants.HashByteArrayLength));
-        throw new NotImplementedException();
+        var codeHash = Hash.LoadFromByteArray(ReadSandboxMemory(codeHashPtr, AElfConstants.HashByteArrayLength));        ErrorMessages.Add("AddDelegateDependency not implemented.");
+
+        ErrorMessages.Add("RemoveDelegateDependency not implemented.");
     }
 
     #endregion

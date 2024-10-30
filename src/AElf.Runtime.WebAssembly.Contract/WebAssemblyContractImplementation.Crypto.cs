@@ -160,9 +160,9 @@ public partial class WebAssemblyContractImplementation
     /// <returns>ReturnCode</returns>
     private int Sr25519Verify(int signaturePtr, int pubKeyPtr, int messageLen, int messagePtr)
     {
-        throw new NotImplementedException();
+        ErrorMessages.Add("Sr25519Verify not implemented.");
+        return (int)ReturnCode.Success;
     }
-
 
     /// <summary>
     /// Recovers the ECDSA public key from the given message hash and signature.

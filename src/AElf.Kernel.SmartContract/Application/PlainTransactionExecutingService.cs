@@ -365,6 +365,8 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
         {
             // Is failed.
             txResult.Status = TransactionResultStatus.Failed;
+            // TODO: Temporary solution for logs.
+            txResult.Logs.AddRange(trace.Logs);
             if (trace.ExecutionStatus == ExecutionStatus.Undefined)
             {
                 // Cannot find specific contract method.

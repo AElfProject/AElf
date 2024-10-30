@@ -16,7 +16,6 @@ contract arrays {
 	user[2048] users;
 
 	mapping (bytes32 => uint64) addressToUser;
-
 	function addUser(uint64 id, bytes32 addr, string name, Permission[] perms) public {
 		user storage u = users[id];
 

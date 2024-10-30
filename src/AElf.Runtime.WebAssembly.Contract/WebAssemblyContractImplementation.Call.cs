@@ -1,6 +1,8 @@
 using AElf.Runtime.WebAssembly.TransactionPayment;
+using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Runtime.WebAssembly.Contract;
 
@@ -44,6 +46,8 @@ public partial class WebAssemblyContractImplementation
     private int CallV1(int flags, int calleePtr, long gas, int valuePtr, int inputDataPtr,
         int inputDataLen, int outputPtr, int outputLenPtr)
     {
+        CustomPrints.Add("CallV1.");
+        CustomPrints.Add(flags.ToString());
         return (int)Call((CallFlags)flags,
             new Call(calleePtr, valuePtr, null, new Weight(gas, 0)),
             inputDataPtr,
@@ -87,6 +91,7 @@ public partial class WebAssemblyContractImplementation
     private int CallV2(int flags, int calleePtr, long refTimeLimit, long proofSizeLimit, int depositPtr, int valuePtr,
         int inputDataPtr, int inputDataLen, int outputPtr, int outputLenPtr)
     {
+        CustomPrints.Add("CallV2.");
         return (int)Call((CallFlags)flags,
             new Call(calleePtr, valuePtr, depositPtr, new Weight(refTimeLimit, proofSizeLimit)),
             inputDataPtr,
@@ -126,56 +131,106 @@ public partial class WebAssemblyContractImplementation
     private ReturnCode Call(CallFlags callFlags, ICallType callType, int inputDataPtr, int inputDataLen, int outputPtr,
         int outputLenPtr)
     {
+        CustomPrints.Add("Start Call.");
+
         byte[]? inputData;
-        if (callFlags.Contains(CallFlags.CloneInput))
+        if (callFlags.HasFlag(CallFlags.CloneInput))
         {
-            inputData = (byte[])_store.GetData()!;
-            // Charge gas for RuntimeCosts.CallInputCloned
+            CustomPrints.Add("Has CloneInput.");
+
+            if (InputData.IsNullOrEmpty())
+            {
+                ErrorMessages.Add(WebAssemblyError.InputForwarded.ToString());
+                return ReturnCode.Exception;
+            }
+
+            var input = InputData!;
+            ChargeGas(new CallInputCloned(input.Length));
+            inputData = (byte[])input.Clone();
+        }
+        else if (callFlags.HasFlag(CallFlags.ForwardInput))
+        {
+            CustomPrints.Add("Has ForwardInput.");
+
+            // transfer ownership.
+            inputData = InputData;
+            InputData = null;
         }
         else
         {
+            CustomPrints.Add("No CloneInput & ForwardInput.");
+
+            ChargeGas(new CopyFromContract(inputDataLen));
+
             inputData = ReadSandboxMemory(inputDataPtr, inputDataLen);
         }
 
-        ExecuteReturnValue outcome = new ExecuteReturnValue();
-        if (callType is Call call)
+        ExecuteReturnValue? outcome = null;
+        switch (callType)
         {
-            var callee = ReadSandboxMemory(call.CalleePtr, 32).ToAddress();
-            var depositLimit = call.DepositPtr == null ? 0 : ReadSandboxMemory((int)call.DepositPtr, 8).ToInt32(false);
-            var value = ReadSandboxMemory(call.ValuePtr, 8).ToInt32(false);
-            outcome = Call(call.Weight, depositLimit, callee, value, inputData!,
-                callFlags.Contains(CallFlags.AllowReentry));
-        }
-        else if (callType is DelegateCall delegateCall)
-        {
-            if (callFlags.Contains(CallFlags.AllowReentry))
+            case Call call:
             {
-                HandleError(WebAssemblyError.InvalidCallFlags);
+                CustomPrints.Add("CallType: Call");
+
+                var callee = ReadSandboxMemory(call.CalleePtr, 32).ToAddress();
+                var depositLimit = call.DepositPtr == null ? 0 : ReadSandboxMemory((int)call.DepositPtr, 8).ToInt32(false);
+                var value = ReadSandboxMemory(call.ValuePtr, 8).ToInt32(false);
+                outcome = Call(call.Weight, depositLimit, callee, value, inputData!,
+                    callFlags.HasFlag(CallFlags.AllowReentry));
+                break;
             }
+            case DelegateCall delegateCall:
+            {
+                CustomPrints.Add("CallType: DelegateCall");
 
-            var codeHash = ReadSandboxMemory(delegateCall.CodeHashPtr, AElfConstants.HashByteArrayLength).ToHash();
-            outcome = DelegateCall(codeHash, inputData!);
+                if (callFlags.HasFlag(CallFlags.AllowReentry))
+                {
+                    ErrorMessages.Add(WebAssemblyError.InvalidCallFlags.ToString());
+                    return ReturnCode.Exception;
+                }
+
+                var codeHash = ReadSandboxMemory(delegateCall.CodeHashPtr, AElfConstants.HashByteArrayLength).ToHash();
+                outcome = DelegateCall(codeHash, inputData!);
+                break;
+            }
         }
 
-        if (callFlags.Contains(CallFlags.TailCall))
+        if (callFlags.HasFlag(CallFlags.TailCall))
         {
-            // `TAIL_CALL` only matters on an `OK` result. Otherwise the call stack comes to
-            // a halt anyways without anymore code being executed.
-            ReturnBuffer = outcome.Data;
-            return ReturnCode.CalleeTrapped;
+            CustomPrints.Add("Has TailCall.");
+
+            if (outcome != null)
+            {
+                ReturnBuffer = outcome.Data;
+                return ReturnCode.CalleeTrapped;
+            }
         }
 
-        if (outcome.Flags == ReturnFlags.Empty)
+        if (outcome is { Flags: ReturnFlags.Empty })
         {
+            CustomPrints.Add("ReturnFlags.Empty");
+
             WriteSandboxOutput(outputPtr, outputLenPtr, outcome.Data, true);
         }
 
+        CustomPrints.Add("Success");
         return ReturnCode.Success;
     }
 
     private ExecuteReturnValue Call(Weight gasLimit, long depositLimit, Address to, long value, byte[] inputData,
         bool allowReentry)
     {
+        AllowReentry = allowReentry;
+        var isAllowReentry = BoolValue.Parser
+            .ParseFrom(Context.CallMethod(Context.Self, to, "is_allow_reentry", ByteString.Empty)).Value;
+        if (!isAllowReentry)
+        {
+            ErrorMessages.Add(WebAssemblyError.ReentranceDenied.ToString());
+            return new ExecuteReturnValue
+            {
+                Flags = ReturnFlags.Revert
+            };
+        }
         var inputDataHex = inputData.ToHex();
         var methodName = inputDataHex[..8];
         var parameter = new byte[inputData.Length - 4];
@@ -224,8 +279,8 @@ public record DelegateCall(int CodeHashPtr) : ICallType;
 [Flags]
 public enum CallFlags
 {
-    ForwardInput = 0b0000_0001,
-    CloneInput = 0b0000_0010,
-    TailCall = 0b0000_0100,
-    AllowReentry = 0b0000_1000
+    ForwardInput = 1 << 0,
+    CloneInput = 1 << 1,
+    TailCall = 1 << 2,
+    AllowReentry = 1 << 3
 }

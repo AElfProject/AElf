@@ -8,13 +8,13 @@ namespace AElf.Contracts.SolidityContract;
 
 public class BasicContractTests : SolidityContractTestBase
 {
+    public BasicContractTests()
+    {
+        ContractPath = "contracts/Basic.contract";
+    }
     public async Task<Address> DeployBasicContractTest()
     {
-        var wasmCode = await LoadWasmContractCode("contracts/Basic.contract");
-        var executionResult = await DeployWasmContractAsync(wasmCode);
-        executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-        executionResult.TransactionResult.Logs.Count.ShouldBePositive();
-        return executionResult.Output;
+        return await DeployContractAsync();
     }
 
     [Fact]

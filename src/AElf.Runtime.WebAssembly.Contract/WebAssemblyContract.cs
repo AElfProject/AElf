@@ -1,7 +1,9 @@
+using System.Numerics;
 using AElf.Kernel.SmartContract;
 using AElf.Runtime.WebAssembly.TransactionPayment;
 using AElf.Sdk.CSharp.State;
 using AElf.Types;
+using LanguageExt;
 
 namespace AElf.Runtime.WebAssembly.Contract;
 
@@ -23,6 +25,9 @@ public class WebAssemblyContract<TContractState> where TContractState : Contract
     public List<string> ErrorMessages = new();
     public List<string> DebugMessages = new();
     public List<(byte[], byte[])> Events = new();
+    public byte[]? InputData;
+    public bool AlreadyTransferred;
+    public bool AllowReentry = true;
 
     public WebAssemblySmartSmartContractContext Context { get; set; }
 
@@ -34,6 +39,12 @@ public class WebAssemblyContract<TContractState> where TContractState : Contract
     internal void Cleanup()
     {
         State.Clear();
+        RuntimeLogs.Clear();
+        CustomPrints.Clear();
+        ErrorMessages.Clear();
+        DebugMessages.Clear();
+        Events.Clear();
+        AlreadyTransferred = false;
     }
 
     internal void InternalInitialize(ISmartContractBridgeContext bridgeContext)

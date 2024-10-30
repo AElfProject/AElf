@@ -35,7 +35,7 @@ contract UniswapV2ERC20 is IUniswapV2ERC20 {
     }
 
     function _mint(address to, uint value) internal {
-        print("_mint {} to {}".format(value, to));
+        print("_mint {} {}".format(to, value));
         totalSupply = totalSupply.add(value);
         balanceOf[to] = balanceOf[to].add(value);
         emit Transfer(address(0), to, value);
@@ -64,7 +64,6 @@ contract UniswapV2ERC20 is IUniswapV2ERC20 {
     }
 
     function transfer(address to, uint value) external returns (bool) {
-        print("transfer {} to {}".format(value, to));
         _transfer(msg.sender, to, value);
         return true;
     }

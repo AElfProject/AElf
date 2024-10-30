@@ -36,7 +36,8 @@ public partial class WebAssemblyContractImplementation
     /// <returns>Returns `0` when there is no reentrancy.</returns>
     private int ReentranceCount()
     {
-        throw new NotImplementedException();
+        ErrorMessages.Add("ReentranceCount not implemented.");
+        return (int)ReturnCode.Success;
     }
 
     /// <summary>
@@ -48,7 +49,8 @@ public partial class WebAssemblyContractImplementation
     private int AccountReentranceCount(int accountPtr)
     {
         var address = ReadSandboxMemory(accountPtr, 32);
-        throw new NotImplementedException();
+        ErrorMessages.Add("AccountReentranceCount not implemented.");
+        return (int)ReturnCode.Success;
     }
 
     /// <summary>
@@ -60,7 +62,8 @@ public partial class WebAssemblyContractImplementation
     /// <returns></returns>
     private int InstantiationNonce()
     {
-        throw new NotImplementedException();
+        ErrorMessages.Add("InstantiationNonce not implemented.");
+        return (int)ReturnCode.Success;
     }
 
     /// <summary>

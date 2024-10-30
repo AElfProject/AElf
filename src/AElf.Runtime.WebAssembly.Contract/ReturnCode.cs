@@ -36,4 +36,6 @@ public enum ReturnCode
 
     // sr25519 signature verification failed.
     Sr25519VerifyFailed = 12,
+    
+    Exception = 13
 }

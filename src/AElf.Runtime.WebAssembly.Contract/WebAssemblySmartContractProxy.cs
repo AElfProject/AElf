@@ -106,7 +106,7 @@ public class WebAssemblySmartContractProxy
         return _methodGetEvents?.Invoke();
     }
 
-    internal void Cleanup()
+    public void Cleanup()
     {
         _methodCleanup();
         ResetFields();

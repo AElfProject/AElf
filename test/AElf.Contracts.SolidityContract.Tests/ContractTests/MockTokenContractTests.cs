@@ -39,7 +39,7 @@ public class MockTokenContractTests : ERC20ContractTests
             ByteString.CopyFrom(elfToken.Concat(elf).ToArray()));
         var txResult = await TestTransactionExecutor.ExecuteAsync(tx);
         txResult.Status.ShouldBe(TransactionResultStatus.Mined);
-        Encoding.UTF8.GetString((await QueryField(contractAddress, "symbol"))
+        Encoding.UTF8.GetString((await QueryAsync(contractAddress, "symbol"))
             .ToByteArray()).ShouldContain("ELF");
         return contractAddress;
     }

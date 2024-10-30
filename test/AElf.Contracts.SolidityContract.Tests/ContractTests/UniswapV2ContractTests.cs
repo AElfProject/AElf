@@ -58,9 +58,9 @@ public class UniswapV2ContractTests : ERC20ContractTests
         executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
         var contractAddress = executionResult.Output;
 
-        (await QueryField(contractAddress, "feeTo")).ToByteArray().ShouldAllBe(i => i == 0);
-        (await QueryField(contractAddress, "feeToSetter")).ToByteArray().ShouldBe(AliceAddress.ToByteArray());
-        (await QueryField(contractAddress, "allPairsLength")).ToByteArray().ToInt64(false).ShouldBe(0);
+        (await QueryAsync(contractAddress, "feeTo")).ToByteArray().ShouldAllBe(i => i == 0);
+        (await QueryAsync(contractAddress, "feeToSetter")).ToByteArray().ShouldBe(AliceAddress.ToByteArray());
+        (await QueryAsync(contractAddress, "allPairsLength")).ToByteArray().ToInt64(false).ShouldBe(0);
         return contractAddress;
     }
 
@@ -81,27 +81,27 @@ public class UniswapV2ContractTests : ERC20ContractTests
             txResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
 
-        var pairAddress1 = await QueryField(factoryContractAddress, "getPair", tokenPair);
+        var pairAddress1 = await QueryAsync(factoryContractAddress, "getPair", tokenPair);
         pairAddress1.ToByteArray().ShouldAllBe(i => i != 0);
 
-        var pairAddress2 = await QueryField(factoryContractAddress, "getPair",
+        var pairAddress2 = await QueryAsync(factoryContractAddress, "getPair",
             ByteString.CopyFrom(new ABIEncode().GetABIEncoded(token1AbiValue, token0AbiValue)));
         pairAddress2.ShouldBe(pairAddress1);
 
-        var pairAddress = await QueryField(factoryContractAddress, "allPairs", 0.ToWebAssemblyUInt256().ToParameter());
+        var pairAddress = await QueryAsync(factoryContractAddress, "allPairs", 0.ToWebAssemblyUInt256().ToParameter());
         pairAddress.ShouldBe(pairAddress1);
         var pairContractAddress = Address.FromBytes(pairAddress.ToByteArray());
 
-        var allPairsLength = await QueryField(factoryContractAddress, "allPairsLength");
+        var allPairsLength = await QueryAsync(factoryContractAddress, "allPairsLength");
         allPairsLength.ToByteArray().ToInt64(false).ShouldBe(1);
 
-        var factory = await QueryField(pairContractAddress, "factory");
+        var factory = await QueryAsync(pairContractAddress, "factory");
         factory.ToByteArray().ShouldBe(factoryContractAddress.ToByteArray());
 
-        var queriedToken0 = await QueryField(pairContractAddress, "token0");
+        var queriedToken0 = await QueryAsync(pairContractAddress, "token0");
         queriedToken0.ToByteArray().ShouldBe(token0);
 
-        var queriedToken1 = await QueryField(pairContractAddress, "token1");
+        var queriedToken1 = await QueryAsync(pairContractAddress, "token1");
         queriedToken1.ToByteArray().ShouldBe(token1);
     }
 
@@ -113,7 +113,7 @@ public class UniswapV2ContractTests : ERC20ContractTests
             Dave.ToParameter());
         var txResult = await TestTransactionExecutor.ExecuteAsync(tx);
         txResult.Status.ShouldBe(TransactionResultStatus.Mined);
-        var queriedFeeTo = await QueryField(contractAddress, "feeTo");
+        var queriedFeeTo = await QueryAsync(contractAddress, "feeTo");
         queriedFeeTo.ToByteArray().ShouldBe(DaveAddress.ToByteArray());
     }
 
@@ -125,7 +125,7 @@ public class UniswapV2ContractTests : ERC20ContractTests
             Dave.ToParameter());
         var txResult = await TestTransactionExecutor.ExecuteAsync(tx);
         txResult.Status.ShouldBe(TransactionResultStatus.Mined);
-        var queriedFeeToSetter = await QueryField(contractAddress, "feeToSetter");
+        var queriedFeeToSetter = await QueryAsync(contractAddress, "feeToSetter");
         queriedFeeToSetter.ToByteArray().ShouldBe(DaveAddress.ToByteArray());
     }
 

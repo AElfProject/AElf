@@ -44,16 +44,16 @@ public class ERC20ContractTests : SolidityContractTestBase
         var contractAddress = executionResult.Output;
 
         // TODO: It's weird the first byte seems like incorrect.
-        (await QueryField(contractAddress, "name")).ToByteArray()[1..].ShouldBe("Uniswap V2".GetBytes());
-        (await QueryField(contractAddress, "symbol")).ToByteArray()[1..].ShouldBe("UNI-V2".GetBytes());
-        (await QueryField(contractAddress, "decimals")).ShouldBe(new byte[] { 18 });
-        (await QueryField(contractAddress, "totalSupply")).ToByteArray().ToInt64(false)
+        (await QueryAsync(contractAddress, "name")).ToByteArray()[1..].ShouldBe("Uniswap V2".GetBytes());
+        (await QueryAsync(contractAddress, "symbol")).ToByteArray()[1..].ShouldBe("UNI-V2".GetBytes());
+        (await QueryAsync(contractAddress, "decimals")).ShouldBe(new byte[] { 18 });
+        (await QueryAsync(contractAddress, "totalSupply")).ToByteArray().ToInt64(false)
             .ShouldBe(TotalSupply);
-        (await QueryField(contractAddress, "balanceOf", Alice.ToParameter())).ToByteArray().ToInt64(false)
+        (await QueryAsync(contractAddress, "balanceOf", Alice.ToParameter())).ToByteArray().ToInt64(false)
             .ShouldBe(TotalSupply);
-        var domainSeparator = (await QueryField(contractAddress, "DOMAIN_SEPARATOR")).ToByteArray();
+        var domainSeparator = (await QueryAsync(contractAddress, "DOMAIN_SEPARATOR")).ToByteArray();
         domainSeparator.ShouldNotBeEmpty();
-        (await QueryField(contractAddress, "PERMIT_TYPEHASH")).ToHex()
+        (await QueryAsync(contractAddress, "PERMIT_TYPEHASH")).ToHex()
             .ShouldBe("6e71edae12b1b97f4d1f60370fef10105fa2faae0126114a169c64845d6126c9");
 
         return contractAddress;
@@ -67,7 +67,7 @@ public class ERC20ContractTests : SolidityContractTestBase
             WebAssemblyTypeHelper.ConvertToParameter(Dave, TestAmount.ToWebAssemblyUInt256()));
         var txResult = await TestTransactionExecutor.ExecuteAsync(tx);
         txResult.Status.ShouldBe(TransactionResultStatus.Mined);
-        var allowance = await QueryField(contractAddress, "allowance",
+        var allowance = await QueryAsync(contractAddress, "allowance",
             ByteString.CopyFrom(new ABIEncode().GetABIEncoded(Alice, Dave)));
         allowance.ToByteArray().ToInt64(false).ShouldBe(TestAmount);
     }
@@ -84,7 +84,7 @@ public class ERC20ContractTests : SolidityContractTestBase
         _outputHelper.WriteLine(tx.Params.ToByteArray().ToHex());
         var txResult = await TestTransactionExecutor.ExecuteAsync(tx);
         txResult.Status.ShouldBe(TransactionResultStatus.Mined);
-        (await QueryField(contractAddress, "balanceOf", Dave.ToParameter()))
+        (await QueryAsync(contractAddress, "balanceOf", Dave.ToParameter()))
             .ToByteArray().ToInt64(false).ShouldBe(TestAmount);
     }
 
@@ -110,9 +110,9 @@ public class ERC20ContractTests : SolidityContractTestBase
             txResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
 
-        (await QueryField(contractAddress, "balanceOf", Dave.ToParameter())).ToByteArray().ToInt64(false)
+        (await QueryAsync(contractAddress, "balanceOf", Dave.ToParameter())).ToByteArray().ToInt64(false)
             .ShouldBe(TestAmount);
-        (await QueryField(contractAddress, "allowance", WebAssemblyTypeHelper.ConvertToParameter(Alice, Dave)))
+        (await QueryAsync(contractAddress, "allowance", WebAssemblyTypeHelper.ConvertToParameter(Alice, Dave)))
             .ToByteArray().ToInt64(false).ShouldBe(0);
     }
 }

@@ -15,6 +15,7 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Token;
 using AElf.Runtime.WebAssembly;
+using AElf.Runtime.WebAssembly.Extensions;
 using AElf.SolidityContract;
 using AElf.Standards.ACS0;
 using AElf.Types;
@@ -22,6 +23,7 @@ using Google.Protobuf;
 using Nethereum.ABI;
 using Nethereum.Hex.HexConvertors.Extensions;
 using Nethereum.Util.ByteArrayConvertors;
+using Shouldly;
 using Solang;
 using Solang.Extensions;
 using Volo.Abp.Threading;
@@ -32,8 +34,11 @@ namespace AElf.Contracts.SolidityContract;
 
 public class SolidityContractTestBase : ContractTestBase<SolidityContractTestAElfModule>
 {
+    private readonly ITestOutputHelper _outputHelper;
     protected ECKeyPair DefaultSenderKeyPair => Accounts[0].KeyPair;
     protected Address DefaultSender => Accounts[0].Address;
+
+    protected virtual string ContractPath { get; set; }
 
     internal BasicContractZeroImplContainer.BasicContractZeroImplStub BasicContractZeroStub { get; set; }
     internal TokenContractContainer.TokenContractStub TokenContractStub { get; set; }
@@ -43,8 +48,9 @@ public class SolidityContractTestBase : ContractTestBase<SolidityContractTestAEl
     internal readonly ITestTransactionExecutor TestTransactionExecutor;
     internal readonly IRefBlockInfoProvider RefBlockInfoProvider;
 
-    public SolidityContractTestBase()
+    public SolidityContractTestBase(ITestOutputHelper outputHelper = null)
     {
+        _outputHelper = outputHelper;
         SmartContractAddressService = GetRequiredService<ISmartContractAddressService>();
         BlockchainService = GetRequiredService<IBlockchainService>();
         TestTransactionExecutor = GetRequiredService<ITestTransactionExecutor>();
@@ -52,7 +58,7 @@ public class SolidityContractTestBase : ContractTestBase<SolidityContractTestAEl
         InitializeContracts();
     }
 
-    protected void InitializeContracts()
+    private void InitializeContracts()
     {
         BasicContractZeroStub = GetContractZeroTester(DefaultSenderKeyPair);
         //deploy token contract
@@ -67,6 +73,15 @@ public class SolidityContractTestBase : ContractTestBase<SolidityContractTestAEl
                 }))).Output;
         TokenContractStub =
             GetTester<TokenContractContainer.TokenContractStub>(tokenContractAddress, DefaultSenderKeyPair);
+    }
+    
+    protected async Task<Address> DeployContractAsync(ByteString input = null)
+    {
+        var wasmCode = await LoadWasmContractCode(ContractPath);
+        var executionResult = await DeployWasmContractAsync(wasmCode, input);
+        executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        executionResult.TransactionResult.Logs.Count.ShouldBePositive();
+        return executionResult.Output;
     }
 
     private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList
@@ -196,12 +211,104 @@ public class SolidityContractTestBase : ContractTestBase<SolidityContractTestAEl
         var contracts = hardhatOutput.Input.Sources.Select(s => s.Value.Values).Select(v => v.First()).ToList();
         return contracts.IntegrateContracts();
     }
-
-    internal async Task<ByteString> QueryField(Address contractAddress, string fieldName, ByteString parameter = null)
+    
+    internal async Task<ByteString> ReadAsync(Address contractAddress, string fieldName, ByteString parameter = null)
     {
+        _outputHelper.WriteLine("Executing read: " + fieldName);
+
+        var tx = await GetTransactionAsync(DefaultSenderKeyPair, contractAddress, fieldName, parameter);
+        return await TestTransactionExecutor.ReadAsync(tx);
+    }
+
+    internal async Task<ByteString> QueryAsync(Address contractAddress, string fieldName, ByteString parameter = null)
+    {
+        _outputHelper.WriteLine("Executing query: " + fieldName);
+
         var tx = await GetTransactionAsync(DefaultSenderKeyPair, contractAddress, fieldName, parameter);
         var txResult = await TestTransactionExecutor.ExecuteAsync(tx);
+        //txResult.Status.ShouldBe(TransactionResultStatus.Mined);
+ 
+        _outputHelper.WriteLine("[Prints]");
+        foreach (var print in txResult.GetPrints())
+        {
+            _outputHelper.WriteLine(print);
+        }
+
+        _outputHelper.WriteLine("[Runtime logs]");
+        foreach (var runtimeLog in txResult.GetRuntimeLogs())
+        {
+            _outputHelper.WriteLine(runtimeLog);
+        }
+
+        _outputHelper.WriteLine("[Debug messages]");
+        foreach (var debugMessage in txResult.GetDebugMessages())
+        {
+            _outputHelper.WriteLine(debugMessage);
+        }
+
+        _outputHelper.WriteLine("[Error messages]");
+        foreach (var errorMessage in txResult.GetErrorMessages())
+        {
+            _outputHelper.WriteLine(errorMessage);
+        }
+
         return txResult.ReturnValue;
+    }
+
+    internal async Task<ByteString> QueryWithExceptionAsync(Address contractAddress, string fieldName,
+        ByteString parameter = null)
+    {
+        _outputHelper.WriteLine("Executing query: " + fieldName);
+
+        var tx = await GetTransactionAsync(DefaultSenderKeyPair, contractAddress, fieldName, parameter);
+        var txResult = await TestTransactionExecutor.ExecuteWithExceptionAsync(tx);
+        txResult.Status.ShouldNotBe(TransactionResultStatus.Mined);
+        _outputHelper.WriteLine(txResult.ToString());
+        _outputHelper.WriteLine(txResult.Error);
+
+        _outputHelper.WriteLine("[Prints]");
+        foreach (var print in txResult.GetPrints())
+        {
+            _outputHelper.WriteLine(print);
+        }
+
+        _outputHelper.WriteLine("[Runtime logs]");
+        foreach (var runtimeLog in txResult.GetRuntimeLogs())
+        {
+            _outputHelper.WriteLine(runtimeLog);
+        }
+
+        _outputHelper.WriteLine("[Debug messages]");
+        foreach (var debugMessage in txResult.GetDebugMessages())
+        {
+            _outputHelper.WriteLine(debugMessage);
+        }
+
+        _outputHelper.WriteLine("[Error messages]");
+        foreach (var errorMessage in txResult.GetErrorMessages())
+        {
+            _outputHelper.WriteLine(errorMessage);
+        }
+
+        return txResult.ReturnValue;
+    }
+
+    internal async Task<TransactionResult> ExecuteTransactionAsync(Address contractAddress, string functionName,
+        ByteString parameter = null, long value = 0)
+    {
+        var tx = await GetTransactionAsync(DefaultSenderKeyPair, contractAddress, functionName, parameter, value);
+        var txResult = await TestTransactionExecutor.ExecuteAsync(tx);
+        txResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        return txResult;
+    }
+    
+    internal async Task<TransactionResult> ExecuteTransactionWithExceptionAsync(Address contractAddress, string functionName,
+        ByteString parameter = null, long value = 0)
+    {
+        var tx = await GetTransactionAsync(DefaultSenderKeyPair, contractAddress, functionName, parameter, value);
+        var txResult = await TestTransactionExecutor.ExecuteWithExceptionAsync(tx);
+        txResult.Status.ShouldNotBe(TransactionResultStatus.Mined);
+        return txResult;
     }
 
     internal async Task<WasmContractCode> LoadWasmContractCode(string contractPath)

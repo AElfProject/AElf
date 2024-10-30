@@ -29,6 +29,8 @@ public static class HostSmartContractBridgeContextExtensions
             }
         }
 
+        txContext.Trace.Logs.AddRange(trace.Logs);
+
         (txContext.StateCache as TieredStateCache)?.Update(new[] { trace.StateSet });
         hostSmartContractBridgeContext.TransactionContext = txContext;
 

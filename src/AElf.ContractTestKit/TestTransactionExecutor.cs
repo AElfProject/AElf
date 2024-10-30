@@ -26,7 +26,7 @@ public class TestTransactionExecutor : ITestTransactionExecutor
     public async Task<TransactionResult> ExecuteAsync(Transaction transaction)
     {
         var transactionResult = await ExecuteTransactionAsync(transaction);
-        if (transactionResult == null || transactionResult.Status != TransactionResultStatus.Mined)
+        if (transactionResult is not { Status: TransactionResultStatus.Mined })
             throw new Exception($"Failed to execute {transaction.MethodName}. {transactionResult?.Error}");
         return transactionResult;
     }

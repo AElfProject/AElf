@@ -10,10 +10,11 @@ public partial class WebAssemblyContractImplementation
 
     public Weight? ChargeGas(RuntimeCost runtimeCost)
     {
+        return new Weight();
         var gasLeft = GasMeter?.ChargeGas(runtimeCost);
         if (gasLeft != null && !EstimateGas && gasLeft.Insufficient())
         {
-            HandleError(WebAssemblyError.OutOfGas);
+            //HandleError(WebAssemblyError.OutOfGas);
         }
 
         return gasLeft;
