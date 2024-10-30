@@ -84,6 +84,14 @@ public class SolidityContractTestBase : ContractTestBase<SolidityContractTestAEl
         return executionResult.Output;
     }
 
+    protected async Task<Hash> UploadContractAsync(string contractPath)
+    {
+        var wasmCode = await LoadWasmContractCode(contractPath);
+        var executionResult = await UploadWasmContractAsync(wasmCode);
+        executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        return executionResult.Output;
+    }
+
     private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList
         GenerateTokenInitializationCallList()
     {
@@ -141,6 +149,18 @@ public class SolidityContractTestBase : ContractTestBase<SolidityContractTestAEl
                 Category = KernelConstants.WasmRunnerCategory,
                 Code = wasmCode.ToByteString(),
                 Parameter = constructorInput ?? ByteString.Empty
+            });
+
+        return executionResult;
+    }
+    
+    internal async Task<IExecutionResult<Hash>> UploadWasmContractAsync(WasmContractCode wasmCode)
+    {
+        var executionResult = await BasicContractZeroStub.UploadSoliditySmartContract.SendAsync(
+            new UploadSoliditySmartContractInput
+            {
+                Category = KernelConstants.WasmRunnerCategory,
+                Code = wasmCode.ToByteString(),
             });
 
         return executionResult;
@@ -263,7 +283,6 @@ public class SolidityContractTestBase : ContractTestBase<SolidityContractTestAEl
         var tx = await GetTransactionAsync(DefaultSenderKeyPair, contractAddress, fieldName, parameter);
         var txResult = await TestTransactionExecutor.ExecuteWithExceptionAsync(tx);
         txResult.Status.ShouldNotBe(TransactionResultStatus.Mined);
-        _outputHelper.WriteLine(txResult.ToString());
         _outputHelper.WriteLine(txResult.Error);
 
         _outputHelper.WriteLine("[Prints]");
@@ -296,9 +315,36 @@ public class SolidityContractTestBase : ContractTestBase<SolidityContractTestAEl
     internal async Task<TransactionResult> ExecuteTransactionAsync(Address contractAddress, string functionName,
         ByteString parameter = null, long value = 0)
     {
+        _outputHelper.WriteLine("Executing tx: " + functionName);
+
         var tx = await GetTransactionAsync(DefaultSenderKeyPair, contractAddress, functionName, parameter, value);
         var txResult = await TestTransactionExecutor.ExecuteAsync(tx);
         txResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+        _outputHelper.WriteLine("[Prints]");
+        foreach (var print in txResult.GetPrints())
+        {
+            _outputHelper.WriteLine(print);
+        }
+
+        _outputHelper.WriteLine("[Runtime logs]");
+        foreach (var runtimeLog in txResult.GetRuntimeLogs())
+        {
+            _outputHelper.WriteLine(runtimeLog);
+        }
+
+        _outputHelper.WriteLine("[Debug messages]");
+        foreach (var debugMessage in txResult.GetDebugMessages())
+        {
+            _outputHelper.WriteLine(debugMessage);
+        }
+
+        _outputHelper.WriteLine("[Error messages]");
+        foreach (var errorMessage in txResult.GetErrorMessages())
+        {
+            _outputHelper.WriteLine(errorMessage);
+        }
+
         return txResult;
     }
     

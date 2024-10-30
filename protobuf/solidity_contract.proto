@@ -21,6 +21,9 @@ service SolidityContract {
 
     rpc UpdateSoliditySmartContract (UpdateSoliditySmartContractInput) returns (google.protobuf.Empty) {
     }
+    
+    rpc InstantiationNonce (aelf.Hash) returns (google.protobuf.Int64Value) {
+    }
 }
 
 message DeploySoliditySmartContractInput {

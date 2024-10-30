@@ -60,10 +60,13 @@ public partial class WebAssemblyContractImplementation
     /// sensible default salt for contract instantiations.
     /// </summary>
     /// <returns></returns>
-    private int InstantiationNonce()
+    private long InstantiationNonce()
     {
-        ErrorMessages.Add("InstantiationNonce not implemented.");
-        return (int)ReturnCode.Success;
+        var result = Context.CallMethod(Context.Self, State.SolidityContractManager.Value,
+            nameof(State.SolidityContractManager.InstantiationNonce), ByteString.Empty);
+        var nonce = new Int64Value();
+        nonce.MergeFrom(result);
+        return nonce.Value;
     }
 
     /// <summary>

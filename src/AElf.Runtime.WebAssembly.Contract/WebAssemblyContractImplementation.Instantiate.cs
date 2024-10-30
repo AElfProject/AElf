@@ -106,6 +106,7 @@ public partial class WebAssemblyContractImplementation
     private (Address, ExecuteReturnValue) Instantiate(Weight gasLimit, long depositLimit, Hash codeHash, long value,
         byte[] inputData, byte[] salt)
     {
+        CustomPrints.Add("Instantiate.");
         ChargeGas(new Instantiate());
         var parameter = new byte[inputData.Length - 4];
         Array.Copy(inputData, 4, parameter, 0, parameter.Length);

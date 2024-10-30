@@ -1,3 +1,4 @@
+using AElf.CSharp.Core;
 using AElf.Runtime.WebAssembly;
 using AElf.Sdk.CSharp;
 using AElf.SolidityContract;
@@ -153,5 +154,12 @@ public partial class BasicContractZero
         contractInfo.CodeHash = input.CodeHash;
         State.ContractInfos[input.ContractAddress] = contractInfo;
         return new Empty();
+    }
+
+    public override Int64Value InstantiationNonce(Hash input)
+    {
+        var nonce = State.InstantiationNonceMap[input];
+        State.InstantiationNonceMap[input] = nonce.Add(1);
+        return new Int64Value { Value = nonce };
     }
 }

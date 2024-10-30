@@ -39,4 +39,5 @@ public partial class BasicContractZeroState : ContractState
 
     public SingletonState<int> CodeCheckProposalExpirationTimePeriod { get; set; }
 
+    public MappedState<Hash, long> InstantiationNonceMap { get; set; }
 }
