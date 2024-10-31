@@ -8,6 +8,7 @@ using Nethereum.ABI.FunctionEncoding.Attributes;
 using Nethereum.Hex.HexConvertors.Extensions;
 using Shouldly;
 using Volo.Abp.Threading;
+using Xunit.Abstractions;
 
 namespace AElf.Contracts.SolidityContract;
 
@@ -15,7 +16,7 @@ public class StoreContractTests : SolidityContractTestBase
 {
     private readonly Address _contractAddress;
 
-    public StoreContractTests()
+    public StoreContractTests(ITestOutputHelper outputHelper) : base(outputHelper)
     {
         const string solFilePath = "contracts/store.sol";
         var executionResult = AsyncHelper.RunSync(async () =>

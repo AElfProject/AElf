@@ -5,8 +5,10 @@ using AElf.Runtime.WebAssembly.Types;
 using AElf.Types;
 using Google.Protobuf;
 using Nethereum.ABI;
+using Scale;
 using Shouldly;
 using Xunit.Abstractions;
+using AddressType = Scale.AddressType;
 
 namespace AElf.Contracts.SolidityContract;
 
@@ -26,7 +28,7 @@ public class ERC20ContractTests : SolidityContractTestBase
     protected readonly Address AliceAddress = SampleAccount.Accounts[0].Address;
     protected readonly Address DaveAddress = SampleAccount.Accounts[1].Address;
 
-    public ERC20ContractTests(ITestOutputHelper outputHelper)
+    public ERC20ContractTests(ITestOutputHelper outputHelper) : base(outputHelper)
     {
         _outputHelper = outputHelper;
     }
@@ -39,7 +41,7 @@ public class ERC20ContractTests : SolidityContractTestBase
     {
         var wasmCode = await LoadWasmContractCode("contracts/ERC20.contract");
         var executionResult = await DeployWasmContractAsync(wasmCode,
-            TotalSupply.ToWebAssemblyUInt256().ToParameter());
+            UInt256Type.GetByteStringFrom(TotalSupply));
         executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
         var contractAddress = executionResult.Output;
 
@@ -64,7 +66,10 @@ public class ERC20ContractTests : SolidityContractTestBase
     {
         var contractAddress = await DeployERC20ContractTest();
         var tx = await GetTransactionAsync(AliceKeyPair, contractAddress, "approve",
-            WebAssemblyTypeHelper.ConvertToParameter(Dave, TestAmount.ToWebAssemblyUInt256()));
+            TupleType<AddressType, UInt256Type>.GetByteStringFrom(
+                AddressType.From(DaveAddress.ToByteArray()),
+                UInt256Type.From(TestAmount)
+            ));
         var txResult = await TestTransactionExecutor.ExecuteAsync(tx);
         txResult.Status.ShouldBe(TransactionResultStatus.Mined);
         var allowance = await QueryAsync(contractAddress, "allowance",
@@ -77,11 +82,10 @@ public class ERC20ContractTests : SolidityContractTestBase
     {
         var contractAddress = await DeployERC20ContractTest();
         var tx = await GetTransactionAsync(AliceKeyPair, contractAddress, "transfer",
-            ByteString.CopyFrom(new ABIEncode().GetABIEncoded(Dave, TestAmount.ToWebAssemblyUInt256())));
-        _outputHelper.WriteLine(DaveAddress.ToByteArray().ToHex());
-        _outputHelper.WriteLine(TestAmount.ToWebAssemblyUInt256().ToParameter().ToHex());
-        _outputHelper.WriteLine(new ABIEncode().GetABIEncoded(Dave, TestAmount.ToWebAssemblyUInt256()).ToHex());
-        _outputHelper.WriteLine(tx.Params.ToByteArray().ToHex());
+            TupleType<AddressType, UInt256Type>.GetByteStringFrom(
+                AddressType.From(DaveAddress.ToByteArray()),
+                UInt256Type.From(TestAmount)
+            ));
         var txResult = await TestTransactionExecutor.ExecuteAsync(tx);
         txResult.Status.ShouldBe(TransactionResultStatus.Mined);
         (await QueryAsync(contractAddress, "balanceOf", Dave.ToParameter()))
@@ -99,20 +103,31 @@ public class ERC20ContractTests : SolidityContractTestBase
 
         {
             var tx = await GetTransactionAsync(AliceKeyPair, contractAddress, "approve",
-                WebAssemblyTypeHelper.ConvertToParameter(Dave, TestAmount.ToWebAssemblyUInt256()));
+                TupleType<AddressType, UInt256Type>.GetByteStringFrom(
+                    AddressType.From(DaveAddress.ToByteArray()),
+                    UInt256Type.From(TestAmount)
+                ));
             await TestTransactionExecutor.ExecuteAsync(tx);
         }
 
         {
             var tx = await GetTransactionAsync(DaveKeyPair, contractAddress, "transferFrom",
-                WebAssemblyTypeHelper.ConvertToParameter(Alice, Dave, TestAmount.ToWebAssemblyUInt256()));
+                TupleType<AddressType, AddressType, UInt256Type>.GetByteStringFrom(
+                    AddressType.From(AliceAddress.ToByteArray()),
+                    AddressType.From(DaveAddress.ToByteArray()),
+                    UInt256Type.From(TestAmount)
+                ));
             var txResult = await TestTransactionExecutor.ExecuteAsync(tx);
             txResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
 
         (await QueryAsync(contractAddress, "balanceOf", Dave.ToParameter())).ToByteArray().ToInt64(false)
             .ShouldBe(TestAmount);
-        (await QueryAsync(contractAddress, "allowance", WebAssemblyTypeHelper.ConvertToParameter(Alice, Dave)))
-            .ToByteArray().ToInt64(false).ShouldBe(0);
+        var allowance = await QueryAsync(contractAddress, "allowance",
+            TupleType<AddressType, AddressType>.GetByteStringFrom(
+                AddressType.From(AliceAddress.ToByteArray()),
+                AddressType.From(DaveAddress.ToByteArray())
+            ));
+        UInt256Type.From(allowance.ToByteArray()).Value.ShouldBe(0);
     }
 }

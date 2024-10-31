@@ -10,6 +10,7 @@ using AElf.Types;
 using Google.Protobuf;
 using Nethereum.ABI;
 using Nethereum.Hex.HexConvertors.Extensions;
+using Scale;
 using Shouldly;
 using Solang;
 using Xunit.Abstractions;
@@ -88,7 +89,7 @@ public class UniswapV2ContractTests : ERC20ContractTests
             ByteString.CopyFrom(new ABIEncode().GetABIEncoded(token1AbiValue, token0AbiValue)));
         pairAddress2.ShouldBe(pairAddress1);
 
-        var pairAddress = await QueryAsync(factoryContractAddress, "allPairs", 0.ToWebAssemblyUInt256().ToParameter());
+        var pairAddress = await QueryAsync(factoryContractAddress, "allPairs", UInt256Type.GetByteStringFrom(100));
         pairAddress.ShouldBe(pairAddress1);
         var pairContractAddress = Address.FromBytes(pairAddress.ToByteArray());
 

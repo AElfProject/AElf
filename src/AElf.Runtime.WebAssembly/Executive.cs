@@ -152,7 +152,7 @@ public class Executive : IExecutive
                         {
                             Address = transaction.To,
                             Name = "DebugMessage",
-                            NonIndexed = ByteString.CopyFrom(Encoding.UTF8.GetBytes(debugMessage))
+                            NonIndexed = ByteString.CopyFrom(Encoding.UTF8.GetBytes(debugMessage.Trim()))
                         };
                         transactionContext.Trace.Logs.Add(logEvent);
                     }
@@ -171,7 +171,7 @@ public class Executive : IExecutive
                         {
                             Address = transaction.To,
                             Name = "ErrorMessage",
-                            NonIndexed = ByteString.CopyFrom(Encoding.UTF8.GetBytes(errorMessage))
+                            NonIndexed = ByteString.CopyFrom(Encoding.UTF8.GetBytes(errorMessage.Trim()))
                         };
                         transactionContext.Trace.Logs.Add(logEvent);
                     }
@@ -208,7 +208,7 @@ public class Executive : IExecutive
                         {
                             Address = transaction.To,
                             Name = "Print",
-                            NonIndexed = ByteString.CopyFrom(Encoding.UTF8.GetBytes(print))
+                            NonIndexed = ByteString.CopyFrom(Encoding.UTF8.GetBytes(print.Trim()))
                         };
                         transactionContext.Trace.Logs.Add(logEvent);
                     }
@@ -223,7 +223,7 @@ public class Executive : IExecutive
                         {
                             Address = transaction.To,
                             Name = "RuntimeLog",
-                            NonIndexed = ByteString.CopyFrom(Encoding.UTF8.GetBytes(runtimeLog))
+                            NonIndexed = ByteString.CopyFrom(Encoding.UTF8.GetBytes(runtimeLog.Trim()))
                         };
                         transactionContext.Trace.Logs.Add(logEvent);
                     }

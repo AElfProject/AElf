@@ -3,14 +3,16 @@ using System.Text;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.ContractTestKit;
+using AElf.Runtime.WebAssembly.Extensions;
 using Scale;
 using Shouldly;
+using Xunit.Abstractions;
 
 namespace AElf.Contracts.SolidityContract;
 
 public class BalancesTest : SolidityContractTestBase
 {
-    public BalancesTest()
+    public BalancesTest(ITestOutputHelper outputHelper) : base(outputHelper)
     {
         ContractPath = "contracts/balances.contract";
     }
@@ -38,8 +40,8 @@ public class BalancesTest : SolidityContractTestBase
         // Test pay_me method.
         {
             var txResult = await ExecuteTransactionAsync(contractAddress, "pay_me", value: payAmount);
-            var print = txResult.Logs.First(l => l.Name == "Print").NonIndexed.ToByteArray();
-            Encoding.UTF8.GetString(print).ShouldContain($"print: Thank you very much for {payAmount}");
+            var print = txResult.GetPrints();
+            print.ShouldContain($"print: Thank you very much for {payAmount},");
         }
 
         // Query balance.

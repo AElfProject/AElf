@@ -2,12 +2,13 @@ using System.Threading.Tasks;
 using AElf.Types;
 using Scale;
 using Shouldly;
+using Xunit.Abstractions;
 
 namespace AElf.Contracts.SolidityContract;
 
 public sealed class AssertsTest : SolidityContractTestBase
 {
-    public AssertsTest()
+    public AssertsTest(ITestOutputHelper outputHelper) : base(outputHelper)
     {
         ContractPath = "contracts/asserts.contract";
     }

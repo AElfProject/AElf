@@ -4,8 +4,11 @@ using AElf.Runtime.WebAssembly.Types;
 using AElf.Types;
 using Google.Protobuf;
 using Nethereum.ABI;
+using Scale;
 using Shouldly;
 using Xunit.Abstractions;
+using AddressType = Scale.AddressType;
+using BytesType = Scale.BytesType;
 
 namespace AElf.Contracts.SolidityContract;
 
@@ -62,8 +65,12 @@ public class UniswapV2PairTests : UniswapV2ContractTests
 
         // Swap
         var tx = await GetTransactionAsync(AliceKeyPair, _pairContractAddress, "swap",
-            WebAssemblyTypeHelper.ConvertToParameter(0.ToWebAssemblyUInt256(),
-                expectedOutputAmount.ToWebAssemblyUInt256(), Alice, new ABIValue("bytes", new byte[] { 0 })));
+            TupleType<UInt256Type, UInt256Type, AddressType, BytesType>.GetByteStringFrom(
+                UInt256Type.From(0),
+                UInt256Type.From(expectedOutputAmount),
+                AddressType.From(AliceAddress.ToByteArray()),
+                BytesType.From([0])
+            ));
         var txResult = await TestTransactionExecutor.ExecuteAsync(tx);
         txResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
@@ -99,8 +106,12 @@ public class UniswapV2PairTests : UniswapV2ContractTests
 
         // Swap
         var tx = await GetTransactionAsync(AliceKeyPair, _pairContractAddress, "swap",
-            WebAssemblyTypeHelper.ConvertToParameter(expectedOutputAmount.ToWebAssemblyUInt256(),
-                0.ToWebAssemblyUInt256(), Alice, new ABIValue("bytes", new byte[] { 0 })));
+            TupleType<UInt256Type, UInt256Type, AddressType, BytesType>.GetByteStringFrom(
+                UInt256Type.From(expectedOutputAmount),
+                UInt256Type.From(0),
+                AddressType.From(AliceAddress.ToByteArray()),
+                BytesType.From([0])
+            ));
         var txResult = await TestTransactionExecutor.ExecuteAsync(tx);
         txResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
@@ -133,8 +144,10 @@ public class UniswapV2PairTests : UniswapV2ContractTests
 
         {
             var tx = await GetTransactionAsync(AliceKeyPair, _pairContractAddress, "transfer_address_uint256",
-                WebAssemblyTypeHelper.ConvertToParameter(_pairContractAddress.ToWebAssemblyAddress(),
-                    (expectedOutputAmount - MinimumLiquidity).ToWebAssemblyUInt256()));
+                TupleType<AddressType, UInt256Type>.GetByteStringFrom(
+                    AddressType.From(_pairContractAddress.ToByteArray()),
+                    UInt256Type.From(expectedOutputAmount - MinimumLiquidity)
+                ));
             var txResult = await TestTransactionExecutor.ExecuteAsync(tx);
             txResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
@@ -206,8 +219,10 @@ public class UniswapV2PairTests : UniswapV2ContractTests
         fromBalance.ShouldBeGreaterThan(amount);
         var beforeTransfer = await GetERC20BalanceAsync(erc20ContractAddress, toAddress);
         var tx = await GetTransactionAsync(fromKeyPair, erc20ContractAddress, "transfer",
-            WebAssemblyTypeHelper.ConvertToParameter(toAddress.ToWebAssemblyAddress(),
-                amount.ToWebAssemblyUInt256()));
+            TupleType<AddressType, UInt256Type>.GetByteStringFrom(
+                AddressType.From(toAddress.ToByteArray()),
+                UInt256Type.From(amount)
+            ));
         var txResult = await TestTransactionExecutor.ExecuteAsync(tx);
         txResult.Status.ShouldBe(TransactionResultStatus.Mined);
         (await GetERC20BalanceAsync(erc20ContractAddress, toAddress)).ShouldBe(beforeTransfer + amount);

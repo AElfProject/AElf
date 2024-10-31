@@ -3,11 +3,17 @@ using System.Threading.Tasks;
 using AElf.Runtime.WebAssembly.Types;
 using AElf.Types;
 using Shouldly;
+using Xunit.Abstractions;
 
 namespace AElf.Contracts.SolidityContract;
 
 public class CallContractTests : SolidityContractTestBase
 {
+    public CallContractTests(ITestOutputHelper outputHelper) : base(outputHelper)
+    {
+        
+    }
+
     [Fact]
     public async Task CallTest()
     {

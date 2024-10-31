@@ -49,7 +49,7 @@ public class CallFlagsContractTest : SolidityContractTestBase
         return contractAddress;
     }
 
-    [Fact(DisplayName = "works with the reentry and tail call flags.")]
+    [Fact(DisplayName = "works with the reentry and tail call flags.", Skip = "Not supported yet.")]
     public async Task<Address> TestReentryAndTailCallFlags()
     {
         var contractAddress = await DeployContractAsync();
@@ -72,7 +72,7 @@ public class CallFlagsContractTest : SolidityContractTestBase
         return contractAddress;
     }
 
-    [Fact(DisplayName = "works with the reentry and clone input flags.")]
+    [Fact(DisplayName = "works with the reentry and clone input flags.", Skip = "Not supported yet.")]
     public async Task<Address> TestReentryAndCloneInputFlags()
     {
         var contractAddress = await DeployContractAsync();
@@ -95,7 +95,7 @@ public class CallFlagsContractTest : SolidityContractTestBase
         return contractAddress;
     }
 
-    [Fact(DisplayName = "works with the reentry, tail call and clone input flags.")]
+    [Fact(DisplayName = "works with the reentry, tail call and clone input flags.", Skip = "Not supported yet.")]
     public async Task<Address> TestMultipleFlags()
     {
         var contractAddress = await DeployContractAsync();

@@ -3,12 +3,13 @@ using System.Threading.Tasks;
 using AElf.Types;
 using Epoche;
 using Shouldly;
+using Xunit.Abstractions;
 
 namespace AElf.Contracts.SolidityContract;
 
 public class BasicContractTests : SolidityContractTestBase
 {
-    public BasicContractTests()
+    public BasicContractTests(ITestOutputHelper outputHelper) : base(outputHelper)
     {
         ContractPath = "contracts/Basic.contract";
     }

@@ -5,12 +5,20 @@ using AElf.Runtime.WebAssembly.Types;
 using AElf.Types;
 using Google.Protobuf;
 using Nethereum.ABI;
+using Scale;
 using Shouldly;
+using Xunit.Abstractions;
+using AddressType = Scale.AddressType;
 
 namespace AElf.Contracts.SolidityContract;
 
 public class DelegateCallContractTests : SolidityContractTestBase
 {
+    public DelegateCallContractTests(ITestOutputHelper outputHelper) : base(outputHelper)
+    {
+        
+    }
+
     [Fact]
     public async Task DelegateCallTest()
     {
@@ -28,12 +36,12 @@ public class DelegateCallContractTests : SolidityContractTestBase
             delegatorContractAddress = executionResult.Output;
         }
 
-        var input = WebAssemblyTypeHelper.ConvertToParameter(delegateeContractAddress.ToWebAssemblyAddress(),
-            vars.ToWebAssemblyUInt256());
-
         {
             var tx = await GetTransactionAsync(DefaultSenderKeyPair, delegatorContractAddress, "setVars",
-                input, transferValue);
+                TupleType<AddressType, UInt256Type>.GetByteStringFrom(
+                    AddressType.From(delegateeContractAddress.ToByteArray()),
+                    UInt256Type.From(vars)
+                ), transferValue);
             var txResult = await TestTransactionExecutor.ExecuteAsync(tx);
             txResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }

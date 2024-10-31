@@ -25,6 +25,7 @@ public partial class WebAssemblyContractImplementation
     /// <param name="outLenPtr"></param>
     private void Caller(int outPtr, int outLenPtr)
     {
+        CustomPrints.Add($"Call: {Context.Sender}");
         var sender = Context.Sender.ToByteArray();
         WriteSandboxOutput(outPtr, outLenPtr, sender);
     }

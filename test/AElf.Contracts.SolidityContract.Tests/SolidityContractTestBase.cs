@@ -77,10 +77,35 @@ public class SolidityContractTestBase : ContractTestBase<SolidityContractTestAEl
     
     protected async Task<Address> DeployContractAsync(ByteString input = null)
     {
+        _outputHelper.WriteLine("Deploying Contract: " + ContractPath);
         var wasmCode = await LoadWasmContractCode(ContractPath);
         var executionResult = await DeployWasmContractAsync(wasmCode, input);
-        executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-        executionResult.TransactionResult.Logs.Count.ShouldBePositive();
+        var txResult = executionResult.TransactionResult;
+        txResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        txResult.Logs.Count.ShouldBePositive();
+        _outputHelper.WriteLine("[Prints]");
+        foreach (var print in txResult.GetPrints())
+        {
+            _outputHelper.WriteLine(print);
+        }
+
+        _outputHelper.WriteLine("[Runtime logs]");
+        foreach (var runtimeLog in txResult.GetRuntimeLogs())
+        {
+            _outputHelper.WriteLine(runtimeLog);
+        }
+
+        _outputHelper.WriteLine("[Debug messages]");
+        foreach (var debugMessage in txResult.GetDebugMessages())
+        {
+            _outputHelper.WriteLine(debugMessage);
+        }
+
+        _outputHelper.WriteLine("[Error messages]");
+        foreach (var errorMessage in txResult.GetErrorMessages())
+        {
+            _outputHelper.WriteLine(errorMessage);
+        }
         return executionResult.Output;
     }
 
