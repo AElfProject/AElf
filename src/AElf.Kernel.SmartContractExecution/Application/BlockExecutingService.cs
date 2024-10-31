@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
@@ -7,6 +8,7 @@ using System.Threading.Tasks;
 using AElf.CSharp.Core.Utils;
 using AElf.Kernel.Blockchain;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Domain;
@@ -24,16 +26,20 @@ public class BlockExecutingService : IBlockExecutingService, ITransientDependenc
     private readonly ISystemTransactionExtraDataProvider _systemTransactionExtraDataProvider;
     private readonly ITransactionExecutingService _transactionExecutingService;
     private readonly ITransactionResultService _transactionResultService;
+    private readonly ITransactionManager _transactionManager;
 
+    
     public BlockExecutingService(ITransactionExecutingService transactionExecutingService,
         IBlockchainStateService blockchainStateService,
         ITransactionResultService transactionResultService,
+        ITransactionManager transactionManager,
         ISystemTransactionExtraDataProvider systemTransactionExtraDataProvider)
     {
         _transactionExecutingService = transactionExecutingService;
         _blockchainStateService = blockchainStateService;
         _transactionResultService = transactionResultService;
         _systemTransactionExtraDataProvider = systemTransactionExtraDataProvider;
+        _transactionManager = transactionManager;
         EventBus = NullLocalEventBus.Instance;
     }
 
@@ -57,6 +63,7 @@ public class BlockExecutingService : IBlockExecutingService, ITransientDependenc
         Logger.LogTrace("Entered ExecuteBlockAsync");
         var nonCancellable = nonCancellableTransactions.ToList();
         var cancellable = cancellableTransactions.ToList();
+        var inlineCancellable = new List<Transaction>();
         var nonCancellableReturnSets =
             await _transactionExecutingService.ExecuteAsync(
                 new TransactionExecutingDto { BlockHeader = blockHeader, Transactions = nonCancellable },
@@ -73,6 +80,7 @@ public class BlockExecutingService : IBlockExecutingService, ITransientDependenc
                 {
                     BlockHeader = blockHeader,
                     Transactions = cancellable,
+                    TransactionsWithInline = inlineCancellable,
                     PartialBlockStateSet = returnSetCollection.ToBlockStateSet()
                 },
                 cancellationToken);
@@ -84,6 +92,11 @@ public class BlockExecutingService : IBlockExecutingService, ITransientDependenc
         var allExecutedTransactions =
             nonCancellable.Concat(cancellable.Where(x => executedCancellableTransactions.Contains(x.GetHash())))
                 .ToList();
+        if (inlineCancellable.Count > 0)
+        {
+            await _transactionManager.AddTransactionsAsync(inlineCancellable);
+            allExecutedTransactions.AddRange(inlineCancellable);    
+        }
         var blockStateSet =
             CreateBlockStateSet(blockHeader.PreviousBlockHash, blockHeader.Height, returnSetCollection);
         var block = await FillBlockAfterExecutionAsync(blockHeader, allExecutedTransactions, returnSetCollection,

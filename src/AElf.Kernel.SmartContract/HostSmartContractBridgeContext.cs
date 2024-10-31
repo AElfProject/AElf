@@ -1,10 +1,7 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Numerics;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Cryptography;
@@ -16,7 +13,6 @@ using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Options;
-using Google.Protobuf.Collections;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.Threading;
 
@@ -246,7 +242,7 @@ public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, I
             MethodName = methodName,
             Params = args
         };
-        transaction.SetHash(HashHelper.ComputeFrom(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()));
+        transaction.SetHash(HashHelper.ComputeFrom(TransactionContext.Transaction.GetHash()));
         TransactionContext.Trace.InlineTransactions.Add(transaction);
         FireTransactionLogEvent(transaction);
     }
@@ -323,7 +319,6 @@ public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, I
     
     private void FireVirtualTransactionLogEvent(Hash fromVirtualAddress, Transaction transaction)
     {
-        Console.WriteLine("transaction.GetHash().ToHex()="+transaction.GetHash().ToHex());
         var log = new VirtualTransactionCreated
         {
             From = transaction.From,
@@ -332,12 +327,14 @@ public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, I
             MethodName = transaction.MethodName,
             Params = transaction.Params,
             Signatory = Sender,
+            InlineTransactionStr = transaction.ToByteString().ToBase64(),
             InlineForTransactionId = transaction.GetHash().ToHex()
         };
         FireLogEvent(log.ToLogEvent(Self));
     }
     private void FireTransactionLogEvent(Transaction transaction)
     {
+        // Console.WriteLine("FireTransactionLogEvent= "+transaction.GetHash().ToHex());
         var log = new VirtualTransactionCreated
         {
             From = transaction.From,
@@ -345,6 +342,7 @@ public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, I
             MethodName = transaction.MethodName,
             Params = transaction.Params,
             Signatory = Sender,
+            InlineTransactionStr = transaction.ToByteString().ToBase64(),
             InlineForTransactionId = transaction.GetHash().ToHex()
         };
         FireLogEvent(log.ToLogEvent(Self));

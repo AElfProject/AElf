@@ -48,7 +48,7 @@ public class LocalParallelTransactionExecutingService : IParallelTransactionExec
         var returnSets = new List<ExecutionReturnSet>();
 
         var mergeResult = await ExecuteParallelizableTransactionsAsync(groupedTransactions.Parallelizables,
-            blockHeader, transactionExecutingDto.PartialBlockStateSet, cancellationToken);
+            blockHeader, transactionExecutingDto.PartialBlockStateSet, transactionExecutingDto, cancellationToken);
         returnSets.AddRange(mergeResult.ExecutionReturnSets);
         var conflictingSets = mergeResult.ConflictingReturnSets;
 
@@ -57,7 +57,7 @@ public class LocalParallelTransactionExecutingService : IParallelTransactionExec
 
         var nonParallelizableReturnSets = await ExecuteNonParallelizableTransactionsAsync(
             groupedTransactions.NonParallelizables, blockHeader,
-            updatedPartialBlockStateSet, cancellationToken);
+            updatedPartialBlockStateSet, transactionExecutingDto,cancellationToken);
         returnSets.AddRange(nonParallelizableReturnSets);
 
         var transactionWithoutContractReturnSets = ProcessTransactionsWithoutContract(
@@ -78,11 +78,13 @@ public class LocalParallelTransactionExecutingService : IParallelTransactionExec
 
     private async Task<ExecutionReturnSetMergeResult> ExecuteParallelizableTransactionsAsync(
         List<List<Transaction>> groupedTransactions, BlockHeader blockHeader, BlockStateSet blockStateSet,
+        TransactionExecutingDto transactionExecutingDto,
         CancellationToken cancellationToken)
     {
         var tasks = groupedTransactions.Select(
             txns => ExecuteAndPreprocessResult(new TransactionExecutingDto
             {
+                TransactionsWithInline = transactionExecutingDto.TransactionsWithInline,
                 BlockHeader = blockHeader,
                 Transactions = txns,
                 PartialBlockStateSet = blockStateSet
@@ -101,11 +103,13 @@ public class LocalParallelTransactionExecutingService : IParallelTransactionExec
 
     private async Task<List<ExecutionReturnSet>> ExecuteNonParallelizableTransactionsAsync(
         List<Transaction> transactions,
-        BlockHeader blockHeader, BlockStateSet blockStateSet, CancellationToken cancellationToken)
+        BlockHeader blockHeader, BlockStateSet blockStateSet, TransactionExecutingDto transactionExecutingDto,
+        CancellationToken cancellationToken)
     {
         var nonParallelizableReturnSets = await _planTransactionExecutingService.ExecuteAsync(
             new TransactionExecutingDto
             {
+                TransactionsWithInline = transactionExecutingDto.TransactionsWithInline,
                 Transactions = transactions,
                 BlockHeader = blockHeader,
                 PartialBlockStateSet = blockStateSet

@@ -119,6 +119,24 @@ public partial class TransactionTrace
 
     public int GetInlineWithTransactionIdCount()
     {
-        return GetTraceListWithInlineTransactionId().Count - 1;
+        var count = 0;
+        var stack = new Stack<TransactionTrace>();
+        stack.Push(this);
+
+        while (stack.Count > 0)
+        {
+            var currentTrace = stack.Pop();
+            if (currentTrace.IsInlineTxWithId)
+            {
+                count++;
+            }
+
+            if (currentTrace.InlineTraces == null) continue;
+            foreach (var inlineTrace in currentTrace.InlineTraces)
+            {
+                stack.Push(inlineTrace);
+            }
+        }
+        return count;
     }
 }

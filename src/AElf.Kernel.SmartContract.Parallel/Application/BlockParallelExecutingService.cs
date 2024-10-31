@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Domain;
@@ -12,8 +13,10 @@ public class BlockParallelExecutingService : BlockExecutingService
 {
     public BlockParallelExecutingService(ITransactionExecutingService transactionExecutingService,
         IBlockchainStateService blockchainStateService, ITransactionResultService transactionResultService,
+        ITransactionManager transactionManager,
         ISystemTransactionExtraDataProvider systemTransactionExtraDataProvider) : base(
         transactionExecutingService, blockchainStateService, transactionResultService,
+        transactionManager,
         systemTransactionExtraDataProvider)
     {
     }

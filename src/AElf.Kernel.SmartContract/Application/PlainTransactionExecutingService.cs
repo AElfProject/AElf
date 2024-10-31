@@ -94,12 +94,16 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
                     var result = GetTransactionResult(transactionTrace, transactionExecutingDto.BlockHeader.Height);
 
                     var returnSet = GetReturnSet(transactionTrace, result);
-                    // if (traceList.Count > 1)
-                    // {
-                    //     Console.WriteLine("resultId="+result.TransactionId);
-                    //     Console.WriteLine("result="+result);
-                    //     Console.WriteLine("returnSet="+returnSet);
-                    // }
+                    
+                    if(transactionTrace.IsInlineTxWithId)
+                    {
+                        var transactionInline = Transaction.Parser.ParseFrom(Convert.FromBase64String(VirtualTransactionCreated.Parser
+                            .ParseFrom(trace.Logs[1].Indexed[5]).InlineTransactionStr));
+                        transactionInline.SetHash(transactionTrace.TransactionId);
+                        transactionInline.IsInlineTxWithId = true;
+                        transactionExecutingDto.TransactionsWithInline.Add(transactionInline);
+                    }
+
                     returnSets.Add(returnSet);
                     
                 }
@@ -273,7 +277,11 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
         var index = 0;
         foreach (var inlineTx in txContext.Trace.InlineTransactions)
         {
-            if (inlineTx.IsInlineTxWithId) txContext.InlineWithTransactionIdCounter.Increment();
+            if (inlineTx.IsInlineTxWithId)
+            {
+                //Console.WriteLine("inlineTx.TransactionId="+index+"="+inlineTx.GetHash()+"   inlineTx="+inlineTx.MethodName);    //
+                txContext.InlineWithTransactionIdCounter.Increment();
+            }
             
             var singleTxExecutingDto = new SingleTransactionExecutingDto
             {
