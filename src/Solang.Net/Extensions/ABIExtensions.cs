@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 
 namespace Solang.Extensions
@@ -18,6 +19,28 @@ namespace Solang.Extensions
             }
 
             return selector;
+        }
+
+        public static bool GetMutates(this SolangABI solangAbi, string selector)
+        {
+            var message = solangAbi.Spec.Messages.FirstOrDefault(m => m.Selector == $"0x{selector}");
+            if (message == null)
+            {
+                throw new SelectorNotFoundException($"Method of selector {selector} not found.");
+            }
+
+            return message.Mutates;
+        }
+        
+        public static string GetFunctionName(this SolangABI solangAbi, string selector)
+        {
+            var message = solangAbi.Spec.Messages.FirstOrDefault(m => m.Selector == $"0x{selector}");
+            if (message == null)
+            {
+                throw new SelectorNotFoundException($"Method of selector {selector} not found.");
+            }
+
+            return message.Label;
         }
 
         public static string GetConstructor(this SolangABI solangAbi)

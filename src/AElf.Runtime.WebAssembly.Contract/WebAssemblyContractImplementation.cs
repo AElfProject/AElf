@@ -387,10 +387,4 @@ public partial class WebAssemblyContractImplementation : WebAssemblyContract<Web
         DebugMessages.Add(error.ToString());
         throw new WebAssemblyRuntimeException(error.ToString());
     }
-
-    private void HandleError(DispatchError error)
-    {
-        DebugMessages.Add(error.ToString());
-        throw new WebAssemblyRuntimeException(error.ToString());
-    }
 }

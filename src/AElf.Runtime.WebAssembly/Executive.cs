@@ -100,10 +100,12 @@ public class Executive : IExecutive
 
             if (methodName == "is_allow_reentry")
             {
+                var reentrySelector = StringValue.Parser.ParseFrom(transaction.Params.ToByteArray()).Value;
+                var mutates = _solangAbi.GetMutates(reentrySelector);
                 transactionContext.Trace.ReturnValue =
                     new BoolValue
                     {
-                        Value = _webAssemblyContract.AllowReentry
+                        Value = !mutates || _webAssemblyContract.AllowReentry
                     }.ToByteString();
                 transactionContext.Trace.ExecutionStatus = ExecutionStatus.Executed;
                 return;
@@ -258,41 +260,6 @@ public class Executive : IExecutive
 
         var endTime = CurrentTransactionContext.Trace.EndTime = TimestampHelper.GetUtcNow().ToDateTime();
         CurrentTransactionContext.Trace.Elapsed = (endTime - startTime).Ticks;
-
-        // ForDebug();
-    }
-
-    private void ForDebug()
-    {
-        Logger.LogDebug("ForDebug");
-        var runtimeLogs = _smartContractProxy.GetRuntimeLogs();
-        foreach (var log in runtimeLogs ?? [])
-        {
-            Logger.LogDebug(log);
-        }
-
-        var prints = _smartContractProxy.GetCustomPrints();
-
-        foreach (var print in prints ?? [])
-        {
-            Logger.LogDebug(print);
-        }
-
-        var errors = _smartContractProxy.GetErrorMessages();
-
-        foreach (var error in errors ?? [])
-        {
-            Logger.LogDebug(error);
-        }
-
-        var debugs = _smartContractProxy.GetDebugMessages();
-
-        foreach (var debug in debugs ?? [])
-        {
-            Logger.LogDebug(debug);
-        }
-
-        var events = _smartContractProxy.GetEvents();
     }
     
     private void Cleanup()

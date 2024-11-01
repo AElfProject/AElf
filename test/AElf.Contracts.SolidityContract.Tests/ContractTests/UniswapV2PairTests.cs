@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using AElf.Cryptography.ECDSA;
+using AElf.Runtime.WebAssembly.Extensions;
 using AElf.Runtime.WebAssembly.Types;
 using AElf.Types;
 using Google.Protobuf;
@@ -181,6 +182,8 @@ public class UniswapV2PairTests : UniswapV2ContractTests
         var tokenPair = ByteString.CopyFrom(new ABIEncode().GetABIEncoded(tokenAContractAddress.ToWebAssemblyAddress(),
             tokenBContractAddress.ToWebAssemblyAddress()));
 
+        factoryContractAddress.ToBase58().ShouldBe("2CUGsErPjvvtd8vA9hWgf7SPRyvxTeZxYg6Q23FgxcVcpRrL7o");
+
         {
             var tx = await GetTransactionAsync(AliceKeyPair, factoryContractAddress, "createPair",
                 tokenPair);
@@ -203,8 +206,9 @@ public class UniswapV2PairTests : UniswapV2ContractTests
         // Mint
         {
             var tx = await GetTransactionAsync(AliceKeyPair, _pairContractAddress, "mint",
-                Alice.ToParameter());
+                AddressType.GetByteStringFrom(AliceAddress));
             var txResult = await TestTransactionExecutor.ExecuteAsync(tx);
+            txResult.GetErrorMessages().ShouldBeEmpty();
             txResult.Status.ShouldBe(TransactionResultStatus.Mined);
             var liquidity = txResult.ReturnValue.ToByteArray().ToInt64(false);
             liquidity.ShouldBePositive();

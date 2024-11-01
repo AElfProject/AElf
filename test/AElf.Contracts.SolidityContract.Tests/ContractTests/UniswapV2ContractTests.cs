@@ -14,6 +14,7 @@ using Scale;
 using Shouldly;
 using Solang;
 using Xunit.Abstractions;
+using AddressType = Scale.AddressType;
 
 namespace AElf.Contracts.SolidityContract;
 
@@ -68,11 +69,12 @@ public class UniswapV2ContractTests : ERC20ContractTests
     [Fact(DisplayName = "createPair")]
     public async Task CreatePairTest()
     {
-        var token0 = SampleAccount.Accounts[3].Address.ToByteArray();
-        var token0AbiValue = new ABIValue("bytes32", token0);
-        var token1 = SampleAccount.Accounts[2].Address.ToByteArray();
-        var token1AbiValue = new ABIValue("bytes32", token1);
-        var tokenPair = ByteString.CopyFrom(new ABIEncode().GetABIEncoded(token0AbiValue, token1AbiValue));
+        var token0Address = SampleAccount.Accounts[3].Address;
+        var token1Address = SampleAccount.Accounts[2].Address;
+        var tokenPair = TupleType<AddressType, AddressType>.GetByteStringFrom(
+            AddressType.From(token0Address.ToByteArray()),
+            AddressType.From(token1Address.ToByteArray())
+        );
         var factoryContractAddress = await DeployUniswapV2FactoryContract();
 
         {
@@ -86,10 +88,14 @@ public class UniswapV2ContractTests : ERC20ContractTests
         pairAddress1.ToByteArray().ShouldAllBe(i => i != 0);
 
         var pairAddress2 = await QueryAsync(factoryContractAddress, "getPair",
-            ByteString.CopyFrom(new ABIEncode().GetABIEncoded(token1AbiValue, token0AbiValue)));
+            TupleType<AddressType, AddressType>.GetByteStringFrom(
+                // Reverse the order of token0 and token1.
+                AddressType.From(token1Address.ToByteArray()),
+                AddressType.From(token0Address.ToByteArray())
+            ));
         pairAddress2.ShouldBe(pairAddress1);
 
-        var pairAddress = await QueryAsync(factoryContractAddress, "allPairs", UInt256Type.GetByteStringFrom(100));
+        var pairAddress = await QueryAsync(factoryContractAddress, "allPairs", UInt256Type.GetByteStringFrom(0));
         pairAddress.ShouldBe(pairAddress1);
         var pairContractAddress = Address.FromBytes(pairAddress.ToByteArray());
 
@@ -100,10 +106,10 @@ public class UniswapV2ContractTests : ERC20ContractTests
         factory.ToByteArray().ShouldBe(factoryContractAddress.ToByteArray());
 
         var queriedToken0 = await QueryAsync(pairContractAddress, "token0");
-        queriedToken0.ToByteArray().ShouldBe(token0);
+        queriedToken0.ToByteArray().ShouldBe(token0Address.ToByteArray());
 
         var queriedToken1 = await QueryAsync(pairContractAddress, "token1");
-        queriedToken1.ToByteArray().ShouldBe(token1);
+        queriedToken1.ToByteArray().ShouldBe(token1Address.ToByteArray());
     }
 
     [Fact(DisplayName = "setFeeTo")]

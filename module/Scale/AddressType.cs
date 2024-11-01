@@ -19,7 +19,7 @@ public class AddressType : PrimitiveType<byte[]>
 
     public static ByteString GetByteStringFrom(Address address)
     {
-        return address.ToByteString();
+        return ByteString.CopyFrom(address.ToByteArray());
     }
 
     public static byte[] GetBytesFromBase58(string address)

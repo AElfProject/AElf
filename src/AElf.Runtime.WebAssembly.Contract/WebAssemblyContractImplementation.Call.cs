@@ -221,18 +221,20 @@ public partial class WebAssemblyContractImplementation
         bool allowReentry)
     {
         AllowReentry = allowReentry;
+        var inputDataHex = inputData.ToHex();
+        var methodName = inputDataHex[..8];
         var isAllowReentry = BoolValue.Parser
-            .ParseFrom(Context.CallMethod(Context.Self, to, "is_allow_reentry", ByteString.Empty)).Value;
+            .ParseFrom(Context.CallMethod(Context.Self, to, "is_allow_reentry",
+                new StringValue { Value = methodName }.ToByteString())).Value;
         if (!isAllowReentry)
         {
-            ErrorMessages.Add(WebAssemblyError.ReentranceDenied.ToString());
+            ErrorMessages.Add($"{WebAssemblyError.ReentranceDenied.ToString()}: {to}");
             return new ExecuteReturnValue
             {
                 Flags = ReturnFlags.Revert
             };
         }
-        var inputDataHex = inputData.ToHex();
-        var methodName = inputDataHex[..8];
+
         var parameter = new byte[inputData.Length - 4];
         Array.Copy(inputData, 4, parameter, 0, parameter.Length);
         var parameterWithValue = new SolidityTransactionParameter

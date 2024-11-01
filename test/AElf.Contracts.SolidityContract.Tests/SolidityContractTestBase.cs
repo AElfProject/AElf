@@ -230,7 +230,7 @@ public class SolidityContractTestBase : ContractTestBase<SolidityContractTestAEl
             Value = value
         }.ToByteString();
         var registration = await BasicContractZeroStub.GetSmartContractRegistrationByAddress.CallAsync(to);
-        if (registration.Category == 0)
+        if (registration.Code.IsNullOrEmpty())
         {
             throw new Exception("Registration not found.");
         }
@@ -267,7 +267,7 @@ public class SolidityContractTestBase : ContractTestBase<SolidityContractTestAEl
 
     internal async Task<ByteString> QueryAsync(Address contractAddress, string fieldName, ByteString parameter = null)
     {
-        _outputHelper.WriteLine("Executing query: " + fieldName);
+        _outputHelper.WriteLine("\nExecuting query: " + fieldName);
 
         var tx = await GetTransactionAsync(DefaultSenderKeyPair, contractAddress, fieldName, parameter);
         var txResult = await TestTransactionExecutor.ExecuteAsync(tx);
@@ -303,7 +303,7 @@ public class SolidityContractTestBase : ContractTestBase<SolidityContractTestAEl
     internal async Task<ByteString> QueryWithExceptionAsync(Address contractAddress, string fieldName,
         ByteString parameter = null)
     {
-        _outputHelper.WriteLine("Executing query: " + fieldName);
+        _outputHelper.WriteLine("\nExecuting query: " + fieldName);
 
         var tx = await GetTransactionAsync(DefaultSenderKeyPair, contractAddress, fieldName, parameter);
         var txResult = await TestTransactionExecutor.ExecuteWithExceptionAsync(tx);

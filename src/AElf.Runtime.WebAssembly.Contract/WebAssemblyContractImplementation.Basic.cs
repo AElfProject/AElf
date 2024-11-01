@@ -71,6 +71,10 @@ public partial class WebAssemblyContractImplementation
         if (dataLen > 0)
         {
             ReturnBuffer = ReadSandboxMemory(dataPtr, dataLen);
+            if (ReturnBuffer.ToHex().StartsWith("4e487b71"))
+            {
+                ErrorMessages.Add("Panic(uint256)");
+            }
         }
     }
 
