@@ -49,14 +49,20 @@ public class ResourceExtractionService : IResourceExtractionService, ISingletonD
         IEnumerable<Transaction> transactions, CancellationToken ct)
     {
         // Parallel processing below (adding AsParallel) causes ReflectionTypeLoadException
-        var transactionResourceList = new List<TransactionWithResourceInfo>();
-        var contractResourceInfoCache = new Dictionary<Address, ContractResourceInfo>();
-        foreach (var t in transactions)
+        // var transactionResourceList = new List<TransactionWithResourceInfo>();
+        var contractResourceInfoCache = new ConcurrentDictionary<Address, ContractResourceInfo>();
+        // foreach (var t in transactions)
+        // {
+        //     var transactionResourcePair =
+        //         await GetResourcesForOneWithCacheAsync(chainContext, t, ct, contractResourceInfoCache);
+        //     transactionResourceList.Add(transactionResourcePair);
+        // }
+        var tasks = transactions.Select(async t =>
         {
-            var transactionResourcePair =
-                await GetResourcesForOneWithCacheAsync(chainContext, t, ct, contractResourceInfoCache);
-            transactionResourceList.Add(transactionResourcePair);
-        }
+            return await GetResourcesForOneWithCacheAsync(chainContext, t, ct, contractResourceInfoCache);
+        });
+        
+        var transactionResourceList = await Task.WhenAll(tasks);
 
         return transactionResourceList;
     }
@@ -85,7 +91,7 @@ public class ResourceExtractionService : IResourceExtractionService, ISingletonD
     private async Task<TransactionWithResourceInfo> GetResourcesForOneWithCacheAsync(
         IChainContext chainContext,
         Transaction transaction, CancellationToken ct,
-        Dictionary<Address, ContractResourceInfo> contractResourceInfoCache)
+        ConcurrentDictionary<Address, ContractResourceInfo> contractResourceInfoCache)
     {
         if (ct.IsCancellationRequested)
             return new TransactionWithResourceInfo
@@ -99,23 +105,13 @@ public class ResourceExtractionService : IResourceExtractionService, ISingletonD
             };
 
         if (_resourceCache.TryGetValue(transaction.GetHash(), out var resourceCache))
-            if (contractResourceInfoCache.TryGetValue(transaction.To, out var contractResourceInfo))
-                if (resourceCache.ResourceInfo.ContractHash == contractResourceInfo.CodeHash &&
-                    resourceCache.ResourceInfo.IsNonparallelContractCode ==
-                    contractResourceInfo.IsNonparallelContractCode)
-                    return new TransactionWithResourceInfo
-                    {
-                        Transaction = transaction,
-                        TransactionResourceInfo = resourceCache.ResourceInfo
-                    };
+            return new TransactionWithResourceInfo
+            {
+                Transaction = transaction,
+                TransactionResourceInfo = resourceCache.ResourceInfo
+            };
 
         var resourceInfo = await GetResourcesForOneAsync(chainContext, transaction, ct);
-        if (!contractResourceInfoCache.TryGetValue(transaction.To, out _))
-            contractResourceInfoCache[transaction.To] = new ContractResourceInfo
-            {
-                CodeHash = resourceInfo.ContractHash,
-                IsNonparallelContractCode = resourceInfo.IsNonparallelContractCode
-            };
 
         return new TransactionWithResourceInfo
         {
