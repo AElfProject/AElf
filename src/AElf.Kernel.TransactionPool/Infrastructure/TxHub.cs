@@ -73,10 +73,12 @@ public class TxHub : ITxHub, ISingletonDependency
             return output;
         }
 
+        var preCount = output.Transactions.Count;
         output.Transactions.AddRange(_validatedTransactions.Values.OrderBy(x => x.EnqueueTime)
             .Take(transactionCount)
             .Select(x => x.Transaction));
-
+        var afterCount = output.Transactions.Count;
+        Logger.LogInformation("check tx pool. current pool count: {0}, want to take tx count: {1}, get tx count from pool: {2}", _validatedTransactions.Values.Count, transactionCount, afterCount - preCount);
         return output;
     }
 
