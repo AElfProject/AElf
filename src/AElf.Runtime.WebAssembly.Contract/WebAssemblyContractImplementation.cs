@@ -11,6 +11,8 @@ namespace AElf.Runtime.WebAssembly.Contract;
 
 public partial class WebAssemblyContractImplementation : WebAssemblyContract<WebAssemblyContractState>
 {
+    private const int UnitPrice = 1;
+    private const long InitialFuel = 1000000;
     private const long MemoryMin = 16;
     private const long MemoryMax = 16;
 
@@ -34,9 +36,10 @@ public partial class WebAssemblyContractImplementation : WebAssemblyContract<Web
         _engine = new Engine(new Config().WithFuelConsumption(withFuelConsumption));
     }
 
-    public Instance Instantiate(byte[] inputData)
+    public Instance Instantiate(byte[] inputData, long fuelLimit)
     {
         _store = new Store(_engine, inputData);
+        _store.AddFuel(fuelLimit == 0 ? InitialFuel : (ulong)fuelLimit);
         _linker = new Linker(_engine);
         _memory = new Memory(_store, MemoryMin, MemoryMax);
         _module = Module.FromBytes(_engine, "contract", _wasmCode);
@@ -331,7 +334,7 @@ public partial class WebAssemblyContractImplementation : WebAssemblyContract<Web
 
         if (createToken != null)
         {
-            GasMeter?.ChargeGas(createToken.Invoke(len));
+            // TODO: ChargeGas
         }
 
         WriteSandboxMemory(outPtr, buf);

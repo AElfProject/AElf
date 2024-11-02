@@ -10,7 +10,6 @@ public class WebAssemblySmartContractProxy
     private readonly Action _methodCleanup;
     private readonly Func<TransactionExecutingStateSet> _methodGetChanges;
     private readonly Action<ISmartContractBridgeContext> _methodInternalInitialize;
-    private readonly Func<IGasMeter> _methodGetGasMeter;
 
     private readonly Action? _methodResetFields; // can be null
     private readonly Func<List<string>>? _methodGetRuntimeLogs; // can be null
@@ -18,6 +17,7 @@ public class WebAssemblySmartContractProxy
     private readonly Func<List<string>>? _methodGetErrorMessages; // can be null
     private readonly Func<List<string>>? _methodGetDebugMessages; // can be null
     private readonly Func<List<(byte[], byte[])>>? _methodGetEvents; // can be null
+    private readonly Func<long>? _methodGetConsumedFuel; // can be null
 
     public WebAssemblySmartContractProxy(object instance)
     {
@@ -33,12 +33,12 @@ public class WebAssemblySmartContractProxy
                 nameof(InternalInitialize))!;
 
         _methodResetFields = CreateDelegate<Action>(instance, instanceType, nameof(ResetFields));
-        _methodGetGasMeter = CreateDelegate<Func<IGasMeter>>(instance, instanceType, nameof(GetGasMeter))!;
         _methodGetEvents = CreateDelegate<Func<List<(byte[], byte[])>>>(instance, instanceType, nameof(GetEvents));
         _methodGetRuntimeLogs = CreateDelegate<Func<List<string>>>(instance, instanceType, nameof(GetRuntimeLogs));
         _methodGetCustomPrints = CreateDelegate<Func<List<string>>>(instance, instanceType, nameof(GetCustomPrints));
         _methodGetErrorMessages = CreateDelegate<Func<List<string>>>(instance, instanceType, nameof(GetErrorMessages));
         _methodGetDebugMessages = CreateDelegate<Func<List<string>>>(instance, instanceType, nameof(GetDebugMessages));
+        _methodGetConsumedFuel = CreateDelegate<Func<long>>(instance, instanceType, nameof(GetConsumedFuel));
     }
 
     private static MethodInfo? GetMethodInfo(Type type, string name)
@@ -76,9 +76,9 @@ public class WebAssemblySmartContractProxy
         return _methodGetChanges();
     }
 
-    public IGasMeter GetGasMeter()
+    public long? GetConsumedFuel()
     {
-        return _methodGetGasMeter.Invoke();
+        return _methodGetConsumedFuel?.Invoke();
     }
 
     public List<string>? GetRuntimeLogs()

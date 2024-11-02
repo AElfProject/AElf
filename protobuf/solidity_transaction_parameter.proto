@@ -9,12 +9,8 @@ message SolidityTransactionParameter {
     int64 value = 2;
     // Won't transfer token, only write to sandbox memory.
     int64 delegate_call_value = 3;
-    Weight gas_limit = 4;
-}
-
-message Weight {
-    int64 ref_time = 1;
-    int64 proof_size = 2;
+    int64 gas_limit = 4;
+    bool estimate_gas = 5;
 }
 
 message WasmContractCode {

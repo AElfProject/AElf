@@ -26,16 +26,14 @@ public sealed class AssertsTest : SolidityContractTestBase
 
         // Test test_assert_rpc method.
         {
-            var tx = await GetTransactionAsync(DefaultSenderKeyPair, contractAddress, "test_assert_rpc");
-            var txResult = await TestTransactionExecutor.ExecuteWithExceptionAsync(tx);
+            var txResult = await ExecuteTransactionWithExceptionAsync(contractAddress, "test_assert_rpc");
             txResult.Error.ShouldContain("runtime_error: I refuse revert encountered in asserts.sol");
             txResult.Status.ShouldBe(TransactionResultStatus.Failed);
         }
 
         // Test test_assert method.
         {
-            var tx = await GetTransactionAsync(DefaultSenderKeyPair, contractAddress, "test_assert");
-            var txResult = await TestTransactionExecutor.ExecuteWithExceptionAsync(tx);
+            var txResult = await ExecuteTransactionWithExceptionAsync(contractAddress, "test_assert");
             txResult.Error.ShouldContain("runtime_error: assert failure");
             txResult.Status.ShouldBe(TransactionResultStatus.Failed);
         }

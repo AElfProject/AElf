@@ -18,8 +18,6 @@ public class WebAssemblyContract<TContractState> where TContractState : Contract
         Path = new StatePath()
     };
 
-    public IGasMeter? GasMeter { get; set; }
-
     public List<string> RuntimeLogs = new();
     public List<string> CustomPrints = new();
     public List<string> ErrorMessages = new();
@@ -28,6 +26,8 @@ public class WebAssemblyContract<TContractState> where TContractState : Contract
     public byte[]? InputData;
     public bool AlreadyTransferred;
     public bool AllowReentry = true;
+    public long FuelLimit;
+    public long ConsumedFuel;
 
     public WebAssemblySmartSmartContractContext Context { get; set; }
 
@@ -56,11 +56,6 @@ public class WebAssemblyContract<TContractState> where TContractState : Contract
         OnInitialized();
     }
 
-    internal IGasMeter GetGasMeter()
-    {
-        return GasMeter!;
-    }
-
     internal List<string> GetRuntimeLogs()
     {
         return RuntimeLogs;
@@ -79,6 +74,11 @@ public class WebAssemblyContract<TContractState> where TContractState : Contract
     internal List<string> GetErrorMessages()
     {
         return ErrorMessages;
+    }
+
+    internal long GetConsumedFuel()
+    {
+        return ConsumedFuel;
     }
 
     internal List<(byte[], byte[])> GetEvents()

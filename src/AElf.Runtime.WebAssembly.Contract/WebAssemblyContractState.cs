@@ -3,6 +3,7 @@ using AElf.Contracts.MultiToken;
 using AElf.Sdk.CSharp.State;
 using AElf.SolidityContract;
 using AElf.Standards.ACS0;
+using AElf.Standards.ACS10;
 using AElf.Standards.ACS6;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -29,6 +30,7 @@ public class WebAssemblyContractState : ContractState
         set;
     }
 
+    internal DividendPoolContractContainer.DividendPoolContractReferenceState TreasuryContract { get; set; }
     internal TokenContractContainer.TokenContractReferenceState TokenContract { get; set; }
     internal AEDPoSContractContainer.AEDPoSContractReferenceState ConsensusContract { get; set; }
 }

@@ -1,7 +1,11 @@
 using System.Text;
+using AElf.Contracts.MultiToken;
 using AElf.CSharp.Core;
 using AElf.Kernel;
 using AElf.Runtime.WebAssembly.TransactionPayment;
+using AElf.Sdk.CSharp;
+using AElf.Standards.ACS10;
+using Google.Protobuf;
 
 namespace AElf.Runtime.WebAssembly.Contract;
 
@@ -67,6 +71,7 @@ public partial class WebAssemblyContractImplementation
     /// <param name="dataLen"></param>
     private void SealReturnV0(int flags, int dataPtr, int dataLen)
     {
+        ChargeGas(new SealReturn(dataLen));
         ReturnFlags = (ReturnFlags)flags;
         if (dataLen > 0)
         {
@@ -76,6 +81,16 @@ public partial class WebAssemblyContractImplementation
                 ErrorMessages.Add("Panic(uint256)");
             }
         }
+
+        ConsumedFuel = (long)_store.GetConsumedFuel();
+
+        Context.CallMethod(Context.Sender,
+            Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName),
+            nameof(State.TreasuryContract.Donate), new DonateInput
+            {
+                Symbol = Context.Variables.NativeSymbol,
+                Amount = ConsumedFuel
+            }.ToByteString());
     }
 
     /// <summary>

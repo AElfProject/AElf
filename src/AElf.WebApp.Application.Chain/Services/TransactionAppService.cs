@@ -11,7 +11,6 @@ using AElf.Kernel.FeeCalculation.Extensions;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.TransactionPool;
 using AElf.Runtime.WebAssembly;
-using AElf.Runtime.WebAssembly.TransactionPayment;
 using AElf.Runtime.WebAssembly.TransactionPayment.Extensions;
 using AElf.Types;
 using AElf.WebApp.Application.Chain.Dto;
@@ -58,14 +57,11 @@ public class TransactionAppService : AElfAppService, ITransactionAppService
     private readonly WebAppOptions _webAppOptions;
     private readonly MultiTransactionOptions _multiTransactionOptions;
 
-    private readonly IFeeService _feeService;
-
     public TransactionAppService(ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService,
         IBlockchainService blockchainService, IObjectMapper<ChainApplicationWebAppAElfModule> objectMapper,
         ITransactionResultStatusCacheProvider transactionResultStatusCacheProvider,
         IPlainTransactionExecutingService plainTransactionExecutingService,
         IOptionsSnapshot<MultiTransactionOptions> multiTransactionSignerOptions,
-        IFeeService feeService,
         IOptionsMonitor<WebAppOptions> webAppOptions)
     {
         _transactionReadOnlyExecutionService = transactionReadOnlyExecutionService;
@@ -74,7 +70,6 @@ public class TransactionAppService : AElfAppService, ITransactionAppService
         _transactionResultStatusCacheProvider = transactionResultStatusCacheProvider;
         _plainTransactionExecutingService = plainTransactionExecutingService;
         _multiTransactionOptions = multiTransactionSignerOptions.Value;
-        _feeService = feeService;
         _webAppOptions = webAppOptions.CurrentValue;
 
         LocalEventBus = NullLocalEventBus.Instance;
@@ -383,7 +378,7 @@ public class TransactionAppService : AElfAppService, ITransactionAppService
         var chainContext = await GetChainContextAsync();
         var executionReturnSets = await _plainTransactionExecutingService.ExecuteAsync(new TransactionExecutingDto
         {
-            Transactions = new[] { transaction },
+            Transactions = [transaction],
             BlockHeader = new BlockHeader
             {
                 PreviousBlockHash = chainContext.BlockHash,
@@ -398,8 +393,6 @@ public class TransactionAppService : AElfAppService, ITransactionAppService
                 executionReturnSets.FirstOrDefault()?.TransactionResult.GetChargedTransactionFees();
             var resourceFees = executionReturnSets.FirstOrDefault()?.TransactionResult.GetConsumedResourceTokens();
             result.Success = true;
-            result.TransactionFee = GetFeeValue(transactionFees);
-            result.ResourceFee = GetFeeValue(resourceFees);
             result.TransactionFees = GetFee(transactionFees);
             result.ResourceFees = GetFee(resourceFees);
         }
@@ -429,10 +422,10 @@ public class TransactionAppService : AElfAppService, ITransactionAppService
         var result = new EstimateTransactionFeeOutput();
         if (executionReturnSets.FirstOrDefault()?.Status == TransactionResultStatus.Mined)
         {
-            var weight =
-                executionReturnSets.FirstOrDefault()?.TransactionResult.GetEstimatedGasFee();
+            var gasFee =
+                executionReturnSets.FirstOrDefault()?.TransactionResult.GetEstimatedGasFee() ?? 0;
             result.Success = true;
-            result.GasFee = _feeService.CalculateFees(weight);
+            result.GasFee = gasFee;
         }
         else
         {

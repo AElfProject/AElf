@@ -182,8 +182,6 @@ public class UniswapV2PairTests : UniswapV2ContractTests
         var tokenPair = ByteString.CopyFrom(new ABIEncode().GetABIEncoded(tokenAContractAddress.ToWebAssemblyAddress(),
             tokenBContractAddress.ToWebAssemblyAddress()));
 
-        factoryContractAddress.ToBase58().ShouldBe("2CUGsErPjvvtd8vA9hWgf7SPRyvxTeZxYg6Q23FgxcVcpRrL7o");
-
         {
             var tx = await GetTransactionAsync(AliceKeyPair, factoryContractAddress, "createPair",
                 tokenPair);

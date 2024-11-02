@@ -41,7 +41,7 @@ public class Executive : IExecutive
         _solangAbi = JsonSerializer.Deserialize<SolangABI>(solangAbi)!;
         ContractHash = Hash.LoadFromHex(_solangAbi.Source.Hash);
         var wasmCode = _solangAbi.Source.Wasm.HexToByteArray();
-        _webAssemblyContract = new WebAssemblyContractImplementation(wasmCode);
+        _webAssemblyContract = new WebAssemblyContractImplementation(wasmCode, true);
         _smartContractProxy = new WebAssemblySmartContractProxy(_webAssemblyContract);
 
         ContractVersion = _solangAbi.Version;
@@ -115,9 +115,12 @@ public class Executive : IExecutive
             string parameter;
             var value = 0L;
             var delegateCallValue = 0L;
+            var gasLimit = 0L;
             if (isCallConstructor)
             {
                 parameter = transaction.Params.ToHex();
+                // Method fee already charged by executing deploy method.
+                _webAssemblyContract.IsChargeGas = false;
             }
             else
             {
@@ -127,15 +130,16 @@ public class Executive : IExecutive
                 value = solidityTransactionParameter.Value;
                 delegateCallValue = solidityTransactionParameter.DelegateCallValue;
 
-                if (solidityTransactionParameter.GasLimit is { RefTime: 0, ProofSize: 0 } )
+                if (solidityTransactionParameter.EstimateGas)
                 {
-                    _webAssemblyContract.EstimateGas = true;
+                    _webAssemblyContract.IsChargeGas = false;
                 }
 
-                _webAssemblyContract.GasMeter = new GasMeter(solidityTransactionParameter.GasLimit);
+                _webAssemblyContract.FuelLimit = solidityTransactionParameter.GasLimit;
+                gasLimit = _webAssemblyContract.FuelLimit;
             }
 
-            var action = GetAction(selector, parameter, isCallConstructor, value, delegateCallValue);
+            var action = GetAction(selector, parameter, isCallConstructor, value, delegateCallValue, gasLimit);
             var invokeResult = new RuntimeActionInvoker().Invoke(action);
 
             if (!invokeResult.Success)
@@ -234,14 +238,14 @@ public class Executive : IExecutive
 
             if (!isCallConstructor)
             {
-                var gasMeter = _smartContractProxy.GetGasMeter();
+                var consumedFuel = _smartContractProxy.GetConsumedFuel() ?? 0;
                 var logEvent = new LogEvent
                 {
                     Address = transaction.To,
-                    Name = _webAssemblyContract.EstimateGas
+                    Name = _webAssemblyContract.IsChargeGas
                         ? WebAssemblyTransactionPaymentConstants.GasFeeEstimatedLogEventName
-                        : WebAssemblyTransactionPaymentConstants.GasFeeConsumedLogEventName,
-                    NonIndexed = gasMeter.GasLeft.ToByteString()
+                        : WebAssemblyTransactionPaymentConstants.GasFeeChargedLogEventName,
+                    NonIndexed = new Int64Value { Value = consumedFuel }.ToByteString()
                 };
                 CurrentTransactionContext.Trace.Logs.Add(logEvent);
             }
@@ -268,12 +272,12 @@ public class Executive : IExecutive
     }
 
     private Func<ActionResult> GetAction(string selector, string parameter, bool isCallConstructor, long value,
-        long delegateCallValue)
+        long delegateCallValue, long fuelLimit)
     {
         var inputData = Encoders.Hex.DecodeData(selector + parameter);
         _webAssemblyContract.Value = value;
         _webAssemblyContract.DelegateCallValue = delegateCallValue;
-        var instance = _webAssemblyContract.Instantiate(inputData);
+        var instance = _webAssemblyContract.Instantiate(inputData, fuelLimit);
         var actionName = isCallConstructor ? "deploy" : "call";
         var action = instance.GetFunction<ActionResult>(actionName);
         if (action is null)

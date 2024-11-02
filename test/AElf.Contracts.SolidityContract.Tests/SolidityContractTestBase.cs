@@ -6,16 +6,19 @@ using System.Threading.Tasks;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.SolidityContract.Extensions;
+using AElf.Contracts.Treasury;
 using AElf.ContractTestKit;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.CSharp.Core;
+using AElf.EconomicSystem;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Token;
 using AElf.Runtime.WebAssembly;
 using AElf.Runtime.WebAssembly.Extensions;
+using AElf.Runtime.WebAssembly.TransactionPayment.Extensions;
 using AElf.SolidityContract;
 using AElf.Standards.ACS0;
 using AElf.Types;
@@ -62,7 +65,7 @@ public class SolidityContractTestBase : ContractTestBase<SolidityContractTestAEl
     {
         BasicContractZeroStub = GetContractZeroTester(DefaultSenderKeyPair);
         //deploy token contract
-        var tokenContractAddress = (AsyncHelper.RunSync(() => BasicContractZeroStub
+        var tokenContractAddress = AsyncHelper.RunSync(() => BasicContractZeroStub
             .DeploySystemSmartContract.SendAsync(
                 new SystemContractDeploymentInput
                 {
@@ -70,9 +73,20 @@ public class SolidityContractTestBase : ContractTestBase<SolidityContractTestAEl
                     Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(TokenContract).Assembly.Location)),
                     Name = TokenSmartContractAddressNameProvider.Name,
                     TransactionMethodCallList = GenerateTokenInitializationCallList()
-                }))).Output;
+                })).Output;
         TokenContractStub =
             GetTester<TokenContractContainer.TokenContractStub>(tokenContractAddress, DefaultSenderKeyPair);
+
+        var treasuryContractAddress = AsyncHelper.RunSync(() => BasicContractZeroStub
+            .DeploySystemSmartContract.SendAsync(
+                new SystemContractDeploymentInput
+                {
+                    Category = KernelConstants.CodeCoverageRunnerCategory,
+                    Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(TreasuryContract).Assembly.Location)),
+                    Name = TreasurySmartContractAddressNameProvider.Name,
+                    TransactionMethodCallList =
+                        new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList()
+                })).Output;
     }
     
     protected async Task<Address> DeployContractAsync(ByteString input = null)
@@ -227,7 +241,8 @@ public class SolidityContractTestBase : ContractTestBase<SolidityContractTestAEl
         var parameterWithValue = new SolidityTransactionParameter
         {
             Parameter = parameter ?? ByteString.Empty,
-            Value = value
+            Value = value,
+            GasLimit = int.MaxValue
         }.ToByteString();
         var registration = await BasicContractZeroStub.GetSmartContractRegistrationByAddress.CallAsync(to);
         if (registration.Code.IsNullOrEmpty())
@@ -340,7 +355,7 @@ public class SolidityContractTestBase : ContractTestBase<SolidityContractTestAEl
     internal async Task<TransactionResult> ExecuteTransactionAsync(Address contractAddress, string functionName,
         ByteString parameter = null, long value = 0)
     {
-        _outputHelper.WriteLine("Executing tx: " + functionName);
+        _outputHelper.WriteLine("\nExecuting tx: " + functionName);
 
         var tx = await GetTransactionAsync(DefaultSenderKeyPair, contractAddress, functionName, parameter, value);
         var txResult = await TestTransactionExecutor.ExecuteAsync(tx);
@@ -369,6 +384,8 @@ public class SolidityContractTestBase : ContractTestBase<SolidityContractTestAEl
         {
             _outputHelper.WriteLine(errorMessage);
         }
+        
+        _outputHelper.WriteLine($"Charged gas fee: {txResult.GetChargedGasFee()}");
 
         return txResult;
     }
@@ -376,9 +393,34 @@ public class SolidityContractTestBase : ContractTestBase<SolidityContractTestAEl
     internal async Task<TransactionResult> ExecuteTransactionWithExceptionAsync(Address contractAddress, string functionName,
         ByteString parameter = null, long value = 0)
     {
+        _outputHelper.WriteLine("\nExecuting tx: " + functionName);
+
         var tx = await GetTransactionAsync(DefaultSenderKeyPair, contractAddress, functionName, parameter, value);
         var txResult = await TestTransactionExecutor.ExecuteWithExceptionAsync(tx);
         txResult.Status.ShouldNotBe(TransactionResultStatus.Mined);
+        _outputHelper.WriteLine("[Prints]");
+        foreach (var print in txResult.GetPrints())
+        {
+            _outputHelper.WriteLine(print);
+        }
+
+        _outputHelper.WriteLine("[Runtime logs]");
+        foreach (var runtimeLog in txResult.GetRuntimeLogs())
+        {
+            _outputHelper.WriteLine(runtimeLog);
+        }
+
+        _outputHelper.WriteLine("[Debug messages]");
+        foreach (var debugMessage in txResult.GetDebugMessages())
+        {
+            _outputHelper.WriteLine(debugMessage);
+        }
+
+        _outputHelper.WriteLine("[Error messages]");
+        foreach (var errorMessage in txResult.GetErrorMessages())
+        {
+            _outputHelper.WriteLine(errorMessage);
+        }
         return txResult;
     }
 

@@ -1,23 +1,20 @@
 using AElf.Runtime.WebAssembly.TransactionPayment;
-using AElf.Runtime.WebAssembly.TransactionPayment.Extensions;
-using Google.Protobuf;
 
 namespace AElf.Runtime.WebAssembly.Contract;
 
 public partial class WebAssemblyContractImplementation
 {
-    public bool EstimateGas { get; set; }
+    public bool IsChargeGas { get; set; }
 
-    public Weight? ChargeGas(RuntimeCost runtimeCost)
+    public void ChargeGas(RuntimeCost runtimeCost)
     {
-        return new Weight();
-        var gasLeft = GasMeter?.ChargeGas(runtimeCost);
-        if (gasLeft != null && !EstimateGas && gasLeft.Insufficient())
+        ConsumedFuel = (long)_store.GetConsumedFuel();
+        CustomPrints.Add($"Consumed fuel: {ConsumedFuel}");
+        if (FuelLimit <= ConsumedFuel && IsChargeGas)
         {
-            //HandleError(WebAssemblyError.OutOfGas);
+            ErrorMessages.Add("Out of gas.");
+            throw new WebAssemblyRuntimePaymentException("Out of gas.");
         }
-
-        return gasLeft;
     }
 
     /// <summary>
@@ -32,12 +29,13 @@ public partial class WebAssemblyContractImplementation
     /// <param name="outLenPtr"></param>
     private void WeightToFeeV0(long gas, int outPtr, int outLenPtr)
     {
-        WriteSandboxOutput(outPtr, outLenPtr,
-            new FeeService(new IFeeProvider[]
-            {
-                new LengthFeeProvider(),
-                new WeightFeeProvider(new FeeFunctionProvider())
-            }).CalculateFees(new Weight(gas, 0)));
+        CustomPrints.Add("WeightToFeeV0");
+        // WriteSandboxOutput(outPtr, outLenPtr,
+        //     new FeeService(new IFeeProvider[]
+        //     {
+        //         new LengthFeeProvider(),
+        //         new WeightFeeProvider(new FeeFunctionProvider())
+        //     }).CalculateFees(new Weight(gas, 0)));
     }
 
     /// <summary>
@@ -64,12 +62,13 @@ public partial class WebAssemblyContractImplementation
     /// <param name="outLenPtr"></param>
     private void WeightToFeeV1(long refTimeLimit, long proofSizeLimit, int outPtr, int outLenPtr)
     {
-        WriteSandboxOutput(outPtr, outLenPtr,
-            new FeeService(new IFeeProvider[]
-            {
-                new LengthFeeProvider(),
-                new WeightFeeProvider(new FeeFunctionProvider())
-            }).CalculateFees(new Weight(refTimeLimit, proofSizeLimit)));
+        CustomPrints.Add("WeightToFeeV1");
+        // WriteSandboxOutput(outPtr, outLenPtr,
+        //     new FeeService(new IFeeProvider[]
+        //     {
+        //         new LengthFeeProvider(),
+        //         new WeightFeeProvider(new FeeFunctionProvider())
+        //     }).CalculateFees(new Weight(refTimeLimit, proofSizeLimit)));
     }
 
     /// <summary>
@@ -83,8 +82,9 @@ public partial class WebAssemblyContractImplementation
     /// <param name="outLenPtr"></param>
     private void GasLeftV0(int outPtr, int outLenPtr)
     {
-        var gasLeft = GasMeter?.GasLeft;
-        WriteSandboxOutput(outPtr, outLenPtr, gasLeft.ToByteArray());
+        CustomPrints.Add("GasLeftV0");
+        // var gasLeft = GasMeter?.GasLeft;
+        // WriteSandboxOutput(outPtr, outLenPtr, gasLeft.ToByteArray());
     }
 
     /// <summary>
@@ -101,7 +101,8 @@ public partial class WebAssemblyContractImplementation
     /// <param name="outLenPtr"></param>
     private void GasLeftV1(int outPtr, int outLenPtr)
     {
-        var gasLeft = GasMeter?.GasLeft;
-        WriteSandboxOutput(outPtr, outLenPtr, gasLeft.ToByteArray());
+        CustomPrints.Add("GasLeftV1");
+        // var gasLeft = GasMeter?.GasLeft;
+        // WriteSandboxOutput(outPtr, outLenPtr, gasLeft.ToByteArray());
     }
 }

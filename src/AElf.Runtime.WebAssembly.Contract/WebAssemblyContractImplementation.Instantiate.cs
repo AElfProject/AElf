@@ -27,7 +27,8 @@ public partial class WebAssemblyContractImplementation
         int inputDataLen, int addressPtr, int addressLenPtr, int outputPtr, int outputLenPtr, int saltPtr,
         int saltLen)
     {
-        return (int)Instantiate(codeHashPtr, new Weight(gas, 0), null, valuePtr,
+        CustomPrints.Add("InstantiateV0");
+        return (int)Instantiate(codeHashPtr, gas, null, valuePtr,
             inputDataPtr, inputDataLen, addressPtr, addressLenPtr, outputPtr, outputLenPtr, saltPtr, saltLen);
     }
 
@@ -42,7 +43,8 @@ public partial class WebAssemblyContractImplementation
     private int InstantiateV1(int codeHashPtr, long gas, int valuePtr, int inputDataPtr, int inputDataLen,
         int addressPtr, int addressLenPtr, int outputPtr, int outputLenPtr, int saltPtr, int saltLen)
     {
-        return (int)Instantiate(codeHashPtr, new Weight(gas, 0), null, valuePtr,
+        CustomPrints.Add("InstantiateV1");
+        return (int)Instantiate(codeHashPtr, gas, null, valuePtr,
             inputDataPtr, inputDataLen, addressPtr, addressLenPtr, outputPtr, outputLenPtr, saltPtr, saltLen);
     }
 
@@ -81,11 +83,12 @@ public partial class WebAssemblyContractImplementation
         int inputDataPtr, int inputDataLen, int addressPtr, int addressLenPtr, int outputPtr, int outputLenPtr,
         int saltPtr, int saltLen)
     {
-        return (int)Instantiate(codeHashPtr, new Weight(refTimeLimit, proofSizeLimit), depositPtr, valuePtr,
+        CustomPrints.Add("InstantiateV2");
+        return (int)Instantiate(codeHashPtr, proofSizeLimit, depositPtr, valuePtr,
             inputDataPtr, inputDataLen, addressPtr, addressLenPtr, outputPtr, outputLenPtr, saltPtr, saltLen);
     }
 
-    private ReturnCode Instantiate(int codeHashPtr, Weight weight, int? depositPtr, int valuePtr, int inputDataPtr,
+    private ReturnCode Instantiate(int codeHashPtr, long gasLimit, int? depositPtr, int valuePtr, int inputDataPtr,
         int inputDataLen, int addressPtr, int addressLenPtr, int outputPtr, int outputLenPtr, int saltPtr, int saltLen)
     {
         var depositLimit = depositPtr == null ? 0 : ReadSandboxMemory(depositPtr.Value, 8).ToInt64(false);
@@ -93,7 +96,7 @@ public partial class WebAssemblyContractImplementation
         var codeHash = ReadSandboxMemory(codeHashPtr, AElfConstants.HashByteArrayLength).ToHash();
         var inputData = ReadSandboxMemory(inputDataPtr, inputDataLen);
         var salt = ReadSandboxMemory(saltPtr, saltLen);
-        var (address, output) = Instantiate(weight, depositLimit, codeHash, value, inputData, salt);
+        var (address, output) = Instantiate(gasLimit, depositLimit, codeHash, value, inputData, salt);
         if (output.Flags != ReturnFlags.Revert)
         {
             WriteSandboxOutput(addressPtr, addressLenPtr, address.ToByteArray(), true);
@@ -103,7 +106,7 @@ public partial class WebAssemblyContractImplementation
         return output.ToReturnCode();
     }
 
-    private (Address, ExecuteReturnValue) Instantiate(Weight gasLimit, long depositLimit, Hash codeHash, long value,
+    private (Address, ExecuteReturnValue) Instantiate(long gasLimit, long depositLimit, Hash codeHash, long value,
         byte[] inputData, byte[] salt)
     {
         CustomPrints.Add("Instantiate.");

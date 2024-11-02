@@ -1,5 +1,4 @@
 using AElf.Runtime.WebAssembly.TransactionPayment;
-using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -28,7 +27,7 @@ public partial class WebAssemblyContractImplementation
         int inputDataLen, int outputPtr, int outputLenPtr)
     {
         return (int)Call(CallFlags.AllowReentry,
-            new Call(calleePtr, valuePtr, null, new Weight(gas, 0)),
+            new Call(calleePtr, valuePtr, null, gas),
             inputDataPtr,
             inputDataLen,
             outputPtr,
@@ -49,7 +48,7 @@ public partial class WebAssemblyContractImplementation
         CustomPrints.Add("CallV1.");
         CustomPrints.Add(flags.ToString());
         return (int)Call((CallFlags)flags,
-            new Call(calleePtr, valuePtr, null, new Weight(gas, 0)),
+            new Call(calleePtr, valuePtr, null, gas),
             inputDataPtr,
             inputDataLen,
             outputPtr,
@@ -93,7 +92,7 @@ public partial class WebAssemblyContractImplementation
     {
         CustomPrints.Add("CallV2.");
         return (int)Call((CallFlags)flags,
-            new Call(calleePtr, valuePtr, depositPtr, new Weight(refTimeLimit, proofSizeLimit)),
+            new Call(calleePtr, valuePtr, depositPtr, proofSizeLimit),
             inputDataPtr,
             inputDataLen,
             outputPtr,
@@ -175,7 +174,7 @@ public partial class WebAssemblyContractImplementation
                 var callee = ReadSandboxMemory(call.CalleePtr, 32).ToAddress();
                 var depositLimit = call.DepositPtr == null ? 0 : ReadSandboxMemory((int)call.DepositPtr, 8).ToInt32(false);
                 var value = ReadSandboxMemory(call.ValuePtr, 8).ToInt32(false);
-                outcome = Call(call.Weight, depositLimit, callee, value, inputData!,
+                outcome = Call(call.GasLimit, depositLimit, callee, value, inputData!,
                     callFlags.HasFlag(CallFlags.AllowReentry));
                 break;
             }
@@ -217,7 +216,7 @@ public partial class WebAssemblyContractImplementation
         return ReturnCode.Success;
     }
 
-    private ExecuteReturnValue Call(Weight gasLimit, long depositLimit, Address to, long value, byte[] inputData,
+    private ExecuteReturnValue Call(long gasLimit, long depositLimit, Address to, long value, byte[] inputData,
         bool allowReentry)
     {
         AllowReentry = allowReentry;
@@ -275,7 +274,7 @@ public interface ICallType
 {
 }
 
-public record Call(int CalleePtr, int ValuePtr, int? DepositPtr, Weight Weight) : ICallType;
+public record Call(int CalleePtr, int ValuePtr, int? DepositPtr, long GasLimit) : ICallType;
 public record DelegateCall(int CodeHashPtr) : ICallType;
 
 [Flags]

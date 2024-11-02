@@ -1,40 +1,36 @@
 using AElf.Kernel;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Runtime.WebAssembly.TransactionPayment.Extensions;
 
 public static class TransactionTraceExtension
 {
-    public static Weight? GetEstimatedGasFee(this TransactionTrace transactionTrace)
+    public static long GetEstimatedGasFee(this TransactionTrace transactionTrace)
     {
         var logEvent = transactionTrace.Logs.LastOrDefault(l =>
             l.Name == WebAssemblyTransactionPaymentConstants.GasFeeEstimatedLogEventName)?.NonIndexed;
         if (logEvent == null)
         {
-            return null;
+            return 0;
         }
 
-        var weight = new Weight();
-        weight.MergeFrom(logEvent);
-        weight = new Weight
-        {
-            RefTime = -weight.RefTime,
-            ProofSize = -weight.ProofSize,
-        };
-        return weight;
+        var gasFee = new Int64Value();
+        gasFee.MergeFrom(logEvent);
+        return gasFee.Value;
     }
 
-    public static Weight? GetConsumedGasFee(this TransactionTrace transactionTrace)
+    public static long GetConsumedGasFee(this TransactionTrace transactionTrace)
     {
         var logEvent = transactionTrace.Logs.LastOrDefault(l =>
-            l.Name == WebAssemblyTransactionPaymentConstants.GasFeeConsumedLogEventName)?.NonIndexed;
+            l.Name == WebAssemblyTransactionPaymentConstants.GasFeeChargedLogEventName)?.NonIndexed;
         if (logEvent == null)
         {
-            return null;
+            return 0;
         }
 
-        var weight = new Weight();
-        weight.MergeFrom(logEvent);
-        return weight;
+        var gasFee = new Int64Value();
+        gasFee.MergeFrom(logEvent);
+        return gasFee.Value;
     }
 }
