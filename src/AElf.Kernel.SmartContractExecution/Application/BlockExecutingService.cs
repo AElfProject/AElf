@@ -80,7 +80,7 @@ public class BlockExecutingService : IBlockExecutingService, ITransientDependenc
                 {
                     BlockHeader = blockHeader,
                     Transactions = cancellable,
-                    TransactionsWithInline = inlineCancellable,
+                    TransactionsForInline = inlineCancellable,
                     PartialBlockStateSet = returnSetCollection.ToBlockStateSet()
                 },
                 cancellationToken);
@@ -92,11 +92,8 @@ public class BlockExecutingService : IBlockExecutingService, ITransientDependenc
         var allExecutedTransactions =
             nonCancellable.Concat(cancellable.Where(x => executedCancellableTransactions.Contains(x.GetHash())))
                 .ToList();
-        if (inlineCancellable.Count > 0)
-        {
-            await _transactionManager.AddTransactionsAsync(inlineCancellable);
-            allExecutedTransactions.AddRange(inlineCancellable);    
-        }
+        await AddInlineWithTransactionId(inlineCancellable, returnSetCollection, allExecutedTransactions);
+        
         var blockStateSet =
             CreateBlockStateSet(blockHeader.PreviousBlockHash, blockHeader.Height, returnSetCollection);
         var block = await FillBlockAfterExecutionAsync(blockHeader, allExecutedTransactions, returnSetCollection,
@@ -119,6 +116,15 @@ public class BlockExecutingService : IBlockExecutingService, ITransientDependenc
             TransactionMap = allExecutedTransactions.ToDictionary(p => p.GetHash(), p => p),
             TransactionResultMap = transactionResults.ToDictionary(p => p.TransactionId, p => p)
         };
+    }
+
+    private async Task AddInlineWithTransactionId(List<Transaction> inlineCancellable, ExecutionReturnSetCollection returnSetCollection, List<Transaction> allExecutedTransactions)
+    {
+        if (inlineCancellable.Count > 0)
+        {
+            await _transactionManager.AddTransactionsAsync(inlineCancellable);
+            allExecutedTransactions.AddRange(inlineCancellable);    
+        }
     }
 
     private Task<Block> FillBlockAfterExecutionAsync(BlockHeader header,

@@ -36,7 +36,7 @@ public class TransactionExecutionValidationProvider : ITransactionValidationProv
         var executionReturnSets = await _plainTransactionExecutingService.ExecuteAsync(new TransactionExecutingDto
         {
             Transactions = new[] { transaction },
-            TransactionsWithInline = [],
+            TransactionsForInline = [],
             BlockHeader = new BlockHeader
             {
                 PreviousBlockHash = chainContext.BlockHash,

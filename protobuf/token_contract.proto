@@ -484,6 +484,7 @@ message CrossChainReceiveTokenInput {
     bytes transfer_transaction_bytes = 3;
     // The merkle path created from the transfer transaction.
     aelf.MerklePath merkle_path = 4;
+    string inline_factor = 5;
 }
 
 message IsInWhiteListInput {

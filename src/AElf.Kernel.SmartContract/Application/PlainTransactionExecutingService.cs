@@ -95,17 +95,9 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
 
                     var returnSet = GetReturnSet(transactionTrace, result);
                     
-                    if(transactionTrace.IsInlineTxWithId)
-                    {
-                        var transactionInline = Transaction.Parser.ParseFrom(Convert.FromBase64String(VirtualTransactionCreated.Parser
-                            .ParseFrom(trace.Logs[1].Indexed[5]).InlineTransactionStr));
-                        transactionInline.SetHash(transactionTrace.TransactionId);
-                        transactionInline.IsInlineTxWithId = true;
-                        transactionExecutingDto.TransactionsWithInline.Add(transactionInline);
-                    }
-
-                    returnSets.Add(returnSet);
+                    AddInlineTransaction(transactionTrace,trace,transactionExecutingDto);
                     
+                    returnSets.Add(returnSet);
                 }
                 
             }
@@ -116,6 +108,37 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
         {
             Logger.LogError(e, "Failed while executing txs in block");
             throw;
+        }
+    }
+
+    private void AddInlineTransaction(TransactionTrace transactionTrace, TransactionTrace originTxTrace,
+        TransactionExecutingDto transactionExecutingDto)
+    {
+        if (!transactionTrace.IsInlineTxWithId)
+        {
+            return;
+        }
+
+        var virtualTransactionLog = originTxTrace.Logs
+            .FirstOrDefault(p => p.Name.Equals(VirtualTransactionCreated.Descriptor.Name));
+        Console.WriteLine("virtualTransactionLog="+VirtualTransactionCreated.Descriptor.Name);    //
+
+        if (virtualTransactionLog != null && virtualTransactionLog.Indexed.Count > 6)
+        {
+            var transactionByteString = virtualTransactionLog.Indexed[5];
+            var transactionInline = Transaction.Parser.ParseFrom(Convert.FromBase64String(VirtualTransactionCreated.Parser
+                .ParseFrom(transactionByteString).InlineTransaction));
+            var inlineFactor = VirtualTransactionCreated.Parser
+                .ParseFrom(virtualTransactionLog.Indexed[6]).InlineFactor;
+            transactionInline.SetInlineTxId(inlineFactor);
+            Console.WriteLine("trace.TransactionId="+originTxTrace.TransactionId);    //
+            Console.WriteLine("inlineTx.TransactionId="+transactionInline.GetHash());    //
+            transactionInline.IsInlineTxWithId = true;
+            transactionExecutingDto.TransactionsForInline.Add(transactionInline);
+        }
+        else
+        {
+            Logger.LogError("fail. inline transaction must more than 6 indexed value");   
         }
     }
 

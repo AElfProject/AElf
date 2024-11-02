@@ -6,8 +6,9 @@ namespace AElf.Types
     public partial class Transaction
     {
         private Hash _transactionId;
-        
+
         public bool IsInlineTxWithId;
+        private string _inlineTxIdFactor;
 
         public Hash GetHash()
         {
@@ -17,9 +18,15 @@ namespace AElf.Types
             return _transactionId;
         }
 
-        public void SetHash(Hash transactionId)
+        public void SetInlineTxId(string inlineTxIdFactor)
         {
-            _transactionId = transactionId;
+            _inlineTxIdFactor = inlineTxIdFactor;
+            _transactionId = HashHelper.XorAndCompute(GetHash(), HashHelper.ComputeFrom(inlineTxIdFactor));
+        }
+
+        public string GetInlineTxIdFactor()
+        {
+            return _inlineTxIdFactor;
         }
 
         public bool VerifyFields()

@@ -84,7 +84,7 @@ public class LocalParallelTransactionExecutingService : IParallelTransactionExec
         var tasks = groupedTransactions.Select(
             txns => ExecuteAndPreprocessResult(new TransactionExecutingDto
             {
-                TransactionsWithInline = transactionExecutingDto.TransactionsWithInline,
+                TransactionsForInline = transactionExecutingDto.TransactionsForInline,
                 BlockHeader = blockHeader,
                 Transactions = txns,
                 PartialBlockStateSet = blockStateSet
@@ -109,7 +109,7 @@ public class LocalParallelTransactionExecutingService : IParallelTransactionExec
         var nonParallelizableReturnSets = await _planTransactionExecutingService.ExecuteAsync(
             new TransactionExecutingDto
             {
-                TransactionsWithInline = transactionExecutingDto.TransactionsWithInline,
+                TransactionsForInline = transactionExecutingDto.TransactionsForInline,
                 Transactions = transactions,
                 BlockHeader = blockHeader,
                 PartialBlockStateSet = blockStateSet

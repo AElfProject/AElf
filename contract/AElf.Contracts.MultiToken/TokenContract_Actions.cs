@@ -5,6 +5,7 @@ using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 using AElf.Standards.ACS0;
 using AElf.Types;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.MultiToken;
@@ -590,6 +591,7 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
     public override Empty CrossChainReceiveToken(CrossChainReceiveTokenInput input)
     {
         var transferTransaction = Transaction.Parser.ParseFrom(input.TransferTransactionBytes);
+        HanleInlineId(transferTransaction,input);
         var transferTransactionId = transferTransaction.GetHash();
 
         Assert(!State.VerifiedCrossChainTransferTransaction[transferTransactionId],
@@ -634,6 +636,14 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
             TransferTransactionId = transferTransactionId
         });
         return new Empty();
+    }
+
+    private void HanleInlineId(Transaction transferTransaction, CrossChainReceiveTokenInput input)
+    {
+        if (!string.IsNullOrEmpty(input.InlineFactor))
+        {
+            transferTransaction.SetInlineTxId(input.InlineFactor);
+        }
     }
 
     #endregion
