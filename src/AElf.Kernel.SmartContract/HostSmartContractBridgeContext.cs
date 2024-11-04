@@ -288,6 +288,23 @@ public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, I
         FireVirtualTransactionLogEvent(fromVirtualAddress, transaction);
     }
 
+    public void SendVirtualInlineWithTransactionId(Hash fromVirtualAddress, Address toAddress, string methodName,
+        ByteString args, bool logTransaction)
+    {
+        var transaction = new Transaction
+        {
+            IsInlineTxWithId = true,
+            From = ConvertVirtualAddressToContractAddress(fromVirtualAddress, Self),
+            To = toAddress,
+            MethodName = methodName,
+            Params = args
+        };
+        transaction.SetInlineTxId(TimestampHelper.GetUtcNow().ToString());
+        TransactionContext.Trace.InlineTransactions.Add(transaction);
+        if (!logTransaction) return;
+        FireInlineVirtualTransactionLogEvent(fromVirtualAddress, transaction);
+    }
+    
     public void SendVirtualInlineBySystemContract(Hash fromVirtualAddress, Address toAddress, string methodName,
         ByteString args)
     {
