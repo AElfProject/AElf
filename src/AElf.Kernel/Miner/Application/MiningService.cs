@@ -64,9 +64,12 @@ public class MiningService : IMiningService
             var block = await GenerateBlock(requestMiningDto.PreviousBlockHash, requestMiningDto.PreviousBlockHeight, blockTime);
             var systemTransactions = await GenerateSystemTransactions(requestMiningDto.PreviousBlockHash, requestMiningDto.PreviousBlockHeight);
             
+            Logger.LogInformation("Generated block systemTransactions: {systemTransactions}",systemTransactions.Count);
+            
             _systemTransactionExtraDataProvider.SetSystemTransactionCount(systemTransactions.Count,
                 block.Header);
             
+
             var txTotalCount = transactions.Count + systemTransactions.Count;
 
             var pending = txTotalCount > requestMiningDto.TransactionCountLimit
@@ -79,15 +82,13 @@ public class MiningService : IMiningService
 
             block = blockExecutedSet.Block;
             await SignBlockAsync(block);
-            if (block.Body.TransactionsCount > 2)
-            {
-                Logger.LogInformation("Generated block: {Block}, " +
-                                      "previous: {PreviousBlockHash}, " +
-                                      "executed transactions: {TransactionsCount}, " +
-                                      "not executed transactions {NotExecutedTransactionsCount}",
-                    block.ToDiagnosticString(), block.Header.PreviousBlockHash.ToHex(), block.Body.TransactionsCount,
-                    pending.Count + systemTransactions.Count - block.Body.TransactionsCount);
-            }
+            
+            Logger.LogInformation("Generated block: {Block}, " +
+                                  "previous: {PreviousBlockHash}, " +
+                                  "executed transactions: {TransactionsCount}, " +
+                                  "not executed transactions {NotExecutedTransactionsCount}",
+                block.ToDiagnosticString(), block.Header.PreviousBlockHash.ToHex(), block.Body.TransactionsCount,
+                pending.Count + systemTransactions.Count - block.Body.TransactionsCount);
             return blockExecutedSet;
         }
         catch (Exception e)

@@ -457,7 +457,7 @@ public class GrpcPeer : IPeer
             throw new NetworkException($"Dropping transaction, peer is not ready - {this}.",
                 NetworkExceptionType.NotConnected);
 
-        _sendTransactionJobs.Post(new StreamJob { Transaction = transaction, SendCallback = sendCallback });
+        _sendTransactionJobs.SendAsync(new StreamJob { Transaction = transaction, SendCallback = sendCallback });
     }
 
     public void EnqueueAnnouncement(BlockAnnouncement announcement, Action<NetworkException> sendCallback)

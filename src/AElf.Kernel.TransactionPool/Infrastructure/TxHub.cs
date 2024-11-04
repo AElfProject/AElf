@@ -58,6 +58,10 @@ public class TxHub : ITxHub, ISingletonDependency
     public async Task<ExecutableTransactionSet> GetExecutableTransactionSetAsync(
         Hash blockHash, int transactionCount)
     {
+        
+        Logger.LogInformation(
+            "GetExecutableTransactionSetAsync _validatedTransactions size:{_validatedTransactionsSize}",_validatedTransactions.Count);
+        
         var output = new ExecutableTransactionSet
         {
             PreviousBlockHash = _bestChainHash,
