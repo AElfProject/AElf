@@ -87,10 +87,38 @@ public class LocalParallelTransactionExecutingService : IParallelTransactionExec
                 Transactions = txns,
                 PartialBlockStateSet = blockStateSet
             }, cancellationToken));
-        var results = await Task.WhenAll(tasks);
-        Logger.LogTrace("Executed parallelizables.");
+        var timeout = 200;
+        var timeoutTask = Task.Delay(timeout, cancellationToken);
+        var completedTask = await Task.WhenAny(Task.WhenAll(tasks), timeoutTask);
+        var resultList = new List<GroupedExecutionReturnSets>();
 
-        var executionReturnSets = MergeResults(results, out var conflictingSets);
+        if (completedTask == timeoutTask)
+        {
+            Logger.LogInformation("Timeout reached. Handling already completed tasks.");
+
+            var completedTasks = tasks.Where(t => t.IsCompleted).ToList();
+            foreach (var task in completedTasks)
+            {
+                if (task.IsCompletedSuccessfully)
+                {
+                    Logger.LogInformation($"Task completed with result: {task.Result}");
+                    resultList.Add(task.Result);
+                }
+            }
+        }
+        else
+        {
+            Logger.LogInformation("All tasks completed before timeout.");
+            var results = await Task.WhenAll(tasks);
+            foreach (var result in results)
+            {
+                Logger.LogInformation($"Task completed with result: {result}");
+                resultList.Add(result);
+            }
+        }
+        Logger.LogTrace("Executed parallelizables.");
+    
+        var executionReturnSets = MergeResults(resultList.ToArray(), out var conflictingSets);
         Logger.LogTrace("Merged results from parallelizables.");
         return new ExecutionReturnSetMergeResult
         {
