@@ -2,5 +2,5 @@ namespace AElf.Kernel.SmartContract;
 
 public class TransactionConsts
 {
-    public const int InlineWithTransactionIdLimit = 0;
+    public const int InlineWithTransactionIdLimit = 5;
 }

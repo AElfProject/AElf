@@ -61,6 +61,7 @@ public interface ISmartContractBridgeContext
         where T : IMessage<T>, new();
 
     void SendInline(Address toAddress, string methodName, ByteString args);
+    
     void SendInlineWithTransactionId(Address toAddress, string methodName, ByteString args);
 
     void SendVirtualInline(Hash fromVirtualAddress, Address toAddress, string methodName, ByteString args);

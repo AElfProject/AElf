@@ -271,9 +271,8 @@ public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, I
         };
         transaction.SetInlineTxId(TimestampHelper.GetUtcNow().ToString());
         TransactionContext.Trace.InlineTransactions.Add(transaction);
-        FireVirtualTransactionLogEvent(fromVirtualAddress, transaction);
+        FireInlineVirtualTransactionLogEvent(fromVirtualAddress, transaction);
     }
-
     public void SendVirtualInline(Hash fromVirtualAddress, Address toAddress, string methodName,
         ByteString args, bool logTransaction)
     {
@@ -319,8 +318,6 @@ public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, I
     
     private void FireVirtualTransactionLogEvent(Hash fromVirtualAddress, Transaction transaction)
     {
-        // Console.WriteLine("FireTransactionLogEvent= "+transaction.GetHash().ToHex());
-        // Console.WriteLine("GetInlineTxIdFactor= "+transaction.GetInlineTxIdFactor());
         var log = new VirtualTransactionCreated
         {
             From = transaction.From,
@@ -329,14 +326,26 @@ public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, I
             MethodName = transaction.MethodName,
             Params = transaction.Params,
             Signatory = Sender,
-            InlineTransaction = transaction.ToByteString().ToBase64(),
+        };
+        FireLogEvent(log.ToLogEvent(Self));
+    }
+    private void FireInlineVirtualTransactionLogEvent(Hash fromVirtualAddress, Transaction transaction)
+    {
+        var log = new VirtualTransactionCreated
+        {
+            From = transaction.From,
+            To = transaction.To,
+            VirtualHash = fromVirtualAddress,
+            MethodName = transaction.MethodName,
+            Params = transaction.Params,
+            Signatory = Sender,
+            InlineTransaction = transaction,
             InlineFactor = transaction.GetInlineTxIdFactor()
         };
         FireLogEvent(log.ToLogEvent(Self));
     }
     private void FireTransactionLogEvent(Transaction transaction)
     {
-        Console.WriteLine("FireTransactionLogEvent2= "+transaction.GetHash().ToHex());
         var log = new VirtualTransactionCreated
         {
             From = transaction.From,
@@ -344,7 +353,7 @@ public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, I
             MethodName = transaction.MethodName,
             Params = transaction.Params,
             Signatory = Sender,
-            InlineTransaction = transaction.ToByteString().ToBase64(),
+            InlineTransaction = transaction,
             InlineFactor = transaction.GetInlineTxIdFactor()
         };
         FireLogEvent(log.ToLogEvent(Self));

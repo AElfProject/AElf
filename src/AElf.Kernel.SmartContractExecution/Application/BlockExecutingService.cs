@@ -27,7 +27,6 @@ public class BlockExecutingService : IBlockExecutingService, ITransientDependenc
     private readonly ITransactionExecutingService _transactionExecutingService;
     private readonly ITransactionResultService _transactionResultService;
     private readonly ITransactionManager _transactionManager;
-
     
     public BlockExecutingService(ITransactionExecutingService transactionExecutingService,
         IBlockchainStateService blockchainStateService,
@@ -120,11 +119,10 @@ public class BlockExecutingService : IBlockExecutingService, ITransientDependenc
 
     private async Task AddInlineWithTransactionId(List<Transaction> inlineCancellable, ExecutionReturnSetCollection returnSetCollection, List<Transaction> allExecutedTransactions)
     {
-        if (inlineCancellable.Count > 0)
-        {
-            await _transactionManager.AddTransactionsAsync(inlineCancellable);
-            allExecutedTransactions.AddRange(inlineCancellable);    
-        }
+        if(inlineCancellable.IsNullOrEmpty())
+            return;
+        await _transactionManager.AddTransactionsAsync(inlineCancellable);
+        allExecutedTransactions.AddRange(inlineCancellable);
     }
 
     private Task<Block> FillBlockAfterExecutionAsync(BlockHeader header,

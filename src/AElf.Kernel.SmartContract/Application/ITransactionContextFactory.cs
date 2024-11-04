@@ -59,7 +59,7 @@ public class TransactionContextFactory : ITransactionContextFactory
             CurrentBlockTime = blockTime ?? TimestampHelper.GetUtcNow(),
             CallDepth = callDepth,
             MaxCallDepth = 64,
-            MaxInlineWithTransactionIdCount = 5,
+            MaxInlineWithTransactionIdCount = TransactionConsts.InlineWithTransactionIdLimit,
             Origin = transaction.From,
             OriginTransactionId = transaction.GetHash(),
             ExecutionObserverThreshold = executionObserverThreshold,
