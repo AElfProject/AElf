@@ -62,6 +62,9 @@ public class BlockExecutingService : IBlockExecutingService, ITransientDependenc
                 new TransactionExecutingDto { BlockHeader = blockHeader, Transactions = nonCancellable },
                 CancellationToken.None);
         Logger.LogTrace("Executed non-cancellable txs");
+        Logger.LogTrace("Executed non-cancellable txs nonCancellableReturnSets size:{}",nonCancellableReturnSets.Count);
+        Logger.LogTrace("Executed non-cancellable txs cancellable size:{}",cancellable.Count);
+
 
         var returnSetCollection = new ExecutionReturnSetCollection(nonCancellableReturnSets);
         var cancellableReturnSets = new List<ExecutionReturnSet>();
