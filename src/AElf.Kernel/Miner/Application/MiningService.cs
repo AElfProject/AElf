@@ -49,6 +49,10 @@ public class MiningService : IMiningService
         {
             using var cts = new CancellationTokenSource();
             var expirationTime = blockTime + requestMiningDto.BlockExecutionTime;
+            Logger.LogInformation(" MineAsync expirationTime : {expirationTime}");
+            Logger.LogInformation(" MineAsync BlockExecutionTime : {requestMiningDto.BlockExecutionTime}");
+            Logger.LogInformation(" MineAsync blockTime : {blockTime}");
+
             if (expirationTime < TimestampHelper.GetUtcNow())
             {
                 cts.Cancel();
@@ -57,6 +61,7 @@ public class MiningService : IMiningService
             {
                 var ts = (expirationTime - TimestampHelper.GetUtcNow()).ToTimeSpan();
                 if (ts.TotalMilliseconds > int.MaxValue) ts = TimeSpan.FromMilliseconds(int.MaxValue);
+                Logger.LogInformation(" MineAsync ts time: {ts}");
 
                 cts.CancelAfter(ts);
             }

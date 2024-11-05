@@ -55,18 +55,18 @@ public class LocalParallelTransactionExecutingService : IParallelTransactionExec
         var returnSetCollection = new ExecutionReturnSetCollection(returnSets);
         var updatedPartialBlockStateSet = GetUpdatedBlockStateSet(returnSetCollection, transactionExecutingDto);
 
-        Logger.LogTrace("Entered ExecuteNonParallelizableTransactionsAsync.");
+        Logger.LogInformation("Entered ExecuteNonParallelizableTransactionsAsync.");
         var nonParallelizableReturnSets = await ExecuteNonParallelizableTransactionsAsync(
             groupedTransactions.NonParallelizables, blockHeader,
             updatedPartialBlockStateSet, cancellationToken);
-        Logger.LogTrace("Entered ExecuteNonParallelizableTransactionsAsync. end");
+        Logger.LogInformation("Entered ExecuteNonParallelizableTransactionsAsync. end");
 
         returnSets.AddRange(nonParallelizableReturnSets);
 
         var transactionWithoutContractReturnSets = ProcessTransactionsWithoutContract(
             groupedTransactions.TransactionsWithoutContract);
 
-        Logger.LogTrace("Merged results from transactions without contract.");
+        Logger.LogInformation("Merged results from transactions without contract.");
         returnSets.AddRange(transactionWithoutContractReturnSets);
 
         if (conflictingSets.Count > 0 &&
@@ -169,7 +169,7 @@ public class LocalParallelTransactionExecutingService : IParallelTransactionExec
             },
             cancellationToken);
 
-        Logger.LogTrace("Merged results from non-parallelizables.");
+        Logger.LogInformation("Merged results from non-parallelizables.");
         return nonParallelizableReturnSets;
     }
 
