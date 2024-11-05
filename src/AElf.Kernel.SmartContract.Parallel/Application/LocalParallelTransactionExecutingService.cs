@@ -80,6 +80,9 @@ public class LocalParallelTransactionExecutingService : IParallelTransactionExec
         List<List<Transaction>> groupedTransactions, BlockHeader blockHeader, BlockStateSet blockStateSet,
         CancellationToken cancellationToken)
     {
+        Logger.LogInformation("ExecuteParallelizableTransactionsAsync groupedTransactions size:{}",groupedTransactions.Count);
+        Logger.LogInformation("ExecuteParallelizableTransactionsAsync blockStateSet size:{}",blockStateSet.BlockExecutedData.Count);
+
         var tasks = groupedTransactions.Select(
             txns => ExecuteAndPreprocessResult(new TransactionExecutingDto
             {
@@ -87,6 +90,8 @@ public class LocalParallelTransactionExecutingService : IParallelTransactionExec
                 Transactions = txns,
                 PartialBlockStateSet = blockStateSet
             }, cancellationToken));
+        Logger.LogInformation("ExecuteParallelizableTransactionsAsync tasks size:{}",tasks.Count());
+
         var timeout = 200;
         var timeoutTask = Task.Delay(timeout, cancellationToken);
         var completedTask = await Task.WhenAny(Task.WhenAll(tasks), timeoutTask);
