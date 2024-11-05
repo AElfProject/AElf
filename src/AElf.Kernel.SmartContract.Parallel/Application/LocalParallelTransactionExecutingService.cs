@@ -113,6 +113,8 @@ public class LocalParallelTransactionExecutingService : IParallelTransactionExec
                     resultList.Add(task.Result);
                 }
             }
+            Logger.LogInformation("Timeout reached. resultList size:{size}",resultList.Count);
+
         }
         else
         {
@@ -128,6 +130,9 @@ public class LocalParallelTransactionExecutingService : IParallelTransactionExec
     
         var executionReturnSets = MergeResults(resultList.ToArray(), out var conflictingSets);
         Logger.LogTrace("Merged results from parallelizables.");
+        Logger.LogTrace("Merged results from parallelizables. executionReturnSets size:{size}",executionReturnSets.Count);
+        Logger.LogTrace("Merged results from parallelizables. conflictingSets size:{size}",conflictingSets.Count);
+
         return new ExecutionReturnSetMergeResult
         {
             ExecutionReturnSets = executionReturnSets,
