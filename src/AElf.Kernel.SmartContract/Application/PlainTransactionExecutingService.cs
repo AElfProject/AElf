@@ -52,6 +52,8 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
                 transactionExecutingDto.BlockHeader.Height - 1, groupStateCache);
 
             var returnSets = new List<ExecutionReturnSet>();
+            Logger.LogTrace("PlainTransactionExecutingService ExecuteAsync Transactions size:{Size}",transactionExecutingDto.Transactions.Count());
+
             foreach (var transaction in transactionExecutingDto.Transactions)
             {
                 TransactionTrace trace;
@@ -97,7 +99,9 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
                 var returnSet = GetReturnSet(trace, result);
                 returnSets.Add(returnSet);
             }
-
+            
+            Logger.LogTrace("PlainTransactionExecutingService ExecuteAsync returnSets size:{Size}",returnSets.Count());
+            
             return returnSets;
         }
         catch (Exception e)

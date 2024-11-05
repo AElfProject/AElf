@@ -83,8 +83,22 @@ public class LocalParallelTransactionExecutingService : IParallelTransactionExec
         List<List<Transaction>> groupedTransactions, BlockHeader blockHeader, BlockStateSet blockStateSet,
         CancellationToken cancellationToken)
     {
-        Logger.LogInformation("ExecuteParallelizableTransactionsAsync groupedTransactions size:{Size}",groupedTransactions.Count);
-        Logger.LogInformation("ExecuteParallelizableTransactionsAsync blockStateSet size:{size}",blockStateSet.BlockExecutedData.Count);
+        Logger.LogInformation("ExecuteParallelizableTransactionsAsync groupedTransactions size:{Size}",
+            groupedTransactions.Count);
+        // Check if blockStateSet and blockExecutedData are not null
+        if (blockStateSet != null && blockStateSet.BlockExecutedData != null)
+        {
+            // If both blockStateSet and blockExecutedData are not null, log the information
+            Logger.LogInformation(
+                "ExecuteParallelizableTransactionsAsync blockStateSet size: {size}",
+                blockStateSet.BlockExecutedData.Count
+            );
+        }
+        else
+        {
+            // If either blockStateSet or blockExecutedData is null, log a warning or other message
+            Logger.LogInformation("ExecuteParallelizableTransactionsAsync blockStateSet or its BlockExecutedData is null.");
+        }
 
         var tasks = groupedTransactions.Select(
             txns => ExecuteAndPreprocessResult(new TransactionExecutingDto
@@ -93,7 +107,7 @@ public class LocalParallelTransactionExecutingService : IParallelTransactionExec
                 Transactions = txns,
                 PartialBlockStateSet = blockStateSet
             }, cancellationToken));
-        Logger.LogInformation("ExecuteParallelizableTransactionsAsync tasks size:{size}",tasks.Count());
+        Logger.LogInformation("ExecuteParallelizableTransactionsAsync tasks size:{size}", tasks.Count());
 
         var timeout = 200;
         var timeoutTask = Task.Delay(timeout, cancellationToken);
@@ -113,8 +127,8 @@ public class LocalParallelTransactionExecutingService : IParallelTransactionExec
                     resultList.Add(task.Result);
                 }
             }
-            Logger.LogInformation("Timeout reached. resultList size:{size}",resultList.Count);
 
+            Logger.LogInformation("Timeout reached. resultList size:{size}", resultList.Count);
         }
         else
         {
@@ -126,12 +140,14 @@ public class LocalParallelTransactionExecutingService : IParallelTransactionExec
                 resultList.Add(result);
             }
         }
+
         Logger.LogTrace("Executed parallelizables.");
-    
+
         var executionReturnSets = MergeResults(resultList.ToArray(), out var conflictingSets);
         Logger.LogTrace("Merged results from parallelizables.");
-        Logger.LogTrace("Merged results from parallelizables. executionReturnSets size:{size}",executionReturnSets.Count);
-        Logger.LogTrace("Merged results from parallelizables. conflictingSets size:{size}",conflictingSets.Count);
+        Logger.LogTrace("Merged results from parallelizables. executionReturnSets size:{size}",
+            executionReturnSets.Count);
+        Logger.LogTrace("Merged results from parallelizables. conflictingSets size:{size}", conflictingSets.Count);
 
         return new ExecutionReturnSetMergeResult
         {
