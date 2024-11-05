@@ -55,9 +55,12 @@ public class LocalParallelTransactionExecutingService : IParallelTransactionExec
         var returnSetCollection = new ExecutionReturnSetCollection(returnSets);
         var updatedPartialBlockStateSet = GetUpdatedBlockStateSet(returnSetCollection, transactionExecutingDto);
 
+        Logger.LogTrace("Entered ExecuteNonParallelizableTransactionsAsync.");
         var nonParallelizableReturnSets = await ExecuteNonParallelizableTransactionsAsync(
             groupedTransactions.NonParallelizables, blockHeader,
             updatedPartialBlockStateSet, cancellationToken);
+        Logger.LogTrace("Entered ExecuteNonParallelizableTransactionsAsync. end");
+
         returnSets.AddRange(nonParallelizableReturnSets);
 
         var transactionWithoutContractReturnSets = ProcessTransactionsWithoutContract(

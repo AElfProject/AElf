@@ -71,6 +71,7 @@ public class BlockExecutingService : IBlockExecutingService, ITransientDependenc
 
         if (!cancellationToken.IsCancellationRequested && cancellable.Count > 0)
         {
+            Logger.LogTrace("Executed _transactionExecutingService.ExecuteAsync");
             cancellableReturnSets = await _transactionExecutingService.ExecuteAsync(
                 new TransactionExecutingDto
                 {

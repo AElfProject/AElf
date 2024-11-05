@@ -56,7 +56,12 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
             {
                 TransactionTrace trace;
                 if (cancellationToken.IsCancellationRequested)
+                {
+                    Logger.LogTrace("PlainTransactionExecutingService ExecuteAsync cacelltionToken is cancelled");
                     break;
+                }
+
+               
 
                 var singleTxExecutingDto = new SingleTransactionExecutingDto
                 {
