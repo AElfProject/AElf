@@ -59,7 +59,7 @@ public class ResourceExtractionService : IResourceExtractionService, ISingletonD
         // }
         var tasks = transactions.Select(async t =>
         {
-            return await GetResourcesForOneWithCacheAsync(chainContext, t, ct, contractResourceInfoCache);
+            return await GetResourcesForOneWithCacheAsync(chainContext, t, ct);
         });
         
         var transactionResourceList = await Task.WhenAll(tasks);
@@ -90,8 +90,7 @@ public class ResourceExtractionService : IResourceExtractionService, ISingletonD
 
     private async Task<TransactionWithResourceInfo> GetResourcesForOneWithCacheAsync(
         IChainContext chainContext,
-        Transaction transaction, CancellationToken ct,
-        ConcurrentDictionary<Address, ContractResourceInfo> contractResourceInfoCache)
+        Transaction transaction, CancellationToken ct)
     {
         if (ct.IsCancellationRequested)
             return new TransactionWithResourceInfo
