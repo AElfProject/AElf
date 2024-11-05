@@ -75,10 +75,15 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
                 };
                 try
                 {
+                    Logger.LogInformation("PlainTransactionExecutingService ExecuteOneAsync begin:{transaction}",transaction.GetHash());
                     var transactionExecutionTask = Task.Run(() => ExecuteOneAsync(singleTxExecutingDto,
                         cancellationToken), cancellationToken);
+                    Logger.LogInformation("PlainTransactionExecutingService ExecuteOneAsync end:{transaction}",transaction.GetHash());
+
 
                     trace = await transactionExecutionTask.WithCancellation(cancellationToken);
+                    Logger.LogInformation("PlainTransactionExecutingService ExecuteOneAsync end:{transaction}",transaction.GetHash());
+
                 }
                 catch (OperationCanceledException)
                 {

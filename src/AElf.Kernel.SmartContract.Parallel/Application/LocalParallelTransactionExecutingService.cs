@@ -219,6 +219,7 @@ public class LocalParallelTransactionExecutingService : IParallelTransactionExec
     {
         var executionReturnSets =
             await _planTransactionExecutingService.ExecuteAsync(transactionExecutingDto, cancellationToken);
+        
         var changeKeys =
             executionReturnSets.SelectMany(s => s.StateChanges.Keys.Concat(s.StateDeletes.Keys));
         var allKeys = new HashSet<string>(
