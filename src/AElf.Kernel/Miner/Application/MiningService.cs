@@ -77,7 +77,7 @@ public class MiningService : IMiningService
                     .Take(requestMiningDto.TransactionCountLimit - systemTransactions.Count)
                     .ToList()
                 : transactions;
-            Logger.LogInformation(" block pending count: {pending.Count()}");
+            Logger.LogInformation(" block pending count: {Count}",pending.Count());
             var blockExecutedSet = await _blockExecutingService.ExecuteBlockAsync(block.Header,
                 systemTransactions, pending, cts.Token);
 
