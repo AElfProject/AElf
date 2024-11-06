@@ -163,7 +163,7 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
         foreach (var logEvent in virtualCreatedLogs)
         {
             var inlineWithTransactionIdCreated =ProtoExtensions.MergeFromIndexed<VirtualTransactionCreated>(logEvent.Indexed);
-            if (inlineWithTransactionIdCreated.InlineFactor.IsNullOrEmpty())
+            if (inlineWithTransactionIdCreated.InlineFactor.IsNullOrEmpty() || inlineWithTransactionIdCreated.InlineTransaction == null)
             {
                 continue;
             }
