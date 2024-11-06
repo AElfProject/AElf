@@ -135,68 +135,8 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
         inlineTransaction.SetInlineTxId(inlineFactor);
         transactionExecutingDto.TransactionsForInline.Add(inlineWithTransactionIdCreated.InlineTransaction);
         
-        // todo:remove this code
-        Console.WriteLine("trace.TransactionId="+originTxTrace.TransactionId);    //
-        Console.WriteLine("inlineTx.TransactionId="+inlineTransaction.GetHash());    //
-        // if (virtualTransactionLog != null && virtualTransactionLog.Indexed.Count > 1)
-        // {
-        //     var transactionByteString = virtualTransactionLog.Indexed[0];
-        //     // var transactionInline = Transaction.Parser.ParseFrom(Convert.FromBase64String(InlineWithTransactionIdCreated.Parser
-        //     //     .ParseFrom(transactionByteString).InlineTransaction));
-        //     var transactionInline = InlineWithTransactionIdCreated.Parser
-        //          .ParseFrom(transactionByteString).InlineTransaction;
-        //     var inlineFactor = InlineWithTransactionIdCreated.Parser
-        //         .ParseFrom(virtualTransactionLog.Indexed[1]).InlineFactor;
-        //     InlineWithTransactionId.InlineTransaction.SetInlineTxId(InlineWithTransactionId.InlineFactor);
-        //     InlineWithTransactionId.InlineTransaction.IsInlineTxWithId = true;
-        //     
-        //     transactionInline.IsInlineTxWithId = true;
-        //     ;
-        // }
-        // else
-        // {
-        //     Logger.LogError("fail. inline transaction must more than 6 indexed value");   
-        // }
     }
     
-
-    // todo:remove this code
-    // private List<Transaction> WrapinlineTxList(List<Transaction> inlineTxList, TransactionTrace trace)
-    // {
-    //     // Create a stack to hold the traces for processing
-    //     Stack<TransactionTrace> stack = new Stack<TransactionTrace>();
-    //     stack.Push(trace);
-    //
-    //     // Process all traces in the stack
-    //     while (stack.Count > 0)
-    //     {
-    //         // Pop a trace from the stack
-    //         var currentTrace = stack.Pop();
-    //
-    //
-    //         foreach (var transaction in currentTrace.InlineTransactions.ToList())
-    //         {
-    //             if (transaction.IsInlineTxWithId)
-    //             {
-    //                 inlineTxList.Add(transaction);    
-    //             }
-    //         }
-    //
-    //         // If the current trace contains inline traces, add them to the stack
-    //         if (currentTrace.InlineTraces != null)
-    //         {
-    //             foreach (var inlineTrace in currentTrace.InlineTraces)
-    //             {
-    //                 stack.Push(inlineTrace);
-    //             }
-    //         }
-    //     }
-    //
-    //     return inlineTxList;
-    // }
-
-
-
     private static bool TryUpdateStateCache(TransactionTrace trace, TieredStateCache groupStateCache)
     {
         if (trace == null)

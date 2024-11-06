@@ -75,8 +75,12 @@ public interface ISmartContractBridgeContext
 
     void SendVirtualInlineBySystemContract(Hash fromVirtualAddress, Address toAddress, string methodName,
         ByteString args);
+    void SendVirtualInlineWithTransactionIdBySystemContract(Hash fromVirtualAddress, Address toAddress, string methodName,
+        ByteString args);
 
     void SendVirtualInlineBySystemContract(Hash fromVirtualAddress, Address toAddress, string methodName,
+        ByteString args, bool logTransaction);
+    void SendVirtualInlineWithTransactionIdBySystemContract(Hash fromVirtualAddress, Address toAddress, string methodName,
         ByteString args, bool logTransaction);
 
     Address ConvertVirtualAddressToContractAddress(Hash virtualAddress, Address contractAddress);
