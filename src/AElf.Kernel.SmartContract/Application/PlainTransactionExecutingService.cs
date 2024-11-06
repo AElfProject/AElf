@@ -83,6 +83,7 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
                 }
 
                 var traceList = trace.GetTraceListWithInlineTransactionId();
+                var inlineMap = WrapInlineTxAndFactor(trace);
 
                 foreach (var transactionTrace in traceList)
                 {
@@ -95,7 +96,7 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
 
                     var returnSet = GetReturnSet(transactionTrace, result);
                     
-                    AddInlineTransaction(transactionTrace,trace,transactionExecutingDto);
+                    AddInlineTransaction(transactionTrace,trace,inlineMap,transactionExecutingDto);
                     
                     returnSets.Add(returnSet);
                 }
@@ -112,6 +113,7 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
     }
 
     private void AddInlineTransaction(TransactionTrace transactionTrace, TransactionTrace originTxTrace,
+        Dictionary<Hash, Transaction> inlineMap,
         TransactionExecutingDto transactionExecutingDto)
     {
         if (!transactionTrace.IsInlineTxWithId)
@@ -119,24 +121,61 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
             return;
         }
 
-        var virtualTransactionLog = originTxTrace.Logs
-            .FirstOrDefault(p => p.Name.Equals(VirtualTransactionCreated.Descriptor.Name));
-
-        if (virtualTransactionLog == null)
+        inlineMap.TryGetValue(transactionTrace.TransactionId,out var inlineTransaction);
+        if (inlineTransaction == null)
         {
-            Logger.LogError("fail. virtualTransactionLog is null"); 
             return;
         }
+
+        transactionExecutingDto.TransactionsForInline.Add(inlineTransaction);
+        Console.WriteLine("OriginTransactionId: " + originTxTrace.TransactionId);
+        Console.WriteLine("inlineTransactionId: " + inlineTransaction.GetHash());
         
-        var inlineWithTransactionIdCreated =ProtoExtensions.MergeFromIndexed<VirtualTransactionCreated>(virtualTransactionLog.Indexed);
         
-        var inlineTransaction = inlineWithTransactionIdCreated.InlineTransaction;
-        var inlineFactor = inlineWithTransactionIdCreated.InlineFactor;
-        inlineTransaction.SetInlineTxId(inlineFactor);
-        transactionExecutingDto.TransactionsForInline.Add(inlineWithTransactionIdCreated.InlineTransaction);
+        // var virtualTransactionLog = originTxTrace.Logs
+        //     .FirstOrDefault(p => p.Name.Equals(VirtualTransactionCreated.Descriptor.Name));
+        //
+        // if (virtualTransactionLog == null)
+        // {
+        //     Logger.LogError("fail. virtualTransactionLog is null"); 
+        //     return;
+        // }
+        //
+        // var inlineWithTransactionIdCreated =ProtoExtensions.MergeFromIndexed<VirtualTransactionCreated>(virtualTransactionLog.Indexed);
+        // if (inlineWithTransactionIdCreated == null || inlineWithTransactionIdCreated.InlineFactor.IsNullOrEmpty())
+        // {
+        //     return;
+        // }
+        //
+        // var inlineTransaction = inlineWithTransactionIdCreated.InlineTransaction;
+        // var inlineFactor = inlineWithTransactionIdCreated.InlineFactor;
+        // inlineTransaction.SetInlineTxId(inlineFactor);
+        // transactionExecutingDto.TransactionsForInline.Add(inlineWithTransactionIdCreated.InlineTransaction);
+        // Console.WriteLine("OriginTransactionId: " + originTxTrace.TransactionId);
+        // Console.WriteLine("inlineTransactionId: " + inlineTransaction.GetHash());
         
     }
-    
+
+    private Dictionary<Hash,Transaction> WrapInlineTxAndFactor(TransactionTrace originTxTrace)
+    {
+        var inlineMap = new Dictionary<Hash,Transaction>();
+        var virtualCreatedLogs = originTxTrace.Logs.Where(p => p.Name.Equals(VirtualTransactionCreated.Descriptor.Name)).ToList();
+        foreach (var logEvent in virtualCreatedLogs)
+        {
+            var inlineWithTransactionIdCreated =ProtoExtensions.MergeFromIndexed<VirtualTransactionCreated>(logEvent.Indexed);
+            if (inlineWithTransactionIdCreated.InlineFactor.IsNullOrEmpty())
+            {
+                continue;
+            }
+            var inlineTransaction = inlineWithTransactionIdCreated.InlineTransaction;
+            var inlineFactor = inlineWithTransactionIdCreated.InlineFactor;
+            inlineTransaction.SetInlineTxId(inlineFactor);
+            inlineTransaction.IsInlineTxWithId = true;
+            inlineMap.Add(inlineTransaction.GetHash(), inlineTransaction);
+        }
+        return inlineMap;
+    }
+
     private static bool TryUpdateStateCache(TransactionTrace trace, TieredStateCache groupStateCache)
     {
         if (trace == null)
