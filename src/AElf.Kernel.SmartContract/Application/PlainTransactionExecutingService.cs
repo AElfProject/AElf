@@ -229,8 +229,12 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
             executive = await _smartContractExecutiveService.GetExecutiveAsync(
                 internalChainContext,
                 singleTxExecutingDto.Transaction.To);
+            Logger.LogInformation($"pre PutExecutiveAsync transaction to {singleTxExecutingDto.Transaction.To})");
+
             await _smartContractExecutiveService.PutExecutiveAsync(singleTxExecutingDto.ChainContext,
                 singleTxExecutingDto.Transaction.To, executive);
+            Logger.LogDebug($"pre PutExecutiveAsync end,transaction to {singleTxExecutingDto.Transaction.To} )");
+
         }
         catch (SmartContractFindRegistrationException)
         {
