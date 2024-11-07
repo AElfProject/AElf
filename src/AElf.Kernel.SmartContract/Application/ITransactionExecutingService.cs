@@ -12,4 +12,5 @@ public interface ITransactionExecutingService
 
 public interface IPlainTransactionExecutingService : ITransactionExecutingService
 {
+    void PreExecuteAsync(SingleTransactionExecutingDto singleTransactionExecutingDto);
 }

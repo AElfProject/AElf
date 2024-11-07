@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContract.Domain;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContract.Parallel.Domain;
 using AElf.Kernel.TransactionPool;
@@ -28,16 +29,19 @@ public class ResourceExtractionService : IResourceExtractionService, ISingletonD
 
     private readonly ISmartContractExecutiveService _smartContractExecutiveService;
     private readonly ITransactionContextFactory _transactionContextFactory;
+    private readonly IPlainTransactionExecutingService _plainTransactionExecutingService;
 
     public ResourceExtractionService(IBlockchainService blockchainService,
         ISmartContractExecutiveService smartContractExecutiveService,
         INonparallelContractCodeProvider nonparallelContractCodeProvider,
-        ITransactionContextFactory transactionContextFactory)
+        ITransactionContextFactory transactionContextFactory,
+        IPlainTransactionExecutingService plainTransactionExecutingService)
     {
         _smartContractExecutiveService = smartContractExecutiveService;
         _nonparallelContractCodeProvider = nonparallelContractCodeProvider;
         _transactionContextFactory = transactionContextFactory;
         _blockchainService = blockchainService;
+        _plainTransactionExecutingService = plainTransactionExecutingService;
 
         Logger = NullLogger<ResourceExtractionService>.Instance;
     }
@@ -220,6 +224,47 @@ public class ResourceExtractionService : IResourceExtractionService, ISingletonD
         _resourceCache.TryAdd(transaction.GetHash(),
             new TransactionResourceCache(resourceInfo, transaction.To,
                 eventData.Transaction.GetExpiryBlockNumber()));
+        
+        var transactionExecutingDto = BuildTransactionExecutingDto(transaction, chainContext);
+        var groupStateCache = transactionExecutingDto.PartialBlockStateSet.ToTieredStateCache();
+        var groupChainContext = new ChainContextWithTieredStateCache(
+            transactionExecutingDto.BlockHeader.PreviousBlockHash,
+            transactionExecutingDto.BlockHeader.Height - 1, groupStateCache);
+        
+        var singleTxExecutingDto = BuildSingleTransactionExecutingDto(transaction, groupChainContext, transactionExecutingDto);
+        
+        _plainTransactionExecutingService.PreExecuteAsync(singleTxExecutingDto);
+    }
+    
+    private static SingleTransactionExecutingDto BuildSingleTransactionExecutingDto(Transaction transaction,
+        ChainContextWithTieredStateCache groupChainContext,
+        TransactionExecutingDto transactionExecutingDto)
+    {
+        var singleTxExecutingDto = new SingleTransactionExecutingDto
+        {
+            Depth = 0,
+            ChainContext = groupChainContext,
+            Transaction = transaction,
+            CurrentBlockTime = transactionExecutingDto.BlockHeader.Time,
+            OriginTransactionId = transaction.GetHash()
+        };
+        return singleTxExecutingDto;
+    }
+    
+    private static TransactionExecutingDto BuildTransactionExecutingDto(Transaction transaction,
+        ChainContext chainContext)
+    {
+        var transactionExecutingDto = new TransactionExecutingDto
+        {
+            Transactions = new[] { transaction },
+            BlockHeader = new BlockHeader
+            {
+                PreviousBlockHash = chainContext.BlockHash,
+                Height = chainContext.BlockHeight,
+                Time = TimestampHelper.GetUtcNow()
+            }
+        };
+        return transactionExecutingDto;
     }
 
     public async Task HandleNewIrreversibleBlockFoundAsync(NewIrreversibleBlockFoundEvent eventData)

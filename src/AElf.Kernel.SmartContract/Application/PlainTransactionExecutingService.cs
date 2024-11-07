@@ -212,6 +212,32 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
 
         return trace;
     }
+    
+    public async void PreExecuteAsync(SingleTransactionExecutingDto singleTxExecutingDto)
+    {
+
+        var txContext = CreateTransactionContext(singleTxExecutingDto);
+        var trace = txContext.Trace;
+
+        var internalStateCache = new TieredStateCache(singleTxExecutingDto.ChainContext.StateCache);
+        var internalChainContext =
+            new ChainContextWithTieredStateCache(singleTxExecutingDto.ChainContext, internalStateCache);
+
+        IExecutive executive;
+        try
+        {
+            executive = await _smartContractExecutiveService.GetExecutiveAsync(
+                internalChainContext,
+                singleTxExecutingDto.Transaction.To);
+            await _smartContractExecutiveService.PutExecutiveAsync(singleTxExecutingDto.ChainContext,
+                singleTxExecutingDto.Transaction.To, executive);
+        }
+        catch (SmartContractFindRegistrationException)
+        {
+            txContext.Trace.ExecutionStatus = ExecutionStatus.ContractError;
+            txContext.Trace.Error += "Invalid contract address.\n";
+        }
+    }
 
     private async Task ExecuteInlineTransactions(int depth, Timestamp currentBlockTime,
         ITransactionContext txContext, TieredStateCache internalStateCache,
