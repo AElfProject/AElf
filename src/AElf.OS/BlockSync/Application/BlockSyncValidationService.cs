@@ -69,9 +69,17 @@ public class BlockSyncValidationService : IBlockSyncValidationService
 
     public async Task<bool> ValidateBlockBeforeAttachAsync(BlockWithTransactions blockWithTransactions)
     {
+        Logger.LogInformation($"ValidateBlockBeforeAttachAsync  block height {blockWithTransactions.Height} beigin");
+
         if (!await _blockValidationService.ValidateBlockBeforeAttachAsync(blockWithTransactions)) return false;
+        
+        Logger.LogInformation($"ValidateBlockBeforeAttachAsync  block height {blockWithTransactions.Height} end");
+
+        Logger.LogInformation($"ValidateBlockBeforeAttachAsync  ValidateTransactionAsync block height {blockWithTransactions.Height} beigin");
 
         if (!await ValidateTransactionAsync(blockWithTransactions)) return false;
+        
+        Logger.LogInformation($"ValidateBlockBeforeAttachAsync  ValidateTransactionAsync block height {blockWithTransactions.Height} end");
 
         return true;
     }
