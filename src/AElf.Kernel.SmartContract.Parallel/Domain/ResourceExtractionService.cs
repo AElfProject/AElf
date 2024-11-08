@@ -225,15 +225,15 @@ public class ResourceExtractionService : IResourceExtractionService, ISingletonD
             new TransactionResourceCache(resourceInfo, transaction.To,
                 eventData.Transaction.GetExpiryBlockNumber()));
         
-        var transactionExecutingDto = BuildTransactionExecutingDto(transaction, chainContext);
-        var groupStateCache = transactionExecutingDto.PartialBlockStateSet.ToTieredStateCache();
-        var groupChainContext = new ChainContextWithTieredStateCache(
-            transactionExecutingDto.BlockHeader.PreviousBlockHash,
-            transactionExecutingDto.BlockHeader.Height - 1, groupStateCache);
-        
-        var singleTxExecutingDto = BuildSingleTransactionExecutingDto(transaction, groupChainContext, transactionExecutingDto);
-        
-        _plainTransactionExecutingService.PreExecuteAsync(singleTxExecutingDto);
+        // var transactionExecutingDto = BuildTransactionExecutingDto(transaction, chainContext);
+        // var groupStateCache = transactionExecutingDto.PartialBlockStateSet.ToTieredStateCache();
+        // var groupChainContext = new ChainContextWithTieredStateCache(
+        //     transactionExecutingDto.BlockHeader.PreviousBlockHash,
+        //     transactionExecutingDto.BlockHeader.Height - 1, groupStateCache);
+        //
+        // var singleTxExecutingDto = BuildSingleTransactionExecutingDto(transaction, groupChainContext, transactionExecutingDto);
+        //
+        // _plainTransactionExecutingService.PreExecuteAsync(singleTxExecutingDto);
     }
     
     private static SingleTransactionExecutingDto BuildSingleTransactionExecutingDto(Transaction transaction,

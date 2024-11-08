@@ -98,6 +98,13 @@ internal class ConsensusService : IConsensusService, ISingletonDependency
         var limitMillisecondsOfMiningBlock = configuredMiningTime == 0
             ? _consensusCommand.LimitMillisecondsOfMiningBlock
             : configuredMiningTime;
+        if ((_consensusCommand.MiningDueTime - _nextMiningTime).Seconds>=1)
+        {
+            limitMillisecondsOfMiningBlock= 450;
+            Logger.LogDebug($"TriggerConsensusAsync limitMillisecondsOfMiningBlock: {limitMillisecondsOfMiningBlock}");
+
+        }
+
         // Update consensus scheduler.
         var blockMiningEventData = new ConsensusRequestMiningEventData(chainContext.BlockHash,
             chainContext.BlockHeight,
