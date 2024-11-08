@@ -51,12 +51,12 @@ public class BlockExecutingService : IBlockExecutingService, ITransientDependenc
         _systemTransactionExtraDataProvider.TryGetSystemTransactionCount(blockHeader,
             out var systemTransactionCount);
         return await ExecuteBlockAsync(blockHeader, nonCancellableTransactions.Take(systemTransactionCount),
-            nonCancellableTransactions.Skip(systemTransactionCount),
+            nonCancellableTransactions.Skip(systemTransactionCount).ToList(),
             CancellationToken.None);
     }
 
     public async Task<BlockExecutedSet> ExecuteBlockAsync(BlockHeader blockHeader,
-        IEnumerable<Transaction> nonCancellableTransactions, IEnumerable<Transaction> cancellableTransactions,
+        IEnumerable<Transaction> nonCancellableTransactions, List<Transaction> cancellableTransactions,
         CancellationToken cancellationToken)
     {
         Logger.LogTrace("Entered ExecuteBlockAsync");
@@ -91,7 +91,7 @@ public class BlockExecutingService : IBlockExecutingService, ITransientDependenc
         var allExecutedTransactions =
             nonCancellable.Concat(cancellable.Where(x => executedCancellableTransactions.Contains(x.GetHash())))
                 .ToList();
-        await AddInlineWithTransactionId(inlineCancellable, returnSetCollection, allExecutedTransactions);
+        await AddInlineWithTransactionId(inlineCancellable, returnSetCollection,cancellableTransactions, allExecutedTransactions);
         
         var blockStateSet =
             CreateBlockStateSet(blockHeader.PreviousBlockHash, blockHeader.Height, returnSetCollection);
@@ -117,12 +117,15 @@ public class BlockExecutingService : IBlockExecutingService, ITransientDependenc
         };
     }
 
-    private async Task AddInlineWithTransactionId(List<Transaction> inlineCancellable, ExecutionReturnSetCollection returnSetCollection, List<Transaction> allExecutedTransactions)
+    private async Task AddInlineWithTransactionId(List<Transaction> inlineCancellable,
+        ExecutionReturnSetCollection returnSetCollection, List<Transaction> cancellableTransactions,
+        List<Transaction> allExecutedTransactions)
     {
         if(inlineCancellable.IsNullOrEmpty())
             return;
         await _transactionManager.AddTransactionsAsync(inlineCancellable);
         allExecutedTransactions.AddRange(inlineCancellable);
+        cancellableTransactions.AddRange(inlineCancellable);
     }
 
     private Task<Block> FillBlockAfterExecutionAsync(BlockHeader header,

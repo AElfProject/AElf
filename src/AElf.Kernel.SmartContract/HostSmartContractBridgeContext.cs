@@ -319,21 +319,6 @@ public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, I
         });
     }
 
-    public void SendVirtualInlineWithTransactionIdBySystemContract(Hash fromVirtualAddress, Address toAddress, string methodName,
-        ByteString args)
-    {
-        var transaction = new Transaction
-        {
-            IsInlineTxWithId = true,
-            From = ConvertVirtualAddressToContractAddressWithContractHashName(fromVirtualAddress, Self),
-            To = toAddress,
-            MethodName = methodName,
-            Params = args
-        };
-        transaction.SetInlineTxId(TimestampHelper.GetUtcNow().ToString());
-        TransactionContext.Trace.InlineTransactions.Add(transaction);
-        FireInlineVirtualTransactionLogEvent(fromVirtualAddress, transaction);
-    }
 
     public void SendVirtualInlineBySystemContract(Hash fromVirtualAddress, Address toAddress, string methodName,
         ByteString args, bool logTransaction)
@@ -349,28 +334,6 @@ public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, I
         if (!logTransaction) return;
         FireVirtualTransactionLogEvent(fromVirtualAddress, transaction);
     }
-
-    public void SendVirtualInlineWithTransactionIdBySystemContract(Hash fromVirtualAddress, Address toAddress, string methodName,
-        ByteString args, bool logTransaction)
-    {
-        var transaction = new Transaction
-        {
-            IsInlineTxWithId = true,
-            From = ConvertVirtualAddressToContractAddressWithContractHashName(fromVirtualAddress, Self),
-            To = toAddress,
-            MethodName = methodName,
-            Params = args
-        };
-        
-        if (logTransaction)
-        {
-            transaction.IsInlineTxWithId = true;
-            transaction.SetInlineTxId(TimestampHelper.GetUtcNow().ToString());
-            FireInlineVirtualTransactionLogEvent(fromVirtualAddress, transaction);
-        }
-        TransactionContext.Trace.InlineTransactions.Add(transaction);
-    }
-
 
     private void FireVirtualTransactionLogEvent(Hash fromVirtualAddress, Transaction transaction)
     {

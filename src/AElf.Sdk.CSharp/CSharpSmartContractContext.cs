@@ -263,24 +263,10 @@ public class CSharpSmartContractContext : ISmartContractBridgeContext
             methodName, args);
     }
 
-    public void SendVirtualInlineWithTransactionIdBySystemContract(Hash fromVirtualAddress, Address toAddress, string methodName,
-        ByteString args)
-    {
-        SmartContractBridgeContextImplementation.SendVirtualInlineWithTransactionIdBySystemContract(fromVirtualAddress, toAddress,
-            methodName, args);
-    }
-
     public void SendVirtualInlineBySystemContract(Hash fromVirtualAddress, Address toAddress, string methodName,
         ByteString args, bool logTransaction)
     {
         SmartContractBridgeContextImplementation.SendVirtualInlineBySystemContract(fromVirtualAddress, toAddress,
-            methodName, args, logTransaction);
-    }
-
-    public void SendVirtualInlineWithTransactionIdBySystemContract(Hash fromVirtualAddress, Address toAddress, string methodName,
-        ByteString args, bool logTransaction)
-    {
-        SmartContractBridgeContextImplementation.SendVirtualInlineWithTransactionIdBySystemContract(fromVirtualAddress, toAddress,
             methodName, args, logTransaction);
     }
 

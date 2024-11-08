@@ -12,5 +12,6 @@ public interface IBlockExecutingService
 
     Task<BlockExecutedSet> ExecuteBlockAsync(BlockHeader blockHeader,
         IEnumerable<Transaction> nonCancellableTransactions,
-        IEnumerable<Transaction> cancellableTransactions, CancellationToken cancellationToken);
+        List<Transaction> cancellableTransactions, CancellationToken cancellationToken);
+    
 }
