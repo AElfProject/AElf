@@ -242,7 +242,7 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
                     methodNameCount[inlineTx.MethodName]++;
                     inlineTx.MethodName =
                         GenerateLayeredMethodNameForInlineTransaction(
-                            txContext.Transaction.MethodName,
+                            txContext.Transaction,
                             inlineTx.MethodName,
                             methodNameCount[inlineTx.MethodName]
                         );
@@ -250,7 +250,7 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
                 else
                 {
                     inlineTx.MethodName = GenerateLayeredMethodNameForInlineTransaction(
-                        txContext.Transaction.MethodName,
+                        txContext.Transaction,
                         inlineTx.MethodName,
                         0
                     );
@@ -280,10 +280,12 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
         }
     }
 
-    private static string GenerateLayeredMethodNameForInlineTransaction(string txContextMethodName, string inlineFunctionName, int index)
+    private static string GenerateLayeredMethodNameForInlineTransaction(Transaction parentTx, string inlineFunctionName,
+        int index)
     {
+        var parentTxMethodName = parentTx.MethodName;
         inlineFunctionName = inlineFunctionName.StartsWith('.') ? inlineFunctionName[1..] : inlineFunctionName;
-        return $"{txContextMethodName}.{inlineFunctionName}.{index}";
+        return $"{parentTx.GetHash().ToHex()}.{parentTxMethodName}.{inlineFunctionName}.{index}";
     }
 
     private static string MaybeRecoverInlineTransactionFunctionName(string methodName)
@@ -477,7 +479,7 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
                     }
                 };
 
-                // No need to execute GetReturnSet method, because changes are already set to `returnSet1`.
+                // No need to execute GetReturnSet method, because changes are already set to `returnSet`.
 
                 returnSets.Add(inlineReturnSet);
 

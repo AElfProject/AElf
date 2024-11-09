@@ -127,10 +127,19 @@ public partial class AEDPoSContract
             {
                 var minersCount = GetMinersCount(nextRound);
                 if (minersCount != 0 && State.ElectionContract.Value != null)
-                    State.ElectionContract.UpdateMinersCount.Send(new UpdateMinersCountInput
-                    {
-                        MinersCount = minersCount
-                    });
+                {
+                    // State.ElectionContract.UpdateMinersCount.Send(new UpdateMinersCountInput
+                    // {
+                    //     MinersCount = minersCount
+                    // });
+                    // TODO: Fix this if feature verified.
+                    Context.SendInline(State.ElectionContract.Value,
+                        $".{nameof(State.ElectionContract.UpdateMinersCount)}",
+                        new UpdateMinersCountInput
+                        {
+                            MinersCount = minersCount
+                        });
+                }
             }
         }
 
