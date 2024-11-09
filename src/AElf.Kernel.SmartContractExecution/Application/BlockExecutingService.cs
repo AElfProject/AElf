@@ -68,15 +68,16 @@ public class BlockExecutingService : IBlockExecutingService, ITransientDependenc
 
         if (!cancellationToken.IsCancellationRequested && cancellable.Count > 0)
         {
+            var txExecutingDto = new TransactionExecutingDto
+            {
+                BlockHeader = blockHeader,
+                Transactions = cancellable,
+                PartialBlockStateSet = returnSetCollection.ToBlockStateSet()
+            };
             cancellableReturnSets = await _transactionExecutingService.ExecuteAsync(
-                new TransactionExecutingDto
-                {
-                    BlockHeader = blockHeader,
-                    Transactions = cancellable,
-                    PartialBlockStateSet = returnSetCollection.ToBlockStateSet()
-                },
-                cancellationToken);
+                txExecutingDto, cancellationToken);
             returnSetCollection.AddRange(cancellableReturnSets);
+            cancellable = txExecutingDto.Transactions.ToList();
             Logger.LogTrace("Executed cancellable txs");
         }
 
@@ -119,7 +120,9 @@ public class BlockExecutingService : IBlockExecutingService, ITransientDependenc
 
         var allExecutedTransactionIds = transactions.Select(x => x.GetHash()).ToList();
         var orderedReturnSets = executionReturnSetCollection.GetExecutionReturnSetList()
-            .OrderBy(d => allExecutedTransactionIds.IndexOf(d.TransactionId)).ToList();
+            .OrderBy(d => allExecutedTransactionIds.IndexOf(d.TransactionId) >= 0 ? allExecutedTransactionIds.IndexOf(d.TransactionId) : int.MaxValue)
+            .ThenBy(d => d.TransactionId)
+            .ToList();
 
         var block = new Block
         {
