@@ -41,6 +41,9 @@ service AEDPoSContract {
     // Update consensus tiny block information.
     rpc UpdateTinyBlockInformation (TinyBlockInput) returns (google.protobuf.Empty) {
     }
+
+    rpc DoNothing (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    }
     
     // Set the maximum count of miners, by default, is unlimited. 
     // If you want to control the count of miners, you need to set it through parliament.

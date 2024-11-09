@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.CSharp.Core.Extension;
+using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.FeatureDisable.Core;
 using AElf.Kernel.SmartContract.Domain;
 using AElf.Kernel.SmartContract.Infrastructure;
@@ -24,14 +25,17 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
     private readonly ISmartContractExecutiveService _smartContractExecutiveService;
     private readonly ITransactionContextFactory _transactionContextFactory;
     private readonly IFeatureDisableService _featureDisableService;
+    private readonly IBlockchainService _blockchainService;
 
     public PlainTransactionExecutingService(ISmartContractExecutiveService smartContractExecutiveService,
         IEnumerable<IPostExecutionPlugin> postPlugins, IEnumerable<IPreExecutionPlugin> prePlugins,
-        ITransactionContextFactory transactionContextFactory, IFeatureDisableService featureDisableService)
+        ITransactionContextFactory transactionContextFactory, IFeatureDisableService featureDisableService,
+        IBlockchainService blockchainService)
     {
         _smartContractExecutiveService = smartContractExecutiveService;
         _transactionContextFactory = transactionContextFactory;
         _featureDisableService = featureDisableService;
+        _blockchainService = blockchainService;
         _prePlugins = GetUniquePlugins(prePlugins);
         _postPlugins = GetUniquePlugins(postPlugins);
         Logger = NullLogger<PlainTransactionExecutingService>.Instance;
@@ -255,6 +259,8 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
                         0
                     );
                 }
+
+                await _blockchainService.AddTransactionsAsync([inlineTx]);
             }
 
             var singleTxExecutingDto = new SingleTransactionExecutingDto
@@ -483,6 +489,7 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
 
                 returnSets.Add(inlineReturnSet);
 
+                Logger.LogWarning($"Inline tx id: {inlineTx.GetHash().ToHex()}\n{inlineTx}");
                 // TODO: Maybe we need to add a new log for inline tx with id created.
                 var log = new VirtualTransactionCreated
                 {
@@ -491,7 +498,7 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
                     MethodName = inlineTx.MethodName,
                     Params = inlineTx.Params,
                 };
-                returnSet.TransactionResult.Logs.Add(log.ToLogEvent());
+                returnSet.TransactionResult.Logs.Add(log.ToLogEvent(inlineTx.To));
             }
         }
         else

@@ -123,6 +123,12 @@ public class BlockExecutingService : IBlockExecutingService, ITransientDependenc
             .OrderBy(d => allExecutedTransactionIds.IndexOf(d.TransactionId) >= 0 ? allExecutedTransactionIds.IndexOf(d.TransactionId) : int.MaxValue)
             .ThenBy(d => d.TransactionId)
             .ToList();
+        
+        var inlineTxIds = orderedReturnSets
+            .Where(returnSet => !allExecutedTransactionIds.Contains(returnSet.TransactionId))
+            .Select(returnSet => returnSet.TransactionId)
+            .ToList();
+        allExecutedTransactionIds.AddRange(inlineTxIds);
 
         var block = new Block
         {
