@@ -55,8 +55,13 @@ public class BlockExecutingService : IBlockExecutingService, ITransientDependenc
         CancellationToken cancellationToken)
     {
         Logger.LogTrace("Entered ExecuteBlockAsync");
-        var nonCancellable = nonCancellableTransactions.ToList();
-        var cancellable = cancellableTransactions.ToList();
+
+        var nonCancellable = nonCancellableTransactions.ToList()
+            .Where(tx => !tx.MethodName.Contains('.')).ToList();
+
+        var cancellable = cancellableTransactions.ToList()
+            .Where(tx => !tx.MethodName.Contains('.')).ToList();
+
         var nonCancellableReturnSets =
             await _transactionExecutingService.ExecuteAsync(
                 new TransactionExecutingDto { BlockHeader = blockHeader, Transactions = nonCancellable },
