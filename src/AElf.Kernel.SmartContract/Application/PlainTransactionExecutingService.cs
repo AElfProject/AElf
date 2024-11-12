@@ -494,14 +494,14 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
 
                 Logger.LogWarning($"Inline tx id: {inlineTx.GetHash().ToHex()}\n{inlineTx}");
                 // TODO: Maybe we need to add a new log for inline tx with id created.
-                var log = new VirtualTransactionCreated
-                {
-                    From = inlineTx.From,
-                    To = inlineTx.To,
-                    MethodName = inlineTx.MethodName,
-                    Params = inlineTx.Params,
-                };
-                returnSet.TransactionResult.Logs.Add(log.ToLogEvent(inlineTx.To));
+                // var log = new VirtualTransactionCreated
+                // {
+                //     From = inlineTx.From,
+                //     To = inlineTx.To,
+                //     MethodName = inlineTx.MethodName,
+                //     Params = inlineTx.Params,
+                // };
+                // returnSet.TransactionResult.Logs.Add(log.ToLogEvent(inlineTx.To));
             }
         }
         else
