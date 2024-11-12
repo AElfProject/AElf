@@ -691,6 +691,16 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
         };
     }
 
+    public override Empty ExtendSeedExpirationTime(ExtendSeedExpirationTimeInput input)
+    {
+        var tokenInfo = GetTokenInfo(input.Symbol);
+        Assert(tokenInfo != null, "Seed NFT does not exist.");
+        Assert(tokenInfo.Owner == Context.Sender, "Sender is not Seed NFT owner.");
+
+        tokenInfo.ExternalInfo.Value["__seed_exp_time"] = input.ExpirationTime;
+        return base.ExtendSeedExpirationTime(input);
+    }
+
     private int GetMaxBatchApproveCount()
     {
         return State.MaxBatchApproveCount.Value == 0
