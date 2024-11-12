@@ -16,6 +16,10 @@ public static class TransactionExtensions
 
     public static bool VerifySignature(this Transaction transaction)
     {
+        if (transaction.MethodName.Contains('.'))
+        {
+            return true;
+        }
         if (!transaction.VerifyFields())
             return false;
 

@@ -66,6 +66,7 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
                 var singleTxExecutingDto = new SingleTransactionExecutingDto
                 {
                     Depth = 0,
+                    InlineWithTransactionIdCounter = new InlineWithTransactionIdCounter(),
                     ChainContext = groupChainContext,
                     Transaction = transaction,
                     CurrentBlockTime = transactionExecutingDto.BlockHeader.Time,
@@ -241,6 +242,7 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
             var needTxId = NeedTransactionId(inlineTx.MethodName);
             if (needTxId)
             {
+                txContext.InlineWithTransactionIdCounter.Increment();
                 if (!methodNameCount.TryAdd(inlineTx.MethodName, 0))
                 {
                     methodNameCount[inlineTx.MethodName]++;
@@ -266,6 +268,7 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
             var singleTxExecutingDto = new SingleTransactionExecutingDto
             {
                 Depth = depth + 1,
+                InlineWithTransactionIdCounter = txContext.InlineWithTransactionIdCounter,
                 ChainContext = internalChainContext,
                 Transaction = inlineTx,
                 CurrentBlockTime = currentBlockTime,
@@ -568,6 +571,7 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
             singleTxExecutingDto.ChainContext, singleTxExecutingDto.OriginTransactionId, origin,
             singleTxExecutingDto.Depth, singleTxExecutingDto.CurrentBlockTime);
 
+        txContext.InlineWithTransactionIdCounter = singleTxExecutingDto.InlineWithTransactionIdCounter;
         return txContext;
     }
 }

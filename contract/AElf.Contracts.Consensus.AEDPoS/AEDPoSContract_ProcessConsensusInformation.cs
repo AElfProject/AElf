@@ -84,9 +84,6 @@ public partial class AEDPoSContract
 
         // Clear cache.
         _processingBlockMinerPubkey = null;
-
-        // TODO: Clear this if feature verified.
-        Context.SendInline(Context.Self, $".{nameof(DoNothing)}", new Empty());
     }
 
     public override Empty DoNothing(Empty input)
