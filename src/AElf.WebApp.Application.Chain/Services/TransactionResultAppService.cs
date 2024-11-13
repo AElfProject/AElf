@@ -118,9 +118,16 @@ public class TransactionResultAppService : AElfAppService, ITransactionResultApp
                 return output;
             }
         }
-
-        return output;
         
+        switch (output.BlockNumber - output.Transaction.RefBlockNumber)
+        {
+            case > KernelConstants.ReferenceBlockValidPeriod:
+                output.Status = TransactionResultStatus.Expired.ToString().ToUpper();
+                output.Error = TransactionErrorResolver.TakeErrorMessage(TransactionResultStatus.Expired.ToString(), _webAppOptions.IsDebugMode);
+                return output;
+            default:
+                return output;
+        }
     }
 
     /// <summary>
