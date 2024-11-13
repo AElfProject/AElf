@@ -2,7 +2,7 @@
     <Import Project="..\..\common.props" />
 
     <PropertyGroup>
-        <TargetFramework>net8.0</TargetFramework>
+        <TargetFramework>net9.0</TargetFramework>
         <RootNamespace>AElf.Runtime.CSharp</RootNamespace>
         <PackageId>AElf.Runtime.CSharp</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>

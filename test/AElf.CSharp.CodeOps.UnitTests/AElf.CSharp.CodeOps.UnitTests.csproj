@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net8.0</TargetFramework>
+        <TargetFramework>net9.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
 
@@ -20,8 +20,8 @@
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
-        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.11.0" />
-        <PackageReference Include="Mono.Cecil" Version="0.11.4" />
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.11.0" />
+        <PackageReference Include="Mono.Cecil" Version="0.11.6" />
         <ProjectReference Include="..\..\src\AElf.Core\AElf.Core.csproj" />
 <!--        <ProjectReference Include="..\..\src\AElf.Runtime.CSharp\AElf.Runtime.CSharp.csproj" />-->
         <ProjectReference Include="..\..\src\AElf.CSharp.CodeOps\AElf.CSharp.CodeOps.csproj" />

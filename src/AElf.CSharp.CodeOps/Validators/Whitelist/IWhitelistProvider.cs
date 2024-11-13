@@ -101,6 +101,7 @@ public class WhitelistProvider : IWhitelistProvider
                     .Member(nameof(String.Concat), Permission.Denied)
                 )
                 .Type(typeof(Byte[]).Name, Permission.Allowed)
+                .Type(typeof(ReadOnlySpan<>).Name, Permission.Allowed)
             );
     }
 
@@ -138,10 +139,12 @@ public class WhitelistProvider : IWhitelistProvider
 
             // Used for initializing large arrays hardcoded in the code, array validator will take care of the size
             .Namespace("System.Runtime.CompilerServices", Permission.Denied, type => type
-                .Type(nameof(RuntimeHelpers), Permission.Denied, member => member
-                    .Member(nameof(RuntimeHelpers.InitializeArray), Permission.Allowed))
-                .Type(nameof(DefaultInterpolatedStringHandler), Permission.Allowed)
-                )
+                    .Type(nameof(RuntimeHelpers), Permission.Denied, member => member
+                        .Member(nameof(RuntimeHelpers.InitializeArray), Permission.Allowed))
+                    .Type(nameof(DefaultInterpolatedStringHandler), Permission.Allowed)
+                    .Type("Unsafe", Permission.Allowed)
+            )
+            .Namespace("System.Runtime.InteropServices", Permission.Allowed)
             .Namespace("System.Text", Permission.Denied, type => type
                 .Type(nameof(Encoding), Permission.Denied, member => member
                     .Member(nameof(Encoding.UTF8), Permission.Allowed)

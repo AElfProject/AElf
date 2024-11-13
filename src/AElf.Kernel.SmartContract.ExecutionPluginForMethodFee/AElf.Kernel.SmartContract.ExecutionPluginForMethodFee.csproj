@@ -2,7 +2,7 @@
     <Import Project="..\..\common.props" />
 
     <PropertyGroup>
-        <TargetFramework>net8.0</TargetFramework>
+        <TargetFramework>net9.0</TargetFramework>
         <PackageId>AElf.Kernel.SmartContract.ExecutionPluginForMethodFee</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Description>ACS 1 execution plugin.</Description>

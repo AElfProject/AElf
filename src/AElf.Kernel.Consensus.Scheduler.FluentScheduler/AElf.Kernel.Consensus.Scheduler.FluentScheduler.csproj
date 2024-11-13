@@ -2,7 +2,7 @@
     <Import Project="..\..\common.props" />
 
     <PropertyGroup>
-        <TargetFramework>net8.0</TargetFramework>
+        <TargetFramework>net9.0</TargetFramework>
         <PackageId>AElf.Kernel.Consensus.Scheduler.FluentScheduler</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Description>Scheduler implementation for AEDPos using FluentScheduler.</Description>

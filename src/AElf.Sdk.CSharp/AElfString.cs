@@ -1,3 +1,5 @@
+using System;
+
 namespace AElf.Sdk.CSharp;
 
 public class AElfString
@@ -40,6 +42,11 @@ public class AElfString
     public static string Concat(object arg0, object arg1, object arg2, object arg3)
     {
         return ValidatedString(string.Concat(arg0, arg1, arg2, arg3));
+    }
+
+    public static string Concat(ReadOnlySpan<string> values)
+    {
+        return ValidatedString(string.Concat(values));
     }
 
     public static string ValidatedString(string str)

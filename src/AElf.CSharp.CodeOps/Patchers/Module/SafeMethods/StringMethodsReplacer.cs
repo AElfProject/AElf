@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -111,9 +112,14 @@ internal class ModulePatcher
     {
         var oldMethodName = $"{oldMethodReference.DeclaringType}::{oldMethodReference.Name}";
         var newType = StringMethodsReplacer.MethodCallReplacements[oldMethodName];
-        var methodWithSameSignatureInNewType = _sdkTypes[newType].Methods.Single(
+        var methodWithSameSignatureInNewType = _sdkTypes[newType].Methods.FirstOrDefault(
             m => m.FullNameWithoutDeclaringType() == oldMethodReference.FullNameWithoutDeclaringType()
         );
+        if (methodWithSameSignatureInNewType == null)
+        {
+            var methodNames = string.Join("\n", _sdkTypes[newType].Methods.Select(m => m.FullNameWithoutDeclaringType()));
+            throw new Exception($"Methods in {_sdkTypes[newType].FullName}:\n{methodNames}\nOld method: {oldMethodReference.FullNameWithoutDeclaringType()}");
+        }
 
         return methodWithSameSignatureInNewType;
     }

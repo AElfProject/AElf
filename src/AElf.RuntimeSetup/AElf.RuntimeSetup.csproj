@@ -2,7 +2,7 @@
     <Import Project="..\..\common.props" />
 
     <PropertyGroup>
-        <TargetFramework>net8.0</TargetFramework>
+        <TargetFramework>net9.0</TargetFramework>
         <PackageId>AElf.RuntimeSetup</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Description>Module for the nodes runtime setup (logging for example).</Description>

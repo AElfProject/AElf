@@ -4,7 +4,7 @@
     <PropertyGroup>
         <PackageId>AElf.ContractDeployer</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <TargetFramework>net8.0</TargetFramework>
+        <TargetFramework>net9.0</TargetFramework>
         <OutputType>Exe</OutputType>
         <Description>Smart contract deployer.</Description>
         <RootNamespace>AElf.ContractDeployer</RootNamespace>

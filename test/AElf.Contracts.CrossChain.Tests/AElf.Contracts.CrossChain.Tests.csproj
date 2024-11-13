@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net8.0</TargetFramework>
+        <TargetFramework>net9.0</TargetFramework>
         <AssemblyName>AElf.Contracts.CrossChain.Tests</AssemblyName>
         <RootNamespace>AElf.Contracts.CrossChain.Tests</RootNamespace>
         <IsPackable>false</IsPackable>

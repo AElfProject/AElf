@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net8.0</TargetFramework>
+        <TargetFramework>net9.0</TargetFramework>
         <IsPackable>false</IsPackable>
         <!--        <NoWarn>0436</NoWarn>-->
         <OutputType>Exe</OutputType>
@@ -10,7 +10,7 @@
     <ItemGroup>
         <PackageReference Include="BenchmarkDotNet" Version="0.12.1"/>
         <PackageReference Include="BenchmarkDotNet.Diagnostics.Windows" Version="0.12.1"/>
-        <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="4.6.0-1.final" />
+        <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="4.11.0" />
     </ItemGroup>
 
     <ItemGroup>

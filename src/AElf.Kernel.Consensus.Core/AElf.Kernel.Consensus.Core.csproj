@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <Import Project="..\..\common.props" />
     <PropertyGroup>
-        <TargetFramework>net8.0</TargetFramework>
+        <TargetFramework>net9.0</TargetFramework>
         <RootNamespace>AElf.Kernel.Consensus</RootNamespace>
         <PackageId>AElf.Kernel.Consensus.Core</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>

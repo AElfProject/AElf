@@ -147,7 +147,7 @@ public class CSharpCodeOpsTestBase
 
     public static void AddNet8References()
     {
-        foreach (var portableExecutableReference in Basic.Reference.Assemblies.Net80.References.All)
+        foreach (var portableExecutableReference in Basic.Reference.Assemblies.Net90.References.All)
         {
             References.Add(portableExecutableReference);
         }
