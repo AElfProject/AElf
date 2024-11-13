@@ -697,8 +697,10 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
         Assert(tokenInfo != null, "Seed NFT does not exist.");
         Assert(tokenInfo.Owner == Context.Sender, "Sender is not Seed NFT owner.");
 
-        tokenInfo.ExternalInfo.Value["__seed_exp_time"] = input.ExpirationTime;
-        return base.ExtendSeedExpirationTime(input);
+        tokenInfo.ExternalInfo.Value[TokenContractConstants.SeedExpireTimeExternalInfoKey] = input.ExpirationTime.ToString();
+        State.TokenInfos[input.Symbol] = tokenInfo;
+        base.ExtendSeedExpirationTime(input);
+        return new Empty();
     }
 
     private int GetMaxBatchApproveCount()
