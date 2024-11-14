@@ -231,6 +231,8 @@ public class ContractStructureValidator : IValidator<ModuleDefinition>, ITransie
         if (_allowedStateTypes.Contains(field.FieldType.FullName))
             return false;
 
+        if(field.FieldType.Resolve().BaseType.FullName == typeof(StructuredState).FullName)
+            return false;
         // If not ContractReferenceState then it is not allowed
         return field.FieldType.Resolve().BaseType.FullName != typeof(ContractReferenceState).FullName;
     }
