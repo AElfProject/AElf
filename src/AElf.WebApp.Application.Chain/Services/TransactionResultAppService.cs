@@ -122,12 +122,11 @@ public class TransactionResultAppService : AElfAppService, ITransactionResultApp
         var chain = await _blockchainService.GetChainAsync();
         if (chain.BestChainHeight - output.Transaction.RefBlockNumber > KernelConstants.ReferenceBlockValidPeriod)
         {
-            output.Status = TransactionResultStatus.Expired.ToString().ToUpper();
-            output.Error = TransactionErrorResolver.TakeErrorMessage(TransactionResultStatus.Expired.ToString(),
-                _webAppOptions.IsDebugMode);
-            return output;
+                output.Status = TransactionResultStatus.Expired.ToString().ToUpper();
+                output.Error = TransactionErrorResolver.TakeErrorMessage(TransactionResultStatus.Expired.ToString(),
+                    _webAppOptions.IsDebugMode);
+                return output;
         }
-
         return output;
     }
 
