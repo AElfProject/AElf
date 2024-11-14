@@ -118,16 +118,17 @@ public class TransactionResultAppService : AElfAppService, ITransactionResultApp
                 return output;
             }
         }
-        
-        switch (output.BlockNumber - output.Transaction.RefBlockNumber)
+
+        var chain = await _blockchainService.GetChainAsync();
+        if (chain.BestChainHeight - output.Transaction.RefBlockNumber > KernelConstants.ReferenceBlockValidPeriod)
         {
-            case > KernelConstants.ReferenceBlockValidPeriod:
-                output.Status = TransactionResultStatus.Expired.ToString().ToUpper();
-                output.Error = TransactionErrorResolver.TakeErrorMessage(TransactionResultStatus.Expired.ToString(), _webAppOptions.IsDebugMode);
-                return output;
-            default:
-                return output;
+            output.Status = TransactionResultStatus.Expired.ToString().ToUpper();
+            output.Error = TransactionErrorResolver.TakeErrorMessage(TransactionResultStatus.Expired.ToString(),
+                _webAppOptions.IsDebugMode);
+            return output;
         }
+
+        return output;
     }
 
     /// <summary>
