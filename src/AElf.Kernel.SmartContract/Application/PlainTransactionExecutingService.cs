@@ -472,7 +472,7 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
             returnSet = GetReturnSet(returnSet, transactionExecutingStateSets);
             returnSet.ReturnValue = trace.ReturnValue;
 
-            var inlineTxWithIdList = trace.GetAllTransactions().Where(tx => NeedTransactionId(tx.MethodName));
+            var inlineTxWithIdList = trace.GetAllInlineTransactions().Where(tx => NeedTransactionId(tx.MethodName));
             foreach (var inlineTx in inlineTxWithIdList)
             {
                 var inlineTxId = inlineTx.GetHash();
