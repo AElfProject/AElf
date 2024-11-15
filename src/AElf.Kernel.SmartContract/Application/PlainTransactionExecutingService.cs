@@ -472,7 +472,7 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
             returnSet = GetReturnSet(returnSet, transactionExecutingStateSets);
             returnSet.ReturnValue = trace.ReturnValue;
 
-            var inlineTxWithIdList = trace.InlineTransactions.Where(tx => NeedTransactionId(tx.MethodName));
+            var inlineTxWithIdList = trace.GetAllTransactions().Where(tx => NeedTransactionId(tx.MethodName));
             foreach (var inlineTx in inlineTxWithIdList)
             {
                 var inlineTxId = inlineTx.GetHash();
@@ -493,15 +493,11 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
                 returnSets.Add(inlineReturnSet);
 
                 Logger.LogWarning($"Inline tx id: {inlineTx.GetHash().ToHex()}\n{inlineTx}");
-                // TODO: Maybe we need to add a new log for inline tx with id created.
-                // var log = new VirtualTransactionCreated
-                // {
-                //     From = inlineTx.From,
-                //     To = inlineTx.To,
-                //     MethodName = inlineTx.MethodName,
-                //     Params = inlineTx.Params,
-                // };
-                // returnSet.TransactionResult.Logs.Add(log.ToLogEvent(inlineTx.To));
+                var log = new InlineTransactionCreated()
+                {
+                    Transaction = inlineTx
+                };
+                returnSet.TransactionResult.Logs.Add(log.ToLogEvent(inlineTx.To));
             }
         }
         else
