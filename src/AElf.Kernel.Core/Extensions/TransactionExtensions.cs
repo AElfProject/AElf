@@ -16,7 +16,7 @@ public static class TransactionExtensions
 
     public static bool VerifySignature(this Transaction transaction)
     {
-        if (transaction.MethodName.Contains('.'))
+        if (transaction.IsInlineWithTransactionId())
         {
             return true;
         }
@@ -31,7 +31,16 @@ public static class TransactionExtensions
 
     public static bool VerifyExpiration(this Transaction transaction, long chainBranchBlockHeight)
     {
+        if (transaction.IsInlineWithTransactionId())
+        {
+            return true;
+        }
         return transaction.RefBlockNumber <= chainBranchBlockHeight &&
                transaction.GetExpiryBlockNumber() > chainBranchBlockHeight;
+    }
+
+    public static bool IsInlineWithTransactionId(this Transaction transaction)
+    {
+        return transaction.MethodName.Contains(".");
     }
 }

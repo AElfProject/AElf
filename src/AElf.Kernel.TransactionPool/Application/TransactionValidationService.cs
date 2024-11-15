@@ -49,7 +49,8 @@ public class TransactionValidationService : ITransactionValidationService, ITran
 
     public async Task<bool> ValidateTransactionWhileSyncingAsync(Transaction transaction)
     {
-        if (transaction.MethodName.Contains('.'))
+        Logger.LogInformation("this is right version");
+        if (transaction.IsInlineWithTransactionId())
         {
             return true;
         }
