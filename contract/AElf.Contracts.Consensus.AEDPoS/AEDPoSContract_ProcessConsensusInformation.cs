@@ -86,11 +86,6 @@ public partial class AEDPoSContract
         _processingBlockMinerPubkey = null;
     }
 
-    public override Empty DoNothing(Empty input)
-    {
-        return new Empty();
-    }
-
     /// <summary>
     ///     Get latest updated signature.
     ///     A signature is for generating a random hash.
