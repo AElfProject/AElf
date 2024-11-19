@@ -123,7 +123,7 @@ public class TransactionResultAppService : AElfAppService, ITransactionResultApp
         if (chain.BestChainHeight - output.Transaction.RefBlockNumber > KernelConstants.ReferenceBlockValidPeriod)
         {
             // set a the Error message to the output to infer that the transaction will never succeed.
-            var error = $"The transactions status is:{TransactionResultStatus.Expired.ToString()}, and it will never succeed.";
+            var error = $"The transactions status is expired, and it will never succeed.";
             output.Error = TransactionErrorResolver.TakeErrorMessage(error, _webAppOptions.IsDebugMode);
             return output;    
         }
