@@ -453,3 +453,11 @@ message ExtendSeedExpirationTimeInput {
     string symbol = 1;
     int64 expiration_time = 2;
 }
+
+message SeedExpirationTimeUpdated {
+    option (aelf.is_event) = true;
+    int32 chain_id = 1;
+    string symbol = 2;
+    int64 old_expiration_time = 3;
+    int64 new_expiration_time = 4;
+}

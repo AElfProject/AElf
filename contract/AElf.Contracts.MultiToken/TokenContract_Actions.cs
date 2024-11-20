@@ -694,12 +694,29 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
     public override Empty ExtendSeedExpirationTime(ExtendSeedExpirationTimeInput input)
     {
         var tokenInfo = GetTokenInfo(input.Symbol);
-        Assert(tokenInfo != null, "Seed NFT does not exist.");
-        Assert(tokenInfo.Owner == Context.Sender, "Sender is not Seed NFT owner.");
+        if (tokenInfo == null)
+        {
+            throw new AssertionException("Seed NFT does not exist.");
+        }
 
-        tokenInfo.ExternalInfo.Value[TokenContractConstants.SeedExpireTimeExternalInfoKey] = input.ExpirationTime.ToString();
+        Assert(tokenInfo.Owner == Context.Sender, "Sender is not Seed NFT owner.");
+        var oldExpireTimeLong = 0L;
+        if (tokenInfo.ExternalInfo.Value.TryGetValue(TokenContractConstants.SeedExpireTimeExternalInfoKey,
+                out var oldExpireTime))
+        {
+            long.TryParse(oldExpireTime, out oldExpireTimeLong);
+        }
+
+        tokenInfo.ExternalInfo.Value[TokenContractConstants.SeedExpireTimeExternalInfoKey] =
+            input.ExpirationTime.ToString();
         State.TokenInfos[input.Symbol] = tokenInfo;
-        base.ExtendSeedExpirationTime(input);
+        Context.Fire(new SeedExpirationTimeUpdated
+        {
+            ChainId = tokenInfo.IssueChainId,
+            Symbol = input.Symbol,
+            OldExpirationTime = oldExpireTimeLong,
+            NewExpirationTime = input.ExpirationTime
+        });
         return new Empty();
     }
 
