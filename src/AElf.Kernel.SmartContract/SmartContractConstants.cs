@@ -2,7 +2,7 @@ namespace AElf.Kernel.SmartContract;
 
 public class SmartContractConstants
 {
-    public const int ExecutionCallThreshold = 80000;
+    public const int ExecutionCallThreshold = 15000;
 
     public const int ExecutionBranchThreshold = 15000;
 
