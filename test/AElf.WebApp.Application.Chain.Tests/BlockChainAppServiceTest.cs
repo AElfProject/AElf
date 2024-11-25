@@ -681,6 +681,7 @@ public sealed class BlockChainAppServiceTest : WebAppTestBase
 
         response.TransactionId.ShouldBe(transactionHex);
         response.Status.ShouldBe(TransactionResultStatus.Mined.ToString().ToUpper());
+        response.StatusV2.ShouldBe(TransactionResultStatus.Expired.ToString().ToUpper());
         response.TransactionSize.ShouldBe(transaction.CalculateSize());
         response.BlockNumber.ShouldBe(block.Height);
         response.BlockHash.ShouldBe(block.GetHash().ToHex());
