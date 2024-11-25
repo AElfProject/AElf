@@ -118,6 +118,14 @@ public class TransactionResultAppService : AElfAppService, ITransactionResultApp
                 return output;
             }
         }
+        
+        var chain = await _blockchainService.GetChainAsync();
+        if (chain.BestChainHeight - output.Transaction.RefBlockNumber > KernelConstants.ReferenceBlockValidPeriod 
+            && transactionResult.Status == TransactionResultStatus.NotExisted)
+        {
+            output.StatusV2 = TransactionResultStatus.Expired;
+            return output;
+        }
 
         return output;
         
