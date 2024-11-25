@@ -123,7 +123,7 @@ public class TransactionResultAppService : AElfAppService, ITransactionResultApp
         if (chain.BestChainHeight - output.Transaction.RefBlockNumber > KernelConstants.ReferenceBlockValidPeriod 
             && transactionResult.Status == TransactionResultStatus.NotExisted)
         {
-            output.StatusV2 = TransactionResultStatus.Expired;
+            output.StatusV2 = TransactionResultStatus.Expired.ToString().ToUpper();
             return output;
         }
 
