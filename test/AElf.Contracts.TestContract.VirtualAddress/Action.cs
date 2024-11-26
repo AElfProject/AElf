@@ -9,6 +9,27 @@ namespace AElf.Contracts.TestContract.VirtualAddress;
 
 public partial class Action : VirtualAddressContractContainer.VirtualAddressContractBase
 {
+    
+    public override Empty VirtualAddressVoteWithInline(VirtualAddressVoteWithCountInput input)
+    {
+        if (input.Count == null) return new Empty();
+        Initialize();
+
+        for (int i = 0; i < input.Count; i++)
+        {
+            Context.SendVirtualInline(HashHelper.ComputeFrom("test"), State.ElectionContract.Value, ".Vote", new VoteMinerInput
+            {
+                CandidatePubkey = input.VoteInput.PubKey,
+                Amount = input.VoteInput.Amount,
+                EndTimestamp = input.VoteInput.EndTimestamp,
+                Token = input.VoteInput.Token
+            }.ToByteString());
+        }
+        
+
+        return new Empty();
+    }
+    
     public override Empty VirtualAddressVote(VirtualAddressVoteInput input)
     {
         Initialize();
