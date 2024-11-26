@@ -8,14 +8,14 @@ using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
 
-namespace AElf.Kernel.FeatureManager.Tests;
+namespace AElf.Kernel.FeatureManagement.Tests;
 
-public class FeatureActiveServiceTest : KernelFeatureManagerTestBase
+public class FeatureManagementServiceTest : KernelFeatureManagementTestBase
 {
     private readonly IBlockchainService _blockchainService;
     private readonly IMockService _mockService;
 
-    public FeatureActiveServiceTest()
+    public FeatureManagementServiceTest()
     {
         _mockService = GetRequiredService<IMockService>();
         _blockchainService = GetRequiredService<IBlockchainService>();
@@ -87,7 +87,7 @@ public class FeatureActiveServiceTest : KernelFeatureManagerTestBase
             ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
             Params = new SetConfigurationInput
             {
-                Key = $"{FeatureManagerConstants.FeatureConfigurationNamePrefix}{featureName}",
+                Key = $"{FeatureManagementConstants.FeatureConfigurationNamePrefix}{featureName}",
                 Value = new Int64Value { Value = activeHeight }.ToByteString()
             }.ToByteString(),
             ToAddress = ConfigurationContractAddress,
@@ -101,5 +101,36 @@ public class FeatureActiveServiceTest : KernelFeatureManagerTestBase
     {
         var chain = await _blockchainService.GetChainAsync();
         return chain.BestChainHeight;
+    }
+
+    [Fact]
+    public async Task IsFeatureDisabledTest()
+    {
+        await DeployContractsAsync();
+        await ConfigDisabledFeaturesAsync("FeatureA, FeatureB, FeatureBAndC");
+        (await _mockService.IsFeatureADisabledAsync()).ShouldBeTrue();
+        (await _mockService.IsFeatureBDisabledAsync()).ShouldBeTrue();
+        (await _mockService.IsFeatureCDisabledAsync()).ShouldBeTrue();
+        (await _mockService.IsFeatureDDisabledAsync()).ShouldBeFalse();
+    }
+
+    private async Task ConfigDisabledFeaturesAsync(string disableFeatureNames)
+    {
+        var chain = await _blockchainService.GetChainAsync();
+        await _blockchainService.SetIrreversibleBlockAsync(chain, chain.BestChainHeight, chain.BestChainHash);
+        var proposalId = (await ParliamentContractStub.CreateProposal.SendAsync(new CreateProposalInput
+        {
+            ContractMethodName = "SetConfiguration",
+            ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
+            Params = new SetConfigurationInput
+            {
+                Key = FeatureManagementConstants.FeatureDisableConfigurationName,
+                Value = new StringValue { Value = disableFeatureNames }.ToByteString()
+            }.ToByteString(),
+            ToAddress = ConfigurationContractAddress,
+            OrganizationAddress = await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty())
+        })).Output;
+        await ParliamentContractStub.Approve.SendAsync(proposalId);
+        await ParliamentContractStub.Release.SendAsync(proposalId);
     }
 }

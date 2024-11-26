@@ -37,7 +37,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Consensus.Sched
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Consensus.Scheduler.RxNet", "src\AElf.Kernel.Consensus.Scheduler.RxNet\AElf.Kernel.Consensus.Scheduler.RxNet.csproj", "{0396B229-C6D6-4CCC-BCD2-0158A93193D3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.FeatureManager", "src\AElf.Kernel.FeatureManager\AElf.Kernel.FeatureManager.csproj", "{CFDA6378-7EA0-4DAB-BE1F-CE10E0072718}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.FeatureManagement", "src\AElf.Kernel.FeatureManagement\AElf.Kernel.FeatureManagement.csproj", "{CFDA6378-7EA0-4DAB-BE1F-CE10E0072718}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.FeeCalculation", "src\AElf.Kernel.FeeCalculation\AElf.Kernel.FeeCalculation.csproj", "{7308E633-AA3E-4CB9-87BE-E4345562C45C}"
 EndProject
@@ -157,7 +157,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Consensus.AEDPo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Consensus.Tests", "test\AElf.Kernel.Consensus.Tests\AElf.Kernel.Consensus.Tests.csproj", "{D2F63569-51D7-449D-A632-8DD7B5DA5378}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.FeatureManager.Tests", "test\AElf.Kernel.FeatureManager.Tests\AElf.Kernel.FeatureManager.Tests.csproj", "{BEDA2B8B-3C65-4C74-8650-1A208A7B1300}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.FeatureManagement.Tests", "test\AElf.Kernel.FeatureManagement.Tests\AElf.Kernel.FeatureManagement.Tests.csproj", "{BEDA2B8B-3C65-4C74-8650-1A208A7B1300}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.WebApp.Application.Chain.Tests", "test\AElf.WebApp.Application.Chain.Tests\AElf.WebApp.Application.Chain.Tests.csproj", "{5198D134-A58C-417F-946E-8D6CEB410991}"
 EndProject

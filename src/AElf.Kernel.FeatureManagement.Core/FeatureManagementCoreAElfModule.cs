@@ -1,9 +1,9 @@
 ﻿using AElf.Modularity;
 using Volo.Abp.Modularity;
 
-namespace AElf.Kernel.FeatureDisable.Core;
+namespace AElf.Kernel.FeatureManagement.Core;
 
-public class FeatureDisableCoreAElfModule : AElfModule
+public class FeatureManagementCoreAElfModule : AElfModule
 {
     public override void ConfigureServices(ServiceConfigurationContext context)
     {

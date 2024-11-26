@@ -5,13 +5,12 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Volo.Abp.Modularity;
 
-namespace AElf.Kernel.FeatureDisable.Tests;
+namespace AElf.Kernel.FeatureManagement.Tests;
 
-[DependsOn(
-    typeof(ContractTestModule),
-    typeof(FeatureDisableAElfModule),
+[DependsOn(typeof(ContractTestModule),
+    typeof(FeatureManagementAElfModule),
     typeof(KernelAElfModule))]
-public class FeatureDisableTestModule : ContractTestModule
+public class FeatureManagementTestModule : ContractTestModule
 {
     public override void ConfigureServices(ServiceConfigurationContext context)
     {
