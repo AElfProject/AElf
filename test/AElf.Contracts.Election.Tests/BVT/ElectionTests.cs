@@ -1984,45 +1984,6 @@ public partial class ElectionContractTests : ElectionContractTestBase
         return result.ActiveVotingRecords.First().VoteId;
     }
 
-    // [Fact]
-    // public async Task<Hash> VirtualAddress_Vote_WithInlineTxIdAndCountTest()
-    // {
-    //     var amount = 100;
-    //     const int lockTime = 100 * 60 * 60 * 24;
-    //     var candidatesKeyPairs = await ElectionContract_AnnounceElection_Test();
-    //     var candidateKeyPair = candidatesKeyPairs[0];
-    //     
-    //     var address = await VirtualAddressContractStub.GetVirtualAddress.CallAsync(new Empty());
-    //     var initBalance = 100000;
-    //
-    //     await TokenContractStub.Transfer.SendAsync(new TransferInput
-    //     {
-    //         Amount = initBalance,
-    //         Symbol = "ELF",
-    //         To = address,
-    //         Memo = "test"
-    //     });
-    //     
-    //     CheckBalance(address, "ELF", initBalance);
-    //     CheckBalance(address, "SHARE", 0);
-    //     CheckBalance(address, "VOTE", 0);
-    //
-    //     var virtualAddressVoteInput = new VirtualAddressVoteInput
-    //     {
-    //         PubKey = candidateKeyPair.PublicKey.ToHex(),
-    //         Amount = amount,
-    //         EndTimestamp = TimestampHelper.GetUtcNow().AddSeconds(lockTime),
-    //         Token = HashHelper.ComputeFrom("token A")
-    //     };
-    //
-    //     var resultawait = await VirtualAddressContractStub.VirtualAddressVoteWithInline.SendAsync(new VirtualAddressVoteWithCountInput
-    //     {
-    //         VoteInput = virtualAddressVoteInput,
-    //         Count = 6
-    //     });
-    //     return null;
-    // }
-    //
     [Fact]
     public async Task<Hash> VirtualAddress_Vote_WithInlineTxIdTest()
     {
