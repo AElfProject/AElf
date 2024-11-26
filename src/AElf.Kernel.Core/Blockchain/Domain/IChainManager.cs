@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Kernel.Infrastructure;
+using AElf.OpenTelemetry.ExecutionTime;
 using Microsoft.Extensions.Caching.Memory;
 
 namespace AElf.Kernel.Blockchain.Domain;
@@ -44,6 +45,7 @@ public interface IChainManager
     Task<Chain> ResetChainToLibAsync(Chain chain);
 }
 
+[AggregateExecutionTime]
 public class ChainManager : IChainManager, ISingletonDependency
 {
     private readonly IBlockchainStore<ChainBlockIndex> _chainBlockIndexes;
