@@ -25,7 +25,7 @@ public interface ITransactionResultAppService
 {
     Task<TransactionResultDto> GetTransactionResultAsync(string transactionId);
     
-    Task<TransactionResultDto> GetTransactionResultAsyncV2(string transactionId);
+    Task<TransactionResultDto> GetTransactionResultV2Async(string transactionId);
 
     Task<List<TransactionResultDto>> GetTransactionResultsAsync(string blockHash, int offset = 0,
         int limit = 10);
@@ -125,11 +125,11 @@ public class TransactionResultAppService : AElfAppService, ITransactionResultApp
         
     }
     /// <summary>
-    ///     Get the current status of a transaction
+    ///     Get the current status of a transaction, available since V1.12.0
     /// </summary>
     /// <param name="transactionId">transaction id</param>
     /// <returns></returns>
-    public async Task<TransactionResultDto> GetTransactionResultAsyncV2(string transactionId)
+    public async Task<TransactionResultDto> GetTransactionResultV2Async(string transactionId)
     {
         Hash transactionIdHash;
         try

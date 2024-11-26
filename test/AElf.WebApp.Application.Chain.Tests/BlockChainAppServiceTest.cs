@@ -703,7 +703,7 @@ public sealed class BlockChainAppServiceTest : WebAppTestBase
         
         // 4.get transaction status
         var response = await GetResponseAsObjectAsync<TransactionResultDto>(
-            $"/api/blockChain/transactionResult?transactionId={transactionHex}");
+            $"/api/blockChain/transactionResultV2?transactionId={transactionHex}");
         response.TransactionId.ShouldBe(TransactionResultStatus.Expired.ToString());
         
     }
