@@ -1984,6 +1984,133 @@ public partial class ElectionContractTests : ElectionContractTestBase
         return result.ActiveVotingRecords.First().VoteId;
     }
 
+    // [Fact]
+    // public async Task<Hash> VirtualAddress_Vote_WithInlineTxIdAndCountTest()
+    // {
+    //     var amount = 100;
+    //     const int lockTime = 100 * 60 * 60 * 24;
+    //     var candidatesKeyPairs = await ElectionContract_AnnounceElection_Test();
+    //     var candidateKeyPair = candidatesKeyPairs[0];
+    //     
+    //     var address = await VirtualAddressContractStub.GetVirtualAddress.CallAsync(new Empty());
+    //     var initBalance = 100000;
+    //
+    //     await TokenContractStub.Transfer.SendAsync(new TransferInput
+    //     {
+    //         Amount = initBalance,
+    //         Symbol = "ELF",
+    //         To = address,
+    //         Memo = "test"
+    //     });
+    //     
+    //     CheckBalance(address, "ELF", initBalance);
+    //     CheckBalance(address, "SHARE", 0);
+    //     CheckBalance(address, "VOTE", 0);
+    //
+    //     var virtualAddressVoteInput = new VirtualAddressVoteInput
+    //     {
+    //         PubKey = candidateKeyPair.PublicKey.ToHex(),
+    //         Amount = amount,
+    //         EndTimestamp = TimestampHelper.GetUtcNow().AddSeconds(lockTime),
+    //         Token = HashHelper.ComputeFrom("token A")
+    //     };
+    //
+    //     var resultawait = await VirtualAddressContractStub.VirtualAddressVoteWithInline.SendAsync(new VirtualAddressVoteWithCountInput
+    //     {
+    //         VoteInput = virtualAddressVoteInput,
+    //         Count = 6
+    //     });
+    //     return null;
+    // }
+    //
+    [Fact]
+    public async Task<Hash> VirtualAddress_Vote_WithInlineTxIdTest()
+    {
+        var amount = 100;
+        const int lockTime = 100 * 60 * 60 * 24;
+        var candidatesKeyPairs = await ElectionContract_AnnounceElection_Test();
+        var candidateKeyPair = candidatesKeyPairs[0];
+        
+        var address = await VirtualAddressContractStub.GetVirtualAddress.CallAsync(new Empty());
+        var initBalance = 100000;
+
+        await TokenContractStub.Transfer.SendAsync(new TransferInput
+        {
+            Amount = initBalance,
+            Symbol = "ELF",
+            To = address,
+            Memo = "test"
+        });
+        
+        CheckBalance(address, "ELF", initBalance);
+        CheckBalance(address, "SHARE", 0);
+        CheckBalance(address, "VOTE", 0);
+
+        var virtualAddressVoteInput = new VirtualAddressVoteInput
+        {
+            PubKey = candidateKeyPair.PublicKey.ToHex(),
+            Amount = amount,
+            EndTimestamp = TimestampHelper.GetUtcNow().AddSeconds(lockTime),
+            Token = HashHelper.ComputeFrom("token A")
+        };
+
+        await VirtualAddressContractStub.VirtualAddressVoteWithInline.SendAsync(new VirtualAddressVoteWithCountInput
+        {
+            VoteInput = virtualAddressVoteInput,
+            Count = 1
+        });
+        
+        var result = await ElectionContractStub.GetElectorVote.CallAsync(new StringValue
+        {
+            Value = address.ToBase58()
+        });
+        result.ActiveVotedVotesAmount.ShouldBe(amount);
+        result = await ElectionContractStub.GetElectorVoteWithRecords.CallAsync(new StringValue
+        {
+            Value = address.ToBase58()
+        });
+        result.ActiveVotedVotesAmount.ShouldBe(amount);
+        result = await ElectionContractStub.GetElectorVoteWithAllRecords.CallAsync(new StringValue
+        {
+            Value = address.ToBase58()
+        });
+        result.AllVotedVotesAmount.ShouldBe(amount);
+        
+        CheckBalance(address, "ELF", initBalance - amount);
+        CheckBalance(address, "SHARE", amount);
+        CheckBalance(address, "VOTE", amount);
+        
+        await VirtualAddressContractStub.VirtualAddressVote.SendAsync(new VirtualAddressVoteInput
+        {
+            PubKey = candidateKeyPair.PublicKey.ToHex(),
+            Amount = amount,
+            EndTimestamp = TimestampHelper.GetUtcNow().AddSeconds(lockTime),
+            Token = HashHelper.ComputeFrom("token A")
+        });
+        
+        result = await ElectionContractStub.GetElectorVote.CallAsync(new StringValue
+        {
+            Value = address.ToBase58()
+        });
+        result.ActiveVotedVotesAmount.ShouldBe(amount + amount);
+        result = await ElectionContractStub.GetElectorVoteWithRecords.CallAsync(new StringValue
+        {
+            Value = address.ToBase58()
+        });
+        result.ActiveVotedVotesAmount.ShouldBe(amount + amount);
+        result = await ElectionContractStub.GetElectorVoteWithAllRecords.CallAsync(new StringValue
+        {
+            Value = address.ToBase58()
+        });
+        result.AllVotedVotesAmount.ShouldBe(amount + amount);
+        
+        CheckBalance(address, "ELF", initBalance - amount - amount);
+        CheckBalance(address, "SHARE", amount + amount);
+        CheckBalance(address, "VOTE", amount + amount);
+        
+        return result.ActiveVotingRecords.First().VoteId;
+    }
+
     [Fact]
     public async Task VirtualAddress_Withdraw_Test()
     {
