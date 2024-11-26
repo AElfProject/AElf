@@ -385,6 +385,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.FeatureDisable.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.FeatureDisable.Core", "src\AElf.Kernel.FeatureDisable.Core\AElf.Kernel.FeatureDisable.Core.csproj", "{659A7C7A-44C9-424E-B4F6-D1D3656F7AD4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Cryptography.Bls", "src\AElf.Cryptography.Bls\AElf.Cryptography.Bls.csproj", "{F8663FF4-C1F4-46A7-B2BD-DB7C4FD0EF10}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -1107,6 +1109,10 @@ Global
 		{659A7C7A-44C9-424E-B4F6-D1D3656F7AD4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{659A7C7A-44C9-424E-B4F6-D1D3656F7AD4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{659A7C7A-44C9-424E-B4F6-D1D3656F7AD4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F8663FF4-C1F4-46A7-B2BD-DB7C4FD0EF10}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F8663FF4-C1F4-46A7-B2BD-DB7C4FD0EF10}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F8663FF4-C1F4-46A7-B2BD-DB7C4FD0EF10}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F8663FF4-C1F4-46A7-B2BD-DB7C4FD0EF10}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1301,5 +1307,6 @@ Global
 		{A4ACE6D2-4CF8-4B52-93C9-BB8BEC0C098E} = {90B310B4-C2DB-419E-B5EE-97FA096B62CC}
 		{8C0D86A4-D1A7-4B61-AC44-755F5AC75D67} = {4E54480A-D155-43ED-9736-1A5BE7957211}
 		{659A7C7A-44C9-424E-B4F6-D1D3656F7AD4} = {90B310B4-C2DB-419E-B5EE-97FA096B62CC}
+		{F8663FF4-C1F4-46A7-B2BD-DB7C4FD0EF10} = {798BAA50-825B-4DD9-83E2-77A9EE6EBE09}
 	EndGlobalSection
 EndGlobal
