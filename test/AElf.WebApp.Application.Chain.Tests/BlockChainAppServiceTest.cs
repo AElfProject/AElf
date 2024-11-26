@@ -686,6 +686,27 @@ public sealed class BlockChainAppServiceTest : WebAppTestBase
         response.BlockNumber.ShouldBe(block.Height);
         response.BlockHash.ShouldBe(block.GetHash().ToHex());
     }
+    
+    [Fact]
+    public async Task Get_TransactionResultV2_Success_Test()
+    {
+        
+        // 1.build transaction to be expired
+        var transaction = await _osTestHelper.GenerateTransferTransaction();
+
+        // 2.push chain height to be ref_block_number + 512
+        await _osTestHelper.Mined520Blocks();
+        var transactionHex = transaction.GetHash().ToHex();
+    
+        // 3.broadcast expired transaction
+        await _osTestHelper.BroadcastTransactions(new List<Transaction> { transaction });
+        
+        // 4.get transaction status
+        var response = await GetResponseAsObjectAsync<TransactionResultDto>(
+            $"/api/blockChain/transactionResult?transactionId={transactionHex}");
+        response.TransactionId.ShouldBe(TransactionResultStatus.Expired.ToString());
+        
+    }
 
     [Fact]
     public async Task Get_Failed_TransactionResult_Success_Test()

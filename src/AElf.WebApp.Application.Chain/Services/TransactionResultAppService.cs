@@ -24,6 +24,8 @@ namespace AElf.WebApp.Application.Chain;
 public interface ITransactionResultAppService
 {
     Task<TransactionResultDto> GetTransactionResultAsync(string transactionId);
+    
+    Task<TransactionResultDto> GetTransactionResultAsyncV2(string transactionId);
 
     Task<List<TransactionResultDto>> GetTransactionResultsAsync(string blockHash, int offset = 0,
         int limit = 10);
@@ -70,6 +72,64 @@ public class TransactionResultAppService : AElfAppService, ITransactionResultApp
     /// <param name="transactionId">transaction id</param>
     /// <returns></returns>
     public async Task<TransactionResultDto> GetTransactionResultAsync(string transactionId)
+    {
+        Hash transactionIdHash;
+        try
+        {
+            transactionIdHash = Hash.LoadFromHex(transactionId);
+        }
+        catch
+        {
+            throw new UserFriendlyException(Error.Message[Error.InvalidTransactionId],
+                Error.InvalidTransactionId.ToString());
+        }
+
+        var transactionResult = await GetTransactionResultAsync(transactionIdHash);
+        var output = _objectMapper.GetMapper()
+            .Map<TransactionResult, TransactionResultDto>(transactionResult,
+                opt => opt.Items[TransactionProfile.ErrorTrace] = _webAppOptions.IsDebugMode);
+
+        var transaction = await _transactionManager.GetTransactionAsync(transactionResult.TransactionId);
+        output.Transaction = _objectMapper.Map<Transaction, TransactionDto>(transaction);
+        output.TransactionSize = transaction?.CalculateSize() ?? 0;
+
+        if (transactionResult.Status != TransactionResultStatus.NotExisted)
+        {
+            await FormatTransactionParamsAsync(output.Transaction, transaction.Params);
+            return output;
+        }
+
+        var validationStatus = _transactionResultStatusCacheProvider.GetTransactionResultStatus(transactionIdHash);
+        if (validationStatus != null)
+        {
+            output.Status = validationStatus.TransactionResultStatus.ToString().ToUpper();
+            output.Error =
+                TransactionErrorResolver.TakeErrorMessage(validationStatus.Error, _webAppOptions.IsDebugMode);
+            return output;
+        }
+
+        if (_transactionOptions.StoreInvalidTransactionResultEnabled)
+        {
+            var failedTransactionResult =
+                await _transactionResultProxyService.InvalidTransactionResultService.GetInvalidTransactionResultAsync(
+                    transactionIdHash);
+            if (failedTransactionResult != null)
+            {
+                output.Status = failedTransactionResult.Status.ToString().ToUpper();
+                output.Error = failedTransactionResult.Error;
+                return output;
+            }
+        }
+
+        return output;
+        
+    }
+    /// <summary>
+    ///     Get the current status of a transaction
+    /// </summary>
+    /// <param name="transactionId">transaction id</param>
+    /// <returns></returns>
+    public async Task<TransactionResultDto> GetTransactionResultAsyncV2(string transactionId)
     {
         Hash transactionIdHash;
         try

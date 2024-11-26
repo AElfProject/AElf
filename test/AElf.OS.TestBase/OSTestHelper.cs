@@ -163,6 +163,15 @@ public class OSTestHelper
 
         return transaction;
     }
+    
+    
+    public async Task Mined520Blocks()
+    {
+        for (var i = 0; i < 520; i++)
+        {
+            await MinedOneBlock();
+        }
+    }
 
     public async Task<(List<Transaction>, List<ECKeyPair>)> PrepareTokenForParallel(int count, long tokenAmount = 10)
     {
