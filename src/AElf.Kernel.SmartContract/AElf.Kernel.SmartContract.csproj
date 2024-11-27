@@ -22,5 +22,8 @@
         <ContractMessage Include="..\..\protobuf\virtual_transaction.proto">
             <Link>Protobuf\Proto\virtual_transaction.proto</Link>
         </ContractMessage>
+        <ContractMessage Include="..\..\protobuf\inline_transaction.proto">
+            <Link>Protobuf\Proto\inline_transaction.proto</Link>
+        </ContractMessage>
     </ItemGroup>
 </Project>
