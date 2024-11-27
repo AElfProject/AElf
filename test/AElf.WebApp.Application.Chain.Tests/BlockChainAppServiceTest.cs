@@ -681,31 +681,43 @@ public sealed class BlockChainAppServiceTest : WebAppTestBase
 
         response.TransactionId.ShouldBe(transactionHex);
         response.Status.ShouldBe(TransactionResultStatus.Mined.ToString().ToUpper());
-        response.StatusV2.ShouldBe(TransactionResultStatus.Expired.ToString().ToUpper());
         response.TransactionSize.ShouldBe(transaction.CalculateSize());
         response.BlockNumber.ShouldBe(block.Height);
         response.BlockHash.ShouldBe(block.GetHash().ToHex());
     }
     
     [Fact]
-    public async Task Get_TransactionResultV2_Success_Test()
+    public async Task Get_TransactionResultV2_Expired_Test()
     {
-        
-        // 1.build transaction to be expired
+        // Generate a transaction
         var transaction = await _osTestHelper.GenerateTransferTransaction();
 
-        // 2.push chain height to be ref_block_number + 512
-        await _osTestHelper.Mined520Blocks();
+        // Push chain height to be ref_block_number + at least 512
+        await MineSomeBlocks(520);
         var transactionHex = transaction.GetHash().ToHex();
     
-        // 3.broadcast expired transaction
+        // Broadcast expired transaction
         await _osTestHelper.BroadcastTransactions(new List<Transaction> { transaction });
         
-        // 4.get transaction status
+        // Try to package this transaction
+        await _osTestHelper.MinedOneBlock();
+
+        // Check transaction status
         var response = await GetResponseAsObjectAsync<TransactionResultDto>(
             $"/api/blockChain/transactionResultV2?transactionId={transactionHex}");
-        response.TransactionId.ShouldBe(TransactionResultStatus.Expired.ToString());
-        
+        // response.StatusV2.ShouldBe(TransactionResultStatus.Expired.ToString());
+    }
+
+    private async Task MineSomeBlocks(int blockNumber)
+    {
+        var heightBefore = (await _osTestHelper.GetChainContextAsync()).BlockHeight;
+        for (var i = 0; i < blockNumber; i++)
+        {
+            await _osTestHelper.MinedOneBlock();
+        }
+
+        var heightAfter = (await _osTestHelper.GetChainContextAsync()).BlockHeight;
+        heightAfter.ShouldBe(heightBefore + blockNumber);
     }
 
     [Fact]

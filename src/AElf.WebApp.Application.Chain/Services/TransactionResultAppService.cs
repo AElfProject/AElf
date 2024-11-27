@@ -146,6 +146,7 @@ public class TransactionResultAppService : AElfAppService, ITransactionResultApp
         var output = _objectMapper.GetMapper()
             .Map<TransactionResult, TransactionResultDto>(transactionResult,
                 opt => opt.Items[TransactionProfile.ErrorTrace] = _webAppOptions.IsDebugMode);
+        output.StatusV2 = output.Status;
 
         var transaction = await _transactionManager.GetTransactionAsync(transactionResult.TransactionId);
         output.Transaction = _objectMapper.Map<Transaction, TransactionDto>(transaction);
@@ -160,7 +161,7 @@ public class TransactionResultAppService : AElfAppService, ITransactionResultApp
         var validationStatus = _transactionResultStatusCacheProvider.GetTransactionResultStatus(transactionIdHash);
         if (validationStatus != null)
         {
-            output.Status = validationStatus.TransactionResultStatus.ToString().ToUpper();
+            output.StatusV2 = validationStatus.TransactionResultStatus.ToString().ToUpper();
             output.Error =
                 TransactionErrorResolver.TakeErrorMessage(validationStatus.Error, _webAppOptions.IsDebugMode);
             return output;
@@ -173,14 +174,14 @@ public class TransactionResultAppService : AElfAppService, ITransactionResultApp
                     transactionIdHash);
             if (failedTransactionResult != null)
             {
-                output.Status = failedTransactionResult.Status.ToString().ToUpper();
+                output.StatusV2 = failedTransactionResult.Status.ToString().ToUpper();
                 output.Error = failedTransactionResult.Error;
                 return output;
             }
         }
         
         var chain = await _blockchainService.GetChainAsync();
-        if (chain.BestChainHeight - output.Transaction.RefBlockNumber > KernelConstants.ReferenceBlockValidPeriod 
+        if (chain.BestChainHeight - output.Transaction?.RefBlockNumber > KernelConstants.ReferenceBlockValidPeriod 
             && transactionResult.Status == TransactionResultStatus.NotExisted)
         {
             output.StatusV2 = TransactionResultStatus.Expired.ToString().ToUpper();
@@ -188,7 +189,6 @@ public class TransactionResultAppService : AElfAppService, ITransactionResultApp
         }
 
         return output;
-        
     }
 
     /// <summary>
