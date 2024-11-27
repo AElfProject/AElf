@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.FeeCalculation.Extensions;
@@ -36,6 +37,8 @@ public interface ITransactionAppService
 
     Task<SendTransactionOutput> SendTransactionAsync(SendTransactionInput input);
 
+    Task<SendMultiTransactionOutput> SendMultiTransactionAsync(SendMultiTransactionInput input);
+
     Task<string[]> SendTransactionsAsync(SendTransactionsInput input);
 
     Task<CalculateTransactionFeeOutput> CalculateTransactionFeeAsync(CalculateTransactionFeeInput input);
@@ -49,19 +52,21 @@ public class TransactionAppService : AElfAppService, ITransactionAppService
     private readonly ITransactionResultStatusCacheProvider _transactionResultStatusCacheProvider;
     private readonly IPlainTransactionExecutingService _plainTransactionExecutingService;
     private readonly WebAppOptions _webAppOptions;
-
+    private readonly MultiTransactionOptions _multiTransactionOptions;
 
     public TransactionAppService(ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService,
         IBlockchainService blockchainService, IObjectMapper<ChainApplicationWebAppAElfModule> objectMapper,
         ITransactionResultStatusCacheProvider transactionResultStatusCacheProvider,
         IPlainTransactionExecutingService plainTransactionExecutingService,
-        IOptionsMonitor<WebAppOptions> webAppOptions)
+        IOptionsMonitor<WebAppOptions> webAppOptions,
+        IOptionsSnapshot<MultiTransactionOptions> multiTransactionSignerOptions)
     {
         _transactionReadOnlyExecutionService = transactionReadOnlyExecutionService;
         _blockchainService = blockchainService;
         _objectMapper = objectMapper;
         _transactionResultStatusCacheProvider = transactionResultStatusCacheProvider;
         _plainTransactionExecutingService = plainTransactionExecutingService;
+        _multiTransactionOptions = multiTransactionSignerOptions.Value;
         _webAppOptions = webAppOptions.CurrentValue;
 
         LocalEventBus = NullLocalEventBus.Instance;
@@ -236,6 +241,64 @@ public class TransactionAppService : AElfAppService, ITransactionAppService
         {
             TransactionId = txIds[0]
         };
+    }
+
+    public async Task<SendMultiTransactionOutput> SendMultiTransactionAsync(SendMultiTransactionInput input)
+    {
+        var multiTxBytes = ByteArrayHelper.HexStringToByteArray(input.RawTransactions);
+        var multiTransaction = MultiTransaction.Parser.ParseFrom(multiTxBytes);
+        if (multiTransaction.VerifyFields() != MultiTransaction.ValidationStatus.Success)
+        {
+            throw new UserFriendlyException(Error.Message[Error.InvalidTransaction],
+                Error.InvalidTransaction.ToString());
+        }
+
+        CryptoHelper.RecoverPublicKey(multiTransaction.Signature.ToByteArray(), multiTransaction.GetHash().ToByteArray(), out var pubkey);
+        
+        if (!await IsGatewayAddress(Address.FromPublicKey(pubkey)))
+        {
+            throw new UserFriendlyException(Error.Message[Error.InvalidGatewaySignature],
+                Error.InvalidGatewaySignature.ToString());
+        }
+
+        var chain = await _blockchainService.GetChainAsync();
+        var txListOfCurrentChain = multiTransaction.Transactions
+            .Where(t => t.ChainId == chain.Id)
+            .Select(t => t.Transaction.ToByteArray().ToHex()).ToArray();
+        var txIds = await PublishTransactionsAsync(txListOfCurrentChain);
+
+        return new SendMultiTransactionOutput
+        {
+            TransactionIds = txIds
+        };
+    }
+
+    private async Task<bool> IsGatewayAddress(Address address)
+    {
+        if (string.IsNullOrEmpty(_multiTransactionOptions.GatewayAddress) &&
+            string.IsNullOrEmpty(_multiTransactionOptions.GatewayContractAddress))
+        {
+            return true;
+        }
+
+        if (!string.IsNullOrEmpty(_multiTransactionOptions.GatewayContractAddress))
+        {
+            var chain = await _blockchainService.GetChainAsync();
+            var isGatewayAddressBytes = await CallReadOnlyAsync(new Transaction
+            {
+                From = address,
+                To = Address.FromBase58(_multiTransactionOptions.GatewayContractAddress),
+                MethodName = "IsGatewayAddress",
+                Params = address.ToByteString(),
+                RefBlockNumber = chain.BestChainHeight,
+                RefBlockPrefix = BlockHelper.GetRefBlockPrefix(chain.BestChainHash)
+            });
+            var isGatewayAddress = new BoolValue();
+            isGatewayAddress.MergeFrom(isGatewayAddressBytes);
+            return isGatewayAddress.Value;
+        }
+
+        return _multiTransactionOptions.GatewayAddress == address.ToBase58();
     }
 
     /// <summary>
