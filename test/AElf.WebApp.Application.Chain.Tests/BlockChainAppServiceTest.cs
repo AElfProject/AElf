@@ -698,14 +698,11 @@ public sealed class BlockChainAppServiceTest : WebAppTestBase
     
         // Broadcast expired transaction
         await _osTestHelper.BroadcastTransactions(new List<Transaction> { transaction });
-        
-        // Try to package this transaction
-        await _osTestHelper.MinedOneBlock();
 
         // Check transaction status
         var response = await GetResponseAsObjectAsync<TransactionResultDto>(
             $"/api/blockChain/transactionResultV2?transactionId={transactionHex}");
-        // response.StatusV2.ShouldBe(TransactionResultStatus.Expired.ToString());
+        response.StatusV2.ShouldBe(TransactionResultStatus.Expired.ToString().ToUpper());
     }
 
     private async Task MineSomeBlocks(int blockNumber)

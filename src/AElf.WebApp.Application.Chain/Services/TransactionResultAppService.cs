@@ -152,6 +152,14 @@ public class TransactionResultAppService : AElfAppService, ITransactionResultApp
         output.Transaction = _objectMapper.Map<Transaction, TransactionDto>(transaction);
         output.TransactionSize = transaction?.CalculateSize() ?? 0;
 
+        var chain = await _blockchainService.GetChainAsync();
+        if (transactionResult.Status == TransactionResultStatus.Pending &&
+            chain.BestChainHeight - output.Transaction?.RefBlockNumber > KernelConstants.ReferenceBlockValidPeriod)
+        {
+            output.StatusV2 = TransactionResultStatus.Expired.ToString().ToUpper();
+            return output;
+        }
+
         if (transactionResult.Status != TransactionResultStatus.NotExisted)
         {
             await FormatTransactionParamsAsync(output.Transaction, transaction.Params);
@@ -178,14 +186,6 @@ public class TransactionResultAppService : AElfAppService, ITransactionResultApp
                 output.Error = failedTransactionResult.Error;
                 return output;
             }
-        }
-        
-        var chain = await _blockchainService.GetChainAsync();
-        if (chain.BestChainHeight - output.Transaction?.RefBlockNumber > KernelConstants.ReferenceBlockValidPeriod 
-            && transactionResult.Status == TransactionResultStatus.NotExisted)
-        {
-            output.StatusV2 = TransactionResultStatus.Expired.ToString().ToUpper();
-            return output;
         }
 
         return output;
