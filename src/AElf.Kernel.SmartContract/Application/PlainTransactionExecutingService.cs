@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.CSharp.Core.Extension;
+using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.FeatureDisable.Core;
 using AElf.Kernel.SmartContract.Domain;
 using AElf.Kernel.SmartContract.Infrastructure;
@@ -23,14 +25,17 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
     private readonly ISmartContractExecutiveService _smartContractExecutiveService;
     private readonly ITransactionContextFactory _transactionContextFactory;
     private readonly IFeatureDisableService _featureDisableService;
+    private readonly IBlockchainService _blockchainService;
 
     public PlainTransactionExecutingService(ISmartContractExecutiveService smartContractExecutiveService,
         IEnumerable<IPostExecutionPlugin> postPlugins, IEnumerable<IPreExecutionPlugin> prePlugins,
-        ITransactionContextFactory transactionContextFactory, IFeatureDisableService featureDisableService)
+        ITransactionContextFactory transactionContextFactory, IFeatureDisableService featureDisableService,
+        IBlockchainService blockchainService)
     {
         _smartContractExecutiveService = smartContractExecutiveService;
         _transactionContextFactory = transactionContextFactory;
         _featureDisableService = featureDisableService;
+        _blockchainService = blockchainService;
         _prePlugins = GetUniquePlugins(prePlugins);
         _postPlugins = GetUniquePlugins(postPlugins);
         Logger = NullLogger<PlainTransactionExecutingService>.Instance;
@@ -61,6 +66,7 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
                 var singleTxExecutingDto = new SingleTransactionExecutingDto
                 {
                     Depth = 0,
+                    InlineWithTransactionIdCounter = new InlineWithTransactionIdCounter(),
                     ChainContext = groupChainContext,
                     Transaction = transaction,
                     CurrentBlockTime = transactionExecutingDto.BlockHeader.Time,
@@ -71,7 +77,7 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
                     var transactionExecutionTask = Task.Run(() => ExecuteOneAsync(singleTxExecutingDto,
                         cancellationToken), cancellationToken);
 
-                    trace = await transactionExecutionTask.WithCancellation(cancellationToken);
+                    trace = await transactionExecutionTask;
                 }
                 catch (OperationCanceledException)
                 {
@@ -90,7 +96,7 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
                 var result = GetTransactionResult(trace, transactionExecutingDto.BlockHeader.Height);
 
                 var returnSet = GetReturnSet(trace, result);
-                returnSets.Add(returnSet);
+                returnSets.AddRange(returnSet);
             }
 
             return returnSets;
@@ -175,14 +181,22 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
 
             #endregion
 
+            var methodName = txContext.Transaction.MethodName;
+            var originMethodName = MaybeRecoverInlineTransactionFunctionName(methodName);
+            txContext.Transaction.MethodName = originMethodName;
+
             await executive.ApplyAsync(txContext);
 
             if (txContext.Trace.IsSuccessful())
+            {
+                // Maybe layered method name.
+                txContext.Transaction.MethodName = methodName;
                 await ExecuteInlineTransactions(singleTxExecutingDto.Depth, singleTxExecutingDto.CurrentBlockTime,
                     txContext, internalStateCache,
                     internalChainContext,
                     singleTxExecutingDto.OriginTransactionId,
                     cancellationToken);
+            }
 
             #region PostTransaction
 
@@ -221,11 +235,40 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
     {
         var trace = txContext.Trace;
         internalStateCache.Update(txContext.Trace.GetStateSets());
+
+        var methodNameCount = new Dictionary<string, int>();
         foreach (var inlineTx in txContext.Trace.InlineTransactions)
         {
+            var needTxId = NeedTransactionId(inlineTx.MethodName);
+            if (needTxId)
+            {
+                txContext.InlineWithTransactionIdCounter.Increment();
+                if (!methodNameCount.TryAdd(inlineTx.MethodName, 0))
+                {
+                    methodNameCount[inlineTx.MethodName]++;
+                    inlineTx.MethodName =
+                        GenerateLayeredMethodNameForInlineTransaction(
+                            txContext.Transaction,
+                            inlineTx.MethodName,
+                            methodNameCount[inlineTx.MethodName]
+                        );
+                }
+                else
+                {
+                    inlineTx.MethodName = GenerateLayeredMethodNameForInlineTransaction(
+                        txContext.Transaction,
+                        inlineTx.MethodName,
+                        0
+                    );
+                }
+
+                await _blockchainService.AddTransactionsAsync([inlineTx]);
+            }
+
             var singleTxExecutingDto = new SingleTransactionExecutingDto
             {
                 Depth = depth + 1,
+                InlineWithTransactionIdCounter = txContext.InlineWithTransactionIdCounter,
                 ChainContext = internalChainContext,
                 Transaction = inlineTx,
                 CurrentBlockTime = currentBlockTime,
@@ -244,6 +287,25 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
 
             internalStateCache.Update(inlineTrace.GetStateSets());
         }
+    }
+
+    private static string GenerateLayeredMethodNameForInlineTransaction(Transaction parentTx, string inlineFunctionName,
+        int index)
+    {
+        var parentTxMethodName = parentTx.MethodName;
+        inlineFunctionName = inlineFunctionName.StartsWith('.') ? inlineFunctionName[1..] : inlineFunctionName;
+        return $"{parentTx.GetHash().ToHex()}.{parentTxMethodName}.{inlineFunctionName}.{index}";
+    }
+
+    private static string MaybeRecoverInlineTransactionFunctionName(string methodName)
+    {
+        var parts = methodName.Split('.');
+        return parts.Length > 1 ? parts[^2] : methodName;
+    }
+
+    private static bool NeedTransactionId(string methodName)
+    {
+        return methodName.Contains('.');
     }
 
     private async Task<bool> ExecutePluginOnPreTransactionStageAsync(IExecutive executive,
@@ -393,7 +455,7 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
         return txResult;
     }
 
-    private ExecutionReturnSet GetReturnSet(TransactionTrace trace, TransactionResult result)
+    private IEnumerable<ExecutionReturnSet> GetReturnSet(TransactionTrace trace, TransactionResult result)
     {
         var returnSet = new ExecutionReturnSet
         {
@@ -402,12 +464,41 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
             Bloom = result.Bloom,
             TransactionResult = result
         };
+        var returnSets = new List<ExecutionReturnSet> { returnSet };
 
         if (trace.IsSuccessful())
         {
             var transactionExecutingStateSets = trace.GetStateSets();
             returnSet = GetReturnSet(returnSet, transactionExecutingStateSets);
             returnSet.ReturnValue = trace.ReturnValue;
+
+            var inlineTxWithIdList = trace.GetAllInlineTransactions().Where(tx => NeedTransactionId(tx.MethodName));
+            foreach (var inlineTx in inlineTxWithIdList)
+            {
+                var inlineTxId = inlineTx.GetHash();
+                var inlineReturnSet = new ExecutionReturnSet
+                {
+                    TransactionId = inlineTxId,
+                    Status = TransactionResultStatus.Mined,
+                    TransactionResult = new TransactionResult
+                    {
+                        TransactionId = inlineTxId,
+                        BlockNumber = result.BlockNumber,
+                        Status = TransactionResultStatus.Mined
+                    }
+                };
+
+                // No need to execute GetReturnSet method, because changes are already set to `returnSet`.
+
+                returnSets.Add(inlineReturnSet);
+
+                Logger.LogWarning($"Inline tx id: {inlineTx.GetHash().ToHex()}\n{inlineTx}");
+                var log = new InlineTransactionCreated()
+                {
+                    Transaction = inlineTx
+                };
+                returnSet.TransactionResult.Logs.Add(log.ToLogEvent(inlineTx.To));
+            }
         }
         else
         {
@@ -426,7 +517,7 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
         var reads = trace.GetFlattenedReads();
         foreach (var read in reads) returnSet.StateAccesses[read.Key] = read.Value;
 
-        return returnSet;
+        return returnSets;
     }
 
     private ExecutionReturnSet GetReturnSet(ExecutionReturnSet returnSet,
@@ -476,6 +567,7 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
             singleTxExecutingDto.ChainContext, singleTxExecutingDto.OriginTransactionId, origin,
             singleTxExecutingDto.Depth, singleTxExecutingDto.CurrentBlockTime);
 
+        txContext.InlineWithTransactionIdCounter = singleTxExecutingDto.InlineWithTransactionIdCounter;
         return txContext;
     }
 }

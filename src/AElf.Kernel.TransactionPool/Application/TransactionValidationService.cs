@@ -49,6 +49,10 @@ public class TransactionValidationService : ITransactionValidationService, ITran
 
     public async Task<bool> ValidateTransactionWhileSyncingAsync(Transaction transaction)
     {
+        if (transaction.IsInlineWithTransactionId())
+        {
+            return true;
+        }
         var validationTasks = _transactionValidationProviders.AsParallel()
             .Where(provider => provider.ValidateWhileSyncing).Select(async provider =>
             {
