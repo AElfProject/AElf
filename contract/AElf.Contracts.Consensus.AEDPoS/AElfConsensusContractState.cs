@@ -59,4 +59,6 @@ public partial class AEDPoSContractState : ContractState
     public SingletonState<Hash> SideChainDividendPoolSchemeId { get; set; }
 
     public BoolState IsPreviousBlockInSevereStatus { get; set; }
+
+    public MappedState<Address, BytesValue> BlsPubkeyMap { get; set; }
 }

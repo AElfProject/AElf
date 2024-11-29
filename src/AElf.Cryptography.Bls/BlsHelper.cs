@@ -1,6 +1,7 @@
 ﻿using System.Text;
 
 namespace AElf.Cryptography.Bls;
+using static Nethermind.Crypto.Bls;
 
 using G1 = Nethermind.Crypto.Bls.P1;
 using G2 = Nethermind.Crypto.Bls.P2;
@@ -10,21 +11,63 @@ using GT = Nethermind.Crypto.Bls.PT;
 
 public static class BlsHelper
 {
-    public static G1 GetBlsPubkey(byte[] privateKey)
+    public static byte[] GetBlsPubkey(byte[] privateKey)
     {
-        var secretKey = new Nethermind.Crypto.Bls.SecretKey();
-        secretKey.Keygen(privateKey);
-        return new G1(secretKey);
+        SecretKey secretKey = new(privateKey, ByteOrder.LittleEndian);
+        G1 pubkey = new();
+        pubkey.FromSk(secretKey);
+        return pubkey.Serialize();
     }
 
-    public static G2 SignMessage(byte[] privateKey, byte[] message)
+    public static byte[] SignWithSecretKey(byte[] privateKey, byte[] message)
     {
-        var secretKey = new Nethermind.Crypto.Bls.SecretKey();
-        secretKey.Keygen(privateKey);
-        var pubkey = new G1(secretKey);
-        var dst = new ReadOnlySpan<byte>(AElfCryptographyBlsConstants.Dst);
-        return new G2().HashTo(message, dst, pubkey.Serialize())
-            .SignWith(secretKey);
+        SecretKey secretKey = new(privateKey, ByteOrder.LittleEndian);
+        var signature = BlsSigner.Sign(secretKey, message);
+        return signature.Bytes.ToArray();
     }
 
+    public static bool VerifySignature(byte[] signature, byte[] data, byte[] pubkey)
+    {
+        G1Affine publicKey = new();
+        publicKey.Decode(pubkey);
+        BlsSigner.Signature s = new();
+        s.Decode(signature);
+        return BlsSigner.Verify(publicKey, s, data);
+    }
+
+    public static byte[] AggregateSignatures(byte[][] signatures, byte[] aggregatedSignature)
+    {
+        BlsSigner.Signature agg = new();
+        if (aggregatedSignature.Any())
+        {
+            agg.Decode(aggregatedSignature);
+        }
+
+        foreach (var signature in signatures)
+        {
+            BlsSigner.Signature s = new();
+            s.Decode(signature);
+            agg.Aggregate(s);
+        }
+
+        return agg.Bytes.ToArray();
+    }
+
+    public static byte[] AggregateSignatures(byte[][] signatures)
+    {
+        return AggregateSignatures(signatures, []);
+    }
+    
+    public static byte[] AggregatePubkeys(byte[][] pubkeys)
+    {
+        BlsSigner.AggregatedPublicKey aggregatedPublicKey = new();
+        foreach (var pubkey in pubkeys)
+        {
+            G1 pk = new();
+            pk.Decode(pubkey);
+            aggregatedPublicKey.Aggregate(pk.ToAffine());
+        }
+
+        return aggregatedPublicKey.PublicKey.Serialize();
+    }
 }

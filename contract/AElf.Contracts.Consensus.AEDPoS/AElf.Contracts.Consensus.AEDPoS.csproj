@@ -71,6 +71,9 @@
         <ContractBase Include="..\..\protobuf\aedpos_contract.proto">
             <Link>Protobuf\Proto\aedpos_contract.proto</Link>
         </ContractBase>
+        <ContractBase Include="..\..\protobuf\lib_confirmation.proto">
+            <Link>Protobuf\Proto\lib_confirmation.proto</Link>
+        </ContractBase>
     </ItemGroup>
 
     <ItemGroup>

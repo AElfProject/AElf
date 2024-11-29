@@ -15,6 +15,7 @@ import "acs6.proto";
 import "acs10.proto";
 import "acs11.proto";
 import "aedpos_contract.proto";
+import "lib_confirmation.proto";
 
 option csharp_namespace = "AElf.Contracts.Consensus.AEDPoS";
 
@@ -28,4 +29,5 @@ service AEDPoSContractImpl {
     // Interact with Cross Chain module.
     option (aelf.base) = "acs11.proto";
     option (aelf.base) = "aedpos_contract.proto";
+    option (aelf.base) = "lib_confirmation.proto";
 }

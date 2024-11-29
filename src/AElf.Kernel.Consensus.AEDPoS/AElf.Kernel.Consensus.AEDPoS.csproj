@@ -28,6 +28,9 @@
         <ContractStub Include="..\..\protobuf\aedpos_contract.proto">
             <Link>Protobuf\Proto\aedpos_contract.proto</Link>
         </ContractStub>
+        <ContractStub Include="..\..\protobuf\lib_confirmation.proto">
+            <Link>Protobuf\Proto\lib_confirmation.proto</Link>
+        </ContractStub>
     </ItemGroup>
 
     <ItemGroup>

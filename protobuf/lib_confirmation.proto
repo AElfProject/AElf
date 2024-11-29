@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+package LibConfirmation;
+
+import "aelf/options.proto";
+import "aelf/core.proto";
+import "google/protobuf/wrappers.proto";
+import "google/protobuf/empty.proto";
+
+option (aelf.identity) = "lib_confirmation";
+option csharp_namespace = "AElf.Contracts.Consensus.AEDPoS.LibConfirmation";
+
+service LibConfirmationContract {
+  rpc SyncBlsPubkey (google.protobuf.BytesValue) returns (google.protobuf.Empty) {
+  }
+
+  rpc ConfirmBlock (ConfirmBlockInput) returns (google.protobuf.Empty) {
+  }
+
+  rpc GetBlsPubkey (aelf.Address) returns (google.protobuf.BytesValue) {
+    option (aelf.is_view) = true;
+  }
+}
+
+message ConfirmBlockInput {
+  bytes aggregated_signature = 1;
+  repeated aelf.Address signed_miners = 2;
+  ConfirmedBlock confirmed_block = 3;
+}
+
+message ConfirmedBlock {
+  int64 height = 1;
+  aelf.Hash hash = 2;
+}
+
+message NewBlockConfirmed {
+  option (aelf.is_event) = true;
+  ConfirmedBlock confirmed_block = 1;
+}
