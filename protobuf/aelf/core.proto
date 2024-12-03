@@ -59,6 +59,8 @@ enum TransactionResultStatus {
     PENDING_VALIDATION = 5;
     // Transaction validation failed.
     NODE_VALIDATION_FAILED = 6;
+    // Transaction is expired
+    EXPIRED = 7;
 }
 
 message TransactionResult {

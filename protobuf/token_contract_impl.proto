@@ -182,6 +182,9 @@ service TokenContractImpl {
     rpc GetMaxBatchApproveCount (google.protobuf.Empty) returns (google.protobuf.Int32Value) {
 
     }
+
+    rpc ExtendSeedExpirationTime (ExtendSeedExpirationTimeInput) returns (google.protobuf.Empty) {
+    }
 }
 
 message AdvanceResourceTokenInput {
@@ -444,4 +447,17 @@ message ModifyTokenIssuerAndOwnerInput {
 
 message SetTokenIssuerAndOwnerModificationEnabledInput{
     bool enabled = 1;
+}
+
+message ExtendSeedExpirationTimeInput {
+    string symbol = 1;
+    int64 expiration_time = 2;
+}
+
+message SeedExpirationTimeUpdated {
+    option (aelf.is_event) = true;
+    int32 chain_id = 1;
+    string symbol = 2;
+    int64 old_expiration_time = 3;
+    int64 new_expiration_time = 4;
 }
