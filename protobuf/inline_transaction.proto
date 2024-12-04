@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+option csharp_namespace = "AElf.Types";
+
+
+import "aelf/core.proto";
+import "aelf/options.proto";
+
+service InlineTransaction {
+}
+
+message InlineTransactionCreated {
+  option (aelf.is_event) = true;
+  aelf.Transaction transaction = 1 [(aelf.is_indexed) = true];
+}

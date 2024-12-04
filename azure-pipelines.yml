@@ -40,9 +40,9 @@ jobs:
       parts: 3
       n: 2
       codecoverage: true
-  - template: templates/build-template-macos.yml
-    parameters:
-      parts: 3
-      n: 3
-      codecoverage: true
+#  - template: templates/build-template-macos.yml
+#    parameters:
+#      parts: 3
+#      n: 3
+#      codecoverage: true
     

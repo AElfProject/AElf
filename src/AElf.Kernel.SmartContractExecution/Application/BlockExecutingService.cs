@@ -55,8 +55,13 @@ public class BlockExecutingService : IBlockExecutingService, ITransientDependenc
         CancellationToken cancellationToken)
     {
         Logger.LogTrace("Entered ExecuteBlockAsync");
-        var nonCancellable = nonCancellableTransactions.ToList();
-        var cancellable = cancellableTransactions.ToList();
+
+        var nonCancellable = nonCancellableTransactions.ToList()
+            .Where(tx => !tx.MethodName.Contains('.')).ToList();
+
+        var cancellable = cancellableTransactions.ToList()
+            .Where(tx => !tx.MethodName.Contains('.')).ToList();
+
         var nonCancellableReturnSets =
             await _transactionExecutingService.ExecuteAsync(
                 new TransactionExecutingDto { BlockHeader = blockHeader, Transactions = nonCancellable },
@@ -68,15 +73,16 @@ public class BlockExecutingService : IBlockExecutingService, ITransientDependenc
 
         if (!cancellationToken.IsCancellationRequested && cancellable.Count > 0)
         {
+            var txExecutingDto = new TransactionExecutingDto
+            {
+                BlockHeader = blockHeader,
+                Transactions = cancellable,
+                PartialBlockStateSet = returnSetCollection.ToBlockStateSet()
+            };
             cancellableReturnSets = await _transactionExecutingService.ExecuteAsync(
-                new TransactionExecutingDto
-                {
-                    BlockHeader = blockHeader,
-                    Transactions = cancellable,
-                    PartialBlockStateSet = returnSetCollection.ToBlockStateSet()
-                },
-                cancellationToken);
+                txExecutingDto, cancellationToken);
             returnSetCollection.AddRange(cancellableReturnSets);
+            cancellable = txExecutingDto.Transactions.ToList();
             Logger.LogTrace("Executed cancellable txs");
         }
 
@@ -119,7 +125,15 @@ public class BlockExecutingService : IBlockExecutingService, ITransientDependenc
 
         var allExecutedTransactionIds = transactions.Select(x => x.GetHash()).ToList();
         var orderedReturnSets = executionReturnSetCollection.GetExecutionReturnSetList()
-            .OrderBy(d => allExecutedTransactionIds.IndexOf(d.TransactionId)).ToList();
+            .OrderBy(d => allExecutedTransactionIds.IndexOf(d.TransactionId) >= 0 ? allExecutedTransactionIds.IndexOf(d.TransactionId) : int.MaxValue)
+            .ThenBy(d => d.TransactionId)
+            .ToList();
+        
+        var inlineTxIds = orderedReturnSets
+            .Where(returnSet => !allExecutedTransactionIds.Contains(returnSet.TransactionId))
+            .Select(returnSet => returnSet.TransactionId)
+            .ToList();
+        allExecutedTransactionIds.AddRange(inlineTxIds);
 
         var block = new Block
         {
