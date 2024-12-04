@@ -120,16 +120,6 @@ public class TransactionResultAppService : AElfAppService, ITransactionResultApp
                 return output;
             }
         }
-
-        var chain = await _blockchainService.GetChainAsync();
-        if (chain.BestChainHeight - output.Transaction.RefBlockNumber > KernelConstants.ReferenceBlockValidPeriod 
-            && transactionResult.Status == TransactionResultStatus.NotExisted)
-        {
-            // set a the Error message to the output to infer that the transaction will never succeed.
-            var error = "The transaction is already expired, and it will never succeed.";
-            output.Error = TransactionErrorResolver.TakeErrorMessage(error, _webAppOptions.IsDebugMode);
-            return output;
-        }
         return output;
     }
     /// <summary>
