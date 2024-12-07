@@ -1,4 +1,5 @@
 using AElf.Cryptography;
+using AElf.Cryptography.Bls;
 using AElf.Cryptography.ECDSA;
 using AElf.Cryptography.ECVRF;
 using AElf.Kernel.Account.Infrastructure;
@@ -12,6 +13,8 @@ public interface IAccountService
     Task<byte[]> EncryptMessageAsync(byte[] receiverPublicKey, byte[] plainMessage);
     Task<byte[]> DecryptMessageAsync(byte[] senderPublicKey, byte[] cipherMessage);
     Task<byte[]> ECVrfProveAsync(byte[] message);
+    Task<byte[]> BlsSignAsync(byte[] data);
+    Task<byte[]> GetBlsPubkeyAsync();
 }
 
 public static class AccountServiceExtensions
@@ -60,5 +63,15 @@ public class AccountService : IAccountService, ISingletonDependency
     public Task<byte[]> ECVrfProveAsync(byte[] message)
     {
         return Task.FromResult(CryptoHelper.ECVrfProve((ECKeyPair)_ecKeyPairProvider.GetKeyPair(), message));
+    }
+
+    public Task<byte[]> BlsSignAsync(byte[] data)
+    {
+        return Task.FromResult(BlsHelper.SignWithSecretKey(_ecKeyPairProvider.GetKeyPair().PrivateKey, data));
+    }
+
+    public Task<byte[]> GetBlsPubkeyAsync()
+    {
+        return Task.FromResult(BlsHelper.GetBlsPubkey(_ecKeyPairProvider.GetKeyPair().PublicKey));
     }
 }

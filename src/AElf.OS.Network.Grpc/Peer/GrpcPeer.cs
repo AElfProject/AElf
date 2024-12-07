@@ -51,6 +51,7 @@ public class GrpcPeer : IPeer
     private AsyncClientStreamingCall<BlockAnnouncement, VoidReply> _announcementStreamCall;
     private AsyncClientStreamingCall<BlockWithTransactions, VoidReply> _blockStreamCall;
     private AsyncClientStreamingCall<LibAnnouncement, VoidReply> _libAnnouncementStreamCall;
+    private AsyncClientStreamingCall<BlockConfirmation, VoidReply> _blockConfirmationStreamCall;
 
     private AsyncClientStreamingCall<Transaction, VoidReply> _transactionStreamCall;
 
@@ -491,6 +492,19 @@ public class GrpcPeer : IPeer
             SendCallback = sendCallback
         });
     }
+    
+    public void EnqueueBlockConfirmation(BlockConfirmation blockConfirmation, Action<NetworkException> sendCallback)
+    {
+        if (!IsReady)
+            throw new NetworkException($"Dropping block confirmation, peer is not ready - {this}.",
+                NetworkExceptionType.NotConnected);
+
+        _sendAnnouncementJobs.Post(new StreamJob
+        {
+            BlockConfirmation = blockConfirmation,
+            SendCallback = sendCallback
+        });
+    }
 
     private async Task SendStreamJobAsync(StreamJob job)
     {
@@ -506,6 +520,7 @@ public class GrpcPeer : IPeer
             else if (job.BlockWithTransactions != null)
                 await BroadcastBlockAsync(job.BlockWithTransactions);
             else if (job.LibAnnouncement != null) await SendLibAnnouncementAsync(job.LibAnnouncement);
+            else if (job.BlockConfirmation != null) await SendBlockConfirmationAsync(job.BlockConfirmation);
         }
         catch (RpcException ex)
         {
@@ -605,6 +620,27 @@ public class GrpcPeer : IPeer
         {
             _libAnnouncementStreamCall.Dispose();
             _libAnnouncementStreamCall = null;
+
+            throw;
+        }
+    }
+
+    public virtual async Task SendBlockConfirmationAsync(BlockConfirmation blockConfirmation)
+    {
+        if (_blockConfirmationStreamCall == null)
+        {
+            _blockConfirmationStreamCall = _client.BlockConfirmationBroadcastStream(new Metadata
+                { { GrpcConstants.SessionIdMetadataKey, OutboundSessionId } });
+        }
+        
+        try
+        {
+            await _blockConfirmationStreamCall.RequestStream.WriteAsync(blockConfirmation);
+        }
+        catch (RpcException)
+        {
+            _blockConfirmationStreamCall.Dispose();
+            _blockConfirmationStreamCall = null;
 
             throw;
         }

@@ -26,6 +26,7 @@ public interface INetworkService
     Task BroadcastTransactionAsync(Transaction transaction);
     Task BroadcastBlockWithTransactionsAsync(BlockWithTransactions blockWithTransactions);
     Task BroadcastLibAnnounceAsync(Hash libHash, long libHeight);
+    Task BroadcastBlockConfirmationAsync(Hash blockHash, long blockHeight, byte[] signature);
     Task CheckPeersHealthAsync();
     void CheckNtpDrift();
     bool IsPeerPoolFull();

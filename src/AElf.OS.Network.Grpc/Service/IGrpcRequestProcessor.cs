@@ -1,13 +1,16 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Cryptography.Bls;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.TransactionPool;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Domain;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Extensions;
 using AElf.Types;
+using Google.Protobuf;
 using Grpc.Core;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -22,6 +25,7 @@ public interface IGrpcRequestProcessor
     Task ProcessAnnouncementAsync(BlockAnnouncement announcement, string peerPubkey);
     Task ProcessTransactionAsync(Transaction tx, string peerPubkey);
     Task ProcessLibAnnouncementAsync(LibAnnouncement announcement, string peerPubkey);
+    Task ProcessBlockConfirmationAsync(BlockConfirmation blockConfirmation, string peerPubkey);
     Task<NodeList> GetNodesAsync(NodesRequest request, string peerInfo);
     Task<BlockReply> GetBlockAsync(BlockRequest request, string peerInfo, string peerPubkey, string requestId = null);
     Task<BlockList> GetBlocksAsync(BlocksRequest request, string peerInfo, string requestId = null);
@@ -34,13 +38,16 @@ public class GrpcRequestProcessor : IGrpcRequestProcessor, ISingletonDependency
     private readonly IBlockchainService _blockchainService;
     private readonly IConnectionService _connectionService;
     private readonly ISyncStateService _syncStateService;
+    private readonly IBlockConfirmationService _blockConfirmationService;
     private readonly INodeManager _nodeManager;
 
-    public GrpcRequestProcessor(IBlockchainService blockchainService, IConnectionService connectionService, ISyncStateService syncStateService, INodeManager nodeManager)
+    public GrpcRequestProcessor(IBlockchainService blockchainService, IConnectionService connectionService, ISyncStateService syncStateService, 
+        IBlockConfirmationService blockConfirmationService,INodeManager nodeManager)
     {
         _blockchainService = blockchainService;
         _connectionService = connectionService;
         _syncStateService = syncStateService;
+        _blockConfirmationService = blockConfirmationService;
         _nodeManager = nodeManager;
         EventBus = NullLocalEventBus.Instance;
         Logger = NullLogger<GrpcRequestProcessor>.Instance;
@@ -118,6 +125,39 @@ public class GrpcRequestProcessor : IGrpcRequestProcessor, ISingletonDependency
         return Task.CompletedTask;
     }
 
+    public async Task ProcessBlockConfirmationAsync(BlockConfirmation blockConfirmation, string peerPubkey)
+    {
+        if (blockConfirmation?.BlockHash == null)
+        {
+            Logger.LogWarning($"Received null or empty block confirmation from {peerPubkey}.");
+            return;
+        }
+
+        Logger.LogDebug(
+            $"Received block confirmation hash: {blockConfirmation.BlockHash}, height {blockConfirmation.BlockHeight} from {peerPubkey}.");
+
+        var signature = blockConfirmation.Signature.ToByteArray();
+        var blockHash = blockConfirmation.BlockHash;
+        var blockHeight = blockConfirmation.BlockHeight;
+        var data = new BlockConfirmation
+        {
+            BlockHash = blockHash,
+            BlockHeight = blockHeight
+        }.ToByteArray();
+        if (await _blockConfirmationService.VerifyBlsSignatureAsync(signature, data, peerPubkey))
+        {
+            Logger.LogDebug($"Block confirmation signature verified for {peerPubkey}.");
+        }
+        else
+        {
+            Logger.LogWarning($"Block confirmation signature verification failed for {peerPubkey}.");
+            return;
+        }
+
+        _blockConfirmationService.CollectBlockConfirmationAsync(peerPubkey, blockConfirmation.BlockHash,
+            blockConfirmation.BlockHeight, blockConfirmation.Signature.ToByteArray());
+        return;
+    }
 
     /// <summary>
     ///     This method returns a block. The parameter is a <see cref="BlockRequest" /> object, if the value

@@ -38,6 +38,7 @@ public class OSAElfModule : AElfModule
             taskQueueManager.CreateQueue(OSConstants.BlockSyncAttachQueueName);
             taskQueueManager.CreateQueue(OSConstants.BlockFetchQueueName, 4);
             taskQueueManager.CreateQueue(OSConstants.InitialSyncQueueName);
+            taskQueueManager.CreateQueue(OSConstants.BlockConfirmationQueueName);
         }
 
         var backgroundWorkerManager = context.ServiceProvider.GetRequiredService<IBackgroundWorkerManager>();

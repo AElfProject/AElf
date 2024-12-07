@@ -243,4 +243,24 @@ public class GrpcServerService : PeerService.PeerServiceBase
     {
         return await _grpcRequestProcessor.DisconnectAsync(request, context.GetPeerInfo(), context.GetPublicKey());
     }
+
+    public override async Task<VoidReply> BlockConfirmationBroadcastStream(IAsyncStreamReader<BlockConfirmation> requestStream, ServerCallContext context)
+    {
+        Logger.LogDebug($"Block confirmation stream started with {context.GetPeerInfo()} - {context.Peer}.");
+
+        try
+        {
+            var peerPubkey = context.GetPublicKey();
+            await requestStream.ForEachAsync(async r => await _grpcRequestProcessor.ProcessBlockConfirmationAsync(r, peerPubkey));
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(e, $"Block confirmation stream error: {context.GetPeerInfo()}");
+            throw;
+        }
+
+        Logger.LogDebug($"Block confirmation stream finished with {context.GetPeerInfo()} - {context.Peer}.");
+
+        return new VoidReply();
+    }
 }

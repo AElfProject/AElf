@@ -25,11 +25,23 @@
         <ContractStub Include="..\..\protobuf\acs4.proto">
             <Link>Protobuf\Proto\acs4.proto</Link>
         </ContractStub>
+        <ContractStub Include="..\..\protobuf\acs6.proto">
+            <Link>Protobuf\Proto\acs6.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\acs10.proto">
+            <Link>Protobuf\Proto\acs10.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\acs11.proto">
+            <Link>Protobuf\Proto\acs11.proto</Link>
+        </ContractStub>
         <ContractStub Include="..\..\protobuf\aedpos_contract.proto">
             <Link>Protobuf\Proto\aedpos_contract.proto</Link>
         </ContractStub>
         <ContractStub Include="..\..\protobuf\lib_confirmation.proto">
             <Link>Protobuf\Proto\lib_confirmation.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\aedpos_contract_impl.proto">
+            <Link>Protobuf\Proto\aedpos_contract_impl.proto</Link>
         </ContractStub>
     </ItemGroup>
 

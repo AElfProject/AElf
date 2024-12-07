@@ -19,6 +19,7 @@
         <PackageReference Include="Volo.Abp.EventBus" Version="8.0.5" />
     </ItemGroup>
     <ItemGroup>
+        <ProjectReference Include="..\AElf.Cryptography.Bls\AElf.Cryptography.Bls.csproj" />
         <ProjectReference Include="..\AElf.Cryptography\AElf.Cryptography.csproj" />
         <ProjectReference Include="..\AElf.CSharp.Core\AElf.CSharp.Core.csproj" />
         <ProjectReference Include="..\AElf.Database\AElf.Database.csproj" />

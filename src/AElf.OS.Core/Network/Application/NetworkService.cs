@@ -8,6 +8,7 @@ using AElf.OS.Network.Helpers;
 using AElf.OS.Network.Infrastructure;
 using AElf.OS.Network.Types;
 using AElf.Types;
+using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
@@ -208,6 +209,37 @@ public class NetworkService : INetworkService, ISingletonDependency
             catch (NetworkException ex)
             {
                 Logger.LogWarning(ex, $"Could not enqueue lib announcement to {peer} " +
+                                      $"- status {peer.ConnectionStatus}.");
+            }
+
+        return Task.CompletedTask;
+    }
+
+    public Task BroadcastBlockConfirmationAsync(Hash blockHash, long blockHeight, byte[] signature)
+    {
+        var confirmation = new BlockConfirmation
+        {
+            BlockHash = blockHash,
+            BlockHeight = blockHeight,
+            Signature = ByteString.CopyFrom(signature)
+        };
+
+        foreach (var peer in _peerPool.GetPeers())
+            try
+            {
+                peer.EnqueueBlockConfirmation(confirmation, async ex =>
+                {
+                    if (ex != null)
+                    {
+                        Logger.LogWarning(ex, $"Could not broadcast block confirmation to {peer} " +
+                                              $"- status {peer.ConnectionStatus}.");
+                        await HandleNetworkExceptionAsync(peer, ex);
+                    }
+                });
+            }
+            catch (NetworkException ex)
+            {
+                Logger.LogWarning(ex, $"Could not enqueue block confirmation to {peer} " +
                                       $"- status {peer.ConnectionStatus}.");
             }
 

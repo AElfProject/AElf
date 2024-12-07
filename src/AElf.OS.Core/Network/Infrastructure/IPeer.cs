@@ -41,6 +41,7 @@ public interface IPeer
     void EnqueueTransaction(Transaction transaction, Action<NetworkException> sendCallback);
     void EnqueueBlock(BlockWithTransactions blockWithTransactions, Action<NetworkException> sendCallback);
     void EnqueueLibAnnouncement(LibAnnouncement libAnnouncement, Action<NetworkException> sendCallback);
+    void EnqueueBlockConfirmation(BlockConfirmation blockConfirmation, Action<NetworkException> sendCallback);
 
     Task<BlockWithTransactions> GetBlockByHashAsync(Hash hash);
     Task<List<BlockWithTransactions>> GetBlocksAsync(Hash previousHash, int count);

@@ -9,6 +9,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\AElf.Cryptography.Bls\AElf.Cryptography.Bls.csproj" />
         <ProjectReference Include="..\AElf.Kernel\AElf.Kernel.csproj" />
         <ProjectReference Include="..\AElf.OS.Network.Grpc\AElf.OS.Network.Grpc.csproj" />
     </ItemGroup>

@@ -38,5 +38,6 @@ public class GrpcNetworkModule : AElfModule
         context.Services.AddSingleton<IStreamMethod, AnnouncementBroadcastMethod>();
         context.Services.AddSingleton<IStreamMethod, TransactionBroadcastMethod>();
         context.Services.AddSingleton<IStreamMethod, LibAnnouncementBroadcastMethod>();
+        context.Services.AddSingleton<IStreamMethod, BlockConfirmationBroadcastMethod>();
     }
 }

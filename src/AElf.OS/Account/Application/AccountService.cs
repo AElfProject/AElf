@@ -1,8 +1,8 @@
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Cryptography;
+using AElf.Cryptography.Bls;
 using AElf.Cryptography.ECDSA;
-using AElf.Cryptography.ECVRF;
 using AElf.Kernel.Account.Application;
 using AElf.OS.Account.Infrastructure;
 using AElf.Types;
@@ -48,6 +48,16 @@ public class AccountService : IAccountService
     {
         var keyPair = await GetAccountKeyPairAsync();
         return CryptoHelper.ECVrfProve(keyPair, message);
+    }
+
+    public async Task<byte[]> BlsSignAsync(byte[] data)
+    {
+        return BlsHelper.SignWithSecretKey((await GetAccountKeyPairAsync()).PrivateKey, data);
+    }
+
+    public async Task<byte[]> GetBlsPubkeyAsync()
+    {
+        return BlsHelper.GetBlsPubkey(await GetPublicKeyAsync());
     }
 
     public async Task<Address> GetAccountAsync()

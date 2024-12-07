@@ -108,3 +108,11 @@ message NodeList {
 message NodesRequest {
     int32 max_count = 1;
 }
+
+// Messages related to block confirmation
+
+message BlockConfirmation {
+    aelf.Hash block_hash = 1;
+    int64 block_height = 2;
+    bytes signature = 3;
+}

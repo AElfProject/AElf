@@ -183,3 +183,18 @@ public class LibAnnouncementBroadcastMethod : StreamMethod, ISingletonDependency
         return new VoidReply();
     }
 }
+
+public class BlockConfirmationBroadcastMethod : StreamMethod, ISingletonDependency
+{
+    public override MessageType Method => MessageType.BlockConfirmationBroadcast;
+
+    public BlockConfirmationBroadcastMethod(IGrpcRequestProcessor grpcRequestProcessor) : base(grpcRequestProcessor)
+    {
+    }
+
+    public override async Task<IMessage> InvokeAsync(StreamMessage request, IStreamContext streamContext)
+    {
+        await GrpcRequestProcessor.ProcessBlockConfirmationAsync(BlockConfirmation.Parser.ParseFrom(request.Message), streamContext.GetPubKey());
+        return new VoidReply();
+    }
+}

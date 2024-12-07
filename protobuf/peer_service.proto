@@ -20,6 +20,8 @@ service PeerService {
 
   rpc LibAnnouncementBroadcastStream (stream LibAnnouncement) returns (VoidReply) {}
 
+  rpc BlockConfirmationBroadcastStream (stream BlockConfirmation) returns (VoidReply) {}
+
   rpc RequestByStream (stream StreamMessage) returns (stream StreamMessage) {}
 
   rpc GetNodes (NodesRequest) returns (NodeList) {}
@@ -77,4 +79,5 @@ enum MessageType {
   ANNOUNCEMENT_BROADCAST = 10;
   LIB_ANNOUNCEMENT_BROADCAST = 11;
   DISCONNECT = 12;
+  BLOCK_CONFIRMATION_BROADCAST = 13;
 }

@@ -153,6 +153,12 @@ public class GrpcStreamPeer : GrpcPeer
         await RequestAsync(() => StreamRequestAsync(MessageType.LibAnnouncementBroadcast, libAnnouncement, null, requestId), request);
     }
 
+    public override async Task SendBlockConfirmationAsync(BlockConfirmation libAnnouncement)
+    {
+        var requestId = CommonHelper.GenerateRequestId();
+        var request = new GrpcRequest { ErrorMessage = $"broadcast lib announcement failed. requestId={requestId}" };
+        await RequestAsync(() => StreamRequestAsync(MessageType.LibAnnouncementBroadcast, libAnnouncement, null, requestId), request);
+    }
 
     public override async Task<BlockWithTransactions> GetBlockByHashAsync(Hash hash)
     {
