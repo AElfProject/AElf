@@ -6,10 +6,10 @@ public class TransactionResultDto
 {
     public string TransactionId { get; set; }
 
-    [Obsolete("The Status is obsolete. Use StatusV2 instead.")]
+    [Obsolete("The Status is obsolete. Use StatusWithBVP instead.")]
     public string Status { get; set; }
     
-    public string StatusV2 { get; set; }
+    public string StatusWithBVP { get; set; }
 
     public LogEventDto[] Logs { get; set; }
 

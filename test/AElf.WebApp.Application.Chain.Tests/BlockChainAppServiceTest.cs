@@ -702,7 +702,7 @@ public sealed class BlockChainAppServiceTest : WebAppTestBase
         // Check transaction status
         var response = await GetResponseAsObjectAsync<TransactionResultDto>(
             $"/api/blockChain/transactionResultV2?transactionId={transactionHex}");
-        response.StatusV2.ShouldBe(TransactionResultStatus.Expired.ToString().ToUpper());
+        response.StatusWithBVP.ShouldBe(TransactionResultStatus.Expired.ToString().ToUpper());
     }
 
     private async Task MineSomeBlocks(int blockNumber)
