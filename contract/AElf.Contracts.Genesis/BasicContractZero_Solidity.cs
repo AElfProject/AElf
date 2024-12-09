@@ -117,10 +117,11 @@ public partial class BasicContractZero
             ContractVersion = info.ContractVersion
         });
 
-        var contractCodeHashList =
-            State.ContractCodeHashListMap[Context.CurrentHeight] ?? new ContractCodeHashList();
-        contractCodeHashList.Value.Add(codeHash);
-        State.ContractCodeHashListMap[Context.CurrentHeight] = contractCodeHashList;
+        // This is for code check, currently we donot check solidity contract.
+        // var contractCodeHashList =
+        //     State.ContractCodeHashListMap[Context.CurrentHeight] ?? new ContractCodeHashList();
+        // contractCodeHashList.Value.Add(codeHash);
+        // State.ContractCodeHashListMap[Context.CurrentHeight] = contractCodeHashList;
 
         return contractAddress;
     }
