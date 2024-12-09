@@ -43,8 +43,8 @@ public record HashBlake2256(int BytesSize) : RuntimeCost(RuntimeCosts.HashBlake2
 public record HashBlake2128(int BytesSize) : RuntimeCost(RuntimeCosts.HashBlake2128);
 public record EcdsaRecovery() : RuntimeCost(RuntimeCosts.EcdsaRecovery);
 public record Sr25519Verify(int BytesSize) : RuntimeCost(RuntimeCosts.Sr25519Verify);
-// public record ChainExtension(Weight Weight) : RuntimeCost(RuntimeCosts.ChainExtension);
-// public record CallRuntime(Weight Weight) : RuntimeCost(RuntimeCosts.CallRuntime);
+public record ChainExtension(int Weight) : RuntimeCost(RuntimeCosts.ChainExtension);
+public record CallRuntime(int Weight) : RuntimeCost(RuntimeCosts.CallRuntime);
 public record SetCodeHash() : RuntimeCost(RuntimeCosts.SetCodeHash);
 public record EcdsaToEthAddress() : RuntimeCost(RuntimeCosts.EcdsaToEthAddress);
 public record ReentranceCount() : RuntimeCost(RuntimeCosts.ReentranceCount);

@@ -7,6 +7,7 @@ using Nethereum.ABI;
 using Scale;
 using Shouldly;
 using Xunit.Abstractions;
+using StringType = Scale.StringType;
 
 namespace AElf.Contracts.SolidityContract;
 
@@ -14,29 +15,23 @@ public class StorageContractTests : SolidityContractTestBase
 {
     public StorageContractTests(ITestOutputHelper outputHelper) : base(outputHelper)
     {
-        
+        ContractPath = "contracts/Storage.contract";
     }
 
-    [Fact]
+    [Fact(DisplayName = "Store 100 to Storage contract.")]
     public async Task<Address> StoreTest()
     {
-        const string solFilePath = "contracts/Storage.sol";
-        var executionResult = await DeployWasmContractAsync(await File.ReadAllBytesAsync(solFilePath));
-        var contractAddress = executionResult.Output;
-        var tx = await GetTransactionAsync(DefaultSenderKeyPair, contractAddress, "store",
-            UInt256Type.GetByteStringFrom(100));
-        var txResult = await TestTransactionExecutor.ExecuteAsync(tx);
+        var contractAddress = await DeployContractAsync();
+        var txResult = await ExecuteTransactionAsync(contractAddress, "store", UInt256Type.GetByteStringFrom(100));
         txResult.Status.ShouldBe(TransactionResultStatus.Mined);
         return contractAddress;
     }
 
-    [Fact]
+    [Fact(DisplayName = "Retrieve 100 from Storage contract.")]
     public async Task RetrieveTest()
     {
         var contractAddress = await StoreTest();
-        var tx = await GetTransactionAsync(DefaultSenderKeyPair, contractAddress, "retrieve");
-        var txResult = await TestTransactionExecutor.ExecuteAsync(tx);
-        txResult.Status.ShouldBe(TransactionResultStatus.Mined);
-        txResult.ReturnValue.ToByteArray().ToInt64(false).ShouldBe(100);
+        var result = await QueryAsync(contractAddress, "retrieve");
+        result.ShouldBe(UInt256Type.GetByteStringFrom(100));
     }
 }

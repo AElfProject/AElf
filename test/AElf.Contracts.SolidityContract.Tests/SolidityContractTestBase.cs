@@ -236,13 +236,13 @@ public class SolidityContractTestBase : ContractTestBase<SolidityContractTestAEl
     }
 
     private async Task<Transaction> GetTransactionWithoutSignatureAsync(Address from, Address to, string methodName,
-        ByteString parameter = null, long value = 0)
+        ByteString parameter = null, long value = 0, int gasLimit = int.MaxValue)
     {
         var parameterWithValue = new SolidityTransactionParameter
         {
             Parameter = parameter ?? ByteString.Empty,
             Value = value,
-            GasLimit = int.MaxValue
+            GasLimit = gasLimit
         }.ToByteString();
         var registration = await BasicContractZeroStub.GetSmartContractRegistrationByAddress.CallAsync(to);
         if (registration.Code.IsNullOrEmpty())

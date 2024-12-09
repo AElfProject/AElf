@@ -28,6 +28,7 @@ public class Executive : IExecutive
     public string ContractVersion { get; set; }
 
     private readonly SolangABI _solangAbi;
+    private readonly string _solangAbiContent;
     private readonly WebAssemblyContractImplementation _webAssemblyContract;
     private readonly WebAssemblySmartContractProxy _smartContractProxy;
 
@@ -38,6 +39,7 @@ public class Executive : IExecutive
 
     public Executive(string solangAbi)
     {
+        _solangAbiContent = solangAbi;
         _solangAbi = JsonSerializer.Deserialize<SolangABI>(solangAbi)!;
         ContractHash = Hash.LoadFromHex(_solangAbi.Source.Hash);
         var wasmCode = _solangAbi.Source.Wasm.HexToByteArray();
@@ -116,6 +118,7 @@ public class Executive : IExecutive
             var value = 0L;
             var delegateCallValue = 0L;
             var gasLimit = 0L;
+            var estimatingGas = false;
             if (isCallConstructor)
             {
                 parameter = transaction.Params.ToHex();
@@ -132,6 +135,7 @@ public class Executive : IExecutive
 
                 if (solidityTransactionParameter.EstimateGas)
                 {
+                    estimatingGas = true;
                     _webAssemblyContract.IsChargeGas = false;
                 }
 
@@ -250,7 +254,10 @@ public class Executive : IExecutive
                 CurrentTransactionContext.Trace.Logs.Add(logEvent);
             }
 
-            CurrentTransactionContext.Trace.StateSet = GetChanges();
+            if (!estimatingGas)
+            {
+                CurrentTransactionContext.Trace.StateSet = GetChanges();
+            }
         }
         catch (Exception ex)
         {
@@ -330,12 +337,13 @@ public class Executive : IExecutive
 
     public bool IsView(string methodName)
     {
-        return false;
+        var selector = _solangAbi.GetSelector(methodName);
+        return !_solangAbi.GetMutates(selector);;
     }
 
     public byte[] GetFileDescriptorSet()
     {
-        return Array.Empty<byte>();
+        return _solangAbiContent.GetBytes();
     }
 
     public IEnumerable<FileDescriptor> GetFileDescriptors()
