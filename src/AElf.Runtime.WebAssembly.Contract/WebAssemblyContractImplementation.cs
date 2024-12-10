@@ -134,6 +134,7 @@ public partial class WebAssemblyContractImplementation : WebAssemblyContract<Web
 
     private void Terminate(int beneficiaryPtr)
     {
+        RuntimeLogs.Add("Terminate");
         var beneficiary = ReadSandboxMemory(beneficiaryPtr, AElfConstants.AddressHashLength);
         var amount = State.TokenContract.GetBalance.Call(new GetBalanceInput
         {

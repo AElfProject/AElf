@@ -1,10 +1,5 @@
-using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
-using AElf.Runtime.WebAssembly.Types;
 using AElf.Types;
-using Google.Protobuf;
-using Nethereum.ABI;
 using Scale;
 using Shouldly;
 using Xunit.Abstractions;
