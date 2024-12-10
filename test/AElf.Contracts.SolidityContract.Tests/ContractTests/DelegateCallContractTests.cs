@@ -14,51 +14,55 @@ namespace AElf.Contracts.SolidityContract;
 
 public class DelegateCallContractTests : SolidityContractTestBase
 {
+    private readonly ITestOutputHelper _outputHelper;
+
     public DelegateCallContractTests(ITestOutputHelper outputHelper) : base(outputHelper)
     {
-        
+        _outputHelper = outputHelper;
     }
 
     [Fact]
     public async Task DelegateCallTest()
     {
         const long vars = 1616;
-        const long transferValue = 100;
-        Address delegateeContractAddress, delegatorContractAddress;
-        {
-            const string solFilePath = "contracts/delegate_call_delegatee.sol";
-            var executionResult = await DeployWasmContractAsync(await File.ReadAllBytesAsync(solFilePath));
-            delegateeContractAddress = executionResult.Output;
-        }
-        {
-            const string solFilePath = "contracts/delegate_call_delegator.sol";
-            var executionResult = await DeployWasmContractAsync(await File.ReadAllBytesAsync(solFilePath));
-            delegatorContractAddress = executionResult.Output;
-        }
 
-        {
-            var tx = await GetTransactionAsync(DefaultSenderKeyPair, delegatorContractAddress, "setVars",
-                TupleType<AddressType, UInt256Type>.GetByteStringFrom(
-                    AddressType.From(delegateeContractAddress.ToByteArray()),
-                    UInt256Type.From(vars)
-                ), transferValue);
-            var txResult = await TestTransactionExecutor.ExecuteAsync(tx);
-            txResult.Status.ShouldBe(TransactionResultStatus.Mined);
-        }
+        ContractPath = "contracts/Delegatee.contract";
+        var delegateeContractAddress = await DeployContractAsync();
+        _outputHelper.WriteLine($"Delegatee contract: {delegateeContractAddress}");
 
-        // Checks
-        {
-            var tx = await GetTransactionAsync(DefaultSenderKeyPair, delegatorContractAddress, "num");
-            var txResult = await TestTransactionExecutor.ExecuteAsync(tx);
-            txResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            txResult.ReturnValue.ToByteArray().ToInt64(false).ShouldBe(vars);
-        }
+        ContractPath = "contracts/Delegator.contract";
+        var delegatorContractAddress = await DeployContractAsync();
+        _outputHelper.WriteLine($"Delegator contract: {delegatorContractAddress}");
 
+        var txResult = await ExecuteTransactionAsync(delegatorContractAddress, "setVars", 
+            TupleType<AddressType, UInt256Type>.GetByteStringFrom(
+                AddressType.From(delegateeContractAddress.ToByteArray()),
+                UInt256Type.From(vars)
+            ), 100);
+        txResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+        // Check delegatee contract
         {
-            var tx = await GetTransactionAsync(DefaultSenderKeyPair, delegatorContractAddress, "value");
-            var txResult = await TestTransactionExecutor.ExecuteAsync(tx);
-            txResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            txResult.ReturnValue.ToByteArray().ToInt64(false).ShouldBe(transferValue);
+            var num = await QueryAsync(delegateeContractAddress, "num");
+            UInt256Type.From(num.ToByteArray()).Value.ShouldBe(vars);
+
+            var sender = await QueryAsync(delegateeContractAddress, "sender");
+            AddressType.From(sender.ToByteArray()).Value.ShouldBe(DefaultSender);
+            
+            var value = await QueryAsync(delegateeContractAddress, "value");
+            UInt256Type.From(value.ToByteArray()).Value.ShouldBe(100);
+        }
+        
+        // Check delegator contract
+        {
+            var num = await QueryAsync(delegatorContractAddress, "num");
+            UInt256Type.From(num.ToByteArray()).Value.ShouldBe(0);
+
+            var sender = await QueryAsync(delegatorContractAddress, "sender");
+            sender.ToByteArray().ShouldAllBe(i => i == 0);
+            
+            var value = await QueryAsync(delegatorContractAddress, "value");
+            UInt256Type.From(value.ToByteArray()).Value.ShouldBe(0);
         }
     }
 }

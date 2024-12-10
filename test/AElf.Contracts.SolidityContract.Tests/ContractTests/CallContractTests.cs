@@ -2,6 +2,7 @@ using System.IO;
 using System.Threading.Tasks;
 using AElf.Runtime.WebAssembly.Types;
 using AElf.Types;
+using Scale;
 using Shouldly;
 using Xunit.Abstractions;
 
@@ -11,7 +12,7 @@ public class CallContractTests : SolidityContractTestBase
 {
     public CallContractTests(ITestOutputHelper outputHelper) : base(outputHelper)
     {
-        
+
     }
 
     [Fact]
@@ -29,27 +30,28 @@ public class CallContractTests : SolidityContractTestBase
             callerContractAddress = executionResult.Output;
         }
 
-        var input = calleeContractAddress.ToWebAssemblyAddress().ToParameter();
         {
-            var tx = await GetTransactionAsync(DefaultSenderKeyPair, callerContractAddress, "testCall",
-                input);
-            var txResult = await TestTransactionExecutor.ExecuteAsync(tx);
+            var txResult = await ExecuteTransactionAsync(callerContractAddress, "testCall",
+                AddressType.GetByteStringFrom(calleeContractAddress));
             txResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
 
-        // Checks
         {
-            var tx = await GetTransactionAsync(DefaultSenderKeyPair, callerContractAddress, "callee");
-            var txResult = await TestTransactionExecutor.ExecuteAsync(tx);
-            txResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            txResult.ReturnValue.ToHex().ShouldBe(calleeContractAddress.ToByteArray().ToHex());
+            var callee = await QueryAsync(callerContractAddress, "callee");
+            AddressType.From(callee.ToByteArray()).Value.ShouldBe(calleeContractAddress);
+            var add = await QueryAsync(calleeContractAddress, "add");
+            AddressType.From(add.ToByteArray()).Value.ShouldBe(calleeContractAddress);
         }
 
         {
-            var tx = await GetTransactionAsync(DefaultSenderKeyPair, calleeContractAddress, "add");
-            var txResult = await TestTransactionExecutor.ExecuteAsync(tx);
+            var txResult = await ExecuteTransactionAsync(callerContractAddress, "testDelegatecall",
+                AddressType.GetByteStringFrom(calleeContractAddress));
             txResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            txResult.ReturnValue.ToHex().ShouldBe(calleeContractAddress.ToByteArray().ToHex());
+        }
+
+        {
+            var add = await QueryAsync(calleeContractAddress, "add");
+            AddressType.From(add.ToByteArray()).Value.ShouldBe(calleeContractAddress);
         }
     }
 }

@@ -181,6 +181,8 @@ public partial class WebAssemblyContractImplementation
             case DelegateCall delegateCall:
             {
                 CustomPrints.Add("CallType: DelegateCall");
+                var delegateeContractAddress = Types.Address.FromBytes(InputData!.Skip(4).Take(AElfConstants.AddressHashLength).ToArray());
+                CustomPrints.Add($"Delegatee Contract Address: {delegateeContractAddress}");
 
                 if (callFlags.HasFlag(CallFlags.AllowReentry))
                 {
@@ -189,7 +191,14 @@ public partial class WebAssemblyContractImplementation
                 }
 
                 var codeHash = ReadSandboxMemory(delegateCall.CodeHashPtr, AElfConstants.HashByteArrayLength).ToHash();
-                outcome = DelegateCall(codeHash, inputData!);
+                // Validate code hash.
+                var delegateeContractRegistration =
+                    State.GenesisContract.GetSmartContractRegistrationByAddress.Call(delegateeContractAddress);
+                if (codeHash != delegateeContractRegistration.CodeHash)
+                {
+                    ErrorMessages.Add("Contract code hash mismatch.");
+                }
+                outcome = DelegateCall(delegateeContractAddress, inputData!);
                 break;
             }
         }
@@ -248,21 +257,20 @@ public partial class WebAssemblyContractImplementation
         };
     }
 
-    private ExecuteReturnValue DelegateCall(Hash codeHash, byte[] inputData)
+    private ExecuteReturnValue DelegateCall(Address delegateeContractAddress, byte[] inputData)
     {
         ChargeGas(new TransactionPayment.DelegateCall());
         var inputDataHex = inputData.ToHex();
         var methodName = inputDataHex[..8];
         var parameter = new byte[inputData.Length - 4];
         Array.Copy(inputData, 4, parameter, 0, parameter.Length);
-        var to = Types.Address.FromBytes(codeHash.ToByteArray());
         var parameterWithValue = new SolidityTransactionParameter
         {
             Parameter = ByteString.CopyFrom(parameter),
             DelegateCallValue = Value
         }.ToByteString();
         var result =
-            Context.DelegateCall(Context.Sender, to, methodName, parameterWithValue);
+            Context.DelegateCall(Context.Sender, delegateeContractAddress, methodName, parameterWithValue);
         return new ExecuteReturnValue
         {
             Data = result

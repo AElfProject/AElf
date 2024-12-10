@@ -316,9 +316,10 @@ public class Executive : IExecutive
         {
             changes = changes.Merge(CurrentTransactionContext.Trace.CallStateSet);
         }
+
         if (CurrentTransactionContext.Trace.DelegateCallStateSet != null)
         {
-            changes = changes.Merge(CurrentTransactionContext.Trace.DelegateCallStateSet.ReplaceAddress(address));
+            changes = changes.Merge(CurrentTransactionContext.Trace.DelegateCallStateSet);
         }
 
         if (!CurrentTransactionContext.Trace.IsSuccessful())
