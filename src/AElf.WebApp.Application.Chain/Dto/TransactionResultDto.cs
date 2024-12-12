@@ -1,10 +1,15 @@
+using System;
+
 namespace AElf.WebApp.Application.Chain.Dto;
 
 public class TransactionResultDto
 {
     public string TransactionId { get; set; }
 
+    [Obsolete("The Status is obsolete. Use StatusWithBVP instead.")]
     public string Status { get; set; }
+    
+    public string StatusWithBVP { get; set; }
 
     public LogEventDto[] Logs { get; set; }
 

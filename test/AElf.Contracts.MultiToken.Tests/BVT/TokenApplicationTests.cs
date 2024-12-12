@@ -1893,4 +1893,15 @@ public partial class MultiTokenContractTests
         result.TransactionResult.Error.ShouldContain("Set token issuer and owner disabled.");
 
     }
+    
+    [Theory]
+    [InlineData("SEED-0", 1731927992000)]
+    public async Task ExtendSeedExpirationTime_Test(string symbol, long expirationTime)
+    {
+        ExtendSeedExpirationTimeInput input = new ExtendSeedExpirationTimeInput();
+        input.Symbol = symbol;
+        input.ExpirationTime = expirationTime;
+
+        await TokenContractStub.ExtendSeedExpirationTime.CallAsync(input);
+    }
 }

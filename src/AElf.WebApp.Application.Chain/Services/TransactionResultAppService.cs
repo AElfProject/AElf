@@ -24,6 +24,8 @@ namespace AElf.WebApp.Application.Chain;
 public interface ITransactionResultAppService
 {
     Task<TransactionResultDto> GetTransactionResultAsync(string transactionId);
+    
+    Task<TransactionResultDto> GetTransactionResultV2Async(string transactionId);
 
     Task<List<TransactionResultDto>> GetTransactionResultsAsync(string blockHash, int offset = 0,
         int limit = 10);
@@ -118,16 +120,72 @@ public class TransactionResultAppService : AElfAppService, ITransactionResultApp
                 return output;
             }
         }
+        return output;
+    }
+    /// <summary>
+    ///     Get the current status of a transaction, available since V1.12.0
+    /// </summary>
+    /// <param name="transactionId">transaction id</param>
+    /// <returns></returns>
+    public async Task<TransactionResultDto> GetTransactionResultV2Async(string transactionId)
+    {
+        Hash transactionIdHash;
+        try
+        {
+            transactionIdHash = Hash.LoadFromHex(transactionId);
+        }
+        catch
+        {
+            throw new UserFriendlyException(Error.Message[Error.InvalidTransactionId],
+                Error.InvalidTransactionId.ToString());
+        }
+
+        var transactionResult = await GetTransactionResultAsync(transactionIdHash);
+        var output = _objectMapper.GetMapper()
+            .Map<TransactionResult, TransactionResultDto>(transactionResult,
+                opt => opt.Items[TransactionProfile.ErrorTrace] = _webAppOptions.IsDebugMode);
+        output.StatusWithBVP = output.Status;
+
+        var transaction = await _transactionManager.GetTransactionAsync(transactionResult.TransactionId);
+        output.Transaction = _objectMapper.Map<Transaction, TransactionDto>(transaction);
+        output.TransactionSize = transaction?.CalculateSize() ?? 0;
 
         var chain = await _blockchainService.GetChainAsync();
-        if (chain.BestChainHeight - output.Transaction.RefBlockNumber > KernelConstants.ReferenceBlockValidPeriod 
-            && transactionResult.Status == TransactionResultStatus.NotExisted)
+        if (transactionResult.Status == TransactionResultStatus.Pending &&
+            chain.BestChainHeight - output.Transaction?.RefBlockNumber > KernelConstants.ReferenceBlockValidPeriod)
         {
-            // set a the Error message to the output to infer that the transaction will never succeed.
-            var error = "The transaction is already expired, and it will never succeed.";
-            output.Error = TransactionErrorResolver.TakeErrorMessage(error, _webAppOptions.IsDebugMode);
+            output.StatusWithBVP = TransactionResultStatus.Expired.ToString().ToUpper();
             return output;
         }
+
+        if (transactionResult.Status != TransactionResultStatus.NotExisted)
+        {
+            await FormatTransactionParamsAsync(output.Transaction, transaction.Params);
+            return output;
+        }
+
+        var validationStatus = _transactionResultStatusCacheProvider.GetTransactionResultStatus(transactionIdHash);
+        if (validationStatus != null)
+        {
+            output.StatusWithBVP = validationStatus.TransactionResultStatus.ToString().ToUpper();
+            output.Error =
+                TransactionErrorResolver.TakeErrorMessage(validationStatus.Error, _webAppOptions.IsDebugMode);
+            return output;
+        }
+
+        if (_transactionOptions.StoreInvalidTransactionResultEnabled)
+        {
+            var failedTransactionResult =
+                await _transactionResultProxyService.InvalidTransactionResultService.GetInvalidTransactionResultAsync(
+                    transactionIdHash);
+            if (failedTransactionResult != null)
+            {
+                output.StatusWithBVP = failedTransactionResult.Status.ToString().ToUpper();
+                output.Error = failedTransactionResult.Error;
+                return output;
+            }
+        }
+
         return output;
     }
 
