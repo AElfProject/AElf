@@ -285,34 +285,35 @@ public class SolidityContractTestBase : ContractTestBase<SolidityContractTestAEl
         _outputHelper.WriteLine("\nExecuting query: " + fieldName);
 
         var tx = await GetTransactionAsync(DefaultSenderKeyPair, contractAddress, fieldName, parameter);
-        var txResult = await TestTransactionExecutor.ExecuteAsync(tx);
+        var txResult = await TestTransactionExecutor.ReadAsync(tx);
         //txResult.Status.ShouldBe(TransactionResultStatus.Mined);
- 
-        _outputHelper.WriteLine("[Prints]");
-        foreach (var print in txResult.GetPrints())
-        {
-            _outputHelper.WriteLine(print);
-        }
+        //
+        // _outputHelper.WriteLine("[Prints]");
+        // foreach (var print in txResult.GetPrints())
+        // {
+        //     _outputHelper.WriteLine(print);
+        // }
+        //
+        // _outputHelper.WriteLine("[Runtime logs]");
+        // foreach (var runtimeLog in txResult.GetRuntimeLogs())
+        // {
+        //     _outputHelper.WriteLine(runtimeLog);
+        // }
+        //
+        // _outputHelper.WriteLine("[Debug messages]");
+        // foreach (var debugMessage in txResult.GetDebugMessages())
+        // {
+        //     _outputHelper.WriteLine(debugMessage);
+        // }
+        //
+        // _outputHelper.WriteLine("[Error messages]");
+        // foreach (var errorMessage in txResult.GetErrorMessages())
+        // {
+        //     _outputHelper.WriteLine(errorMessage);
+        // }
 
-        _outputHelper.WriteLine("[Runtime logs]");
-        foreach (var runtimeLog in txResult.GetRuntimeLogs())
-        {
-            _outputHelper.WriteLine(runtimeLog);
-        }
-
-        _outputHelper.WriteLine("[Debug messages]");
-        foreach (var debugMessage in txResult.GetDebugMessages())
-        {
-            _outputHelper.WriteLine(debugMessage);
-        }
-
-        _outputHelper.WriteLine("[Error messages]");
-        foreach (var errorMessage in txResult.GetErrorMessages())
-        {
-            _outputHelper.WriteLine(errorMessage);
-        }
-
-        return txResult.ReturnValue;
+        // return txResult.ReturnValue;
+        return txResult;
     }
 
     internal async Task<ByteString> QueryWithExceptionAsync(Address contractAddress, string fieldName,

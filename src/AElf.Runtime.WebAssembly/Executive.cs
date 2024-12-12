@@ -338,8 +338,9 @@ public class Executive : IExecutive
 
     public bool IsView(string methodName)
     {
-        var selector = _solangAbi.GetSelector(methodName);
-        return !_solangAbi.GetMutates(selector);;
+        return false;
+        // var selector = _solangAbi.GetSelector(methodName);
+        // return !_solangAbi.GetMutates(selector);
     }
 
     public byte[] GetFileDescriptorSet()

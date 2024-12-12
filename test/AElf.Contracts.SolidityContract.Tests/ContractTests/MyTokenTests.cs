@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using AElf.Types;
 using Scale;
 using Shouldly;
 using Xunit.Abstractions;
@@ -38,6 +39,17 @@ public class MyTokenTests : SolidityContractTestBase
                 ));
 
             AddressType.From(txResult.ReturnValue.ToByteArray()).Value.ShouldBe(DefaultSender);
+        }
+
+        {
+            var result = await QueryAsync(contractAddress, "test",
+                TupleType<AddressType, BoolType>.GetByteStringFrom(
+                    AddressType.From(DefaultSender.ToByteArray()),
+                    BoolType.From(true)
+                ));
+            
+            AddressType.From(result.ToByteArray()).Value.ShouldBe(DefaultSender);
+            Address.FromBytes(result.ToByteArray()).ShouldBe(DefaultSender);
         }
     }
 }
