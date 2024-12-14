@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using AElf.CSharp.Core;
+using AElf.Types;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Volo.Abp.DependencyInjection;
@@ -24,7 +25,7 @@ public class ArrayValidator : IValidator<MethodDefinition>, ITransientDependency
         .LimitByTotalSize(typeof(decimal), sizeof(decimal))
         .LimitByTotalSize(typeof(char), sizeof(char))
         .LimitByTotalSize(typeof(String), 128) // Need to limit the size of strings by disallowing String.Concat
-            
+        .LimitByTotalSize(typeof(BigIntValue), 128)
         // It isn't possible to estimate runtime sizes for below, so limit by count
         .LimitByCount(typeof(Type), 5)
         .LimitByCount(typeof(Object), 5) // Support object in Linq queries
