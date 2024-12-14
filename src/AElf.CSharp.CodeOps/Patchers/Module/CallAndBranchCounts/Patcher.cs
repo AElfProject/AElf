@@ -17,7 +17,7 @@ public class Patcher : IPatcher<ModuleDefinition>
             return;
 
         // ReSharper disable once IdentifierTypo
-        var nmspace = module.Types.Single(m => m.BaseType is TypeDefinition).Namespace;
+        var nmspace = module.Types.Where(IsContractType).Single().Namespace;
 
         var proxyBuilder = new Patch(module, nmspace);
 
@@ -27,6 +27,20 @@ public class Patcher : IPatcher<ModuleDefinition>
         }
 
         module.Types.Add(proxyBuilder.ObserverType);
+    }
+    private static bool IsContractType(TypeDefinition type)
+    {
+        if (type.FullName.StartsWith("AElf.Sdk.CSharp.CSharpSmartContract`1"))
+            return true;
+        if (type.BaseType is TypeDefinition baseType)
+            return IsContractType(baseType);
+        if(type.BaseType is GenericInstanceType baseType0)
+            return IsContractType(baseType0);
+        return false;
+    }
+    private static bool IsContractType(GenericInstanceType type)
+    {
+        return type.FullName.StartsWith("AElf.Sdk.CSharp.CSharpSmartContract`1");
     }
 }
 
