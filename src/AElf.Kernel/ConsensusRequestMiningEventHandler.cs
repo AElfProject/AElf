@@ -44,6 +44,7 @@ public class ConsensusRequestMiningEventHandler : ILocalEventHandler<ConsensusRe
             var chain = await _blockchainService.GetChainAsync();
             if (eventData.PreviousBlockHash != chain.BestChainHash)
             {
+                await TriggerConsensusEventAsync(chain.BestChainHash, chain.BestChainHeight);
                 Logger.LogDebug("Mining canceled because best chain already updated");
                 return;
             }
