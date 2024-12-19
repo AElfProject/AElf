@@ -473,7 +473,7 @@ public partial class CrossChainContract
                                    out var validatedSideChainBlockData) &&
                                ValidateParentChainBlockData(crossChainBlockData.ParentChainBlockDataList,
                                    out validatedParentChainBlockData);
-        Assert(validationResult, "Invalid cross chain data to be indexed.");
+        //Assert(validationResult, "Invalid cross chain data to be indexed.");
         var crossChainDataDto = new CrossChainDataDto(validatedSideChainBlockData, validatedParentChainBlockData);
 
         Assert(crossChainDataDto.GetChainIdList().Count > 0, "Empty cross chain data not allowed.");
