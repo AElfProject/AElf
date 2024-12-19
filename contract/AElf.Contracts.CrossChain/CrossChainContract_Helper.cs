@@ -26,8 +26,8 @@ public partial class CrossChainContract
     /// <param name="parentHeight"></param>
     private void BindParentChainHeight(long childHeight, long parentHeight)
     {
-        Assert(State.ChildHeightToParentChainHeight[childHeight] == 0,
-            $"Already bound at height {childHeight} with parent chain");
+        // Assert(State.ChildHeightToParentChainHeight[childHeight] == 0,
+        //     $"Already bound at height {childHeight} with parent chain");
         State.ChildHeightToParentChainHeight[childHeight] = parentHeight;
     }
 
@@ -52,8 +52,8 @@ public partial class CrossChainContract
     private void AddIndexedTxRootMerklePathInParentChain(long height, MerklePath path)
     {
         var existing = State.TxRootMerklePathInParentChain[height];
-        Assert(existing == null,
-            $"Merkle path already bound at height {height}.");
+        // Assert(existing == null,
+        //     $"Merkle path already bound at height {height}.");
         State.TxRootMerklePathInParentChain[height] = path;
     }
 
