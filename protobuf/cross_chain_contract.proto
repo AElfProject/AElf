@@ -65,6 +65,9 @@ service CrossChainContract {
         option (aelf.is_view) = true;
     }
 
+    rpc SetParentChainHeight (google.protobuf.Int64Value) returns (google.protobuf.Empty) {
+    }
+
     // Get the chain id of parent chain.
     rpc GetParentChainId (google.protobuf.Empty) returns (google.protobuf.Int32Value) {
         option (aelf.is_view) = true;
