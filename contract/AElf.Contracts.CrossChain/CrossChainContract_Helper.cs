@@ -728,10 +728,10 @@ public partial class CrossChainContract
             if (parentChainId != blockData.ChainId || currentHeight + 1 != blockData.Height ||
                 blockData.TransactionStatusMerkleTreeRoot == null)
                 return false;
-            if (blockData.IndexedMerklePath.Any(indexedBlockInfo =>
-                    State.ChildHeightToParentChainHeight[indexedBlockInfo.Key] != 0 ||
-                    State.TxRootMerklePathInParentChain[indexedBlockInfo.Key] != null))
-                return false;
+            // if (blockData.IndexedMerklePath.Any(indexedBlockInfo =>
+            //         State.ChildHeightToParentChainHeight[indexedBlockInfo.Key] != 0 ||
+            //         State.TxRootMerklePathInParentChain[indexedBlockInfo.Key] != null))
+            //     return false;
 
             currentHeight += 1;
         }
