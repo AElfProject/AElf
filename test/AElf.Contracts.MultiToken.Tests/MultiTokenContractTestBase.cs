@@ -240,7 +240,4 @@ public class MultiTokenContractTestBase : ContractTestBase<MultiTokenContractTes
         await CreateSeedNftAsync(stub, createInput);
         return await stub.Create.SendWithExceptionAsync(createInput);
     }
-    
-    
-    
 }

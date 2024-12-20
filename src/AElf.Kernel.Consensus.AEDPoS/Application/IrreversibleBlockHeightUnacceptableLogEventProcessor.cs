@@ -53,16 +53,12 @@ public class IrreversibleBlockHeightUnacceptableLogEventProcessor : LogEventProc
 
         if (distanceToLib.DistanceToIrreversibleBlockHeight > 0)
         {
-            var chain = await _blockchainService.GetChainAsync();
             Logger.LogDebug($"Distance to lib height: {distanceToLib.DistanceToIrreversibleBlockHeight}");
-            if ( block.Height - chain.LastIrreversibleBlockHeight < distanceToLib.DistanceToIrreversibleBlockHeight/2)
-            {
-                return;
-            }
             Logger.LogDebug("Will rollback to lib height.");
             _taskQueueManager.Enqueue(
                 async () =>
                 {
+                    var chain = await _blockchainService.GetChainAsync();
                     await _blockchainService.ResetChainToLibAsync(chain);
                 }, KernelConstants.UpdateChainQueueName);
         }
