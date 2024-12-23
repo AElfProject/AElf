@@ -24,7 +24,7 @@ namespace AElf.WebApp.Application.Chain;
 public interface ITransactionResultAppService
 {
     Task<TransactionResultDto> GetTransactionResultAsync(string transactionId);
-    
+
     Task<TransactionResultDto> GetTransactionResultV2Async(string transactionId);
 
     Task<List<TransactionResultDto>> GetTransactionResultsAsync(string blockHash, int offset = 0,
