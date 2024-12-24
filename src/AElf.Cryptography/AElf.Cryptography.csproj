@@ -10,6 +10,15 @@
         <PackageReference Include="Secp256k1.Net" Version="1.2.0" />
         <PackageReference Include="Portable.BouncyCastle" Version="1.9.0" />
         <PackageReference Include="Secp256k1.Native" Version="0.1.24-alpha" />
+        <PackageReference Include="Bn254.Net" Version="0.1.0" >
+            <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
+        <PackageReference Include="Rebex.Elliptic.Ed25519" Version="1.2.1">
+            <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
+        <PackageReference Include="Nethereum.Web3" Version="4.21.4">
+            <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\AElf.Types\AElf.Types.csproj" />

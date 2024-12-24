@@ -14,14 +14,14 @@ namespace AElf.Sdk.CSharp;
 ///     base class for smart contracts (Context property). It provides access to properties and methods useful for
 ///     implementing the logic in smart contracts.
 /// </summary>
-public class CSharpSmartContractContext : ISmartContractBridgeContext, IBuiltIns
+public class CSharpSmartContractContext : ISmartContractBridgeContext
 {
-    private IBuiltIns BuiltInsImplementation { get; }
+    // private IBuiltIns BuiltInsImplementation { get; }
 
     public CSharpSmartContractContext(ISmartContractBridgeContext smartContractBridgeContextImplementation)
     {
         SmartContractBridgeContextImplementation = smartContractBridgeContextImplementation;
-        BuiltInsImplementation = new InternalBuiltIns();
+        // BuiltInsImplementation = new InternalBuiltIns();
     }
 
     public ISmartContractBridgeContext SmartContractBridgeContextImplementation { get; }
@@ -402,28 +402,28 @@ public class CSharpSmartContractContext : ISmartContractBridgeContext, IBuiltIns
         return SmartContractBridgeContextImplementation.ECVrfVerify(pubKey, alpha, pi, out beta);
     }
 
-    public bool Ed25519Verify(byte[] signature, byte[] message, byte[] publicKey)
-    {
-        return BuiltInsImplementation.Ed25519Verify(signature, message, publicKey);
-    }
-
-    public byte[] Keccak256(byte[] message)
-    {
-        return BuiltInsImplementation.Keccak256(message);
-    }
-
-    public (byte[] x, byte[] y) Bn254G1Mul(byte[] x1, byte[] y1, byte[] s)
-    {
-        return BuiltInsImplementation.Bn254G1Mul(x1, y1, s);
-    }
-
-    public (byte[] x3, byte[] y3) Bn254G1Add(byte[] x1, byte[] y1, byte[] x2, byte[] y2)
-    {
-        return BuiltInsImplementation.Bn254G1Add(x1, y1, x2, y2);
-    }
-
-    public bool Bn254Pairing((byte[], byte[], byte[], byte[], byte[], byte[])[] input)
-    {
-        return BuiltInsImplementation.Bn254Pairing(input);
-    }
+    // public bool Ed25519Verify(byte[] signature, byte[] message, byte[] publicKey)
+    // {
+    //     return BuiltInsImplementation.Ed25519Verify(signature, message, publicKey);
+    // }
+    //
+    // public byte[] Keccak256(byte[] message)
+    // {
+    //     return BuiltInsImplementation.Keccak256(message);
+    // }
+    //
+    // public (byte[] x, byte[] y) Bn254G1Mul(byte[] x1, byte[] y1, byte[] s)
+    // {
+    //     return BuiltInsImplementation.Bn254G1Mul(x1, y1, s);
+    // }
+    //
+    // public (byte[] x3, byte[] y3) Bn254G1Add(byte[] x1, byte[] y1, byte[] x2, byte[] y2)
+    // {
+    //     return BuiltInsImplementation.Bn254G1Add(x1, y1, x2, y2);
+    // }
+    //
+    // public bool Bn254Pairing((byte[], byte[], byte[], byte[], byte[], byte[])[] input)
+    // {
+    //     return BuiltInsImplementation.Bn254Pairing(input);
+    // }
 }
