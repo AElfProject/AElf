@@ -48,6 +48,7 @@ public class WhitelistProvider : IWhitelistProvider
             .Assembly(typeof(Address).Assembly, Trust.Full) // AElf.Types
             .Assembly(typeof(IMethod).Assembly, Trust.Full) // AElf.CSharp.Core
             .Assembly(typeof(SecretSharingHelper).Assembly, Trust.Partial) // AElf.Cryptography
+            .Assembly(typeof(PureFunctionHelper).Assembly, Trust.Full) // AElf.Cryptography
             .Assembly(typeof(ISmartContractBridgeContext).Assembly, Trust.Full) // AElf.Kernel.SmartContract.Shared
             .Assembly(typeof(Groth16.Net.Verifier).Assembly, Trust.Full) // AElf.Cryptography.ECDSA
             ;
@@ -201,11 +202,6 @@ public class SystemContractWhitelistProvider : WhitelistProvider, ISystemContrac
             .Namespace("AElf.Cryptography.SecretSharing", Permission.Denied, type => type
                 .Type(typeof(SecretSharingHelper), Permission.Denied, member => member
                     .Member(nameof(SecretSharingHelper.DecodeSecret), Permission.Allowed)
-                    .Member(nameof(SecretSharingHelper.Ed25519Verify), Permission.Allowed)
-                    .Member(nameof(SecretSharingHelper.Keccak256), Permission.Allowed)
-                    .Member(nameof(SecretSharingHelper.Bn254G1Mul), Permission.Allowed)
-                    .Member(nameof(SecretSharingHelper.Bn254Pairing), Permission.Allowed)
-                
                 ));
     }
 }
