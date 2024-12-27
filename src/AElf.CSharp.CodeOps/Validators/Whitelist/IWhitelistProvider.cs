@@ -171,6 +171,31 @@ public class WhitelistProvider : IWhitelistProvider
             )
             ;
     }
+    
+    private void WhitelistCryptographyHelpers(Whitelist whitelist)
+    {
+        whitelist
+            // Selectively allowed types and members
+            .Namespace("AElf.Cryptography.SecretSharing", Permission.Denied, type => type
+                .Type(typeof(SecretSharingHelper), Permission.Denied, member => member
+                    .Member(nameof(SecretSharingHelper.DecodeSecret), Permission.Allowed)
+                ))
+            .Namespace("AElf.Cryptography.Bn254", Permission.Denied, type => type
+                .Type(typeof(Bn254Helper), Permission.Denied, member => member
+                    .Member(nameof(Bn254Helper.Bn254Pairing), Permission.Allowed)
+                    .Member(nameof(Bn254Helper.Bn254G1Add), Permission.Allowed)
+                    .Member(nameof(Bn254Helper.Bn254G1Mul), Permission.Allowed)
+                ))
+            .Namespace("AElf.Cryptography.EdDSA", Permission.Denied, type => type
+                .Type(typeof(EdDsaHelper), Permission.Denied, member => member
+                    .Member(nameof(EdDsaHelper.Ed25519Verify), Permission.Allowed)
+                ))
+            .Namespace("AElf.Cryptography.Keccak", Permission.Denied, type => type
+                .Type(typeof(KeccakHelper), Permission.Denied, member => member
+                    .Member(nameof(KeccakHelper.Keccak256), Permission.Allowed)
+                ))
+            ;
+    }
 
     private Whitelist CreateWhitelist()
     {
@@ -180,6 +205,7 @@ public class WhitelistProvider : IWhitelistProvider
         WhitelistReflectionTypes(whitelist);
         WhitelistLinqAndCollections(whitelist);
         WhitelistOthers(whitelist);
+        WhitelistCryptographyHelpers(whitelist);
         return whitelist;
     }
 }
@@ -204,22 +230,6 @@ public class SystemContractWhitelistProvider : WhitelistProvider, ISystemContrac
             .Namespace("AElf.Cryptography.SecretSharing", Permission.Denied, type => type
                 .Type(typeof(SecretSharingHelper), Permission.Denied, member => member
                     .Member(nameof(SecretSharingHelper.DecodeSecret), Permission.Allowed)
-                ))
-            .Namespace("AElf.Cryptography.Bn254", Permission.Denied, type => type
-                .Type(typeof(Bn254Helper), Permission.Denied, member => member
-                    .Member(nameof(Bn254Helper.Bn254Pairing), Permission.Allowed)
-                    .Member(nameof(Bn254Helper.Bn254G1Add), Permission.Allowed)
-                    .Member(nameof(Bn254Helper.Bn254G1Mul), Permission.Allowed)
-                ))
-            .Namespace("AElf.Cryptography.EdDSA", Permission.Denied, type => type
-                .Type(typeof(EdDsaHelper), Permission.Denied, member => member
-                    .Member(nameof(EdDsaHelper.Ed25519Verify), Permission.Allowed)
-                ))
-            .Namespace("AElf.Cryptography.Keccak", Permission.Denied, type => type
-                .Type(typeof(KeccakHelper), Permission.Denied, member => member
-                    .Member(nameof(KeccakHelper.Keccak256), Permission.Allowed)
-                ))
-            ;
-        
+                ));
     }
 }
