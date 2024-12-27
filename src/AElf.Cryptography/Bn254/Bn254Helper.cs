@@ -2,9 +2,9 @@ using Bn254.Net;
 
 namespace AElf.Cryptography.Bn254
 {
-    public class Bn254Helper
+    public static class Bn254Helper
     {
-        public (byte[] x, byte[] y) Bn254G1Mul(byte[] x1, byte[] y1, byte[] s)
+        public static (byte[] x, byte[] y) Bn254G1Mul(byte[] x1, byte[] y1, byte[] s)
         {
             var (xUInt256, yUInt256) = global::Bn254.Net.Bn254.Mul(UInt256.FromBigEndianBytes(x1),
                 UInt256.FromBigEndianBytes(y1),
@@ -12,7 +12,7 @@ namespace AElf.Cryptography.Bn254
             return (xUInt256.ToBigEndianBytes(), yUInt256.ToBigEndianBytes());
         }
 
-        public (byte[] x3, byte[] y3) Bn254G1Add(byte[] x1, byte[] y1, byte[] x2, byte[] y2)
+        public static (byte[] x3, byte[] y3) Bn254G1Add(byte[] x1, byte[] y1, byte[] x2, byte[] y2)
         {
             var (x3UInt256, y3UInt256) = global::Bn254.Net.Bn254.Add(UInt256.FromBigEndianBytes(x1),
                 UInt256.FromBigEndianBytes(y1),
@@ -20,7 +20,7 @@ namespace AElf.Cryptography.Bn254
             return (x3UInt256.ToBigEndianBytes(), y3UInt256.ToBigEndianBytes());
         }
 
-        public bool Bn254Pairing((byte[], byte[], byte[], byte[], byte[], byte[])[] input)
+        public static bool Bn254Pairing((byte[], byte[], byte[], byte[], byte[], byte[])[] input)
         {
             var elements = new (UInt256, UInt256, UInt256, UInt256, UInt256, UInt256)[input.Length];
             for (var i = 0; i < input.Length; i++)
