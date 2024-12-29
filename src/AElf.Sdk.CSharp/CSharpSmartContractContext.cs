@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using AElf.Kernel.SmartContract;
-using AElf.Sdk.CSharp.Internal;
-using AElf.Sdk.CSharp.Spec;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;

@@ -1,4 +1,5 @@
 using Bn254.Net;
+using NetBn254 = Bn254.Net;
 
 namespace AElf.Cryptography.Bn254
 {
@@ -6,7 +7,7 @@ namespace AElf.Cryptography.Bn254
     {
         public static (byte[] x, byte[] y) Bn254G1Mul(byte[] x1, byte[] y1, byte[] s)
         {
-            var (xUInt256, yUInt256) = global::Bn254.Net.Bn254.Mul(UInt256.FromBigEndianBytes(x1),
+            var (xUInt256, yUInt256) = NetBn254.Bn254.Mul(UInt256.FromBigEndianBytes(x1),
                 UInt256.FromBigEndianBytes(y1),
                 UInt256.FromBigEndianBytes(s));
             return (xUInt256.ToBigEndianBytes(), yUInt256.ToBigEndianBytes());
@@ -14,7 +15,7 @@ namespace AElf.Cryptography.Bn254
 
         public static (byte[] x3, byte[] y3) Bn254G1Add(byte[] x1, byte[] y1, byte[] x2, byte[] y2)
         {
-            var (x3UInt256, y3UInt256) = global::Bn254.Net.Bn254.Add(UInt256.FromBigEndianBytes(x1),
+            var (x3UInt256, y3UInt256) = NetBn254.Bn254.Add(UInt256.FromBigEndianBytes(x1),
                 UInt256.FromBigEndianBytes(y1),
                 UInt256.FromBigEndianBytes(x2), UInt256.FromBigEndianBytes(y2));
             return (x3UInt256.ToBigEndianBytes(), y3UInt256.ToBigEndianBytes());
@@ -31,7 +32,7 @@ namespace AElf.Cryptography.Bn254
                     UInt256.FromBigEndianBytes(x3), UInt256.FromBigEndianBytes(y3));
             }
 
-            return global::Bn254.Net.Bn254.Pairing(elements);
+            return NetBn254.Bn254.Pairing(elements);
         }
     }
 }

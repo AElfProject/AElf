@@ -176,10 +176,6 @@ public class WhitelistProvider : IWhitelistProvider
     {
         whitelist
             // Selectively allowed types and members
-            .Namespace("AElf.Cryptography.SecretSharing", Permission.Denied, type => type
-                .Type(typeof(SecretSharingHelper), Permission.Denied, member => member
-                    .Member(nameof(SecretSharingHelper.DecodeSecret), Permission.Allowed)
-                ))
             .Namespace("AElf.Cryptography.Bn254", Permission.Denied, type => type
                 .Type(typeof(Bn254Helper), Permission.Denied, member => member
                     .Member(nameof(Bn254Helper.Bn254Pairing), Permission.Allowed)
@@ -229,7 +225,6 @@ public class SystemContractWhitelistProvider : WhitelistProvider, ISystemContrac
             // Selectively allowed types and members
             .Namespace("AElf.Cryptography.SecretSharing", Permission.Denied, type => type
                 .Type(typeof(SecretSharingHelper), Permission.Denied, member => member
-                    .Member(nameof(SecretSharingHelper.DecodeSecret), Permission.Allowed)
-                ));
+                    .Member(nameof(SecretSharingHelper.DecodeSecret), Permission.Allowed)));
     }
 }
