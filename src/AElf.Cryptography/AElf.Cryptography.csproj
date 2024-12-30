@@ -12,7 +12,7 @@
         <PackageReference Include="Secp256k1.Native" Version="0.1.24-alpha" />
         <PackageReference Include="Bn254.Net" Version="0.1.0" />
         <PackageReference Include="Rebex.Elliptic.Ed25519" Version="1.2.1" />
-        <PackageReference Include="Nethereum.Web3" Version="4.21.4" />
+        <PackageReference Include="Nethereum.Web3" Version="4.5.0" />
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\AElf.Types\AElf.Types.csproj" />
