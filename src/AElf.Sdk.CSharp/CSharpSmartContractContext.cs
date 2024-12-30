@@ -14,12 +14,9 @@ namespace AElf.Sdk.CSharp;
 /// </summary>
 public class CSharpSmartContractContext : ISmartContractBridgeContext
 {
-    // private IBuiltIns BuiltInsImplementation { get; }
-
     public CSharpSmartContractContext(ISmartContractBridgeContext smartContractBridgeContextImplementation)
     {
         SmartContractBridgeContextImplementation = smartContractBridgeContextImplementation;
-        // BuiltInsImplementation = new InternalBuiltIns();
     }
 
     public ISmartContractBridgeContext SmartContractBridgeContextImplementation { get; }
@@ -88,7 +85,7 @@ public class CSharpSmartContractContext : ISmartContractBridgeContext
     ///     The height of the block that contains the transaction before charging.
     /// </summary>
     public Transaction Transaction => SmartContractBridgeContextImplementation.Transaction;
-
+    
     /// <summary>
     ///     The time included in the current blocks header.
     /// </summary>
@@ -151,7 +148,7 @@ public class CSharpSmartContractContext : ISmartContractBridgeContext
     {
         SmartContractBridgeContextImplementation.DeployContract(address, registration, name);
     }
-
+    
     /// <summary>
     ///     Update a smart contract (only the genesis contract can call it).
     /// </summary>
@@ -162,21 +159,17 @@ public class CSharpSmartContractContext : ISmartContractBridgeContext
     {
         SmartContractBridgeContextImplementation.UpdateContract(address, registration, name);
     }
-
+    
     public ContractInfoDto DeploySmartContract(Address address, SmartContractRegistration registration, Hash name)
     {
-        return SmartContractBridgeContextImplementation.DeploySmartContract(address, registration, name);
+        return SmartContractBridgeContextImplementation.DeploySmartContract(address,registration,name);
     }
-
-    public ContractInfoDto UpdateSmartContract(Address address, SmartContractRegistration registration, Hash name,
-        string previousContractVersion)
+    public ContractInfoDto UpdateSmartContract(Address address, SmartContractRegistration registration, Hash name,string previousContractVersion)
     {
-        return SmartContractBridgeContextImplementation.UpdateSmartContract(address, registration, name,
-            previousContractVersion);
+        return SmartContractBridgeContextImplementation.UpdateSmartContract(address,registration,name,previousContractVersion);
     }
 
-    public ContractVersionCheckDto CheckContractVersion(string previousContractVersion,
-        SmartContractRegistration registration)
+    public ContractVersionCheckDto CheckContractVersion(string previousContractVersion, SmartContractRegistration registration)
     {
         return SmartContractBridgeContextImplementation.CheckContractVersion(previousContractVersion, registration);
     }
@@ -228,14 +221,13 @@ public class CSharpSmartContractContext : ISmartContractBridgeContext
         SmartContractBridgeContextImplementation.SendVirtualInline(fromVirtualAddress, toAddress, methodName,
             args);
     }
-
-    public void SendVirtualInline(Hash fromVirtualAddress, Address toAddress, string methodName, ByteString args,
-        bool logTransaction)
+    
+    public void SendVirtualInline(Hash fromVirtualAddress, Address toAddress, string methodName, ByteString args,bool logTransaction)
     {
         SmartContractBridgeContextImplementation.SendVirtualInline(fromVirtualAddress, toAddress, methodName,
-            args, logTransaction);
+            args,logTransaction);
     }
-
+    
 
     /// <summary>
     ///     Sends a virtual inline transaction to another contract. This method is only available to system smart contract.
@@ -253,7 +245,7 @@ public class CSharpSmartContractContext : ISmartContractBridgeContext
         SmartContractBridgeContextImplementation.SendVirtualInlineBySystemContract(fromVirtualAddress, toAddress,
             methodName, args);
     }
-
+    
     public void SendVirtualInlineBySystemContract(Hash fromVirtualAddress, Address toAddress, string methodName,
         ByteString args, bool logTransaction)
     {
@@ -394,34 +386,9 @@ public class CSharpSmartContractContext : ISmartContractBridgeContext
         return SmartContractBridgeContextImplementation.ConvertVirtualAddressToContractAddressWithContractHashName(
             virtualAddress);
     }
-
+    
     public bool ECVrfVerify(byte[] pubKey, byte[] alpha, byte[] pi, out byte[] beta)
     {
         return SmartContractBridgeContextImplementation.ECVrfVerify(pubKey, alpha, pi, out beta);
     }
-
-    // public bool Ed25519Verify(byte[] signature, byte[] message, byte[] publicKey)
-    // {
-    //     return BuiltInsImplementation.Ed25519Verify(signature, message, publicKey);
-    // }
-    //
-    // public byte[] Keccak256(byte[] message)
-    // {
-    //     return BuiltInsImplementation.Keccak256(message);
-    // }
-    //
-    // public (byte[] x, byte[] y) Bn254G1Mul(byte[] x1, byte[] y1, byte[] s)
-    // {
-    //     return BuiltInsImplementation.Bn254G1Mul(x1, y1, s);
-    // }
-    //
-    // public (byte[] x3, byte[] y3) Bn254G1Add(byte[] x1, byte[] y1, byte[] x2, byte[] y2)
-    // {
-    //     return BuiltInsImplementation.Bn254G1Add(x1, y1, x2, y2);
-    // }
-    //
-    // public bool Bn254Pairing((byte[], byte[], byte[], byte[], byte[], byte[])[] input)
-    // {
-    //     return BuiltInsImplementation.Bn254Pairing(input);
-    // }
 }

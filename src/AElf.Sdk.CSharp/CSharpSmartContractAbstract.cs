@@ -20,6 +20,4 @@ public abstract class CSharpSmartContractAbstract : CSharpSmartContract
     }
 
     internal abstract void InternalInitialize(ISmartContractBridgeContext bridgeContext);
-
-    // public IBuiltIns BuiltIns { get; internal set; }
 }
