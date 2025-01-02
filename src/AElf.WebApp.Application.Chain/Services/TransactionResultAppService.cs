@@ -25,7 +25,7 @@ public interface ITransactionResultAppService
 {
     Task<TransactionResultDto> GetTransactionResultAsync(string transactionId);
 
-    Task<TransactionResultDto> GetTransactionResultV2Async(string transactionId);
+    Task<TransactionResultDto> GetTransactionResultWithBVPAsync(string transactionId);
 
     Task<List<TransactionResultDto>> GetTransactionResultsAsync(string blockHash, int offset = 0,
         int limit = 10);
@@ -127,7 +127,7 @@ public class TransactionResultAppService : AElfAppService, ITransactionResultApp
     /// </summary>
     /// <param name="transactionId">transaction id</param>
     /// <returns></returns>
-    public async Task<TransactionResultDto> GetTransactionResultV2Async(string transactionId)
+    public async Task<TransactionResultDto> GetTransactionResultWithBVPAsync(string transactionId)
     {
         Hash transactionIdHash;
         try
