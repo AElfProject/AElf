@@ -691,6 +691,35 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
         };
     }
 
+    public override Empty ExtendSeedExpirationTime(ExtendSeedExpirationTimeInput input)
+    {
+        var tokenInfo = GetTokenInfo(input.Symbol);
+        if (tokenInfo == null)
+        {
+            throw new AssertionException("Seed NFT does not exist.");
+        }
+
+        Assert(tokenInfo.Owner == Context.Sender, "Sender is not Seed NFT owner.");
+        var oldExpireTimeLong = 0L;
+        if (tokenInfo.ExternalInfo.Value.TryGetValue(TokenContractConstants.SeedExpireTimeExternalInfoKey,
+                out var oldExpireTime))
+        {
+            long.TryParse(oldExpireTime, out oldExpireTimeLong);
+        }
+
+        tokenInfo.ExternalInfo.Value[TokenContractConstants.SeedExpireTimeExternalInfoKey] =
+            input.ExpirationTime.ToString();
+        State.TokenInfos[input.Symbol] = tokenInfo;
+        Context.Fire(new SeedExpirationTimeUpdated
+        {
+            ChainId = tokenInfo.IssueChainId,
+            Symbol = input.Symbol,
+            OldExpirationTime = oldExpireTimeLong,
+            NewExpirationTime = input.ExpirationTime
+        });
+        return new Empty();
+    }
+
     private int GetMaxBatchApproveCount()
     {
         return State.MaxBatchApproveCount.Value == 0
