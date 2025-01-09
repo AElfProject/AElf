@@ -28,7 +28,7 @@ public class ContractCodeLoadContext : AssemblyLoadContext
     /// <returns></returns>
     private Assembly LoadFromFolderOrDefault(AssemblyName assemblyName)
     {
-        if ("AElf.Sdk.CSharp".Equals(assemblyName.Name))
+        if (assemblyName.Name.StartsWith("AElf.Sdk"))
         {
             // Sdk assembly should NOT be shared
             using var stream = _sdkStreamManager.GetStream(assemblyName);

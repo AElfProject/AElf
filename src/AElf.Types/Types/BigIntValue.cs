@@ -207,6 +207,5 @@ namespace AElf.Types
         }
 
         #endregion
-
     }
 }

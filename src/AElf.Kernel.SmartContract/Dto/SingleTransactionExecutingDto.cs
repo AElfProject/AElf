@@ -13,5 +13,4 @@ public class SingleTransactionExecutingDto
     public bool IsCancellable { get; set; } = true;
 
     public Hash OriginTransactionId { get; set; }
-    public InlineWithTransactionIdCounter InlineWithTransactionIdCounter { get; set; }
 }
