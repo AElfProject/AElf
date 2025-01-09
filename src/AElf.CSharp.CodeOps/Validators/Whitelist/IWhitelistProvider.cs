@@ -5,6 +5,9 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
+using AElf.Cryptography.Bn254;
+using AElf.Cryptography.EdDSA;
+using AElf.Cryptography.Keccak;
 using AElf.Cryptography.SecretSharing;
 using AElf.CSharp.Core;
 using AElf.Kernel.SmartContract;
@@ -50,7 +53,6 @@ public class WhitelistProvider : IWhitelistProvider
             .Assembly(typeof(SecretSharingHelper).Assembly, Trust.Partial) // AElf.Cryptography
             .Assembly(typeof(ISmartContractBridgeContext).Assembly, Trust.Full) // AElf.Kernel.SmartContract.Shared
             .Assembly(typeof(Groth16.Net.Verifier).Assembly, Trust.Full) // AElf.Cryptography.ECDSA
-            .Assembly(typeof(Poseidon.Net.Poseidon).Assembly, Trust.Full) 
             ;
     }
 
@@ -64,6 +66,15 @@ public class WhitelistProvider : IWhitelistProvider
                 .Type("Func`1", Permission.Allowed) // Required for protobuf generated code
                 .Type("Func`2", Permission.Allowed) // Required for protobuf generated code
                 .Type("Func`3", Permission.Allowed) // Required for protobuf generated code
+                .Type("Func`4", Permission.Allowed)
+                .Type("ValueTuple`1", Permission.Allowed)
+                .Type("ValueTuple`2", Permission.Allowed)
+                .Type("ValueTuple`3", Permission.Allowed)
+                .Type("ValueTuple`4", Permission.Allowed)
+                .Type("ValueTuple`5", Permission.Allowed)
+                .Type("ValueTuple`6", Permission.Allowed)
+                .Type("ValueTuple`7", Permission.Allowed)
+                .Type("ValueTuple`8", Permission.Allowed)
                 .Type("Nullable`1", Permission.Allowed) // Required for protobuf generated code
                 .Type(typeof(BitConverter), Permission.Denied, member => member
                     .Member(nameof(BitConverter.GetBytes), Permission.Allowed))
@@ -160,6 +171,27 @@ public class WhitelistProvider : IWhitelistProvider
             )
             ;
     }
+    
+    private void WhitelistCryptographyHelpers(Whitelist whitelist)
+    {
+        whitelist
+            // Selectively allowed types and members
+            .Namespace("AElf.Cryptography.Bn254", Permission.Denied, type => type
+                .Type(typeof(Bn254Helper), Permission.Denied, member => member
+                    .Member(nameof(Bn254Helper.Bn254Pairing), Permission.Allowed)
+                    .Member(nameof(Bn254Helper.Bn254G1Add), Permission.Allowed)
+                    .Member(nameof(Bn254Helper.Bn254G1Mul), Permission.Allowed)
+                ))
+            .Namespace("AElf.Cryptography.EdDSA", Permission.Denied, type => type
+                .Type(typeof(EdDsaHelper), Permission.Denied, member => member
+                    .Member(nameof(EdDsaHelper.Ed25519Verify), Permission.Allowed)
+                ))
+            .Namespace("AElf.Cryptography.Keccak", Permission.Denied, type => type
+                .Type(typeof(KeccakHelper), Permission.Denied, member => member
+                    .Member(nameof(KeccakHelper.Keccak256), Permission.Allowed)
+                ))
+            ;
+    }
 
     private Whitelist CreateWhitelist()
     {
@@ -169,6 +201,7 @@ public class WhitelistProvider : IWhitelistProvider
         WhitelistReflectionTypes(whitelist);
         WhitelistLinqAndCollections(whitelist);
         WhitelistOthers(whitelist);
+        WhitelistCryptographyHelpers(whitelist);
         return whitelist;
     }
 }

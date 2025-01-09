@@ -687,7 +687,7 @@ public sealed class BlockChainAppServiceTest : WebAppTestBase
     }
     
     [Fact]
-    public async Task Get_TransactionResultV2_Expired_Test()
+    public async Task Get_TransactionResultWithBVP_Expired_Test()
     {
         // Generate a transaction
         var transaction = await _osTestHelper.GenerateTransferTransaction();
@@ -701,8 +701,8 @@ public sealed class BlockChainAppServiceTest : WebAppTestBase
 
         // Check transaction status
         var response = await GetResponseAsObjectAsync<TransactionResultDto>(
-            $"/api/blockChain/transactionResultV2?transactionId={transactionHex}");
-        response.StatusV2.ShouldBe(TransactionResultStatus.Expired.ToString().ToUpper());
+            $"/api/blockChain/transactionResultWithBVP?transactionId={transactionHex}");
+        response.StatusWithBVP.ShouldBe(TransactionResultStatus.Expired.ToString().ToUpper());
     }
 
     private async Task MineSomeBlocks(int blockNumber)

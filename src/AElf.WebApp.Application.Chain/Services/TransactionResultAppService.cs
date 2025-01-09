@@ -24,8 +24,8 @@ namespace AElf.WebApp.Application.Chain;
 public interface ITransactionResultAppService
 {
     Task<TransactionResultDto> GetTransactionResultAsync(string transactionId);
-    
-    Task<TransactionResultDto> GetTransactionResultV2Async(string transactionId);
+
+    Task<TransactionResultDto> GetTransactionResultWithBVPAsync(string transactionId);
 
     Task<List<TransactionResultDto>> GetTransactionResultsAsync(string blockHash, int offset = 0,
         int limit = 10);
@@ -127,7 +127,7 @@ public class TransactionResultAppService : AElfAppService, ITransactionResultApp
     /// </summary>
     /// <param name="transactionId">transaction id</param>
     /// <returns></returns>
-    public async Task<TransactionResultDto> GetTransactionResultV2Async(string transactionId)
+    public async Task<TransactionResultDto> GetTransactionResultWithBVPAsync(string transactionId)
     {
         Hash transactionIdHash;
         try
@@ -144,7 +144,7 @@ public class TransactionResultAppService : AElfAppService, ITransactionResultApp
         var output = _objectMapper.GetMapper()
             .Map<TransactionResult, TransactionResultDto>(transactionResult,
                 opt => opt.Items[TransactionProfile.ErrorTrace] = _webAppOptions.IsDebugMode);
-        output.StatusV2 = output.Status;
+        output.StatusWithBVP = output.Status;
 
         var transaction = await _transactionManager.GetTransactionAsync(transactionResult.TransactionId);
         output.Transaction = _objectMapper.Map<Transaction, TransactionDto>(transaction);
@@ -154,7 +154,7 @@ public class TransactionResultAppService : AElfAppService, ITransactionResultApp
         if (transactionResult.Status == TransactionResultStatus.Pending &&
             chain.BestChainHeight - output.Transaction?.RefBlockNumber > KernelConstants.ReferenceBlockValidPeriod)
         {
-            output.StatusV2 = TransactionResultStatus.Expired.ToString().ToUpper();
+            output.StatusWithBVP = TransactionResultStatus.Expired.ToString().ToUpper();
             return output;
         }
 
@@ -167,7 +167,7 @@ public class TransactionResultAppService : AElfAppService, ITransactionResultApp
         var validationStatus = _transactionResultStatusCacheProvider.GetTransactionResultStatus(transactionIdHash);
         if (validationStatus != null)
         {
-            output.StatusV2 = validationStatus.TransactionResultStatus.ToString().ToUpper();
+            output.StatusWithBVP = validationStatus.TransactionResultStatus.ToString().ToUpper();
             output.Error =
                 TransactionErrorResolver.TakeErrorMessage(validationStatus.Error, _webAppOptions.IsDebugMode);
             return output;
@@ -180,7 +180,7 @@ public class TransactionResultAppService : AElfAppService, ITransactionResultApp
                     transactionIdHash);
             if (failedTransactionResult != null)
             {
-                output.StatusV2 = failedTransactionResult.Status.ToString().ToUpper();
+                output.StatusWithBVP = failedTransactionResult.Status.ToString().ToUpper();
                 output.Error = failedTransactionResult.Error;
                 return output;
             }
