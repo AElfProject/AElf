@@ -51,6 +51,7 @@ public class IrreversibleBlockHeightUnacceptableLogEventProcessor : LogEventProc
         var distanceToLib = new IrreversibleBlockHeightUnacceptable();
         distanceToLib.MergeFrom(logEvent);
 
+        if (distanceToLib.DistanceToIrreversibleBlockHeight > 0)
         {
             var chain = await _blockchainService.GetChainAsync();
             Logger.LogDebug($"Distance to lib height: {distanceToLib.DistanceToIrreversibleBlockHeight}");
