@@ -46,14 +46,4 @@ public sealed class TransactionExtensionsTests : AElfKernelTestBase
         transaction.VerifyExpiration(100).ShouldBeTrue();
         transaction.VerifyExpiration(612).ShouldBeFalse();
     }
-    
-    [Fact]
-    public void IsInlineWithTransactionId_Test()
-    {
-        var transaction = _kernelTestHelper.GenerateTransaction(100);
-        transaction.MethodName = ".vote";
-        transaction.IsInlineWithTransactionId().ShouldBeTrue();
-        transaction.MethodName = "vote";
-        transaction.IsInlineWithTransactionId().ShouldBeFalse();
-    }
 }

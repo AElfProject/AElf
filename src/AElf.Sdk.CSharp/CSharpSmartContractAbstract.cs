@@ -1,6 +1,5 @@
 using AElf.Kernel.SmartContract;
 using AElf.Types;
-using AElf.Sdk.CSharp.Spec;
 
 namespace AElf.Sdk.CSharp;
 
@@ -21,6 +20,4 @@ public abstract class CSharpSmartContractAbstract : CSharpSmartContract
     }
 
     internal abstract void InternalInitialize(ISmartContractBridgeContext bridgeContext);
-    
-    public IBuiltIns BuiltIns { get; internal set; }
 }

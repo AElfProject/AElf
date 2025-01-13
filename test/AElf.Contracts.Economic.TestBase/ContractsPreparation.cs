@@ -18,7 +18,6 @@ using AElf.Contracts.Vote;
 using AElf.Cryptography.ECDSA;
 using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
-using AElf.Sdk.CSharp;
 using AElf.Standards.ACS3;
 using AElf.Types;
 using Google.Protobuf;

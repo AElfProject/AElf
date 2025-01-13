@@ -16,5 +16,4 @@ public interface ITransactionContext
     Transaction Transaction { get; set; }
     TransactionTrace Trace { get; set; }
     IStateCache StateCache { get; set; }
-    InlineWithTransactionIdCounter InlineWithTransactionIdCounter { get; set; }
 }

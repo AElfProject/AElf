@@ -5,6 +5,9 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
+using AElf.Cryptography.Bn254;
+using AElf.Cryptography.EdDSA;
+using AElf.Cryptography.Keccak;
 using AElf.Cryptography.SecretSharing;
 using AElf.CSharp.Core;
 using AElf.Kernel.SmartContract;
@@ -49,6 +52,7 @@ public class WhitelistProvider : IWhitelistProvider
             .Assembly(typeof(IMethod).Assembly, Trust.Full) // AElf.CSharp.Core
             .Assembly(typeof(SecretSharingHelper).Assembly, Trust.Partial) // AElf.Cryptography
             .Assembly(typeof(ISmartContractBridgeContext).Assembly, Trust.Full) // AElf.Kernel.SmartContract.Shared
+            .Assembly(typeof(Groth16.Net.Verifier).Assembly, Trust.Full) // AElf.Cryptography.ECDSA
             ;
     }
 
@@ -167,6 +171,27 @@ public class WhitelistProvider : IWhitelistProvider
             )
             ;
     }
+    
+    private void WhitelistCryptographyHelpers(Whitelist whitelist)
+    {
+        whitelist
+            // Selectively allowed types and members
+            .Namespace("AElf.Cryptography.Bn254", Permission.Denied, type => type
+                .Type(typeof(Bn254Helper), Permission.Denied, member => member
+                    .Member(nameof(Bn254Helper.Bn254Pairing), Permission.Allowed)
+                    .Member(nameof(Bn254Helper.Bn254G1Add), Permission.Allowed)
+                    .Member(nameof(Bn254Helper.Bn254G1Mul), Permission.Allowed)
+                ))
+            .Namespace("AElf.Cryptography.EdDSA", Permission.Denied, type => type
+                .Type(typeof(EdDsaHelper), Permission.Denied, member => member
+                    .Member(nameof(EdDsaHelper.Ed25519Verify), Permission.Allowed)
+                ))
+            .Namespace("AElf.Cryptography.Keccak", Permission.Denied, type => type
+                .Type(typeof(KeccakHelper), Permission.Denied, member => member
+                    .Member(nameof(KeccakHelper.Keccak256), Permission.Allowed)
+                ))
+            ;
+    }
 
     private Whitelist CreateWhitelist()
     {
@@ -176,6 +201,7 @@ public class WhitelistProvider : IWhitelistProvider
         WhitelistReflectionTypes(whitelist);
         WhitelistLinqAndCollections(whitelist);
         WhitelistOthers(whitelist);
+        WhitelistCryptographyHelpers(whitelist);
         return whitelist;
     }
 }

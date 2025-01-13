@@ -89,24 +89,4 @@ public partial class TransactionTrace
             foreach (var stateSet in stateSets) yield return stateSet;
         }
     }
-
-    public List<Transaction> GetAllInlineTransactions()
-    {
-        var transactions = new List<Transaction>();
-        var stack = new Stack<TransactionTrace>();
-        stack.Push(this);
-
-        while (stack.Count > 0)
-        {
-            var currentTrace = stack.Pop();
-            transactions.AddRange(currentTrace.InlineTransactions);
-            if (currentTrace.InlineTraces == null) continue;
-            foreach (var inlineTrace in currentTrace.InlineTraces)
-            {
-                stack.Push(inlineTrace);
-            }
-        }
-
-        return transactions;
-    }
 }

@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel;
-using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.FeatureDisable.Core;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
@@ -14,8 +13,8 @@ public class UnitTestPlainTransactionExecutingService : PlainTransactionExecutin
 {
     public UnitTestPlainTransactionExecutingService(ISmartContractExecutiveService smartContractExecutiveService,
         IEnumerable<IPostExecutionPlugin> postPlugins, IEnumerable<IPreExecutionPlugin> prePlugins,
-        ITransactionContextFactory transactionContextFactory, IFeatureDisableService featureDisableService,IBlockchainService blockchainService) : base(
-        smartContractExecutiveService, postPlugins, prePlugins, transactionContextFactory, featureDisableService,blockchainService)
+        ITransactionContextFactory transactionContextFactory, IFeatureDisableService featureDisableService) : base(
+        smartContractExecutiveService, postPlugins, prePlugins, transactionContextFactory, featureDisableService)
     {
     }
 

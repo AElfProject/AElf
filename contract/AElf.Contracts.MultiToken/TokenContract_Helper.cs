@@ -215,15 +215,9 @@ public partial class TokenContract
     private void AssertCrossChainTransaction(Transaction originalTransaction, Address validAddress,
         params string[] validMethodNames)
     {
-        var validateResult = validMethodNames.Contains(MaybeRecoverInlineTransactionFunctionName(originalTransaction.MethodName))
+        var validateResult = validMethodNames.Contains(originalTransaction.MethodName)
                              && originalTransaction.To == validAddress;
         Assert(validateResult, "Invalid transaction.");
-    }
-    
-    private static string MaybeRecoverInlineTransactionFunctionName(string methodName)
-    {
-        var parts = methodName.Split('.');
-        return parts.Length > 1 ? parts[^2] : methodName;
     }
 
     private void RegisterTokenInfo(TokenInfo tokenInfo)
