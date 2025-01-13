@@ -447,7 +447,7 @@ In this example, you can read the [protobuf file](https://github.com/AElfProject
 
 ```bash
 $ aelf-command send
-✔ Enter the the URI of an AElf node … http://13.231.179.27:8000
+✔ Enter the URI of an AElf node … http://13.231.179.27:8000
 ✔ Enter a valid wallet address, if you don't have, create one by aelf-command create … D3vSjRYL8MpeRpvUDy85ktXijnBe2tHn8NTACsggUVteQCNGP
 ✔ Enter the password you typed when creating a wallet … ********
 ✔ Enter contract name (System contracts only) or the address of contract … AElf.ContractNames.Token
@@ -485,7 +485,7 @@ aelf-command send AElf.ContractNames.Token Transfer '{"symbol": "ELF", "to": "C9
 
 ```bash
 $ aelf-command call
-✔ Enter the the URI of an AElf node … http://13.231.179.27:8000
+✔ Enter the URI of an AElf node … http://13.231.179.27:8000
 ✔ Enter a valid wallet address, if you don't have, create one by aelf-command create … D3vSjRYL8MpeRpvUDy85ktXijnBe2tHn8NTACsggUVteQCNGP
 ✔ Enter the password you typed when creating a wallet … ********
 ✔ Enter contract name (System contracts only) or the address of contract … AElf.ContractNames.Token
@@ -547,7 +547,7 @@ $ aelf-command get-chain-status
 
 ```bash
 $ aelf-command get-tx-result
-✔ Enter the the URI of an AElf node … http://13.231.179.27:8000
+✔ Enter the URI of an AElf node … http://13.231.179.27:8000
 ✔ Enter a valid transaction id in hex format … 7b620a49ee9666c0c381fdb33f94bd31e1b5eb0fdffa081463c3954e9f734a02
 ✔ Succeed!
 { TransactionId:
@@ -577,7 +577,7 @@ $ aelf-command get-tx-result
 
 ```bash
 $ aelf-command get-blk-height
-✔ Enter the the URI of an AElf node … http://13.231.179.27:8000
+✔ Enter the URI of an AElf node … http://13.231.179.27:8000
 > 7902091
 ```
 
@@ -587,7 +587,7 @@ You can pass a block height or a block hash to this sub-command.
 
 ```bash
 $ aelf-command get-blk-info
-✔ Enter the the URI of an AElf node: http://13.231.179.27:8000
+✔ Enter the URI of an AElf node: http://13.231.179.27:8000
 ✔ Enter a valid height or block hash: 123
 ✔ Include transactions whether or not: no / yes
 { BlockHash:
@@ -622,7 +622,7 @@ aelf-command get-blk-info ca61c7c8f5fc1bc8af0536bc9b51c61a94f39641a93a748e72802b
 
 ```bash
 $ aelf-command console
-✔ Enter the the URI of an AElf node … http://13.231.179.27:8000
+✔ Enter the URI of an AElf node … http://13.231.179.27:8000
 ✔ Enter a valid wallet address, if you don't have, create one by aelf-command create … 2Ue31YTuB5Szy7cnr3SCEGU2gtGi5uMQBYarYUR5oGin1sys6H
 ✔ Enter the password you typed when creating a wallet … ********
 ✔ Succeed!
