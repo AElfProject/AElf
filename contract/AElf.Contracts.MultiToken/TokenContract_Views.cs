@@ -76,12 +76,14 @@ public partial class TokenContract
             result.Allowance = allowance;
             return result;
         }
+
         var symbolType = GetSymbolType(symbol);
-        allowance = Math.Max(allowance, GetAllSymbolAllowance(input.Owner,input.Spender,out _));
         if (symbolType == SymbolType.Nft || symbolType == SymbolType.NftCollection)
         {
-            allowance = Math.Max(allowance, GetNftCollectionAllSymbolAllowance(input.Owner, input.Spender, symbol, out _));
+            allowance = Math.Max(allowance,
+                GetNftCollectionAllSymbolAllowance(input.Owner, input.Spender, symbol, out _));
         }
+
         result.Allowance = allowance;
         return result;
     }
@@ -90,7 +92,7 @@ public partial class TokenContract
     {
         var words = symbol.Split(TokenContractConstants.NFTSymbolSeparator);
         var allSymbolIdentifier = GetAllSymbolIdentifier();
-        return words[0].Equals(allSymbolIdentifier) || (words.Length > 1 && words[1].Equals(allSymbolIdentifier));
+        return words.Length > 1 && words[1].Equals(allSymbolIdentifier);
     }
     
     public override BoolValue IsInWhiteList(IsInWhiteListInput input)
