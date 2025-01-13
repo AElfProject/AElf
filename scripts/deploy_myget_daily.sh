@@ -1,37 +1,62 @@
 #!/usr/bin/env bash
 set -ev
 
-VERSION_PREFIX=$1
-MYGET_API_KEY=$2
+# Required arguments
+TAG=$1                  # First argument: version tag (e.g., v1.12.3.5-preview)
+NUGET_API_KEY=$2        # Second argument: NuGet API Key
 
-# days since 1970-1-1 as build version
-BUILD_VERSION=`expr $(date +%s) / 86400`
-VERSION=${VERSION_PREFIX}-${BUILD_VERSION}
+# Extract version from the tag
+VERSION=$(echo ${TAG} | cut -b 2-)
 
-src_path=src/
-contract_path=contract/
-build_output=/tmp/aelf-build
+# Define paths and directories
+src_path="src"
+contract_path="contract"
+build_output="/tmp/aelf-build"
 
+# Clean up the temporary build directory if it exists
 if [[ -d ${build_output} ]]; then
     rm -rf ${build_output}
 fi
 
+# Restore project dependencies
 dotnet restore AElf.All.sln
 
-for path in ${src_path} ${contract_path} ;
-do
+# ---- Phase 1: Build all projects ----
+echo "=== Starting build phase ==="
+for path in ${src_path} ${contract_path}; do
     cd ${path}
-    echo '---- build '${path}
-
-    for name in `ls -lh | grep ^d | grep AElf | grep -v Tests| awk '{print $NF}'`;
-    do
-        if [[ -f ${name}/${name}.csproj ]] && [[ 1 -eq $(grep -c "GeneratePackageOnBuild" ${name}/${name}.csproj) ]];then
-            echo ${name}/${name}.csproj
-            dotnet build /clp:ErrorsOnly ${name}/${name}.csproj --configuration Release -P:Version=${VERSION} -P:Authors=AElf -o ${build_output}
-
-            echo `ls ${build_output}/${name}.${VERSION}.nupkg`
-            dotnet nuget push ${build_output}/${name}.${VERSION}.nupkg -k ${MYGET_API_KEY} -s https://www.myget.org/F/aelf-project-dev/api/v3/index.json
+    echo "---- Building in path: ${path} ----"
+    for name in $(ls -lh | grep ^d | grep AElf | grep -v Tests | awk '{print $NF}'); do
+        # Check if the project has a .csproj file and if "GeneratePackageOnBuild" is enabled
+        if [[ -f ${name}/${name}.csproj ]] && [[ $(grep -c "GeneratePackageOnBuild" ${name}/${name}.csproj) -eq 1 ]]; then
+            echo "Building project: ${name}/${name}.csproj"
+            dotnet build ${name}/${name}.csproj --configuration Release \
+                -P:Version=${VERSION} -P:Authors=AElf -o ${build_output} /clp:ErrorsOnly
         fi
     done
     cd ../
 done
+
+# ---- Phase 2: Push NuGet packages ----
+echo "=== Starting push phase ==="
+for path in ${src_path} ${contract_path}; do
+    cd ${path}
+    echo "---- Processing NuGet packages in path: ${path} ----"
+    for name in $(ls -lh | grep ^d | grep AElf | grep -v Tests | awk '{print $NF}'); do
+        # Check if .csproj exists and if "GeneratePackageOnBuild" is enabled
+        if [[ -f ${name}/${name}.csproj ]] && [[ $(grep -c "GeneratePackageOnBuild" ${name}/${name}.csproj) -eq 1 ]]; then
+            PACKAGE_PATH="${build_output}/${name}.${VERSION}.nupkg"
+            if [[ -f ${PACKAGE_PATH} ]]; then
+                echo "Pushing package: ${PACKAGE_PATH}"
+                dotnet nuget push ${PACKAGE_PATH} -k ${NUGET_API_KEY} \
+                    -s https://www.myget.org/F/aelf-project-dev/api/v3/index.json
+            else
+                echo "Error: Package not found at ${PACKAGE_PATH}"
+                exit 1
+            fi
+        fi
+    done
+    cd ../
+done
+
+echo "=== All tasks completed successfully! ==="
