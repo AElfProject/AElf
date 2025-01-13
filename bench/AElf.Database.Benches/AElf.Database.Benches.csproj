@@ -8,8 +8,8 @@
 
     <ItemGroup>
         <ProjectReference Include="..\AElf.BenchBase\AElf.BenchBase.csproj"/>
-        <ProjectReference Include="..\..\src\AElf.Database\AElf.Database.csproj"/>
         <PackageReference Include="AElf.Types" Version="1.12.0" />
+        <PackageReference Include="AElf.Database" Version="1.12.0" />
     </ItemGroup>
 
     <ItemGroup>
