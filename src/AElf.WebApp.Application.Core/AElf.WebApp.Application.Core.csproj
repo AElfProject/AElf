@@ -16,7 +16,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\AElf.Core\AElf.Core.csproj" />
+        <PackageReference Include="AElf.Core" Version="1.12.0" />
     </ItemGroup>
 
 </Project>

@@ -9,7 +9,7 @@
     <ItemGroup>
         <ProjectReference Include="..\AElf.BenchBase\AElf.BenchBase.csproj"/>
         <ProjectReference Include="..\..\src\AElf.Database\AElf.Database.csproj"/>
-        <ProjectReference Include="..\..\src\AElf.Types\AElf.Types.csproj"/>
+        <PackageReference Include="AElf.Types" Version="1.12.0" />
     </ItemGroup>
 
     <ItemGroup>

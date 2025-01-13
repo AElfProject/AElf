@@ -9,7 +9,7 @@
         </Description>
     </PropertyGroup>
     <ItemGroup>
-        <ProjectReference Include="..\AElf.Types\AElf.Types.csproj" />
+        <PackageReference Include="AElf.Types" Version="1.12.0" />
     </ItemGroup>
     <ItemGroup>
         <CommonMessage Include="..\..\protobuf\kernel.proto">

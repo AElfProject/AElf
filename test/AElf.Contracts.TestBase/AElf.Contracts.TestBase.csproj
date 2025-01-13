@@ -30,7 +30,7 @@
     <ItemGroup>
         <ProjectReference Include="..\..\src\AElf.ContractDeployer\AElf.ContractDeployer.csproj" />
         <ProjectReference Include="..\..\src\AElf.CrossChain.Core\AElf.CrossChain.Core.csproj" />
-        <ProjectReference Include="..\..\src\AElf.Database\AElf.Database.csproj" />
+        <PackageReference Include="AElf.Database" Version="1.12.0" />
         <ProjectReference Include="..\..\src\AElf.GovernmentSystem\AElf.GovernmentSystem.csproj" />
         <ProjectReference Include="..\..\src\AElf.Kernel.Consensus.AEDPoS\AElf.Kernel.Consensus.AEDPoS.csproj" />
         <ProjectReference Include="..\..\src\AElf.Kernel.SmartContract.ExecutionPluginForMethodFee\AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.csproj" />

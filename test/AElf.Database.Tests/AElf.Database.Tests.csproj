@@ -21,7 +21,7 @@
 </PackageReference>
     </ItemGroup>
     <ItemGroup>
-        <ProjectReference Include="..\..\src\AElf.Database\AElf.Database.csproj" />
+        <PackageReference Include="AElf.Database" Version="1.12.0" />
         <ProjectReference Include="..\AElf.TestBase\AElf.TestBase.csproj" />
     </ItemGroup>
 </Project>

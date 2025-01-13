@@ -22,7 +22,7 @@
         </PackageReference>
         <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.11.0" />
         <PackageReference Include="Mono.Cecil" Version="0.11.4" />
-        <ProjectReference Include="..\..\src\AElf.Core\AElf.Core.csproj" />
+        <PackageReference Include="AElf.Core" Version="1.12.0" />
 <!--        <ProjectReference Include="..\..\src\AElf.Runtime.CSharp\AElf.Runtime.CSharp.csproj" />-->
         <ProjectReference Include="..\..\src\AElf.CSharp.CodeOps\AElf.CSharp.CodeOps.csproj" />
 <!--        <ProjectReference Include="..\AElf.Kernel.SmartContract.Tests\AElf.Kernel.SmartContract.Tests.csproj" />-->

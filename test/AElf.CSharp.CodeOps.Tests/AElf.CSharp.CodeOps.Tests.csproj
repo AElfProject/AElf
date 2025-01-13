@@ -42,7 +42,7 @@
         <ProjectReference Include="..\..\contract\AElf.Contracts.TokenConverter\AElf.Contracts.TokenConverter.csproj" />
         <ProjectReference Include="..\..\contract\AElf.Contracts.Treasury\AElf.Contracts.Treasury.csproj" />
         <ProjectReference Include="..\..\contract\AElf.Contracts.Vote\AElf.Contracts.Vote.csproj" />
-        <ProjectReference Include="..\..\src\AElf.Core\AElf.Core.csproj" />
+        <PackageReference Include="AElf.Core" Version="1.12.0" />
         <ProjectReference Include="..\..\src\AElf.Runtime.CSharp\AElf.Runtime.CSharp.csproj" />
         <ProjectReference Include="..\AElf.Contracts.TestContract.TransactionFees\AElf.Contracts.TestContract.TransactionFees.csproj" />
         <ProjectReference Include="..\AElf.Kernel.SmartContract.Tests\AElf.Kernel.SmartContract.Tests.csproj" />

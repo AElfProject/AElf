@@ -21,6 +21,6 @@
 </PackageReference>
     </ItemGroup>
     <ItemGroup>
-        <ProjectReference Include="..\..\src\AElf.Cryptography\AElf.Cryptography.csproj" />
+        <PackageReference Include="AElf.Cryptography" Version="1.12.0" />
     </ItemGroup>
 </Project>

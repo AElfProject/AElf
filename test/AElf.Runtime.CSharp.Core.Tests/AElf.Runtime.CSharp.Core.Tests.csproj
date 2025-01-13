@@ -22,7 +22,7 @@
 </PackageReference>
     </ItemGroup>
     <ItemGroup>
-        <ProjectReference Include="..\..\src\AElf.Core\AElf.Core.csproj" />
+        <PackageReference Include="AElf.Core" Version="1.12.0" />
         <ProjectReference Include="..\..\src\AElf.Runtime.CSharp.Core\AElf.Runtime.CSharp.Core.csproj" />
         <ProjectReference Include="..\AElf.Runtime.CSharp.Tests.TestContract\AElf.Runtime.CSharp.Tests.TestContract.csproj" />
         <ProjectReference Include="..\AElf.TestBase\AElf.TestBase.csproj" />
