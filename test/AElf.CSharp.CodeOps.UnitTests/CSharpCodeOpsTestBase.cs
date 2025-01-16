@@ -86,7 +86,7 @@ public class CSharpCodeOpsTestBase
         typ.Module.Assembly.Write(stream);
 
         stream.Seek(0, SeekOrigin.Begin);
-        var peFile = new PEFile("Contract", stream);
+        var peFile = new ICSharpCode.Decompiler.Metadata.PEFile("Contract", stream);
         var resolver = new UniversalAssemblyResolver(
             typeof(ISmartContract).Assembly.Location, true, ".NETSTANDARD"
         );

@@ -9,7 +9,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="FluentScheduler" Version="5.4.0" />
+        <PackageReference Include="FluentScheduler" />
     </ItemGroup>
 
     <ItemGroup>

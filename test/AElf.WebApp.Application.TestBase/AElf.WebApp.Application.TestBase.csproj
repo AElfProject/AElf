@@ -5,15 +5,15 @@
         <IsPackable>false</IsPackable>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="Microsoft.AspNetCore.Cors" Version="2.2.0" />
-        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
-        <PackageReference Include="Volo.Abp.AspNetCore.TestBase" Version="8.0.5" />
-        <PackageReference Include="Volo.Abp.Autofac" Version="8.0.5" />
-        <PackageReference Include="coverlet.collector" Version="3.2.0">
+        <PackageReference Include="Microsoft.AspNetCore.Cors" />
+        <PackageReference Include="Swashbuckle.AspNetCore" />
+        <PackageReference Include="Volo.Abp.AspNetCore.TestBase" />
+        <PackageReference Include="Volo.Abp.Autofac" />
+        <PackageReference Include="coverlet.collector">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.4.1" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk" />
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\AElf.OS.Core.Tests\AElf.OS.Core.Tests.csproj" />

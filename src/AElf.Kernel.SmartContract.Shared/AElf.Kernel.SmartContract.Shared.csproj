@@ -10,7 +10,7 @@
     </PropertyGroup>
     
     <ItemGroup>
-        <PackageReference Include="AElf.Types" Version="1.12.0" />
+        <PackageReference Include="AElf.Types" />
     </ItemGroup>
 
 </Project>

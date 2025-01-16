@@ -7,11 +7,11 @@
         <Description>High level smart contract definitions and core functionality implementation.</Description>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="Sandwych.QuickGraph.Core" Version="1.0.0" />
+        <PackageReference Include="Sandwych.QuickGraph.Core" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="AElf.CSharp.Core" Version="1.12.0" />
-        <PackageReference Include="AElf.Kernel.Core" Version="1.12.0" />
+        <PackageReference Include="AElf.CSharp.Core" />
+        <PackageReference Include="AElf.Kernel.Core" />
         <ProjectReference Include="..\AElf.Kernel.SmartContract.Shared\AElf.Kernel.SmartContract.Shared.csproj"/>
         <ProjectReference Include="..\AElf.Kernel.FeatureDisable.Core\AElf.Kernel.FeatureDisable.Core.csproj" />
     </ItemGroup>

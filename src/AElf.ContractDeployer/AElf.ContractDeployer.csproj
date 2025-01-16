@@ -18,10 +18,10 @@
     <ItemGroup>
         <ProjectReference Include="..\AElf.CSharp.CodeOps\AElf.CSharp.CodeOps.csproj" />
         <ProjectReference Include="..\AElf.Runtime.CSharp.Core\AElf.Runtime.CSharp.Core.csproj" />
-        <PackageReference Include="AElf.Types" Version="1.12.0" />
+        <PackageReference Include="AElf.Types" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="CommandLineParser" Version="2.8.0" />
+        <PackageReference Include="CommandLineParser" />
     </ItemGroup>
 
     <Target Name="CopyDlls" AfterTargets="AfterBuild">

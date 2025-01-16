@@ -49,8 +49,8 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="xunit.extensibility.core" Version="2.4.1" />
-        <PackageReference Include="xunit.extensibility.execution" Version="2.4.1" />
+        <PackageReference Include="xunit.extensibility.core" />
+        <PackageReference Include="xunit.extensibility.execution" />
     </ItemGroup>
 
     <Import Project="..\..\test\AllContracts.props" />
