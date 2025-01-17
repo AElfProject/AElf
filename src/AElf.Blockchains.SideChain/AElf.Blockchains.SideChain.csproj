@@ -3,6 +3,8 @@
     <PropertyGroup>
         <TargetFramework>net8.0</TargetFramework>
         <Description>Main module for a sidechain node.</Description>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <PackageId>AElf.Blockchains.SideChain</PackageId>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
         <NoWarn>1701;1702</NoWarn>

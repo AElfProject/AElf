@@ -5,6 +5,8 @@
         <!--Conflict with genesis contract-->
         <NoWarn>0436</NoWarn>
         <Description>Main module for a mainchain node.</Description>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <PackageId>AElf.Blockchains.MainChain</PackageId>
     </PropertyGroup>
     <ItemGroup>
         <ProjectReference Include="..\AElf.Blockchains.BasicBaseChain\AElf.Blockchains.BasicBaseChain.csproj" />
