@@ -292,4 +292,10 @@ public partial class TokenContract
 
         return aliasOrSymbol;
     }
+
+    [View]
+    public override BoolValue IsInTransferBlackList(Address input)
+    {
+        return new BoolValue { Value = State.TransferBlackList[input] };
+    }
 }

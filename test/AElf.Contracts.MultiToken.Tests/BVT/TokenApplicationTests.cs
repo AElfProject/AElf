@@ -1904,4 +1904,173 @@ public partial class MultiTokenContractTests
 
         await TokenContractStub.ExtendSeedExpirationTime.CallAsync(input);
     }
+
+    [Fact]
+    public async Task MultiTokenContract_Transfer_BlackList_Test()
+    {
+        await MultiTokenContract_Approve_Test();
+        
+        var trafficToken = "TRAFFIC";
+        await CreateAndIssueCustomizeTokenAsync(DefaultAddress, trafficToken, 10000, 10000);
+
+        // 1. Non-owner cannot add to blacklist
+        var addBlackListResult = await TokenContractStubUser.AddToTransferBlackList.SendWithExceptionAsync(DefaultAddress);
+        addBlackListResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+        addBlackListResult.TransactionResult.Error.ShouldContain("Unauthorized behavior");
+        var isInTransferBlackList = await TokenContractStubUser.IsInTransferBlackList.CallAsync(DefaultAddress);
+        isInTransferBlackList.Value.ShouldBe(false);
+
+        // 2. Owner adds DefaultAddress to blacklist via parliament proposal
+        var defaultParliament = await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+        var proposalId = await CreateProposalAsync(TokenContractAddress, defaultParliament, nameof(TokenContractStub.AddToTransferBlackList), DefaultAddress);
+        await ApproveWithMinersAsync(proposalId);
+        await ParliamentContractStub.Release.SendAsync(proposalId);
+        isInTransferBlackList = await TokenContractStubUser.IsInTransferBlackList.CallAsync(DefaultAddress);
+        isInTransferBlackList.Value.ShouldBe(true);
+
+        // 3. Transfer should fail when sender is in blacklist
+        var transferResult = (await TokenContractStub.Transfer.SendWithExceptionAsync(new TransferInput
+        {
+            Amount = Amount,
+            Memo = "blacklist test",
+            Symbol = AliceCoinTokenInfo.Symbol,
+            To = User1Address
+        })).TransactionResult;
+        transferResult.Status.ShouldBe(TransactionResultStatus.Failed);
+        transferResult.Error.ShouldContain("From address is in transfer blacklist");
+
+        // 4. TransferFrom should fail when from address is in blacklist
+        var user1Stub = GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, User1KeyPair);
+        var transferFromResult = (await user1Stub.TransferFrom.SendWithExceptionAsync(new TransferFromInput
+        {
+            Amount = Amount,
+            From = DefaultAddress,
+            Memo = "blacklist test",
+            Symbol = AliceCoinTokenInfo.Symbol,
+            To = User1Address
+        })).TransactionResult;
+        transferFromResult.Status.ShouldBe(TransactionResultStatus.Failed);
+        transferFromResult.Error.ShouldContain("From address is in transfer blacklist");
+
+        // 5. CrossChainTransfer should fail when sender is in blacklist
+        var crossChainTransferResult = (await TokenContractStub.CrossChainTransfer.SendWithExceptionAsync(new CrossChainTransferInput
+        {
+            Symbol = AliceCoinTokenInfo.Symbol,
+            Amount = Amount,
+            To = User1Address,
+            IssueChainId = 9992731,
+            Memo = "blacklist test",
+            ToChainId = 9992732
+        })).TransactionResult;
+        crossChainTransferResult.Status.ShouldBe(TransactionResultStatus.Failed);
+        crossChainTransferResult.Error.ShouldContain("Sender is in transfer blacklist");
+        
+        // 6. Lock should fail when sender is in blacklist
+        var lockId = HashHelper.ComputeFrom("lockId");
+        var lockTokenResult = (await BasicFunctionContractStub.LockToken.SendWithExceptionAsync(new LockTokenInput
+        {
+            Address = DefaultAddress,
+            Amount = Amount,
+            Symbol = AliceCoinTokenInfo.Symbol,
+            LockId = lockId,
+            Usage = "Testing."
+        })).TransactionResult;
+        lockTokenResult.Status.ShouldBe(TransactionResultStatus.Failed);
+        lockTokenResult.Error.ShouldContain("From address is in transfer blacklist");
+
+        // 7. Transfer to contract should fail when sender is in blacklist
+        var transferToContractResult = (await BasicFunctionContractStub.TransferTokenToContract.SendWithExceptionAsync(
+            new TransferTokenToContractInput
+            {
+                Amount = Amount,
+                Symbol = AliceCoinTokenInfo.Symbol
+            })).TransactionResult;
+        transferToContractResult.Status.ShouldBe(TransactionResultStatus.Failed);
+        transferToContractResult.Error.ShouldContain("From address is in transfer blacklist");
+        
+        // 8. AdvanceResourceToken should fail when sender is in blacklist
+        var advanceRet = await TokenContractStub.AdvanceResourceToken.SendWithExceptionAsync(
+            new AdvanceResourceTokenInput
+            {
+                ContractAddress = BasicFunctionContractAddress,
+                Amount = Amount,
+                ResourceTokenSymbol = trafficToken
+            });
+        advanceRet.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+        advanceRet.TransactionResult.Error.ShouldContain("From address is in transfer blacklist");
+
+        // 9. Non-owner cannot remove from blacklist
+        var removeBlackListResult = await TokenContractStubUser.RemoveFromTransferBlackList.SendWithExceptionAsync(DefaultAddress);
+        removeBlackListResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+        removeBlackListResult.TransactionResult.Error.ShouldContain("Unauthorized behavior");
+
+        // 10. Owner removes DefaultAddress from blacklist via parliament proposal
+        var removeProposalId = await CreateProposalAsync(TokenContractAddress, defaultParliament, nameof(TokenContractStub.RemoveFromTransferBlackList), DefaultAddress);
+        await ApproveWithMinersAsync(removeProposalId);
+        await ParliamentContractStub.Release.SendAsync(removeProposalId);
+        isInTransferBlackList = await TokenContractStubUser.IsInTransferBlackList.CallAsync(DefaultAddress);
+        isInTransferBlackList.Value.ShouldBe(false);
+
+        // 11. Transfer should succeed after removing from blacklist
+        var transferResult2 = await TokenContractStub.Transfer.SendAsync(new TransferInput
+        {
+            Amount = Amount,
+            Memo = "blacklist test",
+            Symbol = AliceCoinTokenInfo.Symbol,
+            To = User1Address
+        });
+        transferResult2.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        
+        // 12. TransferFrom should succeed after removing from blacklist
+        transferFromResult = (await user1Stub.TransferFrom.SendAsync(new TransferFromInput
+        {
+            Amount = Amount,
+            From = DefaultAddress,
+            Memo = "blacklist test",
+            Symbol = AliceCoinTokenInfo.Symbol,
+            To = User1Address
+        })).TransactionResult;
+        transferFromResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+        // 13. CrossChainTransfer should succeed after removing from blacklist
+        crossChainTransferResult = (await TokenContractStub.CrossChainTransfer.SendAsync(new CrossChainTransferInput
+        {
+            Symbol = AliceCoinTokenInfo.Symbol,
+            Amount = Amount,
+            To = User1Address,
+            IssueChainId = 9992731,
+            Memo = "blacklist test",
+            ToChainId = 9992732
+        })).TransactionResult;
+        crossChainTransferResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        
+        // 14. Lock should succeed after removing from blacklist
+        lockTokenResult = (await BasicFunctionContractStub.LockToken.SendAsync(new LockTokenInput
+        {
+            Address = DefaultAddress,
+            Amount = Amount,
+            Symbol = AliceCoinTokenInfo.Symbol,
+            LockId = lockId,
+            Usage = "Testing."
+        })).TransactionResult;
+        lockTokenResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        
+        // 15. Transfer to contract should succeed after removing from blacklist
+        transferToContractResult = (await BasicFunctionContractStub.TransferTokenToContract.SendAsync(new TransferTokenToContractInput
+        {
+            Amount = Amount,
+            Symbol = AliceCoinTokenInfo.Symbol
+        })).TransactionResult;
+        transferToContractResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        
+        // 16. AdvanceResourceToken should succeed after removing from blacklist
+        advanceRet = await TokenContractStub.AdvanceResourceToken.SendAsync(
+            new AdvanceResourceTokenInput
+            {
+                ContractAddress = BasicFunctionContractAddress,
+                Amount = Amount,
+                ResourceTokenSymbol = trafficToken
+            });
+        advanceRet.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+    }
 }
