@@ -185,6 +185,17 @@ service TokenContractImpl {
 
     rpc ExtendSeedExpirationTime (ExtendSeedExpirationTimeInput) returns (google.protobuf.Empty) {
     }
+
+    // Add an address to the transfer blacklist. Only parliament owner can call this method.
+    rpc AddToTransferBlackList (aelf.Address) returns (google.protobuf.Empty) {
+    }
+    // Remove an address from the transfer blacklist. Only parliament owner can call this method.
+    rpc RemoveFromTransferBlackList (aelf.Address) returns (google.protobuf.Empty) {
+    }
+    // Check if an address is in the transfer blacklist.
+    rpc IsInTransferBlackList (aelf.Address) returns (google.protobuf.BoolValue) {
+        option (aelf.is_view) = true;
+    }
 }
 
 message AdvanceResourceTokenInput {

@@ -98,6 +98,7 @@ public partial class TokenContract
 
     private void DoTransfer(Address from, Address to, string symbol, long amount, string memo = null)
     {
+        Assert(!IsInTransferBlackListInternal(from), "From address is in transfer blacklist.");
         Assert(from != to, "Can't do transfer to sender itself.");
         AssertValidMemo(memo);
         ModifyBalance(from, symbol, -amount);
@@ -418,5 +419,10 @@ public partial class TokenContract
     {
         var symbol = tokenInfo.Symbol;
         State.TokenInfos[symbol] = tokenInfo;
+    }
+
+    private bool IsInTransferBlackListInternal(Address address)
+    {
+        return State.TransferBlackList[address];
     }
 }

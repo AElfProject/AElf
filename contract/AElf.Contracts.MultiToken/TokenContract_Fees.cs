@@ -237,6 +237,7 @@ public partial class TokenContract
     private void ModifyBalance(Address fromAddress, TransactionFeeBill bill,
         TransactionFreeFeeAllowanceBill allowanceBill)
     {
+        Assert(!IsInTransferBlackListInternal(fromAddress), "Charge fee address is in transfer blacklist.");
         SetOrRefreshTransactionFeeFreeAllowances(fromAddress);
         var freeAllowancesMap = CalculateTransactionFeeFreeAllowances(fromAddress);
 
