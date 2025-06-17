@@ -76,4 +76,6 @@ public partial class TokenContractState : ContractState
 
     // Alias -> Actual Symbol
     public MappedState<string, string> SymbolAliasMap { get; set; }
+
+    public MappedState<Address, bool> TransferBlackList { get; set; }
 }

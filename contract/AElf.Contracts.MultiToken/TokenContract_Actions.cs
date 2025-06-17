@@ -559,6 +559,7 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
     /// <returns></returns>
     public override Empty CrossChainTransfer(CrossChainTransferInput input)
     {
+        Assert(!IsInTransferBlackListInternal(Context.Sender), "Sender is in transfer blacklist.");
         var tokenInfo = AssertValidToken(input.Symbol, input.Amount);
         AssertValidMemo(input.Memo);
         var issueChainId = GetIssueChainId(tokenInfo.Symbol);
@@ -848,5 +849,21 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
         Assert(parts.Length == 2, $"Incorrect collection symbol: {collectionSymbol}.");
         Assert(parts.Last() == TokenContractConstants.CollectionSymbolSuffix, "Incorrect collection symbol suffix.");
         Assert(alias == parts.First(), $"Alias for an item of {collectionSymbol} cannot be {alias}.");
+    }
+
+    public override Empty AddToTransferBlackList(Address input)
+    {
+        AssertSenderAddressWith(GetDefaultParliamentController().OwnerAddress);
+        Assert(input != null && !input.Value.IsNullOrEmpty(), "Invalid address.");
+        State.TransferBlackList[input] = true;
+        return new Empty();
+    }
+
+    public override Empty RemoveFromTransferBlackList(Address input)
+    {
+        AssertSenderAddressWith(GetDefaultParliamentController().OwnerAddress);
+        Assert(input != null && !input.Value.IsNullOrEmpty(), "Invalid address.");
+        State.TransferBlackList[input] = false;
+        return new Empty();
     }
 }
