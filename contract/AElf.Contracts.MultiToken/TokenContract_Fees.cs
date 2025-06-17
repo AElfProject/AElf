@@ -86,7 +86,6 @@ public partial class TokenContract
         bool isSizeFeeFree)
     {
         Context.LogDebug(() => "TryToChargeTransactionFee Start");
-        Assert(!IsInTransferBlackListInternal(fromAddress), "From address is in transfer blacklist.");
         var chargingResult =
             ChargeTransactionFeesToBill(input, fromAddress, ref bill, ref allowanceBill, fee, isSizeFeeFree);
         if (!chargingResult)
@@ -238,6 +237,7 @@ public partial class TokenContract
     private void ModifyBalance(Address fromAddress, TransactionFeeBill bill,
         TransactionFreeFeeAllowanceBill allowanceBill)
     {
+        Assert(!IsInTransferBlackListInternal(fromAddress), "From address is in transfer blacklist.");
         SetOrRefreshTransactionFeeFreeAllowances(fromAddress);
         var freeAllowancesMap = CalculateTransactionFeeFreeAllowances(fromAddress);
 
