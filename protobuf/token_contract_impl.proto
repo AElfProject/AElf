@@ -198,9 +198,19 @@ service TokenContractImpl {
     // Add an address to the transfer blacklist. 
     rpc AddToTransferBlackList (aelf.Address) returns (google.protobuf.Empty) {
     }
+    
+    // Add multiple addresses to the transfer blacklist. 
+    rpc BatchAddToTransferBlackList (BatchAddToTransferBlackListInput) returns (google.protobuf.Empty) {
+    }
+
     // Remove an address from the transfer blacklist. Only parliament owner can call this method.
     rpc RemoveFromTransferBlackList (aelf.Address) returns (google.protobuf.Empty) {
     }
+    
+    // Remove multiple addresses from the transfer blacklist. Only parliament owner can call this method.
+    rpc BatchRemoveFromTransferBlackList (BatchRemoveFromTransferBlackListInput) returns (google.protobuf.Empty) {
+    }
+
     // Check if an address is in the transfer blacklist.
     rpc IsInTransferBlackList (aelf.Address) returns (google.protobuf.BoolValue) {
         option (aelf.is_view) = true;
@@ -480,4 +490,12 @@ message SeedExpirationTimeUpdated {
     string symbol = 2;
     int64 old_expiration_time = 3;
     int64 new_expiration_time = 4;
+}
+
+message BatchAddToTransferBlackListInput {
+    repeated aelf.Address addresses = 1;
+}
+
+message BatchRemoveFromTransferBlackListInput {
+    repeated aelf.Address addresses = 1;
 }

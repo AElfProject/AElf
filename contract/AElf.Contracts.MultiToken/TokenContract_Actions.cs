@@ -859,11 +859,53 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
         return new Empty();
     }
 
+    public override Empty BatchAddToTransferBlackList(BatchAddToTransferBlackListInput input)
+    {
+        AssertControllerForTransferBlackList();
+        Assert(input != null && input.Addresses != null && input.Addresses.Count > 0, "Invalid input.");
+        
+        // Validate all addresses first
+        foreach (var address in input.Addresses)
+        {
+            Assert(address != null && !address.Value.IsNullOrEmpty(), "Invalid address.");
+        }
+        
+        // Remove duplicates and add to blacklist
+        var uniqueAddresses = input.Addresses.Distinct().ToList();
+        foreach (var address in uniqueAddresses)
+        {
+            State.TransferBlackList[address] = true;
+        }
+        
+        return new Empty();
+    }
+
     public override Empty RemoveFromTransferBlackList(Address input)
     {
         AssertSenderAddressWith(GetDefaultParliamentController().OwnerAddress);
         Assert(input != null && !input.Value.IsNullOrEmpty(), "Invalid address.");
         State.TransferBlackList[input] = false;
+        return new Empty();
+    }
+
+    public override Empty BatchRemoveFromTransferBlackList(BatchRemoveFromTransferBlackListInput input)
+    {
+        AssertSenderAddressWith(GetDefaultParliamentController().OwnerAddress);
+        Assert(input != null && input.Addresses != null && input.Addresses.Count > 0, "Invalid input.");
+        
+        // Validate all addresses first
+        foreach (var address in input.Addresses)
+        {
+            Assert(address != null && !address.Value.IsNullOrEmpty(), "Invalid address.");
+        }
+        
+        // Remove duplicates and remove from blacklist
+        var uniqueAddresses = input.Addresses.Distinct().ToList();
+        foreach (var address in uniqueAddresses)
+        {
+            State.TransferBlackList[address] = false;
+        }
+        
         return new Empty();
     }
 }
