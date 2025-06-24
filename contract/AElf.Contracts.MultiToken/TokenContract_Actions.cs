@@ -882,6 +882,8 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
 
     public override Empty RemoveFromTransferBlackList(Address input)
     {
+        // Removing from transfer blacklist requires higher security and response speed is not critical, 
+        // so it should be controlled by Parliament.
         AssertSenderAddressWith(GetDefaultParliamentController().OwnerAddress);
         Assert(input != null && !input.Value.IsNullOrEmpty(), "Invalid address.");
         State.TransferBlackList[input] = false;
@@ -890,6 +892,8 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
 
     public override Empty BatchRemoveFromTransferBlackList(BatchRemoveFromTransferBlackListInput input)
     {
+        // Removing from transfer blacklist requires higher security and response speed is not critical, 
+        // so it should be controlled by Parliament.
         AssertSenderAddressWith(GetDefaultParliamentController().OwnerAddress);
         Assert(input != null && input.Addresses != null && input.Addresses.Count > 0, "Invalid input.");
         
