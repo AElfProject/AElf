@@ -853,7 +853,7 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
 
     public override Empty AddToTransferBlackList(Address input)
     {
-        AssertSenderAddressWith(GetDefaultParliamentController().OwnerAddress);
+        AssertControllerForTransferBlackList();
         Assert(input != null && !input.Value.IsNullOrEmpty(), "Invalid address.");
         State.TransferBlackList[input] = true;
         return new Empty();

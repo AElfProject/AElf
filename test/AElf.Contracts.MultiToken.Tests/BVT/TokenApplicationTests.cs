@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -11,6 +12,10 @@ using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
+using AElf.Contracts.Association;
+using AElf.ContractTestBase.ContractTestKit;
+using Google.Protobuf;
+using AElf.Standards.ACS3;
 
 namespace AElf.Contracts.MultiToken;
 
@@ -1916,7 +1921,7 @@ public partial class MultiTokenContractTests
         // 1. Non-owner cannot add to blacklist
         var addBlackListResult = await TokenContractStubUser.AddToTransferBlackList.SendWithExceptionAsync(DefaultAddress);
         addBlackListResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-        addBlackListResult.TransactionResult.Error.ShouldContain("Unauthorized behavior");
+        addBlackListResult.TransactionResult.Error.ShouldContain("No permission");
         var isInTransferBlackList = await TokenContractStubUser.IsInTransferBlackList.CallAsync(DefaultAddress);
         isInTransferBlackList.Value.ShouldBe(false);
 
@@ -2072,5 +2077,126 @@ public partial class MultiTokenContractTests
                 ResourceTokenSymbol = trafficToken
             });
         advanceRet.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        
+        // Test initial TransferBlackListController should fallback to Parliament
+        var initialController = await TokenContractStub.GetTransferBlackListController.CallAsync(new Empty());
+        initialController.OwnerAddress.ShouldBe(defaultParliament);
+        
+        // Create Association organization for TransferBlackListController
+        var associationStub = GetTester<AssociationContractImplContainer.AssociationContractImplStub>(AssociationContractAddress, DefaultKeyPair);
+        var organizationCreated = await associationStub.CreateOrganization.SendAsync(new CreateOrganizationInput
+        {
+            ProposalReleaseThreshold = new ProposalReleaseThreshold
+            {
+                MinimalApprovalThreshold = 1,
+                MinimalVoteThreshold = 1,
+                MaximalAbstentionThreshold = 0,
+                MaximalRejectionThreshold = 0
+            },
+            ProposerWhiteList = new ProposerWhiteList
+            {
+                Proposers = { DefaultAddress }
+            },
+            OrganizationMemberList = new OrganizationMemberList
+            {
+                OrganizationMembers = { DefaultAddress }
+            }
+        });
+        organizationCreated.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        var organizationAddress = Address.Parser.ParseFrom(organizationCreated.TransactionResult.ReturnValue);
+        
+        // 17. Only Parliament can change TransferBlackListController
+        var changeControllerResult = await TokenContractStubUser.ChangeTransferBlackListController.SendWithExceptionAsync(new AuthorityInfo
+        {
+            ContractAddress = AssociationContractAddress,
+            OwnerAddress = organizationAddress
+        });
+        changeControllerResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+        changeControllerResult.TransactionResult.Error.ShouldContain("Unauthorized behavior");
+        
+        // 18. Test setting non-existent association organization address should fail
+        var nonExistentOrgAddress = SampleAddress.AddressList[9]; // Use a non-existent organization address
+        var setNonExistentControllerProposalId = await CreateProposalAsync(TokenContractAddress, defaultParliament, 
+            nameof(TokenContractStub.ChangeTransferBlackListController), new AuthorityInfo
+            {
+                ContractAddress = AssociationContractAddress,
+                OwnerAddress = nonExistentOrgAddress
+            });
+        await ApproveWithMinersAsync(setNonExistentControllerProposalId);
+        var setNonExistentControllerResult = await ParliamentContractStub.Release.SendWithExceptionAsync(setNonExistentControllerProposalId);
+        setNonExistentControllerResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+        setNonExistentControllerResult.TransactionResult.Error.ShouldContain("Invalid authority input");
+        
+        // 19. Parliament changes TransferBlackListController to Association organization
+        var changeControllerProposalId = await CreateProposalAsync(TokenContractAddress, defaultParliament, 
+            nameof(TokenContractStub.ChangeTransferBlackListController), new AuthorityInfo
+            {
+                ContractAddress = AssociationContractAddress,
+                OwnerAddress = organizationAddress
+            });
+        await ApproveWithMinersAsync(changeControllerProposalId);
+        await ParliamentContractStub.Release.SendAsync(changeControllerProposalId);
+        
+        // Verify TransferBlackListController has been changed
+        var newController = await TokenContractStub.GetTransferBlackListController.CallAsync(new Empty());
+        newController.ContractAddress.ShouldBe(AssociationContractAddress);
+        newController.OwnerAddress.ShouldBe(organizationAddress);
+        
+        // 20. Association organization can now add addresses to blacklist directly
+        var addToBlackListViaAssociation = await associationStub.CreateProposal.SendAsync(new CreateProposalInput
+        {
+            ContractMethodName = nameof(TokenContractStub.AddToTransferBlackList),
+            ToAddress = TokenContractAddress,
+            Params = User2Address.ToByteString(),
+            OrganizationAddress = organizationAddress,
+            ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
+        });
+        addToBlackListViaAssociation.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        var blacklistProposalId = ProposalCreated.Parser.ParseFrom(addToBlackListViaAssociation.TransactionResult.Logs
+            .First(l => l.Name == nameof(ProposalCreated)).NonIndexed).ProposalId;
+        
+        // Approve and release the proposal
+        await associationStub.Approve.SendAsync(blacklistProposalId);
+        await associationStub.Release.SendAsync(blacklistProposalId);
+        
+        // Verify User2Address is now in blacklist
+        var isUser2InBlackList = await TokenContractStub.IsInTransferBlackList.CallAsync(User2Address);
+        isUser2InBlackList.Value.ShouldBe(true);
+        
+        // 21. User2 transfer should fail when in blacklist
+        var user2Stub = GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, User2KeyPair);
+        await TokenContractStub.Transfer.SendAsync(new TransferInput
+        {
+            Amount = Amount,
+            Symbol = AliceCoinTokenInfo.Symbol,
+            To = User2Address
+        });
+        var user2TransferResult = await user2Stub.Transfer.SendWithExceptionAsync(new TransferInput
+        {
+            Amount = Amount,
+            Symbol = AliceCoinTokenInfo.Symbol,
+            To = User1Address
+        });
+        user2TransferResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+        user2TransferResult.TransactionResult.Error.ShouldContain("From address is in transfer blacklist");
+        
+        // 22. Parliament can still remove from blacklist (not affected by controller change)
+        var removeUser2ProposalId = await CreateProposalAsync(TokenContractAddress, defaultParliament, 
+            nameof(TokenContractStub.RemoveFromTransferBlackList), User2Address);
+        await ApproveWithMinersAsync(removeUser2ProposalId);
+        await ParliamentContractStub.Release.SendAsync(removeUser2ProposalId);
+        
+        // Verify User2Address is removed from blacklist
+        isUser2InBlackList = await TokenContractStub.IsInTransferBlackList.CallAsync(User2Address);
+        isUser2InBlackList.Value.ShouldBe(false);
+        
+        // User2 transfer should succeed after removal from blacklist
+        user2TransferResult = await user2Stub.Transfer.SendAsync(new TransferInput
+        {
+            Amount = Amount,
+            Symbol = AliceCoinTokenInfo.Symbol,
+            To = User1Address
+        });
+        user2TransferResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
     }
 }

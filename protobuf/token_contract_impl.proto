@@ -77,6 +77,10 @@ service TokenContractImpl {
     rpc ChangeDeveloperController (AuthorityInfo) returns (google.protobuf.Empty) {
     }
 
+    // Change the governance organization of the transfer blacklist management.
+    rpc ChangeTransferBlackListController (AuthorityInfo) returns (google.protobuf.Empty) {
+    }
+
     rpc ConfigTransactionFeeFreeAllowances (ConfigTransactionFeeFreeAllowancesInput) returns (google.protobuf.Empty) {
     }
 
@@ -136,6 +140,11 @@ service TokenContractImpl {
         option (aelf.is_view) = true;
     }
     
+    // Query the governance organization of the transfer blacklist management.
+    rpc GetTransferBlackListController (google.protobuf.Empty) returns (AuthorityInfo) {
+        option (aelf.is_view) = true;
+    }
+    
     // Compute the virtual address for locking.
     rpc GetVirtualAddressForLocking (GetVirtualAddressForLockingInput) returns (aelf.Address) {
         option (aelf.is_view) = true;
@@ -186,7 +195,7 @@ service TokenContractImpl {
     rpc ExtendSeedExpirationTime (ExtendSeedExpirationTimeInput) returns (google.protobuf.Empty) {
     }
 
-    // Add an address to the transfer blacklist. Only parliament owner can call this method.
+    // Add an address to the transfer blacklist. 
     rpc AddToTransferBlackList (aelf.Address) returns (google.protobuf.Empty) {
     }
     // Remove an address from the transfer blacklist. Only parliament owner can call this method.
