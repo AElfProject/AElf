@@ -87,6 +87,15 @@ public partial class TokenContract
         return new Empty();
     }
 
+    public override Empty ChangeTransferBlackListController(AuthorityInfo input)
+    {
+        AssertSenderAddressWith(GetDefaultParliamentController().OwnerAddress);
+        var organizationExist = CheckOrganizationExist(input);
+        Assert(organizationExist, "Invalid authority input.");
+        State.TransferBlackListController.Value = input;
+        return new Empty();
+    }
+
     private void CreateReferendumControllerForUserFee(Address parliamentAddress)
     {
         State.ReferendumContract.CreateOrganizationBySystemContract.Send(
@@ -364,6 +373,13 @@ public partial class TokenContract
         };
     }
 
+    private AuthorityInfo GetTransferBlackListController()
+    {
+        if (State.TransferBlackListController.Value == null)
+            return GetDefaultParliamentController();
+        return State.TransferBlackListController.Value;
+    }
+
     private void AssertDeveloperFeeController()
     {
         Assert(State.DeveloperFeeController.Value != null,
@@ -394,6 +410,12 @@ public partial class TokenContract
             "controller does not initialize, call InitializeAuthorizedController first");
         // ReSharper disable once PossibleNullReferenceException
         Assert(State.SideChainRentalController.Value.OwnerAddress == Context.Sender, "no permission");
+    }
+
+    private void AssertControllerForTransferBlackList()
+    {
+        var controller = GetTransferBlackListController();
+        Assert(Context.Sender == controller.OwnerAddress, "No permission");
     }
 
     #endregion

@@ -298,4 +298,10 @@ public partial class TokenContract
     {
         return new BoolValue { Value = State.TransferBlackList[input] };
     }
+
+    [View]
+    public override AuthorityInfo GetTransferBlackListController(Empty input)
+    {
+        return GetTransferBlackListController();
+    }
 }
