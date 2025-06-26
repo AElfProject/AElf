@@ -76,7 +76,7 @@ After adding these elements, Boilerplate will deploy your contract when the node
 
 ```bash
 aelf-command get-chain-status
-? Enter the the URI of an AElf node: http://127.0.0.1:1235
+? Enter the URI of an AElf node: http://127.0.0.1:1235
 ✔ Succeed
 {
   "ChainId": "AELF",
