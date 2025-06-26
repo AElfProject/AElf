@@ -2,7 +2,7 @@
 
 ### Setup
 
-To easily follow this tutorial you will need to open the the **AElf Boilerplate** root folder in Visual Studio Code and also open the **Integrated Terminal**.
+To easily follow this tutorial you will need to open the **AElf Boilerplate** root folder in Visual Studio Code and also open the **Integrated Terminal**.
 
 <p align="center">
   <img src="boilerplate-structure-autox200.png">

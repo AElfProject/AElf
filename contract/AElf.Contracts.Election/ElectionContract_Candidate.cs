@@ -200,7 +200,7 @@ public partial class ElectionContract
             State.VoteContract.Value =
                 Context.GetContractAddressByName(SmartContractConstants.VoteContractSystemName);
 
-        // Add this candidate as an option for the the Voting Item.
+        // Add this candidate as an option for the Voting Item.
         State.VoteContract.AddOption.Send(new AddOptionInput
         {
             VotingItemId = State.MinerElectionVotingItemId.Value,
