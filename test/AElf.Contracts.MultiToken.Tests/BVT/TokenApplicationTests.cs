@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -11,6 +12,10 @@ using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
+using AElf.Contracts.Association;
+using AElf.ContractTestBase.ContractTestKit;
+using Google.Protobuf;
+using AElf.Standards.ACS3;
 
 namespace AElf.Contracts.MultiToken;
 
@@ -1903,5 +1908,584 @@ public partial class MultiTokenContractTests
         input.ExpirationTime = expirationTime;
 
         await TokenContractStub.ExtendSeedExpirationTime.CallAsync(input);
+    }
+
+    [Fact]
+    public async Task MultiTokenContract_Transfer_BlackList_Test()
+    {
+        await MultiTokenContract_Approve_Test();
+        
+        var trafficToken = "TRAFFIC";
+        await CreateAndIssueCustomizeTokenAsync(DefaultAddress, trafficToken, 10000, 10000);
+
+        // Non-owner cannot add to blacklist
+        var addBlackListResult = await TokenContractStubUser.AddToTransferBlackList.SendWithExceptionAsync(DefaultAddress);
+        addBlackListResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+        addBlackListResult.TransactionResult.Error.ShouldContain("No permission");
+        var isInTransferBlackList = await TokenContractStubUser.IsInTransferBlackList.CallAsync(DefaultAddress);
+        isInTransferBlackList.Value.ShouldBe(false);
+
+        // Owner adds DefaultAddress to blacklist via parliament proposal
+        var defaultParliament = await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+        var proposalId = await CreateProposalAsync(TokenContractAddress, defaultParliament, nameof(TokenContractStub.AddToTransferBlackList), DefaultAddress);
+        await ApproveWithMinersAsync(proposalId);
+        await ParliamentContractStub.Release.SendAsync(proposalId);
+        isInTransferBlackList = await TokenContractStubUser.IsInTransferBlackList.CallAsync(DefaultAddress);
+        isInTransferBlackList.Value.ShouldBe(true);
+
+        // Transfer should fail when sender is in blacklist
+        var transferResult = (await TokenContractStub.Transfer.SendWithExceptionAsync(new TransferInput
+        {
+            Amount = Amount,
+            Memo = "blacklist test",
+            Symbol = AliceCoinTokenInfo.Symbol,
+            To = User1Address
+        })).TransactionResult;
+        transferResult.Status.ShouldBe(TransactionResultStatus.Failed);
+        transferResult.Error.ShouldContain("From address is in transfer blacklist");
+
+        // TransferFrom should fail when from address is in blacklist
+        var user1Stub = GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, User1KeyPair);
+        var transferFromResult = (await user1Stub.TransferFrom.SendWithExceptionAsync(new TransferFromInput
+        {
+            Amount = Amount,
+            From = DefaultAddress,
+            Memo = "blacklist test",
+            Symbol = AliceCoinTokenInfo.Symbol,
+            To = User1Address
+        })).TransactionResult;
+        transferFromResult.Status.ShouldBe(TransactionResultStatus.Failed);
+        transferFromResult.Error.ShouldContain("From address is in transfer blacklist");
+
+        // CrossChainTransfer should fail when sender is in blacklist
+        var crossChainTransferResult = (await TokenContractStub.CrossChainTransfer.SendWithExceptionAsync(new CrossChainTransferInput
+        {
+            Symbol = AliceCoinTokenInfo.Symbol,
+            Amount = Amount,
+            To = User1Address,
+            IssueChainId = 9992731,
+            Memo = "blacklist test",
+            ToChainId = 9992732
+        })).TransactionResult;
+        crossChainTransferResult.Status.ShouldBe(TransactionResultStatus.Failed);
+        crossChainTransferResult.Error.ShouldContain("Sender is in transfer blacklist");
+        
+        // Lock should fail when sender is in blacklist
+        var lockId = HashHelper.ComputeFrom("lockId");
+        var lockTokenResult = (await BasicFunctionContractStub.LockToken.SendWithExceptionAsync(new LockTokenInput
+        {
+            Address = DefaultAddress,
+            Amount = Amount,
+            Symbol = AliceCoinTokenInfo.Symbol,
+            LockId = lockId,
+            Usage = "Testing."
+        })).TransactionResult;
+        lockTokenResult.Status.ShouldBe(TransactionResultStatus.Failed);
+        lockTokenResult.Error.ShouldContain("From address is in transfer blacklist");
+
+        // Transfer to contract should fail when sender is in blacklist
+        var transferToContractResult = (await BasicFunctionContractStub.TransferTokenToContract.SendWithExceptionAsync(
+            new TransferTokenToContractInput
+            {
+                Amount = Amount,
+                Symbol = AliceCoinTokenInfo.Symbol
+            })).TransactionResult;
+        transferToContractResult.Status.ShouldBe(TransactionResultStatus.Failed);
+        transferToContractResult.Error.ShouldContain("From address is in transfer blacklist");
+        
+        // AdvanceResourceToken should fail when sender is in blacklist
+        var advanceRet = await TokenContractStub.AdvanceResourceToken.SendWithExceptionAsync(
+            new AdvanceResourceTokenInput
+            {
+                ContractAddress = BasicFunctionContractAddress,
+                Amount = Amount,
+                ResourceTokenSymbol = trafficToken
+            });
+        advanceRet.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+        advanceRet.TransactionResult.Error.ShouldContain("From address is in transfer blacklist");
+
+        // Non-owner cannot remove from blacklist
+        var removeBlackListResult = await TokenContractStubUser.RemoveFromTransferBlackList.SendWithExceptionAsync(DefaultAddress);
+        removeBlackListResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+        removeBlackListResult.TransactionResult.Error.ShouldContain("Unauthorized behavior");
+
+        // Owner removes DefaultAddress from blacklist via parliament proposal
+        var removeProposalId = await CreateProposalAsync(TokenContractAddress, defaultParliament, nameof(TokenContractStub.RemoveFromTransferBlackList), DefaultAddress);
+        await ApproveWithMinersAsync(removeProposalId);
+        await ParliamentContractStub.Release.SendAsync(removeProposalId);
+        isInTransferBlackList = await TokenContractStubUser.IsInTransferBlackList.CallAsync(DefaultAddress);
+        isInTransferBlackList.Value.ShouldBe(false);
+
+        // Transfer should succeed after removing from blacklist
+        var transferResult2 = await TokenContractStub.Transfer.SendAsync(new TransferInput
+        {
+            Amount = Amount,
+            Memo = "blacklist test",
+            Symbol = AliceCoinTokenInfo.Symbol,
+            To = User1Address
+        });
+        transferResult2.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        
+        // TransferFrom should succeed after removing from blacklist
+        transferFromResult = (await user1Stub.TransferFrom.SendAsync(new TransferFromInput
+        {
+            Amount = Amount,
+            From = DefaultAddress,
+            Memo = "blacklist test",
+            Symbol = AliceCoinTokenInfo.Symbol,
+            To = User1Address
+        })).TransactionResult;
+        transferFromResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+        // CrossChainTransfer should succeed after removing from blacklist
+        crossChainTransferResult = (await TokenContractStub.CrossChainTransfer.SendAsync(new CrossChainTransferInput
+        {
+            Symbol = AliceCoinTokenInfo.Symbol,
+            Amount = Amount,
+            To = User1Address,
+            IssueChainId = 9992731,
+            Memo = "blacklist test",
+            ToChainId = 9992732
+        })).TransactionResult;
+        crossChainTransferResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        
+        // Lock should succeed after removing from blacklist
+        lockTokenResult = (await BasicFunctionContractStub.LockToken.SendAsync(new LockTokenInput
+        {
+            Address = DefaultAddress,
+            Amount = Amount,
+            Symbol = AliceCoinTokenInfo.Symbol,
+            LockId = lockId,
+            Usage = "Testing."
+        })).TransactionResult;
+        lockTokenResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        
+        // Transfer to contract should succeed after removing from blacklist
+        transferToContractResult = (await BasicFunctionContractStub.TransferTokenToContract.SendAsync(new TransferTokenToContractInput
+        {
+            Amount = Amount,
+            Symbol = AliceCoinTokenInfo.Symbol
+        })).TransactionResult;
+        transferToContractResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        
+        // AdvanceResourceToken should succeed after removing from blacklist
+        advanceRet = await TokenContractStub.AdvanceResourceToken.SendAsync(
+            new AdvanceResourceTokenInput
+            {
+                ContractAddress = BasicFunctionContractAddress,
+                Amount = Amount,
+                ResourceTokenSymbol = trafficToken
+            });
+        advanceRet.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        
+        // Test initial TransferBlackListController should fallback to Parliament
+        var initialController = await TokenContractStub.GetTransferBlackListController.CallAsync(new Empty());
+        initialController.OwnerAddress.ShouldBe(defaultParliament);
+        
+        // Create Association organization for TransferBlackListController
+        var associationStub = GetTester<AssociationContractImplContainer.AssociationContractImplStub>(AssociationContractAddress, DefaultKeyPair);
+        var organizationCreated = await associationStub.CreateOrganization.SendAsync(new CreateOrganizationInput
+        {
+            ProposalReleaseThreshold = new ProposalReleaseThreshold
+            {
+                MinimalApprovalThreshold = 1,
+                MinimalVoteThreshold = 1,
+                MaximalAbstentionThreshold = 0,
+                MaximalRejectionThreshold = 0
+            },
+            ProposerWhiteList = new ProposerWhiteList
+            {
+                Proposers = { DefaultAddress }
+            },
+            OrganizationMemberList = new OrganizationMemberList
+            {
+                OrganizationMembers = { DefaultAddress }
+            }
+        });
+        organizationCreated.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        var organizationAddress = Address.Parser.ParseFrom(organizationCreated.TransactionResult.ReturnValue);
+        
+        // Only Parliament can change TransferBlackListController
+        var changeControllerResult = await TokenContractStubUser.ChangeTransferBlackListController.SendWithExceptionAsync(new AuthorityInfo
+        {
+            ContractAddress = AssociationContractAddress,
+            OwnerAddress = organizationAddress
+        });
+        changeControllerResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+        changeControllerResult.TransactionResult.Error.ShouldContain("Unauthorized behavior");
+        
+        // Test setting non-existent association organization address should fail
+        var nonExistentOrgAddress = SampleAddress.AddressList[9]; // Use a non-existent organization address
+        var setNonExistentControllerProposalId = await CreateProposalAsync(TokenContractAddress, defaultParliament, 
+            nameof(TokenContractStub.ChangeTransferBlackListController), new AuthorityInfo
+            {
+                ContractAddress = AssociationContractAddress,
+                OwnerAddress = nonExistentOrgAddress
+            });
+        await ApproveWithMinersAsync(setNonExistentControllerProposalId);
+        var setNonExistentControllerResult = await ParliamentContractStub.Release.SendWithExceptionAsync(setNonExistentControllerProposalId);
+        setNonExistentControllerResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+        setNonExistentControllerResult.TransactionResult.Error.ShouldContain("Invalid authority input");
+        
+        // Parliament changes TransferBlackListController to Association organization
+        var changeControllerProposalId = await CreateProposalAsync(TokenContractAddress, defaultParliament, 
+            nameof(TokenContractStub.ChangeTransferBlackListController), new AuthorityInfo
+            {
+                ContractAddress = AssociationContractAddress,
+                OwnerAddress = organizationAddress
+            });
+        await ApproveWithMinersAsync(changeControllerProposalId);
+        await ParliamentContractStub.Release.SendAsync(changeControllerProposalId);
+        
+        // Verify TransferBlackListController has been changed
+        var newController = await TokenContractStub.GetTransferBlackListController.CallAsync(new Empty());
+        newController.ContractAddress.ShouldBe(AssociationContractAddress);
+        newController.OwnerAddress.ShouldBe(organizationAddress);
+        
+        // Association organization can now add addresses to blacklist directly
+        var addToBlackListViaAssociation = await associationStub.CreateProposal.SendAsync(new CreateProposalInput
+        {
+            ContractMethodName = nameof(TokenContractStub.AddToTransferBlackList),
+            ToAddress = TokenContractAddress,
+            Params = User2Address.ToByteString(),
+            OrganizationAddress = organizationAddress,
+            ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
+        });
+        addToBlackListViaAssociation.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        var blacklistProposalId = ProposalCreated.Parser.ParseFrom(addToBlackListViaAssociation.TransactionResult.Logs
+            .First(l => l.Name == nameof(ProposalCreated)).NonIndexed).ProposalId;
+        
+        // Approve and release the proposal
+        await associationStub.Approve.SendAsync(blacklistProposalId);
+        await associationStub.Release.SendAsync(blacklistProposalId);
+        
+        // Verify User2Address is now in blacklist
+        var isUser2InBlackList = await TokenContractStub.IsInTransferBlackList.CallAsync(User2Address);
+        isUser2InBlackList.Value.ShouldBe(true);
+        
+        // User2 transfer should fail when in blacklist
+        var user2Stub = GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, User2KeyPair);
+        await TokenContractStub.Transfer.SendAsync(new TransferInput
+        {
+            Amount = Amount,
+            Symbol = AliceCoinTokenInfo.Symbol,
+            To = User2Address
+        });
+        var user2TransferResult = await user2Stub.Transfer.SendWithExceptionAsync(new TransferInput
+        {
+            Amount = Amount,
+            Symbol = AliceCoinTokenInfo.Symbol,
+            To = User1Address
+        });
+        user2TransferResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+        user2TransferResult.TransactionResult.Error.ShouldContain("From address is in transfer blacklist");
+        
+        // Parliament can still remove from blacklist (not affected by controller change)
+        var removeUser2ProposalId = await CreateProposalAsync(TokenContractAddress, defaultParliament, 
+            nameof(TokenContractStub.RemoveFromTransferBlackList), User2Address);
+        await ApproveWithMinersAsync(removeUser2ProposalId);
+        await ParliamentContractStub.Release.SendAsync(removeUser2ProposalId);
+        
+        // Verify User2Address is removed from blacklist
+        isUser2InBlackList = await TokenContractStub.IsInTransferBlackList.CallAsync(User2Address);
+        isUser2InBlackList.Value.ShouldBe(false);
+        
+        // User2 transfer should succeed after removal from blacklist
+        user2TransferResult = await user2Stub.Transfer.SendAsync(new TransferInput
+        {
+            Amount = Amount,
+            Symbol = AliceCoinTokenInfo.Symbol,
+            To = User1Address
+        });
+        user2TransferResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+    }
+
+    [Fact]
+    public async Task MultiTokenContract_BatchAddToTransferBlackList_Test()
+    {
+        // Create and issue token using existing test method
+        await MultiTokenContract_Approve_Test();
+        
+        var defaultParliament = await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+        
+        // Test BatchAddToTransferBlackList with Parliament when no controller is set (should succeed)
+        var parliamentBatchAddProposalId = await CreateProposalAsync(TokenContractAddress, defaultParliament, 
+            nameof(TokenContractStub.BatchAddToTransferBlackList), new BatchAddToTransferBlackListInput
+            {
+                Addresses = { User1Address }
+            });
+        await ApproveWithMinersAsync(parliamentBatchAddProposalId);
+        await ParliamentContractStub.Release.SendAsync(parliamentBatchAddProposalId);
+        
+        // Verify User1Address is now in blacklist
+        var isUser1InBlackList = await TokenContractStub.IsInTransferBlackList.CallAsync(User1Address);
+        isUser1InBlackList.Value.ShouldBe(true);
+        
+        // Remove User1 from blacklist for later tests
+        var removeUser1ProposalId = await CreateProposalAsync(TokenContractAddress, defaultParliament, 
+            nameof(TokenContractStub.RemoveFromTransferBlackList), User1Address);
+        await ApproveWithMinersAsync(removeUser1ProposalId);
+        await ParliamentContractStub.Release.SendAsync(removeUser1ProposalId);
+        
+        // Setup Association contract and organization
+        var associationStub = GetTester<AssociationContractImplContainer.AssociationContractImplStub>(AssociationContractAddress, DefaultKeyPair);
+        var organizationCreated = await associationStub.CreateOrganization.SendAsync(new CreateOrganizationInput
+        {
+            ProposalReleaseThreshold = new ProposalReleaseThreshold
+            {
+                MinimalApprovalThreshold = 1,
+                MinimalVoteThreshold = 1,
+                MaximalAbstentionThreshold = 0,
+                MaximalRejectionThreshold = 0
+            },
+            ProposerWhiteList = new ProposerWhiteList
+            {
+                Proposers = { DefaultAddress }
+            },
+            OrganizationMemberList = new OrganizationMemberList
+            {
+                OrganizationMembers = { DefaultAddress }
+            }
+        });
+        organizationCreated.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        var organizationAddress = Address.Parser.ParseFrom(organizationCreated.TransactionResult.ReturnValue);
+        
+        // Set Association organization as TransferBlackListController via Parliament
+        var changeControllerProposalId = await CreateProposalAsync(TokenContractAddress, defaultParliament, 
+            nameof(TokenContractStub.ChangeTransferBlackListController), new AuthorityInfo
+            {
+                ContractAddress = AssociationContractAddress,
+                OwnerAddress = organizationAddress
+            });
+        await ApproveWithMinersAsync(changeControllerProposalId);
+        await ParliamentContractStub.Release.SendAsync(changeControllerProposalId);
+        
+        // Test BatchAddToTransferBlackList with empty input via Association organization should fail
+        var emptyInputProposalId = await associationStub.CreateProposal.SendAsync(new CreateProposalInput
+        {
+            ContractMethodName = nameof(TokenContractStub.BatchAddToTransferBlackList),
+            ToAddress = TokenContractAddress,
+            Params = new BatchAddToTransferBlackListInput().ToByteString(),
+            OrganizationAddress = organizationAddress,
+            ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
+        });
+        var emptyInputProposalHash = Hash.Parser.ParseFrom(emptyInputProposalId.TransactionResult.ReturnValue);
+        await associationStub.Approve.SendAsync(emptyInputProposalHash);
+        var emptyInputReleaseResult = await associationStub.Release.SendWithExceptionAsync(emptyInputProposalHash);
+        emptyInputReleaseResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+        emptyInputReleaseResult.TransactionResult.Error.ShouldContain("Invalid input");
+        
+        // Test BatchAddToTransferBlackList with unauthorized user should fail
+        var batchAddUnauthorizedResult = await TokenContractStubUser.BatchAddToTransferBlackList.SendWithExceptionAsync(new BatchAddToTransferBlackListInput
+        {
+            Addresses = { User1Address, User2Address }
+        });
+        batchAddUnauthorizedResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+        batchAddUnauthorizedResult.TransactionResult.Error.ShouldContain("No permission");
+        
+        // Transfer some tokens to user accounts first for testing
+        await TokenContractStub.Transfer.SendAsync(new TransferInput
+        {
+            Amount = Amount,
+            Symbol = AliceCoinTokenInfo.Symbol,
+            To = User1Address
+        });
+        
+        await TokenContractStub.Transfer.SendAsync(new TransferInput
+        {
+            Amount = Amount,
+            Symbol = AliceCoinTokenInfo.Symbol,
+            To = User2Address
+        });
+        
+        // Test BatchAddToTransferBlackList with Association organization controller
+        var batchAddProposalId = await associationStub.CreateProposal.SendAsync(new CreateProposalInput
+        {
+            ContractMethodName = nameof(TokenContractStub.BatchAddToTransferBlackList),
+            ToAddress = TokenContractAddress,
+            Params = new BatchAddToTransferBlackListInput
+            {
+                Addresses = { User1Address, User2Address, DefaultAddress }
+            }.ToByteString(),
+            OrganizationAddress = organizationAddress,
+            ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
+        });
+        var batchProposalHash = Hash.Parser.ParseFrom(batchAddProposalId.TransactionResult.ReturnValue);
+        await associationStub.Approve.SendAsync(batchProposalHash);
+        await associationStub.Release.SendAsync(batchProposalHash);
+        
+        // Verify all addresses are now in blacklist
+        isUser1InBlackList = await TokenContractStub.IsInTransferBlackList.CallAsync(User1Address);
+        isUser1InBlackList.Value.ShouldBe(true);
+        var isUser2InBlackList = await TokenContractStub.IsInTransferBlackList.CallAsync(User2Address);
+        isUser2InBlackList.Value.ShouldBe(true);
+        var isDefaultInBlackList = await TokenContractStub.IsInTransferBlackList.CallAsync(DefaultAddress);
+        isDefaultInBlackList.Value.ShouldBe(true);
+        
+        // Test that transfers from blacklisted addresses should fail
+        var user1Stub = GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, User1KeyPair);
+        var user1TransferResult = await user1Stub.Transfer.SendWithExceptionAsync(new TransferInput
+        {
+            Amount = Amount,
+            Symbol = AliceCoinTokenInfo.Symbol,
+            To = DefaultAddress
+        });
+        user1TransferResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+        user1TransferResult.TransactionResult.Error.ShouldContain("From address is in transfer blacklist");
+        
+        var user2Stub = GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, User2KeyPair);
+        var user2TransferResult = await user2Stub.Transfer.SendWithExceptionAsync(new TransferInput
+        {
+            Amount = Amount,
+            Symbol = AliceCoinTokenInfo.Symbol,
+            To = DefaultAddress
+        });
+        user2TransferResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+        user2TransferResult.TransactionResult.Error.ShouldContain("From address is in transfer blacklist");
+        
+        // Test Parliament can still remove from blacklist (RemoveFromTransferBlackList is not using new controller)
+        var removeProposalId = await CreateProposalAsync(TokenContractAddress, defaultParliament, nameof(TokenContractStub.RemoveFromTransferBlackList), User2Address);
+        await ApproveWithMinersAsync(removeProposalId);
+        await ParliamentContractStub.Release.SendAsync(removeProposalId);
+        
+        // Verify User2 is removed from blacklist
+        isUser2InBlackList = await TokenContractStub.IsInTransferBlackList.CallAsync(User2Address);
+        isUser2InBlackList.Value.ShouldBe(false);
+        
+        // User2 transfer should succeed after removal from blacklist
+        user2TransferResult = await user2Stub.Transfer.SendAsync(new TransferInput
+        {
+            Amount = Amount,
+            Symbol = AliceCoinTokenInfo.Symbol,
+            To = User1Address
+        });
+        user2TransferResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+    }
+
+    [Fact]
+    public async Task MultiTokenContract_BatchRemoveFromTransferBlackList_Test()
+    {
+        // Create and issue token using existing test method
+        await MultiTokenContract_Approve_Test();
+        
+        var defaultParliament = await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+        
+        // Transfer some tokens to user accounts for testing
+        await TokenContractStub.Transfer.SendAsync(new TransferInput
+        {
+            Amount = Amount,
+            Symbol = AliceCoinTokenInfo.Symbol,
+            To = User1Address
+        });
+        
+        await TokenContractStub.Transfer.SendAsync(new TransferInput
+        {
+            Amount = Amount,
+            Symbol = AliceCoinTokenInfo.Symbol,
+            To = User2Address
+        });
+        
+        // First, add multiple addresses to blacklist using BatchAddToTransferBlackList
+        var batchAddProposalId = await CreateProposalAsync(TokenContractAddress, defaultParliament, 
+            nameof(TokenContractStub.BatchAddToTransferBlackList), new BatchAddToTransferBlackListInput
+            {
+                Addresses = { User1Address, User2Address, DefaultAddress }
+            });
+        await ApproveWithMinersAsync(batchAddProposalId);
+        await ParliamentContractStub.Release.SendAsync(batchAddProposalId);
+        
+        // Verify all addresses are in blacklist
+        var user1InBlackListStatus = await TokenContractStub.IsInTransferBlackList.CallAsync(User1Address);
+        user1InBlackListStatus.Value.ShouldBe(true);
+        var user2InBlackListStatus = await TokenContractStub.IsInTransferBlackList.CallAsync(User2Address);
+        user2InBlackListStatus.Value.ShouldBe(true);
+        var defaultInBlackListStatus = await TokenContractStub.IsInTransferBlackList.CallAsync(DefaultAddress);
+        defaultInBlackListStatus.Value.ShouldBe(true);
+        
+        // Test BatchRemoveFromTransferBlackList with empty input via Parliament should fail
+        var emptyInputProposalId = await CreateProposalAsync(TokenContractAddress, defaultParliament, 
+            nameof(TokenContractStub.BatchAddToTransferBlackList), new BatchRemoveFromTransferBlackListInput());
+        await ApproveWithMinersAsync(emptyInputProposalId);
+        var emptyInputReleaseResult = await ParliamentContractStub.Release.SendWithExceptionAsync(emptyInputProposalId);
+        emptyInputReleaseResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+        emptyInputReleaseResult.TransactionResult.Error.ShouldContain("Invalid input");
+        
+        // Test BatchRemoveFromTransferBlackList with unauthorized user should fail
+        var unauthorizedRemoveResult = await TokenContractStubUser.BatchRemoveFromTransferBlackList.SendWithExceptionAsync(new BatchRemoveFromTransferBlackListInput
+        {
+            Addresses = { User1Address, User2Address }
+        });
+        unauthorizedRemoveResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+        unauthorizedRemoveResult.TransactionResult.Error.ShouldContain("Unauthorized behavior");
+        
+        // Test BatchRemoveFromTransferBlackList with Parliament authority (should succeed)
+        var batchRemoveProposalId = await CreateProposalAsync(TokenContractAddress, defaultParliament, 
+            nameof(TokenContractStub.BatchRemoveFromTransferBlackList), new BatchRemoveFromTransferBlackListInput
+            {
+                Addresses = { User1Address, User2Address }
+            });
+        await ApproveWithMinersAsync(batchRemoveProposalId);
+        await ParliamentContractStub.Release.SendAsync(batchRemoveProposalId);
+        
+        // Verify User1 and User2 are removed from blacklist
+        var user1BlackListStatusAfterRemove = await TokenContractStub.IsInTransferBlackList.CallAsync(User1Address);
+        user1BlackListStatusAfterRemove.Value.ShouldBe(false);
+        var user2BlackListStatusAfterRemove = await TokenContractStub.IsInTransferBlackList.CallAsync(User2Address);
+        user2BlackListStatusAfterRemove.Value.ShouldBe(false);
+        
+        // Verify DefaultAddress is still in blacklist (not removed)
+        var defaultBlackListStatusAfterRemove = await TokenContractStub.IsInTransferBlackList.CallAsync(DefaultAddress);
+        defaultBlackListStatusAfterRemove.Value.ShouldBe(true);
+        
+        // Test that transfers from removed addresses should succeed
+        var user1Stub = GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, User1KeyPair);
+        var user1TransferResult = await user1Stub.Transfer.SendAsync(new TransferInput
+        {
+            Amount = Amount / 2,
+            Symbol = AliceCoinTokenInfo.Symbol,
+            To = DefaultAddress
+        });
+        user1TransferResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        
+        var user2Stub = GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, User2KeyPair);
+        var user2TransferResult = await user2Stub.Transfer.SendAsync(new TransferInput
+        {
+            Amount = Amount / 2,
+            Symbol = AliceCoinTokenInfo.Symbol,
+            To = User1Address
+        });
+        user2TransferResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        
+        // Test that transfer from DefaultAddress (still in blacklist) should fail
+        var defaultTransferResult = await TokenContractStub.Transfer.SendWithExceptionAsync(new TransferInput
+        {
+            Amount = Amount,
+            Symbol = AliceCoinTokenInfo.Symbol,
+            To = User1Address
+        });
+        defaultTransferResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+        defaultTransferResult.TransactionResult.Error.ShouldContain("From address is in transfer blacklist");
+        
+        // Test BatchRemoveFromTransferBlackList with duplicate addresses (should handle gracefully)
+        var duplicateRemoveProposalId = await CreateProposalAsync(TokenContractAddress, defaultParliament, 
+            nameof(TokenContractStub.BatchRemoveFromTransferBlackList), new BatchRemoveFromTransferBlackListInput
+            {
+                Addresses = { DefaultAddress, DefaultAddress, DefaultAddress } // Duplicate addresses
+            });
+        await ApproveWithMinersAsync(duplicateRemoveProposalId);
+        await ParliamentContractStub.Release.SendAsync(duplicateRemoveProposalId);
+        
+        // Verify DefaultAddress is removed from blacklist
+        var defaultBlackListStatusFinal = await TokenContractStub.IsInTransferBlackList.CallAsync(DefaultAddress);
+        defaultBlackListStatusFinal.Value.ShouldBe(false);
+        
+        // Test that transfer from DefaultAddress should now succeed
+        defaultTransferResult = await TokenContractStub.Transfer.SendAsync(new TransferInput
+        {
+            Amount = Amount,
+            Symbol = AliceCoinTokenInfo.Symbol,
+            To = User1Address
+        });
+        defaultTransferResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
     }
 }

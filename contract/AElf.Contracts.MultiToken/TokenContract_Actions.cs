@@ -559,6 +559,7 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
     /// <returns></returns>
     public override Empty CrossChainTransfer(CrossChainTransferInput input)
     {
+        Assert(!IsInTransferBlackListInternal(Context.Sender), "Sender is in transfer blacklist.");
         var tokenInfo = AssertValidToken(input.Symbol, input.Amount);
         AssertValidMemo(input.Memo);
         var issueChainId = GetIssueChainId(tokenInfo.Symbol);
@@ -848,5 +849,67 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
         Assert(parts.Length == 2, $"Incorrect collection symbol: {collectionSymbol}.");
         Assert(parts.Last() == TokenContractConstants.CollectionSymbolSuffix, "Incorrect collection symbol suffix.");
         Assert(alias == parts.First(), $"Alias for an item of {collectionSymbol} cannot be {alias}.");
+    }
+
+    public override Empty AddToTransferBlackList(Address input)
+    {
+        AssertControllerForTransferBlackList();
+        Assert(input != null && !input.Value.IsNullOrEmpty(), "Invalid address.");
+        State.TransferBlackList[input] = true;
+        return new Empty();
+    }
+
+    public override Empty BatchAddToTransferBlackList(BatchAddToTransferBlackListInput input)
+    {
+        AssertControllerForTransferBlackList();
+        Assert(input != null && input.Addresses != null && input.Addresses.Count > 0, "Invalid input.");
+        
+        // Validate all addresses first
+        foreach (var address in input.Addresses)
+        {
+            Assert(address != null && !address.Value.IsNullOrEmpty(), "Invalid address.");
+        }
+        
+        // Remove duplicates and add to blacklist
+        var uniqueAddresses = input.Addresses.Distinct().ToList();
+        foreach (var address in uniqueAddresses)
+        {
+            State.TransferBlackList[address] = true;
+        }
+        
+        return new Empty();
+    }
+
+    public override Empty RemoveFromTransferBlackList(Address input)
+    {
+        // Removing from transfer blacklist requires higher security and response speed is not critical, 
+        // so it should be controlled by Parliament.
+        AssertSenderAddressWith(GetDefaultParliamentController().OwnerAddress);
+        Assert(input != null && !input.Value.IsNullOrEmpty(), "Invalid address.");
+        State.TransferBlackList[input] = false;
+        return new Empty();
+    }
+
+    public override Empty BatchRemoveFromTransferBlackList(BatchRemoveFromTransferBlackListInput input)
+    {
+        // Removing from transfer blacklist requires higher security and response speed is not critical, 
+        // so it should be controlled by Parliament.
+        AssertSenderAddressWith(GetDefaultParliamentController().OwnerAddress);
+        Assert(input != null && input.Addresses != null && input.Addresses.Count > 0, "Invalid input.");
+        
+        // Validate all addresses first
+        foreach (var address in input.Addresses)
+        {
+            Assert(address != null && !address.Value.IsNullOrEmpty(), "Invalid address.");
+        }
+        
+        // Remove duplicates and remove from blacklist
+        var uniqueAddresses = input.Addresses.Distinct().ToList();
+        foreach (var address in uniqueAddresses)
+        {
+            State.TransferBlackList[address] = false;
+        }
+        
+        return new Empty();
     }
 }

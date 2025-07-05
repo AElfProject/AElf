@@ -38,6 +38,7 @@ public partial class TokenContractState : ContractState
     public SingletonState<DeveloperFeeController> DeveloperFeeController { get; set; }
     public SingletonState<AuthorityInfo> SymbolToPayTxFeeController { get; set; }
     public SingletonState<AuthorityInfo> SideChainRentalController { get; set; }
+    public SingletonState<AuthorityInfo> TransferBlackListController { get; set; }
 
     /// <summary>
     ///     symbol -> address -> is in white list.
@@ -76,4 +77,6 @@ public partial class TokenContractState : ContractState
 
     // Alias -> Actual Symbol
     public MappedState<string, string> SymbolAliasMap { get; set; }
+
+    public MappedState<Address, bool> TransferBlackList { get; set; }
 }
