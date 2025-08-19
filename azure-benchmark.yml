@@ -1,0 +1,37 @@
+jobs:
+- job: build_all_linux
+  displayName: Build all tasks (Linux)
+  timeoutInMinutes: 120
+  pool:
+    vmImage: ubuntu-latest
+  steps:
+  - task: UseDotNet@2
+    displayName: 'Install .NET Core SDK'
+    inputs:
+      version: 3.1.102
+  - script: bash scripts/install_protobuf.sh
+  - script: bash scripts/download_binary.sh
+  - script: bash build.sh --target=Build --configuration=Release
+    displayName: 'Build'
+  - script: bash build.sh --target=benchmark --benchmarktest=BlockchainStateMergingTests
+    displayName: 'BlockchainStateMergingTests'
+  - script: bash build.sh --target=benchmark --benchmarktest=BlockExecutingParalleGroupslTests
+    displayName: 'BlockExecutingParalleGroupslTests'
+  - script: bash build.sh --target=benchmark --benchmarktest=BlockExecutingParallelTests
+    displayName: 'BlockExecutingParallelTests'
+  - script: bash build.sh --target=benchmark --benchmarktest=BlockExecutingTests
+    displayName: 'BlockExecutingTests'
+  - script: bash build.sh --target=benchmark --benchmarktest=Fibonacci16Tests
+    displayName: 'Fibonacci16Tests'
+  - script: bash build.sh --target=benchmark --benchmarktest=LoopDivAdd10MTests
+    displayName: 'LoopDivAdd10MTests'
+  - script: bash build.sh --target=benchmark --benchmarktest=MinerTests
+    displayName: 'MinerTests'
+  - script: bash build.sh --target=benchmark --benchmarktest=MiningTxHubBenchmark
+    displayName: 'MiningTxHubBenchmark'
+  - script: bash build.sh --target=benchmark --benchmarktest=TransactionVerifySignatureTests
+    displayName: 'TransactionVerifySignatureTests'
+  - script: bash build.sh --target=benchmark --benchmarktest=TxHubHandleBestChainFoundTests
+    displayName: 'TxHubHandleBestChainFoundTests'
+  - script: bash build.sh --target=benchmark --benchmarktest=TxHubTransactionsReceiveTests
+    displayName: 'TxHubTransactionsReceiveTests'
