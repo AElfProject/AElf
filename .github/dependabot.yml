@@ -1,0 +1,62 @@
+version: 2
+updates:
+- package-ecosystem: nuget
+  directory: "/"
+  schedule:
+    interval: daily
+    timezone: Asia/Shanghai
+  open-pull-requests-limit: 10
+  ignore:
+  - dependency-name: ChakraCore.NET
+    versions:
+    - "> 1.3.2"
+  - dependency-name: Volo.Abp.BackgroundWorkers
+    versions:
+    - 4.2.0
+    - 4.2.1
+    - 4.2.2
+  - dependency-name: Volo.Abp.Autofac
+    versions:
+    - 4.2.0
+    - 4.2.1
+    - 4.2.2
+  - dependency-name: Volo.Abp.Core
+    versions:
+    - 4.2.0
+    - 4.2.1
+    - 4.2.2
+  - dependency-name: Volo.Abp.Data
+    versions:
+    - 4.2.0
+    - 4.2.1
+    - 4.2.2
+  - dependency-name: Volo.Abp.AspNetCore
+    versions:
+    - 4.2.0
+    - 4.2.1
+    - 4.2.2
+  - dependency-name: Volo.Abp.EventBus
+    versions:
+    - 4.2.0
+    - 4.2.1
+    - 4.2.2
+  - dependency-name: Volo.Abp.TestBase
+    versions:
+    - 4.2.0
+    - 4.2.1
+    - 4.2.2
+  - dependency-name: Volo.Abp.AutoMapper
+    versions:
+    - 4.2.0
+    - 4.2.1
+    - 4.2.2
+  - dependency-name: Volo.Abp.AspNetCore.TestBase
+    versions:
+    - 4.2.0
+    - 4.2.1
+    - 4.2.2
+  - dependency-name: Volo.Abp.AspNetCore.Mvc
+    versions:
+    - 4.2.0
+    - 4.2.1
+    - 4.2.2
