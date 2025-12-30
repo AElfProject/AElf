@@ -54,8 +54,69 @@ public partial class TokenHolderTests : TokenHolderContractTestBase
 
         {
             var tokenHolderProfitScheme = await TokenHolderContractStub.GetScheme.CallAsync(Starter);
-            tokenHolderProfitScheme.SchemeId.ShouldNotBeNull();
+            var schemeId = tokenHolderProfitScheme.SchemeId;
+            schemeId.ShouldNotBeNull();
+            
+            var result = await TokenHolderContractStub.CreateScheme.SendWithExceptionAsync(new CreateTokenHolderProfitSchemeInput
+            {
+                Symbol = "AUG"
+            });
+            
+            result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            result.TransactionResult.Error.ShouldContain("Token holder profit scheme already exists");
         }
+    }
+
+    [Fact]
+    public async Task AddBeneficiaryWithWrongManagerTest()
+    {
+        var symbol = "AUG";
+        var totalSupply = 10000000;
+        var transferAmount = 1000;
+        await StarterCreateIssueAndApproveTokenAsync(symbol, totalSupply, totalSupply);
+        await TokenHolderContractStub.CreateScheme.SendAsync(new CreateTokenHolderProfitSchemeInput
+        {
+            Symbol = symbol
+        });
+
+        await TokenContractStub.Transfer.SendAsync(new TransferInput
+        {
+            To = Other,
+            Amount = transferAmount,
+            Symbol = symbol
+        });
+        
+        await OtherTokenHolderContractStub.RegisterForProfits.SendAsync(new RegisterForProfitsInput
+        {
+            SchemeManager = Starter,
+            Amount = 10
+        });
+        
+        var tokenHolderProfitScheme = await TokenHolderContractStub.GetScheme.CallAsync(Other);
+        tokenHolderProfitScheme.SchemeId.ShouldBeNull();
+        tokenHolderProfitScheme.Symbol.ShouldBeEmpty();
+        
+        tokenHolderProfitScheme = await TokenHolderContractStub.GetScheme.CallAsync(Starter);
+        
+        var scheme = await ProfitContractStub.GetScheme.CallAsync(tokenHolderProfitScheme.SchemeId);
+        scheme.TotalShares.ShouldBe(10);
+
+        var result = await OtherTokenHolderContractStub.AddBeneficiary.SendWithExceptionAsync(new AddTokenHolderBeneficiaryInput
+        {
+            Beneficiary = Other,
+            Shares = 100
+        });
+        result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+        result.TransactionResult.Error.ShouldContain("Token holder profit scheme not found");
+        
+        await TokenHolderContractStub.AddBeneficiary.SendAsync(new AddTokenHolderBeneficiaryInput
+        {
+            Beneficiary = Other,
+            Shares = 100
+        });
+        
+        scheme = await ProfitContractStub.GetScheme.CallAsync(tokenHolderProfitScheme.SchemeId);
+        scheme.TotalShares.ShouldBe(110);
     }
 
     [Fact]
@@ -130,7 +191,7 @@ public partial class TokenHolderTests : TokenHolderContractTestBase
 
         {
             var originScheme = await ProfitContractStub.GetScheme.CallAsync(tokenHolderProfitScheme.SchemeId);
-            originScheme.TotalShares.ShouldBe(newShare);
+            originScheme.TotalShares.ShouldBe(newShare + 1);
         }
     }
 
