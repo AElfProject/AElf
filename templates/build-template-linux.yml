@@ -18,6 +18,27 @@ jobs:
   variables:
     CI_TEST: true
   steps:
+    - script: |
+        echo "=== Disk space before cleanup ==="
+        df -h /
+        # Remove unnecessary pre-installed software to free disk space
+        sudo rm -rf /usr/share/dotnet/shared/Microsoft.AspNetCore.App/6.* || true
+        sudo rm -rf /usr/share/dotnet/shared/Microsoft.AspNetCore.App/7.* || true
+        sudo rm -rf /usr/share/dotnet/shared/Microsoft.NETCore.App/6.* || true
+        sudo rm -rf /usr/share/dotnet/shared/Microsoft.NETCore.App/7.* || true
+        sudo rm -rf /usr/local/lib/android || true
+        sudo rm -rf /opt/ghc || true
+        sudo rm -rf /usr/share/swift || true
+        sudo rm -rf /usr/local/share/powershell || true
+        sudo rm -rf /usr/local/share/chromium || true
+        sudo rm -rf /usr/local/.ghcup || true
+        # Clean apt cache
+        sudo apt-get clean || true
+        # Clean Docker images
+        docker system prune -af || true
+        echo "=== Disk space after cleanup ==="
+        df -h /
+      displayName: 'Free disk space'
     - task: UseDotNet@2
       displayName: 'Install .NET Core SDK'
       inputs:
