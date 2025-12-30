@@ -22,26 +22,23 @@ namespace AElf.Runtime.CSharp;
 public class Executive : IExecutive
 {
     /// <summary>
-    /// Safely converts an exception to string, handling cases where ToString() might fail
-    /// (e.g., during StackOverflowException when getting StackTrace causes another overflow)
+    /// Safely converts an exception to string without accessing StackTrace.
+    /// IMPORTANT: Do NOT call ex.ToString() as it accesses StackTrace property,
+    /// which can trigger StackOverflowException when the stack is nearly exhausted.
+    /// StackOverflowException cannot be caught by try-catch in .NET.
     /// </summary>
     private static string SafeExceptionToString(Exception ex)
     {
+        // Keep this method as simple as possible to minimize stack usage
+        // when the stack is nearly exhausted
         try
         {
-            return ex.ToString();
+            // Only use GetType() and Message - these don't access StackTrace
+            return string.Concat(ex.GetType().FullName, ": ", ex.Message);
         }
         catch
         {
-            // Fallback to simple message if ToString() fails (e.g., during stack overflow)
-            try
-            {
-                return $"{ex.GetType().Name}: {ex.Message}";
-            }
-            catch
-            {
-                return "Exception occurred (unable to retrieve details)";
-            }
+            return "Exception occurred";
         }
     }
 
