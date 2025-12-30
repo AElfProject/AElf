@@ -21,6 +21,30 @@ namespace AElf.Runtime.CSharp;
 
 public class Executive : IExecutive
 {
+    /// <summary>
+    /// Safely converts an exception to string, handling cases where ToString() might fail
+    /// (e.g., during StackOverflowException when getting StackTrace causes another overflow)
+    /// </summary>
+    private static string SafeExceptionToString(Exception ex)
+    {
+        try
+        {
+            return ex.ToString();
+        }
+        catch
+        {
+            // Fallback to simple message if ToString() fails (e.g., during stack overflow)
+            try
+            {
+                return $"{ex.GetType().Name}: {ex.Message}";
+            }
+            catch
+            {
+                return "Exception occurred (unable to retrieve details)";
+            }
+        }
+    }
+
     private readonly ReadOnlyDictionary<string, IServerCallHandler> _callHandlers;
     private readonly object _contractInstance;
     private readonly ServerServiceDefinition _serverServiceDefinition;
@@ -148,7 +172,7 @@ public class Executive : IExecutive
         catch (Exception ex)
         {
             CurrentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.SystemError;
-            CurrentTransactionContext.Trace.Error += ex + "\n";
+            CurrentTransactionContext.Trace.Error += SafeExceptionToString(ex) + "\n";
         }
         finally
         {
@@ -185,7 +209,7 @@ public class Executive : IExecutive
         catch (Exception ex)
         {
             CurrentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ContractError;
-            CurrentTransactionContext.Trace.Error += ex + "\n";
+            CurrentTransactionContext.Trace.Error += SafeExceptionToString(ex) + "\n";
         }
     }
 

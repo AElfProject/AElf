@@ -23,17 +23,28 @@ jobs:
         df -h /
         # Remove unnecessary pre-installed software to free disk space
         sudo rm -rf /usr/share/dotnet/shared/Microsoft.AspNetCore.App/6.* || true
+        df -h /
         sudo rm -rf /usr/share/dotnet/shared/Microsoft.AspNetCore.App/7.* || true
+        df -h /
         sudo rm -rf /usr/share/dotnet/shared/Microsoft.NETCore.App/6.* || true
+        df -h /
         sudo rm -rf /usr/share/dotnet/shared/Microsoft.NETCore.App/7.* || true
+        df -h /
         sudo rm -rf /usr/local/lib/android || true
+        df -h /
         sudo rm -rf /opt/ghc || true
+        df -h /
         sudo rm -rf /usr/share/swift || true
+        df -h /
         sudo rm -rf /usr/local/share/powershell || true
+        df -h /
         sudo rm -rf /usr/local/share/chromium || true
+        df -h /
         sudo rm -rf /usr/local/.ghcup || true
+        df -h /
         # Clean apt cache
         sudo apt-get clean || true
+        df -h /
         # Clean Docker images
         docker system prune -af || true
         echo "=== Disk space after cleanup ==="
