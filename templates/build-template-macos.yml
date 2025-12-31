@@ -24,9 +24,7 @@ jobs:
         version: 8.0.303
     - script: bash scripts/install_protobuf.sh
     - script: bash scripts/download_binary.sh
-    - script: |
-        ulimit -s 8192
-        bash build.sh --target=Test-with-Codecov-N --parts=${{ parameters.parts }} --number=${{ parameters.n }} --codecoverage=${{ parameters.codecoverage }}
+    - script: bash build.sh --target=Test-with-Codecov-N --parts=${{ parameters.parts }} --number=${{ parameters.n }} --codecoverage=${{ parameters.codecoverage }}
       displayName: 'Build and Test'
     - task: PublishTestResults@2
       condition: always()
