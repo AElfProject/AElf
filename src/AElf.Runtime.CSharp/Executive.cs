@@ -21,27 +21,6 @@ namespace AElf.Runtime.CSharp;
 
 public class Executive : IExecutive
 {
-    /// <summary>
-    /// Safely converts an exception to string without accessing StackTrace.
-    /// IMPORTANT: Do NOT call ex.ToString() as it accesses StackTrace property,
-    /// which can trigger StackOverflowException when the stack is nearly exhausted.
-    /// StackOverflowException cannot be caught by try-catch in .NET.
-    /// </summary>
-    private static string SafeExceptionToString(Exception ex)
-    {
-        // Keep this method as simple as possible to minimize stack usage
-        // when the stack is nearly exhausted
-        try
-        {
-            // Only use GetType() and Message - these don't access StackTrace
-            return string.Concat(ex.GetType().FullName, ": ", ex.Message);
-        }
-        catch
-        {
-            return "Exception occurred";
-        }
-    }
-
     private readonly ReadOnlyDictionary<string, IServerCallHandler> _callHandlers;
     private readonly object _contractInstance;
     private readonly ServerServiceDefinition _serverServiceDefinition;
@@ -169,7 +148,7 @@ public class Executive : IExecutive
         catch (Exception ex)
         {
             CurrentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.SystemError;
-            CurrentTransactionContext.Trace.Error += SafeExceptionToString(ex) + "\n";
+            CurrentTransactionContext.Trace.Error += ex + "\n";
         }
         finally
         {
@@ -206,7 +185,7 @@ public class Executive : IExecutive
         catch (Exception ex)
         {
             CurrentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ContractError;
-            CurrentTransactionContext.Trace.Error += SafeExceptionToString(ex) + "\n";
+            CurrentTransactionContext.Trace.Error += ex + "\n";
         }
     }
 

@@ -17,6 +17,8 @@ jobs:
     vmImage: macos-latest
   variables:
     CI_TEST: true
+    # set the default stack size to 1.5MB
+    DOTNET_DefaultStackSize: 1572864
   steps:
     - task: UseDotNet@2
       displayName: 'Install .NET Core SDK'
