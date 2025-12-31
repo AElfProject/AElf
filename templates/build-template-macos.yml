@@ -25,7 +25,7 @@ jobs:
     - script: bash scripts/install_protobuf.sh
     - script: bash scripts/download_binary.sh
     - script: |
-        export DOTNET_DefaultStackSize=1572864
+        ulimit -s 8192
         bash build.sh --target=Test-with-Codecov-N --parts=${{ parameters.parts }} --number=${{ parameters.n }} --codecoverage=${{ parameters.codecoverage }}
       displayName: 'Build and Test'
     - task: PublishTestResults@2
