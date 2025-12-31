@@ -17,8 +17,6 @@ jobs:
     vmImage: macos-latest
   variables:
     CI_TEST: true
-    # set the default stack size to 1.5MB
-    DOTNET_DefaultStackSize: 6291456
   steps:
     - task: UseDotNet@2
       displayName: 'Install .NET Core SDK'
@@ -26,7 +24,10 @@ jobs:
         version: 8.0.303
     - script: bash scripts/install_protobuf.sh
     - script: bash scripts/download_binary.sh
-    - script: bash build.sh --target=Test-with-Codecov-N --parts=${{ parameters.parts }} --number=${{ parameters.n }} --codecoverage=${{ parameters.codecoverage }}
+    - script: |
+        export DOTNET_DefaultStackSize=1572864
+        ulimit -s 65532
+        bash build.sh --target=Test-with-Codecov-N --parts=${{ parameters.parts }} --number=${{ parameters.n }} --codecoverage=${{ parameters.codecoverage }}
       displayName: 'Build and Test'
     - task: PublishTestResults@2
       condition: always()

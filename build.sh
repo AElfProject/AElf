@@ -27,6 +27,8 @@ export DOTNET_ROLL_FORWARD_ON_NO_CANDIDATE_FX=2
 
 DOTNET_INSTALLED_VERSION=$(dotnet --version 2>&1)
 
+echo "DOTNET_DefaultStackSize: $DOTNET_DefaultStackSize"
+
 if [ "$DOTNET_VERSION" != "$DOTNET_INSTALLED_VERSION" ]; then
     echo "Installing .NET CLI..."
     if [ ! -d "$SCRIPT_DIR/.dotnet" ]; then
