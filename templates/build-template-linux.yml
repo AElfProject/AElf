@@ -25,7 +25,7 @@ jobs:
         sudo rm -rf /usr/local/lib/android || true
         echo "=== Disk space after cleanup ==="
         df -h /
-        displayName: 'Free disk space'
+      displayName: 'Free disk space'
     - task: UseDotNet@2
       displayName: 'Install .NET Core SDK'
       inputs:
