@@ -18,6 +18,14 @@ jobs:
   variables:
     CI_TEST: true
   steps:
+    - script: |
+        echo "=== Disk space before cleanup ==="
+        df -h /
+        # Remove pre-installed android sdk to free disk space
+        sudo rm -rf /usr/local/lib/android || true
+        echo "=== Disk space after cleanup ==="
+        df -h /
+        displayName: 'Free disk space'
     - task: UseDotNet@2
       displayName: 'Install .NET Core SDK'
       inputs:
