@@ -1,10 +1,16 @@
 using System.Text;
 using System.Threading.Tasks;
 using AElf.Contracts.TestContract.BasicSecurity;
+using AElf.Kernel;
+using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.SmartContract;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Sdk.CSharp;
+using AElf.TestBase;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
 using Xunit;
 using SmartContractConstants = AElf.Kernel.SmartContract.SmartContractConstants;
@@ -385,7 +391,7 @@ public class PatchedContractSecurityTests : TestContractTestBase
         }
     }
 
-    [Fact]
+    [IgnoreOnCIFact]
     public async Task TestBranchCount()
     {
         {
@@ -434,7 +440,7 @@ public class PatchedContractSecurityTests : TestContractTestBase
         }
     }
 
-    [Fact]
+    [IgnoreOnCIFact]
     public async Task TestMethodCallCount()
     {
         {
@@ -450,6 +456,132 @@ public class PatchedContractSecurityTests : TestContractTestBase
                 { Int32Value = 14900 });
             var txResult = await TestBasicSecurityContractStub.TestInfiniteRecursiveCall.SendWithExceptionAsync(
                 new Int32Input { Int32Value = 15000 });
+            txResult.TransactionResult.Error.ShouldContain(nameof(RuntimeCallThresholdExceededException));
+        }
+    }
+    
+    [Fact]
+    public async Task TestBranchCountWithReducedThreshold()
+    {
+        // Get required services
+        var blockchainService = Application.ServiceProvider.GetRequiredService<IBlockchainService>();
+        var executionObserverThresholdProvider =
+            Application.ServiceProvider.GetRequiredService<IExecutionObserverThresholdProvider>();
+
+        // Get current best chain block
+        var bestChainBlock = await blockchainService.GetBestChainLastBlockHeaderAsync();
+        var blockIndex = new BlockIndex
+        {
+            BlockHash = bestChainBlock.GetHash(),
+            BlockHeight = bestChainBlock.Height
+        };
+
+        // Set reduced threshold to 5000
+        const int reducedThreshold = 5000;
+        var newThreshold = new ExecutionObserverThreshold
+        {
+            ExecutionBranchThreshold = reducedThreshold,
+            ExecutionCallThreshold = reducedThreshold
+        };
+        await executionObserverThresholdProvider.SetExecutionObserverThresholdAsync(blockIndex, newThreshold);
+
+        // Verify threshold was set correctly
+        var currentThreshold = executionObserverThresholdProvider.GetExecutionObserverThreshold(blockIndex);
+        currentThreshold.ExecutionBranchThreshold.ShouldBe(reducedThreshold);
+        currentThreshold.ExecutionCallThreshold.ShouldBe(reducedThreshold);
+
+        {
+            await TestBasicSecurityContractStub.TestWhileInfiniteLoop.SendAsync(new Int32Input
+                { Int32Value = reducedThreshold -1 });
+            var txResult = await TestBasicSecurityContractStub.TestWhileInfiniteLoop.SendWithExceptionAsync(
+                new Int32Input
+                    { Int32Value = reducedThreshold });
+            txResult.TransactionResult.Error.ShouldContain(nameof(RuntimeBranchThresholdExceededException));
+        }
+
+        {
+            await TestBasicSecurityContractStub.TestForInfiniteLoop.SendAsync(new Int32Input { Int32Value = reducedThreshold - 1 });
+            var txResult = await TestBasicSecurityContractStub.TestForInfiniteLoop.SendWithExceptionAsync(
+                new Int32Input
+                    { Int32Value = reducedThreshold });
+            txResult.TransactionResult.Error.ShouldContain(nameof(RuntimeBranchThresholdExceededException));
+        }
+
+        {
+            await TestBasicSecurityContractStub.TestForInfiniteLoopInSeparateClass.SendAsync(new Int32Input
+                { Int32Value = reducedThreshold - 1 });
+            var txResult = await TestBasicSecurityContractStub.TestForInfiniteLoop.SendWithExceptionAsync(
+                new Int32Input
+                    { Int32Value = reducedThreshold });
+            txResult.TransactionResult.Error.ShouldContain(nameof(RuntimeBranchThresholdExceededException));
+        }
+
+        {
+            await TestBasicSecurityContractStub.TestWhileInfiniteLoopWithState.SendAsync(new Int32Input
+                { Int32Value = reducedThreshold - 1 });
+            var txResult =
+                await TestBasicSecurityContractStub.TestWhileInfiniteLoopWithState.SendWithExceptionAsync(
+                    new Int32Input
+                        { Int32Value = reducedThreshold });
+            txResult.TransactionResult.Error.ShouldContain(nameof(RuntimeBranchThresholdExceededException));
+        }
+
+        {
+            await TestBasicSecurityContractStub.TestForeachInfiniteLoop.SendAsync(new ListInput
+                { List = { new int[reducedThreshold - 1] } });
+            var txResult =
+                await TestBasicSecurityContractStub.TestForeachInfiniteLoop.SendWithExceptionAsync(
+                    new ListInput { List = { new int[reducedThreshold] } });
+            txResult.TransactionResult.Error.ShouldContain(nameof(RuntimeBranchThresholdExceededException));
+        }
+    }
+
+    [Fact]
+    public async Task TestMethodCallCountWithReducedThreshold()
+    {
+        // Get required services
+        var blockchainService = Application.ServiceProvider.GetRequiredService<IBlockchainService>();
+        var executionObserverThresholdProvider =
+            Application.ServiceProvider.GetRequiredService<IExecutionObserverThresholdProvider>();
+
+        // Get current best chain block
+        var bestChainBlock = await blockchainService.GetBestChainLastBlockHeaderAsync();
+        var blockIndex = new BlockIndex
+        {
+            BlockHash = bestChainBlock.GetHash(),
+            BlockHeight = bestChainBlock.Height
+        };
+
+        // Set reduced threshold to 5000
+        const int reducedThreshold = 5000;
+        var newThreshold = new ExecutionObserverThreshold
+        {
+            ExecutionBranchThreshold = reducedThreshold,
+            ExecutionCallThreshold = reducedThreshold
+        };
+        await executionObserverThresholdProvider.SetExecutionObserverThresholdAsync(blockIndex, newThreshold);
+
+        // Verify threshold was set correctly
+        var currentThreshold = executionObserverThresholdProvider.GetExecutionObserverThreshold(blockIndex);
+        currentThreshold.ExecutionBranchThreshold.ShouldBe(reducedThreshold);
+        currentThreshold.ExecutionCallThreshold.ShouldBe(reducedThreshold);
+
+        // Test recursive call with reduced threshold
+        {
+            await TestBasicSecurityContractStub.TestInfiniteRecursiveCall.SendAsync(new Int32Input
+                { Int32Value = reducedThreshold - 100 });
+            var txResult = await TestBasicSecurityContractStub.TestInfiniteRecursiveCall.SendWithExceptionAsync(
+                new Int32Input { Int32Value = reducedThreshold });
+            txResult.TransactionResult.Error.ShouldContain(nameof(RuntimeCallThresholdExceededException));
+        }
+
+        // Test recursive call in separate class with reduced threshold
+        {
+            await TestBasicSecurityContractStub.TestInfiniteRecursiveCallInSeparateClass.SendAsync(new Int32Input
+                { Int32Value = reducedThreshold - 100 });
+            var txResult =
+                await TestBasicSecurityContractStub.TestInfiniteRecursiveCallInSeparateClass.SendWithExceptionAsync(
+                    new Int32Input { Int32Value = reducedThreshold });
             txResult.TransactionResult.Error.ShouldContain(nameof(RuntimeCallThresholdExceededException));
         }
     }

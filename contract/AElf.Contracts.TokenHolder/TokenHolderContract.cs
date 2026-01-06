@@ -13,6 +13,8 @@ public partial class TokenHolderContract : TokenHolderContractImplContainer.Toke
 {
     public override Empty CreateScheme(CreateTokenHolderProfitSchemeInput input)
     {
+        Assert(State.TokenHolderProfitSchemes[Context.Sender] == null, "Token holder profit scheme already exists.");
+        
         if (State.ProfitContract.Value == null)
             State.ProfitContract.Value =
                 Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName);
@@ -52,7 +54,7 @@ public partial class TokenHolderContract : TokenHolderContractImplContainer.Toke
                 SchemeId = scheme.SchemeId,
                 Beneficiary = input.Beneficiary
             });
-            shares.Add(detail.Details.Single().Shares);
+            shares = shares.Add(detail.Details.Single().Shares);
         }
 
         State.ProfitContract.AddBeneficiary.Send(new AddBeneficiaryInput
@@ -295,6 +297,6 @@ public partial class TokenHolderContract : TokenHolderContractImplContainer.Toke
         var originScheme = State.ProfitContract.GetScheme.Call(originSchemeId);
         scheme.SchemeId = originScheme.SchemeId;
         scheme.Period = originScheme.CurrentPeriod;
-        State.TokenHolderProfitSchemes[Context.Sender] = scheme;
+        State.TokenHolderProfitSchemes[manager] = scheme;
     }
 }

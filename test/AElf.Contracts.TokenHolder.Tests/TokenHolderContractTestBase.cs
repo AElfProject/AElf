@@ -35,6 +35,9 @@ public class TokenHolderContractTestBase : ContractTestBase<TokenHolderContractT
     protected Address Receiver => Accounts[1].Address;
 
     protected List<ECKeyPair> UserKeyPairs => Accounts.Skip(2).Take(3).Select(a => a.KeyPair).ToList();
+    
+    protected ECKeyPair OtherKeyPair => Accounts[2].KeyPair;
+    protected Address Other => Accounts[2].Address;
 
     protected List<Address> UserAddresses =>
         UserKeyPairs.Select(k => Address.FromPublicKey(k.PublicKey)).ToList();
@@ -58,6 +61,8 @@ public class TokenHolderContractTestBase : ContractTestBase<TokenHolderContractT
     internal ParliamentContractImplContainer.ParliamentContractImplStub ParliamentContractStub { get; set; }
 
     internal TokenHolderContractImplContainer.TokenHolderContractImplStub TokenHolderContractStub { get; set; }
+    
+    internal TokenHolderContractImplContainer.TokenHolderContractImplStub OtherTokenHolderContractStub { get; set; }
 
     internal DAppContainer.DAppStub DAppContractStub { get; set; }
 
@@ -90,6 +95,8 @@ public class TokenHolderContractTestBase : ContractTestBase<TokenHolderContractT
                         new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList()
                 })).Output;
         TokenHolderContractStub = GetTokenHolderContractTester(StarterKeyPair);
+        
+        OtherTokenHolderContractStub = GetTokenHolderContractTester(OtherKeyPair);
 
         //deploy parliament auth contract
         ParliamentContractAddress = AsyncHelper.RunSync(() => GetContractZeroTester(StarterKeyPair)
