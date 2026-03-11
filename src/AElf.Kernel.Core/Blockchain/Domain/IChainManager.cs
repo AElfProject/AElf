@@ -23,6 +23,7 @@ public interface IChainManager
     Task<ChainBlockLink> GetChainBlockLinkAsync(Hash blockHash);
     List<ChainBlockLink> GetCachedChainBlockLinks();
     Task RemoveChainBlockLinkAsync(Hash blockHash);
+    Task RemoveChainBlockLinksAsync(IList<Hash> blockHashes);
     void CleanCachedChainBlockLinks(long height);
     Task<ChainBlockIndex> GetChainBlockIndexAsync(long blockHeight);
     Task<BlockAttachOperationStatus> AttachBlockToChainAsync(Chain chain, ChainBlockLink chainBlockLink);
@@ -140,6 +141,17 @@ public class ChainManager : IChainManager, ISingletonDependency
         await _chainBlockLinks.RemoveAsync(ChainId.ToStorageKey() + KernelConstants.StorageKeySeparator +
                                            blockHash.ToStorageKey());
         _chainBlockLinkCacheProvider.RemoveChainBlockLink(blockHash);
+    }
+
+    public async Task RemoveChainBlockLinksAsync(IList<Hash> blockHashes)
+    {
+        var prefix = ChainId.ToStorageKey() + KernelConstants.StorageKeySeparator;
+        await _chainBlockLinks.RemoveAllAsync(blockHashes.Select(h => prefix + h.ToStorageKey()).ToList());
+
+        foreach (var blockHash in blockHashes)
+        {
+            _chainBlockLinkCacheProvider.RemoveChainBlockLink(blockHash);
+        }
     }
 
     public void CleanCachedChainBlockLinks(long height)

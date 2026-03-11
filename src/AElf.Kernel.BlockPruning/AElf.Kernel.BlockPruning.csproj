@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <LangVersion>latest</LangVersion>
+        <PackageId>AElf.Kernel.BlockPruning</PackageId>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Description>Blockchain historical data pruning module.</Description>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\AElf.Kernel.Core\AElf.Kernel.Core.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <CommonMessage Include="..\..\protobuf\block_pruning.proto">
+            <Link>Protobuf\Proto\block_pruning.proto</Link>
+        </CommonMessage>
+    </ItemGroup>
+</Project>

@@ -385,6 +385,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.FeatureDisable.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.FeatureDisable.Core", "src\AElf.Kernel.FeatureDisable.Core\AElf.Kernel.FeatureDisable.Core.csproj", "{659A7C7A-44C9-424E-B4F6-D1D3656F7AD4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.BlockPruning", "src\AElf.Kernel.BlockPruning\AElf.Kernel.BlockPruning.csproj", "{651281CD-F268-49FC-9305-B19EE65552F7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.BlockPruning.Tests", "test\AElf.Kernel.BlockPruning.Tests\AElf.Kernel.BlockPruning.Tests.csproj", "{147343C3-BFDF-4C20-A990-975BB82CB73B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -1107,6 +1111,14 @@ Global
 		{659A7C7A-44C9-424E-B4F6-D1D3656F7AD4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{659A7C7A-44C9-424E-B4F6-D1D3656F7AD4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{659A7C7A-44C9-424E-B4F6-D1D3656F7AD4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{651281CD-F268-49FC-9305-B19EE65552F7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{651281CD-F268-49FC-9305-B19EE65552F7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{651281CD-F268-49FC-9305-B19EE65552F7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{651281CD-F268-49FC-9305-B19EE65552F7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{147343C3-BFDF-4C20-A990-975BB82CB73B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{147343C3-BFDF-4C20-A990-975BB82CB73B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{147343C3-BFDF-4C20-A990-975BB82CB73B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{147343C3-BFDF-4C20-A990-975BB82CB73B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1301,5 +1313,7 @@ Global
 		{A4ACE6D2-4CF8-4B52-93C9-BB8BEC0C098E} = {90B310B4-C2DB-419E-B5EE-97FA096B62CC}
 		{8C0D86A4-D1A7-4B61-AC44-755F5AC75D67} = {4E54480A-D155-43ED-9736-1A5BE7957211}
 		{659A7C7A-44C9-424E-B4F6-D1D3656F7AD4} = {90B310B4-C2DB-419E-B5EE-97FA096B62CC}
+		{651281CD-F268-49FC-9305-B19EE65552F7} = {90B310B4-C2DB-419E-B5EE-97FA096B62CC}
+		{147343C3-BFDF-4C20-A990-975BB82CB73B} = {4E54480A-D155-43ED-9736-1A5BE7957211}
 	EndGlobalSection
 EndGlobal

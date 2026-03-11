@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Kernel.Infrastructure;
 
@@ -11,6 +13,7 @@ public interface IBlockManager
     Task<Block> GetBlockAsync(Hash blockHash);
     Task<BlockHeader> GetBlockHeaderAsync(Hash blockHash);
     Task RemoveBlockAsync(Hash blockHash);
+    Task RemoveBlocksAsync(IList<Hash> blockHashes);
     Task<bool> HasBlockAsync(Hash blockHash);
 }
 
@@ -69,6 +72,13 @@ public class BlockManager : IBlockManager
         var blockKey = blockHash.ToStorageKey();
         await _blockHeaderStore.RemoveAsync(blockKey);
         await _blockBodyStore.RemoveAsync(blockKey);
+    }
+
+    public async Task RemoveBlocksAsync(IList<Hash> blockHashes)
+    {
+        var blockKeys = blockHashes.Select(h => h.ToStorageKey()).ToList();
+        await _blockHeaderStore.RemoveAllAsync(blockKeys);
+        await _blockBodyStore.RemoveAllAsync(blockKeys);
     }
 
     public async Task<bool> HasBlockAsync(Hash blockHash)

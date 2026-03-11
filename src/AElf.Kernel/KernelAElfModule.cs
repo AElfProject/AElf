@@ -1,4 +1,5 @@
 using AElf.Kernel.ChainController;
+using AElf.Kernel.BlockPruning;
 using AElf.Kernel.Configuration;
 using AElf.Kernel.FeatureDisable;
 using AElf.Kernel.Miner;
@@ -23,7 +24,8 @@ namespace AElf.Kernel;
     typeof(SmartContractExecutionAElfModule),
     typeof(TransactionPoolAElfModule),
     typeof(ConfigurationAElfModule),
-    typeof(ProposalAElfModule))
+    typeof(ProposalAElfModule),
+    typeof(BlockPruningAElfModule))
 ]
 public class KernelAElfModule : AElfModule
 {

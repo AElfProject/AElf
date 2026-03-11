@@ -1130,4 +1130,115 @@ public sealed class ChainManagerTests : AElfKernelTestBase
 
         (await _chainManager.GetChainBlockLinkAsync(_blocks[1])).ShouldBe(chainBlockLink);
     }
+
+    [Fact]
+    public async Task RemoveChainBlockLinksAsync_BatchDelete_Test()
+    {
+        var chain = await _chainManager.CreateAsync(_genesis);
+
+        var linkA = new ChainBlockLink
+        {
+            Height = 1.BlockHeight(), BlockHash = _blocks[1], PreviousBlockHash = _genesis
+        };
+        var linkB = new ChainBlockLink
+        {
+            Height = 2.BlockHeight(), BlockHash = _blocks[2], PreviousBlockHash = _blocks[1]
+        };
+        var linkC = new ChainBlockLink
+        {
+            Height = 3.BlockHeight(), BlockHash = _blocks[3], PreviousBlockHash = _blocks[2]
+        };
+
+        await _chainManager.AttachBlockToChainAsync(chain, linkA);
+        await _chainManager.AttachBlockToChainAsync(chain, linkB);
+        await _chainManager.AttachBlockToChainAsync(chain, linkC);
+
+        (await _chainManager.GetChainBlockLinkAsync(_blocks[1])).ShouldNotBeNull();
+        (await _chainManager.GetChainBlockLinkAsync(_blocks[2])).ShouldNotBeNull();
+        (await _chainManager.GetChainBlockLinkAsync(_blocks[3])).ShouldNotBeNull();
+
+        await _chainManager.RemoveChainBlockLinksAsync(new List<Hash> { _blocks[1], _blocks[2], _blocks[3] });
+
+        (await _chainManager.GetChainBlockLinkAsync(_blocks[1])).ShouldBeNull();
+        (await _chainManager.GetChainBlockLinkAsync(_blocks[2])).ShouldBeNull();
+        (await _chainManager.GetChainBlockLinkAsync(_blocks[3])).ShouldBeNull();
+    }
+
+    [Fact]
+    public async Task RemoveChainBlockLinksAsync_PartialDelete_Test()
+    {
+        var chain = await _chainManager.CreateAsync(_genesis);
+
+        await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink
+        {
+            Height = 1.BlockHeight(), BlockHash = _blocks[1], PreviousBlockHash = _genesis
+        });
+        await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink
+        {
+            Height = 2.BlockHeight(), BlockHash = _blocks[2], PreviousBlockHash = _blocks[1]
+        });
+        await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink
+        {
+            Height = 3.BlockHeight(), BlockHash = _blocks[3], PreviousBlockHash = _blocks[2]
+        });
+
+        await _chainManager.RemoveChainBlockLinksAsync(new List<Hash> { _blocks[1], _blocks[2] });
+
+        (await _chainManager.GetChainBlockLinkAsync(_blocks[1])).ShouldBeNull();
+        (await _chainManager.GetChainBlockLinkAsync(_blocks[2])).ShouldBeNull();
+        (await _chainManager.GetChainBlockLinkAsync(_blocks[3])).ShouldNotBeNull();
+    }
+
+    [Fact]
+    public async Task RemoveChainBlockLinksAsync_EmptyList_Test()
+    {
+        await _chainManager.RemoveChainBlockLinksAsync(new List<Hash>());
+    }
+
+    [Fact]
+    public async Task RemoveChainBlockLinksAsync_NonExistent_Test()
+    {
+        await _chainManager.RemoveChainBlockLinksAsync(new List<Hash> { HashHelper.ComputeFrom("fake") });
+    }
+
+    [Fact]
+    public async Task RemoveChainBlockLinksAsync_Mixed_Test()
+    {
+        var chain = await _chainManager.CreateAsync(_genesis);
+
+        await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink
+        {
+            Height = 1.BlockHeight(), BlockHash = _blocks[1], PreviousBlockHash = _genesis
+        });
+
+        var fakeHash = HashHelper.ComputeFrom("fake");
+        await _chainManager.RemoveChainBlockLinksAsync(new List<Hash> { _blocks[1], fakeHash });
+
+        (await _chainManager.GetChainBlockLinkAsync(_blocks[1])).ShouldBeNull();
+    }
+
+    [Fact]
+    public async Task RemoveChainBlockLinksAsync_CacheConsistency_Test()
+    {
+        var chain = await _chainManager.CreateAsync(_genesis);
+
+        await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink
+        {
+            Height = 1.BlockHeight(), BlockHash = _blocks[1], PreviousBlockHash = _genesis
+        });
+        await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink
+        {
+            Height = 2.BlockHeight(), BlockHash = _blocks[2], PreviousBlockHash = _blocks[1]
+        });
+
+        _chainBlockLinkCacheProvider.GetChainBlockLink(_blocks[1]).ShouldNotBeNull();
+        _chainBlockLinkCacheProvider.GetChainBlockLink(_blocks[2]).ShouldNotBeNull();
+
+        await _chainManager.RemoveChainBlockLinksAsync(new List<Hash> { _blocks[1], _blocks[2] });
+
+        (await _chainManager.GetChainBlockLinkAsync(_blocks[1])).ShouldBeNull();
+        (await _chainManager.GetChainBlockLinkAsync(_blocks[2])).ShouldBeNull();
+        _chainBlockLinkCacheProvider.GetChainBlockLink(_blocks[1]).ShouldBeNull();
+        _chainBlockLinkCacheProvider.GetChainBlockLink(_blocks[2]).ShouldBeNull();
+    }
 }

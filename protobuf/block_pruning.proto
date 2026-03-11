@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+package aelf;
+
+option csharp_namespace = "AElf.Kernel.BlockPruning";
+
+message BlockPruningInfo {
+    int64 last_pruned_block_height = 1;
+}

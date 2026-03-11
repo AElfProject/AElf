@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using System;
 using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Kernel.Infrastructure;
 
@@ -9,6 +10,7 @@ public interface ITransactionResultManager
     Task AddTransactionResultAsync(TransactionResult transactionResult, Hash disambiguationHash);
 
     Task AddTransactionResultsAsync(IList<TransactionResult> transactionResults, Hash disambiguationHash);
+    Task RemoveTransactionResultsAsync(IList<Hash> txIds, IList<Hash> disambiguationHashes);
     Task<TransactionResult> GetTransactionResultAsync(Hash txId, Hash disambiguationHash);
     Task<List<TransactionResult>> GetTransactionResultsAsync(IList<Hash> txIds, Hash disambiguationHash);
     Task<bool> HasTransactionResultAsync(Hash transactionId, Hash disambiguationHash);
@@ -36,6 +38,16 @@ public class TransactionResultManager : ITransactionResultManager
         await _transactionResultStore.SetAllAsync(
             transactionResults.ToDictionary(
                 t => HashHelper.XorAndCompute(t.TransactionId, disambiguationHash).ToStorageKey(), t => t));
+    }
+
+    public async Task RemoveTransactionResultsAsync(IList<Hash> txIds, IList<Hash> disambiguationHashes)
+    {
+        if (txIds.Count != disambiguationHashes.Count)
+            throw new ArgumentException("txIds and disambiguationHashes count mismatch.");
+
+        var keys = txIds.Select((txId, i) => HashHelper.XorAndCompute(txId, disambiguationHashes[i]).ToStorageKey())
+            .ToList();
+        await _transactionResultStore.RemoveAllAsync(keys);
     }
 
     public async Task<TransactionResult> GetTransactionResultAsync(Hash txId, Hash disambiguationHash)
