@@ -101,25 +101,9 @@ public partial class TokenContract
         var allowance = State.Allowances[from][spender][sourceSymbol];
         if (allowance >= amount) return allowance;
         var tokenType = GetSymbolType(sourceSymbol);
-        if (tokenType == SymbolType.Token)
-        {
-            allowance = GetAllSymbolAllowance(from, spender, out allowanceSymbol);
-        }
-        else
-        {
-            allowance = GetNftCollectionAllSymbolAllowance(from, spender, sourceSymbol, out allowanceSymbol);
-            if (allowance >= amount) return allowance;
-            allowance = GetAllSymbolAllowance(from, spender, out allowanceSymbol);
-        }
-
+        if (tokenType == SymbolType.Token) return allowance;
+        allowance = GetNftCollectionAllSymbolAllowance(from, spender, sourceSymbol, out allowanceSymbol);
         return allowance;
-    }
-    
-
-    private long GetAllSymbolAllowance(Address from, Address spender, out string allowanceSymbol)
-    {
-        allowanceSymbol = GetAllSymbolIdentifier();
-        return State.Allowances[from][spender][allowanceSymbol];
     }
 
     private long GetNftCollectionAllSymbolAllowance(Address from, Address spender, string sourceSymbol,
