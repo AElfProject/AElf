@@ -5,7 +5,7 @@
 [![Nuget](https://img.shields.io/nuget/v/AElf.OS.svg)](https://www.nuget.org/packages?q=aelf)
 [![MyGet (with prereleases)](https://img.shields.io/myget/aelf-project/vpre/aelf.os.svg?label=myget)](https://www.myget.org/gallery/aelf-project)
 [![Twitter Follow](https://img.shields.io/twitter/follow/aelfblockchain.svg?label=%40aelfblockchain&style=social)](https://twitter.com/aelfblockchain)
-[![Telegram](https://badgen.net/badge/telegram/join/blue?icon=telegram)](https://t.me/aelfdeveloper)
+[![Telegram](https://img.shields.io/badge/Telegram-Join-blue?logo=telegram)](https://t.me/aelfdeveloper)
 
 BRANCH | GITHUB ACTIONS BUILD                                                                                                     | TESTS                                                                                                                                                              | CODE COVERAGE                                                
 ------ |--------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------| ------------------------------------------------------------ 
