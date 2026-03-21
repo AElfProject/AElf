@@ -84,6 +84,40 @@ public sealed class ChainManagerTests : AElfKernelTestBase
     }
 
     [Fact]
+    public async Task GetChainBlockIndicesAsync_Should_Preserve_Input_Order_And_Missing_Entries_Test()
+    {
+        var chain = await _chainManager.CreateAsync(_genesis);
+
+        await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink
+        {
+            Height = 1.BlockHeight(),
+            BlockHash = _blocks[1],
+            PreviousBlockHash = _genesis
+        });
+
+        await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink
+        {
+            Height = 2.BlockHeight(),
+            BlockHash = _blocks[2],
+            PreviousBlockHash = _blocks[1]
+        });
+
+        (await _chainManager.SetIrreversibleBlockAsync(chain, _blocks[2])).ShouldBeTrue();
+
+        var chainBlockIndices = await _chainManager.GetChainBlockIndicesAsync(new List<long>
+        {
+            2.BlockHeight(),
+            3.BlockHeight(),
+            0.BlockHeight()
+        });
+
+        chainBlockIndices.Count.ShouldBe(3);
+        chainBlockIndices[0].BlockHash.ShouldBe(_blocks[2]);
+        chainBlockIndices[1].ShouldBeNull();
+        chainBlockIndices[2].BlockHash.ShouldBe(_genesis);
+    }
+
+    [Fact]
     public async Task LIB_Blocks_Test()
     {
         //0 -> 1 linked

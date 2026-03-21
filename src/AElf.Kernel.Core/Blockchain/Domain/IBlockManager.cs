@@ -12,6 +12,7 @@ public interface IBlockManager
     Task AddBlockBodyAsync(Hash blockHash, BlockBody blockBody);
     Task<Block> GetBlockAsync(Hash blockHash);
     Task<BlockHeader> GetBlockHeaderAsync(Hash blockHash);
+    Task<List<BlockBody>> GetBlockBodiesAsync(IList<Hash> blockHashes);
     Task RemoveBlockAsync(Hash blockHash);
     Task RemoveBlocksAsync(IList<Hash> blockHashes);
     Task<bool> HasBlockAsync(Hash blockHash);
@@ -65,6 +66,11 @@ public class BlockManager : IBlockManager
     public async Task<BlockHeader> GetBlockHeaderAsync(Hash blockHash)
     {
         return await _blockHeaderStore.GetAsync(blockHash.ToStorageKey());
+    }
+
+    public async Task<List<BlockBody>> GetBlockBodiesAsync(IList<Hash> blockHashes)
+    {
+        return await _blockBodyStore.GetAllAsync(blockHashes.Select(h => h.ToStorageKey()).ToList());
     }
 
     public async Task RemoveBlockAsync(Hash blockHash)

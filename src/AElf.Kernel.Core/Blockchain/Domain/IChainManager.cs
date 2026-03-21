@@ -26,6 +26,7 @@ public interface IChainManager
     Task RemoveChainBlockLinksAsync(IList<Hash> blockHashes);
     void CleanCachedChainBlockLinks(long height);
     Task<ChainBlockIndex> GetChainBlockIndexAsync(long blockHeight);
+    Task<List<ChainBlockIndex>> GetChainBlockIndicesAsync(IList<long> blockHeights);
     Task<BlockAttachOperationStatus> AttachBlockToChainAsync(Chain chain, ChainBlockLink chainBlockLink);
     Task<bool> SetIrreversibleBlockAsync(Chain chain, Hash irreversibleBlockHash);
     Task<List<ChainBlockLink>> GetNotExecutedBlocks(Hash blockHash);
@@ -167,6 +168,12 @@ public class ChainManager : IChainManager, ISingletonDependency
     {
         return await _chainBlockIndexes.GetAsync(ChainId.ToStorageKey() + KernelConstants.StorageKeySeparator +
                                                  blockHeight.ToStorageKey());
+    }
+
+    public async Task<List<ChainBlockIndex>> GetChainBlockIndicesAsync(IList<long> blockHeights)
+    {
+        var prefix = ChainId.ToStorageKey() + KernelConstants.StorageKeySeparator;
+        return await _chainBlockIndexes.GetAllAsync(blockHeights.Select(h => prefix + h.ToStorageKey()).ToList());
     }
 
     public async Task<BlockAttachOperationStatus> AttachBlockToChainAsync(Chain chain, ChainBlockLink chainBlockLink)

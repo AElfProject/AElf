@@ -84,26 +84,44 @@ public class BlockPruningService : IBlockPruningService, ITransientDependency
             var allTxIds = new List<Hash>();
             var allTxResultBlockHashes = new List<Hash>();
             var allBlockHashes = new List<Hash>();
+            var heights = new List<long>();
+            var foundBlockBodyCount = 0;
 
             for (var height = batchStart; height <= batchEnd; height++)
             {
-                var chainBlockIndex = await _chainManager.GetChainBlockIndexAsync(height);
+                heights.Add(height);
+            }
+
+            var chainBlockIndices = await _chainManager.GetChainBlockIndicesAsync(heights);
+
+            foreach (var chainBlockIndex in chainBlockIndices)
+            {
                 if (chainBlockIndex == null)
                     continue;
 
-                var blockHash = chainBlockIndex.BlockHash;
-                allBlockHashes.Add(blockHash);
+                allBlockHashes.Add(chainBlockIndex.BlockHash);
+            }
 
-                var block = await _blockManager.GetBlockAsync(blockHash);
-                if (block == null)
+            var blockBodies = await _blockManager.GetBlockBodiesAsync(allBlockHashes);
+
+            for (var i = 0; i < allBlockHashes.Count; i++)
+            {
+                var blockBody = blockBodies[i];
+                if (blockBody == null)
                     continue;
 
-                foreach (var txId in block.TransactionIds)
+                foundBlockBodyCount++;
+                var blockHash = allBlockHashes[i];
+                foreach (var txId in blockBody.TransactionIds)
                 {
                     allTxIds.Add(txId);
                     allTxResultBlockHashes.Add(blockHash);
                 }
             }
+
+            Logger.LogDebug(
+                "Pruning batch [{BatchStart}..{BatchEnd}]: found {ChainBlockIndexCount} chain block indices, loaded {BlockBodyCount} block bodies",
+                batchStart, batchEnd, allBlockHashes.Count, foundBlockBodyCount);
 
             await _transactionResultManager.RemoveTransactionResultsAsync(allTxIds, allTxResultBlockHashes);
             await _transactionBlockIndexManager.RemoveTransactionIndicesAsync(allTxIds);

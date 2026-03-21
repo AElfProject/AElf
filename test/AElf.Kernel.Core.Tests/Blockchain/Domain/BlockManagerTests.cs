@@ -66,6 +66,26 @@ public sealed class BlockManagerTests : AElfKernelTestBase
     }
 
     [Fact]
+    public async Task GetBlockBodiesAsync_Should_Preserve_Input_Order_And_Missing_Entries_Test()
+    {
+        var blockA = _kernelTestHelper.GenerateBlock(0, Hash.Empty);
+        var blockB = _kernelTestHelper.GenerateBlock(1, blockA.GetHash());
+        var hashA = blockA.GetHash();
+        var hashB = blockB.GetHash();
+        var fakeHash = HashHelper.ComputeFrom("missing-block");
+
+        await _blockManager.AddBlockBodyAsync(hashA, blockA.Body);
+        await _blockManager.AddBlockBodyAsync(hashB, blockB.Body);
+
+        var blockBodies = await _blockManager.GetBlockBodiesAsync(new List<Hash> { hashB, fakeHash, hashA });
+
+        blockBodies.Count.ShouldBe(3);
+        blockBodies[0].ShouldBe(blockB.Body);
+        blockBodies[1].ShouldBeNull();
+        blockBodies[2].ShouldBe(blockA.Body);
+    }
+
+    [Fact]
     public async Task RemoveBlocksAsync_PartialDelete_Test()
     {
         var blockA = _kernelTestHelper.GenerateBlock(0, Hash.Empty);
