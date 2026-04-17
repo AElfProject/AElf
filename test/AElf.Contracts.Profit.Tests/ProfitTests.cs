@@ -1775,6 +1775,131 @@ public partial class ProfitContractTests
         maximumProfitReceivingPeriodCount.Value.ShouldBe(maxPeriodCount);
     }
 
+    [Fact]
+    public async Task ClaimProfits_OtherSymbol_Should_Not_Regress_LastProfitPeriod_Test()
+    {
+        const long shares = 1;
+        const long elfAmountPerPeriod = 100;
+        const long otherSymbolAmount = 1;
+        const string otherSymbol = "CPU";
+
+        var creator = Creators[0];
+        var beneficiary1 = Normal[0];
+        var beneficiary1TokenStub = GetTokenContractTester(NormalKeyPair[0]);
+        var beneficiaryAddress1 = Address.FromPublicKey(NormalKeyPair[0].PublicKey);
+        var beneficiaryAddress2 = Address.FromPublicKey(NormalKeyPair[1].PublicKey);
+
+        var initialElfBalance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+        {
+            Owner = beneficiaryAddress1,
+            Symbol = ProfitContractTestConstants.NativeTokenSymbol
+        })).Balance;
+
+        var schemeId = await CreateSchemeAsync();
+
+        await creator.AddBeneficiary.SendAsync(new AddBeneficiaryInput
+        {
+            SchemeId = schemeId,
+            BeneficiaryShare = new BeneficiaryShare
+            {
+                Beneficiary = beneficiaryAddress1,
+                Shares = shares
+            }
+        });
+
+        await creator.AddBeneficiary.SendAsync(new AddBeneficiaryInput
+        {
+            SchemeId = schemeId,
+            BeneficiaryShare = new BeneficiaryShare
+            {
+                Beneficiary = beneficiaryAddress2,
+                Shares = shares
+            }
+        });
+
+        // Make ELF appear first in ReceivedTokenSymbols, then append a short-lived symbol.
+        await ContributeProfits(schemeId, elfAmountPerPeriod * 2);
+        await CreateTestTokenAsync(otherSymbol, beneficiaryAddress1, otherSymbolAmount);
+        await beneficiary1TokenStub.Approve.SendAsync(new ApproveInput
+        {
+            Spender = ProfitContractAddress,
+            Symbol = otherSymbol,
+            Amount = otherSymbolAmount
+        });
+        await beneficiary1.ContributeProfits.SendAsync(new ContributeProfitsInput
+        {
+            SchemeId = schemeId,
+            Symbol = otherSymbol,
+            Amount = otherSymbolAmount,
+            Period = 1
+        });
+
+        var scheme = await creator.GetScheme.CallAsync(schemeId);
+        scheme.ReceivedTokenSymbols.Count.ShouldBe(2);
+        scheme.ReceivedTokenSymbols[0].ShouldBe(ProfitContractTestConstants.NativeTokenSymbol);
+        scheme.ReceivedTokenSymbols[1].ShouldBe(otherSymbol);
+
+        await creator.DistributeProfits.SendAsync(new DistributeProfitsInput
+        {
+            SchemeId = schemeId,
+            Period = 1,
+            AmountsMap =
+            {
+                { ProfitContractTestConstants.NativeTokenSymbol, elfAmountPerPeriod }
+            }
+        });
+
+        await creator.DistributeProfits.SendAsync(new DistributeProfitsInput
+        {
+            SchemeId = schemeId,
+            Period = 2,
+            AmountsMap =
+            {
+                { ProfitContractTestConstants.NativeTokenSymbol, elfAmountPerPeriod }
+            }
+        });
+
+        await beneficiary1.ClaimProfits.SendAsync(new ClaimProfitsInput
+        {
+            SchemeId = schemeId
+        });
+
+        var detailsAfterFirstClaim = await creator.GetProfitDetails.CallAsync(new GetProfitDetailsInput
+        {
+            SchemeId = schemeId,
+            Beneficiary = beneficiaryAddress1
+        });
+        detailsAfterFirstClaim.Details.Count.ShouldBe(1);
+        detailsAfterFirstClaim.Details.First().LastProfitPeriod.ShouldBe(3);
+
+        var balanceAfterFirstClaim = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+        {
+            Owner = beneficiaryAddress1,
+            Symbol = ProfitContractTestConstants.NativeTokenSymbol
+        })).Balance;
+        balanceAfterFirstClaim.ShouldBe(initialElfBalance + elfAmountPerPeriod);
+
+        await beneficiary1.ClaimProfits.SendAsync(new ClaimProfitsInput
+        {
+            SchemeId = schemeId
+        });
+
+        var balanceAfterSecondClaim = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+        {
+            Owner = beneficiaryAddress1,
+            Symbol = ProfitContractTestConstants.NativeTokenSymbol
+        })).Balance;
+        balanceAfterSecondClaim.ShouldBe(initialElfBalance + elfAmountPerPeriod);
+        
+        var detailsAfterSecondClaim = await creator.GetProfitDetails.CallAsync(new GetProfitDetailsInput
+        {
+            SchemeId = schemeId,
+            Beneficiary = beneficiaryAddress1
+        });
+        detailsAfterSecondClaim.Details.Count.ShouldBe(1);
+        detailsAfterSecondClaim.Details.First().LastProfitPeriod.ShouldBe(3);
+    }
+
     private async Task ContributeProfits(Hash schemeId, long amount = 100)
     {
         await ProfitContractStub.ContributeProfits.SendAsync(new ContributeProfitsInput
@@ -1782,6 +1907,81 @@ public partial class ProfitContractTests
             SchemeId = schemeId,
             Symbol = ProfitContractTestConstants.NativeTokenSymbol,
             Amount = amount
+        });
+    }
+
+    private async Task CreateTestTokenAsync(string symbol, Address to, long amount)
+    {
+        const string seedCollectionSymbol = "SEED-0";
+        const string seedSymbol = "SEED-1";
+
+        var seedCollectionInfo = await TokenContractStub.GetTokenInfo.CallAsync(new GetTokenInfoInput
+        {
+            Symbol = seedCollectionSymbol
+        });
+        if (string.IsNullOrEmpty(seedCollectionInfo.Symbol))
+        {
+            await TokenContractStub.Create.SendAsync(new CreateInput
+            {
+                Symbol = seedCollectionSymbol,
+                Decimals = 0,
+                IsBurnable = true,
+                TokenName = "seed Collection",
+                TotalSupply = 1,
+                Issuer = Starter,
+                Owner = Starter,
+                ExternalInfo = new ExternalInfo()
+            });
+        }
+
+        await TokenContractStub.Create.SendAsync(new CreateInput
+        {
+            Symbol = seedSymbol,
+            Decimals = 0,
+            IsBurnable = true,
+            TokenName = "seed token 1",
+            TotalSupply = 1,
+            Issuer = Starter,
+            Owner = Starter,
+            ExternalInfo = new ExternalInfo
+            {
+                Value =
+                {
+                    { "__seed_owned_symbol", symbol },
+                    {
+                        "__seed_exp_time",
+                        Timestamp.FromDateTime(global::System.DateTime.UtcNow.AddDays(1)).Seconds.ToString()
+                    }
+                }
+            },
+            LockWhiteList = { TokenContractAddress }
+        });
+
+        await TokenContractStub.Issue.SendAsync(new IssueInput
+        {
+            Symbol = seedSymbol,
+            Amount = 1,
+            Memo = "Issue seed NFT.",
+            To = Starter
+        });
+
+        await TokenContractStub.Create.SendAsync(new CreateInput
+        {
+            Symbol = symbol,
+            Decimals = 2,
+            IsBurnable = true,
+            TokenName = $"{symbol} token",
+            TotalSupply = amount,
+            Issuer = Starter,
+            Owner = Starter
+        });
+
+        await TokenContractStub.Issue.SendAsync(new IssueInput
+        {
+            Symbol = symbol,
+            Amount = amount,
+            Memo = $"Issue {symbol}.",
+            To = to
         });
     }
 }
