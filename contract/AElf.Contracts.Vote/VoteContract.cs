@@ -102,6 +102,17 @@ public partial class VoteContract : VoteContractImplContainer.VoteContractImplBa
             amount = votingItem.TicketCost.Mul(currentVotesCount);
         }
 
+        Assert(amount > 0, "Invalid amount.");
+
+        var existingRecord = State.VotingRecords[input.VoteId];
+        if (existingRecord != null)
+        {
+            Assert(input.IsChangeTarget, "VoteId already exists.");
+            Assert(existingRecord.IsWithdrawn, "VoteId already exists and not withdrawn.");
+            Assert(existingRecord.VotingItemId == input.VotingItemId, "VoteId belongs to a different voting item.");
+            Assert(existingRecord.Voter == input.Voter, "VoteId belongs to a different voter.");
+        }
+
         var votingRecord = new VotingRecord
         {
             VotingItemId = input.VotingItemId,
@@ -198,6 +209,8 @@ public partial class VoteContract : VoteContractImplContainer.VoteContractImplBa
             Assert(votingRecord.Voter == Context.Sender, "No permission to withdraw votes of others.");
         else
             Assert(votingItem.Sponsor == Context.Sender, "No permission to withdraw votes of others.");
+
+        Assert(!votingRecord.IsWithdrawn, "Vote already withdrawn.");
 
         // Update VotingRecord.
         votingRecord.IsWithdrawn = true;

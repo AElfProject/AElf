@@ -905,7 +905,7 @@ public partial class ProfitContract : ProfitContractImplContainer.ProfitContract
                         });
                     }
 
-                    lastProfitPeriod = period + 1;
+                    lastProfitPeriod = Math.Max(lastProfitPeriod, period + 1);
                 }
 
                 totalAmount = totalAmount.Add(amount);
