@@ -1301,9 +1301,10 @@ public partial class ElectionContractTests : ElectionContractTestBase
         recordAfterRejectedCollision.Option.ShouldBe(candidatePubkey);
         recordAfterRejectedCollision.IsWithdrawn.ShouldBeFalse();
 
-        BlockTimeProvider.SetBlockTime(recordAfterRejectedCollision.VoteTimestamp.AddSeconds(lockTime + 1));
+        BlockTimeProvider.SetBlockTime(recordAfterRejectedCollision.VoteTimestamp.AddSeconds(lockTime + 1000));
 
         var withdrawResult = await WithdrawVotes(voterKeyPair, voteId);
+        withdrawResult.Error.ShouldBeEmpty();
         withdrawResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
         var electorVote = await ElectionContractStub.GetElectorVoteWithAllRecords.CallAsync(new StringValue

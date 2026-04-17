@@ -108,9 +108,9 @@ public partial class VoteContract : VoteContractImplContainer.VoteContractImplBa
         if (existingRecord != null)
         {
             Assert(input.IsChangeTarget, "VoteId already exists.");
-            Assert(existingRecord.IsWithdrawn, "VoteId already exists.");
-            Assert(existingRecord.VotingItemId == input.VotingItemId, "VoteId already exists.");
-            Assert(existingRecord.Voter == input.Voter, "VoteId already exists.");
+            Assert(existingRecord.IsWithdrawn, "VoteId already exists and not withdrawn.");
+            Assert(existingRecord.VotingItemId == input.VotingItemId, "VoteId belongs to a different voting item.");
+            Assert(existingRecord.Voter == input.Voter, "VoteId belongs to a different voter.");
         }
 
         var votingRecord = new VotingRecord

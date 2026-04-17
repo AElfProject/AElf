@@ -2,6 +2,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.CSharp.Core;
+using AElf.CSharp.Core.Extension;
+using AElf.Kernel;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
@@ -1950,7 +1952,7 @@ public partial class ProfitContractTests
                     { "__seed_owned_symbol", symbol },
                     {
                         "__seed_exp_time",
-                        Timestamp.FromDateTime(global::System.DateTime.UtcNow.AddDays(1)).Seconds.ToString()
+                        TimestampHelper.GetUtcNow().AddHours(1).Seconds.ToString()
                     }
                 }
             },
