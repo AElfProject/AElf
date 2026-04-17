@@ -1242,6 +1242,79 @@ public partial class ElectionContractTests : ElectionContractTestBase
     }
 
     [Fact]
+    public async Task ElectionContract_Withdraw_Succeeds_When_Delegated_VoteId_Collision_Is_Rejected_Test()
+    {
+        const int amount = 100;
+        const int lockTime = 7 * 60 * 60 * 24;
+
+        var candidateKeyPair = ValidationDataCenterKeyPairs[0];
+        await AnnounceElectionAsync(candidateKeyPair);
+        var candidatePubkey = candidateKeyPair.PublicKey.ToHex();
+
+        var voterKeyPair = VoterKeyPairs[0];
+        var otherVoterKeyPair = VoterKeyPairs[1];
+        var voterAddress = Address.FromPublicKey(voterKeyPair.PublicKey);
+
+        var voteResult = await VoteToCandidateAsync(voterKeyPair, candidatePubkey, lockTime, amount);
+        voteResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        var voteId = Hash.Parser.ParseFrom(voteResult.ReturnValue);
+
+        var originalRecord = await VoteContractStub.GetVotingRecord.CallAsync(voteId);
+        originalRecord.VotingItemId.ShouldBe(MinerElectionVotingItemId);
+        originalRecord.Voter.ShouldBe(voterAddress);
+        originalRecord.Option.ShouldBe(candidatePubkey);
+
+        var otherVoteStub = GetVoteContractTester(otherVoterKeyPair);
+        var otherRegisterTime = TimestampHelper.GetUtcNow();
+        var otherRegisterInput = new VotingRegisterInput
+        {
+            AcceptedCurrency = ElectionContractTestConstants.NativeTokenSymbol,
+            IsLockToken = false,
+            StartTimestamp = otherRegisterTime,
+            EndTimestamp = otherRegisterTime.AddDays(1),
+            TotalSnapshotNumber = 1,
+            Options = { candidatePubkey }
+        };
+        var registerResult = await otherVoteStub.Register.SendAsync(otherRegisterInput);
+        registerResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+        var otherRegisterInputForHash = otherRegisterInput.Clone();
+        otherRegisterInputForHash.Options.Clear();
+        var otherVotingItemId = HashHelper.ConcatAndCompute(HashHelper.ComputeFrom(otherRegisterInputForHash),
+            HashHelper.ComputeFrom(Address.FromPublicKey(otherVoterKeyPair.PublicKey)));
+
+        var collisionResult = await otherVoteStub.Vote.SendWithExceptionAsync(new VoteInput
+        {
+            VotingItemId = otherVotingItemId,
+            VoteId = voteId,
+            Voter = voterAddress,
+            Option = candidatePubkey,
+            Amount = 1
+        });
+        collisionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+        collisionResult.TransactionResult.Error.ShouldContain("VoteId already exists.");
+
+        var recordAfterRejectedCollision = await VoteContractStub.GetVotingRecord.CallAsync(voteId);
+        recordAfterRejectedCollision.VotingItemId.ShouldBe(MinerElectionVotingItemId);
+        recordAfterRejectedCollision.Voter.ShouldBe(voterAddress);
+        recordAfterRejectedCollision.Amount.ShouldBe(amount);
+        recordAfterRejectedCollision.Option.ShouldBe(candidatePubkey);
+        recordAfterRejectedCollision.IsWithdrawn.ShouldBeFalse();
+
+        BlockTimeProvider.SetBlockTime(recordAfterRejectedCollision.VoteTimestamp.AddSeconds(lockTime + 1));
+
+        var withdrawResult = await WithdrawVotes(voterKeyPair, voteId);
+        withdrawResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+        var electorVote = await ElectionContractStub.GetElectorVoteWithAllRecords.CallAsync(new StringValue
+        {
+            Value = voterKeyPair.PublicKey.ToHex()
+        });
+        electorVote.ActiveVotingRecords.Select(record => record.VoteId).ShouldNotContain(voteId);
+        electorVote.WithdrawnVotesRecords.Select(record => record.VoteId).ShouldContain(voteId);
+    }
+
+    [Fact]
     public async Task ElectionContract_GetCandidates_Test()
     {
         var announcedFullNodesKeyPairs = await ElectionContract_AnnounceElection_Test();
