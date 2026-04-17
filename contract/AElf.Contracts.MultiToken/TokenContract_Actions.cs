@@ -411,6 +411,7 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
     public override Empty AdvanceResourceToken(AdvanceResourceTokenInput input)
     {
         AssertValidInputAddress(input.ContractAddress);
+        AssertValidSymbolAndAmount(input.ResourceTokenSymbol, input.Amount);
         Assert(
             Context.Variables.GetStringArray(TokenContractConstants.PayTxFeeSymbolListName)
                 .Contains(input.ResourceTokenSymbol),
@@ -426,6 +427,7 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
     {
         Assert(!string.IsNullOrWhiteSpace(input.ResourceTokenSymbol), "Invalid input resource token symbol.");
         AssertValidInputAddress(input.ContractAddress);
+        Assert(input.Amount > 0, "Invalid amount.");
         var advancedAmount =
             State.AdvancedResourceToken[input.ContractAddress][Context.Sender][input.ResourceTokenSymbol];
         Assert(advancedAmount >= input.Amount, "Can't take back that more.");
