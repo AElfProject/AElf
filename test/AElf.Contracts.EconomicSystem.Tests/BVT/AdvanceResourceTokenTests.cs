@@ -67,6 +67,58 @@ public partial class EconomicSystemTest
     }
 
     [Fact]
+    public async Task TokenContract_AdvanceResourceToken_Negative_Amount_Test()
+    {
+        var contractAddress = await TokenContract_AdvanceResourceToken_Test();
+        
+        await TokenContractStub.Transfer.SendAsync(new TransferInput
+        {
+            Symbol = "ELF",
+            Amount = 100000000,
+            To = OtherAddress
+        });
+        
+        // Check balance of other address.
+        {
+            var balance = await OtherTokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Owner = OtherAddress,
+                Symbol = ResourceTokenSymbol
+            });
+            balance.Balance.ShouldBe(0);
+        }
+        
+        var executionResult = await OtherTokenContractStub.AdvanceResourceToken.SendWithExceptionAsync(new AdvanceResourceTokenInput
+        {
+            ContractAddress = contractAddress,
+            Amount = -Amount,
+            ResourceTokenSymbol = ResourceTokenSymbol
+        });
+        
+        executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+        executionResult.TransactionResult.Error.ShouldContain("Invalid amount");
+        // Check balance of contract address.
+        {
+            var balance = await OtherTokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Owner = contractAddress,
+                Symbol = ResourceTokenSymbol
+            });
+            balance.Balance.ShouldBe(Amount);
+        }
+
+        // Check balance of developer.
+        {
+            var balance = await OtherTokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Owner = OtherAddress,
+                Symbol = ResourceTokenSymbol
+            });
+            balance.Balance.ShouldBe(0);
+        }
+    }
+
+    [Fact]
     public async Task TokenContract_TakeResourceTokenBack_Test()
     {
         var contractAddress = await TokenContract_AdvanceResourceToken_Test();
@@ -162,6 +214,22 @@ public partial class EconomicSystemTest
 
         result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
         result.TransactionResult.Error.ShouldContain("Can't take back that more.");
+    }
+    
+    [Fact]
+    public async Task TokenContract_TakeResourceTokenBack_Negative_Amount_Test()
+    {
+        var contractAddress = await TokenContract_AdvanceResourceToken_Test();
+
+        var result = await TokenContractStub.TakeResourceTokenBack.SendWithExceptionAsync(new TakeResourceTokenBackInput
+        {
+            ContractAddress = contractAddress,
+            Amount = -Amount,
+            ResourceTokenSymbol = ResourceTokenSymbol
+        });
+        
+        result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+        result.TransactionResult.Error.ShouldContain("Invalid amount");
     }
 
     [Fact]
