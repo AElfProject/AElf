@@ -44,7 +44,12 @@ public class WhitelistProvider : IWhitelistProvider
             .Assembly(System.Reflection.Assembly.Load("System.ObjectModel"), Trust.Partial)
             .Assembly(System.Reflection.Assembly.Load("System.Text.RegularExpressions"), Trust.Partial)
             .Assembly(System.Reflection.Assembly.Load("System.Linq"), Trust.Full)
-            .Assembly(System.Reflection.Assembly.Load("System.Linq.Expressions"), Trust.Full)
+            // System.Linq.Expressions is intentionally NOT fully trusted: Expression.Compile() /
+            // CompileToMethod() are runtime code generators (a sandbox-escape primitive). Partial trust
+            // means its types are validated against the whitelist (there is no namespace rule for them,
+            // so they are denied), and ReflectionValidator additionally blocks *.Compile. LINQ-to-objects
+            // lives in System.Linq (above) and is unaffected.
+            .Assembly(System.Reflection.Assembly.Load("System.Linq.Expressions"), Trust.Partial)
             .Assembly(System.Reflection.Assembly.Load("System.Collections"), Trust.Full)
             .Assembly(System.Reflection.Assembly.Load("Google.Protobuf"), Trust.Full)
             .Assembly(typeof(CSharpSmartContract).Assembly, Trust.Full) // AElf.Sdk.CSharp
@@ -100,7 +105,9 @@ public class WhitelistProvider : IWhitelistProvider
                 // is used by protobuf-generated descriptor code). Everything else on Type is denied here;
                 // the dedicated ReflectionValidator provides a second, defense-in-depth layer.
                 .Type(nameof(Type), Permission.Denied, member => member
-                    .Member(nameof(Type.GetTypeFromHandle), Permission.Allowed))
+                    .Member(nameof(Type.GetTypeFromHandle), Permission.Allowed) // typeof(x)
+                    .Member("op_Equality", Permission.Allowed)   // typeof(a) == typeof(b): safe type comparison
+                    .Member("op_Inequality", Permission.Allowed))
                 .Type(nameof(IDisposable), Permission.Allowed)
                 .Type(nameof(Convert), Permission.Allowed)
                 .Type(nameof(Math), Permission.Allowed)
@@ -119,6 +126,16 @@ public class WhitelistProvider : IWhitelistProvider
                     .Member(nameof(String.Concat), Permission.Denied)
                 )
                 .Type(typeof(Byte[]).Name, Permission.Allowed)
+                // Opaque runtime handles. These are only ever referenced as parameters of otherwise
+                // allowed calls: Type.GetTypeFromHandle(RuntimeTypeHandle) emitted by typeof(x), and
+                // RuntimeHelpers.InitializeArray(Array, RuntimeFieldHandle) emitted by hardcoded array
+                // initialization. Now that parameter and local-variable types are validated, these must
+                // be allowed as bare type references or typeof()/array-init would be rejected in every
+                // contract. They carry no members useful to a contract (their pointer members return
+                // IntPtr, which is not whitelisted and is still caught via return/parameter validation).
+                .Type(nameof(RuntimeTypeHandle), Permission.Allowed)
+                .Type(nameof(RuntimeFieldHandle), Permission.Allowed)
+                .Type(nameof(RuntimeMethodHandle), Permission.Allowed)
             );
     }
 

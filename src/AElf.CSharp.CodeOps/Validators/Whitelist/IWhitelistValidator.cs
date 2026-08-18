@@ -70,6 +70,17 @@ public abstract class WhitelistValidatorBase : IValidator<ModuleDefinition>
             if (!method.HasBody)
                 continue;
 
+            // Validate local variable types. The instruction-operand scan does not see local variable
+            // declarations, so a denied type used only as a local (e.g. a reflection handle, or an enum
+            // whose values fold to integer constants) would otherwise be invisible.
+            if (method.Body.HasVariables)
+            {
+                foreach (var variable in method.Body.Variables)
+                {
+                    results.AddRange(ValidateReference(whitelist, method, variable.VariableType));
+                }
+            }
+
             foreach (var instruction in method.Body.Instructions)
             {
                 results.AddRange(Validate(whitelist, method, instruction));
@@ -91,6 +102,16 @@ public abstract class WhitelistValidatorBase : IValidator<ModuleDefinition>
             results.AddRange(ValidateReference(whitelist, method, methodReference.DeclaringType,
                 methodReference.Name));
             results.AddRange(ValidateReference(whitelist, method, methodReference.ReturnType));
+            // Validate parameter types too. Previously only the declaring type, method name and return
+            // type were checked, so a denied type used only as a parameter (e.g. BindingFlags on
+            // Type.InvokeMember) slipped through. ValidateReference short-circuits for fully-trusted and
+            // generic-parameter types, so this only tightens the untrusted surface.
+            foreach (var parameter in methodReference.Parameters)
+                results.AddRange(ValidateReference(whitelist, method, parameter.ParameterType));
+            // Validate generic arguments of generic method instances.
+            if (methodReference is GenericInstanceMethod genericInstanceMethod)
+                foreach (var argument in genericInstanceMethod.GenericArguments)
+                    results.AddRange(ValidateReference(whitelist, method, argument));
             return results;
         }
 
