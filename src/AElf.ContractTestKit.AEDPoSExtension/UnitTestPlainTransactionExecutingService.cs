@@ -13,8 +13,10 @@ public class UnitTestPlainTransactionExecutingService : PlainTransactionExecutin
 {
     public UnitTestPlainTransactionExecutingService(ISmartContractExecutiveService smartContractExecutiveService,
         IEnumerable<IPostExecutionPlugin> postPlugins, IEnumerable<IPreExecutionPlugin> prePlugins,
-        ITransactionContextFactory transactionContextFactory, IFeatureDisableService featureDisableService) : base(
-        smartContractExecutiveService, postPlugins, prePlugins, transactionContextFactory, featureDisableService)
+        ITransactionContextFactory transactionContextFactory, IFeatureDisableService featureDisableService,
+        ISyntheticTransactionExecutionProvider syntheticTransactionExecutionProvider) : base(
+        smartContractExecutiveService, postPlugins, prePlugins, transactionContextFactory, featureDisableService,
+        syntheticTransactionExecutionProvider)
     {
     }
 
