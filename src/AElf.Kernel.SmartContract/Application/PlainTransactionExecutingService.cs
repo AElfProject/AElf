@@ -145,13 +145,6 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
         var txContext = CreateTransactionContext(singleTxExecutingDto);
         var trace = txContext.Trace;
 
-         if (_syntheticTransactionExecutionProvider.TryApply(singleTxExecutingDto.Transaction, trace))
-        {
-            Logger.LogDebug("Transaction {TransactionId} to contract {ContractAddress} was synthetically mined.",
-                trace.TransactionId, singleTxExecutingDto.Transaction.To);
-            return trace;
-        }
-
         var internalStateCache = new TieredStateCache(singleTxExecutingDto.ChainContext.StateCache);
         var internalChainContext =
             new ChainContextWithTieredStateCache(singleTxExecutingDto.ChainContext, internalStateCache);
@@ -185,7 +178,11 @@ public class PlainTransactionExecutingService : IPlainTransactionExecutingServic
 
             #endregion
 
-            await executive.ApplyAsync(txContext);
+            if (_syntheticTransactionExecutionProvider.TryApply(singleTxExecutingDto.Transaction, trace))
+                Logger.LogDebug("Transaction {TransactionId} to contract {ContractAddress} was synthetically mined.",
+                    trace.TransactionId, singleTxExecutingDto.Transaction.To);
+            else
+                await executive.ApplyAsync(txContext);
 
             if (txContext.Trace.IsSuccessful())
                 await ExecuteInlineTransactions(singleTxExecutingDto.Depth, singleTxExecutingDto.CurrentBlockTime,
