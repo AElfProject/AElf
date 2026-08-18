@@ -27,16 +27,19 @@ public class ResourceExtractionService : IResourceExtractionService, ISingletonD
     private readonly ConcurrentDictionary<Hash, TransactionResourceCache> _resourceCache = new();
 
     private readonly ISmartContractExecutiveService _smartContractExecutiveService;
+    private readonly ISyntheticTransactionExecutionProvider _syntheticTransactionExecutionProvider;
     private readonly ITransactionContextFactory _transactionContextFactory;
 
     public ResourceExtractionService(IBlockchainService blockchainService,
         ISmartContractExecutiveService smartContractExecutiveService,
         INonparallelContractCodeProvider nonparallelContractCodeProvider,
-        ITransactionContextFactory transactionContextFactory)
+        ITransactionContextFactory transactionContextFactory,
+        ISyntheticTransactionExecutionProvider syntheticTransactionExecutionProvider)
     {
         _smartContractExecutiveService = smartContractExecutiveService;
         _nonparallelContractCodeProvider = nonparallelContractCodeProvider;
         _transactionContextFactory = transactionContextFactory;
+        _syntheticTransactionExecutionProvider = syntheticTransactionExecutionProvider;
         _blockchainService = blockchainService;
 
         Logger = NullLogger<ResourceExtractionService>.Instance;
@@ -133,6 +136,21 @@ public class ResourceExtractionService : IResourceExtractionService, ISingletonD
         try
         {
             executive = await _smartContractExecutiveService.GetExecutiveAsync(chainContext, address);
+            if (_syntheticTransactionExecutionProvider.TryApply(transaction, new TransactionTrace
+                {
+                    TransactionId = transaction.GetHash()
+                }))
+            {
+                Logger.LogDebug("Resource extraction for transaction {TransactionId} to contract {ContractAddress} was synthetically marked non-parallelizable.",
+                    transaction.GetHash(), transaction.To);
+                return new TransactionResourceInfo
+                {
+                    TransactionId = transaction.GetHash(),
+                    ParallelType = ParallelType.NonParallelizable,
+                    ContractHash = executive.ContractHash
+                };
+            }
+
             if (!executive.IsParallelizable())
                 return new TransactionResourceInfo
                 {

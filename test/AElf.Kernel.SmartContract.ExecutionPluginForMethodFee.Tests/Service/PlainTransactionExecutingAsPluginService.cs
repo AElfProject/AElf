@@ -17,14 +17,18 @@ public class PlainTransactionExecutingAsPluginService : PlainTransactionExecutin
     // for sending transaction
     private readonly Hash _pluginOriginId = new();
     private readonly ISmartContractExecutiveService _smartContractExecutiveService;
+    private readonly ISyntheticTransactionExecutionProvider _syntheticTransactionExecutionProvider;
 
     public PlainTransactionExecutingAsPluginService
     (ISmartContractExecutiveService smartContractExecutiveService,
         IEnumerable<IPostExecutionPlugin> postPlugins, IEnumerable<IPreExecutionPlugin> prePlugins,
-        ITransactionContextFactory transactionContextFactory, IFeatureDisableService featureDisableService) : base(
-        smartContractExecutiveService, postPlugins, prePlugins, transactionContextFactory, featureDisableService)
+        ITransactionContextFactory transactionContextFactory, IFeatureDisableService featureDisableService,
+        ISyntheticTransactionExecutionProvider syntheticTransactionExecutionProvider) : base(
+        smartContractExecutiveService, postPlugins, prePlugins, transactionContextFactory, featureDisableService,
+        syntheticTransactionExecutionProvider)
     {
         _smartContractExecutiveService = smartContractExecutiveService;
+        _syntheticTransactionExecutionProvider = syntheticTransactionExecutionProvider;
     }
 
     protected override async Task<TransactionTrace> ExecuteOneAsync(
@@ -37,6 +41,13 @@ public class PlainTransactionExecutingAsPluginService : PlainTransactionExecutin
         singleTxExecutingDto.OriginTransactionId = _pluginOriginId;
         var txContext = CreateTransactionContext(singleTxExecutingDto);
         var trace = txContext.Trace;
+
+        if (_syntheticTransactionExecutionProvider.TryApply(singleTxExecutingDto.Transaction, trace))
+        {
+            Logger.LogDebug("Transaction {TransactionId} to contract {ContractAddress} was synthetically mined.",
+                trace.TransactionId, singleTxExecutingDto.Transaction.To);
+            return trace;
+        }
 
         var internalStateCache = new TieredStateCache(singleTxExecutingDto.ChainContext.StateCache);
         var internalChainContext =

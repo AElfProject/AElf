@@ -4,25 +4,39 @@ using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Types;
 using Google.Protobuf.Reflection;
 using Google.Protobuf.WellKnownTypes;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Kernel.SmartContract.Application;
 
 public class TransactionReadOnlyExecutionService : ITransactionReadOnlyExecutionService
 {
     private readonly ISmartContractExecutiveService _smartContractExecutiveService;
+    private readonly ISyntheticTransactionExecutionProvider _syntheticTransactionExecutionProvider;
     private readonly ITransactionContextFactory _transactionContextFactory;
 
     public TransactionReadOnlyExecutionService(ISmartContractExecutiveService smartContractExecutiveService,
-        ITransactionContextFactory transactionContextFactory)
+        ITransactionContextFactory transactionContextFactory,
+        ISyntheticTransactionExecutionProvider syntheticTransactionExecutionProvider)
     {
         _smartContractExecutiveService = smartContractExecutiveService;
         _transactionContextFactory = transactionContextFactory;
+        _syntheticTransactionExecutionProvider = syntheticTransactionExecutionProvider;
+        Logger = NullLogger<TransactionReadOnlyExecutionService>.Instance;
     }
+
+    public ILogger<TransactionReadOnlyExecutionService> Logger { get; set; }
 
     public async Task<TransactionTrace> ExecuteAsync(IChainContext chainContext, Transaction transaction,
         Timestamp currentBlockTime)
     {
         var transactionContext = _transactionContextFactory.Create(transaction, chainContext, currentBlockTime);
+        if (_syntheticTransactionExecutionProvider.TryApply(transaction, transactionContext.Trace))
+        {
+            Logger.LogDebug("Read-only transaction {TransactionId} to contract {ContractAddress} was synthetically executed.",
+                transactionContext.Trace.TransactionId, transaction.To);
+            return transactionContext.Trace;
+        }
         var executive = await _smartContractExecutiveService.GetExecutiveAsync(
             chainContext, transaction.To);
 
