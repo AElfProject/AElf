@@ -93,7 +93,14 @@ public class WhitelistProvider : IWhitelistProvider
                     .Member(nameof(DateTime.Today), Permission.Denied))
                 .Type(typeof(void).Name, Permission.Allowed)
                 .Type(nameof(Object), Permission.Allowed)
-                .Type(nameof(Type), Permission.Allowed)
+                // System.Type must NOT be fully allowed: with all members open, string-based reflection
+                // (Type.GetType(string) + Type.InvokeMember(...)) becomes a statically-invisible dispatch
+                // primitive that can reach Assembly.Load(byte[]) and load an un-audited stage-2 assembly.
+                // Only GetTypeFromHandle is needed by legitimate code (it is what typeof(x) lowers to and
+                // is used by protobuf-generated descriptor code). Everything else on Type is denied here;
+                // the dedicated ReflectionValidator provides a second, defense-in-depth layer.
+                .Type(nameof(Type), Permission.Denied, member => member
+                    .Member(nameof(Type.GetTypeFromHandle), Permission.Allowed))
                 .Type(nameof(IDisposable), Permission.Allowed)
                 .Type(nameof(Convert), Permission.Allowed)
                 .Type(nameof(Math), Permission.Allowed)
