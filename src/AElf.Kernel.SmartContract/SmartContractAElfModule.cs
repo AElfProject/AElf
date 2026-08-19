@@ -14,6 +14,7 @@ public class SmartContractAElfModule : AElfModule
     public override void ConfigureServices(ServiceConfigurationContext context)
     {
         context.Services.AddSingleton<ISmartContractRunnerContainer, SmartContractRunnerContainer>();
+        context.Services.AddSingleton<ISyntheticTransactionExecutionProvider, SyntheticTransactionExecutionProvider>();
         context.Services.AddSingleton<ITransactionExecutingService, PlainTransactionExecutingService>();
         context.Services.AddSingleton<IPlainTransactionExecutingService, PlainTransactionExecutingService>();
         context.Services.AddTransient(typeof(IContractReaderFactory<>), typeof(ContractReaderFactory<>));

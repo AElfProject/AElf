@@ -147,6 +147,38 @@ public partial class VoteTests
     }
 
     [Fact]
+    public async Task Vote_With_Negative_Amount_Should_Fail_Test()
+    {
+        var votingItem = await RegisterVotingItemAsync(10, 4, false, DefaultSender, 10);
+        var voter = Accounts[11].Address;
+        var voteId = HashHelper.ComputeFrom("negative-delegated-vote");
+
+        var voteRet = await VoteContractStub.Vote.SendWithExceptionAsync(new VoteInput
+        {
+            VotingItemId = votingItem.VotingItemId,
+            Voter = voter,
+            VoteId = voteId,
+            Option = votingItem.Options[1],
+            Amount = -100
+        });
+
+        voteRet.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+        voteRet.TransactionResult.Error.ShouldContain("Invalid amount.");
+
+        var votingResult = await VoteContractStub.GetVotingResult.CallAsync(new GetVotingResultInput
+        {
+            VotingItemId = votingItem.VotingItemId,
+            SnapshotNumber = 1
+        });
+        votingResult.Results.Count.ShouldBe(0);
+        votingResult.VotersCount.ShouldBe(0);
+        votingResult.VotesAmount.ShouldBe(0);
+
+        var votedItems = await VoteContractStub.GetVotedItems.CallAsync(voter);
+        votedItems.VotedItemVoteIds.Count.ShouldBe(0);
+    }
+
+    [Fact]
     public async Task Vote_Success()
     {
         var registerItem = await RegisterVotingItemAsync(100, 3, true, DefaultSender, 1);
@@ -278,6 +310,74 @@ public partial class VoteTests
         voteResultBeforeWithdraw.VotersCount.Sub(1).ShouldBe(voteResultAfterWithdraw.VotersCount);
         var afterBalance = GetUserBalance(voteAddress);
         beforeBalance.ShouldBe(afterBalance - 100);
+    }
+
+    [Fact]
+    public async Task VoteContract_Delegated_Withdraw_Cannot_Be_Executed_Twice_Test()
+    {
+        var registerItem = await RegisterVotingItemAsync(100, 3, false, DefaultSender, 1);
+        var option = registerItem.Options[1];
+        const long voteAmount = 100;
+
+        var firstVoteId = HashHelper.ComputeFrom("delegated-vote-1");
+        var secondVoteId = HashHelper.ComputeFrom("delegated-vote-2");
+        var firstVoterAddress = Accounts[1].Address;
+        var secondVoterAddress = Accounts[2].Address;
+
+        var result = await VoteContractStub.Vote.SendAsync(new VoteInput
+        {
+            VotingItemId = registerItem.VotingItemId,
+            Voter = firstVoterAddress,
+            VoteId = firstVoteId,
+            Option = option,
+            Amount = voteAmount
+        });
+        await VoteContractStub.Vote.SendAsync(new VoteInput
+        {
+            VotingItemId = registerItem.VotingItemId,
+            Voter = secondVoterAddress,
+            VoteId = secondVoteId,
+            Option = option,
+            Amount = voteAmount
+        });
+
+        var votingResultBeforeWithdraw = await GetVotingResult(registerItem.VotingItemId, 1);
+        votingResultBeforeWithdraw.VotesAmount.ShouldBe(voteAmount * 2);
+        votingResultBeforeWithdraw.Results[option].ShouldBe(voteAmount * 2);
+        votingResultBeforeWithdraw.VotersCount.ShouldBe(2);
+
+        var firstWithdrawResult = await Withdraw(DefaultSenderKeyPair, firstVoteId);
+        firstWithdrawResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+        var votingResultAfterFirstWithdraw = await GetVotingResult(registerItem.VotingItemId, 1);
+        votingResultAfterFirstWithdraw.VotesAmount.ShouldBe(voteAmount);
+        votingResultAfterFirstWithdraw.Results[option].ShouldBe(voteAmount);
+        votingResultAfterFirstWithdraw.VotersCount.ShouldBe(1);
+
+        var voteRecordAfterFirstWithdraw = await GetVotingRecord(firstVoteId);
+        voteRecordAfterFirstWithdraw.IsWithdrawn.ShouldBeTrue();
+        voteRecordAfterFirstWithdraw.WithdrawTimestamp.ShouldNotBeNull();
+
+        var secondWithdrawResult = await WithdrawWithException(DefaultSenderKeyPair, firstVoteId);
+        secondWithdrawResult.Status.ShouldBe(TransactionResultStatus.Failed);
+        secondWithdrawResult.Error.ShouldContain("Vote already withdrawn.");
+
+        var votingRecordAfterSecondWithdraw = await GetVotingRecord(firstVoteId);
+        votingRecordAfterSecondWithdraw.IsWithdrawn.ShouldBeTrue();
+        votingRecordAfterSecondWithdraw.WithdrawTimestamp.ShouldBe(voteRecordAfterFirstWithdraw.WithdrawTimestamp);
+
+        var firstVoterVoteIds = await GetVoteIds(Accounts[1].KeyPair, registerItem.VotingItemId);
+        firstVoterVoteIds.ActiveVotes.Count.ShouldBe(0);
+        firstVoterVoteIds.WithdrawnVotes.Count(id => id == firstVoteId).ShouldBe(1);
+
+        var secondVoterVoteIds = await GetVoteIds(Accounts[2].KeyPair, registerItem.VotingItemId);
+        secondVoterVoteIds.ActiveVotes.Count.ShouldBe(1);
+        secondVoterVoteIds.ActiveVotes.First().ShouldBe(secondVoteId);
+
+        var votingResultAfterSecondWithdraw = await GetVotingResult(registerItem.VotingItemId, 1);
+        votingResultAfterSecondWithdraw.VotesAmount.ShouldBe(voteAmount);
+        votingResultAfterSecondWithdraw.Results[option].ShouldBe(voteAmount);
+        votingResultAfterSecondWithdraw.VotersCount.ShouldBe(1);
     }
 
     [Fact]

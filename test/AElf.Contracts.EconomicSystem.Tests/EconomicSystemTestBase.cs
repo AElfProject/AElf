@@ -14,6 +14,7 @@ using AElf.Contracts.TokenHolder;
 using AElf.Contracts.Treasury;
 using AElf.Contracts.Vote;
 using AElf.Cryptography.ECDSA;
+using AElf.Types;
 using Volo.Abp.Threading;
 
 namespace AElf.Contracts.EconomicSystem.Tests;
@@ -29,6 +30,10 @@ public class EconomicSystemTestBase : EconomicContractsTestBase
 
     internal TokenContractImplContainer.TokenContractImplStub TokenContractImplStub =>
         GetTokenContractImplTester(BootMinerKeyPair);
+
+    protected Address OtherAddress => Address.FromPublicKey(Accounts[1].KeyPair.PublicKey);
+    internal TokenContractImplContainer.TokenContractImplStub OtherTokenContractStub =>
+        GetTokenContractTester(Accounts[1].KeyPair);
 
     internal TokenHolderContractImplContainer.TokenHolderContractImplStub TokenHolderStub =>
         GetTokenHolderTester(BootMinerKeyPair);
