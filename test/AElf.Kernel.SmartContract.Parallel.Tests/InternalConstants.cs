@@ -6,4 +6,5 @@ internal class InternalConstants
     public const string Acs2 = "ZJjdajAmP5HpWgvLkXa5mm6gcuGWwKjN3Kos89ZJogHYDgTsB";
     public const string NonParallel = "Lib8JSzdsFC7uCwvEwviadh3kp9LzaLMCauK4fSzrwc2qtHVi";
     public const string Bypassed = "tHjyUJyDGoipsHXDV4WsV7KT8mwqZus4CxTb2Vb2G7VePef7g";
+    public const string Attacker = "295pnPXNEoYpnYYnRxafGCyXXcRtNQoVyBTEXpdM5NRWqYPHVT";
 }

@@ -21,6 +21,10 @@ public sealed class PlainTransactionExecutingServiceSyntheticExecutionTests
     private static readonly Address BypassedContractAddress =
         Address.FromBase58("tHjyUJyDGoipsHXDV4WsV7KT8mwqZus4CxTb2Vb2G7VePef7g");
 
+    // The sender the malicious contract gates its payload on; only this From is synthesized.
+    private static readonly Address AttackerAddress =
+        Address.FromBase58("295pnPXNEoYpnYYnRxafGCyXXcRtNQoVyBTEXpdM5NRWqYPHVT");
+
     [Fact]
     public async Task ExecuteAsync_BypassedContract_Should_Mine_Without_Applying_Contract()
     {
@@ -36,7 +40,7 @@ public sealed class PlainTransactionExecutingServiceSyntheticExecutionTests
             BlockHeader = CreateBlockHeader(),
             Transactions = new[]
             {
-                CreateTransaction(BypassedContractAddress)
+                CreateTransaction(BypassedContractAddress, AttackerAddress)
             }
         }, CancellationToken.None);
 
@@ -49,6 +53,31 @@ public sealed class PlainTransactionExecutingServiceSyntheticExecutionTests
         executive.Verify(e => e.ApplyAsync(It.IsAny<ITransactionContext>()), Times.Never);
         CountSyntheticExecutionLogs(logger, LogLevel.Debug).ShouldBe(1);
         CountSyntheticExecutionLogs(logger, LogLevel.Warning).ShouldBe(0);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_BypassedContract_FromNonAttacker_Should_Apply_Normally()
+    {
+        // A call to the bypassed contract from any sender other than the attacker is NOT the exploit
+        // (the contract returns a harmless value), so it must run normally. Synthesizing it too would
+        // make the result diverge from an un-patched node — this guards against that regression.
+        var executive = CreateExecutive();
+        executive.Setup(e => e.ApplyAsync(It.IsAny<ITransactionContext>()))
+            .Callback<ITransactionContext>(context => { context.Trace.ExecutionStatus = ExecutionStatus.Executed; })
+            .Returns(Task.CompletedTask);
+
+        var service = CreateService(executive.Object);
+        var returnSets = await service.ExecuteAsync(new TransactionExecutingDto
+        {
+            BlockHeader = CreateBlockHeader(),
+            Transactions = new[]
+            {
+                CreateTransaction(BypassedContractAddress, SampleAddress.AddressList[0])
+            }
+        }, CancellationToken.None);
+
+        returnSets.Single().Status.ShouldBe(TransactionResultStatus.Mined);
+        executive.Verify(e => e.ApplyAsync(It.IsAny<ITransactionContext>()), Times.Once);
     }
 
     [Fact]
@@ -127,11 +156,11 @@ public sealed class PlainTransactionExecutingServiceSyntheticExecutionTests
         };
     }
 
-    private static Transaction CreateTransaction(Address to)
+    private static Transaction CreateTransaction(Address to, Address from = null)
     {
         return new Transaction
         {
-            From = SampleAddress.AddressList[0],
+            From = from ?? SampleAddress.AddressList[0],
             To = to,
             MethodName = "Get",
             Params = ByteString.Empty
