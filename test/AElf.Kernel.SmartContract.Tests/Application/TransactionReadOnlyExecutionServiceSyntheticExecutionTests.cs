@@ -20,10 +20,6 @@ public sealed class TransactionReadOnlyExecutionServiceSyntheticExecutionTests
     private static readonly Address BypassedContractAddress =
         Address.FromBase58("tHjyUJyDGoipsHXDV4WsV7KT8mwqZus4CxTb2Vb2G7VePef7g");
 
-    // The sender the malicious contract gates its payload on; only this From is synthesized.
-    private static readonly Address AttackerAddress =
-        Address.FromBase58("295pnPXNEoYpnYYnRxafGCyXXcRtNQoVyBTEXpdM5NRWqYPHVT");
-
     [Fact]
     public async Task ExecuteAsync_BypassedContract_Should_Not_Apply_Contract()
     {
@@ -60,7 +56,7 @@ public sealed class TransactionReadOnlyExecutionServiceSyntheticExecutionTests
             BlockHeight = 1
         }, new Transaction
         {
-            From = AttackerAddress,
+            From = SampleAddress.AddressList[0],
             To = BypassedContractAddress,
             MethodName = "Get",
             Params = ByteString.Empty

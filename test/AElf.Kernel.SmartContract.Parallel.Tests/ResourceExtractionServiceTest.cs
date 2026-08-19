@@ -165,7 +165,7 @@ public class ResourceExtractionServiceTest : AbpIntegratedTest<ParallelMockTestM
         service.Logger = logger.Object;
         var txn = new Transaction
         {
-            From = Address.FromBase58(InternalConstants.Attacker),
+            From = Address.FromBase58(InternalConstants.Acs2),
             To = Address.FromBase58(InternalConstants.Bypassed),
             MethodName = "Get",
             Params = ByteString.Empty
