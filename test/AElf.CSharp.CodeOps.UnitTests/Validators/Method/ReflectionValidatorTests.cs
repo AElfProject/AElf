@@ -1,4 +1,5 @@
 using AElf.CSharp.CodeOps.Validators.Method;
+using Mono.Cecil.Rocks;
 using Xunit;
 
 namespace AElf.CSharp.CodeOps.UnitTests.Validators.Method;
@@ -38,6 +39,66 @@ public class ReflectionValidatorTests : CSharpCodeOpsTestBase
     }";
         var errors = Validate(method);
         Assert.Contains(errors, e => e.Contains("Activator"));
+    }
+
+    [Fact]
+    public void Rejects_IReflect_InvokeMember()
+    {
+        // typeof(Assembly) (allowed, it is what typeof lowers to) + cast to IReflect reaches the
+        // same InvokeMember dynamic dispatch while declaring the call on a different type.
+        var method = @"
+    public string Foo(byte[] code)
+    {
+        System.Type t = typeof(System.Reflection.Assembly);
+        System.Reflection.IReflect r = (System.Reflection.IReflect)t;
+        var flags = System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public |
+                    System.Reflection.BindingFlags.InvokeMethod;
+        return r.InvokeMember(""Load"", flags, null, null, new object[] { code }, null, null, null).ToString();
+    }";
+        var errors = Validate(method);
+        Assert.Contains(errors, e => e.Contains("IReflect"));
+    }
+
+    [Fact]
+    public void Rejects_IReflect_InvokeMember_In_Deeply_Nested_Type()
+    {
+        // The auditor feeds methods from ALL nesting depths to method validators; make sure a
+        // payload hidden two levels down is still reached.
+        var source = new SourceCodeBuilder("TestContract")
+            .AddClass(@"
+    public class Outer
+    {
+        public class Inner
+        {
+            public static string Foo(byte[] code)
+            {
+                System.Type t = typeof(System.Reflection.Assembly);
+                System.Reflection.IReflect r = (System.Reflection.IReflect)t;
+                var flags = System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public |
+                            System.Reflection.BindingFlags.InvokeMethod;
+                return r.InvokeMember(""Load"", flags, null, null, new object[] { code }, null, null, null).ToString();
+            }
+        }
+    }", isNestedInContract: true)
+            .Build();
+        var module = CompileToAssemblyDefinition(source).MainModule;
+        var methodDefinition = module.GetAllTypes().SelectMany(t => t.Methods).Single(m => m.Name == "Foo");
+        var errors = new ReflectionValidator().Validate(methodDefinition, new CancellationToken())
+            .Select(r => r.Message).ToList();
+        Assert.Contains(errors, e => e.Contains("IReflect"));
+    }
+
+    [Fact]
+    public void Rejects_Delegate_CreateDelegate()
+    {
+        var method = @"
+    public string Foo()
+    {
+        var d = System.Delegate.CreateDelegate(typeof(System.Func<int>), this, ""Foo"");
+        return d.ToString();
+    }";
+        var errors = Validate(method);
+        Assert.Contains(errors, e => e.Contains("CreateDelegate"));
     }
 
     [Fact]

@@ -57,17 +57,110 @@ public class WhitelistReflectionHardeningTests : CSharpCodeOpsTestBase
         Assert.Contains(results, r => r.Info != null && r.Info.Type == "BindingFlags");
     }
 
-    // F2: a denied type used only as a parameter (never called on) is now caught.
+    // F2: a denied type used only as an own-method parameter (never called on) is now caught.
+    // NOTE: Binder has no op_Equality, and `is null` emits no call instruction — so unlike an
+    // `Assembly a` / `a == null` probe (which Roslyn lowers to Assembly.op_Equality), this test
+    // can ONLY pass because own-signature parameter types are scanned.
     [Fact]
     public void Rejects_Denied_Parameter_Type()
     {
         var results = ValidateContractMethod(@"
-    public string Foo(System.Reflection.Assembly a)
+    public string Foo(System.Reflection.Binder b)
     {
-        return a == null ? ""x"" : ""y"";
+        return b is null ? ""x"" : ""y"";
+    }");
+        Assert.Contains(results, r => r.Info != null && r.Info.Type.Contains("Binder") &&
+                                      r.Info.ReferencingMethod == "Foo");
+    }
+
+    // F2: same for a denied type used only as an own-method return type.
+    [Fact]
+    public void Rejects_Denied_Return_Type()
+    {
+        var results = ValidateContractMethod(@"
+    public System.Reflection.Binder Foo()
+    {
+        return null;
+    }");
+        Assert.Contains(results, r => r.Info != null && r.Info.Type.Contains("Binder") &&
+                                      r.Info.ReferencingMethod == "Foo");
+    }
+
+    // Depth: the whitelist must see types nested deeper than one level. A reflection-dispatch
+    // payload in a depth-2 nested type previously passed the whitelist entirely (the dedicated
+    // ReflectionValidator did not recognize IReflect either), re-opening the runtime assembly
+    // load bypass.
+    [Fact]
+    public void Rejects_Reflection_Dispatch_In_Deeply_Nested_Type()
+    {
+        var source = new SourceCodeBuilder("TestContract")
+            .AddClass(@"
+    public class Outer
+    {
+        public class Inner
+        {
+            public static object Pwn(byte[] code)
+            {
+                System.Type t = typeof(System.Reflection.Assembly);
+                System.Reflection.IReflect r = (System.Reflection.IReflect)t;
+                return r.InvokeMember(""Load"",
+                    System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public |
+                    System.Reflection.BindingFlags.InvokeMethod,
+                    null, null, new object[] { code }, null, null, null);
+            }
+        }
+    }", isNestedInContract: true)
+            .Build();
+        var module = CompileToAssemblyDefinition(source).MainModule;
+        var results = new WhitelistValidator(new WhitelistProvider())
+            .Validate(module, new CancellationToken()).ToList();
+        Assert.Contains(results, r => r.Info != null && r.Info.Type == "IReflect");
+        Assert.Contains(results, r => r.Info != null && r.Info.Type == "Assembly");
+    }
+
+    // Generics: a fully-trusted generic container must not launder a denied type argument.
+    [Fact]
+    public void Rejects_Generic_Container_Hiding_Denied_Argument()
+    {
+        var results = ValidateContractMethod(@"
+    public int Foo()
+    {
+        var list = new Google.Protobuf.Collections.RepeatedField<System.Reflection.Assembly>();
+        return list.Count;
     }");
         Assert.Contains(results, r => r.Info != null && r.Info.Type.Contains("Assembly") &&
                                       r.Info.ReferencingMethod == "Foo");
+    }
+
+    // Compatibility: lambdas / LINQ lower to compiler-generated delegate constructors with an
+    // (object, IntPtr) signature. Those ctor parameter types are exempt from scanning, so
+    // ordinary lambda usage must not produce IntPtr findings.
+    [Fact]
+    public void Allows_Lambdas_And_Linq()
+    {
+        var results = ValidateContractMethod(@"
+    public int Foo()
+    {
+        var xs = new System.Collections.Generic.List<int> { 1, 2, 3 };
+        System.Func<int, int> f = x => x + 1;
+        return System.Linq.Enumerable.Sum(System.Linq.Enumerable.Select(xs, f));
+    }");
+        Assert.DoesNotContain(results, r => r.Info != null && r.Info.Type == "IntPtr");
+        Assert.DoesNotContain(results, r => r.Info != null && r.Info.ReferencingMethod == "Foo");
+    }
+
+    // Compatibility: constructing/inspecting expression trees is safe (Compile/CompileToMethod
+    // remain banned by ReflectionValidator), so safe expression usage must pass the whitelist.
+    [Fact]
+    public void Allows_Safe_Expression_Tree_Use()
+    {
+        var results = ValidateContractMethod(@"
+    public string Foo()
+    {
+        System.Linq.Expressions.Expression e = System.Linq.Expressions.Expression.Constant(42);
+        return e.ToString();
+    }");
+        Assert.DoesNotContain(results, r => r.Info != null && r.Info.ReferencingMethod == "Foo");
     }
 
     private System.Collections.Generic.List<ValidationResult> ValidateContractMethod(string method)

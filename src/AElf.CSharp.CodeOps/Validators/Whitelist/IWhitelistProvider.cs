@@ -46,9 +46,10 @@ public class WhitelistProvider : IWhitelistProvider
             .Assembly(System.Reflection.Assembly.Load("System.Linq"), Trust.Full)
             // System.Linq.Expressions is intentionally NOT fully trusted: Expression.Compile() /
             // CompileToMethod() are runtime code generators (a sandbox-escape primitive). Partial trust
-            // means its types are validated against the whitelist (there is no namespace rule for them,
-            // so they are denied), and ReflectionValidator additionally blocks *.Compile. LINQ-to-objects
-            // lives in System.Linq (above) and is unaffected.
+            // means its types are validated against the whitelist. The namespace rule below allows
+            // expression-tree construction/inspection, while ReflectionValidator bans Compile /
+            // CompileToMethod regardless of the whitelist. LINQ-to-objects lives in System.Linq
+            // (above) and is unaffected.
             .Assembly(System.Reflection.Assembly.Load("System.Linq.Expressions"), Trust.Partial)
             .Assembly(System.Reflection.Assembly.Load("System.Collections"), Trust.Full)
             .Assembly(System.Reflection.Assembly.Load("Google.Protobuf"), Trust.Full)
@@ -111,6 +112,13 @@ public class WhitelistProvider : IWhitelistProvider
                 .Type(nameof(IDisposable), Permission.Allowed)
                 .Type(nameof(Convert), Permission.Allowed)
                 .Type(nameof(Math), Permission.Allowed)
+                // Events lower to Delegate.Combine/Remove and delegate equality. Dynamic dispatch
+                // through delegates (DynamicInvoke, CreateDelegate) is banned by ReflectionValidator.
+                .Type(nameof(Delegate), Permission.Denied, member => member
+                    .Member(nameof(Delegate.Combine), Permission.Allowed)
+                    .Member(nameof(Delegate.Remove), Permission.Allowed)
+                    .Member("op_Equality", Permission.Allowed)
+                    .Member("op_Inequality", Permission.Allowed))
                 // Primitive types
                 .Type(nameof(Boolean), Permission.Allowed)
                 .Type(nameof(Byte), Permission.Allowed)
@@ -157,6 +165,11 @@ public class WhitelistProvider : IWhitelistProvider
     {
         whitelist
             .Namespace("System.Linq", Permission.Allowed)
+            // Expression-tree construction and inspection (Expression.Constant/Parameter/Lambda, ...)
+            // are safe: producing executable code from a tree requires Compile()/CompileToMethod(),
+            // which ReflectionValidator bans outright, and referencing a member in an expression
+            // requires a MethodInfo/PropertyInfo, which is unreachable with reflection banned.
+            .Namespace("System.Linq.Expressions", Permission.Allowed)
             .Namespace("System.Collections", Permission.Allowed)
             .Namespace("System.Collections.Generic", Permission.Allowed)
             .Namespace("System.Collections.ObjectModel", Permission.Allowed)

@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
+using Mono.Cecil.Rocks;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.CSharp.CodeOps.Validators.Whitelist;
@@ -47,13 +48,11 @@ public abstract class WhitelistValidatorBase : IValidator<ModuleDefinition>
                 results.Add(new WhitelistValidationResult("Assembly " + asmRef.Name + " is not allowed."));
         }
 
-        // Validate types in the module
-        results.AddRange(module.Types.SelectMany(t => Validate(whiteList, t, ct)));
-
-        // Validate nested types
-        results.AddRange(module.Types
-            .SelectMany(t => t.NestedTypes)
-            .SelectMany(t => Validate(whiteList, t, ct)));
+        // Validate types in the module, at ANY nesting depth. Visiting only top-level types and
+        // their immediate NestedTypes leaves depth-2+ types — hand-written, or compiler-generated
+        // closures inside a nested helper — completely unscanned: a denied type referenced only
+        // from such a type (a reflection dispatch primitive, for instance) was invisible here.
+        results.AddRange(module.GetAllTypes().SelectMany(t => Validate(whiteList, t, ct)));
 
         return results;
     }
@@ -66,6 +65,15 @@ public abstract class WhitelistValidatorBase : IValidator<ModuleDefinition>
         {
             if (ct.IsCancellationRequested)
                 throw new ContractAuditTimeoutException();
+
+            // Validate the method's own signature. The instruction-operand and local scans below
+            // never see the declared signature, so a denied type used only as a parameter or
+            // return type (e.g. a reflection handle smuggled between helper methods) was
+            // invisible. Contract methods are synchronous protobuf-in/protobuf-out, so this adds
+            // no false positives for legitimate contracts.
+            results.AddRange(ValidateReference(whitelist, method, method.ReturnType));
+            foreach (var parameter in method.Parameters)
+                results.AddRange(ValidateReference(whitelist, method, parameter.ParameterType));
 
             if (!method.HasBody)
                 continue;
@@ -106,8 +114,15 @@ public abstract class WhitelistValidatorBase : IValidator<ModuleDefinition>
             // type were checked, so a denied type used only as a parameter (e.g. BindingFlags on
             // Type.InvokeMember) slipped through. ValidateReference short-circuits for fully-trusted and
             // generic-parameter types, so this only tightens the untrusted surface.
-            foreach (var parameter in methodReference.Parameters)
-                results.AddRange(ValidateReference(whitelist, method, parameter.ParameterType));
+            //
+            // Exception: compiler-generated delegate constructors take (object, IntPtr); every lambda
+            // in every contract references one, so scanning its parameters flags IntPtr in virtually
+            // all existing contracts. This opens no hole: a raw function pointer only enters via
+            // ldftn/ldvirtftn, whose method operand is itself validated above, and IntPtr remains
+            // denied as a local/return/parameter type everywhere else.
+            if (!IsCompilerGeneratedDelegateConstructor(methodReference))
+                foreach (var parameter in methodReference.Parameters)
+                    results.AddRange(ValidateReference(whitelist, method, parameter.ParameterType));
             // Validate generic arguments of generic method instances.
             if (methodReference is GenericInstanceMethod genericInstanceMethod)
                 foreach (var argument in genericInstanceMethod.GenericArguments)
@@ -132,6 +147,14 @@ public abstract class WhitelistValidatorBase : IValidator<ModuleDefinition>
         return Enumerable.Empty<ValidationResult>();
     }
 
+    private static bool IsCompilerGeneratedDelegateConstructor(MethodReference methodReference)
+    {
+        return methodReference.Name == ".ctor"
+               && methodReference.Parameters.Count == 2
+               && methodReference.Parameters[0].ParameterType.FullName == "System.Object"
+               && methodReference.Parameters[1].ParameterType.FullName == "System.IntPtr";
+    }
+
     private IEnumerable<ValidationResult> ValidateReference(Whitelist whitelist, MethodDefinition method,
         TypeReference type,
         string member = null)
@@ -142,11 +165,11 @@ public abstract class WhitelistValidatorBase : IValidator<ModuleDefinition>
         if (type.IsGenericParameter)
             return results;
 
-        // If referred type is from a fully trusted assembly, stop going deeper
-        if (whitelist.CheckAssemblyFullyTrusted(type.Resolve()?.Module.Assembly.Name))
-            return results;
-
-        // Dig deeper by calling ValidateReference until reaching base type
+        // Unwrap container shapes BEFORE applying assembly trust. A fully-trusted generic
+        // container (e.g. Google.Protobuf RepeatedField<T> or any System.Collections type) must
+        // not launder its type arguments: RepeatedField<Assembly> hid the denied Assembly
+        // argument when the trust check ran on the unresolved container first. Trust is applied
+        // to leaf/element types only, and generic arguments are always validated.
         if (type.IsByReference)
         {
             results.AddRange(ValidateReference(whitelist, method, type.GetElementType()));
@@ -171,6 +194,10 @@ public abstract class WhitelistValidatorBase : IValidator<ModuleDefinition>
             results.AddRange(ValidateReference(whitelist, method, type.GetElementType()));
             return results;
         }
+
+        // If referred type is from a fully trusted assembly, stop going deeper
+        if (whitelist.CheckAssemblyFullyTrusted(type.Resolve()?.Module.Assembly.Name))
+            return results;
 
         // Reached the most base type, now we can validate against the whitelist
         results.AddRange(ValidateAgainstWhitelist(whitelist, method, type, member));

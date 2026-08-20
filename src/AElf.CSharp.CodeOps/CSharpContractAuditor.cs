@@ -62,6 +62,20 @@ namespace AElf.CSharp.CodeOps
             }
 
 
+            // Reject on static findings BEFORE ACS validation. AcsValidator instantiates the
+            // contract type and invokes its static BindService method, i.e. it executes untrusted
+            // code inside the node process; if this ran first, a contract whose audit has already
+            // failed would still get its constructor/BindService executed.
+            // TODO: A statically CLEAN contract is still executed by AcsValidator today — ACS
+            // validation should be made metadata-only (read the base list with Mono.Cecil instead
+            // of Activator.CreateInstance + MethodInfo.Invoke).
+            if (findings.Count > 0)
+            {
+                throw new CSharpCodeCheckException(
+                    $"Contract code did not pass audit. Audit failed for contract: {modDef.Assembly.MainModule.Name}\n" +
+                    string.Join("\n", findings), findings.ToList());
+            }
+
             // Perform ACS validation
             if (requiredAcs != null)
             {

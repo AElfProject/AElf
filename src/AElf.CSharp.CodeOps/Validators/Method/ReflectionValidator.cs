@@ -62,6 +62,14 @@ public class ReflectionValidator : IValidator<MethodDefinition>, ITransientDepen
         "System.Reflection.EventInfo",
         "System.Reflection.MemberInfo",
         "System.Reflection.Module",
+        // IReflect is the reflection-dispatch interface System.Type implements: a cast
+        // ((IReflect)typeof(X)).InvokeMember(...) reaches the same dynamic dispatch as
+        // Type.InvokeMember while declaring the call on a type this validator did not match.
+        "System.Reflection.IReflect",
+        // Custom binders steer overload resolution for dynamic invocation.
+        "System.Reflection.Binder",
+        // The COM-facing interface System.Type also implements; it exposes InvokeMember too.
+        "System.Runtime.InteropServices._Type",
         "System.Reflection.Emit.ILGenerator",
         "System.Reflection.Emit.MethodBuilder",
         "System.Reflection.Emit.TypeBuilder",
@@ -78,7 +86,8 @@ public class ReflectionValidator : IValidator<MethodDefinition>, ITransientDepen
     // Specific (declaringType, method) pairs to ban without banning the whole declaring type.
     private static readonly HashSet<string> BannedMethods = new()
     {
-        "System.Delegate::DynamicInvoke"
+        "System.Delegate::DynamicInvoke",
+        "System.Delegate::CreateDelegate" // dynamic delegate construction = dynamic dispatch
     };
 
     // Expression-tree compilation is runtime code generation. Compile()/CompileToMethod() may be
