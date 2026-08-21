@@ -70,6 +70,30 @@ namespace TestContractNamespace
     }
 
     [Fact]
+    public void Other_Module_Validators_Do_Not_Throw_If_No_Contract_Is_Found()
+    {
+        var source = @"
+namespace TestContractNamespace
+{
+    public class NotAContract
+    {
+        public static int StaticField;
+    }
+}
+";
+        var module = CompileToAssemblyDefinition(source).MainModule;
+
+        var staticFieldErrors = new NoStaticFieldsValidator()
+            .Validate(module, new CancellationToken()).ToList();
+        var resetFieldErrors = new ResetFieldsValidator()
+            .Validate(module, new CancellationToken()).ToList();
+
+        Assert.Single(staticFieldErrors);
+        Assert.IsType<HasStaticFieldsValidationResult>(staticFieldErrors.Single());
+        Assert.Empty(resetFieldErrors);
+    }
+
+    [Fact]
     public void Check_Fails_If_More_Than_One_Contracts_Are_Found()
     {
         var source = @"
