@@ -99,16 +99,11 @@ public class WhitelistProvider : IWhitelistProvider
                     .Member(nameof(DateTime.Today), Permission.Denied))
                 .Type(typeof(void).Name, Permission.Allowed)
                 .Type(nameof(Object), Permission.Allowed)
-                // System.Type must NOT be fully allowed: with all members open, string-based reflection
-                // (Type.GetType(string) + Type.InvokeMember(...)) becomes a statically-invisible dispatch
-                // primitive that can reach Assembly.Load(byte[]) and load an un-audited stage-2 assembly.
-                // Only GetTypeFromHandle is needed by legitimate code (it is what typeof(x) lowers to and
-                // is used by protobuf-generated descriptor code). Everything else on Type is denied here;
-                // the dedicated ReflectionValidator provides a second, defense-in-depth layer.
-                .Type(nameof(Type), Permission.Denied, member => member
-                    .Member(nameof(Type.GetTypeFromHandle), Permission.Allowed) // typeof(x)
-                    .Member("op_Equality", Permission.Allowed)   // typeof(a) == typeof(b): safe type comparison
-                    .Member("op_Inequality", Permission.Allowed))
+                // Reflection and dynamic-code capabilities are checked at their actual call sites by
+                // ReflectionValidator. Keep Type itself compatible with existing generated and deployed
+                // contracts; treating all Type metadata access as a capability rejects safe operations
+                // such as GetEnumName without adding call-path coverage.
+                .Type(nameof(Type), Permission.Allowed)
                 .Type(nameof(IDisposable), Permission.Allowed)
                 .Type(nameof(Convert), Permission.Allowed)
                 .Type(nameof(Math), Permission.Allowed)
@@ -134,13 +129,9 @@ public class WhitelistProvider : IWhitelistProvider
                     .Member(nameof(String.Concat), Permission.Denied)
                 )
                 .Type(typeof(Byte[]).Name, Permission.Allowed)
-                // Opaque runtime handles. These are only ever referenced as parameters of otherwise
-                // allowed calls: Type.GetTypeFromHandle(RuntimeTypeHandle) emitted by typeof(x), and
-                // RuntimeHelpers.InitializeArray(Array, RuntimeFieldHandle) emitted by hardcoded array
-                // initialization. Now that parameter and local-variable types are validated, these must
-                // be allowed as bare type references or typeof()/array-init would be rejected in every
-                // contract. They carry no members useful to a contract (their pointer members return
-                // IntPtr, which is not whitelisted and is still caught via return/parameter validation).
+                // Opaque runtime handles occur in generated typeof()/array-initialization call shapes.
+                // Allowing the handle types keeps those shapes compatible; members that expose a raw
+                // pointer still return IntPtr, which remains denied by method-return validation.
                 .Type(nameof(RuntimeTypeHandle), Permission.Allowed)
                 .Type(nameof(RuntimeFieldHandle), Permission.Allowed)
                 .Type(nameof(RuntimeMethodHandle), Permission.Allowed)

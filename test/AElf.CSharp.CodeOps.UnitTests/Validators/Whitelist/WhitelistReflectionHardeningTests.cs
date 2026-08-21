@@ -2,15 +2,18 @@ using System.Linq;
 using System.Threading;
 using AElf.CSharp.CodeOps.Validators;
 using AElf.CSharp.CodeOps.Validators.Whitelist;
+using Mono.Cecil;
+using Mono.Cecil.Cil;
+using Mono.Cecil.Rocks;
 using Xunit;
 
 namespace AElf.CSharp.CodeOps.UnitTests.Validators.Whitelist;
 
 /// <summary>
 /// Covers the whitelist hardening around reflection:
-/// - F1: System.Type is denied except GetTypeFromHandle / op_Equality / op_Inequality.
-/// - F2: method parameter (and generic-argument) types are validated.
-/// - F3: method local-variable types are validated.
+/// - F1: System.Type metadata remains compatible; dynamic reflection calls are denied by ReflectionValidator.
+/// - F2: executable member/type operands and generic arguments are validated.
+/// - F3: passive callee/signature/local metadata remains compatible with deployed contracts.
 /// Plus the compatibility additions (RuntimeTypeHandle / RuntimeFieldHandle) that keep typeof()
 /// and hardcoded array initialization passing.
 /// </summary>
@@ -41,49 +44,73 @@ public class WhitelistReflectionHardeningTests : CSharpCodeOpsTestBase
         Assert.DoesNotContain(results, r => r.Info != null && r.Info.ReferencingMethod == "Foo");
     }
 
-    // F1 + F2: string-based reflection dispatch is rejected — Type.GetType/InvokeMember are denied
-    // members, and the BindingFlags parameter of InvokeMember is now caught by parameter validation.
+    // Compatibility: the formal parameter types of a safe framework call are metadata of the
+    // callee, not capabilities owned by the contract. These calls are explicitly whitelisted, but
+    // their signatures mention framework enums/interfaces that are intentionally absent from the
+    // contract whitelist.
     [Fact]
-    public void Rejects_Type_Reflection_Dispatch()
+    public void Allows_Safe_Calls_With_NonWhitelisted_Formal_Parameter_Types()
     {
         var results = ValidateContractMethod(@"
-    public object Foo(byte[] code)
+    public bool Foo(string value)
     {
-        System.Type t = System.Type.GetType(""System.Reflection.Assembly"");
-        var flags = System.Reflection.BindingFlags.Public;
-        return t.InvokeMember(""Load"", flags, null, null, new object[]{ code });
+        var parts = value.Split(new[] { "","" }, System.StringSplitOptions.RemoveEmptyEntries);
+        var parsed = System.Uri.TryCreate(value, System.UriKind.Absolute, out var uri);
+        var number = 1.25m.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        return parsed && parts.Length > 0 && number.Length > 0;
     }");
-        Assert.Contains(results, r => r.Info != null && r.Info.Type == "Type" && r.Info.Member == "InvokeMember");
-        Assert.Contains(results, r => r.Info != null && r.Info.Type == "BindingFlags");
+        Assert.DoesNotContain(results, r => r.Info != null && r.Info.ReferencingMethod == "Foo");
     }
 
-    // F2: a denied type used only as an own-method parameter (never called on) is now caught.
-    // NOTE: Binder has no op_Equality, and `is null` emits no call instruction — so unlike an
-    // `Assembly a` / `a == null` probe (which Roslyn lowers to Assembly.op_Equality), this test
-    // can ONLY pass because own-signature parameter types are scanned.
+    // Compatibility: deployed contracts use Type metadata helpers such as GetEnumName. Dynamic
+    // dispatch through Type.GetType/InvokeMember is covered by ReflectionValidatorTests.
     [Fact]
-    public void Rejects_Denied_Parameter_Type()
+    public void Allows_Safe_Type_Metadata_Access()
     {
-        var results = ValidateContractMethod(@"
+        var source = new SourceCodeBuilder("TestContract")
+            .AddClass(@"
+    public enum SampleValue
+    {
+        One = 1
+    }")
+            .AddMethod(@"
+    public string Foo()
+    {
+        var type = typeof(SampleValue);
+        var ignored = type.FullName;
+        return type.GetEnumName(SampleValue.One);
+    }")
+            .Build();
+        var results = ValidateContractSource(source);
+        Assert.DoesNotContain(results, r => r.Info != null && r.Info.ReferencingMethod == "Foo");
+    }
+
+    // Compatibility: passive signature and local metadata is not an executable capability. The
+    // dangerous paths that can create or invoke these values are checked at their actual IL
+    // operands by the whitelist and ReflectionValidator.
+    [Fact]
+    public void Allows_Passive_Signature_And_Local_Metadata()
+    {
+        var source = new SourceCodeBuilder("TestContract").AddMethod(@"
     public string Foo(System.Reflection.Binder b)
     {
         return b is null ? ""x"" : ""y"";
-    }");
-        Assert.Contains(results, r => r.Info != null && r.Info.Type.Contains("Binder") &&
-                                      r.Info.ReferencingMethod == "Foo");
     }
 
-    // F2: same for a denied type used only as an own-method return type.
-    [Fact]
-    public void Rejects_Denied_Return_Type()
-    {
-        var results = ValidateContractMethod(@"
-    public System.Reflection.Binder Foo()
+    public System.Reflection.Binder ReturnBinder()
     {
         return null;
-    }");
-        Assert.Contains(results, r => r.Info != null && r.Info.Type.Contains("Binder") &&
-                                      r.Info.ReferencingMethod == "Foo");
+    }").Build();
+        var module = CompileToAssemblyDefinition(source).MainModule;
+        var method = module.GetAllTypes().SelectMany(type => type.Methods)
+            .Single(candidate => candidate.Name == "Foo");
+        method.Body.Variables.Add(new VariableDefinition(module.ImportReference(typeof(System.IntPtr))));
+
+        var results = new WhitelistValidator(new WhitelistProvider())
+            .Validate(module, new CancellationToken()).ToList();
+        Assert.DoesNotContain(results, r => r.Info != null &&
+                                            (r.Info.ReferencingMethod == "Foo" ||
+                                             r.Info.ReferencingMethod == "ReturnBinder"));
     }
 
     // Depth: the whitelist must see types nested deeper than one level. A reflection-dispatch
@@ -133,8 +160,8 @@ public class WhitelistReflectionHardeningTests : CSharpCodeOpsTestBase
     }
 
     // Compatibility: lambdas / LINQ lower to compiler-generated delegate constructors with an
-    // (object, IntPtr) signature. Those ctor parameter types are exempt from scanning, so
-    // ordinary lambda usage must not produce IntPtr findings.
+    // (object, IntPtr) signature. Callee formal parameters are not contract-owned capabilities,
+    // so ordinary lambda usage must not produce IntPtr findings.
     [Fact]
     public void Allows_Lambdas_And_Linq()
     {
@@ -166,6 +193,11 @@ public class WhitelistReflectionHardeningTests : CSharpCodeOpsTestBase
     private System.Collections.Generic.List<ValidationResult> ValidateContractMethod(string method)
     {
         var source = new SourceCodeBuilder("TestContract").AddMethod(method).Build();
+        return ValidateContractSource(source);
+    }
+
+    private System.Collections.Generic.List<ValidationResult> ValidateContractSource(string source)
+    {
         var module = CompileToAssemblyDefinition(source).MainModule;
         var validator = new WhitelistValidator(new WhitelistProvider());
         return validator.Validate(module, new CancellationToken()).ToList();

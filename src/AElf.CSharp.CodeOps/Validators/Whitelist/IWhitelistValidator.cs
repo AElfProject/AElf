@@ -66,28 +66,8 @@ public abstract class WhitelistValidatorBase : IValidator<ModuleDefinition>
             if (ct.IsCancellationRequested)
                 throw new ContractAuditTimeoutException();
 
-            // Validate the method's own signature. The instruction-operand and local scans below
-            // never see the declared signature, so a denied type used only as a parameter or
-            // return type (e.g. a reflection handle smuggled between helper methods) was
-            // invisible. Contract methods are synchronous protobuf-in/protobuf-out, so this adds
-            // no false positives for legitimate contracts.
-            results.AddRange(ValidateReference(whitelist, method, method.ReturnType));
-            foreach (var parameter in method.Parameters)
-                results.AddRange(ValidateReference(whitelist, method, parameter.ParameterType));
-
             if (!method.HasBody)
                 continue;
-
-            // Validate local variable types. The instruction-operand scan does not see local variable
-            // declarations, so a denied type used only as a local (e.g. a reflection handle, or an enum
-            // whose values fold to integer constants) would otherwise be invisible.
-            if (method.Body.HasVariables)
-            {
-                foreach (var variable in method.Body.Variables)
-                {
-                    results.AddRange(ValidateReference(whitelist, method, variable.VariableType));
-                }
-            }
 
             foreach (var instruction in method.Body.Instructions)
             {
@@ -110,19 +90,13 @@ public abstract class WhitelistValidatorBase : IValidator<ModuleDefinition>
             results.AddRange(ValidateReference(whitelist, method, methodReference.DeclaringType,
                 methodReference.Name));
             results.AddRange(ValidateReference(whitelist, method, methodReference.ReturnType));
-            // Validate parameter types too. Previously only the declaring type, method name and return
-            // type were checked, so a denied type used only as a parameter (e.g. BindingFlags on
-            // Type.InvokeMember) slipped through. ValidateReference short-circuits for fully-trusted and
-            // generic-parameter types, so this only tightens the untrusted surface.
-            //
-            // Exception: compiler-generated delegate constructors take (object, IntPtr); every lambda
-            // in every contract references one, so scanning its parameters flags IntPtr in virtually
-            // all existing contracts. This opens no hole: a raw function pointer only enters via
-            // ldftn/ldvirtftn, whose method operand is itself validated above, and IntPtr remains
-            // denied as a local/return/parameter type everywhere else.
-            if (!IsCompilerGeneratedDelegateConstructor(methodReference))
-                foreach (var parameter in methodReference.Parameters)
-                    results.AddRange(ValidateReference(whitelist, method, parameter.ParameterType));
+            // Do not validate the callee's formal parameter metadata. A safe, explicitly whitelisted
+            // call can legitimately have framework-only parameter types that the contract never owns
+            // as a capability (for example UriKind, StringSplitOptions or IFormatProvider). Treating
+            // every formal parameter as an operand rejects existing contracts without improving call
+            // target coverage: the declaring type/member above is the executable target, while actual
+            // type operands and generic arguments are validated separately. Passive signature/local
+            // metadata is not an executable capability and is intentionally not treated as one.
             // Validate generic arguments of generic method instances.
             if (methodReference is GenericInstanceMethod genericInstanceMethod)
                 foreach (var argument in genericInstanceMethod.GenericArguments)
@@ -145,14 +119,6 @@ public abstract class WhitelistValidatorBase : IValidator<ModuleDefinition>
         }
 
         return Enumerable.Empty<ValidationResult>();
-    }
-
-    private static bool IsCompilerGeneratedDelegateConstructor(MethodReference methodReference)
-    {
-        return methodReference.Name == ".ctor"
-               && methodReference.Parameters.Count == 2
-               && methodReference.Parameters[0].ParameterType.FullName == "System.Object"
-               && methodReference.Parameters[1].ParameterType.FullName == "System.IntPtr";
     }
 
     private IEnumerable<ValidationResult> ValidateReference(Whitelist whitelist, MethodDefinition method,

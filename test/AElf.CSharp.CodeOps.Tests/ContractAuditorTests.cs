@@ -147,8 +147,9 @@ public class ContractAuditorTests : CSharpCodeOpsTestBase
                 () => _auditor.Audit(ReadContractCode(typeof(BadContract)), false))
             .Findings;
 
-        // Should have identified that ACS1 or ACS8 is not there
-        findings.FirstOrDefault(f => f is AcsValidationResult).ShouldNotBeNull();
+        // Static validation must stop the audit before ACS validation invokes BindService on
+        // untrusted code. ACS coverage for statically clean contracts is exercised separately.
+        findings.FirstOrDefault(f => f is AcsValidationResult).ShouldBeNull();
 
         // Random usage
         LookFor(findings,

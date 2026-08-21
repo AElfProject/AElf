@@ -157,6 +157,19 @@ public class ReflectionValidatorTests : CSharpCodeOpsTestBase
         Assert.Empty(Validate(method));
     }
 
+    [Fact]
+    public void Allows_Safe_Type_Metadata_Access()
+    {
+        var method = @"
+    public string Foo()
+    {
+        var type = typeof(System.DayOfWeek);
+        var ignored = type.FullName;
+        return type.GetEnumName(System.DayOfWeek.Monday);
+    }";
+        Assert.Empty(Validate(method));
+    }
+
     #region Private Helpers
 
     private List<string> Validate(string method)
