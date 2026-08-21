@@ -34,12 +34,13 @@ public class ExecutionObserverProxyChecker
     private readonly ModuleDefinition _module;
 
     private TypeDefinition _contractImplementationType;
+    private bool _contractImplementationTypeInitialized;
 
     private TypeDefinition ContractImplementationType
     {
         get
         {
-            if (_contractImplementationType == null)
+            if (!_contractImplementationTypeInitialized)
             {
                 bool BaseTypeIsInTheSameAssembly(TypeDefinition t)
                 {
@@ -48,15 +49,24 @@ public class ExecutionObserverProxyChecker
 
                 _contractImplementationType = _module.GetAllTypes()
                     .Where(t => t.IsContractImplementation())
-                    .First(BaseTypeIsInTheSameAssembly);
+                    .FirstOrDefault(BaseTypeIsInTheSameAssembly);
+                _contractImplementationTypeInitialized = true;
             }
 
             return _contractImplementationType;
         }
     }
 
-    private string ObserverFieldName =>
-        $"AElf.Kernel.SmartContract.IExecutionObserver {ContractImplementationType.Namespace}.{nameof(ExecutionObserverProxy)}::_observer";
+    private string ObserverFieldName
+    {
+        get
+        {
+            var contractImplementationType = ContractImplementationType;
+            return contractImplementationType == null
+                ? null
+                : $"AElf.Kernel.SmartContract.IExecutionObserver {contractImplementationType.Namespace}.{nameof(ExecutionObserverProxy)}::_observer";
+        }
+    }
 
     public ExecutionObserverProxyChecker(ModuleDefinition module)
     {
@@ -65,6 +75,7 @@ public class ExecutionObserverProxyChecker
 
     public bool IsObserverFieldThatRequiresResetting(FieldDefinition field)
     {
-        return field.FullName == ObserverFieldName;
+        var observerFieldName = ObserverFieldName;
+        return observerFieldName != null && field.FullName == observerFieldName;
     }
 }

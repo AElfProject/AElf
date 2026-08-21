@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
+using Mono.Cecil.Rocks;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.CSharp.CodeOps.Validators.Whitelist;
@@ -47,13 +48,11 @@ public abstract class WhitelistValidatorBase : IValidator<ModuleDefinition>
                 results.Add(new WhitelistValidationResult("Assembly " + asmRef.Name + " is not allowed."));
         }
 
-        // Validate types in the module
-        results.AddRange(module.Types.SelectMany(t => Validate(whiteList, t, ct)));
-
-        // Validate nested types
-        results.AddRange(module.Types
-            .SelectMany(t => t.NestedTypes)
-            .SelectMany(t => Validate(whiteList, t, ct)));
+        // Validate types in the module, at ANY nesting depth. Visiting only top-level types and
+        // their immediate NestedTypes leaves depth-2+ types — hand-written, or compiler-generated
+        // closures inside a nested helper — completely unscanned: a denied type referenced only
+        // from such a type (a reflection dispatch primitive, for instance) was invisible here.
+        results.AddRange(module.GetAllTypes().SelectMany(t => Validate(whiteList, t, ct)));
 
         return results;
     }
@@ -91,6 +90,17 @@ public abstract class WhitelistValidatorBase : IValidator<ModuleDefinition>
             results.AddRange(ValidateReference(whitelist, method, methodReference.DeclaringType,
                 methodReference.Name));
             results.AddRange(ValidateReference(whitelist, method, methodReference.ReturnType));
+            // Do not validate the callee's formal parameter metadata. A safe, explicitly whitelisted
+            // call can legitimately have framework-only parameter types that the contract never owns
+            // as a capability (for example UriKind, StringSplitOptions or IFormatProvider). Treating
+            // every formal parameter as an operand rejects existing contracts without improving call
+            // target coverage: the declaring type/member above is the executable target, while actual
+            // type operands and generic arguments are validated separately. Passive signature/local
+            // metadata is not an executable capability and is intentionally not treated as one.
+            // Validate generic arguments of generic method instances.
+            if (methodReference is GenericInstanceMethod genericInstanceMethod)
+                foreach (var argument in genericInstanceMethod.GenericArguments)
+                    results.AddRange(ValidateReference(whitelist, method, argument));
             return results;
         }
 
@@ -121,11 +131,11 @@ public abstract class WhitelistValidatorBase : IValidator<ModuleDefinition>
         if (type.IsGenericParameter)
             return results;
 
-        // If referred type is from a fully trusted assembly, stop going deeper
-        if (whitelist.CheckAssemblyFullyTrusted(type.Resolve()?.Module.Assembly.Name))
-            return results;
-
-        // Dig deeper by calling ValidateReference until reaching base type
+        // Unwrap container shapes BEFORE applying assembly trust. A fully-trusted generic
+        // container (e.g. Google.Protobuf RepeatedField<T> or any System.Collections type) must
+        // not launder its type arguments: RepeatedField<Assembly> hid the denied Assembly
+        // argument when the trust check ran on the unresolved container first. Trust is applied
+        // to leaf/element types only, and generic arguments are always validated.
         if (type.IsByReference)
         {
             results.AddRange(ValidateReference(whitelist, method, type.GetElementType()));
@@ -150,6 +160,10 @@ public abstract class WhitelistValidatorBase : IValidator<ModuleDefinition>
             results.AddRange(ValidateReference(whitelist, method, type.GetElementType()));
             return results;
         }
+
+        // If referred type is from a fully trusted assembly, stop going deeper
+        if (whitelist.CheckAssemblyFullyTrusted(type.Resolve()?.Module.Assembly.Name))
+            return results;
 
         // Reached the most base type, now we can validate against the whitelist
         results.AddRange(ValidateAgainstWhitelist(whitelist, method, type, member));

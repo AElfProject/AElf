@@ -44,7 +44,13 @@ public class WhitelistProvider : IWhitelistProvider
             .Assembly(System.Reflection.Assembly.Load("System.ObjectModel"), Trust.Partial)
             .Assembly(System.Reflection.Assembly.Load("System.Text.RegularExpressions"), Trust.Partial)
             .Assembly(System.Reflection.Assembly.Load("System.Linq"), Trust.Full)
-            .Assembly(System.Reflection.Assembly.Load("System.Linq.Expressions"), Trust.Full)
+            // System.Linq.Expressions is intentionally NOT fully trusted: Expression.Compile() /
+            // CompileToMethod() are runtime code generators (a sandbox-escape primitive). Partial trust
+            // means its types are validated against the whitelist. The namespace rule below allows
+            // expression-tree construction/inspection, while ReflectionValidator bans Compile /
+            // CompileToMethod regardless of the whitelist. LINQ-to-objects lives in System.Linq
+            // (above) and is unaffected.
+            .Assembly(System.Reflection.Assembly.Load("System.Linq.Expressions"), Trust.Partial)
             .Assembly(System.Reflection.Assembly.Load("System.Collections"), Trust.Full)
             .Assembly(System.Reflection.Assembly.Load("Google.Protobuf"), Trust.Full)
             .Assembly(typeof(CSharpSmartContract).Assembly, Trust.Full) // AElf.Sdk.CSharp
@@ -93,10 +99,21 @@ public class WhitelistProvider : IWhitelistProvider
                     .Member(nameof(DateTime.Today), Permission.Denied))
                 .Type(typeof(void).Name, Permission.Allowed)
                 .Type(nameof(Object), Permission.Allowed)
+                // Reflection and dynamic-code capabilities are checked at their actual call sites by
+                // ReflectionValidator. Keep Type itself compatible with existing generated and deployed
+                // contracts; treating all Type metadata access as a capability rejects safe operations
+                // such as GetEnumName without adding call-path coverage.
                 .Type(nameof(Type), Permission.Allowed)
                 .Type(nameof(IDisposable), Permission.Allowed)
                 .Type(nameof(Convert), Permission.Allowed)
                 .Type(nameof(Math), Permission.Allowed)
+                // Events lower to Delegate.Combine/Remove and delegate equality. Dynamic dispatch
+                // through delegates (DynamicInvoke, CreateDelegate) is banned by ReflectionValidator.
+                .Type(nameof(Delegate), Permission.Denied, member => member
+                    .Member(nameof(Delegate.Combine), Permission.Allowed)
+                    .Member(nameof(Delegate.Remove), Permission.Allowed)
+                    .Member("op_Equality", Permission.Allowed)
+                    .Member("op_Inequality", Permission.Allowed))
                 // Primitive types
                 .Type(nameof(Boolean), Permission.Allowed)
                 .Type(nameof(Byte), Permission.Allowed)
@@ -112,6 +129,12 @@ public class WhitelistProvider : IWhitelistProvider
                     .Member(nameof(String.Concat), Permission.Denied)
                 )
                 .Type(typeof(Byte[]).Name, Permission.Allowed)
+                // Opaque runtime handles occur in generated typeof()/array-initialization call shapes.
+                // Allowing the handle types keeps those shapes compatible; members that expose a raw
+                // pointer still return IntPtr, which remains denied by method-return validation.
+                .Type(nameof(RuntimeTypeHandle), Permission.Allowed)
+                .Type(nameof(RuntimeFieldHandle), Permission.Allowed)
+                .Type(nameof(RuntimeMethodHandle), Permission.Allowed)
             );
     }
 
@@ -133,6 +156,11 @@ public class WhitelistProvider : IWhitelistProvider
     {
         whitelist
             .Namespace("System.Linq", Permission.Allowed)
+            // Expression-tree construction and inspection (Expression.Constant/Parameter/Lambda, ...)
+            // are safe: producing executable code from a tree requires Compile()/CompileToMethod(),
+            // which ReflectionValidator bans outright, and referencing a member in an expression
+            // requires a MethodInfo/PropertyInfo, which is unreachable with reflection banned.
+            .Namespace("System.Linq.Expressions", Permission.Allowed)
             .Namespace("System.Collections", Permission.Allowed)
             .Namespace("System.Collections.Generic", Permission.Allowed)
             .Namespace("System.Collections.ObjectModel", Permission.Allowed)

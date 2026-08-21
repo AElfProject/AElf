@@ -23,8 +23,10 @@ public interface IChainManager
     Task<ChainBlockLink> GetChainBlockLinkAsync(Hash blockHash);
     List<ChainBlockLink> GetCachedChainBlockLinks();
     Task RemoveChainBlockLinkAsync(Hash blockHash);
+    Task RemoveChainBlockLinksAsync(IList<Hash> blockHashes);
     void CleanCachedChainBlockLinks(long height);
     Task<ChainBlockIndex> GetChainBlockIndexAsync(long blockHeight);
+    Task<List<ChainBlockIndex>> GetChainBlockIndicesAsync(IList<long> blockHeights);
     Task<BlockAttachOperationStatus> AttachBlockToChainAsync(Chain chain, ChainBlockLink chainBlockLink);
     Task<bool> SetIrreversibleBlockAsync(Chain chain, Hash irreversibleBlockHash);
     Task<List<ChainBlockLink>> GetNotExecutedBlocks(Hash blockHash);
@@ -142,6 +144,17 @@ public class ChainManager : IChainManager, ISingletonDependency
         _chainBlockLinkCacheProvider.RemoveChainBlockLink(blockHash);
     }
 
+    public async Task RemoveChainBlockLinksAsync(IList<Hash> blockHashes)
+    {
+        var prefix = ChainId.ToStorageKey() + KernelConstants.StorageKeySeparator;
+        await _chainBlockLinks.RemoveAllAsync(blockHashes.Select(h => prefix + h.ToStorageKey()).ToList());
+
+        foreach (var blockHash in blockHashes)
+        {
+            _chainBlockLinkCacheProvider.RemoveChainBlockLink(blockHash);
+        }
+    }
+
     public void CleanCachedChainBlockLinks(long height)
     {
         var chainBlockLinks = _chainBlockLinkCacheProvider.GetChainBlockLinks()
@@ -155,6 +168,12 @@ public class ChainManager : IChainManager, ISingletonDependency
     {
         return await _chainBlockIndexes.GetAsync(ChainId.ToStorageKey() + KernelConstants.StorageKeySeparator +
                                                  blockHeight.ToStorageKey());
+    }
+
+    public async Task<List<ChainBlockIndex>> GetChainBlockIndicesAsync(IList<long> blockHeights)
+    {
+        var prefix = ChainId.ToStorageKey() + KernelConstants.StorageKeySeparator;
+        return await _chainBlockIndexes.GetAllAsync(blockHeights.Select(h => prefix + h.ToStorageKey()).ToList());
     }
 
     public async Task<BlockAttachOperationStatus> AttachBlockToChainAsync(Chain chain, ChainBlockLink chainBlockLink)

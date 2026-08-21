@@ -26,8 +26,9 @@ public static class BlockchainServiceExtensions
         Hash firstHash, int count)
     {
         var blocks = await blockchainService.GetBlocksInBestChainBranchAsync(firstHash, count);
+        var availableBlocks = blocks.TakeWhile(block => block != null).ToList();
 
-        var list = blocks
+        var list = availableBlocks
             .Select(async block =>
             {
                 var transactions = await blockchainService.GetTransactionsAsync(block.TransactionIds);

@@ -1,4 +1,4 @@
-﻿using AElf.OS.Network;
+using AElf.OS.Network;
 using AElf.TestBase;
 
 namespace AElf.OS;
@@ -24,5 +24,9 @@ public class PeerInvalidTransactionTestBase : AElfIntegratedTest<PeerInvalidTran
 }
 
 public class PeerDiscoveryTestBase : AElfIntegratedTest<PeerDiscoveryTestModule>
+{
+}
+
+public class OSCoreWithChainTestBase : AElfIntegratedTest<OSCoreWithChainTestAElfModule>
 {
 }
