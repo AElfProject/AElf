@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -12,6 +13,7 @@ using AElf.Standards.ACS2;
 using AElf.Types;
 using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Moq;
 using Shouldly;
 using Volo.Abp.Testing;
@@ -153,6 +155,42 @@ public class ResourceExtractionServiceTest : AbpIntegratedTest<ParallelMockTestM
             ParallelType = ParallelType.NonParallelizable,
             ContractHash = executive.ContractHash
         });
+    }
+
+    [Fact]
+    public async Task GetResourcesAsync_BypassedContract_Should_Not_Apply_Contract()
+    {
+        var service = (ResourceExtractionService)Service;
+        var logger = new Mock<ILogger<ResourceExtractionService>>();
+        service.Logger = logger.Object;
+        var txn = new Transaction
+        {
+            From = Address.FromBase58(InternalConstants.Acs2),
+            To = Address.FromBase58(InternalConstants.Bypassed),
+            MethodName = "Get",
+            Params = ByteString.Empty
+        };
+
+        var resourceInfos =
+            (await service.GetResourcesAsync(new Mock<IChainContext>().Object, new[] { txn }, CancellationToken.None))
+            .ToList();
+
+        resourceInfos.Count.ShouldBe(1);
+        resourceInfos.First().TransactionResourceInfo.ShouldBe(new TransactionResourceInfo
+        {
+            TransactionId = txn.GetHash(),
+            ParallelType = ParallelType.NonParallelizable,
+            ContractHash = Hash.Empty
+        });
+        CountSyntheticResourceExtractionLogs(logger).ShouldBe(1);
+    }
+
+    private static int CountSyntheticResourceExtractionLogs(Mock<ILogger<ResourceExtractionService>> logger)
+    {
+        return logger.Invocations.Count(invocation =>
+            invocation.Method.Name == nameof(ILogger.Log) &&
+            (LogLevel)invocation.Arguments[0] == LogLevel.Debug &&
+            invocation.Arguments[2].ToString().Contains("synthetically marked non-parallelizable"));
     }
 
     [Fact]

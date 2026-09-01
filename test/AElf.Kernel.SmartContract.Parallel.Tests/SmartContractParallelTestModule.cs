@@ -9,10 +9,12 @@ using AElf.Kernel.SmartContractExecution.Parallel.Tests.TestContract;
 using AElf.Modularity;
 using AElf.OS;
 using AElf.Runtime.CSharp;
+using AElf.Standards.ACS2;
 using AElf.Types;
 using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
+using Shouldly;
 using Volo.Abp.Modularity;
 using Volo.Abp.Threading;
 using CleanBlockExecutedDataChangeHeightEventHandler =
@@ -27,10 +29,12 @@ public class ParallelMockTestModule : AElfModule
     {
         var services = context.Services;
         services.AddSingleton<IResourceExtractionService, ResourceExtractionService>();
+        services.AddSingleton<ISyntheticTransactionExecutionProvider, SyntheticTransactionExecutionProvider>();
         services.AddTransient<ParallelExecutionInterestedEventsHandler>();
         var executiveService = GetSmartContractExecutiveService(
             (InternalConstants.NonAcs2, GetNonAcs2Executive()),
-            (InternalConstants.Acs2, GetAcs2Executive()), (InternalConstants.NonParallel, GetNonParallelExecutive())
+            (InternalConstants.Acs2, GetAcs2Executive()), (InternalConstants.NonParallel, GetNonParallelExecutive()),
+            (InternalConstants.Bypassed, GetBypassedExecutive())
         );
         services.AddSingleton(executiveService);
         context.Services.AddSingleton(
@@ -99,6 +103,16 @@ public class ParallelMockTestModule : AElfModule
     }
 
     #endregion
+
+    private static IExecutive GetBypassedExecutive()
+    {
+        var executive = new Mock<IExecutive>();
+        executive.SetupGet(e => e.Descriptors).Returns(new[] { Acs2Reflection.Descriptor.Services[0] });
+        executive.SetupGet(e => e.ContractHash).Returns(Hash.Empty);
+        executive.Setup(e => e.ApplyAsync(It.IsAny<ITransactionContext>()))
+            .ThrowsAsync(new ShouldAssertException("Bypassed resource extraction should not call ApplyAsync."));
+        return executive.Object;
+    }
 
     private static IExecutive GetNonParallelExecutive()
     {

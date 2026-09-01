@@ -18,6 +18,7 @@ public class TransactionPoolAElfModule : AElfModule
         services.AddSingleton<ITransactionValidationProvider, TransactionExecutionValidationProvider>();
         services.AddSingleton<ITransactionValidationProvider, TransactionMethodValidationProvider>();
 
+        services.AddSingleton<ISyntheticTransactionExecutionProvider, SyntheticTransactionExecutionProvider>();
         services.AddSingleton<ITransactionReadOnlyExecutionService, TransactionReadOnlyExecutionService>();
         var configuration = context.Services.GetConfiguration();
         Configure<TransactionOptions>(configuration.GetSection("Transaction"));

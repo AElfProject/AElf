@@ -383,13 +383,8 @@ public partial class BasicContractZero
 
     private void AssertInlineDeployOrUpdateUserContract()
     {
-        Assert(Context.Origin == Context.Sender || !IsMainChain(),
+        Assert(Context.Origin == Context.Sender,
             "Deploy or update contracts using inline transactions is not allowed.");
-    }
-
-    private bool IsMainChain()
-    {
-        return Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName) != null;
     }
 
     private void ValidateContractOperation(ContractOperation contractOperation, int currentVersion, Hash codeHash)
